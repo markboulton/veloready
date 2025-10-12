@@ -141,7 +141,7 @@ struct HealthKitPermissionsSheet: View {
             if healthKitManager.isAuthorized {
                 Text("HealthKit permissions are now enabled! Your data will be analyzed to provide personalized insights.")
             } else {
-                Text("To enable HealthKit permissions:\n\n1. Tap 'Open Settings' below\n2. Scroll down and tap 'Privacy & Security'\n3. Tap 'Health'\n4. Find 'RideReady' and enable the permissions\n\nThen return to the app to see your data.")
+                Text("To enable HealthKit permissions:\n\n1. Tap 'Open Settings' below\n2. Scroll down and tap 'Privacy & Security'\n3. Tap 'Health'\n4. Find 'VeloReady' and enable the permissions\n\nThen return to the app to see your data.")
             }
         }
     }

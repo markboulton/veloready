@@ -81,10 +81,10 @@ protocol AIBriefClientProtocol {
 class AIBriefClient: AIBriefClientProtocol {
     static let shared = AIBriefClient()
     
-    private let endpoint = "https://api.rideready.icu/ai-brief"
+    private let endpoint = "https://veloready.app/ai-brief"
     private let session: URLSession
     let cache: AIBriefCache // Made public for debug access
-    private let keychainService = "com.markboulton.rideready.secrets"
+    private let keychainService = "com.veloready.app.secrets"
     private let secretKey = "APP_HMAC_SECRET"
     
     // Retry configuration

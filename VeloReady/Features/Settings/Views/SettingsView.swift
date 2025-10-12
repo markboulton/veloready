@@ -105,7 +105,7 @@ struct SettingsView: View {
                     }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("RideReady User")
+                    Text("VeloReady User")
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -347,7 +347,7 @@ struct SettingsView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("About RideReady")
+                    Text("About VeloReady")
                         .font(.body)
                     
                     Text("Version 1.0.0")

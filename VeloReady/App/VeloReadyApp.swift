@@ -95,10 +95,8 @@ struct RootView: View {
             print("🔗 URL scheme: \(url.scheme ?? "nil"), host: \(url.host ?? "nil")")
             
             // Handle Strava OAuth (Universal Link or custom scheme)
-            // Support both veloready.app and legacy rideready.icu
-            if ((url.scheme == "https" && (url.host == "veloready.app" || url.host == "rideready.icu") && url.path.contains("/auth/strava")) ||
-                (url.scheme == "veloready" && url.path.contains("/auth/strava")) ||
-                (url.scheme == "rideready" && url.path.contains("/auth/strava"))) {
+            if ((url.scheme == "https" && url.host == "veloready.app" && url.path.contains("/auth/strava")) ||
+                (url.scheme == "veloready" && url.path.contains("/auth/strava"))) {
                 print("✅ Strava OAuth callback detected")
                 Task {
                     await stravaAuthService.handleCallback(url: url)
@@ -107,9 +105,7 @@ struct RootView: View {
             }
             
             // Handle Intervals.icu OAuth
-            // Support both veloready:// and legacy rideready://
             if ((url.scheme == "veloready" && url.path.contains("/auth/intervals")) ||
-                (url.scheme == "rideready" && url.path.contains("/auth/intervals")) ||
                 url.scheme == "com.veloready.app") {
                 print("✅ Intervals.icu OAuth callback detected")
                 Task {

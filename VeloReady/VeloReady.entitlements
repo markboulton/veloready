@@ -4,7 +4,6 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:rideready.icu</string>
 		<string>applinks:veloready.app</string>
 		<string>applinks:api.veloready.app</string>
 	</array>

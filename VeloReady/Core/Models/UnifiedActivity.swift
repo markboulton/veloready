@@ -134,7 +134,19 @@ struct UnifiedActivity: Identifiable {
         self.source = .appleHealth
         self.duration = workout.duration
         self.distance = workout.totalDistance?.doubleValue(for: .meter())
-        self.calories = Int(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0)
+        
+        // Use new iOS 18+ API for active energy burned
+        let calories: Int
+        if #available(iOS 18.0, *), 
+           let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
+           let energyStatistics = workout.statistics(for: energyType),
+           let totalEnergy = energyStatistics.sumQuantity() {
+            calories = Int(totalEnergy.doubleValue(for: .kilocalorie()))
+        } else {
+            calories = Int(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0)
+        }
+        self.calories = calories
+        
         self.averageHeartRate = nil // Would need separate query
         self.maxHeartRate = nil
         self.averagePower = nil

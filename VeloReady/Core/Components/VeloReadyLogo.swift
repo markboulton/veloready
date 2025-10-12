@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// RideReady logo component - text-based for now
-struct RideReadyLogo: View {
+/// VeloReady logo component - text-based for now
+struct VeloReadyLogo: View {
     let size: LogoSize
     
     enum LogoSize {
@@ -43,7 +43,7 @@ struct RideReadyLogo: View {
             }
             
             // Text logo
-            Text("RideReady")
+            Text("VeloReady")
                 .font(.system(size: size.fontSize, weight: .bold, design: .default))
                 .tracking(1)
                 .foregroundStyle(LinearGradient(
@@ -57,12 +57,12 @@ struct RideReadyLogo: View {
 
 // MARK: - Preview
 
-struct RideReadyLogo_Previews: PreviewProvider {
+struct VeloReadyLogo_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 40) {
-            RideReadyLogo(size: .small)
-            RideReadyLogo(size: .medium)
-            RideReadyLogo(size: .large)
+            VeloReadyLogo(size: .small)
+            VeloReadyLogo(size: .medium)
+            VeloReadyLogo(size: .large)
         }
         .padding()
     }

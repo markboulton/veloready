@@ -9,7 +9,7 @@ struct WelcomeStepView: View {
             Spacer()
             
             // Logo
-            RideReadyLogo(size: .large)
+            VeloReadyLogo(size: .large)
             
             // Welcome message
             VStack(spacing: 16) {

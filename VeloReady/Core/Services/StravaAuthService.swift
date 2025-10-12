@@ -48,7 +48,7 @@ class StravaAuthService: NSObject, ObservableObject {
         
         print("🔗 [STRAVA OAUTH] Auth URL constructed:")
         print("   URL: \(authURL.absoluteString)")
-        print("   Using: Custom Scheme (veloready:// + legacy rideready://)")
+        print("   Using: Custom Scheme (veloready://)")
         print("   Strava redirect: https://veloready.app/auth/strava/callback")
         print("   App callback: veloready://auth/strava/done")
         
@@ -194,7 +194,6 @@ class StravaAuthService: NSObject, ObservableObject {
             URLQueryItem(name: "state", value: state),
             // Always send HTTPS URL to Strava (they don't accept custom schemes)
             // The HTML page will redirect to the custom scheme after token exchange
-            // Use veloready.app as primary, rideready.icu still works as alias
             URLQueryItem(name: "redirect", value: "https://veloready.app/auth/strava/callback")
         ]
         return components?.url
@@ -202,11 +201,11 @@ class StravaAuthService: NSObject, ObservableObject {
     
     private func validateCallbackURL(_ url: URL) -> Bool {
         if StravaAuthConfig.useUniversalLinks {
-            // Validate Universal Link - support both domains
-            return url.scheme == "https" && (url.host == "veloready.app" || url.host == "rideready.icu")
+            // Validate Universal Link
+            return url.scheme == "https" && url.host == "veloready.app"
         } else {
-            // Validate custom scheme - support both veloready and legacy rideready
-            return url.scheme == "veloready" || url.scheme == "rideready"
+            // Validate custom scheme
+            return url.scheme == "veloready"
         }
     }
     

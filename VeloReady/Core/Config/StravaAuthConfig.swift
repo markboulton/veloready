@@ -3,7 +3,7 @@ import Foundation
 /// Configuration constants for Strava OAuth
 enum StravaAuthConfig {
     // Backend configuration
-    static let backendBase = "https://rideready.icu"
+    static let backendBase = "https://veloready.app"
     static let startURL = "\(backendBase)/oauth/strava/start"
     static let statusURL = "\(backendBase)/api/me/strava/status"
     
@@ -11,8 +11,8 @@ enum StravaAuthConfig {
     // Toggle this to switch between Universal Links and custom URL scheme
     static let useUniversalLinks = false
     
-    static let universalLinkRedirect = "https://rideready.icu/oauth/strava/done"
-    static let customSchemeRedirect = "rideready://oauth/strava/done"
+    static let universalLinkRedirect = "https://veloready.app/oauth/strava/done"
+    static let customSchemeRedirect = "veloready://oauth/strava/done"
     
     /// The active redirect URL based on configuration
     static var redirectURL: String {

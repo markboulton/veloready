@@ -1,7 +1,7 @@
 import CoreData
 import Foundation
 
-/// Manages the Core Data stack for RideReady
+/// Manages the Core Data stack for VeloReady
 final class PersistenceController {
     // MARK: - Singleton
     
@@ -68,7 +68,7 @@ final class PersistenceController {
     // MARK: - Initialization
     
     private init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "RideReady")
+        container = NSPersistentContainer(name: "VeloReady")
         
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")

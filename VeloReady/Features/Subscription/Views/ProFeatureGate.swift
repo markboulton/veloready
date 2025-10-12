@@ -46,7 +46,7 @@ struct ProFeatureGate<Content: View>: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                 
-                Text("Upgrade to RideReady Pro")
+                Text("Upgrade to VeloReady Pro")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)

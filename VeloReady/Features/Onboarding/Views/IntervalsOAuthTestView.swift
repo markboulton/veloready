@@ -171,7 +171,7 @@ struct IntervalsOAuthTestView: View {
             "client_id": "108",
             "client_secret": "lahzoh8pieCha5aiFai4eeveax0aithi",
             "code": "test_code",
-            "redirect_uri": "com.markboulton.rideready://oauth/callback"
+            "redirect_uri": "veloready://oauth/callback"
         ]
         
         let bodyString = body.map { "\($0.key)=\($0.value)" }.joined(separator: "&")

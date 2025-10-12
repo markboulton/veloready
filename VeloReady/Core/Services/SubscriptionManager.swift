@@ -14,8 +14,8 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Product IDs
     
-    private let monthlyProductID = "com.rideready.pro.monthly"
-    private let yearlyProductID = "com.rideready.pro.yearly"
+    private let monthlyProductID = "com.veloready.pro.monthly"
+    private let yearlyProductID = "com.veloready.pro.yearly"
     
     // MARK: - Products
     
@@ -291,7 +291,7 @@ enum SubscriptionStatus: Equatable {
         case .trial(let days):
             return "Trial (\(days) days left)"
         case .subscribed:
-            return "RideReady Pro"
+            return "VeloReady Pro"
         }
     }
 }

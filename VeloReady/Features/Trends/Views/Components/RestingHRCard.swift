@@ -187,7 +187,7 @@ struct RestingHRCard: View {
         
         let avg = averageRHR
         let deviation = avg - baselineRHR
-        let percentDeviation = (deviation / baselineRHR) * 100
+        _ = (deviation / baselineRHR) * 100 // Calculate percent deviation for future use
         
         if abs(deviation) < 2 {
             return "RHR is stable at baseline (\(Int(avg)) bpm). Good cardiovascular consistency."

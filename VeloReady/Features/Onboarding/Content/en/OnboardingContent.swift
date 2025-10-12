@@ -5,7 +5,7 @@ enum OnboardingContent {
     // MARK: - Health Permissions
     enum HealthPermissions {
         static let title = "Health Data Access"  /// Health permissions title
-        static let description = "RideReady needs access to your health data to calculate recovery scores and track your training."  /// Description
+        static let description = "VeloReady needs access to your health data to calculate recovery scores and track your training."  /// Description
         static let grantAccess = "Grant Access"  /// Grant access button
         static let required = "Required Permissions"  /// Required section title
         static let optional = "Optional Permissions"  /// Optional section title
@@ -31,7 +31,7 @@ enum OnboardingContent {
     
     // MARK: - Welcome
     enum Welcome {
-        static let title = "Welcome to RideReady"  /// Welcome title
+        static let title = "Welcome to VeloReady"  /// Welcome title
         static let subtitle = "Your Personal Cycling Performance Tracker"  /// Subtitle
         static let getStarted = "Get Started"  /// Get started button
         static let feature1Title = "Track Recovery"  /// Feature 1 title

@@ -16,7 +16,7 @@ enum SettingsContent {
     
     // MARK: - Profile
     enum Profile {
-        static let user = "RideReady User"  /// Default user name
+        static let user = "VeloReady User"  /// Default user name
         static let tagline = "Cycling Performance Tracker"  /// App tagline
     }
     
@@ -89,7 +89,7 @@ enum SettingsContent {
     
     // MARK: - About
     enum About {
-        static let title = "About RideReady"  /// About title
+        static let title = "About VeloReady"  /// About title
         static let version = "Version 1.0.0"  /// Version string
         static let helpTitle = "Help & Support"  /// Help title
         static let helpDescription = "Get help and report issues"  /// Help description

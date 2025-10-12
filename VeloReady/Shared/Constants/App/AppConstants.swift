@@ -10,7 +10,7 @@ struct AppConstants {
     
     // MARK: - API Configuration
     struct API {
-        static let baseURL = "https://api.rideready.com"
+        static let baseURL = "https://api.veloready.app"
         static let timeout: TimeInterval = 30.0
     }
     

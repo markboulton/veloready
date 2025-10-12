@@ -78,8 +78,9 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
             print("🌐 WebView navigating to: \(url.absoluteString)")
             
             // Check if this is our OAuth callback
-            if url.scheme == "com.markboulton.rideready" {
-                print("✅ OAuth callback detected in WebView")
+            if url.scheme == "veloready" || url.scheme == "com.veloready.app" {
+                print("✅ OAuth callback detected in WebView: \(url.scheme ?? "unknown")://")
+                print("   Full URL: \(url.absoluteString)")
                 parent.onCallback(url)
                 decisionHandler(.cancel)
                 return

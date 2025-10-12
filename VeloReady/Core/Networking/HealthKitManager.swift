@@ -954,7 +954,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -981,7 +981,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -1008,7 +1008,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -1035,7 +1035,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -1062,7 +1062,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -1089,7 +1089,7 @@ class HealthKitManager: ObservableObject {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(returning: [])
                     return
                 }
@@ -1252,7 +1252,19 @@ class HealthKitManager: ObservableObject {
                 // Debug: Print details of each workout
                 for (index, workout) in workouts.prefix(5).enumerated() {
                     let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
-                    let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+                    
+                    // Use new iOS 18+ API for active energy burned
+                    let calories: Double
+                    if #available(iOS 18.0, *),
+                       let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
+                       let energyStatistics = workout.statistics(for: energyType),
+                       let totalEnergy = energyStatistics.sumQuantity() {
+                        calories = totalEnergy.doubleValue(for: .kilocalorie())
+                    } else {
+                        // Fallback for iOS < 18.0 - using deprecated API intentionally for compatibility
+                        calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+                    }
+                    
                     print("   Workout \(index + 1): \(workout.workoutActivityType.name)")
                     print("      Date: \(workout.startDate)")
                     print("      Duration: \(Int(workout.duration / 60))m")

@@ -21,9 +21,8 @@ class IntervalsOAuthManager: ObservableObject {
     // OAuth Configuration - Based on official intervals.icu documentation
     private let clientID = "108"
     private let clientSecret = "lahzoh8pieCha5aiFai4eeveax0aithi"
-    // Use new veloready:// scheme, but support legacy rideready:// in callback handler
+    // Use veloready:// scheme
     private let redirectURI = "veloready://auth/intervals/callback"
-    private let legacyRedirectURI = "rideready://auth/intervals/callback"
     private let baseURL = "https://intervals.icu"
     private let authURL = "https://intervals.icu/oauth/authorize"
     private let tokenURL = "https://intervals.icu/api/oauth/token" // Correct endpoint per documentation

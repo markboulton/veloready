@@ -317,9 +317,9 @@ class RecoveryScoreCalculator {
         let hrvBaseline = inputs.hrvBaseline
         
         // Detect alcohol patterns based on HRV and RHR combination
-        let hrvPenalty = 100 - hrvScore
-        let rhrPenalty = 100 - rhrScore
-        let sleepPenalty = 100 - sleepScore
+        _ = 100 - hrvScore // HRV penalty for future detailed analysis
+        _ = 100 - rhrScore // RHR penalty for future detailed analysis
+        _ = 100 - sleepScore // Sleep penalty for future detailed analysis
         
         // Alcohol detection thresholds (balanced for moderate consumption)
         let alcoholHRVThreshold = 40 // HRV score < 60 indicates potential alcohol

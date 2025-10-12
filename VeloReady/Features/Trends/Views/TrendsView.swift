@@ -312,7 +312,7 @@ struct TrendsView: View {
             Button(action: { showPaywall = true }) {
                 HStack {
                     Image(systemName: "star.fill")
-                    Text("Upgrade to RideReady PRO")
+                    Text("Upgrade to VeloReady PRO")
                 }
                 .font(.button)
                 .foregroundColor(.white)

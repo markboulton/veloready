@@ -16,7 +16,7 @@ class IntervalsAPIClient: ObservableObject {
     // MARK: - Initialization
     // Network optimization
     private let urlSession: URLSession
-    private let requestQueue = DispatchQueue(label: "com.rideready.api.requests", qos: .userInitiated)
+    private let requestQueue = DispatchQueue(label: "com.veloready.api.requests", qos: .userInitiated)
     private var pendingRequests: [String: Task<Data, Error>] = [:]
     private var lastRequestTime: Date?
     private let minimumRequestInterval: TimeInterval = 1.0 // 1 second between requests

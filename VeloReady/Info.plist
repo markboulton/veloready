@@ -72,7 +72,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>veloready</string>
-				<string>rideready</string>
 				<string>com.veloready.app</string>
 			</array>
 		</dict>

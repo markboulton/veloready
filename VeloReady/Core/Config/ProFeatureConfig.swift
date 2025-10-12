@@ -1,6 +1,6 @@
 import Foundation
 
-/// Configuration for Pro (RideReady+) features
+/// Configuration for Pro (VeloReady+) features
 /// Centralized feature flagging system for Free vs Pro tiers
 @MainActor
 class ProFeatureConfig: ObservableObject {
@@ -162,7 +162,7 @@ class ProFeatureConfig: ObservableObject {
     
     // MARK: - Feature Lists
     
-    /// Get list of all RideReady Pro features for display in paywall
+    /// Get list of all VeloReady Pro features for display in paywall
     var proFeaturesList: [ProFeature] {
         return [
             ProFeature(

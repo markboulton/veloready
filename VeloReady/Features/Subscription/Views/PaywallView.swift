@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Paywall view for RideReady Pro subscription
+/// Paywall view for VeloReady Pro subscription
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var config = ProFeatureConfig.shared

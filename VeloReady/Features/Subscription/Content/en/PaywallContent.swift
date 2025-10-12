@@ -41,7 +41,7 @@ enum PaywallContent {
     static let errorAlertOK = "OK"      /// Error alert OK button
     
     // MARK: - Navigation
-    static let navigationTitle = "RideReady Pro"    /// Navigation bar title
+    static let navigationTitle = "VeloReady Pro"    /// Navigation bar title
     static let closeButton = "Close"    /// Close button text
     
     // MARK: - Subscription Plans

@@ -14,7 +14,7 @@ struct BenefitsStepView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("What RideReady Does")
+                Text("What VeloReady Does")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)

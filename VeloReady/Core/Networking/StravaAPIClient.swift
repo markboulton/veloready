@@ -205,7 +205,7 @@ class StravaAPIClient: ObservableObject {
     /// Get access token from backend
     private func getAccessToken() async throws -> String? {
         // Query backend for token
-        let backendURL = "https://rideready.icu/api/me/strava/token"
+        let backendURL = "https://veloready.app/api/me/strava/token"
         
         guard let url = URL(string: backendURL) else {
             throw StravaAPIError.invalidURL

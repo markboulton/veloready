@@ -20,7 +20,7 @@ struct OAuthDebugView: View {
                                 .fontWeight(.semibold)
                             
                             Text("Client ID: 108")
-                            Text("Redirect URI: com.markboulton.rideready://oauth/callback")
+                            Text("Redirect URI: veloready://oauth/callback")
                             Text("Scopes: ACTIVITY WELLNESS CALENDAR")
                         }
                         .padding()
@@ -167,7 +167,7 @@ struct OAuthDebugView: View {
             "client_id": "108",
             "client_secret": "lahzoh8pieCha5aiFai4eeveax0aithi",
             "code": "test_code",
-            "redirect_uri": "com.markboulton.rideready://oauth/callback"
+            "redirect_uri": "veloready://oauth/callback"
         ]
         
         let bodyString = body.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
@@ -189,7 +189,7 @@ struct OAuthDebugView: View {
     
     private func testCallbackURL() {
         // Simulate a callback URL to test the handling
-        let testCallbackURL = "com.markboulton.rideready://oauth/callback?code=test_code&state=test_state"
+        let testCallbackURL = "veloready://oauth/callback?code=test_code&state=test_state"
         
         if let url = URL(string: testCallbackURL) {
             debugInfo = "Testing callback URL: \(testCallbackURL)"

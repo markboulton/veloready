@@ -121,10 +121,10 @@ protocol RideSummaryClientProtocol {
 class RideSummaryClient: RideSummaryClientProtocol {
     static let shared = RideSummaryClient()
     
-    private let endpoint = "https://api.rideready.icu/ai-ride-summary"
+    private let endpoint = "https://veloready.app/ai-ride-summary"
     private let session: URLSession
     let cache: RideSummaryCache
-    private let keychainService = "com.markboulton.rideready.secrets"
+    private let keychainService = "com.veloready.app.secrets"
     private let secretKey = "APP_HMAC_SECRET"
     
     // Retry configuration

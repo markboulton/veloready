@@ -26,7 +26,7 @@ struct HealthKitStepView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("RideReady needs access to Apple Health to track your recovery metrics")
+                Text("VeloReady needs access to Apple Health to track your recovery metrics")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

@@ -72,12 +72,22 @@
 			);
 			target = FA2A74072E895F0D0047AC79 /* VeloReady */;
 		};
+		4A6F6B152E8BDD0000D8A526 /* Exceptions for "VeloReadyWidget" folder in "RideReadyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */ = {
+		4A6F6AFB2E8BDC3200D8A526 /* VeloReadyWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = RideReadyWidget;
+			exceptions = (
+				4A6F6B152E8BDD0000D8A526 /* Exceptions for "VeloReadyWidget" folder in "RideReadyWidgetExtension" target */,
+			);
+			path = VeloReadyWidget;
 			sourceTree = "<group>";
 		};
 		FA2A740A2E895F0D0047AC79 /* VeloReady */ = {
@@ -147,7 +157,7 @@
 		FA2A73FF2E895F0D0047AC79 = {
 			isa = PBXGroup;
 			children = (
-				4A6F6B142E8BDCAB00D8A526 /* RideReadyWidgetExtension.entitlements */,
+				4A6F6B142E8BDCAB00D8A526 /* VeloReadyWidgetExtension.entitlements */,
 				FA2A743F2E89605C0047AC79 /* LICENSE.md */,
 				FA2A743D2E89604C0047AC79 /* README.md */,
 				FA2A743C2E8960430047AC79 /* Config */,
@@ -155,7 +165,7 @@
 				FA2A740A2E895F0D0047AC79 /* VeloReady */,
 				FA2A741B2E895F0F0047AC79 /* VeloReadyTests */,
 				FA2A74252E895F0F0047AC79 /* VeloReadyUITests */,
-				4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */,
+				4A6F6AFB2E8BDC3200D8A526 /* VeloReadyWidget */,
 				FA2A74842E8968D20047AC79 /* Frameworks */,
 				FA2A74092E895F0D0047AC79 /* Products */,
 			);
@@ -197,7 +207,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */,
+				4A6F6AFB2E8BDC3200D8A526 /* VeloReadyWidget */,
 			);
 			name = RideReadyWidgetExtension;
 			packageProductDependencies = (

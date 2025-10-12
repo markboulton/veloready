@@ -2,7 +2,7 @@ import SwiftUI
 import Charts
 
 /// Card displaying Recovery vs Power correlation (scatter plot)
-/// This is a unique RideReady feature - no other app correlates health + performance
+/// This is a unique VeloReady feature - no other app correlates health + performance
 struct RecoveryVsPowerCard: View {
     let data: [TrendsViewModel.CorrelationDataPoint]
     let correlation: CorrelationCalculator.CorrelationResult?
@@ -96,7 +96,7 @@ struct RecoveryVsPowerCard: View {
                 .font(.labelSecondary)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Only RideReady can show this correlation")
+                Text("Only VeloReady can show this correlation")
                     .font(.labelSecondary)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
@@ -255,7 +255,7 @@ struct RecoveryVsPowerCard: View {
     
     // Calculate trend line Y value using linear regression
     private func trendLineY(x: Double) -> Double {
-        guard let correlation = correlation, data.count >= 2 else { return 0 }
+        guard correlation != nil, data.count >= 2 else { return 0 }
         
         let xValues = data.map(\.x)
         let yValues = data.map(\.y)
