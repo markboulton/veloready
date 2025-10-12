@@ -143,14 +143,22 @@ class RecoveryScoreService: ObservableObject {
         currentRecoveryScore = realScore
         // Mark that we've calculated today's recovery score and save to cache
         if let score = currentRecoveryScore {
+            // Check if recovery score actually changed
+            let previousScore = loadCachedRecoveryScoreData()
+            let scoreChanged = previousScore?.score != score.score
+            
             if !ignoreDailyLimit {
                 markAsCalculatedToday()
             }
             saveRecoveryScoreToCache(score)
             
-            // Refresh AI brief to sync with new recovery data
-            await AIBriefService.shared.refresh()
-            print("🔄 AI brief refreshed to sync with recovery score")
+            // Only refresh AI brief if recovery score actually changed (avoids unnecessary API calls)
+            if scoreChanged {
+                print("📊 Recovery score changed (\(previousScore?.score ?? 0) → \(score.score)) - refreshing AI brief")
+                await AIBriefService.shared.refresh()
+            } else {
+                print("⏭️ Recovery score unchanged - skipping AI brief refresh")
+            }
         }
     }
     
@@ -427,7 +435,7 @@ class RecoveryScoreService: ObservableObject {
     // MARK: - Daily Recovery Score Tracking
     
     /// Check if we've already calculated today's recovery score
-    private func hasCalculatedToday() -> Bool {
+    func hasCalculatedToday() -> Bool {
         guard let lastCalculation = lastRecoveryCalculationDate else { return false }
         
         let calendar = Calendar.current
@@ -501,6 +509,20 @@ extension RecoveryScoreService {
         } else {
             print("📦 Cached recovery score is outdated, clearing cache")
             clearCachedRecoveryScore()
+        }
+    }
+    
+    /// Load cached recovery score data (for comparison)
+    private func loadCachedRecoveryScoreData() -> RecoveryScore? {
+        guard let cachedData = userDefaults.data(forKey: cachedRecoveryScoreKey) else {
+            return nil
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            return try decoder.decode(RecoveryScore.self, from: cachedData)
+        } catch {
+            return nil
         }
     }
     

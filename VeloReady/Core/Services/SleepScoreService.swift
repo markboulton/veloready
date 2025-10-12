@@ -149,17 +149,17 @@ class SleepScoreService: ObservableObject {
             clearSleepScoreCache()
             print("🗑️ Cleared sleep score cache - no data available")
             
-            // Only trigger recovery refresh once to avoid infinite loop
-            if !hasTriggeredRecoveryRefresh {
-                hasTriggeredRecoveryRefresh = true
-                
-                // Defer recovery score refresh to avoid UI cascade
+            // Only trigger recovery refresh if it hasn't been calculated yet
+            // (No need to recalculate if recovery is already done - it handles missing sleep gracefully)
+            if !RecoveryScoreService.shared.hasCalculatedToday() {
                 Task {
                     // Wait 2 seconds to let UI settle
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
                     print("🔄 Triggering deferred recovery score refresh due to missing sleep data")
                     await RecoveryScoreService.shared.forceRefreshRecoveryScoreIgnoringDailyLimit()
                 }
+            } else {
+                print("⏭️ Recovery already calculated today - skipping force refresh")
             }
         }
     }

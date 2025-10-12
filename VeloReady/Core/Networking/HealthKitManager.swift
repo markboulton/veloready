@@ -809,41 +809,50 @@ class HealthKitManager: ObservableObject {
     }
     
     /// Fetch hourly step counts for today (for sparkline visualization)
+    /// Optimized to use HKStatisticsCollectionQuery for batch fetching
     func fetchTodayHourlySteps() async -> [Int] {
         guard let stepsType = HKObjectType.quantityType(forIdentifier: .stepCount) else {
             return Array(repeating: 0, count: 24)
         }
         
-        let calendar = Calendar.current
-        let now = Date()
-        let startOfDay = calendar.startOfDay(for: now)
-        let currentHour = calendar.component(.hour, from: now)
-        
-        var hourlySteps = Array(repeating: 0, count: 24)
-        
-        // Fetch steps for each hour up to current hour
-        for hour in 0...currentHour {
-            guard let hourStart = calendar.date(byAdding: .hour, value: hour, to: startOfDay),
-                  let hourEnd = calendar.date(byAdding: .hour, value: hour + 1, to: startOfDay) else {
-                continue
+        return await withCheckedContinuation { continuation in
+            let calendar = Calendar.current
+            let now = Date()
+            let startOfDay = calendar.startOfDay(for: now)
+            
+            // Create interval components for 1 hour
+            var interval = DateComponents()
+            interval.hour = 1
+            
+            let query = HKStatisticsCollectionQuery(
+                quantityType: stepsType,
+                quantitySamplePredicate: nil,
+                options: .cumulativeSum,
+                anchorDate: startOfDay,
+                intervalComponents: interval
+            )
+            
+            query.initialResultsHandler = { _, results, error in
+                if let error = error {
+                    print("❌ HealthKit hourly steps error: \(error.localizedDescription)")
+                    continuation.resume(returning: Array(repeating: 0, count: 24))
+                    return
+                }
+                
+                var hourlySteps = Array(repeating: 0, count: 24)
+                
+                results?.enumerateStatistics(from: startOfDay, to: now) { statistics, _ in
+                    let hour = calendar.component(.hour, from: statistics.startDate)
+                    if hour < 24, let sum = statistics.sumQuantity() {
+                        hourlySteps[hour] = Int(sum.doubleValue(for: .count()))
+                    }
+                }
+                
+                continuation.resume(returning: hourlySteps)
             }
             
-            let predicate = HKQuery.predicateForSamples(
-                withStart: hourStart,
-                end: min(hourEnd, now),
-                options: .strictStartDate
-            )
-            
-            let steps = await fetchSum(
-                for: stepsType,
-                predicate: predicate,
-                unit: HKUnit.count()
-            )
-            
-            hourlySteps[hour] = Int(steps)
+            healthStore.execute(query)
         }
-        
-        return hourlySteps
     }
     
     // MARK: - Helper Methods
@@ -918,13 +927,16 @@ class HealthKitManager: ObservableObject {
                 options: .cumulativeSum
             ) { _, statistics, error in
                 if let error = error {
-                    print("❌ HealthKit fetchSum error for \(type.identifier): \(error.localizedDescription)")
+                    // Only log meaningful errors (not "no data" errors)
+                    if (error as NSError).code != 11 { // HKError code 11 = no data
+                        print("❌ HealthKit fetchSum error for \(type.identifier): \(error.localizedDescription)")
+                    }
                     continuation.resume(returning: 0.0)
                     return
                 }
                 
                 guard let sum = statistics?.sumQuantity() else {
-                    print("⚠️ No data available for \(type.identifier)")
+                    // Silently return 0 for missing data (normal case)
                     continuation.resume(returning: 0.0)
                     return
                 }
