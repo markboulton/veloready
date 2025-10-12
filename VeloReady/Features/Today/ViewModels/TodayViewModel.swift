@@ -10,6 +10,7 @@ class TodayViewModel: ObservableObject {
     @Published var wellnessData: [IntervalsWellness] = []
     @Published var isLoading = false
     @Published var isInitializing = true
+    @Published var isDataLoaded = false // Track when all initial data is ready
     @Published var errorMessage: String?
     
     // Track if initial UI has been loaded to prevent duplicate calls
@@ -67,6 +68,7 @@ class TodayViewModel: ObservableObject {
         print("⏱️ Starting full data refresh...")
         
         isLoading = true
+        isDataLoaded = false
         errorMessage = nil
         
         // Fetch activities from all connected sources
@@ -164,10 +166,8 @@ class TodayViewModel: ObservableObject {
         let totalTime = endTime - startTime
         print("⏱️ Total refresh time: \(String(format: "%.2f", totalTime))s")
         
-        // Sync athlete profile from Strava if Intervals is not connected
-        await syncAthleteProfileFromStrava()
-        
         isLoading = false
+        isDataLoaded = true
     }
     
     /// Sync athlete profile (FTP, weight) from Strava if not available from Intervals.icu
@@ -267,6 +267,14 @@ class TodayViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
             print("🎯 PHASE 3: Starting background data refresh...")
             await refreshData()
+            
+            // Mark as initialized and data loaded with smooth transition
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isInitializing = false
+                    isDataLoaded = true
+                }
+            }
             print("✅ PHASE 3: Background data refresh completed")
         }
     }
