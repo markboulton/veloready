@@ -121,7 +121,7 @@ struct FTPTrendCard: View {
                 y: .value("FTP", point.value)
             )
             .foregroundStyle(ColorScale.blueAccent)
-            .lineStyle(StrokeStyle(lineWidth: 2))
+            .lineStyle(StrokeStyle(lineWidth: 1))
             
             AreaMark(
                 x: .value("Date", point.date),

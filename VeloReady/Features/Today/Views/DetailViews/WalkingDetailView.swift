@@ -281,7 +281,7 @@ struct HeartRateChart: View {
                         y: .value("HR", sample.heartRate)
                     )
                     .foregroundStyle(Color.workout.heartRate)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .lineStyle(StrokeStyle(lineWidth: 1))
                 }
             }
             .chartXAxis {
@@ -298,11 +298,11 @@ struct HeartRateChart: View {
             }
             .chartYAxis {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
-                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
                         .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
-                            Text("\(intValue)")
+                            Text("\(intValue) bpm")
                                 .font(.caption2)
                         }
                     }

@@ -129,7 +129,7 @@ struct RestingHRCard: View {
                     y: .value("RHR", point.value)
                 )
                 .foregroundStyle(ColorScale.pinkAccent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 
                 AreaMark(
                     x: .value("Date", point.date),

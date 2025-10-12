@@ -114,7 +114,7 @@ struct TrainingLoadTrendCard: View {
                     series: .value("Metric", "CTL")
                 )
                 .foregroundStyle(ColorScale.blueAccent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
             }
             
@@ -126,7 +126,7 @@ struct TrainingLoadTrendCard: View {
                     series: .value("Metric", "ATL")
                 )
                 .foregroundStyle(ColorScale.amberAccent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
             }
             

@@ -48,10 +48,24 @@ struct InteractiveMapView: UIViewRepresentable {
         
         // Add lock/unlock button
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "lock.fill"), for: .normal)
-        button.tintColor = .white
-        button.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
-        button.layer.cornerRadius = 20
+        // Reduce icon size by 50%
+        let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        button.setImage(UIImage(systemName: "lock.fill", withConfiguration: config), for: .normal)
+        
+        // Adaptive colors for dark/light mode
+        if #available(iOS 13.0, *) {
+            button.tintColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark ? .white : .black
+            }
+            button.backgroundColor = UIColor { traitCollection in
+                traitCollection.userInterfaceStyle == .dark ? .black : .white
+            }
+        } else {
+            button.tintColor = .white
+            button.backgroundColor = .black
+        }
+        
+        button.layer.cornerRadius = 15  // 75% smaller (was 20, now 30x30)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(context.coordinator, action: #selector(Coordinator.toggleLock), for: .touchUpInside)
         containerView.addSubview(button)
@@ -67,8 +81,8 @@ struct InteractiveMapView: UIViewRepresentable {
             
             button.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 12),
             button.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
-            button.widthAnchor.constraint(equalToConstant: 40),
-            button.heightAnchor.constraint(equalToConstant: 40)
+            button.widthAnchor.constraint(equalToConstant: 30),  // 75% smaller
+            button.heightAnchor.constraint(equalToConstant: 30)  // 75% smaller
         ])
         
         return containerView
@@ -93,7 +107,8 @@ struct InteractiveMapView: UIViewRepresentable {
             mapView?.isScrollEnabled = !isLocked
             
             let iconName = isLocked ? "lock.fill" : "lock.open.fill"
-            lockButton?.setImage(UIImage(systemName: iconName), for: .normal)
+            let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+            lockButton?.setImage(UIImage(systemName: iconName, withConfiguration: config), for: .normal)
         }
         
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {

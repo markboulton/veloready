@@ -109,7 +109,7 @@ struct TrendChart: View {
                         y: .value("Value", animatedValue)
                     )
                     .foregroundStyle(colorForValue(point.value))
-                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .lineStyle(StrokeStyle(lineWidth: 1))
                     .interpolationMethod(.catmullRom)
                     
                 case .area:

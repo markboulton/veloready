@@ -37,21 +37,19 @@ class AIBriefService: ObservableObject {
     
     /// Fetch AI brief for today
     func fetchBrief(bypassCache: Bool = false) async {
-        // Skip cache if sleep data is missing (recovery will refresh soon)
-        let sleepDataMissing = SleepScoreService.shared.currentSleepScore == nil
-        
-        // Check Core Data cache first (unless bypassing or sleep data missing)
-        if !bypassCache && !sleepDataMissing, let cachedBrief = loadFromCoreData() {
+        // Check Core Data cache first (unless bypassing)
+        if !bypassCache, let cachedBrief = loadFromCoreData() {
             briefText = cachedBrief
             isCached = true
             print("📦 Using cached AI brief from Core Data")
             return
         }
         
-        // If sleep data is missing, show loading state and wait for recovery refresh
-        if sleepDataMissing && !bypassCache {
-            print("⏳ Sleep data missing - waiting for recovery refresh to fetch AI brief")
-            return
+        // Always fetch if recovery is available (even with missing sleep)
+        // The API handles missing sleep gracefully
+        let sleepDataMissing = SleepScoreService.shared.currentSleepScore == nil
+        if sleepDataMissing {
+            print("⚠️ Sleep data missing - fetching AI brief anyway (recovery score available)")
         }
         
         isLoading = true

@@ -91,7 +91,7 @@ struct TrainingLoadChart: View {
                             series: .value("Metric", "CTL")
                         )
                         .foregroundStyle(Color.button.primary)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -111,7 +111,7 @@ struct TrainingLoadChart: View {
                             series: .value("Metric", "ATL")
                         )
                         .foregroundStyle(Color.semantic.warning)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -131,7 +131,7 @@ struct TrainingLoadChart: View {
                             series: .value("Metric", "TSB")
                         )
                         .foregroundStyle(ColorScale.greenAccent)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -290,19 +290,13 @@ struct TrainingLoadChart: View {
         // Sort by date (oldest first)
         activitiesWithDates.sort { $0.date < $1.date }
         
-        print("📊 TrainingLoadChart: Processing \(activitiesWithDates.count) activities with CTL/ATL data")
-        
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateFormat = "yyyy-MM-dd"
-        
-        print("📊 TrainingLoadChart: Generating 30 days of historical data for ride on \(displayFormatter.string(from: rideDate))")
+        // Silently process activities
         
         // 30 days of historical data
         for dayOffset in -29...0 {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: rideDate) else { continue }
             
             let isRide = (dayOffset == 0)
-            let dateStr = displayFormatter.string(from: date)
             
             let ctlValue: Double
             let atlValue: Double
@@ -311,7 +305,7 @@ struct TrainingLoadChart: View {
                 // This is the ride we're viewing - use "after" values
                 ctlValue = ctlAfter
                 atlValue = atlAfter
-                print("  📊 Day \(dayOffset) (\(dateStr)): RIDE DAY - CTL=\(ctlValue), ATL=\(atlValue)")
+                // This is the ride day
             } else {
                 // Find the most recent activity on or before this date
                 let dayEnd = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: date)!)
@@ -319,10 +313,10 @@ struct TrainingLoadChart: View {
                 if let mostRecent = activitiesWithDates.last(where: { $0.date < dayEnd }) {
                     ctlValue = mostRecent.ctl
                     atlValue = mostRecent.atl
-                    print("  📊 Day \(dayOffset) (\(dateStr)): REAL DATA - CTL=\(String(format: "%.1f", ctlValue)), ATL=\(String(format: "%.1f", atlValue))")
+                    // Historical data point
                 } else {
                     // No activity data before this date - skip
-                    print("  ⚠️ Day \(dayOffset) (\(dateStr)): NO DATA (before first activity) - skipping")
+                    // No data before first activity
                     continue
                 }
             }

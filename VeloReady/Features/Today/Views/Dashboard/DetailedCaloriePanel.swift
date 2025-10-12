@@ -69,7 +69,7 @@ struct DetailedCaloriePanel: View {
                     Text("\(Int(totalCalories))")
                         .font(.headline)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
                 }
             }
             

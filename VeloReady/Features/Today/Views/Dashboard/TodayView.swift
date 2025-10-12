@@ -13,6 +13,7 @@ struct TodayView: View {
     @State private var showMissingSleepInfo = false
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
+    @State private var isSleepBannerExpanded = true
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -67,16 +68,15 @@ struct TodayView: View {
                        
                         
                         // Recovery Metrics (Three Graphs) - Lazy loaded
-                        LazyVStack(spacing: 20) {
-                            recoveryMetricsSection
-                        }
-                        
-                        // Missing sleep data warning (dismissable)
+                        // Missing sleep data warning (collapsible, above metrics)
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
-                           recoveryScore.inputs.sleepDuration == nil,
-                           !missingSleepBannerDismissed {
+                           recoveryScore.inputs.sleepDuration == nil {
                             missingSleepDataBanner
+                        }
+                        
+                        LazyVStack(spacing: 20) {
+                            recoveryMetricsSection
                         }
                         
                         // AI Daily Brief - Lazy loaded (only show when HealthKit authorized)
@@ -340,11 +340,7 @@ struct TodayView: View {
                                         Text(TodayContent.Scores.sleepScore)
                                             .font(.headline)
                                             .fontWeight(.semibold)
-                                        if !missingSleepBannerDismissed {
-                                            Image(systemName: "chevron.right")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
+                                        // No chevron when sleep data is missing
                                     }
                                     
                                     Button(action: {
@@ -784,83 +780,47 @@ struct TodayView: View {
     // MARK: - Missing Sleep Data Banner
     
     private var missingSleepDataBanner: some View {
-        ZStack(alignment: .topTrailing) {
-            // Main content
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(Color(.systemGray5))
-                        .frame(width: 40, height: 40)
+        VStack(alignment: .leading, spacing: 0) {
+            // Header row - always visible
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isSleepBannerExpanded.toggle()
+                }
+            }) {
+                HStack(spacing: 12) {
                     Image(systemName: "moon.fill")
                         .foregroundColor(.secondary)
-                        .font(.system(size: 18))
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
+                        .font(.system(size: 16))
+                    
                     Text("Sleep data missing")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    
-                    Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                
-                Spacer()
-            }
-            .padding()
-            
-            // Dismiss button overlaid at top-right
-            Button(action: {
-                missingSleepBannerDismissed = true
-                UserDefaults.standard.set(true, forKey: "missingSleepBannerDismissed")
-            }) {
-                Image(systemName: "xmark")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(6)
-                    .background(Circle().fill(Color(.systemGray5)))
-            }
-            .padding(8)
-        }
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .sheet(isPresented: $showMissingSleepInfo) {
-            NavigationView {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "moon.fill")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 24))
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Sleep data missing")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            
-                            Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                        .foregroundColor(.primary)
                     
                     Spacer()
-                }
-                .padding()
-                .navigationTitle("Sleep Data")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            showMissingSleepInfo = false
-                        }
-                    }
+                    
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .rotationEffect(.degrees(isSleepBannerExpanded ? 0 : -90))
+                        .animation(.easeInOut(duration: 0.3), value: isSleepBannerExpanded)
                 }
             }
-            .presentationDetents([.height(200)])
+            .buttonStyle(PlainButtonStyle())
+            
+            // Expandable content
+            if isSleepBannerExpanded {
+                Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 8)
+                    .padding(.leading, 28) // Align with text above (icon width + spacing)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
     
     // MARK: - Actions

@@ -15,18 +15,6 @@ struct AIBriefView: View {
                         .fontWeight(.semibold)
                     
                     Spacer()
-                    
-                    // Refresh button
-                    Button(action: {
-                        Task {
-                            await service.refresh()
-                        }
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundColor(Color.button.primary)
-                            .font(.subheadline)
-                    }
-                    .disabled(service.isLoading)
                 }
                 
                 // Content

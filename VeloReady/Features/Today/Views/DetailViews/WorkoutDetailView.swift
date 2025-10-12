@@ -50,9 +50,7 @@ struct WorkoutDetailView: View {
     @State private var isLoadingMap = false
     
     private var samples: [WorkoutSample] {
-        let samples = viewModel.samples
-        print("🎯 WorkoutDetailView: samples property accessed - \(samples.count) samples")
-        return samples
+        viewModel.samples
     }
     
     // Use enriched activity if available, otherwise use original
@@ -66,12 +64,6 @@ struct WorkoutDetailView: View {
     }
     
     var body: some View {
-        let _ = print("🎯 ========== WORKOUT DETAIL VIEW: RENDERING ==========")
-        let _ = print("🎯 Activity: \(activity.name ?? "Unknown")")
-        let _ = print("🎯 Activity ID: \(activity.id)")
-        let _ = print("🎯 Samples count: \(samples.count)")
-        let _ = print("🎯 FTP: \(ftp ?? 0)W")
-        let _ = print("🎯 Max HR: \(maxHR ?? 0)bpm")
         
         return ScrollView {
             LazyVStack(spacing: 0) {
@@ -143,6 +135,7 @@ struct WorkoutDetailView: View {
                 AdditionalDataSection(activity: displayActivity)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
+                    .padding(.bottom, 80)  // Extra padding to lift above tab bar
             }
         }
         .background(Color.background.primary)
@@ -391,34 +384,10 @@ struct WorkoutInfoHeader: View {
         }
     }
     
-    // MARK: - Debug Logging
+    // MARK: - Debug Logging (disabled for performance)
     
     private func logActivityData() {
-        print("📊 ========== ACTIVITY DETAIL VIEW DATA ==========")
-        print("📊 Activity: \(activity.name ?? "Untitled")")
-        print("📊 ID: \(activity.id)")
-        print("📊 Type: \(activity.type ?? "Unknown")")
-        print("📊 Date: \(activity.startDateLocal)")
-        print("📊 ")
-        print("📊 PRIMARY METRICS (Top Section):")
-        print("📊   Duration: \(activity.duration != nil ? "\(activity.duration!) sec" : "NIL ❌")")
-        print("📊   Distance: \(activity.distance != nil ? "\(activity.distance!) m" : "NIL ❌")")
-        print("📊   TSS: \(activity.tss != nil ? "\(activity.tss!)" : "NIL ❌")")
-        print("📊   Normalized Power: \(activity.normalizedPower != nil ? "\(activity.normalizedPower!) W" : "NIL ❌")")
-        print("📊   Intensity Factor: \(activity.intensityFactor != nil ? "\(activity.intensityFactor!)" : "NIL ❌")")
-        print("📊   Average Speed: \(activity.averageSpeed != nil ? "\(activity.averageSpeed!) km/h" : "NIL ❌")")
-        print("📊 ")
-        print("📊 ADDITIONAL METRICS (Bottom Section):")
-        print("📊   Calories: \(activity.calories != nil ? "\(activity.calories!)" : "NIL")")
-        print("📊   Average Power: \(activity.averagePower != nil ? "\(activity.averagePower!) W" : "NIL")")
-        print("📊   Max HR: \(activity.maxHeartRate != nil ? "\(activity.maxHeartRate!) bpm" : "NIL")")
-        print("📊   Avg HR: \(activity.averageHeartRate != nil ? "\(activity.averageHeartRate!) bpm" : "NIL")")
-        print("📊   Avg Cadence: \(activity.averageCadence != nil ? "\(activity.averageCadence!) rpm" : "NIL")")
-        print("📊   Max Speed: \(activity.maxSpeed != nil ? "\(activity.maxSpeed!) km/h" : "NIL")")
-        print("📊   Elevation: \(activity.elevationGain != nil ? "\(activity.elevationGain!) m" : "NIL")")
-        print("📊   ATL: \(activity.atl != nil ? "\(activity.atl!)" : "NIL")")
-        print("📊   CTL: \(activity.ctl != nil ? "\(activity.ctl!)" : "NIL")")
-        print("📊 ================================================")
+        // Logging disabled to prevent runaway logs on ride detail pages
     }
 }
 

@@ -27,18 +27,6 @@ struct RideSummaryView: View {
                             
                             Spacer()
                             
-                            // Refresh button
-                            Button(action: {
-                                Task {
-                                    await service.refresh(for: activity)
-                                }
-                            }) {
-                                Image(systemName: "arrow.clockwise")
-                                    .foregroundColor(Color.button.primary)
-                                    .font(.subheadline)
-                            }
-                            .disabled(service.isLoading)
-                            
                             // PRO badge (on the right like zone charts)
                             Text(RideSummaryContent.proBadge)
                                 .font(.caption2)

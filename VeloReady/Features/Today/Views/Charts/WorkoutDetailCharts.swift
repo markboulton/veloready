@@ -361,7 +361,7 @@ struct MetricChartView: View {
         }
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
                     .foregroundStyle(Color(.systemGray4))
                 AxisTick()
                     .foregroundStyle(Color(.systemGray4))
@@ -540,7 +540,7 @@ struct ElevationChartView: View {
         }
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
                     .foregroundStyle(Color(.systemGray4))
                 AxisTick()
                 AxisValueLabel {

@@ -115,7 +115,7 @@ struct StressLevelCard: View {
                 y: .value("Stress", point.value)
             )
             .foregroundStyle(stressColor(point.value))
-            .lineStyle(StrokeStyle(lineWidth: 2))
+            .lineStyle(StrokeStyle(lineWidth: 1))
             
             AreaMark(
                 x: .value("Date", point.date),

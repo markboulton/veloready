@@ -134,7 +134,7 @@ struct HRVTrendCard: View {
                     y: .value("HRV", point.value)
                 )
                 .foregroundStyle(ColorScale.greenAccent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 
                 AreaMark(
                     x: .value("Date", point.date),

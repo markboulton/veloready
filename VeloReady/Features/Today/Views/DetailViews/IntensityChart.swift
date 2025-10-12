@@ -70,7 +70,7 @@ struct IntensityChart: View {
                                     .foregroundColor(intensityColor(intensityFactor))
                                 Text("of 1.0")
                                     .font(.caption2)
-                                    .foregroundColor(Color.text.tertiary)
+                                    .foregroundColor(Color.text.secondary)
                             }
                         }
                         
@@ -87,7 +87,7 @@ struct IntensityChart: View {
                             
                             Text("This ride had an IF of \(String(format: "%.2f", intensityFactor)), meaning varied efforts averaged to this intensity.")
                                 .font(.caption2)
-                                .foregroundColor(Color.text.tertiary)
+                                .foregroundColor(Color.text.secondary)
                                 .padding(.top, 2)
                             
                             Divider()
@@ -160,11 +160,11 @@ struct IntensityChart: View {
             
             Text(label)
                 .font(.caption2)
-                .foregroundColor(matches ? Color.text.primary : Color.text.tertiary)
+                .foregroundColor(matches ? Color.text.primary : Color.text.secondary)
             
             Text(range)
                 .font(.caption2)
-                .foregroundColor(Color.text.tertiary)
+                .foregroundColor(Color.text.secondary)
         }
     }
     

@@ -160,7 +160,7 @@ struct PerformanceOverviewCard: View {
                     series: .value("Metric", "Recovery")
                 )
                 .foregroundStyle(ColorScale.greenAccent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
             }
             
@@ -172,7 +172,7 @@ struct PerformanceOverviewCard: View {
                     series: .value("Metric", "Load")
                 )
                 .foregroundStyle(Color.workout.tss)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
             }
             
@@ -184,7 +184,7 @@ struct PerformanceOverviewCard: View {
                     series: .value("Metric", "Sleep")
                 )
                 .foregroundStyle(Color.health.sleep)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
             }
         }

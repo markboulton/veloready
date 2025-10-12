@@ -11,11 +11,6 @@ struct RideDetailSheet: View {
     @StateObject private var profileManager = AthleteProfileManager.shared
     
     var body: some View {
-        let _ = print("🏁 ========== RIDE DETAIL SHEET: RENDERING ==========")
-        let _ = print("🏁 Activity: \(activity.name ?? "Unknown")")
-        let _ = print("🏁 Activity ID: \(activity.id)")
-        let _ = print("🏁 FTP: \(profileManager.profile.ftp ?? 0)W")
-        let _ = print("🏁 Max HR: \(profileManager.profile.maxHR ?? 0)bpm")
         
         return WorkoutDetailView(
             activity: activity,

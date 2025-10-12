@@ -111,7 +111,7 @@ struct RecoveryTrendCard: View {
                 y: .value("Recovery", point.value)
             )
             .foregroundStyle(recoveryColor(point.value))
-            .lineStyle(StrokeStyle(lineWidth: 2))
+            .lineStyle(StrokeStyle(lineWidth: 1))
             
             AreaMark(
                 x: .value("Date", point.date),

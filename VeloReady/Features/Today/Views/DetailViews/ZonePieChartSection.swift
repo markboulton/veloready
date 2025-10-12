@@ -33,12 +33,10 @@ struct ZonePieChartSection: View {
     
     private var heartRateZoneChart: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
+            HStack(spacing: 8) {
                 Text(proConfig.hasProAccess ? "Adaptive HR Zones" : "Heart Rate Zones")
                     .font(.headline)
                     .fontWeight(.semibold)
-                
-                Spacer()
                 
                 if proConfig.hasProAccess {
                     Text("PRO")
@@ -50,6 +48,8 @@ struct ZonePieChartSection: View {
                         .background(ColorScale.purpleAccent)
                         .cornerRadius(4)
                 }
+                
+                Spacer()
             }
             
             if proConfig.hasProAccess {
@@ -206,12 +206,10 @@ struct ZonePieChartSection: View {
     
     private var powerZoneChart: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
+            HStack(spacing: 8) {
                 Text(proConfig.hasProAccess ? "Adaptive Power Zones" : "Power Zones")
                     .font(.headline)
                     .fontWeight(.semibold)
-                
-                Spacer()
                 
                 if proConfig.hasProAccess {
                     Text("PRO")
@@ -223,6 +221,8 @@ struct ZonePieChartSection: View {
                         .background(ColorScale.purpleAccent)
                         .cornerRadius(4)
                 }
+                
+                Spacer()
             }
             
             if proConfig.hasProAccess {
@@ -239,12 +239,6 @@ struct ZonePieChartSection: View {
     
     private var adaptivePowerZoneChart: some View {
         VStack(spacing: 16) {
-            // Debug logging
-            let _ = print("🔍 POWER CHART DEBUG:")
-            let _ = print("  icuZoneTimes: \(activity.icuZoneTimes?.description ?? "nil")")
-            let _ = print("  duration: \(activity.duration?.description ?? "nil")")
-            let _ = print("  powerZones: \(profileManager.profile.powerZones?.description ?? "nil")")
-            let _ = print("  FTP: \(profileManager.profile.ftp?.description ?? "nil")")
             
             // Pie chart
             if let zoneTimes = activity.icuZoneTimes,
@@ -319,12 +313,6 @@ struct ZonePieChartSection: View {
     
     private var freePowerZoneChart: some View {
         VStack(spacing: 16) {
-            // Debug logging
-            let _ = print("🔍 FREE POWER CHART DEBUG:")
-            let _ = print("  icuZoneTimes: \(activity.icuZoneTimes?.description ?? "nil")")
-            let _ = print("  duration: \(activity.duration?.description ?? "nil")")
-            let _ = print("  activity name: \(activity.name ?? "nil")")
-            let _ = print("  UserSettings zones: Z1=\(userSettings.powerZone1Max)W, Z2=\(userSettings.powerZone2Max)W")
             
             // Pie chart with user-configured zones from Settings
             if let zoneTimes = activity.icuZoneTimes,
