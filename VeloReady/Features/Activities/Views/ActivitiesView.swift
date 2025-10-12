@@ -38,8 +38,10 @@ struct ActivitiesView: View {
     @StateObject private var viewModel = ActivitiesViewModel()
     @EnvironmentObject var apiClient: IntervalsAPIClient
     @ObservedObject private var proConfig = ProFeatureConfig.shared
+    @ObservedObject private var stravaAuthService = StravaAuthService.shared
     @State private var showingFilterSheet = false
     @State private var showPaywall = false
+    @State private var lastStravaConnectionState: StravaConnectionState = .disconnected
     
     var body: some View {
         NavigationView {
@@ -71,6 +73,16 @@ struct ActivitiesView: View {
             .task {
                 // Only load once on first appearance
                 await viewModel.loadActivitiesIfNeeded(apiClient: apiClient)
+            }
+            .onChange(of: stravaAuthService.connectionState) { _, newState in
+                // Force refresh when Strava connects
+                if case .connected = newState, case .disconnected = lastStravaConnectionState {
+                    print("🔄 Strava connected - forcing activities refresh")
+                    Task {
+                        await viewModel.forceRefresh(apiClient: apiClient)
+                    }
+                }
+                lastStravaConnectionState = newState
             }
         }
     }
@@ -449,6 +461,13 @@ class ActivitiesViewModel: ObservableObject {
             print("ℹ️ Activities already loaded, skipping")
             return
         }
+        await loadActivities(apiClient: apiClient)
+    }
+    
+    /// Force refresh activities (e.g., after Strava auth)
+    func forceRefresh(apiClient: IntervalsAPIClient) async {
+        print("🔄 Force refreshing activities (e.g., after Strava auth)")
+        hasLoadedInitialData = false // Reset flag to force reload
         await loadActivities(apiClient: apiClient)
     }
     
