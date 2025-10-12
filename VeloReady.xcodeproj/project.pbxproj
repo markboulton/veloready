@@ -56,7 +56,7 @@
 		4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RideReadyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A6F6AF72E8BDC3200D8A526 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		4A6F6AF92E8BDC3200D8A526 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		4A6F6B142E8BDCAB00D8A526 /* RideReadyWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideReadyWidgetExtension.entitlements; sourceTree = "<group>"; };
+		4A6F6B142E8BDCAB00D8A526 /* VeloReadyWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VeloReadyWidgetExtension.entitlements; sourceTree = "<group>"; };
 		FA2A74082E895F0D0047AC79 /* VeloReady.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VeloReady.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA2A74182E895F0F0047AC79 /* VeloReadyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VeloReadyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA2A74222E895F0F0047AC79 /* VeloReadyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VeloReadyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,21 +72,11 @@
 			);
 			target = FA2A74072E895F0D0047AC79 /* VeloReady */;
 		};
-		4A6F6B0C2E8BDC3300D8A526 /* Exceptions for "RideReadyWidget" folder in "RideReadyWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4A6F6B0C2E8BDC3300D8A526 /* Exceptions for "RideReadyWidget" folder in "RideReadyWidgetExtension" target */,
-			);
 			path = RideReadyWidget;
 			sourceTree = "<group>";
 		};
@@ -428,12 +418,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = RideReadyWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = VeloReadyWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C79WM3NZ27;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RideReadyWidget/Info.plist;
+				INFOPLIST_FILE = VeloReadyWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RideReadyWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
@@ -460,12 +450,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = RideReadyWidgetExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = VeloReadyWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C79WM3NZ27;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RideReadyWidget/Info.plist;
+				INFOPLIST_FILE = VeloReadyWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RideReadyWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
