@@ -332,41 +332,52 @@ struct TodayView: View {
                         
                         // Sleep Score (center)
                         if let sleepScore = viewModel.sleepScoreService.currentSleepScore {
-                            NavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
+                            // Show ? if no sleep data
+                            if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
+                                // No NavigationLink when no data - make entire ring tappable to reinstate banner
                                 VStack(spacing: 12) {
                                     HStack(spacing: 4) {
                                         Text(TodayContent.Scores.sleepScore)
                                             .font(.headline)
                                             .fontWeight(.semibold)
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                        if !missingSleepBannerDismissed {
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
                                     
-                                    // Show ? if no sleep data
-                                    if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
-                                        VStack(spacing: 4) {
-                                            CompactRingView(
-                                                score: nil,
-                                                title: "No Data",
-                                                band: SleepScore.SleepBand.poor,
-                                                animationDelay: 0.1
-                                            ) {
-                                                // Empty action
-                                            }
-                                            
-                                            // Info button to show banner again
-                                            if missingSleepBannerDismissed {
-                                                Button(action: {
-                                                    showMissingSleepInfo = true
-                                                }) {
-                                                    Image(systemName: "questionmark.circle")
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
-                                                }
-                                            }
+                                    Button(action: {
+                                        if missingSleepBannerDismissed {
+                                            missingSleepBannerDismissed = false
+                                            UserDefaults.standard.set(false, forKey: "missingSleepBannerDismissed")
                                         }
-                                    } else {
+                                    }) {
+                                        CompactRingView(
+                                            score: nil,
+                                            title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
+                                            band: SleepScore.SleepBand.poor,
+                                            animationDelay: 0.1
+                                        ) {
+                                            // Action handled by button wrapper
+                                        }
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                // Normal NavigationLink when we have sleep data
+                                NavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
+                                    VStack(spacing: 12) {
+                                        HStack(spacing: 4) {
+                                            Text(TodayContent.Scores.sleepScore)
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
                                         CompactRingView(
                                             score: sleepScore.score,
                                             title: sleepScore.bandDescription,
@@ -376,38 +387,40 @@ struct TodayView: View {
                                             // Empty action - navigation handled by parent NavigationLink
                                         }
                                     }
+                                    .frame(maxWidth: .infinity)
                                 }
-                                .frame(maxWidth: .infinity)
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
                         } else {
-                            // No sleep data available
+                            // No sleep data available - make entire ring tappable to reinstate banner
                             VStack(spacing: 12) {
-                                Text(TodayContent.Scores.sleepScore)
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
+                                HStack(spacing: 4) {
+                                    Text(TodayContent.Scores.sleepScore)
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                    if !missingSleepBannerDismissed {
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                                 
-                                VStack(spacing: 4) {
+                                Button(action: {
+                                    if missingSleepBannerDismissed {
+                                        missingSleepBannerDismissed = false
+                                        UserDefaults.standard.set(false, forKey: "missingSleepBannerDismissed")
+                                    }
+                                }) {
                                     CompactRingView(
                                         score: nil,
-                                        title: "No Data",
+                                        title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
                                         band: SleepScore.SleepBand.poor,
                                         animationDelay: 0.1
                                     ) {
-                                        // No action
-                                    }
-                                    
-                                    // Info button to show banner again
-                                    if missingSleepBannerDismissed {
-                                        Button(action: {
-                                            showMissingSleepInfo = true
-                                        }) {
-                                            Image(systemName: "questionmark.circle")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
+                                        // Action handled by button wrapper
                                     }
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -771,30 +784,34 @@ struct TodayView: View {
     // MARK: - Missing Sleep Data Banner
     
     private var missingSleepDataBanner: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color(.systemGray5))
-                    .frame(width: 40, height: 40)
-                Image(systemName: "moon.fill")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 18))
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Sleep data missing")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+        ZStack(alignment: .topTrailing) {
+            // Main content
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: "moon.fill")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 18))
+                }
                 
-                Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Sleep data missing")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                
+                Spacer()
             }
+            .padding()
             
-            Spacer()
-            
-            // Dismiss button
+            // Dismiss button overlaid at top-right
             Button(action: {
                 missingSleepBannerDismissed = true
                 UserDefaults.standard.set(true, forKey: "missingSleepBannerDismissed")
@@ -805,8 +822,8 @@ struct TodayView: View {
                     .padding(6)
                     .background(Circle().fill(Color(.systemGray5)))
             }
+            .padding(8)
         }
-        .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .sheet(isPresented: $showMissingSleepInfo) {
