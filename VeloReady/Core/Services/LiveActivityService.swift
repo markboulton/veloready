@@ -1,0 +1,297 @@
+import Foundation
+import HealthKit
+
+/// Service for managing live activity data (calories and steps)
+@MainActor
+class LiveActivityService: ObservableObject {
+    @Published var dailySteps: Int = 0
+    @Published var walkingDistance: Double = 0  // in kilometers
+    @Published var dailyCalories: Double = 0
+    @Published var activeCalories: Double = 0
+    @Published var bmrCalories: Double = 0
+    @Published var intervalsCalories: Double = 0
+    @Published var isLoading = false
+    @Published var lastUpdated: Date?
+    
+    private let healthKitManager = HealthKitManager.shared
+    private let intervalsAPIClient: IntervalsAPIClient
+    private let intervalsCache = IntervalsCache.shared
+    private let userSettings = UserSettings.shared
+    
+    // Prevent multiple concurrent updates
+    private var updateTask: Task<Void, Never>?
+    private var updateTimer: Timer?
+    
+    init(oauthManager: IntervalsOAuthManager) {
+        self.intervalsAPIClient = IntervalsAPIClient(oauthManager: oauthManager)
+        
+        // Start in loading state to show spinners immediately
+        // Don't load cached data here - let the UI show spinners first
+        self.isLoading = true
+        print("🎯 DEBUG: LiveActivityService initialized with isLoading = true (no cached data loaded)")
+    }
+    
+    /// Load cached data synchronously during initialization
+    private func loadCachedDataSync() {
+        // Load cached HealthKit data (if available)
+        let cachedSteps = UserDefaults.standard.integer(forKey: "cached_steps")
+        let cachedWalkingDistance = UserDefaults.standard.double(forKey: "cached_walking_distance")
+        let cachedActiveCalories = UserDefaults.standard.double(forKey: "cached_active_calories")
+        
+        if cachedSteps > 0 {
+            dailySteps = cachedSteps
+        }
+        
+        if cachedWalkingDistance > 0 {
+            walkingDistance = cachedWalkingDistance
+        }
+        
+        if cachedActiveCalories > 0 {
+            activeCalories = cachedActiveCalories
+        }
+        
+        // Calculate BMR (this is fast)
+        let bmrCaloriesValue = calculateTodayBMR()
+        bmrCalories = bmrCaloriesValue
+        
+        // Calculate total calories
+        let intervalsCaloriesValue = UserDefaults.standard.double(forKey: "cached_intervals_calories")
+        let activeCaloriesValue = activeCalories + intervalsCaloriesValue
+        dailyCalories = activeCaloriesValue + bmrCaloriesValue
+        
+        print("📱 Loaded cached data during init - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
+    }
+    
+    /// Clear cached data to force fresh loading
+    func clearCachedData() {
+        print("🗑️ Clearing cached live activity data to force fresh loading")
+        print("🎯 DEBUG: Setting isLoading = true to show spinners immediately")
+        isLoading = true // Set loading state FIRST to show spinners immediately
+        dailySteps = 0
+        dailyCalories = 0
+        activeCalories = 0
+        bmrCalories = 0
+        intervalsCalories = 0
+        lastUpdated = Date.distantPast
+        print("🎯 DEBUG: Cached data cleared, isLoading = \(isLoading)")
+    }
+    
+    /// Update live activity data immediately (for app foreground events)
+    func updateLiveDataImmediately() async {
+        // Cancel any existing update
+        updateTask?.cancel()
+        
+        updateTask = Task {
+            await performUpdate()
+        }
+        
+        await updateTask?.value
+    }
+    
+    /// Start automatic updates every 5 minutes
+    func startAutoUpdates() {
+        // Prevent starting multiple update cycles
+        guard updateTimer == nil else {
+            print("⚠️ LiveActivityService auto-updates already running, skipping duplicate call")
+            return
+        }
+        
+        // Cancel any existing task
+        updateTask?.cancel()
+        updateTask = nil
+        
+        // Update immediately first
+        Task {
+            await updateLiveDataImmediately()
+        }
+        
+        // Then update every 5 minutes
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+            Task { @MainActor in
+                await self.updateLiveDataImmediately()
+            }
+        }
+    }
+    
+    /// Stop automatic updates
+    func stopAutoUpdates() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+        updateTask?.cancel()
+        updateTask = nil
+    }
+    
+    private func performUpdate() async {
+        // If already loading, just continue (don't skip)
+        if isLoading {
+            print("🔄 LiveActivityService already loading - continuing with update")
+        } else {
+            print("🔄 LiveActivityService starting update - setting isLoading = true")
+            isLoading = true
+        }
+        
+        // PHASE 1: Load cached data for immediate display (no delay)
+        await loadCachedData()
+        
+        // PHASE 2: Update with fresh data from HealthKit
+        await updateWithFreshData()
+        
+        print("✅ LiveActivityService update completed - setting isLoading = false")
+        isLoading = false
+    }
+    
+    private func loadCachedData() async {
+        print("📱 Loading cached live activity data for immediate display")
+        
+        // Load cached HealthKit data (if available)
+        let cachedSteps = UserDefaults.standard.integer(forKey: "cached_steps")
+        let cachedWalkingDistance = UserDefaults.standard.double(forKey: "cached_walking_distance")
+        let cachedActiveCalories = UserDefaults.standard.double(forKey: "cached_active_calories")
+        
+        if cachedSteps > 0 {
+            dailySteps = cachedSteps
+            print("📱 Loaded cached steps: \(cachedSteps)")
+        }
+        
+        if cachedWalkingDistance > 0 {
+            walkingDistance = cachedWalkingDistance
+            print("📱 Loaded cached walking distance: \(cachedWalkingDistance)km")
+        }
+        
+        if cachedActiveCalories > 0 {
+            activeCalories = cachedActiveCalories
+            print("📱 Loaded cached active calories: \(cachedActiveCalories)")
+        }
+        
+        // Calculate BMR (this is fast)
+        let bmrCaloriesValue = calculateTodayBMR()
+        bmrCalories = bmrCaloriesValue
+        
+        // Calculate total calories
+        let intervalsCaloriesValue = UserDefaults.standard.double(forKey: "cached_intervals_calories")
+        let activeCaloriesValue = activeCalories + intervalsCaloriesValue
+        let effectiveGoal = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
+        dailyCalories = activeCaloriesValue + bmrCaloriesValue
+        
+        print("📱 Cached data loaded - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
+    }
+    
+    private func updateWithFreshData() async {
+        print("🔄 Updating with fresh data from HealthKit and Intervals.icu")
+        
+        // Fetch HealthKit data
+        let healthData = await healthKitManager.fetchTodayActivity()
+        
+        // Fetch Intervals.icu calories for today's rides
+        let intervalsCaloriesValue = await fetchTodayIntervalsCalories()
+        
+        // Calculate BMR (Basal Metabolic Rate) for today
+        let bmrCaloriesValue = calculateTodayBMR()
+        
+        // Calculate active calories (HealthKit + Intervals)
+        let activeCaloriesValue = healthData.activeCalories + intervalsCaloriesValue
+        
+        // Get effective calorie goal (BMR or user-set)
+        let effectiveGoal = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
+        
+        // Update published properties with fresh data
+        dailySteps = healthData.steps
+        walkingDistance = healthData.walkingDistance
+        activeCalories = activeCaloriesValue
+        bmrCalories = bmrCaloriesValue
+        intervalsCalories = intervalsCaloriesValue
+        dailyCalories = activeCaloriesValue + bmrCaloriesValue
+        lastUpdated = Date()
+        
+        // Cache the fresh data for next time
+        UserDefaults.standard.set(healthData.steps, forKey: "cached_steps")
+        UserDefaults.standard.set(healthData.walkingDistance, forKey: "cached_walking_distance")
+        UserDefaults.standard.set(activeCaloriesValue, forKey: "cached_active_calories")
+        UserDefaults.standard.set(intervalsCaloriesValue, forKey: "cached_intervals_calories")
+        
+        print("📊 Live Activity Update:")
+        print("   Steps: \(dailySteps)")
+        print("   Active Calories: \(activeCaloriesValue)")
+        print("   Intervals Calories: \(intervalsCaloriesValue)")
+        print("   BMR Calories: \(bmrCaloriesValue)")
+        print("   Total Calories: \(dailyCalories)")
+    }
+    
+    /// Fetch calories from today's Intervals.icu rides
+    private func fetchTodayIntervalsCalories() async -> Double {
+        do {
+            // Fetch today's activities - USE CACHE to avoid unnecessary API calls
+            let calendar = Calendar.current
+            let today = Date()
+            let startOfDay = calendar.startOfDay(for: today)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? today
+            
+            // Get activities from cache (prevents rate limiting)
+            let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            
+            // Filter for today's rides and sum calories
+            let todayActivities = activities.filter { activity in
+                guard let startDate = parseIntervalsDate(activity.startDateLocal) else { return false }
+                return startDate >= startOfDay && startDate < endOfDay
+            }
+            
+            let totalCalories = todayActivities.compactMap { $0.calories }.reduce(0, +)
+            
+            print("🚴 Today's Intervals rides: \(todayActivities.count), Total calories: \(totalCalories)")
+            
+            return Double(totalCalories)
+            
+        } catch {
+            print("❌ Failed to fetch Intervals calories: \(error)")
+            return 0.0
+        }
+    }
+    
+    /// Parse Intervals.icu date string to Date
+    private func parseIntervalsDate(_ dateString: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        formatter.timeZone = TimeZone.current
+        
+        return formatter.date(from: dateString)
+    }
+    
+    /// Calculate today's BMR (Basal Metabolic Rate) calories
+    private func calculateTodayBMR() -> Double {
+        // For now, use a simplified BMR calculation
+        // In a real app, you'd want to get user's height, weight, age, and gender from HealthKit
+        
+        // Default values (you can make these configurable later)
+        let weight: Double = 75.0 // kg (165 lbs)
+        let height: Double = 175.0 // cm (5'9")
+        let age: Int = 35 // years
+        let isMale: Bool = true
+        
+        // Calculate BMR using Mifflin-St Jeor Equation
+        let bmr: Double
+        if isMale {
+            bmr = (10 * weight) + (6.25 * height) - (5 * Double(age)) + 5
+        } else {
+            bmr = (10 * weight) + (6.25 * height) - (5 * Double(age)) - 161
+        }
+        
+        // Calculate how much of the day has passed to estimate today's BMR
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfDay = calendar.startOfDay(for: now)
+        let timeElapsed = now.timeIntervalSince(startOfDay)
+        let totalDaySeconds: TimeInterval = 24 * 60 * 60 // 24 hours
+        let dayProgress = timeElapsed / totalDaySeconds
+        
+        // Return BMR calories for the portion of the day that has passed
+        let todayBMR = bmr * dayProgress
+        
+        print("🧮 BMR Calculation:")
+        print("   Weight: \(weight) kg, Height: \(height) cm, Age: \(age), Male: \(isMale)")
+        print("   Daily BMR: \(bmr) kcal")
+        print("   Day Progress: \(String(format: "%.1f", dayProgress * 100))%")
+        print("   Today's BMR: \(String(format: "%.1f", todayBMR)) kcal")
+        
+        return todayBMR
+    }
+}

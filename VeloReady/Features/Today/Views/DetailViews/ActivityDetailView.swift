@@ -1,0 +1,371 @@
+import SwiftUI
+import HealthKit
+import MapKit
+import Charts
+
+/// Unified activity detail view for both Intervals.icu cycling and Apple Health workouts
+struct ActivityDetailView: View {
+    let activityData: UnifiedActivityData
+    @StateObject private var viewModel: ActivityDetailViewModel
+    
+    init(activityData: UnifiedActivityData) {
+        self.activityData = activityData
+        _viewModel = StateObject(wrappedValue: ActivityDetailViewModel(activityData: activityData))
+    }
+    
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                // Header with key metrics
+                ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
+                
+                // Charts Section
+                if !viewModel.chartSamples.isEmpty {
+                    chartsSection
+                        .padding(.bottom, 20)
+                }
+                
+                // Map Section - Interactive
+                if !viewModel.routeCoordinates.isEmpty {
+                    InteractiveWorkoutMapSection(
+                        coordinates: viewModel.routeCoordinates,
+                        isLoading: viewModel.isLoadingMap
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
+                }
+            }
+            .padding(.bottom, 30) // Extra padding to avoid navigation bar
+        }
+        .background(Color.background.primary)
+        .navigationTitle(activityData.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await viewModel.loadData()
+        }
+    }
+    
+    @ViewBuilder
+    private var chartsSection: some View {
+        switch activityData.type {
+        case .cycling:
+            // Power and HR charts for cycling
+            if let samples = activityData.intervalsActivity?.id {
+                WorkoutChartsSection(
+                    samples: viewModel.workoutSamples,
+                    ftp: viewModel.ftp,
+                    maxHR: activityData.intervalsActivity?.maxHeartRate
+                )
+            }
+        case .walking, .strength:
+            // HR chart only for walking/strength
+            if !viewModel.heartRateSamples.isEmpty {
+                heartRateChartSection
+            }
+        }
+    }
+    
+    private var heartRateChartSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "heart")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                
+                Text("Heart Rate")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                if let avg = viewModel.averageHeartRate, let max = viewModel.maxHeartRate {
+                    HStack(spacing: 12) {
+                        Text("Avg: \(Int(avg))")
+                        Text("Max: \(Int(max))")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            
+            HeartRateChart(samples: viewModel.heartRateSamples)
+                .frame(height: 200)
+        }
+    }
+}
+
+// MARK: - Unified Activity Data Model
+
+enum ActivityType {
+    case cycling
+    case walking
+    case strength
+    
+    var displayName: String {
+        switch self {
+        case .cycling: return "Cycling"
+        case .walking: return "Walking"
+        case .strength: return "Strength"
+        }
+    }
+}
+
+struct UnifiedActivityData {
+    let type: ActivityType
+    let title: String
+    let startDate: Date
+    let duration: TimeInterval
+    let distance: Double?
+    let calories: Int?
+    
+    // Source-specific data
+    let intervalsActivity: IntervalsActivity?
+    let healthKitWorkout: HKWorkout?
+    
+    // Convenience initializers
+    static func fromIntervals(_ activity: IntervalsActivity) -> UnifiedActivityData {
+        UnifiedActivityData(
+            type: .cycling,
+            title: activity.name ?? "Untitled Workout",
+            startDate: parseDate(activity.startDateLocal) ?? Date(),
+            duration: activity.duration ?? 0,
+            distance: activity.distance,
+            calories: activity.calories,
+            intervalsActivity: activity,
+            healthKitWorkout: nil
+        )
+    }
+    
+    static func fromHealthKit(_ workout: HKWorkout) -> UnifiedActivityData {
+        let type: ActivityType = {
+            switch workout.workoutActivityType {
+            case .walking:
+                return .walking
+            case .traditionalStrengthTraining, .functionalStrengthTraining:
+                return .strength
+            default:
+                return .walking
+            }
+        }()
+        
+        return UnifiedActivityData(
+            type: type,
+            title: generateTitle(for: workout),
+            startDate: workout.startDate,
+            duration: workout.duration,
+            distance: workout.totalDistance?.doubleValue(for: .meter()),
+            calories: Int(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0),
+            intervalsActivity: nil,
+            healthKitWorkout: workout
+        )
+    }
+    
+    private static func parseDate(_ dateString: String) -> Date? {
+        let iso8601Formatter = ISO8601DateFormatter()
+        if let date = iso8601Formatter.date(from: dateString) {
+            return date
+        }
+        
+        let localFormatter = DateFormatter()
+        localFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        localFormatter.timeZone = TimeZone.current
+        return localFormatter.date(from: dateString)
+    }
+    
+    private static func generateTitle(for workout: HKWorkout) -> String {
+        switch workout.workoutActivityType {
+        case .walking:
+            return "Walking"
+        case .traditionalStrengthTraining, .functionalStrengthTraining:
+            return "Strength Training"
+        default:
+            return "Workout"
+        }
+    }
+}
+
+// MARK: - Activity Info Header
+
+struct ActivityInfoHeader: View {
+    let activityData: UnifiedActivityData
+    @ObservedObject var viewModel: ActivityDetailViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Title and Date/Time
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Text(activityData.title)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.text.primary)
+                    
+                    // Type badge
+                    if let rawType = activityData.intervalsActivity?.type {
+                        ActivityTypeBadge(rawType, size: .small)
+                    } else {
+                        ActivityTypeBadge(activityData.type.displayName, size: .small)
+                    }
+                }
+                
+                Text(formattedDateAndTime)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.text.secondary)
+            }
+            
+            // Primary Metrics Grid
+            LazyVGrid(columns: createGridColumns(), spacing: 12) {
+                // Duration (all types)
+                CompactMetricItem(
+                    label: "Duration",
+                    value: formatDuration(activityData.duration)
+                )
+                
+                // Distance (if available)
+                if let distance = activityData.distance {
+                    CompactMetricItem(
+                        label: "Distance",
+                        value: formatDistance(distance)
+                    )
+                }
+                
+                // Type-specific metrics
+                switch activityData.type {
+                case .cycling:
+                    cyclingMetrics
+                case .walking, .strength:
+                    healthKitMetrics
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var cyclingMetrics: some View {
+        if let activity = activityData.intervalsActivity {
+            if let intensityFactor = activity.intensityFactor {
+                CompactMetricItem(
+                    label: "Intensity",
+                    value: String(format: "%.2f", intensityFactor)
+                )
+            }
+            
+            if let tss = activity.tss {
+                CompactMetricItem(
+                    label: "TSS",
+                    value: String(format: "%.0f", tss)
+                )
+            }
+            
+            if let normalizedPower = activity.normalizedPower {
+                CompactMetricItem(
+                    label: "NP",
+                    value: "\(Int(normalizedPower))w"
+                )
+            }
+            
+            if let calories = activity.calories {
+                CompactMetricItem(
+                    label: "Calories",
+                    value: "\(calories)"
+                )
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var healthKitMetrics: some View {
+        if let calories = activityData.calories {
+            CompactMetricItem(
+                label: "Calories",
+                value: "\(calories)"
+            )
+        }
+        
+        if viewModel.steps > 0 {
+            CompactMetricItem(
+                label: "Steps",
+                value: "\(viewModel.steps)"
+            )
+        }
+        
+        if let avgHR = viewModel.averageHeartRate {
+            CompactMetricItem(
+                label: "Avg HR",
+                value: "\(Int(avgHR))"
+            )
+        }
+        
+        if let maxHR = viewModel.maxHeartRate {
+            CompactMetricItem(
+                label: "Max HR",
+                value: "\(Int(maxHR))"
+            )
+        }
+    }
+    
+    private var formattedDateAndTime: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: activityData.startDate)
+    }
+    
+    private func createGridColumns() -> [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+    }
+    
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let hours = Int(duration) / 3600
+        let minutes = Int(duration) % 3600 / 60
+        
+        if hours > 0 {
+            return String(format: "%dh %dm", hours, minutes)
+        } else {
+            return String(format: "%dm", minutes)
+        }
+    }
+    
+    private func formatDistance(_ meters: Double) -> String {
+        let km = meters / 1000.0
+        return String(format: "%.2f km", km)
+    }
+}
+
+// MARK: - Interactive Map Section
+
+struct InteractiveWorkoutMapSection: View {
+    let coordinates: [CLLocationCoordinate2D]
+    let isLoading: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isLoading {
+                ZStack {
+                    Color(.systemGray6)
+                        .frame(height: UIScreen.main.bounds.width - 32) // Square
+                    ProgressView()
+                }
+            } else if !coordinates.isEmpty {
+                InteractiveMapView(coordinates: coordinates)
+                    .frame(height: UIScreen.main.bounds.width - 32) // Square
+            } else {
+                ZStack {
+                    Color(.systemGray6)
+                        .frame(height: UIScreen.main.bounds.width - 32) // Square
+                    VStack(spacing: 8) {
+                        Image(systemName: "map")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text("No route data")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+}

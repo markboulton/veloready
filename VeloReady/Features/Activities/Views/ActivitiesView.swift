@@ -1,0 +1,681 @@
+import SwiftUI
+
+// MARK: - Shimmer Extension
+
+extension View {
+    func shimmerActivityList() -> some View {
+        self.modifier(ShimmerActivityListModifier())
+    }
+}
+
+struct ShimmerActivityListModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        .white.opacity(0.2),
+                        .clear
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .offset(x: phase)
+                .mask(content)
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 300
+                }
+            }
+    }
+}
+
+struct ActivitiesView: View {
+    @StateObject private var viewModel = ActivitiesViewModel()
+    @EnvironmentObject var apiClient: IntervalsAPIClient
+    @ObservedObject private var proConfig = ProFeatureConfig.shared
+    @State private var showingFilterSheet = false
+    @State private var showPaywall = false
+    
+    var body: some View {
+        NavigationView {
+            Group {
+                if viewModel.isLoading && viewModel.groupedActivities.isEmpty {
+                    loadingView
+                } else if viewModel.groupedActivities.isEmpty {
+                    emptyStateView
+                } else {
+                    activitiesList
+                }
+            }
+            .navigationTitle(ActivitiesContent.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingFilterSheet = true }) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .foregroundColor(Color.button.primary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingFilterSheet) {
+                ActivityFilterSheet(viewModel: viewModel)
+            }
+            .refreshable {
+                await viewModel.loadActivities(apiClient: apiClient)
+            }
+            .task {
+                // Only load once on first appearance
+                await viewModel.loadActivitiesIfNeeded(apiClient: apiClient)
+            }
+        }
+    }
+    
+    // MARK: - Loading View
+    
+    private var loadingView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text(ActivitiesContent.loadingActivities)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
+                
+                // Skeleton activity cards
+                ForEach(0..<8, id: \.self) { _ in
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Title skeleton
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 200, height: 16)
+                        
+                        // Date/stats skeleton
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.15))
+                                .frame(width: 80, height: 12)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.15))
+                                .frame(width: 60, height: 12)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.15))
+                                .frame(width: 70, height: 12)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .shimmerActivityList()
+                }
+            }
+        }
+    }
+    private var emptyStateView: some View {
+        EmptyStateView(
+            icon: "figure.outdoor.cycle",
+            title: ActivitiesContent.noActivities,
+            message: ActivitiesContent.noActivitiesMessage,
+            actionTitle: ActivitiesContent.refreshButton,
+            action: {
+                Task {
+                    await viewModel.loadActivities(apiClient: apiClient)
+                }
+            }
+        )
+    }
+    
+    // MARK: - Activities List
+    
+    private var activitiesList: some View {
+        List {
+            // Sparkline header (full width, before first section)
+            Section {
+                ActivitySparkline(
+                    dailyActivities: generateDailyActivityData(),
+                    alignment: .leading,
+                    height: 32
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowBackground(Color.clear)
+            }
+            
+            ForEach(viewModel.sortedMonthKeys, id: \.self) { monthKey in
+                Section {
+                    ForEach(viewModel.groupedActivities[monthKey] ?? []) { activity in
+                        NavigationLink(destination: activityDestination(for: activity)) {
+                            ActivityListRowView(activity: activity)
+                        }
+                    }
+                } header: {
+                    Text(monthKey)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+            }
+            
+            // Load More button for PRO users
+            if proConfig.hasProAccess && !viewModel.isLoadingMore && !viewModel.hasLoadedExtended {
+                Section {
+                    Button(action: {
+                        Task {
+                            await viewModel.loadExtendedActivities(apiClient: apiClient)
+                        }
+                    }) {
+                        HStack {
+                            Spacer()
+                            if viewModel.isLoadingMore {
+                                ProgressView()
+                                    .padding(.trailing, 8)
+                            }
+                            Text("Load More Activities (60 days)")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                        .padding(.vertical, 12)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .foregroundColor(Color.button.primary)
+                }
+            }
+            
+            // Upgrade CTA for FREE users
+            if !proConfig.hasProAccess {
+                Section {
+                    Button(action: { showPaywall = true }) {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(ColorScale.purpleAccent)
+                                Text("Upgrade to Pro for More Activities")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                            }
+                            
+                            Text("Access up to 90 days of activity history with PRO")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Upgrade Now")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(ColorScale.purpleAccent)
+                                .cornerRadius(10)
+                        }
+                        .padding()
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func generateDailyActivityData() -> [DailyActivityData] {
+        // Get all activities
+        let allActivities = viewModel.groupedActivities.values.flatMap { $0 }
+        
+        // Group activities by day
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Create dictionary of day offset -> activities
+        var dailyMap: [Int: [ActivityBarData]] = [:]
+        
+        for activity in allActivities {
+            let activityDay = calendar.startOfDay(for: activity.startDate)
+            let dayOffset = calendar.dateComponents([.day], from: activityDay, to: today).day ?? 0
+            
+            // Include last 30 days for Activities page sparkline
+            if dayOffset >= 0 && dayOffset <= 29 {
+                let activityType: SparklineActivityType = {
+                    switch activity.type {
+                    case .cycling: return .cycling
+                    case .running: return .running
+                    case .walking: return .walking
+                    case .swimming: return .swimming
+                    case .strength: return .strength
+                    default: return .other
+                    }
+                }()
+                
+                // Use duration if available, otherwise use a fixed height for Intervals activities
+                let duration: Double = {
+                    if let dur = activity.duration, dur > 0 {
+                        return dur / 60.0 // Convert seconds to minutes
+                    } else if activity.intervalsActivity != nil {
+                        // For Intervals activities without duration, use fixed height
+                        return 60.0
+                    } else {
+                        return 0.0
+                    }
+                }()
+                
+                let barData = ActivityBarData(type: activityType, duration: duration)
+                
+                let key = -dayOffset
+                if dailyMap[key] != nil {
+                    dailyMap[key]?.append(barData)
+                } else {
+                    dailyMap[key] = [barData]
+                }
+            }
+        }
+        
+        // Create array for all days in range
+        var dailyActivities: [DailyActivityData] = []
+        for dayOffset in (-29)...0 {
+            let activities = dailyMap[dayOffset] ?? []
+            dailyActivities.append(DailyActivityData(dayOffset: dayOffset, activities: activities))
+        }
+        
+        return dailyActivities
+    }
+    
+    @ViewBuilder
+    private func activityDestination(for activity: UnifiedActivity) -> some View {
+        switch activity.source {
+        case .intervalsICU:
+            if let intervalsActivity = activity.intervalsActivity {
+                RideDetailSheet(activity: intervalsActivity)
+            }
+        case .strava:
+            if let stravaActivity = activity.stravaActivity {
+                // TODO: Create StravaActivityDetailView
+                RideDetailSheet(activity: convertStravaToIntervals(stravaActivity))
+            }
+        case .appleHealth:
+            if let healthWorkout = activity.healthKitWorkout {
+                WalkingDetailView(workout: healthWorkout)
+            }
+        }
+    }
+    
+    // Temporary converter until we create a dedicated Strava detail view
+    private func convertStravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
+        IntervalsActivity(
+            id: "strava_\(strava.id)",
+            name: strava.name,
+            description: nil,
+            startDateLocal: strava.start_date_local,
+            type: strava.sport_type,
+            duration: TimeInterval(strava.moving_time),
+            distance: strava.distance,
+            elevationGain: strava.total_elevation_gain,
+            averagePower: strava.average_watts,
+            normalizedPower: strava.weighted_average_watts.map { Double($0) },
+            averageHeartRate: strava.average_heartrate,
+            maxHeartRate: strava.max_heartrate.map { Double($0) },
+            averageCadence: strava.average_cadence,
+            averageSpeed: strava.average_speed,
+            maxSpeed: strava.max_speed,
+            calories: strava.calories.map { Int($0) },
+            fileType: nil,
+            tss: nil,
+            intensityFactor: nil,
+            atl: nil,
+            ctl: nil,
+            icuZoneTimes: nil,
+            icuHrZoneTimes: nil
+        )
+    }
+}
+
+// MARK: - Activity List Row View
+
+private struct ActivityListRowView: View {
+    let activity: UnifiedActivity
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Activity Details
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Text(activity.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    
+                    // Type badge pill with pastel colors
+                    if let rawType = activity.rawType {
+                        ActivityTypeBadge(rawType, size: .small)
+                    } else {
+                        ActivityTypeBadge(activity.type.rawValue, size: .small)
+                    }
+                }
+                
+                // Date
+                Text(formatDate(activity.startDate))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // Stats
+            VStack(alignment: .trailing, spacing: 4) {
+                if let duration = activity.duration {
+                    Text(formatDuration(duration))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+                
+                if let distance = activity.distance {
+                    Text(formatDistance(distance))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    // MARK: - Formatting Helpers
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h:mm a"
+        return formatter.string(from: date)
+    }
+    
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = (Int(seconds) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes)m"
+        }
+    }
+    
+    private func formatDistance(_ meters: Double) -> String {
+        let km = meters / 1000.0
+        return String(format: "%.1f km", km)
+    }
+}
+
+// MARK: - View Model
+
+@MainActor
+class ActivitiesViewModel: ObservableObject {
+    @Published var groupedActivities: [String: [UnifiedActivity]] = [:]
+    @Published var isLoading = false
+    @Published var isLoadingMore = false
+    @Published var hasLoadedExtended = false
+    @Published var error: String?
+    @Published var selectedFilters: Set<UnifiedActivity.ActivityType> = []
+    
+    var allActivities: [UnifiedActivity] = []
+    private var proConfig = ProFeatureConfig.shared
+    private var hasLoadedInitialData = false
+    
+    var sortedMonthKeys: [String] {
+        // Sort month keys chronologically (newest first)
+        groupedActivities.keys.sorted { month1, month2 in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            
+            guard let date1 = formatter.date(from: month1),
+                  let date2 = formatter.date(from: month2) else {
+                return month1 > month2 // Fallback to string comparison
+            }
+            
+            return date1 > date2 // Newest first
+        }
+    }
+    
+    func loadActivitiesIfNeeded(apiClient: IntervalsAPIClient) async {
+        // Only load if we haven't loaded before
+        guard !hasLoadedInitialData else {
+            print("ℹ️ Activities already loaded, skipping")
+            return
+        }
+        await loadActivities(apiClient: apiClient)
+    }
+    
+    func loadActivities(apiClient: IntervalsAPIClient) async {
+        // Prevent concurrent loads
+        guard !isLoading else {
+            print("⚠️ Activities already loading, skipping duplicate request")
+            return
+        }
+        
+        isLoading = true
+        error = nil
+        hasLoadedExtended = false
+        hasLoadedInitialData = true
+        
+        // FREE: 30 days, PRO: 30 days initially (can load 60 more)
+        let daysBack = 30
+        
+        print("📊 Loading activities: \(daysBack) days (PRO: \(proConfig.hasProAccess))")
+        
+        // Try to fetch activities from Intervals.icu (optional)
+        var intervalsActivities: [IntervalsActivity] = []
+        do {
+            intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: daysBack)
+            print("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
+        } catch {
+            print("⚠️ Intervals.icu not available: \(error.localizedDescription)")
+            print("📱 Continuing with HealthKit-only mode")
+        }
+        
+        // Fetch Strava activities using shared service
+        await StravaDataService.shared.fetchActivitiesIfNeeded()
+        let stravaActivities = StravaDataService.shared.activities
+        
+        // Always fetch Apple Health workouts (this is our primary source now)
+        let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: daysBack)
+        print("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
+        
+        // Convert to unified format and filter Strava-sourced activities from Intervals
+        var intervalsUnified: [UnifiedActivity] = []
+        var stravaFilteredCount = 0
+        
+        for intervalsActivity in intervalsActivities {
+            // Skip Strava-sourced activities (we fetch them directly from Strava)
+            if let source = intervalsActivity.source, source.uppercased() == "STRAVA" {
+                stravaFilteredCount += 1
+                continue
+            }
+            intervalsUnified.append(UnifiedActivity(from: intervalsActivity))
+        }
+        
+        let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
+        let healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
+        
+        print("🔍 Filtered Intervals activities: \(intervalsActivities.count) total → \(intervalsUnified.count) native (removed \(stravaFilteredCount) Strava)")
+        
+        // Deduplicate activities across all sources
+        let deduplicationService = ActivityDeduplicationService.shared
+        let deduplicated = deduplicationService.deduplicateActivities(
+            intervalsActivities: intervalsUnified,
+            stravaActivities: stravaUnified,
+            appleHealthActivities: healthUnified
+        )
+        
+        // Sort by date (newest first)
+        let unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }
+        
+        // Store all activities
+        allActivities = unifiedActivities
+        
+        // Apply filters and group
+        applyFilters()
+        
+        print("📊 Total unified activities: \(allActivities.count)")
+        
+        isLoading = false
+    }
+    
+    func loadExtendedActivities(apiClient: IntervalsAPIClient) async {
+        guard proConfig.hasProAccess else { return }
+        
+        isLoadingMore = true
+        
+        do {
+            print("📊 Loading extended activities: 31-90 days")
+            
+            // Fetch activities from day 31 to day 90 (60 additional days)
+            let intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)
+            
+            // Fetch Strava activities (if connected)
+            var stravaActivities: [StravaActivity] = []
+            let stravaAuthService = StravaAuthService.shared
+            if case .connected = stravaAuthService.connectionState {
+                let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: Date())
+                stravaActivities = (try? await StravaAPIClient.shared.fetchActivities(
+                    page: 1,
+                    perPage: 200,
+                    after: ninetyDaysAgo
+                )) ?? []
+                print("✅ Loaded \(stravaActivities.count) extended Strava activities")
+            }
+            
+            let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: 90)
+            
+            // Filter to only activities from day 31-90 (exclude first 30 days already loaded)
+            let calendar = Calendar.current
+            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+            
+            // Filter Intervals activities (only older than 30 days, exclude Strava-sourced)
+            var intervalsUnified: [UnifiedActivity] = []
+            var stravaFilteredCount = 0
+            
+            for activity in intervalsActivities {
+                if activity.startDateLocal < thirtyDaysAgo.ISO8601Format() {
+                    // Skip Strava-sourced activities
+                    if let source = activity.source, source.uppercased() == "STRAVA" {
+                        stravaFilteredCount += 1
+                        continue
+                    }
+                    intervalsUnified.append(UnifiedActivity(from: activity))
+                }
+            }
+            
+            // Filter Strava activities (only older than 30 days)
+            let stravaUnified = stravaActivities
+                .filter { $0.start_date_local < thirtyDaysAgo.ISO8601Format() }
+                .map { UnifiedActivity(from: $0) }
+            
+            // Filter Health workouts (only older than 30 days)
+            let healthUnified = healthWorkouts
+                .filter { $0.startDate < thirtyDaysAgo }
+                .map { UnifiedActivity(from: $0) }
+            
+            print("🔍 Extended activities (31-90 days): Intervals=\(intervalsUnified.count), Strava=\(stravaUnified.count), Health=\(healthUnified.count) (filtered \(stravaFilteredCount) Strava from Intervals)")
+            
+            // Deduplicate extended activities
+            let deduplicationService = ActivityDeduplicationService.shared
+            let deduplicated = deduplicationService.deduplicateActivities(
+                intervalsActivities: intervalsUnified,
+                stravaActivities: stravaUnified,
+                appleHealthActivities: healthUnified
+            )
+            
+            // Append to existing activities
+            allActivities.append(contentsOf: deduplicated)
+            
+            // Sort by date (newest first)
+            allActivities.sort { $0.startDate > $1.startDate }
+            
+            // Apply filters and group
+            applyFilters()
+            
+            hasLoadedExtended = true
+            isLoadingMore = false
+            
+            print("📊 Loaded \(deduplicated.count) extended activities")
+        } catch {
+            self.error = error.localizedDescription
+            isLoadingMore = false
+            print("❌ Error loading extended activities: \(error)")
+        }
+    }
+    
+    func applyFilters() {
+        let filtered = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        
+        groupedActivities = Dictionary(grouping: filtered) { activity in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: activity.startDate)
+        }
+    }
+}
+
+// MARK: - Filter Sheet
+
+struct ActivityFilterSheet: View {
+    @ObservedObject var viewModel: ActivitiesViewModel
+    @Environment(\.dismiss) private var dismiss
+    
+    // Dynamically show only activity types that exist in the loaded activities
+    var availableTypes: [UnifiedActivity.ActivityType] {
+        let types = Set(viewModel.allActivities.map { $0.type })
+        return Array(types).sorted { $0.rawValue < $1.rawValue }
+    }
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(availableTypes, id: \.self) { type in
+                    Button(action: {
+                        if viewModel.selectedFilters.contains(type) {
+                            viewModel.selectedFilters.remove(type)
+                        } else {
+                            viewModel.selectedFilters.insert(type)
+                        }
+                        viewModel.applyFilters()
+                    }) {
+                        HStack {
+                            Text(type.rawValue)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if viewModel.selectedFilters.contains(type) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color.button.primary)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Filter Activities")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Clear All") {
+                        viewModel.selectedFilters.removeAll()
+                        viewModel.applyFilters()
+                    }
+                    .disabled(viewModel.selectedFilters.isEmpty)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+

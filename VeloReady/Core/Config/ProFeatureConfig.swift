@@ -1,0 +1,293 @@
+import Foundation
+
+/// Configuration for Pro (RideReady+) features
+/// Centralized feature flagging system for Free vs Pro tiers
+@MainActor
+class ProFeatureConfig: ObservableObject {
+    static let shared = ProFeatureConfig()
+    
+    // MARK: - Subscription State
+    
+    @Published var isProUser: Bool = false
+    @Published var isInTrialPeriod: Bool = false
+    @Published var trialDaysRemaining: Int = 0
+    
+    // For development/testing: bypass subscription check
+    @Published var bypassSubscriptionForTesting: Bool = false
+    
+    // For development/testing: show mock data for features requiring historical data
+    @Published var showMockDataForTesting: Bool = false
+    
+    private init() {
+        // Load subscription state from UserDefaults or RevenueCat
+        loadSubscriptionState()
+        
+        #if DEBUG
+        // Default to Pro enabled in DEBUG builds for testing
+        if !UserDefaults.standard.bool(forKey: "hasSetProTestingPreference") {
+            bypassSubscriptionForTesting = true
+            UserDefaults.standard.set(true, forKey: "bypassProForTesting")
+            UserDefaults.standard.set(true, forKey: "hasSetProTestingPreference")
+            print("🎯 DEBUG: Pro features enabled by default for testing")
+        }
+        #endif
+    }
+    
+    // MARK: - Feature Access Checks
+    
+    var hasProAccess: Bool {
+        return isProUser || isInTrialPeriod || bypassSubscriptionForTesting
+    }
+    
+    // MARK: - Account Sync Features
+    
+    var canConnectStrava: Bool { hasProAccess }
+    var canConnectTrainingPeaks: Bool { hasProAccess }
+    var canConnectGarmin: Bool { hasProAccess }
+    var canConnectWahoo: Bool { hasProAccess }
+    
+    // MARK: - Dashboard Features
+    
+    var canViewWeeklyTrends: Bool { hasProAccess }
+    var canViewMonthlyTrends: Bool { hasProAccess }
+    
+    // MARK: - AI Features
+    
+    var canUseAIWeeklySummary: Bool { hasProAccess }
+    var canUseAIMonthlySummary: Bool { hasProAccess }
+    var canUseAIInsightFeed: Bool { hasProAccess }
+    
+    // MARK: - Recovery Features
+    
+    var canUseAdvancedRecovery: Bool { hasProAccess }
+    var canUseReadinessForecast: Bool { hasProAccess }
+    
+    // MARK: - Chart Features
+    
+    var canViewHRVTrends: Bool { hasProAccess }
+    var canViewFatigueTrends: Bool { hasProAccess }
+    var canViewFormChart: Bool { hasProAccess }
+    var canViewVO2Trends: Bool { hasProAccess }
+    
+    // MARK: - Load/Strain Features
+    
+    var canView7DayLoad: Bool { hasProAccess }
+    var canView28DayLoad: Bool { hasProAccess }
+    
+    // MARK: - Sleep Features
+    
+    var canUseAISleepSummary: Bool { hasProAccess }
+    var canViewSleepEfficiency: Bool { hasProAccess }
+    var canViewSleepDebt: Bool { hasProAccess }
+    
+    // MARK: - Training Features
+    
+    var canUseTrainingFocus: Bool { hasProAccess }
+    
+    // MARK: - Map Features
+    
+    var canUseMapOverlays: Bool { hasProAccess }
+    var canUseHRGradient: Bool { hasProAccess }
+    var canUsePowerGradient: Bool { hasProAccess }
+    
+    // MARK: - Insights Features
+    
+    var canViewCorrelations: Bool { hasProAccess }
+    
+    // MARK: - Data Features
+    
+    var canUseCloudBackup: Bool { hasProAccess }
+    var canExportCSV: Bool { hasProAccess }
+    var canExportJSON: Bool { hasProAccess }
+    
+    // MARK: - UI Features
+    
+    var canUseCustomThemes: Bool { hasProAccess }
+    var canUseDarkModeCustomization: Bool { hasProAccess }
+    
+    // MARK: - Support Features
+    
+    var canUsePrioritySupport: Bool { hasProAccess }
+    
+    // MARK: - Subscription Management
+    
+    func loadSubscriptionState() {
+        // TODO: Integrate with RevenueCat
+        // For now, load from UserDefaults
+        isProUser = UserDefaults.standard.bool(forKey: "isProUser")
+        isInTrialPeriod = UserDefaults.standard.bool(forKey: "isInTrialPeriod")
+        trialDaysRemaining = UserDefaults.standard.integer(forKey: "trialDaysRemaining")
+        
+        #if DEBUG
+        // In debug builds, check for testing bypass
+        bypassSubscriptionForTesting = UserDefaults.standard.bool(forKey: "bypassProForTesting")
+        #endif
+    }
+    
+    func saveSubscriptionState() {
+        UserDefaults.standard.set(isProUser, forKey: "isProUser")
+        UserDefaults.standard.set(isInTrialPeriod, forKey: "isInTrialPeriod")
+        UserDefaults.standard.set(trialDaysRemaining, forKey: "trialDaysRemaining")
+    }
+    
+    // MARK: - Testing Helpers
+    
+    #if DEBUG
+    func enableProForTesting() {
+        bypassSubscriptionForTesting = true
+        UserDefaults.standard.set(true, forKey: "bypassProForTesting")
+        objectWillChange.send()
+    }
+    
+    func disableProForTesting() {
+        bypassSubscriptionForTesting = false
+        UserDefaults.standard.set(false, forKey: "bypassProForTesting")
+        objectWillChange.send()
+    }
+    
+    func simulateTrial(daysRemaining: Int = 14) {
+        isInTrialPeriod = true
+        trialDaysRemaining = daysRemaining
+        saveSubscriptionState()
+        objectWillChange.send()
+    }
+    
+    func endTrial() {
+        isInTrialPeriod = false
+        trialDaysRemaining = 0
+        saveSubscriptionState()
+        objectWillChange.send()
+    }
+    #endif
+    
+    // MARK: - Feature Lists
+    
+    /// Get list of all RideReady Pro features for display in paywall
+    var proFeaturesList: [ProFeature] {
+        return [
+            ProFeature(
+                icon: "link",
+                title: "Multi-Service Sync",
+                description: "Connect Strava, TrainingPeaks, Garmin, and Wahoo",
+                category: .sync
+            ),
+            ProFeature(
+                icon: "chart.line.uptrend.xyaxis",
+                title: "Trend Dashboards",
+                description: "Weekly and monthly performance trends",
+                category: .dashboard
+            ),
+            ProFeature(
+                icon: "brain.head.profile",
+                title: "AI Coaching",
+                description: "Weekly and monthly AI summaries",
+                category: .ai
+            ),
+            ProFeature(
+                icon: "lightbulb.fill",
+                title: "AI Insights Feed",
+                description: "Contextual tips and recommendations",
+                category: .ai
+            ),
+            ProFeature(
+                icon: "heart.text.square",
+                title: "Advanced Recovery",
+                description: "HR trends and readiness forecasting",
+                category: .recovery
+            ),
+            ProFeature(
+                icon: "chart.xyaxis.line",
+                title: "Fitness-Fatigue Chart",
+                description: "Track your training form over time",
+                category: .charts
+            ),
+            ProFeature(
+                icon: "waveform.path.ecg",
+                title: "HRV & VO₂ Trends",
+                description: "Long-term health metric tracking",
+                category: .charts
+            ),
+            ProFeature(
+                icon: "figure.run",
+                title: "7 & 28-Day Load",
+                description: "Rolling training load analysis",
+                category: .load
+            ),
+            ProFeature(
+                icon: "bed.double.fill",
+                title: "AI Sleep Analysis",
+                description: "Sleep efficiency, debt, and recommendations",
+                category: .sleep
+            ),
+            ProFeature(
+                icon: "target",
+                title: "Training Focus",
+                description: "7-day workout recommendations",
+                category: .training
+            ),
+            ProFeature(
+                icon: "map.fill",
+                title: "Map Overlays",
+                description: "HR and power gradient visualization",
+                category: .maps
+            ),
+            ProFeature(
+                icon: "chart.dots.scatter",
+                title: "Correlation Insights",
+                description: "Recovery-sleep relationship analysis",
+                category: .insights
+            ),
+            ProFeature(
+                icon: "icloud.fill",
+                title: "Cloud Backup",
+                description: "Secure data backup to cloud",
+                category: .data
+            ),
+            ProFeature(
+                icon: "square.and.arrow.up",
+                title: "Data Export",
+                description: "Export to CSV and JSON",
+                category: .data
+            ),
+            ProFeature(
+                icon: "paintpalette.fill",
+                title: "Custom Themes",
+                description: "Dark mode and gradient customization",
+                category: .ui
+            ),
+            ProFeature(
+                icon: "person.fill.questionmark",
+                title: "Priority Support",
+                description: "Fast response to your questions",
+                category: .support
+            )
+        ]
+    }
+}
+
+// MARK: - Pro Feature Model
+
+struct ProFeature: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let description: String
+    let category: ProFeatureCategory
+}
+
+enum ProFeatureCategory {
+    case sync
+    case dashboard
+    case ai
+    case recovery
+    case charts
+    case load
+    case sleep
+    case training
+    case maps
+    case insights
+    case data
+    case ui
+    case support
+}
+ 

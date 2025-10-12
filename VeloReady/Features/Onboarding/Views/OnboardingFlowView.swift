@@ -1,0 +1,50 @@
+import SwiftUI
+
+/// Main onboarding flow container
+struct OnboardingFlowView: View {
+    @StateObject private var onboardingManager = OnboardingManager.shared
+    
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                colors: [Color.blue.opacity(0.1), Color.cyan.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            // Step content
+            Group {
+                switch onboardingManager.currentStep {
+                case .welcome:
+                    WelcomeStepView()
+                case .benefits:
+                    BenefitsStepView()
+                case .healthKit:
+                    HealthKitStepView()
+                case .dataSources:
+                    DataSourcesStepView()
+                case .preferences:
+                    PreferencesStepView()
+                case .subscription:
+                    SubscriptionStepView()
+                case .complete:
+                    CompleteStepView()
+                }
+            }
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
+        }
+    }
+}
+
+// MARK: - Preview
+
+struct OnboardingFlowView_Previews: PreviewProvider {
+    static var previews: some View {
+        OnboardingFlowView()
+    }
+}

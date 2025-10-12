@@ -1,0 +1,222 @@
+import SwiftUI
+
+/// Card displaying auto-detected training phase
+struct TrainingPhaseCard: View {
+    let phase: TrainingPhaseDetector.PhaseDetectionResult?
+    
+    var body: some View {
+        Card(style: .elevated) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(TrendsContent.Cards.trainingPhase)
+                            .font(.cardTitle)
+                            .foregroundColor(.text.primary)
+                        
+                        if let phase = phase {
+                            Text(phase.phase.rawValue)
+                                .font(.metricMedium)
+                                .foregroundColor(phaseColor(phase.phase))
+                        } else {
+                            Text("Detecting...")
+                                .font(.bodySecondary)
+                                .foregroundColor(.text.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                }
+                
+                if let phase = phase {
+                    phaseContent(phase)
+                } else {
+                    emptyState
+                }
+            }
+        }
+    }
+    
+    private var emptyState: some View {
+        VStack(spacing: Spacing.md) {
+            Image(systemName: "figure.run.circle")
+                .font(.system(size: 40))
+                .foregroundColor(.text.tertiary)
+            
+            VStack(spacing: Spacing.xs) {
+                Text("Not enough training data")
+                    .font(.bodySecondary)
+                    .foregroundColor(.text.secondary)
+                
+                Text("Complete 4+ weeks of workouts")
+                    .font(.labelSecondary)
+                    .foregroundColor(.text.tertiary)
+                
+                Text("Phase detection requires:")
+                    .font(.labelSecondary)
+                    .foregroundColor(.text.tertiary)
+                    .padding(.top, Spacing.sm)
+                
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack {
+                        Text("•")
+                        Text("4+ weeks of consistent training")
+                    }
+                    HStack {
+                        Text("•")
+                        Text("Activities with power or heart rate")
+                    }
+                    HStack {
+                        Text("•")
+                        Text("Variety of intensities (easy, hard, race)")
+                    }
+                }
+                .font(.labelSecondary)
+                .foregroundColor(.text.tertiary)
+            }
+            .multilineTextAlignment(.center)
+        }
+        .frame(height: 200)
+        .frame(maxWidth: .infinity)
+    }
+    
+    private func phaseContent(_ phase: TrainingPhaseDetector.PhaseDetectionResult) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Phase description
+            Text(phase.phase.description)
+                .font(.bodySecondary)
+                .foregroundColor(.text.secondary)
+            
+            // Metrics
+            HStack(spacing: Spacing.lg) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("Weekly TSS")
+                        .font(.labelPrimary)
+                        .foregroundColor(.text.secondary)
+                    
+                    Text("\(Int(phase.weeklyTSS))")
+                        .font(.metricSmall)
+                        .foregroundColor(.text.primary)
+                }
+                
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("Low Intensity")
+                        .font(.labelPrimary)
+                        .foregroundColor(.text.secondary)
+                    
+                    Text("\(Int(phase.lowIntensityPercent))%")
+                        .font(.metricSmall)
+                        .foregroundColor(.text.primary)
+                }
+                
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("High Intensity")
+                        .font(.labelPrimary)
+                        .foregroundColor(.text.secondary)
+                    
+                    Text("\(Int(phase.highIntensityPercent))%")
+                        .font(.metricSmall)
+                        .foregroundColor(.text.primary)
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, Spacing.sm)
+            .padding(.horizontal, Spacing.md)
+            .background(Color.background.secondary)
+            .cornerRadius(Spacing.buttonCornerRadius)
+            
+            // Confidence
+            HStack {
+                Text("Confidence:")
+                    .font(.labelPrimary)
+                    .foregroundColor(.text.secondary)
+                
+                Text("\(Int(phase.confidence * 100))%")
+                    .font(.labelPrimary)
+                    .foregroundColor(confidenceColor(phase.confidence))
+                
+                Spacer()
+                
+                // Confidence bar
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(Color.background.secondary)
+                            .frame(height: 4)
+                            .cornerRadius(2)
+                        
+                        Rectangle()
+                            .fill(confidenceColor(phase.confidence))
+                            .frame(width: geometry.size.width * phase.confidence, height: 4)
+                            .cornerRadius(2)
+                    }
+                }
+                .frame(height: 4)
+                .frame(width: 80)
+            }
+            
+            Divider()
+            
+            // Recommendation
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(TrendsContent.recommendation)
+                    .font(.labelPrimary)
+                    .foregroundColor(.text.secondary)
+                
+                Text(phase.recommendation)
+                    .font(.bodySecondary)
+                    .foregroundColor(.text.secondary)
+            }
+        }
+    }
+    
+    private func phaseColor(_ phase: TrainingPhaseDetector.TrainingPhase) -> Color {
+        switch phase {
+        case .base:
+            return ColorScale.blueAccent
+        case .build:
+            return ColorScale.purpleAccent
+        case .peak:
+            return ColorScale.redAccent
+        case .recovery:
+            return ColorScale.greenAccent
+        case .transition:
+            return Color.text.secondary
+        }
+    }
+    
+    private func confidenceColor(_ confidence: Double) -> Color {
+        if confidence > 0.75 {
+            return Color.semantic.success
+        } else if confidence > 0.5 {
+            return Color.semantic.warning
+        } else {
+            return Color.text.tertiary
+        }
+    }
+}
+
+#Preview {
+    ScrollView {
+        VStack(spacing: Spacing.lg) {
+            // Build phase
+            TrainingPhaseCard(
+                phase: TrainingPhaseDetector.PhaseDetectionResult(
+                    phase: .build,
+                    confidence: 0.75,
+                    weeklyTSS: 450,
+                    lowIntensityPercent: 65,
+                    highIntensityPercent: 20,
+                    recommendation: "Build phase: Good mix of volume and intensity. Maintain consistency."
+                )
+            )
+            
+            // Empty
+            TrainingPhaseCard(phase: nil)
+        }
+        .padding()
+    }
+    .background(Color.background.primary)
+}
