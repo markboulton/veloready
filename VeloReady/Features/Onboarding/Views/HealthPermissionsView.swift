@@ -99,7 +99,7 @@ struct HealthPermissionsView: View {
         case .authorized:
             return "✓ Health data access granted"
         case .denied:
-            return "Health access was denied. You can enable it in Settings → Privacy → Health → Rideready"
+            return "Health access was denied. You can enable it in Settings → Privacy → Health → VeloReady"
         case .partial:
             return "Some permissions were granted. You can update them in Settings."
         case .notAvailable:

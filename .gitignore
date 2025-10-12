@@ -133,3 +133,6 @@ docs/_build/
 *.mobileprovision
 *.p12
 *.cer
+
+# Local Netlify folder
+.netlify

@@ -18,7 +18,7 @@ struct IntervalsLoginView: View {
                         .font(.system(size: 80))
                         .foregroundColor(Color.button.primary)
                     
-                    Text("Welcome to Rideready")
+                    Text("Welcome to VeloReady")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     

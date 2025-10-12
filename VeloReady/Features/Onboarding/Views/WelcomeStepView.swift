@@ -13,7 +13,7 @@ struct WelcomeStepView: View {
             
             // Welcome message
             VStack(spacing: 16) {
-                Text("Welcome to RideReady")
+                Text("Welcome to VeloReady")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)

@@ -59,7 +59,7 @@ struct SubscriptionStepView: View {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Get the most out of RideReady")
+                Text("Get the most out of VeloReady")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

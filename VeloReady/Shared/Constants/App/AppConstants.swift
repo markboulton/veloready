@@ -4,7 +4,7 @@ import Foundation
 struct AppConstants {
     
     // MARK: - App Info
-    static let appName = "Rideready"
+    static let appName = "VeloReady"
     static let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     static let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     

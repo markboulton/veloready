@@ -36,7 +36,7 @@ struct CompleteStepView: View {
             Button(action: {
                 onboardingManager.completeOnboarding()
             }) {
-                Text("Start Using RideReady")
+                Text("Start Using VeloReady")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

@@ -29,8 +29,8 @@ class OnboardingManager: ObservableObject {
         
         var title: String {
             switch self {
-            case .welcome: return "Welcome to RideReady"
-            case .benefits: return "What RideReady Does"
+            case .welcome: return "Welcome to VeloReady"
+            case .benefits: return "What VeloReady Does"
             case .healthKit: return "Apple Health"
             case .dataSources: return "Connect Your Data"
             case .preferences: return "Your Preferences"
