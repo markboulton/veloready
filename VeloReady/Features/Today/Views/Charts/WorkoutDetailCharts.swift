@@ -68,7 +68,7 @@ struct WorkoutZones {
 struct ChartStyle {
     static let chartHeight: CGFloat = 140
     static let chartCornerRadius: CGFloat = 12
-    static let chartStrokeWidth: CGFloat = 2
+    static let chartStrokeWidth: CGFloat = 1
     static let chartPadding: CGFloat = 16
     
     static let backgroundColor = Color(.systemBackground)
