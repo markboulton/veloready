@@ -1,0 +1,837 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4A6F6AF82E8BDC3200D8A526 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A6F6AF72E8BDC3200D8A526 /* WidgetKit.framework */; };
+		4A6F6AFA2E8BDC3200D8A526 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A6F6AF92E8BDC3200D8A526 /* SwiftUI.framework */; };
+		4A6F6B0B2E8BDC3300D8A526 /* RideReadyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FA2A743E2E8960550047AC79 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA2A743D2E89604C0047AC79 /* README.md */; };
+		FA2A74402E8960690047AC79 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = FA2A743F2E89605C0047AC79 /* LICENSE.md */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4A6F6B092E8BDC3300D8A526 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA2A74002E895F0D0047AC79 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4A6F6AF52E8BDC3200D8A526;
+			remoteInfo = RideReadyWidgetExtension;
+		};
+		FA2A74192E895F0F0047AC79 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA2A74002E895F0D0047AC79 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA2A74072E895F0D0047AC79;
+			remoteInfo = VeloReady;
+		};
+		FA2A74232E895F0F0047AC79 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA2A74002E895F0D0047AC79 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA2A74072E895F0D0047AC79;
+			remoteInfo = VeloReady;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4A6F6B102E8BDC3300D8A526 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4A6F6B0B2E8BDC3300D8A526 /* RideReadyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RideReadyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4A6F6AF72E8BDC3200D8A526 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4A6F6AF92E8BDC3200D8A526 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4A6F6B142E8BDCAB00D8A526 /* RideReadyWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideReadyWidgetExtension.entitlements; sourceTree = "<group>"; };
+		FA2A74082E895F0D0047AC79 /* VeloReady.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VeloReady.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA2A74182E895F0F0047AC79 /* VeloReadyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VeloReadyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA2A74222E895F0F0047AC79 /* VeloReadyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VeloReadyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA2A743D2E89604C0047AC79 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		FA2A743F2E89605C0047AC79 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4A6EA5A02E8BE087006B090C /* Exceptions for "VeloReady" folder in "VeloReady" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FA2A74072E895F0D0047AC79 /* VeloReady */;
+		};
+		4A6F6B0C2E8BDC3300D8A526 /* Exceptions for "RideReadyWidget" folder in "RideReadyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4A6F6B0C2E8BDC3300D8A526 /* Exceptions for "RideReadyWidget" folder in "RideReadyWidgetExtension" target */,
+			);
+			path = RideReadyWidget;
+			sourceTree = "<group>";
+		};
+		FA2A740A2E895F0D0047AC79 /* VeloReady */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4A6EA5A02E8BE087006B090C /* Exceptions for "VeloReady" folder in "VeloReady" target */,
+			);
+			path = VeloReady;
+			sourceTree = "<group>";
+		};
+		FA2A741B2E895F0F0047AC79 /* VeloReadyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VeloReadyTests;
+			sourceTree = "<group>";
+		};
+		FA2A74252E895F0F0047AC79 /* VeloReadyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VeloReadyUITests;
+			sourceTree = "<group>";
+		};
+		FA2A743B2E8960350047AC79 /* Packages */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		FA2A743C2E8960430047AC79 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4A6F6AF32E8BDC3200D8A526 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4A6F6AFA2E8BDC3200D8A526 /* SwiftUI.framework in Frameworks */,
+				4A6F6AF82E8BDC3200D8A526 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74052E895F0D0047AC79 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74152E895F0F0047AC79 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A741F2E895F0F0047AC79 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FA2A73FF2E895F0D0047AC79 = {
+			isa = PBXGroup;
+			children = (
+				4A6F6B142E8BDCAB00D8A526 /* RideReadyWidgetExtension.entitlements */,
+				FA2A743F2E89605C0047AC79 /* LICENSE.md */,
+				FA2A743D2E89604C0047AC79 /* README.md */,
+				FA2A743C2E8960430047AC79 /* Config */,
+				FA2A743B2E8960350047AC79 /* Packages */,
+				FA2A740A2E895F0D0047AC79 /* VeloReady */,
+				FA2A741B2E895F0F0047AC79 /* VeloReadyTests */,
+				FA2A74252E895F0F0047AC79 /* VeloReadyUITests */,
+				4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */,
+				FA2A74842E8968D20047AC79 /* Frameworks */,
+				FA2A74092E895F0D0047AC79 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FA2A74092E895F0D0047AC79 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FA2A74082E895F0D0047AC79 /* VeloReady.app */,
+				FA2A74182E895F0F0047AC79 /* VeloReadyTests.xctest */,
+				FA2A74222E895F0F0047AC79 /* VeloReadyUITests.xctest */,
+				4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FA2A74842E8968D20047AC79 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4A6F6AF72E8BDC3200D8A526 /* WidgetKit.framework */,
+				4A6F6AF92E8BDC3200D8A526 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4A6F6B0D2E8BDC3300D8A526 /* Build configuration list for PBXNativeTarget "RideReadyWidgetExtension" */;
+			buildPhases = (
+				4A6F6AF22E8BDC3200D8A526 /* Sources */,
+				4A6F6AF32E8BDC3200D8A526 /* Frameworks */,
+				4A6F6AF42E8BDC3200D8A526 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4A6F6AFB2E8BDC3200D8A526 /* RideReadyWidget */,
+			);
+			name = RideReadyWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = RideReadyWidgetExtension;
+			productReference = 4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		FA2A74072E895F0D0047AC79 /* VeloReady */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA2A742C2E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReady" */;
+			buildPhases = (
+				FA2A74042E895F0D0047AC79 /* Sources */,
+				FA2A74052E895F0D0047AC79 /* Frameworks */,
+				FA2A74062E895F0D0047AC79 /* Resources */,
+				4A6F6B102E8BDC3300D8A526 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4A6F6B0A2E8BDC3300D8A526 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA2A740A2E895F0D0047AC79 /* VeloReady */,
+				FA2A743C2E8960430047AC79 /* Config */,
+			);
+			name = VeloReady;
+			packageProductDependencies = (
+			);
+			productName = VeloReady;
+			productReference = FA2A74082E895F0D0047AC79 /* VeloReady.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FA2A74172E895F0F0047AC79 /* VeloReadyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA2A742F2E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReadyTests" */;
+			buildPhases = (
+				FA2A74142E895F0F0047AC79 /* Sources */,
+				FA2A74152E895F0F0047AC79 /* Frameworks */,
+				FA2A74162E895F0F0047AC79 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FA2A741A2E895F0F0047AC79 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA2A741B2E895F0F0047AC79 /* VeloReadyTests */,
+			);
+			name = VeloReadyTests;
+			packageProductDependencies = (
+			);
+			productName = VeloReadyTests;
+			productReference = FA2A74182E895F0F0047AC79 /* VeloReadyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FA2A74212E895F0F0047AC79 /* VeloReadyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA2A74322E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReadyUITests" */;
+			buildPhases = (
+				FA2A741E2E895F0F0047AC79 /* Sources */,
+				FA2A741F2E895F0F0047AC79 /* Frameworks */,
+				FA2A74202E895F0F0047AC79 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FA2A74242E895F0F0047AC79 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA2A74252E895F0F0047AC79 /* VeloReadyUITests */,
+			);
+			name = VeloReadyUITests;
+			packageProductDependencies = (
+			);
+			productName = VeloReadyUITests;
+			productReference = FA2A74222E895F0F0047AC79 /* VeloReadyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FA2A74002E895F0D0047AC79 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					4A6F6AF52E8BDC3200D8A526 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					FA2A74072E895F0D0047AC79 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					FA2A74172E895F0F0047AC79 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = FA2A74072E895F0D0047AC79;
+					};
+					FA2A74212E895F0F0047AC79 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = FA2A74072E895F0D0047AC79;
+					};
+				};
+			};
+			buildConfigurationList = FA2A74032E895F0D0047AC79 /* Build configuration list for PBXProject "VeloReady" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FA2A73FF2E895F0D0047AC79;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4A6F6B112E8BDC6E00D8A526 /* XCRemoteSwiftPackageReference "SwiftLint" */,
+				4A6F6B122E8BDC7C00D8A526 /* XCRemoteSwiftPackageReference "SwiftFormat" */,
+				4A6F6B132E8BDC8B00D8A526 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FA2A74092E895F0D0047AC79 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FA2A74072E895F0D0047AC79 /* VeloReady */,
+				FA2A74172E895F0F0047AC79 /* VeloReadyTests */,
+				FA2A74212E895F0F0047AC79 /* VeloReadyUITests */,
+				4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4A6F6AF42E8BDC3200D8A526 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74062E895F0D0047AC79 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FA2A74402E8960690047AC79 /* LICENSE.md in Resources */,
+				FA2A743E2E8960550047AC79 /* README.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74162E895F0F0047AC79 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74202E895F0F0047AC79 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4A6F6AF22E8BDC3200D8A526 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74042E895F0D0047AC79 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A74142E895F0F0047AC79 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA2A741E2E895F0F0047AC79 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4A6F6B0A2E8BDC3300D8A526 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4A6F6AF52E8BDC3200D8A526 /* RideReadyWidgetExtension */;
+			targetProxy = 4A6F6B092E8BDC3300D8A526 /* PBXContainerItemProxy */;
+		};
+		FA2A741A2E895F0F0047AC79 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA2A74072E895F0D0047AC79 /* VeloReady */;
+			targetProxy = FA2A74192E895F0F0047AC79 /* PBXContainerItemProxy */;
+		};
+		FA2A74242E895F0F0047AC79 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA2A74072E895F0D0047AC79 /* VeloReady */;
+			targetProxy = FA2A74232E895F0F0047AC79 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4A6F6B0E2E8BDC3300D8A526 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RideReadyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RideReadyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RideReadyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2.RideReadyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4A6F6B0F2E8BDC3300D8A526 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RideReadyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RideReadyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RideReadyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2.RideReadyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FA2A742A2E895F0F0047AC79 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FA2A742B2E895F0F0047AC79 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FA2A742D2E895F0F0047AC79 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VeloReady/VeloReady.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VeloReady/Preview Content\"";
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VeloReady/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.markboulton.veloready.oauth\";\n    CFBundleURLSchemes =     (\n        \"com.markboulton.veloready\"\n    );\n}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VeloReady needs access to your health data to analyze your recovery, sleep patterns, heart rate variability, workouts, and fitness metrics to provide personalized insights and recommendations for optimal training and recovery.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VeloReady may update your health data with calculated recovery scores and training load metrics to help you track your fitness progress.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		FA2A742E2E895F0F0047AC79 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VeloReady/VeloReady.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VeloReady/Preview Content\"";
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VeloReady/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.markboulton.veloready.oauth\";\n    CFBundleURLSchemes =     (\n        \"com.markboulton.veloready\"\n    );\n}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VeloReady needs access to your health data to analyze your recovery, sleep patterns, heart rate variability, workouts, and fitness metrics to provide personalized insights and recommendations for optimal training and recovery.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VeloReady may update your health data with calculated recovery scores and training load metrics to help you track your fitness progress.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		FA2A74302E895F0F0047AC79 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VeloReady.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VeloReady";
+			};
+			name = Debug;
+		};
+		FA2A74312E895F0F0047AC79 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VeloReady.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VeloReady";
+			};
+			name = Release;
+		};
+		FA2A74332E895F0F0047AC79 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = VeloReady;
+			};
+			name = Debug;
+		};
+		FA2A74342E895F0F0047AC79 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C79WM3NZ27;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.markboulton.VeloReady2UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = VeloReady;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4A6F6B0D2E8BDC3300D8A526 /* Build configuration list for PBXNativeTarget "RideReadyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A6F6B0E2E8BDC3300D8A526 /* Debug */,
+				4A6F6B0F2E8BDC3300D8A526 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FA2A74032E895F0D0047AC79 /* Build configuration list for PBXProject "VeloReady" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA2A742A2E895F0F0047AC79 /* Debug */,
+				FA2A742B2E895F0F0047AC79 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FA2A742C2E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReady" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA2A742D2E895F0F0047AC79 /* Debug */,
+				FA2A742E2E895F0F0047AC79 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FA2A742F2E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReadyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA2A74302E895F0F0047AC79 /* Debug */,
+				FA2A74312E895F0F0047AC79 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FA2A74322E895F0F0047AC79 /* Build configuration list for PBXNativeTarget "VeloReadyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA2A74332E895F0F0047AC79 /* Debug */,
+				FA2A74342E895F0F0047AC79 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4A6F6B112E8BDC6E00D8A526 /* XCRemoteSwiftPackageReference "SwiftLint" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/SwiftLint";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.61.0;
+			};
+		};
+		4A6F6B122E8BDC7C00D8A526 /* XCRemoteSwiftPackageReference "SwiftFormat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nicklockwood/SwiftFormat";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.58.2;
+			};
+		};
+		4A6F6B132E8BDC8B00D8A526 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/openid/AppAuth-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+	};
+	rootObject = FA2A74002E895F0D0047AC79 /* Project object */;
+}
