@@ -37,11 +37,20 @@ class AIBriefService: ObservableObject {
     
     /// Fetch AI brief for today
     func fetchBrief(bypassCache: Bool = false) async {
-        // Check Core Data cache first (unless bypassing)
-        if !bypassCache, let cachedBrief = loadFromCoreData() {
+        // Skip cache if sleep data is missing (recovery will refresh soon)
+        let sleepDataMissing = SleepScoreService.shared.currentSleepScore == nil
+        
+        // Check Core Data cache first (unless bypassing or sleep data missing)
+        if !bypassCache && !sleepDataMissing, let cachedBrief = loadFromCoreData() {
             briefText = cachedBrief
             isCached = true
             print("📦 Using cached AI brief from Core Data")
+            return
+        }
+        
+        // If sleep data is missing, show loading state and wait for recovery refresh
+        if sleepDataMissing && !bypassCache {
+            print("⏳ Sleep data missing - waiting for recovery refresh to fetch AI brief")
             return
         }
         
@@ -118,9 +127,9 @@ class AIBriefService: ObservableObject {
         print("📊 ========================================")
         print("📊 AI BRIEF REQUEST DATA:")
         print("📊   Recovery: \(request.recovery)")
-        print("📊   Sleep Delta: \(String(format: "%.1f", request.sleepDelta))h")
-        print("📊   HRV Delta: \(String(format: "%.1f", request.hrvDelta))%")
-        print("📊   RHR Delta: \(String(format: "%.1f", request.rhrDelta))%")
+        print("📊   Sleep Delta: \(request.sleepDelta.map { String(format: "%.1f", $0) + "h" } ?? "nil")")
+        print("📊   HRV Delta: \(request.hrvDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
+        print("📊   RHR Delta: \(request.rhrDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
         print("📊   TSB: \(String(format: "%.1f", request.tsb))")
         print("📊   TSS Range: \(request.tssLow)-\(request.tssHigh)")
         print("📊   Plan: \(request.plan ?? "none")")
@@ -133,33 +142,33 @@ class AIBriefService: ObservableObject {
         return request
     }
     
-    private func calculateSleepDelta(recovery: RecoveryScore) -> Double {
+    private func calculateSleepDelta(recovery: RecoveryScore) -> Double? {
         guard let sleep = recovery.inputs.sleepDuration,
               let baseline = recovery.inputs.sleepBaseline,
               baseline > 0 else {
-            return 0.0
+            return nil
         }
         
         // Return delta in hours
         return (sleep - baseline) / 3600.0
     }
     
-    private func calculateHRVDelta(recovery: RecoveryScore) -> Double {
+    private func calculateHRVDelta(recovery: RecoveryScore) -> Double? {
         guard let hrv = recovery.inputs.hrv,
               let baseline = recovery.inputs.hrvBaseline,
               baseline > 0 else {
-            return 0.0
+            return nil
         }
         
         // Return percentage change
         return ((hrv - baseline) / baseline) * 100.0
     }
     
-    private func calculateRHRDelta(recovery: RecoveryScore) -> Double {
+    private func calculateRHRDelta(recovery: RecoveryScore) -> Double? {
         guard let rhr = recovery.inputs.rhr,
               let baseline = recovery.inputs.rhrBaseline,
               baseline > 0 else {
-            return 0.0
+            return nil
         }
         
         // Return percentage change

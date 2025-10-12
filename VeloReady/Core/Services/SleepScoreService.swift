@@ -22,9 +22,44 @@ class SleepScoreService: ObservableObject {
     private let cachedSleepScoreKey = "cachedSleepScore"
     private let cachedSleepScoreDateKey = "cachedSleepScoreDate"
     
+    // Track if we've already triggered recovery refresh for missing sleep
+    private var hasTriggeredRecoveryRefresh = false
+    
     init() {
         // Load cached sleep score immediately for instant display
-        loadCachedSleepScore()
+        // But first check if we have actual sleep data from last night
+        Task {
+            await validateAndLoadCache()
+        }
+    }
+    
+    /// Validate that we have sleep data before loading cache
+    private func validateAndLoadCache() async {
+        // Check if we have sleep data from LAST NIGHT (not older data)
+        guard let sleepInfo = await healthKitManager.fetchDetailedSleepData() else {
+            // No sleep data at all - clear cache and set to nil
+            print("⚠️ No sleep data detected - clearing cache")
+            clearSleepScoreCache()
+            currentSleepScore = nil
+            return
+        }
+        
+        // Check if sleep data is from last night (within last 24 hours)
+        let calendar = Calendar.current
+        let now = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
+        
+        // Sleep should have ended within the last 24 hours
+        if let wakeTime = sleepInfo.wakeTime, wakeTime > yesterday {
+            // Fresh sleep data from last night - safe to load cache
+            print("✅ Sleep data from last night detected (wake: \(wakeTime))")
+            loadCachedSleepScore()
+        } else {
+            // Sleep data is old (from 2+ nights ago) - clear cache
+            print("⚠️ Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - clearing cache")
+            clearSleepScoreCache()
+            currentSleepScore = nil
+        }
     }
     
     /// Calculate today's sleep score
@@ -109,6 +144,23 @@ class SleepScoreService: ObservableObject {
         // Save to persistent cache for instant loading next time
         if let score = currentSleepScore {
             saveSleepScoreToCache(score)
+        } else {
+            // Clear cache if no sleep data available (user didn't wear watch)
+            clearSleepScoreCache()
+            print("🗑️ Cleared sleep score cache - no data available")
+            
+            // Only trigger recovery refresh once to avoid infinite loop
+            if !hasTriggeredRecoveryRefresh {
+                hasTriggeredRecoveryRefresh = true
+                
+                // Defer recovery score refresh to avoid UI cascade
+                Task {
+                    // Wait 2 seconds to let UI settle
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    print("🔄 Triggering deferred recovery score refresh due to missing sleep data")
+                    await RecoveryScoreService.shared.forceRefreshRecoveryScoreIgnoringDailyLimit()
+                }
+            }
         }
     }
     
@@ -126,6 +178,19 @@ class SleepScoreService: ObservableObject {
             print("❌ No sleep data available")
             return nil
         }
+        
+        // Check if sleep data is from last night (within last 24 hours)
+        let calendar = Calendar.current
+        let now = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
+        
+        // Sleep should have ended within the last 24 hours
+        guard let wakeTime = sleepInfo.wakeTime, wakeTime > yesterday else {
+            print("❌ Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - not calculating score")
+            return nil
+        }
+        
+        print("✅ Sleep data is fresh (wake: \(wakeTime)) - calculating score")
         
         // Calculate sleep need based on user target and training load
         let sleepNeed = calculateSleepNeed()
@@ -351,7 +416,7 @@ extension SleepScoreService {
             }
         } else {
             print("📦 Cached sleep score is outdated, clearing cache")
-            clearCachedSleepScore()
+            clearSleepScoreCache()
         }
     }
     
@@ -368,8 +433,8 @@ extension SleepScoreService {
         }
     }
     
-    /// Clear cached sleep score
-    private func clearCachedSleepScore() {
+    /// Clear sleep score cache
+    private func clearSleepScoreCache() {
         userDefaults.removeObject(forKey: cachedSleepScoreKey)
         userDefaults.removeObject(forKey: cachedSleepScoreDateKey)
     }

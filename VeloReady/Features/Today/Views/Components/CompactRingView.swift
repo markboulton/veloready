@@ -3,7 +3,7 @@ import SwiftUI
 /// Compact circular ring graph for three-graph layout
 /// Smaller version of RecoveryRingView for Today page with smooth animations
 struct CompactRingView: View {
-    let score: Int // 0-100
+    let score: Int? // 0-100, nil for missing data
     let title: String
     let band: any ScoreBand
     let animationDelay: Double // Delay before starting animation
@@ -20,21 +20,28 @@ struct CompactRingView: View {
                     .stroke(Color(.systemGray5), lineWidth: ringWidth)
                     .frame(width: size, height: size)
                 
-                // Progress ring - directly bound to score, no animation state needed
-                Circle()
-                    .trim(from: 0, to: progressValue)
-                    .stroke(
-                        colorForBand(band),
-                        style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
-                    )
-                    .frame(width: size, height: size)
-                    .rotationEffect(.degrees(-90)) // Start from top
-                    .animation(.easeOut(duration: 0.8), value: score) // Animate when score changes
-                
-                // Center content
-                Text("\(score)")
-                    .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(colorForBand(band))
+                if let score = score {
+                    // Progress ring - directly bound to score, no animation state needed
+                    Circle()
+                        .trim(from: 0, to: progressValue)
+                        .stroke(
+                            colorForBand(band),
+                            style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
+                        )
+                        .frame(width: size, height: size)
+                        .rotationEffect(.degrees(-90)) // Start from top
+                        .animation(.easeOut(duration: 0.8), value: score) // Animate when score changes
+                    
+                    // Center content
+                    Text("\(score)")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(colorForBand(band))
+                } else {
+                    // Missing data indicator
+                    Text("?")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(Color(.systemGray3))
+                }
             }
             
             // Title
@@ -50,6 +57,7 @@ struct CompactRingView: View {
     
     /// Progress value for the ring (0.0 to 1.0)
     private var progressValue: Double {
+        guard let score = score else { return 0.0 }
         return Double(score) / 100.0
     }
     

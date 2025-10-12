@@ -9,6 +9,8 @@ struct TodayView: View {
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
+    @State private var missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
+    @State private var showMissingSleepInfo = false
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
     
@@ -69,10 +71,11 @@ struct TodayView: View {
                             recoveryMetricsSection
                         }
                         
-                        // Missing sleep data warning
+                        // Missing sleep data warning (dismissable)
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
-                           recoveryScore.inputs.sleepDuration == nil {
+                           recoveryScore.inputs.sleepDuration == nil,
+                           !missingSleepBannerDismissed {
                             missingSleepDataBanner
                         }
                         
@@ -292,25 +295,18 @@ struct TodayView: View {
                                             .foregroundColor(.secondary)
                                     }
                                     
-                                    // Show warning icon if sleep data is missing
-                                    if recoveryScore.inputs.sleepDuration == nil {
-                                        CompactRingView(
-                                            score: recoveryScore.score,
-                                            title: "?",
-                                            band: RecoveryScore.RecoveryBand.amber,
-                                            animationDelay: 0.0
-                                        ) {
-                                            // Empty action - navigation handled by parent NavigationLink
-                                        }
-                                    } else {
-                                        CompactRingView(
-                                            score: recoveryScore.score,
-                                            title: recoveryScore.bandDescription,
-                                            band: recoveryScore.band,
-                                            animationDelay: 0.0 // First graph - no delay
-                                        ) {
-                                            // Empty action - navigation handled by parent NavigationLink
-                                        }
+                                    // Show "Limited Data" label if sleep data is missing
+                                    let title = recoveryScore.inputs.sleepDuration == nil 
+                                        ? "Limited Data" 
+                                        : recoveryScore.bandDescription
+                                    
+                                    CompactRingView(
+                                        score: recoveryScore.score,
+                                        title: title,
+                                        band: recoveryScore.band,
+                                        animationDelay: 0.0 // First graph - no delay
+                                    ) {
+                                        // Empty action - navigation handled by parent NavigationLink
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
@@ -347,32 +343,71 @@ struct TodayView: View {
                                             .foregroundColor(.secondary)
                                     }
                                     
-                                    CompactRingView(
-                                        score: sleepScore.score,
-                                        title: sleepScore.bandDescription,
-                                        band: sleepScore.band,
-                                        animationDelay: 0.1 // Second graph - slight delay
-                                    ) {
-                                        // Empty action - navigation handled by parent NavigationLink
+                                    // Show ? if no sleep data
+                                    if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
+                                        VStack(spacing: 4) {
+                                            CompactRingView(
+                                                score: nil,
+                                                title: "No Data",
+                                                band: SleepScore.SleepBand.poor,
+                                                animationDelay: 0.1
+                                            ) {
+                                                // Empty action
+                                            }
+                                            
+                                            // Info button to show banner again
+                                            if missingSleepBannerDismissed {
+                                                Button(action: {
+                                                    showMissingSleepInfo = true
+                                                }) {
+                                                    Image(systemName: "questionmark.circle")
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        CompactRingView(
+                                            score: sleepScore.score,
+                                            title: sleepScore.bandDescription,
+                                            band: sleepScore.band,
+                                            animationDelay: 0.1 // Second graph - slight delay
+                                        ) {
+                                            // Empty action - navigation handled by parent NavigationLink
+                                        }
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(PlainButtonStyle())
                         } else {
+                            // No sleep data available
                             VStack(spacing: 12) {
                                 Text(TodayContent.Scores.sleepScore)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                 
-                                VStack(spacing: 12) {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text(CommonContent.loading)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                VStack(spacing: 4) {
+                                    CompactRingView(
+                                        score: nil,
+                                        title: "No Data",
+                                        band: SleepScore.SleepBand.poor,
+                                        animationDelay: 0.1
+                                    ) {
+                                        // No action
+                                    }
+                                    
+                                    // Info button to show banner again
+                                    if missingSleepBannerDismissed {
+                                        Button(action: {
+                                            showMissingSleepInfo = true
+                                        }) {
+                                            Image(systemName: "questionmark.circle")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
                                 }
-                                .frame(width: 80, height: 80)
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -758,10 +793,57 @@ struct TodayView: View {
             }
             
             Spacer()
+            
+            // Dismiss button
+            Button(action: {
+                missingSleepBannerDismissed = true
+                UserDefaults.standard.set(true, forKey: "missingSleepBannerDismissed")
+            }) {
+                Image(systemName: "xmark")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(6)
+                    .background(Circle().fill(Color(.systemGray5)))
+            }
         }
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .sheet(isPresented: $showMissingSleepInfo) {
+            NavigationView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "moon.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 24))
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Sleep data missing")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            
+                            Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
+                .navigationTitle("Sleep Data")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showMissingSleepInfo = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.height(200)])
+        }
     }
     
     // MARK: - Actions

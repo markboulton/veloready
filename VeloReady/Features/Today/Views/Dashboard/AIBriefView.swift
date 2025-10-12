@@ -51,14 +51,18 @@ struct AIBriefView: View {
                         TrainingMetricsView()
                     }
                 } else {
-                    Text(TodayContent.AIBrief.loading)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .italic()
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
                 }
             }
             .onAppear {
             // Fetch brief on appear if not already loaded
+            // Note: If sleep data is missing, the recovery refresh will trigger AI brief update
             if service.briefText == nil && !service.isLoading {
                 Task {
                     await service.fetchBrief()

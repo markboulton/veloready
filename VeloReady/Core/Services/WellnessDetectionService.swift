@@ -32,6 +32,13 @@ class WellnessDetectionService: ObservableObject {
             return
         }
         
+        // Skip wellness analysis if sleep data is missing (unreliable)
+        if SleepScoreService.shared.currentSleepScore == nil {
+            print("⏭️ Skipping wellness analysis - no sleep data available (unreliable without sleep)")
+            currentAlert = nil
+            return
+        }
+        
         // Check if we've analyzed recently
         if let lastAnalysis = lastAnalysisDate {
             let timeSinceLastAnalysis = Date().timeIntervalSince(lastAnalysis)

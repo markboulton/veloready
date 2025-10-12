@@ -5,9 +5,9 @@ import CryptoKit
 
 struct AIBriefRequest: Codable {
     let recovery: Int
-    let sleepDelta: Double
-    let hrvDelta: Double
-    let rhrDelta: Double
+    let sleepDelta: Double?
+    let hrvDelta: Double?
+    let rhrDelta: Double?
     let tsb: Double
     let tssLow: Int
     let tssHigh: Int

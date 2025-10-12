@@ -312,6 +312,12 @@ class RecoveryScoreCalculator {
         inputs: RecoveryScore.RecoveryInputs
     ) -> Double {
         
+        // Skip alcohol detection if sleep data is missing (unreliable)
+        guard inputs.sleepScore != nil else {
+            print("🍷 Skipping alcohol detection - no sleep data available (unreliable without sleep)")
+            return baseScore
+        }
+        
         // Use overnight HRV for alcohol detection (more accurate than latest HRV)
         let hrvForAlcoholDetection = inputs.overnightHrv ?? inputs.hrv
         let hrvBaseline = inputs.hrvBaseline
