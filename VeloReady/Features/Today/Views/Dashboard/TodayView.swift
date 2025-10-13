@@ -144,7 +144,7 @@ struct TodayView: View {
                 .coordinateSpace(name: "scroll")
                 
                 // Blur mask overlay - visible when scrolling
-                if scrollOffset < -50 {
+                if scrollOffset < -100 {
                     VStack(spacing: 0) {
                         Rectangle()
                             .fill(.ultraThickMaterial)

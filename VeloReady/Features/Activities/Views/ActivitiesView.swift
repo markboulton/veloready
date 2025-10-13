@@ -62,27 +62,19 @@ struct ActivitiesView: View {
                     }
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(ActivitiesContent.title)
+            .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
                 print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < -50)")
             }
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Text(ActivitiesContent.title)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Spacer()
-                        Button(action: { showingFilterSheet = true }) {
-                            Image(systemName: "line.3.horizontal.decrease.circle")
-                                .foregroundColor(Color.button.primary)
-                        }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingFilterSheet = true }) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .foregroundColor(Color.button.primary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 16)
                 }
             }
             .sheet(isPresented: $showingFilterSheet) {
@@ -235,7 +227,7 @@ struct ActivitiesView: View {
             }
             
             // Blur mask overlay - visible when scrolling
-            if scrollOffset < -50 {
+            if scrollOffset < -100 {
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(.ultraThickMaterial)
