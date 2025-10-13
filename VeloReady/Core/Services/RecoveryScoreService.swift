@@ -309,7 +309,7 @@ class RecoveryScoreService: ObservableObject {
         }
         
         // 2. Try Strava activities
-        if StravaAuthService.shared.connectionState == .connected {
+        if case .connected = StravaAuthService.shared.connectionState {
             do {
                 let stravaService = StravaDataService.shared
                 let stravaActivities = try await stravaService.fetchActivities(limit: 100)
