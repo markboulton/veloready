@@ -142,8 +142,8 @@ struct TodayView: View {
                 // Blur mask overlay - visible when scrolling
                 if scrollOffset < -20 {
                     VStack(spacing: 0) {
-                        Color.clear
-                            .background(.ultraThinMaterial)
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
                             .frame(height: 100)
                             .mask(
                                 LinearGradient(

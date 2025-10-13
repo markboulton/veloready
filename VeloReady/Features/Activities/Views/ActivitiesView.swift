@@ -63,7 +63,7 @@ struct ActivitiesView: View {
                 }
             }
             .navigationTitle(ActivitiesContent.title)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -124,6 +124,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
+                .padding(.top, -8)
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowBackground(Color.clear)
             }
@@ -221,8 +222,8 @@ struct ActivitiesView: View {
             // Blur mask overlay - visible when scrolling
             if scrollOffset < -20 {
                 VStack(spacing: 0) {
-                    Color.clear
-                        .background(.ultraThinMaterial)
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
                         .frame(height: 100)
                         .mask(
                             LinearGradient(
