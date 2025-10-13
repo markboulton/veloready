@@ -124,6 +124,7 @@ struct ActivitiesView: View {
                     Text(monthKey)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .listRowBackground(Color.clear)
                 }
             }
             

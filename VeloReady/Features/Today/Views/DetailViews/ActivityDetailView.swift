@@ -17,6 +17,11 @@ struct ActivityDetailView: View {
         ZStack {
             // Gradient background
             GradientBackground()
+                .onAppear {
+                    print("🎨 ActivityDetailView: GradientBackground appeared")
+                    print("🎨 Activity type: \(activityData.type)")
+                    print("🎨 Activity title: \(activityData.title)")
+                }
             
             ScrollView {
                 VStack(spacing: 0) {

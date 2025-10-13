@@ -64,15 +64,23 @@ struct WorkoutDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Compact Info Header - use enriched activity
-                WorkoutInfoHeader(activity: displayActivity)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
-                
-                // Show loading skeleton while fetching data
-                if viewModel.isLoading {
+        ZStack {
+            // Gradient background
+            GradientBackground()
+                .onAppear {
+                    print("🎨 WorkoutDetailView: GradientBackground appeared")
+                    print("🎨 Activity: \(activity.name ?? "Unknown")")
+                }
+            
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Compact Info Header - use enriched activity
+                    WorkoutInfoHeader(activity: displayActivity)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 24)
+                    
+                    // Show loading skeleton while fetching data
+                    if viewModel.isLoading {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.5)
@@ -135,6 +143,7 @@ struct WorkoutDetailView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
                     .padding(.bottom, 80)  // Extra padding to lift above tab bar
+                }
             }
         }
         .navigationTitle(activity.name ?? "Workout")
