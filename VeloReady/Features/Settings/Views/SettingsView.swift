@@ -15,29 +15,29 @@ struct SettingsView: View {
             ProfileSection()
             
             // Sleep Settings
-            sleepSettingsSection
+            SleepSettingsSection(userSettings: userSettings)
             
             // Data Sources
-            dataSourcesSection
+            DataSourcesSection()
             
             // Training Zones
-            trainingZonesSection
+            TrainingZonesSection(proConfig: proConfig)
             
             // Display Settings
-            displaySettingsSection
+            DisplaySettingsSection()
             
             // Notifications
-            notificationSettingsSection
+            NotificationSettingsSection()
             
             // Account Section
-            accountSection
+            AccountSection(showingDeleteDataAlert: $showingDeleteDataAlert)
             
             // About Section
-            aboutSection
+            AboutSection()
             
             #if DEBUG
             // Debug/Testing Section
-            debugSection
+            DebugSection()
             #endif
         }
         .navigationTitle(SettingsContent.title)
@@ -89,294 +89,7 @@ struct SettingsView: View {
         }
     }
     
-    // MARK: - View Sections
-    
-    
-    private var dataSourcesSection: some View {
-        Section {
-            NavigationLink(destination: DataSourcesSettingsView()) {
-                HStack {
-                    Image(systemName: "link.circle.fill")
-                        .foregroundColor(.blue)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Data Sources")
-                            .font(.body)
-                        
-                        Text("Manage connected apps and services")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-        } header: {
-            Text("Integrations")
-        }
-    }
-    
-    private var sleepSettingsSection: some View {
-        Section {
-            NavigationLink(destination: SleepSettingsView()) {
-                HStack {
-                    Image(systemName: "moon.fill")
-                        .foregroundColor(Color.health.sleep)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Sleep Target")
-                            .font(.body)
-                        
-                        Text(userSettings.formattedSleepTarget)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-            }
-        } header: {
-            Text("Sleep")
-        } footer: {
-            Text("Configure your sleep preferences and targets for better recovery tracking.")
-        }
-    }
-    
-    private var trainingZonesSection: some View {
-        Section {
-            // PRO: Adaptive Zones (computed from performance data)
-            if proConfig.hasProAccess {
-                NavigationLink(destination: AthleteZonesSettingsView()) {
-                    HStack {
-                        Image(systemName: "bolt.heart.fill")
-                            .foregroundColor(ColorScale.purpleAccent)
-                            .frame(width: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("Adaptive Zones")
-                                    .font(.body)
-                                
-                                Text("PRO")
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(ColorScale.purpleAccent)
-                                    .cornerRadius(4)
-                            }
-                            
-                            Text("Adaptive FTP, W', VO2max & Zones")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                }
-            }
-            
-            // FREE: HR and Power Zones (from Intervals.icu)
-            if !proConfig.hasProAccess {
-                NavigationLink(destination: TrainingZoneSettingsView()) {
-                    HStack {
-                        Image(systemName: "heart.fill")
-                            .foregroundColor(Color.health.heartRate)
-                            .frame(width: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("HR and Power Zones")
-                                .font(.body)
-                            
-                            Text("Sync zones from Intervals.icu")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                    }
-                }
-            }
-        } header: {
-            Text("Training")
-        } footer: {
-            if proConfig.hasProAccess {
-                Text("Adaptive Zones uses sports science to compute your FTP, W', and training zones from your performance data.")
-            } else {
-                Text("Sync your heart rate and power zones from Intervals.icu. Upgrade to PRO for adaptive zones computed from your performance data.")
-            }
-        }
-    }
-    
-    private var displaySettingsSection: some View {
-        Section {
-            NavigationLink(destination: DisplaySettingsView()) {
-                HStack {
-                    Image(systemName: "eye.fill")
-                        .foregroundColor(ColorPalette.purple)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Display Preferences")
-                            .font(.body)
-                        
-                        Text("Units, time format, and visibility")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-            }
-        } header: {
-            Text("Display")
-        } footer: {
-            Text("Customize how information is displayed in the app.")
-        }
-    }
-    
-    private var notificationSettingsSection: some View {
-        Section {
-            NavigationLink(destination: NotificationSettingsView()) {
-                HStack {
-                    Image(systemName: "bell.fill")
-                        .foregroundColor(Color.semantic.warning)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Notifications")
-                            .font(.body)
-                        
-                        Text("Sleep reminders and recovery alerts")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-            }
-        } header: {
-            Text("Notifications")
-        } footer: {
-            Text("Manage sleep reminders and recovery notifications.")
-        }
-    }
-    
-    private var accountSection: some View {
-        Section {
-            // Sign out from Intervals.icu
-            if IntervalsOAuthManager.shared.isAuthenticated {
-                Button(action: {
-                    Task {
-                        await IntervalsOAuthManager.shared.signOut()
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .foregroundColor(.orange)
-                            .frame(width: 24)
-                        
-                        Text("Sign Out from Intervals.icu")
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                    }
-                }
-            }
-            
-            // Delete all local data
-            Button(role: .destructive, action: {
-                // Show confirmation alert
-                showingDeleteDataAlert = true
-            }) {
-                HStack {
-                    Image(systemName: "trash.fill")
-                        .foregroundColor(.red)
-                        .frame(width: 24)
-                    
-                    Text("Delete All Local Data")
-                    
-                    Spacer()
-                }
-            }
-        } header: {
-            Text("Account")
-        } footer: {
-            Text("Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected.")
-        }
-    }
-    
     @State private var showingDeleteDataAlert = false
-    
-    private var aboutSection: some View {
-        Section {
-            HStack {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(.secondary)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("About VeloReady")
-                        .font(.body)
-                    
-                    Text("Version 1.0.0")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-            }
-            
-            HStack {
-                Image(systemName: "questionmark.circle.fill")
-                    .foregroundColor(.secondary)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Help & Support")
-                        .font(.body)
-                    
-                    Text("Get help and report issues")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-            }
-        } header: {
-            Text("About")
-        }
-    }
-    
-    #if DEBUG
-    private var debugSection: some View {
-        Section {
-            NavigationLink(destination: DebugSettingsView()) {
-                HStack {
-                    Image(systemName: "hammer.fill")
-                        .foregroundColor(Color.semantic.warning)
-                        .frame(width: 24)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("DEBUG & TESTING")
-                            .font(.body)
-                        
-                        Text("Developer tools and testing options")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-            }
-        } header: {
-            Text("Developer")
-        } footer: {
-            Text("Debug tools, cache management, and testing features.")
-        }
-    }
-    #endif
 }
 
 // MARK: - Pro Feature Toggle (Debug Only)
