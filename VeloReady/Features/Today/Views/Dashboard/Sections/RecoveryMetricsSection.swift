@@ -76,10 +76,12 @@ struct RecoveryMetricsSection: View {
                             score: recoveryScore.score,
                             title: title,
                             band: recoveryScore.band,
-                            animationDelay: 0.0
-                        ) {
-                            // Empty action - navigation handled by parent NavigationLink
-                        } centerText: nil
+                            animationDelay: 0.0,
+                            action: {
+                                // Empty action - navigation handled by parent NavigationLink
+                            },
+                            centerText: nil
+                        )
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -130,10 +132,12 @@ struct RecoveryMetricsSection: View {
                                 score: nil,
                                 title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
                                 band: SleepScore.SleepBand.poor,
-                                animationDelay: 0.1
-                            ) {
-                                // Action handled by button wrapper
-                            } centerText: nil
+                                animationDelay: 0.1,
+                                action: {
+                                    // Action handled by button wrapper
+                                },
+                                centerText: nil
+                            )
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -155,10 +159,12 @@ struct RecoveryMetricsSection: View {
                                 score: sleepScore.score,
                                 title: sleepScore.bandDescription,
                                 band: sleepScore.band,
-                                animationDelay: 0.1
-                            ) {
-                                // Empty action - navigation handled by parent NavigationLink
-                            } centerText: nil
+                                animationDelay: 0.1,
+                                action: {
+                                    // Empty action - navigation handled by parent NavigationLink
+                                },
+                                centerText: nil
+                            )
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -188,10 +194,12 @@ struct RecoveryMetricsSection: View {
                             score: nil,
                             title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
                             band: SleepScore.SleepBand.poor,
-                            animationDelay: 0.1
-                        ) {
-                            // Action handled by button wrapper
-                        } centerText: nil
+                            animationDelay: 0.1,
+                            action: {
+                                // Action handled by button wrapper
+                            },
+                            centerText: nil
+                        )
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -222,10 +230,12 @@ struct RecoveryMetricsSection: View {
                             score: ringScore,
                             title: strainScore.bandDescription,
                             band: strainScore.band,
-                            animationDelay: 0.2
-                        ) {
-                            // Empty action - navigation handled by parent NavigationLink
-                        } centerText: strainScore.formattedScore
+                            animationDelay: 0.2,
+                            action: {
+                                // Empty action - navigation handled by parent NavigationLink
+                            },
+                            centerText: strainScore.formattedScore
+                        )
                     }
                     .frame(maxWidth: .infinity)
                 }
