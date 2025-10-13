@@ -1,5 +1,17 @@
 import SwiftUI
 
+// MARK: - Scroll Offset Preference Key
+
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// MARK: - Today View
+
 /// Main Today view showing current activities and progress
 struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
@@ -14,6 +26,7 @@ struct TodayView: View {
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
+    @State private var scrollOffset: CGFloat = 0
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -25,37 +38,8 @@ struct TodayView: View {
     
     var body: some View {
         ZStack {
-            // Main spinner overlay - shows immediately on app launch
             if showMainSpinner {
-                VStack(spacing: 20) {
-                    Spacer()
-                    
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
-                    
-                    Text(CommonContent.loading)
-                        .font(.headline)
-                        .fontWeight(.regular)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemBackground))
-                .ignoresSafeArea(.all)
-                .zIndex(999) // Ensure it's always on top
-                .onAppear {
-                    print("🎯 Main spinner is now visible - showMainSpinner = \(showMainSpinner)")
-                    
-                    // Hide main spinner after 4 seconds with smooth animation
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                        print("🎯 Hiding main spinner after 4 seconds - showMainSpinner = \(showMainSpinner)")
-                        withAnimation(.easeOut(duration: 0.3)) {
-                            showMainSpinner = false
-                        }
-                    }
-                }
+                loadingSpinner
             }
             
             // Only show NavigationView when main spinner is hidden
@@ -260,6 +244,36 @@ struct TodayView: View {
             }
         }
         .toolbar(showMainSpinner ? .hidden : .visible, for: .tabBar)
+    }
+    
+    // MARK: - Loading Spinner
+    
+    private var loadingSpinner: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            ProgressView()
+                .scaleEffect(1.5)
+                .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
+            
+            Text(CommonContent.loading)
+                .font(.headline)
+                .fontWeight(.regular)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+        .ignoresSafeArea(.all)
+        .zIndex(999)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showMainSpinner = false
+                }
+            }
+        }
     }
     
     // MARK: - View Sections
