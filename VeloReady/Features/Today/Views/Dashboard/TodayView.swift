@@ -62,6 +62,18 @@ struct TodayView: View {
             if !showMainSpinner {
                 NavigationView {
                 ZStack {
+                    // Subtle radial gradient background (Apple Health style)
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.purple.opacity(0.08),
+                            Color.clear
+                        ]),
+                        center: .top,
+                        startRadius: 0,
+                        endRadius: 600
+                    )
+                    .ignoresSafeArea()
+                    
                 ScrollView {
                     VStack(spacing: 20) {
                         // Header Section
@@ -148,6 +160,20 @@ struct TodayView: View {
                 
             }
             .navigationTitle("Today")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color(.systemBackground).opacity(0.95),
+                        Color(.systemBackground).opacity(0.8)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                for: .navigationBar
+            )
             .refreshable {
                 await viewModel.forceRefreshData()
             }
