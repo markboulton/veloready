@@ -42,7 +42,6 @@ struct ActivitiesView: View {
     @State private var showingFilterSheet = false
     @State private var showPaywall = false
     @State private var lastStravaConnectionState: StravaConnectionState = .disconnected
-    @State private var scrollOffset: CGFloat = 0
     
     var body: some View {
         NavigationView {
@@ -63,11 +62,7 @@ struct ActivitiesView: View {
                 }
             }
             .navigationTitle(ActivitiesContent.title)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-            }
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {
@@ -103,18 +98,7 @@ struct ActivitiesView: View {
     // MARK: - Activities List
     
     private var activitiesList: some View {
-        ZStack {
-            List {
-                // Scroll tracking
-                GeometryReader { geometry in
-                    Color.clear.preference(
-                        key: ScrollOffsetPreferenceKey.self,
-                        value: geometry.frame(in: .named("scroll")).minY
-                    )
-                }
-                .frame(height: 0)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
+        List {
             // Sparkline header (full width, before first section)
             Section {
                 ActivitySparkline(
@@ -209,40 +193,11 @@ struct ActivitiesView: View {
                     )
                 }
             }
-            }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .coordinateSpace(name: "scroll")
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
-            
-            // Blur mask overlay (only visible when scrolling)
-            if scrollOffset < -20 {
-                VStack(spacing: 0) {
-                    ZStack {
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                    }
-                    .frame(height: 120)
-                    .mask(
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: .black, location: 0),
-                                .init(color: .black, location: 0.7),
-                                .init(color: .clear, location: 1.0)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
-                    
-                    Spacer()
-                }
-                .allowsHitTesting(false)
-                .ignoresSafeArea()
-            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
     

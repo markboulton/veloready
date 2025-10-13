@@ -26,7 +26,6 @@ struct TodayView: View {
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
-    @State private var scrollOffset: CGFloat = 0
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -50,14 +49,6 @@ struct TodayView: View {
                     GradientBackground()
                     
                 ScrollView {
-                    GeometryReader { geometry in
-                        Color.clear.preference(
-                            key: ScrollOffsetPreferenceKey.self,
-                            value: geometry.frame(in: .named("scroll")).minY
-                        )
-                    }
-                    .frame(height: 0)
-                    
                     VStack(spacing: 20) {
                         // Recovery Metrics (Three Graphs) - Lazy loaded
                         // Missing sleep data warning (collapsible, above metrics)
@@ -137,41 +128,9 @@ struct TodayView: View {
                     }
                     .padding()
                 }
-                .coordinateSpace(name: "scroll")
-                
-                // Blur mask overlay (only visible when scrolling)
-                if scrollOffset < -20 {
-                    VStack(spacing: 0) {
-                        ZStack {
-                            Rectangle()
-                                .fill(.ultraThinMaterial)
-                        }
-                        .frame(height: 120)
-                        .mask(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.7),
-                                    .init(color: .clear, location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
-                        
-                        Spacer()
-                    }
-                    .allowsHitTesting(false)
-                    .ignoresSafeArea()
-                }
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-            }
             .refreshable {
                 await viewModel.forceRefreshData()
             }
