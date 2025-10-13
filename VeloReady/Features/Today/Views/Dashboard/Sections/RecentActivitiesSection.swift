@@ -35,10 +35,12 @@ struct RecentActivitiesSection: View {
                 LazyVStack(spacing: 0) {
                     ForEach(remainingActivities) { activity in
                         UnifiedActivityCard(activity: activity)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
                         
                         if activity.id != remainingActivities.last?.id {
                             Divider()
-                                .padding(.leading, 60)
+                                .padding(.leading, 16)
                         }
                     }
                 }
