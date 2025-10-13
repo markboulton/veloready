@@ -78,6 +78,25 @@ class ProFeatureConfig: ObservableObject {
     
     var canUseAISleepSummary: Bool { hasProAccess }
     var canViewSleepEfficiency: Bool { hasProAccess }
+    
+    // MARK: - Activity History Limits
+    
+    /// Number of days of activity history to fetch
+    var activityHistoryDays: Int {
+        return hasProAccess ? 90 : 30
+    }
+    
+    /// Maximum number of activities to fetch per request
+    var activityFetchLimit: Int {
+        return hasProAccess ? 300 : 100
+    }
+    
+    /// Description of activity history limit for UI
+    var activityHistoryDescription: String {
+        return hasProAccess 
+            ? "Access up to 90 days of activity history"
+            : "Access up to 30 days of activity history"
+    }
     var canViewSleepDebt: Bool { hasProAccess }
     
     // MARK: - Training Features
