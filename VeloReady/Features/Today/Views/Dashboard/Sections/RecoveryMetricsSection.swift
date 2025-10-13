@@ -47,7 +47,7 @@ struct RecoveryMetricsSection: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color(.systemBackground).opacity(0.6))
         .cornerRadius(12)
     }
     

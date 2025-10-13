@@ -44,9 +44,9 @@ enum CardStyle {
     var backgroundColor: Color {
         switch self {
         case .elevated:
-            return Color.background.card
+            return Color(.systemBackground).opacity(0.6)
         case .flat:
-            return Color.background.secondary
+            return Color(.systemBackground).opacity(0.6)
         case .outlined:
             return Color.clear
         }

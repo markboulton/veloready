@@ -34,7 +34,7 @@ extension View {
     func cardStyle() -> some View {
         self
             .padding(Spacing.cardPadding)
-            .background(Color(.systemGray6))
+            .background(Color(.systemBackground).opacity(0.6))
             .cornerRadius(Spacing.cardCornerRadius)
     }
 }
