@@ -10,7 +10,7 @@ struct SleepDetailView: View {
         ScrollView {
                 VStack(spacing: 24) {
                     // Header with main score
-                    headerSection
+                    SleepHeaderSection(sleepScore: sleepScore)
                     
                     // Missing data warning if no sleep duration
                     if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
@@ -89,47 +89,6 @@ struct SleepDetailView: View {
         }
     }
     
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            // Main score ring
-            ZStack {
-                Circle()
-                    .stroke(Color(.systemGray5), lineWidth: 12)
-                    .frame(width: 160, height: 160)
-                
-                Circle()
-                    .trim(from: 0, to: Double(sleepScore.score) / 100.0)
-                    .stroke(
-                        sleepScore.band.colorToken,
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                    )
-                    .frame(width: 160, height: 160)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 1.0), value: sleepScore.score)
-                
-                VStack(spacing: 4) {
-                    Text("\(sleepScore.score)")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(sleepScore.band.colorToken)
-                    
-                    Text(sleepScore.band.rawValue)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            // Brief description
-            Text(sleepScore.dailyBrief)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
-    }
     
     private var scoreBreakdownSection: some View {
         VStack(alignment: .leading, spacing: 16) {
