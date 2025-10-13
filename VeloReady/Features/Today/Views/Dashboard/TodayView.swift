@@ -142,39 +142,15 @@ struct TodayView: View {
                     .padding()
                 }
                 .coordinateSpace(name: "scroll")
-                
-                // Blur mask overlay - visible when large title collapses
-                if scrollOffset < -20 {
-                    VStack(spacing: 0) {
-                        ZStack {
-                            // Background for blur to work against
-                            Color.black.opacity(0.3)
-                            
-                            // Blur layer
-                            Rectangle()
-                                .fill(.ultraThickMaterial)
-                        }
-                        .frame(height: 100)
-                        .onAppear {
-                            print("🔵 TodayView BLUR MASK IS VISIBLE")
-                        }
-                        .mask(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.6),
-                                    .init(color: .clear, location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
-
-                        Spacer()
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if scrollOffset < -20 {
+                        Color.black.opacity(0.5)
+                            .background(.ultraThickMaterial)
+                            .frame(height: 0)
+                            .onAppear {
+                                print("🔵 TodayView BLUR ACTIVE")
+                            }
                     }
-                    .allowsHitTesting(false)
-                    .ignoresSafeArea()
                 }
             }
             .navigationTitle("Today")
