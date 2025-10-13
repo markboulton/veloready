@@ -108,7 +108,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .listRowInsets(EdgeInsets(top: 24, leading: 0, bottom: 20, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 48, leading: 0, bottom: 20, trailing: 0))
                 .listRowBackground(Color.clear)
             } header: {
                 EmptyView()
