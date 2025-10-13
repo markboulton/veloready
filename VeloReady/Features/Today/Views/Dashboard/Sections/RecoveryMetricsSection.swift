@@ -79,7 +79,7 @@ struct RecoveryMetricsSection: View {
                             animationDelay: 0.0
                         ) {
                             // Empty action - navigation handled by parent NavigationLink
-                        }
+                        } centerText: nil
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -133,7 +133,7 @@ struct RecoveryMetricsSection: View {
                                 animationDelay: 0.1
                             ) {
                                 // Action handled by button wrapper
-                            }
+                            } centerText: nil
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -158,7 +158,7 @@ struct RecoveryMetricsSection: View {
                                 animationDelay: 0.1
                             ) {
                                 // Empty action - navigation handled by parent NavigationLink
-                            }
+                            } centerText: nil
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -191,7 +191,7 @@ struct RecoveryMetricsSection: View {
                             animationDelay: 0.1
                         ) {
                             // Action handled by button wrapper
-                        }
+                        } centerText: nil
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -220,12 +220,12 @@ struct RecoveryMetricsSection: View {
                         let ringScore = Int((strainScore.score / 18.0) * 100.0)
                         CompactRingView(
                             score: ringScore,
-                            title: strainScore.formattedScore,
+                            title: strainScore.bandDescription,
                             band: strainScore.band,
                             animationDelay: 0.2
                         ) {
                             // Empty action - navigation handled by parent NavigationLink
-                        }
+                        } centerText: strainScore.formattedScore
                     }
                     .frame(maxWidth: .infinity)
                 }

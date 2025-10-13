@@ -8,6 +8,7 @@ struct CompactRingView: View {
     let band: any ScoreBand
     let animationDelay: Double // Delay before starting animation
     let action: () -> Void
+    let centerText: String? // Optional custom text for center (e.g., "12.5" for strain)
     
     private let ringWidth: CGFloat = 5
     private let size: CGFloat = 100
@@ -32,8 +33,8 @@ struct CompactRingView: View {
                         .rotationEffect(.degrees(-90)) // Start from top
                         .animation(.easeOut(duration: 0.8), value: score) // Animate when score changes
                     
-                    // Center content
-                    Text("\(score)")
+                    // Center content - use custom text if provided, otherwise show score
+                    Text(centerText ?? "\(score)")
                         .font(.system(size: 36, weight: .bold))
                         .foregroundColor(colorForBand(band))
                 } else {
@@ -71,9 +72,9 @@ struct CompactRingView: View {
 struct CompactRingView_Previews: PreviewProvider {
     static var previews: some View {
         HStack(spacing: 20) {
-            CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.green, animationDelay: 0.0) { }
-            CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1) { }
-            CompactRingView(score: 25, title: "Strain", band: RecoveryScore.RecoveryBand.red, animationDelay: 0.2) { }
+            CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.green, animationDelay: 0.0, action: {}, centerText: nil)
+            CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil)
+            CompactRingView(score: 70, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: "12.5")
         }
         .padding()
     }
