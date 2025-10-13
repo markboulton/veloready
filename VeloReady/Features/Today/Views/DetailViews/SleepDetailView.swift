@@ -9,7 +9,7 @@ struct SleepDetailView: View {
     var body: some View {
         ScrollView {
                 VStack(spacing: 24) {
-                    // Header with main score
+                    // 1. Header with sleep ring (main score)
                     SleepHeaderSection(sleepScore: sleepScore)
                     
                     // Missing data warning if no sleep duration
@@ -17,19 +17,25 @@ struct SleepDetailView: View {
                         missingSleepDataWarning
                     }
                     
-                    // Weekly Trend (Pro)
+                    // 2. USP: Sleep-Recovery Index (unique graph)
+                    SleepRecoveryIndexChart(sleepScore: sleepScore)
+                    
+                    // 3. Weekly Trend (Pro)
                     weeklyTrendSection
                     
-                    // Score breakdown
-                    scoreBreakdownSection
+                    // 4. Sleep Architecture: Stages with typical ranges + hypnogram
+                    SleepStagesDetailChart(sleepScore: sleepScore)
                     
-                    // Sleep metrics
-                    sleepMetricsSection
+                    // 5. Restorative Sleep
+                    RestorativeSleepChart(sleepScore: sleepScore)
                     
-                    // Sleep stages
-                    sleepStagesSection
+                    // 6. Sleep Target for Tonight
+                    SleepTargetChart(sleepScore: sleepScore)
                     
-                    // Recommendations
+                    // 7. Sleep Debt
+                    SleepDebtChart(sleepScore: sleepScore)
+                    
+                    // Recommendations (keep at bottom)
                     recommendationsSection
                 }
                 .padding()
