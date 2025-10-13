@@ -144,10 +144,10 @@ struct TodayView: View {
                 .coordinateSpace(name: "scroll")
                 
                 // Blur mask overlay - visible when scrolling
-                if scrollOffset < 10 {
+                if scrollOffset < -50 {
                     VStack(spacing: 0) {
                         Rectangle()
-                            .fill(.ultraThinMaterial)
+                            .fill(.ultraThickMaterial)
                             .frame(height: 100)
                             .onAppear {
                                 print("🔵 TodayView BLUR MASK IS VISIBLE")
@@ -176,7 +176,7 @@ struct TodayView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
-                print("🔵 TodayView scrollOffset changed: \(value), showing blur: \(value < 10)")
+                print("🔵 TodayView scrollOffset changed: \(value), showing blur: \(value < -50)")
             }
             .refreshable {
                 await viewModel.forceRefreshData()

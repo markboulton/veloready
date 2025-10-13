@@ -62,19 +62,27 @@ struct ActivitiesView: View {
                     }
                 }
             }
-            .navigationTitle(ActivitiesContent.title)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
-                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < 10)")
+                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < -50)")
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingFilterSheet = true }) {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
-                            .foregroundColor(Color.button.primary)
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text(ActivitiesContent.title)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Button(action: { showingFilterSheet = true }) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                                .foregroundColor(Color.button.primary)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
                 }
             }
             .sheet(isPresented: $showingFilterSheet) {
@@ -129,10 +137,12 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, -40)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: -40, leading: 0, bottom: 0, trailing: 0))
                 .listRowBackground(Color.clear)
+            } header: {
+                EmptyView()
             }
+            .listSectionSpacing(0)
             
             ForEach(viewModel.sortedMonthKeys, id: \.self) { monthKey in
                 Section {
@@ -225,10 +235,10 @@ struct ActivitiesView: View {
             }
             
             // Blur mask overlay - visible when scrolling
-            if scrollOffset < 10 {
+            if scrollOffset < -50 {
                 VStack(spacing: 0) {
                     Rectangle()
-                        .fill(.ultraThinMaterial)
+                        .fill(.ultraThickMaterial)
                         .frame(height: 100)
                         .onAppear {
                             print("🟢 ActivitiesView BLUR MASK IS VISIBLE")
