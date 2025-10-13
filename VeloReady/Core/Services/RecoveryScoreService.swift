@@ -288,14 +288,41 @@ class RecoveryScoreService: ObservableObject {
     private func calculateTrainingLoadFromUnifiedActivities() async -> (atl: Double?, ctl: Double?) {
         print("📊 Calculating CTL/ATL from unified activities (Strava + Intervals + HealthKit)...")
         
-        // Get all unified activities from the last 42 days (needed for CTL calculation)
-        let activitiesViewModel = ActivitiesViewModel()
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let fortyTwoDaysAgo = calendar.date(byAdding: .day, value: -42, to: today)!
         
-        // Get all activities
-        let allActivities = activitiesViewModel.groupedActivities.values.flatMap { $0 }
+        // Get activities from multiple sources
+        var allActivities: [UnifiedActivity] = []
+        
+        // 1. Try Intervals.icu activities
+        do {
+            let intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            print("📊 Got \(intervalsActivities.count) Intervals.icu activities")
+            
+            // Convert to UnifiedActivity using proper initializer
+            for activity in intervalsActivities {
+                allActivities.append(UnifiedActivity(from: activity))
+            }
+        } catch {
+            print("⚠️ Could not fetch Intervals activities: \(error)")
+        }
+        
+        // 2. Try Strava activities
+        if StravaAuthService.shared.isConnected {
+            do {
+                let stravaService = StravaDataService.shared
+                let stravaActivities = try await stravaService.fetchActivities(limit: 100)
+                print("📊 Got \(stravaActivities.count) Strava activities")
+                
+                // Convert to UnifiedActivity using proper initializer
+                for activity in stravaActivities {
+                    allActivities.append(UnifiedActivity(from: activity))
+                }
+            } catch {
+                print("⚠️ Could not fetch Strava activities: \(error)")
+            }
+        }
         
         // Filter to last 42 days
         let recentActivities = allActivities.filter { activity in
