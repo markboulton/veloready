@@ -14,32 +14,38 @@ struct ActivityDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                // Header with key metrics
-                ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                
-                // Charts Section
-                if !viewModel.chartSamples.isEmpty {
-                    chartsSection
+        ZStack {
+            // Gradient background
+            GradientBackground()
+            
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    // Header with key metrics
+                    ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 20)
+                    
+                    // Charts Section with black background
+                    if !viewModel.chartSamples.isEmpty {
+                        chartsSection
+                            .padding(.bottom, 20)
+                            .background(Color(.systemBackground))
+                    }
+                    
+                    // Map Section - Interactive with black background
+                    if !viewModel.routeCoordinates.isEmpty {
+                        InteractiveWorkoutMapSection(
+                            coordinates: viewModel.routeCoordinates,
+                            isLoading: viewModel.isLoadingMap
+                        )
+                        .padding(.horizontal, 16)
                         .padding(.bottom, 20)
+                        .background(Color(.systemBackground))
+                    }
                 }
-                
-                // Map Section - Interactive
-                if !viewModel.routeCoordinates.isEmpty {
-                    InteractiveWorkoutMapSection(
-                        coordinates: viewModel.routeCoordinates,
-                        isLoading: viewModel.isLoadingMap
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
-                }
+                .padding(.bottom, 30) // Extra padding to avoid navigation bar
             }
-            .padding(.bottom, 30) // Extra padding to avoid navigation bar
         }
-        .background(Color.background.primary)
         .navigationTitle(activityData.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {

@@ -62,8 +62,8 @@ struct ActivitiesView: View {
                 }
             }
             .navigationTitle(ActivitiesContent.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {
@@ -125,6 +125,12 @@ struct ActivitiesView: View {
                         }
                         .listRowBackground(
                             Color(.systemBackground).opacity(0.6)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
                         )
                     }
                 } header: {
