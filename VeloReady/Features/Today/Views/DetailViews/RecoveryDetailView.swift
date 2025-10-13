@@ -11,23 +11,7 @@ struct RecoveryDetailView: View {
         ScrollView {
                 VStack(spacing: 24) {
                     // Large recovery ring
-                    VStack(spacing: 16) {
-                        RecoveryRingView(score: recoveryScore.score, band: recoveryScore.band)
-                        
-                        Text(recoveryScore.bandDescription)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(colorForBand(recoveryScore.band))
-                        
-                        Text(recoveryScore.dailyBrief)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                    .padding()
-                    .background(Color.recovery.sectionBackground)
-                    .cornerRadius(16)
+                    RecoveryHeaderSection(recoveryScore: recoveryScore)
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
