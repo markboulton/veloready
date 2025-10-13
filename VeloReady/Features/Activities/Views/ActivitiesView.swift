@@ -230,25 +230,31 @@ struct ActivitiesView: View {
             // Blur mask overlay - visible when large title collapses
             if scrollOffset < -20 {
                 VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(.ultraThickMaterial)
-                        .frame(height: 100)
-                        .onAppear {
-                            print("🟢 ActivitiesView BLUR MASK IS VISIBLE")
-                        }
-                        .mask(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.6),
-                                    .init(color: .clear, location: 1.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                    ZStack {
+                        // Background for blur to work against
+                        Color.black.opacity(0.3)
+                        
+                        // Blur layer
+                        Rectangle()
+                            .fill(.ultraThickMaterial)
+                    }
+                    .frame(height: 100)
+                    .onAppear {
+                        print("🟢 ActivitiesView BLUR MASK IS VISIBLE")
+                    }
+                    .mask(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .black, location: 0),
+                                .init(color: .black, location: 0.6),
+                                .init(color: .clear, location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
-                        .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
-                    
+                    )
+                    .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
+
                     Spacer()
                 }
                 .allowsHitTesting(false)
