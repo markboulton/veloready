@@ -48,6 +48,7 @@ struct WorkoutDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var routeCoordinates: [CLLocationCoordinate2D] = []
     @State private var isLoadingMap = false
+    @State private var scrollOffset: CGFloat = 0
     
     private var samples: [WorkoutSample] {
         viewModel.samples
@@ -64,8 +65,19 @@ struct WorkoutDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
+        ZStack {
+            GradientBackground()
+            
+            ScrollView {
+                GeometryReader { geometry in
+                    Color.clear.preference(
+                        key: ScrollOffsetPreferenceKey.self,
+                        value: geometry.frame(in: .named("scroll")).minY
+                    )
+                }
+                .frame(height: 0)
+                
+                VStack(spacing: 0) {
                 // Compact Info Header - use enriched activity
                 WorkoutInfoHeader(activity: displayActivity)
                     .padding(.horizontal, 16)
@@ -135,11 +147,43 @@ struct WorkoutDetailView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
                     .padding(.bottom, 80)  // Extra padding to lift above tab bar
+                }
+            }
+            .coordinateSpace(name: "scroll")
+            
+            // Blur mask overlay (only visible when scrolling)
+            if scrollOffset < -20 {
+                VStack(spacing: 0) {
+                    ZStack {
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                    }
+                    .frame(height: 120)
+                    .mask(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .black, location: 0),
+                                .init(color: .black, location: 0.7),
+                                .init(color: .clear, location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
+                    
+                    Spacer()
+                }
+                .allowsHitTesting(false)
+                .ignoresSafeArea()
             }
         }
-        .background(Color.background.primary)
         .navigationTitle(activity.name ?? "Workout")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+            scrollOffset = value
+        }
         .navigationBarBackButtonHidden(false)
         .task {
             print("🎯 WorkoutDetailView: .task triggered - initial load")
