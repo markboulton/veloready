@@ -18,19 +18,21 @@ class TodayViewModel: ObservableObject {
     
     // Health Status
     @Published var isHealthKitAuthorized = false
-    private let oauthManager = IntervalsOAuthManager.shared
+    
+    // Dependencies (injected, with defaults)
+    private let oauthManager: IntervalsOAuthManager
     private let apiClient: IntervalsAPIClient
-    private let intervalsCache = IntervalsCache.shared
-    private let healthKitCache = HealthKitCache.shared
-    private let healthKitManager = HealthKitManager.shared
-    private let stravaAuthService = StravaAuthService.shared
-    private let stravaDataService = StravaDataService.shared
-    private let stravaAPIClient = StravaAPIClient.shared
-    private let cacheManager = CacheManager.shared
-    private let deduplicationService = ActivityDeduplicationService.shared
-    @ObservedObject var recoveryScoreService = RecoveryScoreService.shared
-    @ObservedObject var sleepScoreService = SleepScoreService.shared
-    @ObservedObject var strainScoreService = StrainScoreService.shared
+    private let intervalsCache: IntervalsCache
+    private let healthKitCache: HealthKitCache
+    private let healthKitManager: HealthKitManager
+    private let stravaAuthService: StravaAuthService
+    private let stravaDataService: StravaDataService
+    private let stravaAPIClient: StravaAPIClient
+    private let cacheManager: CacheManager
+    private let deduplicationService: ActivityDeduplicationService
+    let recoveryScoreService: RecoveryScoreService
+    let sleepScoreService: SleepScoreService
+    let strainScoreService: StrainScoreService
     
     // Observer for HealthKit authorization changes
     private var healthKitObserver: AnyCancellable?
@@ -48,8 +50,33 @@ class TodayViewModel: ObservableObject {
         await refreshData()
     }
     
-    init() {
+    init(
+        oauthManager: IntervalsOAuthManager = .shared,
+        intervalsCache: IntervalsCache = .shared,
+        healthKitCache: HealthKitCache = .shared,
+        healthKitManager: HealthKitManager = .shared,
+        stravaAuthService: StravaAuthService = .shared,
+        stravaDataService: StravaDataService = .shared,
+        stravaAPIClient: StravaAPIClient = .shared,
+        cacheManager: CacheManager = .shared,
+        deduplicationService: ActivityDeduplicationService = .shared,
+        recoveryScoreService: RecoveryScoreService = .shared,
+        sleepScoreService: SleepScoreService = .shared,
+        strainScoreService: StrainScoreService = .shared
+    ) {
+        self.oauthManager = oauthManager
         self.apiClient = IntervalsAPIClient(oauthManager: oauthManager)
+        self.intervalsCache = intervalsCache
+        self.healthKitCache = healthKitCache
+        self.healthKitManager = healthKitManager
+        self.stravaAuthService = stravaAuthService
+        self.stravaDataService = stravaDataService
+        self.stravaAPIClient = stravaAPIClient
+        self.cacheManager = cacheManager
+        self.deduplicationService = deduplicationService
+        self.recoveryScoreService = recoveryScoreService
+        self.sleepScoreService = sleepScoreService
+        self.strainScoreService = strainScoreService
         
         // Setup HealthKit observer
         healthKitObserver = healthKitManager.$isAuthorized
