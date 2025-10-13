@@ -153,60 +153,16 @@ struct TodayView: View {
                 await viewModel.forceRefreshData()
             }
             .onAppear {
-                // ULTRA-FAST startup - instant UI, defer ALL heavy operations
-                Task {
-                    await viewModel.loadInitialUI()
-                    // Defer live activity updates and wellness check to background
-                    Task {
-                        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
-                        liveActivityService.startAutoUpdates() // This calls updateLiveDataImmediately internally
-                        
-                        // Analyze wellness trends after initial load
-                        try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 second delay
-                        await wellnessService.analyzeHealthTrends()
-                    }
-                }
-                // Track initial authorization state
-                wasHealthKitAuthorized = healthKitManager.isAuthorized
+                handleViewAppear()
             }
             .onChange(of: healthKitManager.isAuthorized) { newValue in
-                // When HealthKit authorization changes from unauthorized to authorized
-                if newValue && !wasHealthKitAuthorized {
-                    print("✅ HealthKit just authorized - forcing recalculation with health metrics")
-                    wasHealthKitAuthorized = true
-                    Task {
-                        // Clear baseline cache so we fetch fresh historical data from HealthKit
-                        viewModel.clearBaselineCache()
-                        // Force recovery recalculation to include newly available HealthKit data
-                        await viewModel.refreshData(forceRecoveryRecalculation: true)
-                        // Also update live activity data
-                        liveActivityService.startAutoUpdates()
-                    }
-                }
+                handleHealthKitAuthChange(newValue)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                // When returning from Settings, refresh HealthKit status and live data
-                Task {
-                    print("🔄 App entering foreground - refreshing HealthKit status and live data")
-                    await healthKitManager.checkAuthorizationAfterSettingsReturn()
-                    
-                    // Restart live activity updates (this handles the immediate update internally)
-                    liveActivityService.startAutoUpdates()
-                    
-                    // If we're now authorized but weren't before, refresh all data
-                    if healthKitManager.isAuthorized {
-                        print("✅ HealthKit authorized - refreshing all data")
-                        await viewModel.refreshData()
-                    }
-                }
+                handleAppForeground()
             }
             .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
-                // Automatically refresh data after successful Intervals.icu connection
-                Task {
-                    print("🔄 Intervals.icu connected - automatically refreshing data")
-                    await viewModel.refreshData()
-                    liveActivityService.startAutoUpdates()
-                }
+                handleIntervalsConnection()
             }
             .sheet(isPresented: $showingDebugView) {
                 DebugDataView()
@@ -524,7 +480,48 @@ struct TodayView: View {
         .padding(.bottom, 4)
     }
     
-    // MARK: - Actions
+    // MARK: - Event Handlers
+    
+    private func handleViewAppear() {
+        Task {
+            await viewModel.loadInitialUI()
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                liveActivityService.startAutoUpdates()
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                await wellnessService.analyzeHealthTrends()
+            }
+        }
+        wasHealthKitAuthorized = healthKitManager.isAuthorized
+    }
+    
+    private func handleHealthKitAuthChange(_ newValue: Bool) {
+        if newValue && !wasHealthKitAuthorized {
+            wasHealthKitAuthorized = true
+            Task {
+                viewModel.clearBaselineCache()
+                await viewModel.refreshData(forceRecoveryRecalculation: true)
+                liveActivityService.startAutoUpdates()
+            }
+        }
+    }
+    
+    private func handleAppForeground() {
+        Task {
+            await healthKitManager.checkAuthorizationAfterSettingsReturn()
+            liveActivityService.startAutoUpdates()
+            if healthKitManager.isAuthorized {
+                await viewModel.refreshData()
+            }
+        }
+    }
+    
+    private func handleIntervalsConnection() {
+        Task {
+            await viewModel.refreshData()
+            liveActivityService.startAutoUpdates()
+        }
+    }
 }
 
 // MARK: - Supporting Views
