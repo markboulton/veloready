@@ -50,10 +50,15 @@ struct TodayView: View {
                     GradientBackground()
                     
                 ScrollView {
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: ScrollOffsetPreferenceKey.self,
+                            value: geometry.frame(in: .named("scroll")).minY
+                        )
+                    }
+                    .frame(height: 0)
+                    
                     VStack(spacing: 20) {
-                        // Header Section
-                       
-                        
                         // Recovery Metrics (Three Graphs) - Lazy loaded
                         // Missing sleep data warning (collapsible, above metrics)
                         if healthKitManager.isAuthorized, 
@@ -132,23 +137,41 @@ struct TodayView: View {
                     }
                     .padding()
                 }
+                .coordinateSpace(name: "scroll")
+                
+                // Blur mask overlay (only visible when scrolling)
+                if scrollOffset < -20 {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(Color.clear)
+                            .background(.ultraThinMaterial)
+                            .frame(height: 120)
+                            .mask(
+                                LinearGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: .black, location: 0),
+                                        .init(color: .black, location: 0.7),
+                                        .init(color: .clear, location: 1.0)
+                                    ]),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
+                        
+                        Spacer()
+                    }
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
+                }
                 
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(.systemBackground),
-                        Color(.systemBackground).opacity(0.95),
-                        Color(.systemBackground).opacity(0.8)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                ),
-                for: .navigationBar
-            )
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
+            }
             .refreshable {
                 await viewModel.forceRefreshData()
             }
