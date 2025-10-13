@@ -19,7 +19,7 @@ struct ActivityDetailView: View {
             GradientBackground()
             
             ScrollView {
-                LazyVStack(spacing: 0) {
+                VStack(spacing: 0) {
                     // Header with key metrics
                     ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
                         .padding(.horizontal, 16)
@@ -27,23 +27,31 @@ struct ActivityDetailView: View {
                     
                     // Charts Section with black background
                     if !viewModel.chartSamples.isEmpty {
-                        chartsSection
-                            .padding(.bottom, 20)
-                            .background(Color(.systemBackground))
+                        VStack(spacing: 0) {
+                            chartsSection
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemBackground))
                     }
                     
                     // Map Section - Interactive with black background
                     if !viewModel.routeCoordinates.isEmpty {
-                        InteractiveWorkoutMapSection(
-                            coordinates: viewModel.routeCoordinates,
-                            isLoading: viewModel.isLoadingMap
-                        )
-                        .padding(.horizontal, 16)
+                        VStack(spacing: 0) {
+                            InteractiveWorkoutMapSection(
+                                coordinates: viewModel.routeCoordinates,
+                                isLoading: viewModel.isLoadingMap
+                            )
+                            .padding(.horizontal, 16)
+                        }
                         .padding(.bottom, 20)
+                        .frame(maxWidth: .infinity)
                         .background(Color(.systemBackground))
                     }
+                    
+                    Spacer(minLength: 30)
                 }
-                .padding(.bottom, 30) // Extra padding to avoid navigation bar
             }
         }
         .navigationTitle(activityData.title)

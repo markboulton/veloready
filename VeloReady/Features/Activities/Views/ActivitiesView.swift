@@ -110,7 +110,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .listRowInsets(EdgeInsets(top: -40, leading: 0, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
                 .listRowBackground(Color.clear)
             } header: {
                 EmptyView()
@@ -125,12 +125,6 @@ struct ActivitiesView: View {
                         }
                         .listRowBackground(
                             Color(.systemBackground).opacity(0.6)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 4)
                         )
                     }
                 } header: {

@@ -55,7 +55,7 @@ enum CardStyle {
     var borderColor: Color {
         switch self {
         case .elevated, .flat:
-            return Color.clear
+            return Color.primary.opacity(0.1)
         case .outlined:
             return Color.text.tertiary
         }
@@ -64,7 +64,7 @@ enum CardStyle {
     var borderWidth: CGFloat {
         switch self {
         case .elevated, .flat:
-            return 0
+            return 1
         case .outlined:
             return 1
         }

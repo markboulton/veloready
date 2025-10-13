@@ -138,7 +138,7 @@ struct WorkoutDetailView: View {
             }
         }
         .navigationTitle(activity.name ?? "Workout")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
         .task {
             print("🎯 WorkoutDetailView: .task triggered - initial load")
