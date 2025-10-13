@@ -135,7 +135,12 @@ struct TodayView: View {
                         
                         // Recent Activities (excluding the latest one) - Lazy loaded
                         LazyVStack(spacing: 20) {
-                            recentActivitiesSection
+                            RecentActivitiesSection(
+                                allActivities: viewModel.unifiedActivities.isEmpty ?
+                                    viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+                                    viewModel.unifiedActivities,
+                                dailyActivityData: generateDailyActivityData()
+                            )
                         }
                     }
                     .padding()
@@ -319,54 +324,6 @@ struct TodayView: View {
         LatestRidePanel(activity: latestRide)
     }
     
-    private var recentActivitiesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(TodayContent.activitiesSection)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                Spacer()
-                ActivitySparkline(
-                    dailyActivities: generateDailyActivityData(),
-                    alignment: .trailing,
-                    height: 24
-                )
-                .frame(width: 120)
-            }
-            
-            // Use unified activities if available, otherwise fall back to Intervals only
-            let activities = viewModel.unifiedActivities.isEmpty ? 
-                viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                viewModel.unifiedActivities
-            
-            // Show all activities except the first cycling one (which is shown in latest ride panel)
-            let firstCyclingIndex = activities.firstIndex(where: { $0.type == .cycling })
-            let remainingActivities = firstCyclingIndex != nil ? 
-                Array(activities.enumerated().filter { $0.offset != firstCyclingIndex }.map { $0.element }) : 
-                activities
-            
-            if remainingActivities.isEmpty {
-                Text(TodayContent.noActivities)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else {
-                LazyVStack(spacing: 0) {
-                    ForEach(remainingActivities) { activity in
-                        UnifiedActivityCard(activity: activity)
-                        
-                        if activity.id != remainingActivities.last?.id {
-                            Divider()
-                                .background(Color(.systemGray4))
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
     
     // MARK: - Helper Methods
     
