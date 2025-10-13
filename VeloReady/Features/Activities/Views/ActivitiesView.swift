@@ -228,7 +228,7 @@ struct ActivitiesView: View {
             }
             
             // Blur mask overlay - visible when large title collapses
-            if scrollOffset < -52 {
+            if scrollOffset < -20 {
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(.ultraThickMaterial)
