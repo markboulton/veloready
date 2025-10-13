@@ -2,12 +2,20 @@ import SwiftUI
 
 /// Main settings view for user preferences
 struct SettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
-    @ObservedObject private var proConfig = ProFeatureConfig.shared
+    @ObservedObject var userSettings: UserSettings
+    @ObservedObject var proConfig: ProFeatureConfig
     @State private var showingSleepSettings = false
     @State private var showingZoneSettings = false
     @State private var showingDisplaySettings = false
     @State private var showingNotificationSettings = false
+    
+    init(
+        userSettings: UserSettings = .shared,
+        proConfig: ProFeatureConfig = .shared
+    ) {
+        self.userSettings = userSettings
+        self.proConfig = proConfig
+    }
     
     var body: some View {
         List {
