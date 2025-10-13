@@ -99,22 +99,19 @@ struct ActivitiesView: View {
     // MARK: - Activities List
     
     private var activitiesList: some View {
-        List {
-            // Sparkline header (full width, before first section)
-            Section {
-                ActivitySparkline(
-                    dailyActivities: generateDailyActivityData(),
-                    alignment: .leading,
-                    height: 32
-                )
-                .padding(.horizontal, 16)
-                .listRowInsets(EdgeInsets(top: 20, leading: 0, bottom: 20, trailing: 0))
-                .listRowBackground(Color.clear)
-            } header: {
-                EmptyView()
-            }
-            .listSectionSpacing(0)
+        VStack(spacing: 0) {
+            // Sparkline header (outside bordered card)
+            ActivitySparkline(
+                dailyActivities: generateDailyActivityData(),
+                alignment: .leading,
+                height: 32
+            )
+            .padding(.horizontal, 32)
+            .padding(.top, 24)
+            .padding(.bottom, 20)
             
+            // Activities list with border
+            List {
             ForEach(viewModel.sortedMonthKeys, id: \.self) { monthKey in
                 Section {
                     ForEach(viewModel.groupedActivities[monthKey] ?? []) { activity in
@@ -198,9 +195,15 @@ struct ActivitiesView: View {
                     )
                 }
             }
+            }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    .padding(.horizontal, 16)
+            )
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }
