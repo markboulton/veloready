@@ -47,6 +47,10 @@ struct RecentActivitiesSection: View {
         .padding()
         .background(Color(.systemBackground).opacity(0.6))
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 

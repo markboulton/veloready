@@ -232,6 +232,10 @@ struct TodayView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+        )
     }
     
     
@@ -289,6 +293,10 @@ struct TodayView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+        )
     }
     
     private func latestRideSection(latestRide: IntervalsActivity) -> some View {
@@ -553,25 +561,26 @@ struct StatCard: View {
             
             Text(value)
                 .font(.title2)
-                .fontWeight(.bold)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
 }
 
 struct RideStatCard: View {
-    let title: String
-    let value: String
+let title: String
+let value: String
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(value)
+var body: some View {
+VStack(alignment: .leading, spacing: 12) {
+Text(value)
+.font(.headline)
+.fontWeight(.bold)
+        
+Text(title)
+.font(.caption)
+.foregroundColor(.secondary)
+}
+.padding()
+.background(Color(.systemBackground))
+.cornerRadius(8)
+}
                 .font(.headline)
                 .fontWeight(.bold)
             
