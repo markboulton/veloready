@@ -312,12 +312,14 @@ class RecoveryScoreService: ObservableObject {
         if case .connected = StravaAuthService.shared.connectionState {
             do {
                 let stravaService = StravaDataService.shared
-                let stravaActivities = try await stravaService.fetchActivities(limit: 100)
-                print("📊 Got \(stravaActivities.count) Strava activities")
-                
-                // Convert to UnifiedActivity using proper initializer
-                for activity in stravaActivities {
-                    allActivities.append(UnifiedActivity(from: activity))
+                if let athleteId = stravaService.athleteId {
+                    let stravaActivities = try await stravaService.loadActivities(athleteId: athleteId)
+                    print("📊 Got \(stravaActivities.count) Strava activities")
+                    
+                    // Convert to UnifiedActivity using proper initializer
+                    for activity in stravaActivities {
+                        allActivities.append(UnifiedActivity(from: activity))
+                    }
                 }
             } catch {
                 print("⚠️ Could not fetch Strava activities: \(error)")
