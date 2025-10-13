@@ -26,7 +26,6 @@ struct TodayView: View {
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
-    @State private var scrollOffset: CGFloat = 0
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -50,17 +49,6 @@ struct TodayView: View {
                     GradientBackground()
                     
                 ScrollView {
-                    GeometryReader { geometry in
-                        let offset = geometry.frame(in: .named("scroll")).minY
-                        Color.clear.preference(
-                            key: ScrollOffsetPreferenceKey.self,
-                            value: offset
-                        )
-                        .onAppear {
-                            print("🔵 TodayView GeometryReader offset: \(offset)")
-                        }
-                    }
-                    .frame(height: 0)
                     
                     VStack(spacing: 20) {
                         // Recovery Metrics (Three Graphs) - Lazy loaded
@@ -142,25 +130,10 @@ struct TodayView: View {
                     .padding()
                 }
                 .coordinateSpace(name: "scroll")
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    if scrollOffset < -20 {
-                        Color.black.opacity(0.5)
-                            .background(.ultraThickMaterial)
-                            .frame(height: 0)
-                            .onAppear {
-                                print("🔵 TodayView BLUR ACTIVE")
-                            }
-                    }
-                }
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-                let shouldShowBlur = value < -52
-                print("🔵 TodayView scrollOffset: \(value) | Blur active: \(shouldShowBlur) | Title collapsed: \(value < -52)")
-            }
             .refreshable {
                 await viewModel.forceRefreshData()
             }
