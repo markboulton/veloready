@@ -264,27 +264,133 @@ class RecoveryScoreService: ObservableObject {
                 print("   ATL=\(atl?.description ?? "nil"), CTL=\(ctl?.description ?? "nil")")
                 print("   TSS=\(latestActivity.tss?.description ?? "nil")")
                 
-                return (atl, ctl)
-            } else {
-                print("⚠️ No Intervals.icu activities found, falling back to HealthKit")
-                return await calculateTrainingLoadFromHealthKit()
+                // If Intervals.icu has CTL/ATL, use them
+                if atl != nil && ctl != nil {
+                    return (atl, ctl)
+                }
+                
+                // Otherwise fall through to calculate from unified activities
+                print("⚠️ Intervals.icu activities don't have CTL/ATL, calculating from unified activities")
             }
+            
+            // Fall back to calculating from all unified activities (Strava + Intervals + HealthKit)
+            return await calculateTrainingLoadFromUnifiedActivities()
+            
         } catch {
             print("❌ Failed to fetch Intervals data: \(error)")
-            print("⚠️ Falling back to HealthKit training load calculation")
-            return await calculateTrainingLoadFromHealthKit()
+            print("⚠️ Falling back to unified activities calculation")
+            return await calculateTrainingLoadFromUnifiedActivities()
         }
     }
     
-    /// Calculate training load from HealthKit workouts (fallback when Intervals.icu unavailable)
-    private func calculateTrainingLoadFromHealthKit() async -> (atl: Double?, ctl: Double?) {
-        let calculator = TrainingLoadCalculator()
-        let (ctl, atl) = await calculator.calculateTrainingLoad()
+    /// Calculate training load from unified activities (Strava + Intervals + HealthKit)
+    /// This is more robust than relying on Intervals.icu pre-calculated values
+    private func calculateTrainingLoadFromUnifiedActivities() async -> (atl: Double?, ctl: Double?) {
+        print("📊 Calculating CTL/ATL from unified activities (Strava + Intervals + HealthKit)...")
         
-        print("📊 HealthKit-based Training Load:")
+        // Get all unified activities from the last 42 days (needed for CTL calculation)
+        let activitiesViewModel = ActivitiesViewModel()
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let fortyTwoDaysAgo = calendar.date(byAdding: .day, value: -42, to: today)!
+        
+        // Get all activities
+        let allActivities = activitiesViewModel.groupedActivities.values.flatMap { $0 }
+        
+        // Filter to last 42 days
+        let recentActivities = allActivities.filter { activity in
+            activity.startDate >= fortyTwoDaysAgo
+        }
+        
+        print("📊 Found \(recentActivities.count) activities in last 42 days for CTL/ATL calculation")
+        
+        // Calculate daily TSS for each day
+        var dailyTSS: [Date: Double] = [:]
+        
+        for activity in recentActivities {
+            let day = calendar.startOfDay(for: activity.startDate)
+            let tss = estimateTSS(for: activity)
+            dailyTSS[day, default: 0] += tss
+        }
+        
+        // Calculate CTL (42-day exponentially weighted average)
+        let ctl = calculateCTL(from: dailyTSS, today: today)
+        
+        // Calculate ATL (7-day exponentially weighted average)
+        let atl = calculateATL(from: dailyTSS, today: today)
+        
+        print("📊 Calculated Training Load from unified activities:")
         print("   CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
+        print("   TSB=\(String(format: "%.1f", ctl - atl))")
         
         return (atl, ctl)
+    }
+    
+    /// Estimate TSS for a unified activity
+    private func estimateTSS(for activity: UnifiedActivity) -> Double {
+        // If we have TSS from Intervals.icu, use it
+        if let intervalsTSS = activity.intervalsActivity?.tss {
+            return intervalsTSS
+        }
+        
+        // Otherwise estimate from duration and intensity
+        guard let duration = activity.duration else { return 0 }
+        
+        let durationHours = duration / 3600.0
+        
+        // Estimate based on activity type and duration
+        switch activity.type {
+        case .cycling:
+            // Cycling: ~70 TSS/hour for moderate intensity
+            return durationHours * 70
+        case .running:
+            // Running: ~100 TSS/hour (higher impact)
+            return durationHours * 100
+        case .swimming:
+            // Swimming: ~60 TSS/hour
+            return durationHours * 60
+        case .walking:
+            // Walking: ~30 TSS/hour
+            return durationHours * 30
+        case .strength:
+            // Strength: ~50 TSS/hour
+            return durationHours * 50
+        default:
+            // Other: ~50 TSS/hour
+            return durationHours * 50
+        }
+    }
+    
+    /// Calculate CTL (Chronic Training Load) - 42-day exponentially weighted average
+    private func calculateCTL(from dailyTSS: [Date: Double], today: Date) -> Double {
+        let calendar = Calendar.current
+        let ctlDecay = 1.0 / 42.0 // Time constant for CTL
+        var ctl = 0.0
+        
+        // Calculate for last 42 days
+        for dayOffset in (0..<42).reversed() {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            let tss = dailyTSS[date] ?? 0
+            ctl = ctl + (tss - ctl) * ctlDecay
+        }
+        
+        return ctl
+    }
+    
+    /// Calculate ATL (Acute Training Load) - 7-day exponentially weighted average
+    private func calculateATL(from dailyTSS: [Date: Double], today: Date) -> Double {
+        let calendar = Calendar.current
+        let atlDecay = 1.0 / 7.0 // Time constant for ATL
+        var atl = 0.0
+        
+        // Calculate for last 7 days
+        for dayOffset in (0..<7).reversed() {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            let tss = dailyTSS[date] ?? 0
+            atl = atl + (tss - atl) * atlDecay
+        }
+        
+        return atl
     }
     
     // MARK: - Recent Strain Calculation
