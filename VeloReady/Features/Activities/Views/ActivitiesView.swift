@@ -67,7 +67,8 @@ struct ActivitiesView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
-                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < -50)")
+                let shouldShowBlur = value < -52
+                print("🟢 ActivitiesView scrollOffset: \(value) | Blur active: \(shouldShowBlur) | Title collapsed: \(value < -52)")
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -226,8 +227,8 @@ struct ActivitiesView: View {
                 PaywallView()
             }
             
-            // Blur mask overlay - visible when scrolling
-            if scrollOffset < -100 {
+            // Blur mask overlay - visible when large title collapses
+            if scrollOffset < -52 {
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(.ultraThickMaterial)
