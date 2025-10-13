@@ -308,23 +308,8 @@ class RecoveryScoreService: ObservableObject {
             print("⚠️ Could not fetch Intervals activities: \(error)")
         }
         
-        // 2. Try Strava activities
-        if case .connected = StravaAuthService.shared.connectionState {
-            do {
-                let stravaService = StravaDataService.shared
-                if let athleteId = stravaService.athleteId {
-                    let stravaActivities = try await stravaService.loadActivities(athleteId: athleteId)
-                    print("📊 Got \(stravaActivities.count) Strava activities")
-                    
-                    // Convert to UnifiedActivity using proper initializer
-                    for activity in stravaActivities {
-                        allActivities.append(UnifiedActivity(from: activity))
-                    }
-                }
-            } catch {
-                print("⚠️ Could not fetch Strava activities: \(error)")
-            }
-        }
+        // Note: Strava activities are already included via Intervals.icu if synced
+        // No need to fetch separately to avoid duplicates
         
         // Filter to last 42 days
         let recentActivities = allActivities.filter { activity in
