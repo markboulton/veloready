@@ -62,8 +62,8 @@ struct ActivitiesView: View {
                 }
             }
             .navigationTitle(ActivitiesContent.title)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {

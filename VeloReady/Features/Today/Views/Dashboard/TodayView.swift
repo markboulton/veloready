@@ -132,8 +132,8 @@ struct TodayView: View {
                 .coordinateSpace(name: "scroll")
             }
             .navigationTitle("Today")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
             .refreshable {
                 await viewModel.forceRefreshData()
             }
