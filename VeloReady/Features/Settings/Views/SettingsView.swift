@@ -12,7 +12,7 @@ struct SettingsView: View {
     var body: some View {
         List {
             // Profile Section
-            profileSection
+            ProfileSection()
             
             // Sleep Settings
             sleepSettingsSection
@@ -91,36 +91,6 @@ struct SettingsView: View {
     
     // MARK: - View Sections
     
-    private var profileSection: some View {
-        Section {
-            HStack {
-                // Profile avatar placeholder
-                Circle()
-                    .fill(ColorScale.purpleAccent)
-                    .frame(width: 60, height: 60)
-                    .overlay {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.white)
-                            .font(.title2)
-                    }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("VeloReady User")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("Cycling Performance Tracker")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-            }
-            .padding(.vertical, 8)
-        } header: {
-            Text("Profile")
-        }
-    }
     
     private var dataSourcesSection: some View {
         Section {
