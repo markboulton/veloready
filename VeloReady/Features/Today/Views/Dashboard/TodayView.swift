@@ -142,22 +142,23 @@ struct TodayView: View {
                 // Blur mask overlay (only visible when scrolling)
                 if scrollOffset < -20 {
                     VStack(spacing: 0) {
-                        Rectangle()
-                            .fill(Color.clear)
-                            .background(.ultraThinMaterial)
-                            .frame(height: 120)
-                            .mask(
-                                LinearGradient(
-                                    gradient: Gradient(stops: [
-                                        .init(color: .black, location: 0),
-                                        .init(color: .black, location: 0.7),
-                                        .init(color: .clear, location: 1.0)
-                                    ]),
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
+                        ZStack {
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                        }
+                        .frame(height: 120)
+                        .mask(
+                            LinearGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: .black, location: 0),
+                                    .init(color: .black, location: 0.7),
+                                    .init(color: .clear, location: 1.0)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
-                            .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
+                        )
+                        .opacity(min(1.0, abs(scrollOffset + 20) / 30.0))
                         
                         Spacer()
                     }
