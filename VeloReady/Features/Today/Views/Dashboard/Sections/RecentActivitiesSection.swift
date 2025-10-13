@@ -36,6 +36,7 @@ struct RecentActivitiesSection: View {
                     ForEach(remainingActivities) { activity in
                         UnifiedActivityCard(activity: activity)
                             .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
                         
                         if activity.id != remainingActivities.last?.id {
                             Divider()
