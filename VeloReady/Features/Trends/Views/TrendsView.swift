@@ -31,7 +31,7 @@ struct TrendsView: View {
         ScrollView {
             VStack(spacing: Spacing.sectionSpacing) {
                 // Time range selector
-                timeRangeSelector
+                TrendsTimeRangeSelector(viewModel: viewModel)
                 
                 // Quick Stats
                 quickStats
@@ -50,44 +50,6 @@ struct TrendsView: View {
         }
     }
     
-    // MARK: - Time Range Selector
-    
-    private var timeRangeSelector: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Time Range")
-                .font(.labelPrimary)
-                .foregroundColor(.text.secondary)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(TrendsViewModel.TimeRange.allCases, id: \.self) { range in
-                        Button(action: {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                viewModel.selectedTimeRange = range
-                            }
-                            Task {
-                                await viewModel.loadTrendData()
-                            }
-                        }) {
-                            Text(range.rawValue)
-                                .font(.buttonSmall)
-                                .foregroundColor(
-                                    viewModel.selectedTimeRange == range ? .white : .text.primary
-                                )
-                                .padding(.horizontal, Spacing.md)
-                                .padding(.vertical, Spacing.sm)
-                                .background(
-                                    viewModel.selectedTimeRange == range ?
-                                    Color.button.primary : Color.background.secondary
-                                )
-                                .cornerRadius(Spacing.buttonCornerRadius)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-            }
-        }
-    }
     
     // MARK: - Quick Stats
     
