@@ -27,26 +27,20 @@ struct ActivityDetailView: View {
                     
                     // Charts Section with black background
                     if !viewModel.chartSamples.isEmpty {
-                        VStack(spacing: 0) {
-                            chartsSection
-                        }
-                        .padding(.top, 20)
-                        .padding(.bottom, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
+                        chartsSection
+                            .padding(.top, 20)
+                            .padding(.bottom, 20)
+                            .background(Color(.systemBackground))
                     }
                     
                     // Map Section - Interactive with black background
                     if !viewModel.routeCoordinates.isEmpty {
-                        VStack(spacing: 0) {
-                            InteractiveWorkoutMapSection(
-                                coordinates: viewModel.routeCoordinates,
-                                isLoading: viewModel.isLoadingMap
-                            )
-                            .padding(.horizontal, 16)
-                        }
+                        InteractiveWorkoutMapSection(
+                            coordinates: viewModel.routeCoordinates,
+                            isLoading: viewModel.isLoadingMap
+                        )
+                        .padding(.horizontal, 16)
                         .padding(.bottom, 20)
-                        .frame(maxWidth: .infinity)
                         .background(Color(.systemBackground))
                     }
                     

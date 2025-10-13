@@ -36,5 +36,9 @@ extension View {
             .padding(Spacing.cardPadding)
             .background(Color(.systemBackground).opacity(0.6))
             .cornerRadius(Spacing.cardCornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+            )
     }
 }

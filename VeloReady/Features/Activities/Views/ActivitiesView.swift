@@ -110,7 +110,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 20, leading: 0, bottom: 20, trailing: 0))
                 .listRowBackground(Color.clear)
             } header: {
                 EmptyView()
@@ -202,6 +202,11 @@ struct ActivitiesView: View {
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    .padding(.horizontal, 16)
+            )
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }

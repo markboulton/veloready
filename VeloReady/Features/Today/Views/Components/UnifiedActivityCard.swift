@@ -74,7 +74,13 @@ struct UnifiedActivityCard: View {
                     .font(.caption)
             }
         }
-        .padding(.vertical, 12)
+        .padding(16)
+        .background(Color(.systemBackground).opacity(0.6))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+        )
         .contentShape(Rectangle())
     }
     
