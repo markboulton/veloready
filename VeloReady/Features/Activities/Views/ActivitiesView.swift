@@ -67,7 +67,7 @@ struct ActivitiesView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
-                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < -20)")
+                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < 10)")
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -129,7 +129,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, -24)
+                .padding(.top, -40)
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowBackground(Color.clear)
             }
@@ -225,7 +225,7 @@ struct ActivitiesView: View {
             }
             
             // Blur mask overlay - visible when scrolling
-            if scrollOffset < -20 {
+            if scrollOffset < 10 {
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(.ultraThinMaterial)
