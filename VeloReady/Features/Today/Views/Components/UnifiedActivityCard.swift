@@ -28,7 +28,8 @@ struct UnifiedActivityCard: View {
     }
     
     private var cardContent: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
+            // Activity Details
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(activity.name)
@@ -74,6 +75,7 @@ struct UnifiedActivityCard: View {
                     .font(.caption)
             }
         }
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
     
