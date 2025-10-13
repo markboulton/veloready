@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// Reusable dual gradient background (purple from top-left, cyan from top-right)
+/// Reusable dual gradient background (two shades of blue)
 struct GradientBackground: View {
     var body: some View {
         ZStack {
-            // Purple gradient from top-left
+            // Lighter blue gradient from top-left
             RadialGradient(
                 gradient: Gradient(colors: [
-                    Color.purple.opacity(0.22),
+                    Color.blue.opacity(0.15),
                     Color.clear
                 ]),
                 center: .topLeading,
@@ -15,10 +15,10 @@ struct GradientBackground: View {
                 endRadius: UIScreen.main.bounds.height * 0.7
             )
             
-            // Cyan gradient from top-right
+            // Deeper blue gradient from top-right
             RadialGradient(
                 gradient: Gradient(colors: [
-                    Color.cyan.opacity(0.18),
+                    Color.blue.opacity(0.25),
                     Color.clear
                 ]),
                 center: .topTrailing,

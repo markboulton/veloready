@@ -82,6 +82,11 @@ struct WorkoutDetailView: View {
                 WorkoutInfoHeader(activity: displayActivity)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground).opacity(0.6))
+                            .padding(.horizontal, 16)
+                    )
                 
                 // Show loading skeleton while fetching data
                 if viewModel.isLoading {
@@ -126,11 +131,21 @@ struct WorkoutDetailView: View {
                         ftp: ftp,
                         maxHR: maxHR
                     )
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground).opacity(0.6))
+                            .padding(.horizontal, 16)
+                    )
                     .padding(.bottom, 20)
                 }
                 
                 // Zone Pie Charts Section - Free and Pro versions (has its own margins)
                 ZonePieChartSection(activity: displayActivity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground).opacity(0.6))
+                            .padding(.horizontal, 16)
+                    )
                 
                 // Interactive Map - only show if GPS data exists
                 if !routeCoordinates.isEmpty || isLoadingMap {
@@ -140,12 +155,22 @@ struct WorkoutDetailView: View {
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground).opacity(0.6))
+                            .padding(.horizontal, 16)
+                    )
                 }
                 
                 // Additional Data Section - use enriched activity
                 AdditionalDataSection(activity: displayActivity)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground).opacity(0.6))
+                            .padding(.horizontal, 16)
+                    )
                     .padding(.bottom, 80)  // Extra padding to lift above tab bar
                 }
             }

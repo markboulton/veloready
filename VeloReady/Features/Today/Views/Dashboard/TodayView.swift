@@ -165,7 +165,6 @@ struct TodayView: View {
                     .allowsHitTesting(false)
                     .ignoresSafeArea()
                 }
-                
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
