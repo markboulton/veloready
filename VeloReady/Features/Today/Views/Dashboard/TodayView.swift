@@ -108,6 +108,13 @@ struct TodayView: View {
                                 } else {
                                     // Fallback for Strava/Health activities
                                     UnifiedActivityCard(activity: latestCyclingActivity)
+                                        .padding(16)
+                                        .background(Color(.systemBackground).opacity(0.6))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                        )
                                 }
                             }
                         }

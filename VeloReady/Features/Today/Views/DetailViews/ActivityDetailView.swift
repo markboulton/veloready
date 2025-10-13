@@ -20,28 +20,40 @@ struct ActivityDetailView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header with key metrics
+                    // Header with key metrics - gradient shows through
                     ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 20)
                     
-                    // Charts Section with black background
+                    // Charts Section with solid background
                     if !viewModel.chartSamples.isEmpty {
-                        chartsSection
-                            .padding(.top, 20)
-                            .padding(.bottom, 20)
-                            .background(Color(.systemBackground))
+                        VStack(spacing: 0) {
+                            chartsSection
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            Color.black
+                                .ignoresSafeArea(edges: .horizontal)
+                        )
                     }
                     
-                    // Map Section - Interactive with black background
+                    // Map Section - Interactive with solid background
                     if !viewModel.routeCoordinates.isEmpty {
-                        InteractiveWorkoutMapSection(
-                            coordinates: viewModel.routeCoordinates,
-                            isLoading: viewModel.isLoadingMap
-                        )
-                        .padding(.horizontal, 16)
+                        VStack(spacing: 0) {
+                            InteractiveWorkoutMapSection(
+                                coordinates: viewModel.routeCoordinates,
+                                isLoading: viewModel.isLoadingMap
+                            )
+                            .padding(.horizontal, 16)
+                        }
                         .padding(.bottom, 20)
-                        .background(Color(.systemBackground))
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            Color.black
+                                .ignoresSafeArea(edges: .horizontal)
+                        )
                     }
                     
                     Spacer(minLength: 30)
