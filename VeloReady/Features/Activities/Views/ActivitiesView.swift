@@ -328,13 +328,13 @@ private struct ActivityListRowView: View {
         HStack(spacing: 0) {
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text(activity.name)
-                        .font(.body)
+                        .font(.subheadline)
                         .fontWeight(.medium)
-                        .lineLimit(1)
+                        .foregroundColor(.primary)
                     
-                    // Type badge pill with pastel colors
+                    // Type badge with pastel colors
                     if let rawType = activity.rawType {
                         ActivityTypeBadge(rawType, size: .small)
                     } else {
@@ -342,27 +342,34 @@ private struct ActivityListRowView: View {
                     }
                 }
                 
-                // Date
-                Text(formatDate(activity.startDate))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 8) {
+                    Text(formatDate(activity.startDate))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if let duration = activity.duration {
+                        Text("•").foregroundColor(.secondary)
+                        Text(formatDuration(duration))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let distance = activity.distance {
+                        Text("•").foregroundColor(.secondary)
+                        Text(formatDistance(distance))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             
             Spacer()
             
-            // Stats
-            VStack(alignment: .trailing, spacing: 4) {
-                if let duration = activity.duration {
-                    Text(formatDuration(duration))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                }
-                
-                if let distance = activity.distance {
-                    Text(formatDistance(distance))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            // Show chevron for all tappable activities
+            if activity.intervalsActivity != nil || activity.stravaActivity != nil || activity.healthKitWorkout != nil {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
             }
         }
         .padding(.vertical, 4)

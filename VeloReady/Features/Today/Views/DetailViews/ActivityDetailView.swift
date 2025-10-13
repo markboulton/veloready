@@ -14,16 +14,7 @@ struct ActivityDetailView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Gradient background
-            GradientBackground()
-                .onAppear {
-                    print("🎨 ActivityDetailView: GradientBackground appeared")
-                    print("🎨 Activity type: \(activityData.type)")
-                    print("🎨 Activity title: \(activityData.title)")
-                }
-            
-            ScrollView {
+        ScrollView {
                 VStack(spacing: 0) {
                     // Header with key metrics - gradient shows through
                     ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
@@ -64,7 +55,7 @@ struct ActivityDetailView: View {
                     Spacer(minLength: 30)
                 }
             }
-        }
+        .background(Color.background.primary)
         .navigationTitle(activityData.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {

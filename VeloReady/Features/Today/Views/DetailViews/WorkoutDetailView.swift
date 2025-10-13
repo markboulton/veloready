@@ -64,15 +64,7 @@ struct WorkoutDetailView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Gradient background
-            GradientBackground()
-                .onAppear {
-                    print("🎨 WorkoutDetailView: GradientBackground appeared")
-                    print("🎨 Activity: \(activity.name ?? "Unknown")")
-                }
-            
-            ScrollView {
+        ScrollView {
                 VStack(spacing: 0) {
                     // Compact Info Header - use enriched activity
                     WorkoutInfoHeader(activity: displayActivity)
@@ -145,7 +137,7 @@ struct WorkoutDetailView: View {
                     .padding(.bottom, 80)  // Extra padding to lift above tab bar
                 }
             }
-        }
+        .background(Color.background.primary)
         .navigationTitle(activity.name ?? "Workout")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
