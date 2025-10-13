@@ -5,6 +5,7 @@ struct ActivitiesLoadingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                Color.clear.frame(height: 0)
                 Text(ActivitiesContent.loadingActivities)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
