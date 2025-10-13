@@ -26,10 +26,10 @@ struct RecoveryHeaderSection: View {
     
     private func colorForBand(_ band: RecoveryScore.RecoveryBand) -> Color {
         switch band {
-        case .excellent: return .green
-        case .good: return Color.health.recovery
-        case .fair: return .orange
-        case .poor: return .red
+        case .optimal: return .green
+        case .adequate: return Color.health.recovery
+        case .compromised: return .orange
+        case .critical: return .red
         }
     }
 }
