@@ -64,9 +64,8 @@ struct WorkoutDetailView: View {
     }
     
     var body: some View {
-        
-        return ScrollView {
-            LazyVStack(spacing: 0) {
+        ScrollView {
+            VStack(spacing: 0) {
                 // Compact Info Header - use enriched activity
                 WorkoutInfoHeader(activity: displayActivity)
                     .padding(.horizontal, 16)
