@@ -561,27 +561,6 @@ struct StatCard: View {
             
             Text(value)
                 .font(.title2)
-}
-
-struct RideStatCard: View {
-let title: String
-let value: String
-    
-var body: some View {
-VStack(alignment: .leading, spacing: 12) {
-Text(value)
-.font(.headline)
-.fontWeight(.bold)
-        
-Text(title)
-.font(.caption)
-.foregroundColor(.secondary)
-}
-.padding()
-.background(Color(.systemBackground))
-.cornerRadius(8)
-}
-                .font(.headline)
                 .fontWeight(.bold)
             
             Text(title)
@@ -589,8 +568,12 @@ Text(title)
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
