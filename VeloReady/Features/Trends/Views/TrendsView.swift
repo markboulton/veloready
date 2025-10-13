@@ -10,15 +10,21 @@ struct TrendsView: View {
     
     var body: some View {
         NavigationView {
-            Group {
-                if proConfig.hasProAccess {
-                    trendsContent
-                } else {
-                    proGate
+            ZStack {
+                // Gradient background
+                GradientBackground()
+                
+                Group {
+                    if proConfig.hasProAccess {
+                        trendsContent
+                    } else {
+                        proGate
+                    }
                 }
             }
             .navigationTitle("Trends")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }

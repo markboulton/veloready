@@ -45,19 +45,25 @@ struct ActivitiesView: View {
     
     var body: some View {
         NavigationView {
-            Group {
-                if viewModel.isLoading && viewModel.groupedActivities.isEmpty {
-                    ActivitiesLoadingView()
-                } else if viewModel.groupedActivities.isEmpty {
-                    ActivitiesEmptyStateView(onRefresh: {
-                        await viewModel.loadActivities(apiClient: apiClient)
-                    })
-                } else {
-                    activitiesList
+            ZStack {
+                // Gradient background
+                GradientBackground()
+                
+                Group {
+                    if viewModel.isLoading && viewModel.groupedActivities.isEmpty {
+                        ActivitiesLoadingView()
+                    } else if viewModel.groupedActivities.isEmpty {
+                        ActivitiesEmptyStateView(onRefresh: {
+                            await viewModel.loadActivities(apiClient: apiClient)
+                        })
+                    } else {
+                        activitiesList
+                    }
                 }
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {
