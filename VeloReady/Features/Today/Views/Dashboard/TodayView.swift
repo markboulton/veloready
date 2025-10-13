@@ -51,10 +51,14 @@ struct TodayView: View {
                     
                 ScrollView {
                     GeometryReader { geometry in
+                        let offset = geometry.frame(in: .named("scroll")).minY
                         Color.clear.preference(
                             key: ScrollOffsetPreferenceKey.self,
-                            value: geometry.frame(in: .named("scroll")).minY
+                            value: offset
                         )
+                        .onAppear {
+                            print("🔵 TodayView GeometryReader offset: \(offset)")
+                        }
                     }
                     .frame(height: 0)
                     
@@ -145,6 +149,9 @@ struct TodayView: View {
                         Rectangle()
                             .fill(.ultraThinMaterial)
                             .frame(height: 100)
+                            .onAppear {
+                                print("🔵 TodayView BLUR MASK IS VISIBLE")
+                            }
                             .mask(
                                 LinearGradient(
                                     gradient: Gradient(stops: [
@@ -169,6 +176,7 @@ struct TodayView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
+                print("🔵 TodayView scrollOffset changed: \(value), showing blur: \(value < -20)")
             }
             .refreshable {
                 await viewModel.forceRefreshData()

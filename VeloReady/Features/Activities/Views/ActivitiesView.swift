@@ -67,6 +67,7 @@ struct ActivitiesView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
+                print("🟢 ActivitiesView scrollOffset changed: \(value), showing blur: \(value < -20)")
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -107,10 +108,14 @@ struct ActivitiesView: View {
             List {
                 // Scroll tracking
                 GeometryReader { geometry in
+                    let offset = geometry.frame(in: .named("scroll")).minY
                     Color.clear.preference(
                         key: ScrollOffsetPreferenceKey.self,
-                        value: geometry.frame(in: .named("scroll")).minY
+                        value: offset
                     )
+                    .onAppear {
+                        print("🟢 ActivitiesView GeometryReader offset: \(offset)")
+                    }
                 }
                 .frame(height: 0)
                 .listRowBackground(Color.clear)
@@ -124,7 +129,7 @@ struct ActivitiesView: View {
                     height: 32
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, -8)
+                .padding(.top, -24)
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .listRowBackground(Color.clear)
             }
@@ -225,6 +230,9 @@ struct ActivitiesView: View {
                     Rectangle()
                         .fill(.ultraThinMaterial)
                         .frame(height: 100)
+                        .onAppear {
+                            print("🟢 ActivitiesView BLUR MASK IS VISIBLE")
+                        }
                         .mask(
                             LinearGradient(
                                 gradient: Gradient(stops: [
