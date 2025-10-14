@@ -14,9 +14,17 @@ struct ProUpgradeCard: View {
     var body: some View {
         Button(action: { showPaywall = true }) {
             VStack(alignment: .leading, spacing: 16) {
-                // Header with PRO badge
-                HStack(spacing: 12) {
-                    // PRO badge
+                // Header with title and PRO badge (aligned top right)
+                HStack(alignment: .top, spacing: 12) {
+                    // Title
+                    Text(content.title)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.text.primary)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // PRO badge (top right)
                     Text("PRO")
                         .font(.caption)
                         .fontWeight(.bold)
@@ -25,17 +33,7 @@ struct ProUpgradeCard: View {
                         .padding(.vertical, 4)
                         .background(Color.button.primary)
                         .cornerRadius(4)
-                    
-                    Spacer()
                 }
-                
-                // Title
-                Text(content.title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color.text.primary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Description
                 Text(content.description)
@@ -62,22 +60,16 @@ struct ProUpgradeCard: View {
                     .padding(.top, 4)
                 }
                 
-                // Upgrade button
-                HStack {
-                    Spacer()
-                    
-                    Text("Upgrade to Pro")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.button.primary)
-                        .cornerRadius(8)
-                    
-                    Spacer()
-                }
-                .padding(.top, 4)
+                // Upgrade button (full width)
+                Text("Upgrade to Pro")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.button.primary)
+                    .cornerRadius(8)
+                    .padding(.top, 4)
             }
             .padding(16)
             .frame(maxWidth: .infinity)
