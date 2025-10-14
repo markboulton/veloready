@@ -7,15 +7,15 @@ struct RecentActivitiesSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(spacing: 12) {
                 SectionHeader(TodayContent.activitiesSection)
-                Spacer()
                 ActivitySparkline(
                     dailyActivities: dailyActivityData,
-                    alignment: .trailing,
+                    alignment: .leading,
                     height: 24
                 )
                 .frame(width: 120)
+                Spacer()
             }
             .padding(.bottom, 16)
             

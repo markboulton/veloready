@@ -53,10 +53,11 @@ struct ActivityStatsRow: View {
                     .frame(maxWidth: .infinity)
             }
             
-            // Full-width horizontal divider
+            // Full-width horizontal divider with 24px bottom padding
             Rectangle()
                 .fill(Color(.systemGray3))
                 .frame(height: 2)
+                .padding(.bottom, 24)
         }
     }
     

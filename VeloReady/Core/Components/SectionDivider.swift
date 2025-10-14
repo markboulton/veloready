@@ -9,6 +9,6 @@ struct SectionDivider: View {
             .frame(height: 2)
             .padding(.vertical, 24)
             .frame(maxWidth: .infinity)
-            .edgesIgnoringSafeArea(.horizontal)
+            .padding(.horizontal, -16) // Negative padding to escape container
     }
 }
