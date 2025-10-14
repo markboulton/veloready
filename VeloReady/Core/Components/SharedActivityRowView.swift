@@ -1,11 +1,14 @@
 import SwiftUI
+import HealthKit
 
 /// Shared activity row view used in both Today and Activities list
 struct SharedActivityRowView: View {
     let activity: UnifiedActivity
+    @State private var showingRPESheet = false
+    @State private var hasRPE = false
     
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 12) {
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(activity.name)
@@ -35,9 +38,36 @@ struct SharedActivityRowView: View {
             }
             
             Spacer()
+            
+            // Add RPE button for strength workouts without RPE
+            if shouldShowRPEButton {
+                Button(action: {
+                    showingRPESheet = true
+                }) {
+                    Text(hasRPE ? "Edit RPE" : "Add RPE")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
+        .onAppear {
+            checkRPEStatus()
+        }
+        .sheet(isPresented: $showingRPESheet) {
+            if let workout = activity.healthKitWorkout {
+                RPEInputSheet(workout: workout) {
+                    hasRPE = true
+                }
+            }
+        }
     }
     
     // MARK: - Formatting Helpers
@@ -62,5 +92,18 @@ struct SharedActivityRowView: View {
     private func formatDistance(_ meters: Double) -> String {
         let km = meters / 1000.0
         return String(format: "%.1f km", km)
+    }
+    
+    // MARK: - RPE Helpers
+    
+    private var shouldShowRPEButton: Bool {
+        guard let workout = activity.healthKitWorkout else { return false }
+        return workout.workoutActivityType == .traditionalStrengthTraining ||
+               workout.workoutActivityType == .functionalStrengthTraining
+    }
+    
+    private func checkRPEStatus() {
+        guard let workout = activity.healthKitWorkout else { return }
+        hasRPE = RPEStorageService.shared.hasRPE(for: workout)
     }
 }

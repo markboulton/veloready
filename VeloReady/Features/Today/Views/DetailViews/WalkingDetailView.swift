@@ -8,6 +8,8 @@ struct WalkingDetailView: View {
     let workout: HKWorkout
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = WalkingDetailViewModel()
+    @State private var showingRPESheet = false
+    @State private var hasRPE = false
     
     var body: some View {
         ScrollView {
@@ -41,8 +43,32 @@ struct WalkingDetailView: View {
         .background(Color.background.primary)
         .navigationTitle(workoutTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                if isStrengthWorkout {
+                    Button(action: {
+                        showingRPESheet = true
+                    }) {
+                        Text(hasRPE ? "Edit RPE" : "Add RPE")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingRPESheet) {
+            RPEInputSheet(workout: workout) {
+                hasRPE = true
+            }
+        }
         .task {
             await viewModel.loadWorkoutData(workout: workout)
+            checkRPEStatus()
         }
     }
     
@@ -74,7 +100,6 @@ struct WalkingDetailView: View {
             
             HeartRateChart(samples: viewModel.heartRateSamples)
                 .frame(height: 200)
-                .background(Color.background.primary)
         }
     }
     
@@ -113,6 +138,15 @@ struct WalkingDetailView: View {
         default:
             return "figure.mixed.cardio"
         }
+    }
+    
+    private var isStrengthWorkout: Bool {
+        return workout.workoutActivityType == .traditionalStrengthTraining ||
+               workout.workoutActivityType == .functionalStrengthTraining
+    }
+    
+    private func checkRPEStatus() {
+        hasRPE = RPEStorageService.shared.hasRPE(for: workout)
     }
     
 }

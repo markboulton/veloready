@@ -147,11 +147,26 @@ class StrainScoreService: ObservableObject {
         let cardioDuration = workouts.reduce(0.0) { $0 + $1.duration }
         let averageIF: Double? = nil // Not available from HealthKit alone
         
+        // Detect strength workouts and get RPE
+        let strengthWorkouts = workouts.filter {
+            $0.workoutActivityType == .traditionalStrengthTraining ||
+            $0.workoutActivityType == .functionalStrengthTraining
+        }
+        let strengthDuration = strengthWorkouts.reduce(0.0) { $0 + $1.duration }
+        
+        // Get RPE from storage for strength workouts (use first if multiple)
+        var strengthRPE: Double? = nil
+        if let firstStrength = strengthWorkouts.first {
+            strengthRPE = RPEStorageService.shared.getRPE(for: firstStrength)
+        }
+        
         print("🔍 Strain Score Inputs:")
         print("   Steps: \(stepsValue ?? 0)")
         print("   Active Calories: \(activeCaloriesValue ?? 0)")
         print("   Cardio TRIMP: \(cardioTRIMP)")
         print("   Cardio Duration: \(cardioDuration)s")
+        print("   Strength Duration: \(strengthDuration / 60)min")
+        print("   Strength RPE: \(strengthRPE != nil ? String(format: "%.1f", strengthRPE!) : "nil (using default 6.5)")")
         print("   Average IF: \(averageIF ?? 0.0)")
         print("   Sleep Score: \(sleepScoreService.currentSleepScore?.score ?? -1)")
         if let hrvSample = hrvValue.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) {
@@ -168,8 +183,8 @@ class StrainScoreService: ObservableObject {
             cardioDailyTRIMP: cardioTRIMP,
             cardioDurationMinutes: cardioDuration > 0 ? cardioDuration / 60 : nil,
             averageIntensityFactor: averageIF,
-            strengthSessionRPE: nil, // TODO: Implement strength detection
-            strengthDurationMinutes: nil,
+            strengthSessionRPE: strengthRPE,
+            strengthDurationMinutes: strengthDuration > 0 ? strengthDuration / 60 : nil,
             strengthVolume: nil,
             strengthSets: nil,
             dailySteps: stepsValue,
