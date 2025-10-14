@@ -81,7 +81,6 @@ struct SleepDetailView: View {
             Spacer()
         }
         .padding()
-        .background(Color(.systemOrange).opacity(0.1))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(.systemOrange).opacity(0.3), lineWidth: 1)
@@ -149,7 +148,6 @@ struct SleepDetailView: View {
                 
             }
         }
-        .padding()
     }
     
     private var sleepMetricsSection: some View {
@@ -198,7 +196,6 @@ struct SleepDetailView: View {
                 )
             }
         }
-        .padding()
     }
     
     private var sleepStagesSection: some View {
@@ -252,7 +249,6 @@ struct SleepDetailView: View {
                     .padding(.vertical, 20)
             }
         }
-        .padding()
     }
     
     private var recommendationsSection: some View {
@@ -276,7 +272,6 @@ struct SleepDetailView: View {
                 }
             }
         }
-        .padding()
     }
     
     // MARK: - Helper Methods

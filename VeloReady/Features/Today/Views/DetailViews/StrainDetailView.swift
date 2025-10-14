@@ -102,7 +102,6 @@ struct StrainDetailView: View {
                 )
             }
         }
-        .padding()
     }
     
     private var loadComponentsSection: some View {
@@ -170,7 +169,6 @@ struct StrainDetailView: View {
                 }
             }
         }
-        .padding()
     }
     
     private var activitySummarySection: some View {
@@ -208,7 +206,6 @@ struct StrainDetailView: View {
                 }
             }
         }
-        .padding()
     }
     
     private var recoveryModulationSection: some View {
@@ -237,7 +234,6 @@ struct StrainDetailView: View {
             }
             .padding(.vertical, 8)
         }
-        .padding()
     }
     
     private var recommendationsSection: some View {
@@ -261,7 +257,6 @@ struct StrainDetailView: View {
                 }
             }
         }
-        .padding()
     }
     
     // MARK: - Helper Methods

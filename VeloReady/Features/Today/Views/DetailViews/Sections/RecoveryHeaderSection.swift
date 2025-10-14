@@ -19,8 +19,6 @@ struct RecoveryHeaderSection: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
-        .padding()
-        .background(Color.recovery.sectionBackground)
     }
     
     private func colorForBand(_ band: RecoveryScore.RecoveryBand) -> Color {
