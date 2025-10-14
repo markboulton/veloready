@@ -100,13 +100,20 @@ struct WorkoutDetailView: View {
                     // AI Ride Summary - PRO feature (below metadata, before charts)
                     RideSummaryView(activity: displayActivity)
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 24)
+                    
+                    SectionDivider()
                     
                     // Training Load Chart - PRO feature (has its own margins)
                     TrainingLoadChart(activity: displayActivity)
+                        .padding(.horizontal, 16)
+                    
+                    SectionDivider()
                     
                     // Intensity Chart - PRO feature (has its own margins)
                     IntensityChart(activity: displayActivity)
+                        .padding(.horizontal, 16)
+                    
+                    SectionDivider()
                     
                     // Charts Section - always show, charts handle empty data
                     WorkoutChartsSection(
@@ -114,11 +121,14 @@ struct WorkoutDetailView: View {
                         ftp: ftp,
                         maxHR: maxHR
                     )
-                    .padding(.bottom, 20)
                 }
+                
+                SectionDivider()
                 
                 // Zone Pie Charts Section - Free and Pro versions (has its own margins)
                 ZonePieChartSection(activity: displayActivity)
+                
+                SectionDivider()
                 
                 // Interactive Map - only show if GPS data exists
                 if !routeCoordinates.isEmpty || isLoadingMap {
@@ -128,6 +138,8 @@ struct WorkoutDetailView: View {
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
+                    
+                    SectionDivider()
                 }
                 
                 // Additional Data Section - use enriched activity
