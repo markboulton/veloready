@@ -114,17 +114,38 @@ struct WalkingDetailView: View {
                 }
             }
             
-            // Display selected muscle groups and workout types
-            if let muscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout), !muscleGroups.isEmpty {
-                FlowLayout(spacing: 8) {
-                    ForEach(muscleGroups, id: \.self) { group in
-                        Text(group.rawValue)
-                            .font(.subheadline)
-                            .foregroundColor(Color.text.primary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(ColorScale.gray100)
-                            .cornerRadius(8)
+            // Display RPE and muscle groups
+            let rpe = WorkoutMetadataService.shared.getRPE(for: workout)
+            let muscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout)
+            
+            if rpe != nil || muscleGroups != nil {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Show RPE if available
+                    if let rpe = rpe {
+                        HStack(spacing: 8) {
+                            Text("Effort:")
+                                .font(.subheadline)
+                                .foregroundColor(Color.text.secondary)
+                            Text(String(format: "%.1f RPE", rpe))
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color.text.primary)
+                        }
+                    }
+                    
+                    // Show muscle groups if available
+                    if let muscleGroups = muscleGroups, !muscleGroups.isEmpty {
+                        FlowLayout(spacing: 8) {
+                            ForEach(muscleGroups, id: \.self) { group in
+                                Text(group.rawValue)
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.text.primary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(ColorScale.gray100)
+                                    .cornerRadius(8)
+                            }
+                        }
                     }
                 }
             } else {
