@@ -13,38 +13,32 @@ struct DetailedCaloriePanel: View {
         VStack(alignment: .leading, spacing: Spacing.cardContentSpacing) {
             // Header
             Text("Calories")
-                .font(.cardTitle)
+                .font(.heading)
             
             // Goal (BMR or user-set)
             HStack {
                 Text("Goal")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .captionStyle()
                 
                 Spacer()
                 
                 Text("\(Int(effectiveGoal))")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.body)
                     .foregroundColor(ColorPalette.peach)
             }
             
             // Active Energy
             HStack {
                 Text("Active Energy")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .captionStyle()
                 
                 Spacer()
                 
                 if liveActivityService.isLoading {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
+                    LoadingStateView(size: .small)
                 } else {
                     Text("\(Int(liveActivityService.activeCalories))")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(.body)
                         .foregroundColor(Color.semantic.success)
                 }
             }
@@ -56,19 +50,15 @@ struct DetailedCaloriePanel: View {
             // Total
             HStack {
                 Text("Total")
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(.heading)
                 
                 Spacer()
                 
                 if liveActivityService.isLoading {
-                    ProgressView()
-                        .scaleEffect(0.7)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
+                    LoadingStateView(size: .small)
                 } else {
                     Text("\(Int(totalCalories))")
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(.heading)
                         .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
                 }
             }
@@ -76,17 +66,10 @@ struct DetailedCaloriePanel: View {
             // Last updated
             if let lastUpdated = liveActivityService.lastUpdated {
                 Text("Updated \(formatLastUpdated(lastUpdated))")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .captionStyle()
             }
         }
-        .padding()
-        .background(Color(.systemBackground).opacity(0.6))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
+        .cardStyle()
     }
     
     private var effectiveGoal: Double {

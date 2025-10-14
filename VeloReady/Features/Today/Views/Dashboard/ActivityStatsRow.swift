@@ -15,7 +15,7 @@ struct ActivityStatsRow: View {
             VStack(alignment: .leading, spacing: Spacing.cardContentSpacing) {
                 HStack {
                     Text(ActivityContent.Metrics.steps)
-                        .font(.cardTitle)
+                        .font(.heading)
                     Spacer()
                     if !liveActivityService.isLoading && !hourlySteps.isEmpty {
                         StepsSparkline(hourlySteps: hourlySteps)
@@ -28,21 +28,13 @@ struct ActivityStatsRow: View {
                 }
                 
                 if liveActivityService.isLoading {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
+                    LoadingStateView(size: .small)
                 } else {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(formatSteps(liveActivityService.dailySteps))
-                            .font(.metricMedium)
-                            .foregroundColor(.primary)
-                        
-                        if liveActivityService.walkingDistance > 0 {
-                            Text(formatDistance(liveActivityService.walkingDistance))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                    MetricDisplay(
+                        formatSteps(liveActivityService.dailySteps),
+                        label: liveActivityService.walkingDistance > 0 ? formatDistance(liveActivityService.walkingDistance) : nil,
+                        size: .medium
+                    )
                 }
                 
                 Spacer()

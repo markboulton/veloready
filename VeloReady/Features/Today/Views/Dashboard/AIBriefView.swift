@@ -7,46 +7,27 @@ struct AIBriefView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
                 // Header
-                HStack {
-                    Image(systemName: "sparkles")
-                        .foregroundColor(.primary)
-                    Text(TodayContent.AIBrief.title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                }
-                .padding(.bottom, 12)
+                SectionHeader(TodayContent.AIBrief.title, icon: "sparkles")
+                    .padding(.bottom, 12)
                 
                 // Content
                 if service.isLoading {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
+                    LoadingStateView(size: .small)
+                        .padding(.vertical, 8)
                 } else if let error = service.error {
                     ErrorView(error: error)
                 } else if let text = service.briefText {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(text)
-                            .font(.body)
-                            .foregroundColor(.primary)
+                            .bodyStyle()
                             .fixedSize(horizontal: false, vertical: true)
                         
                         // Training Metrics
                         TrainingMetricsView()
                     }
                 } else {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
+                    LoadingStateView(size: .small)
+                        .padding(.vertical, 8)
                 }
                 
                 SectionDivider()
