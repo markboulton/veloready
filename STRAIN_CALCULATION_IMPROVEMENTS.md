@@ -250,10 +250,18 @@ func amplifyDailyActivityByRecovery(
 - [x] **Enhanced logging** - Visibility into calculation factors
 - [x] Build verified, committed to main
 
-### 🔄 Ready for Phase 3 (Requires Historical Tracking)
-- [ ] **Strength load decay over 48-72h** - Track residual fatigue from previous days
-- [ ] **Time-based interference** - Fine-grained penalties based on hours between sessions
-- [ ] **Muscle group selection UI** - User input for which muscles trained (optional enhancement)
+### ✅ Phase 2.5 Complete (October 14, 2025 - Commit ad43683)
+- [x] **Muscle group selection UI** - Added to "Add details" sheet for strength workouts
+- [x] **Secondary button style** - Changed RPE button to outlined blue style
+- [x] **RPEStorageService enhancement** - Saves/retrieves muscle groups with RPE
+- [x] **Automatic integration** - Service pulls muscle groups and applies multipliers
+- [x] **Hybrid approach** - Optional input with conservative defaults
+- [x] Build verified, committed to main
+
+### 🔄 Future Enhancements (Phase 3+)
+- [ ] **Strength load decay over 48-72h** - Track residual fatigue from previous days' sessions
+- [ ] **Time-based interference** - Fine-grained penalties based on hours between cardio/strength
+- [ ] **Eccentric focus flag UI** - Add toggle for heavy negative-focused sessions
 
 ### 🎯 Phase 3: Advanced Features (Future)
 - [ ] Progressive baseline (learn user's typical activity over 7-30 days)
@@ -300,9 +308,10 @@ func amplifyDailyActivityByRecovery(
 
 ---
 
-**Last Updated**: October 14, 2025 (7:30pm UTC+01:00)  
-**Status**: Phase 1 & 2 Complete - Phase 3 Ready  
+**Last Updated**: October 14, 2025 (7:35pm UTC+01:00)  
+**Status**: Phase 1, 2, and 2.5 Complete - Production Ready  
 **Contributors**: Based on peer-reviewed sports science research  
 **Commits**:
 - Phase 1: 9b6c6c9 (Foundation + active calories + recovery modulation)
 - Phase 2: ccfcfae (Workout types + concurrent training + muscle groups)
+- Phase 2.5: ad43683 (Muscle group selection UI + hybrid approach)
