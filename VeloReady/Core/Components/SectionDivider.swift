@@ -14,7 +14,7 @@ struct SectionDivider: View {
     var body: some View {
         Rectangle()
             .fill(ColorScale.divider)
-            .frame(height: 1)
+            .frame(height: 2)
             .padding(.top, topPadding)
             .padding(.bottom, bottomPadding)
             .frame(maxWidth: .infinity)

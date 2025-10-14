@@ -116,6 +116,7 @@ struct TodayView: View {
                 await viewModel.forceRefreshData()
             }
             .onAppear {
+                configureRefreshControl()
                 handleViewAppear()
             }
             .onChange(of: healthKitManager.isAuthorized) { newValue in
@@ -505,6 +506,52 @@ struct TodayView: View {
             await viewModel.refreshData()
             liveActivityService.startAutoUpdates()
         }
+    }
+    
+    // MARK: - Refresh Control Configuration
+    
+    private func configureRefreshControl() {
+        // Configure UIRefreshControl appearance for pull-to-refresh
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first else { return }
+            
+            // Find the UIRefreshControl in the view hierarchy
+            if let scrollView = self.findScrollView(in: window) {
+                scrollView.refreshControl?.tintColor = UIColor.separator
+                
+                // Add a light grey background view
+                if scrollView.refreshControl?.subviews.first(where: { $0.tag == 999 }) == nil {
+                    let backgroundView = UIView()
+                    backgroundView.tag = 999
+                    backgroundView.backgroundColor = UIColor.separator.withAlphaComponent(0.3)
+                    backgroundView.layer.cornerRadius = 10
+                    backgroundView.translatesAutoresizingMaskIntoConstraints = false
+                    
+                    if let refreshControl = scrollView.refreshControl {
+                        refreshControl.insertSubview(backgroundView, at: 0)
+                        NSLayoutConstraint.activate([
+                            backgroundView.centerXAnchor.constraint(equalTo: refreshControl.centerXAnchor),
+                            backgroundView.centerYAnchor.constraint(equalTo: refreshControl.centerYAnchor),
+                            backgroundView.widthAnchor.constraint(equalToConstant: 60),
+                            backgroundView.heightAnchor.constraint(equalToConstant: 60)
+                        ])
+                    }
+                }
+            }
+        }
+    }
+    
+    private func findScrollView(in view: UIView) -> UIScrollView? {
+        if let scrollView = view as? UIScrollView {
+            return scrollView
+        }
+        for subview in view.subviews {
+            if let found = findScrollView(in: subview) {
+                return found
+            }
+        }
+        return nil
     }
 }
 

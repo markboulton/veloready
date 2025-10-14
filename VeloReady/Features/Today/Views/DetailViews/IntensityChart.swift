@@ -43,7 +43,7 @@ struct IntensityChart: View {
                         ZStack {
                             // Background circle
                             Circle()
-                                .stroke(Color(.systemGray5), lineWidth: 12)
+                                .stroke(ColorScale.gray200, lineWidth: 12)
                                 .frame(width: 100, height: 100)
                             
                             // Progress circle
@@ -60,7 +60,7 @@ struct IntensityChart: View {
                                     .fontWeight(.bold)
                                     .foregroundColor(intensityColor(intensityFactor))
                                 Text("of 1.0")
-                                    .font(.caption2)
+                                    .font(.caption)
                                     .foregroundColor(Color.text.secondary)
                             }
                         }
@@ -77,7 +77,7 @@ struct IntensityChart: View {
                                 .foregroundColor(Color.text.secondary)
                             
                             Text("This ride had an IF of \(String(format: "%.2f", intensityFactor)), meaning varied efforts averaged to this intensity.")
-                                .font(.caption2)
+                                .font(.caption)
                                 .foregroundColor(Color.text.secondary)
                                 .padding(.top, 2)
                             
@@ -144,15 +144,15 @@ struct IntensityChart: View {
         HStack(spacing: 4) {
             Circle()
                 .fill(matches ? Color.text.primary : Color.clear)
-                .stroke(matches ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                .stroke(matches ? Color.clear : ColorScale.divider, lineWidth: 1)
                 .frame(width: 6, height: 6)
             
             Text(label)
-                .font(.caption2)
+                .font(.caption)
                 .foregroundColor(matches ? Color.text.primary : Color.text.secondary)
             
             Text(range)
-                .font(.caption2)
+                .font(.caption)
                 .foregroundColor(Color.text.secondary)
         }
     }
@@ -172,7 +172,7 @@ struct IntensityChart: View {
         return VStack(spacing: 2) {
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .fill(Color(.systemGray5))
+                    .fill(ColorScale.gray200)
                     .frame(height: 16)
                 
                 if isActive {
@@ -190,8 +190,8 @@ struct IntensityChart: View {
             .cornerRadius(4)
             
             Text(label)
-                .font(.caption2)
-                .foregroundColor(isActive ? color : Color.text.tertiary)
+                .font(.caption)
+                .foregroundColor(isActive ? color : Color.text.secondary)
         }
     }
     
