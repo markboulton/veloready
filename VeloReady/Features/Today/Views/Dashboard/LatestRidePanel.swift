@@ -6,43 +6,38 @@ struct LatestRidePanel: View {
     
     var body: some View {
         NavigationLink(destination: RideDetailSheet(activity: activity)) {
-            Card {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "bicycle")
-                            .foregroundColor(.secondary)
-                            .font(.title2)
-                        
-                        Text(LatestRideContent.title)
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                        
-                        if let type = activity.type {
-                            Badge(type.uppercased(), variant: .neutral)
-                        }
-                        
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-            
-            // Activity name
-            Text(activity.name ?? LatestRideContent.unnamedActivity)
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            // Date and time
-            if let startDate = parseActivityDate(activity.startDateLocal) {
-                Text(formatActivityDate(startDate))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            // Stats row - all metrics in one consistent row
-            HStack(alignment: .top, spacing: 20) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "bicycle")
+                        .foregroundColor(.primary)
+                        .font(.title2)
+                    
+                    Text(LatestRideContent.title)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.primary)
+                        .font(.caption)
+                }
+        
+        // Activity name
+        Text(activity.name ?? LatestRideContent.unnamedActivity)
+            .font(.title2)
+            .fontWeight(.bold)
+        
+        // Date and time
+        if let startDate = parseActivityDate(activity.startDateLocal) {
+            Text(formatActivityDate(startDate))
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        
+        // Stats row - all metrics in one consistent row
+        HStack(alignment: .top, spacing: 20) {
                 if let duration = activity.duration {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(formatDuration(duration))
@@ -101,7 +96,6 @@ struct LatestRidePanel: View {
                 
                 Spacer()
             }
-                }
             }
         }
         .buttonStyle(PlainButtonStyle())
