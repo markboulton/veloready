@@ -67,17 +67,25 @@ struct ProFeatureGate<Content: View>: View {
     }
 }
 
-/// Inline Pro badge for features
+/// Inline Pro upsell button
 struct ProBadge: View {
+    @State private var showPaywall = false
+    
     var body: some View {
-        Text("PRO")
-            .font(.caption2)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.gradient.pro)
-            .cornerRadius(4)
+        Button(action: {
+            showPaywall = true
+        }) {
+            Text("Upgrade")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(ColorPalette.blue)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
 }
 
