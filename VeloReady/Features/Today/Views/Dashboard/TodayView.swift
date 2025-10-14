@@ -50,7 +50,7 @@ struct TodayView: View {
                     
                 ScrollView {
                     
-                    VStack(spacing: 20) {
+                    VStack(spacing: 0) {
                         // Recovery Metrics (Three Graphs) - Lazy loaded
                         // Missing sleep data warning (collapsible, above metrics)
                         if healthKitManager.isAuthorized, 
@@ -59,7 +59,7 @@ struct TodayView: View {
                             missingSleepDataBanner
                         }
                         
-                        LazyVStack(spacing: 20) {
+                        LazyVStack(spacing: 0) {
                             RecoveryMetricsSection(
                                 recoveryScoreService: viewModel.recoveryScoreService,
                                 sleepScoreService: viewModel.sleepScoreService,
@@ -71,7 +71,7 @@ struct TodayView: View {
                         
                         // AI Daily Brief - Lazy loaded (only show when HealthKit authorized)
                         if healthKitManager.isAuthorized {
-                            LazyVStack(spacing: 20) {
+                            LazyVStack(spacing: 0) {
                                 AIBriefView()
                             }
                         }
@@ -93,7 +93,7 @@ struct TodayView: View {
                         
                         // Latest Ride Panel - Lazy loaded (first cycling activity from any source)
                         if let latestCyclingActivity = viewModel.unifiedActivities.first(where: { $0.type == .cycling }) {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: 0) {
                                 // Section heading
                                 HStack {
                                     Text("Latest Ride")
@@ -101,6 +101,7 @@ struct TodayView: View {
                                         .fontWeight(.semibold)
                                     Spacer()
                                 }
+                                .padding(.bottom, 12)
                                 
                                 // Show Intervals ride panel if available, otherwise show unified activity card
                                 if let intervalsRide = latestCyclingActivity.intervalsActivity {
@@ -108,14 +109,10 @@ struct TodayView: View {
                                 } else {
                                     // Fallback for Strava/Health activities
                                     UnifiedActivityCard(activity: latestCyclingActivity)
-                                        .padding(16)
-                                        .background(Color(.systemBackground).opacity(0.6))
-                                        .cornerRadius(12)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                        )
                                 }
+                                
+                                SectionDivider()
+                                    .padding(.top, 20)
                             }
                         }
                         
@@ -125,7 +122,7 @@ struct TodayView: View {
                         }
                         
                         // Recent Activities (excluding the latest one) - Lazy loaded
-                        LazyVStack(spacing: 20) {
+                        LazyVStack(spacing: 0) {
                             RecentActivitiesSection(
                                 allActivities: viewModel.unifiedActivities.isEmpty ?
                                     viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
