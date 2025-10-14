@@ -47,12 +47,12 @@ struct SharedActivityRowView: View {
                     Text("Add details")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(Color.button.primary)
+                        .foregroundColor(ColorScale.blueAccent)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.button.primary, lineWidth: 1.5)
+                                .stroke(ColorScale.blueAccent, lineWidth: 1)
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
