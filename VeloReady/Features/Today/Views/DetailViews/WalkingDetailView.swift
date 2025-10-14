@@ -286,7 +286,7 @@ struct WalkingWorkoutInfoHeader: View {
     }
 }
 
-// MARK: - RPE Metric with Edit Link
+// MARK: - RPE Metric with Edit Button
 
 struct RPEMetricWithEdit: View {
     let rpe: Double
@@ -298,16 +298,12 @@ struct RPEMetricWithEdit: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             
-            HStack(spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(String(format: "%.1f", rpe))
-                    .font(.title3)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Button(action: onEdit) {
-                    Text("edit")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
+                SecondaryButton(title: "Edit RPE", action: onEdit)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
