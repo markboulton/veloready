@@ -5,17 +5,18 @@ struct AIBriefView: View {
     @ObservedObject var service = AIBriefService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
                 // Header
                 HStack {
                     Image(systemName: "sparkles")
-                        .foregroundColor(ColorScale.purpleAccent)
+                        .foregroundColor(.primary)
                     Text(TodayContent.AIBrief.title)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     Spacer()
                 }
+                .padding(.bottom, 12)
                 
                 // Content
                 if service.isLoading {
@@ -47,6 +48,9 @@ struct AIBriefView: View {
                     }
                     .padding(.vertical, 8)
                 }
+                
+                SectionDivider()
+                    .padding(.top, 20)
             }
             .onAppear {
             // Fetch brief on appear if not already loaded
@@ -70,7 +74,7 @@ private struct ErrorView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(Color.semantic.warning)
+                    .foregroundColor(.primary)
                 Text(error.localizedDescription ?? "Unknown error")
                     .font(.subheadline)
                     .foregroundColor(.secondary)

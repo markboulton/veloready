@@ -10,7 +10,7 @@ struct HealthKitEnablementSection: View {
             VStack(spacing: 12) {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 48))
-                    .foregroundColor(ColorScale.pinkAccent)
+                    .foregroundColor(.primary)
                 
                 Text(TodayContent.healthKitRequired)
                     .font(.title2)
@@ -55,17 +55,12 @@ struct HealthKitEnablementSection: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(ColorScale.pinkAccent)
-                .cornerRadius(12)
+                .background(ColorPalette.blue)
             }
+            
+            SectionDivider()
+                .padding(.top, 20)
         }
-        .padding()
-        .background(Color(.systemBackground).opacity(0.6))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
     }
 }
 
