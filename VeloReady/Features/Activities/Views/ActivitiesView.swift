@@ -120,6 +120,7 @@ struct ActivitiesView: View {
                         NavigationLink(destination: activityDestination(for: activity)) {
                             SharedActivityRowView(activity: activity)
                         }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         .listRowBackground(
                             Color(.systemBackground).opacity(0.6)
                         )
