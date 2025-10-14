@@ -87,11 +87,6 @@ struct TodayView: View {
                             )
                         }
                         
-                        // Latest Ride Panel
-                        if let latestCyclingActivity = viewModel.unifiedActivities.first(where: { $0.type == .cycling }) {
-                            latestRideView(for: latestCyclingActivity)
-                        }
-                        
                         // Activity stats row (steps and calories)
                         if healthKitManager.isAuthorized {
                             ActivityStatsRow(liveActivityService: liveActivityService)
@@ -285,25 +280,6 @@ struct TodayView: View {
                 .stroke(Color.primary.opacity(0.1), lineWidth: 1)
         )
     }
-    
-    // MARK: - Latest Ride View
-    
-    @ViewBuilder
-    private func latestRideView(for activity: UnifiedActivity) -> some View {
-        VStack(spacing: 0) {
-            SectionHeader("Latest Ride")
-                .padding(.bottom, 12)
-            
-            if let intervalsRide = activity.intervalsActivity {
-                LatestRidePanel(activity: intervalsRide)
-            } else {
-                UnifiedActivityCard(activity: activity)
-            }
-            
-            SectionDivider(bottomPadding: 0)
-        }
-    }
-    
     
     // MARK: - Helper Methods
     
