@@ -31,6 +31,13 @@ struct WalkingDetailView: View {
                         .padding(.bottom, 20)
                 }
                 
+                // Workout Type section - only for strength workouts
+                if isStrengthWorkout {
+                    workoutTypeSection
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 20)
+                }
+                
                 // Map - only for walking workouts
                 if !isStrengthWorkout {
                     WorkoutMapSection(
@@ -84,6 +91,41 @@ struct WalkingDetailView: View {
             
             HeartRateChart(samples: viewModel.heartRateSamples)
                 .frame(height: 200)
+        }
+    }
+    
+    // MARK: - Workout Type Section
+    
+    private var workoutTypeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Workout Type")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
+            }
+            
+            // Display selected muscle groups and workout types
+            if let muscleGroups = RPEStorageService.shared.getMuscleGroups(for: workout), !muscleGroups.isEmpty {
+                FlowLayout(spacing: 8) {
+                    ForEach(muscleGroups, id: \.self) { group in
+                        Text(group.rawValue)
+                            .font(.subheadline)
+                            .foregroundColor(Color.text.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(ColorScale.gray100)
+                            .cornerRadius(8)
+                    }
+                }
+            } else {
+                Text("Not specified")
+                    .font(.subheadline)
+                    .foregroundColor(Color.text.tertiary)
+            }
         }
     }
     
