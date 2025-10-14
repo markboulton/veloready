@@ -232,21 +232,48 @@ func amplifyDailyActivityByRecovery(
 3. ✅ Real-world validation with test users
 4. ✅ Compare to Whoop/Garmin strain scores
 
-## Rollout Plan
-- Phase 1: Core improvements (calories, steps, workout type) ✅
-- Phase 2: Strength tracking (muscle groups, decay) ✅
-- Phase 3: Advanced features (concurrent interference) ✅
-- Phase 4: User testing and refinement 🔄
+## Implementation Status
 
-## Future Enhancements
-- [ ] Progressive baseline (learn user's typical activity)
-- [ ] Time-of-day weighting (morning workouts harder)
-- [ ] Heart rate variability during workout
-- [ ] Power meter data integration
-- [ ] Environmental factors (heat, altitude)
+### ✅ Phase 1 Complete (October 14, 2025)
+- [x] Muscle group tracking infrastructure (MuscleGroup enum with recovery times)
+- [x] Active calories integration (calorie-based strain estimation)
+- [x] Step-calorie intelligent blending (detect high-intensity activity)
+- [x] Recovery-adjusted perception (amplify load when recovery poor)
+- [x] Comprehensive documentation
+- [x] Build verified, committed to main
+
+### 🔄 Ready for Phase 2 (User Input Required)
+- [ ] **Workout type differentiation** - Service needs workout type detection from HealthKit
+- [ ] **Strength load decay** - Requires historical session storage (48-72h tracking)
+- [ ] **Concurrent training interference** - Needs time tracking between sessions
+- [ ] **Muscle group selection UI** - User input for which muscles trained
+- [ ] **Eccentric focus flag** - Optional user input for heavy negatives
+
+### 🎯 Phase 3: Advanced Features (Future)
+- [ ] Progressive baseline (learn user's typical activity over 7-30 days)
+- [ ] Time-of-day weighting (morning workouts harder due to cortisol/glycogen)
+- [ ] Heart rate variability during workout (intra-workout HRV drops)
+- [ ] Power meter data integration (when available from Intervals.icu)
+- [ ] Environmental factors (heat, altitude, humidity)
+- [ ] Travel/timezone fatigue multipliers
+
+## Current Capabilities
+✅ **Active calories now primary signal** - Captures intensity beyond steps  
+✅ **Intelligent blending** - Detects yard work, stairs, vigorous activity  
+✅ **Recovery modulation** - Poor sleep amplifies perceived daily load  
+✅ **Granular feedback** - 2000 steps = ~1.5 strain (no longer 0)  
+✅ **Foundation ready** - Model supports muscle groups, eccentric tracking  
+
+## Testing Notes
+- Test with various activity levels (sedentary, active, very active)
+- Compare to Whoop/Garmin strain scores for validation
+- Monitor user feedback on "feels right" vs "too harsh/lenient"
+- Track false positives (high strain when user feels fine)
+- Track false negatives (low strain when user feels fatigued)
 
 ---
 
 **Last Updated**: October 14, 2025  
-**Status**: Implementation Complete - Testing Phase  
-**Contributors**: Based on peer-reviewed sports science research
+**Status**: Phase 1 Complete - Phase 2 Ready  
+**Contributors**: Based on peer-reviewed sports science research  
+**Commit**: 9b6c6c9 (feat: Strain calculation improvements - Phase 1)
