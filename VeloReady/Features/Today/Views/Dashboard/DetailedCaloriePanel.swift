@@ -16,31 +16,26 @@ struct DetailedCaloriePanel: View {
                 .font(.heading)
             
             // Goal (BMR or user-set)
-            HStack {
-                Text("Goal")
-                    .captionStyle()
-                
-                Spacer()
-                
-                Text("\(Int(effectiveGoal))")
-                    .font(.body)
-                    .foregroundColor(ColorPalette.peach)
-            }
+            StatRow(
+                label: "Goal",
+                value: "\(Int(effectiveGoal))",
+                valueColor: ColorPalette.peach
+            )
             
             // Active Energy
-            HStack {
-                Text("Active Energy")
-                    .captionStyle()
-                
-                Spacer()
-                
-                if liveActivityService.isLoading {
+            if liveActivityService.isLoading {
+                HStack {
+                    Text("Active Energy")
+                        .captionStyle()
+                    Spacer()
                     LoadingStateView(size: .small)
-                } else {
-                    Text("\(Int(liveActivityService.activeCalories))")
-                        .font(.body)
-                        .foregroundColor(Color.semantic.success)
                 }
+            } else {
+                StatRow(
+                    label: "Active Energy",
+                    value: "\(Int(liveActivityService.activeCalories))",
+                    valueColor: Color.semantic.success
+                )
             }
             
             // Divider
