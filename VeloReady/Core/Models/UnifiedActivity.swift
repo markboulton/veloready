@@ -239,4 +239,77 @@ struct UnifiedActivity: Identifiable {
         
         return "\(type.rawValue) at \(timeString)"
     }
+    
+    // MARK: - Indoor Ride Detection
+    
+    /// Determines if this activity is an indoor/virtual ride
+    /// Uses multiple heuristics: type, distance, speed, elevation
+    var isIndoorRide: Bool {
+        // Check raw type first - most reliable
+        if let rawType = rawType?.lowercased() {
+            if rawType.contains("virtual") || rawType.contains("indoor") {
+                return true
+            }
+        }
+        
+        // For cycling activities, check for indoor indicators
+        guard type == .cycling else { return false }
+        
+        // Very low distance (<2km) for rides over 20 minutes suggests indoor
+        if let duration = duration, let distance = distance {
+            let durationMinutes = duration / 60.0
+            let distanceKm = distance / 1000.0
+            
+            if durationMinutes > 20 && distanceKm < 2.0 {
+                return true
+            }
+            
+            // Very low average speed (<5 km/h) suggests indoor/trainer
+            let avgSpeed = (distance / duration) * 3.6 // m/s to km/h
+            if avgSpeed < 5.0 {
+                return true
+            }
+        }
+        
+        // Check Intervals.icu source - if it came from Strava and has minimal distance
+        if let intervalsActivity = intervalsActivity,
+           intervalsActivity.source?.uppercased() == "STRAVA",
+           let distance = intervalsActivity.distance,
+           distance < 1000 { // Less than 1km
+            return true
+        }
+        
+        return false
+    }
+    
+    /// Whether this activity should show a map
+    var shouldShowMap: Bool {
+        // Don't show map for indoor rides
+        guard !isIndoorRide else { return false }
+        
+        // Don't show map for non-outdoor activities
+        guard type == .cycling || type == .running || type == .walking || type == .hiking else {
+            return false
+        }
+        
+        // Need meaningful distance
+        guard let distance = distance, distance > 100 else { // At least 100m
+            return false
+        }
+        
+        return true
+    }
+    
+    /// Whether elevation data is reliable for this activity
+    var hasReliableElevation: Bool {
+        // Indoor rides have unreliable elevation
+        guard !isIndoorRide else { return false }
+        
+        // Need to be an outdoor activity type
+        guard type == .cycling || type == .running || type == .walking || type == .hiking else {
+            return false
+        }
+        
+        return true
+    }
 }

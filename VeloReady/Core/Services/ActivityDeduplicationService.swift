@@ -94,12 +94,18 @@ class ActivityDeduplicationService {
             return false
         }
         
-        // Check if start times are within 2 hours of each other
-        // (increased to handle timezone issues - Intervals stores local time, Strava stores UTC)
+        // Check if start times are within 1.5 hours of each other
+        // (handles timezone issues - Intervals stores local time, Strava stores UTC)
+        // Most timezone offsets are 0, 0.5, or 1 hour
         let timeDifference = abs(a.startDate.timeIntervalSince(b.startDate))
         
-        guard timeDifference < 7200 else { // 2 hours (to handle timezone differences)
+        guard timeDifference < 5400 else { // 1.5 hours (90 minutes)
             return false
+        }
+        
+        // Log time difference for debugging
+        if timeDifference > 3000 { // More than 50 minutes
+            print("⏰ [Deduplication] Large time difference: \(Int(timeDifference))s between '\(a.name)' and '\(b.name)'")
         }
         
         // Different types = probably not duplicate
@@ -130,12 +136,16 @@ class ActivityDeduplicationService {
         }
         
         // All checks passed - likely a duplicate
-        #if DEBUG
         print("🔗 [Deduplication] Match found:")
         print("   A: \(a.name) (\(a.source.displayName)) - \(a.type.rawValue)")
         print("   B: \(b.name) (\(b.source.displayName)) - \(b.type.rawValue)")
-        print("   Time diff: \(Int(timeDifference))s")
-        #endif
+        print("   Time diff: \(Int(timeDifference))s (\(String(format: "%.1f", timeDifference/60))min)")
+        if let durationA = a.duration, let durationB = b.duration {
+            print("   Duration: A=\(Int(durationA/60))min, B=\(Int(durationB/60))min")
+        }
+        if let distanceA = a.distance, let distanceB = b.distance {
+            print("   Distance: A=\(String(format: "%.1f", distanceA/1000))km, B=\(String(format: "%.1f", distanceB/1000))km")
+        }
         
         return true
     }

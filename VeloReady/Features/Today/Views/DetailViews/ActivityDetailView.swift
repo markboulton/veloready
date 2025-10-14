@@ -36,7 +36,8 @@ struct ActivityDetailView: View {
                     }
                     
                     // Map Section - Interactive with solid background
-                    if !viewModel.routeCoordinates.isEmpty {
+                    // Only show for outdoor activities with route data
+                    if !viewModel.routeCoordinates.isEmpty && activityData.shouldShowMap {
                         VStack(spacing: 0) {
                             InteractiveWorkoutMapSection(
                                 coordinates: viewModel.routeCoordinates,
@@ -140,6 +141,41 @@ struct UnifiedActivityData {
     // Source-specific data
     let intervalsActivity: IntervalsActivity?
     let healthKitWorkout: HKWorkout?
+    
+    // Indoor ride detection
+    var isIndoorRide: Bool {
+        // Check Intervals activity type
+        if let intervalsType = intervalsActivity?.type?.lowercased() {
+            if intervalsType.contains("virtual") || intervalsType.contains("indoor") {
+                return true
+            }
+        }
+        
+        // For cycling, check for indoor indicators
+        guard type == .cycling else { return false }
+        
+        // Very low distance (<2km) for rides over 20 minutes suggests indoor
+        if let distance = distance {
+            let durationMinutes = duration / 60.0
+            let distanceKm = distance / 1000.0
+            
+            if durationMinutes > 20 && distanceKm < 2.0 {
+                return true
+            }
+            
+            // Very low average speed (<5 km/h) suggests indoor/trainer
+            let avgSpeed = (distance / duration) * 3.6 // m/s to km/h
+            if avgSpeed < 5.0 {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    var shouldShowMap: Bool {
+        return !isIndoorRide && type == .cycling && (distance ?? 0) > 100
+    }
     
     // Convenience initializers
     static func fromIntervals(_ activity: IntervalsActivity) -> UnifiedActivityData {
