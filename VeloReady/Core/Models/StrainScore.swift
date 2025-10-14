@@ -97,6 +97,7 @@ struct StrainScore: Codable {
         let cardioDailyTRIMP: Double? // Raw TRIMP from cycling
         let cardioDurationMinutes: Double? // Total cardio duration
         let averageIntensityFactor: Double? // IF from cycling
+        let workoutTypes: [String]? // HealthKit workout types for the day
         
         // Strength inputs
         let strengthSessionRPE: Double? // sRPE (1-10)
@@ -370,6 +371,37 @@ class StrainScoreCalculator {
     
     // MARK: - Whoop-Style Strain Calculation
     
+    /// Get workout type multiplier based on metabolic cost research
+    private static func getWorkoutTypeMultiplier(workoutTypes: [String]?) -> Double {
+        guard let types = workoutTypes, !types.isEmpty else { return 1.0 }
+        
+        // Find the highest multiplier from all workout types
+        var maxMultiplier: Double = 1.0
+        
+        for type in types {
+            let multiplier: Double
+            switch type.lowercased() {
+            case let t where t.contains("run"):
+                multiplier = 1.2  // Running: higher impact than cycling
+            case let t where t.contains("swim"):
+                multiplier = 1.3  // Swimming: full body, very demanding
+            case let t where t.contains("cycle"), let t where t.contains("bike"):
+                multiplier = 1.0  // Cycling: baseline
+            case let t where t.contains("walk"):
+                multiplier = 0.6  // Walking: lower intensity
+            case let t where t.contains("hik"):
+                multiplier = 0.9  // Hiking: moderate
+            case let t where t.contains("row"):
+                multiplier = 1.15 // Rowing: full body cardio
+            default:
+                multiplier = 1.0
+            }
+            maxMultiplier = max(maxMultiplier, multiplier)
+        }
+        
+        return maxMultiplier
+    }
+    
     /// Calculate strain using Whoop-style approach: TRIMP backbone + daily activity adjustments
     private static func calculateWhoopStyleStrain(inputs: StrainScore.StrainInputs, recoveryFactor: Double) -> (score: Double, band: StrainScore.StrainBand) {
         
@@ -377,10 +409,17 @@ class StrainScoreCalculator {
         var workoutTRIMP: Double = 0
         
         if let cardioTRIMP = inputs.cardioDailyTRIMP, cardioTRIMP > 0 {
-            workoutTRIMP += cardioTRIMP
+            // Apply workout type multiplier
+            let typeMultiplier = getWorkoutTypeMultiplier(workoutTypes: inputs.workoutTypes)
+            workoutTRIMP += cardioTRIMP * typeMultiplier
+            
+            print("   Workout type multiplier: \(String(format: "%.2f", typeMultiplier))")
         }
         
         // Add strength training as equivalent TRIMP
+        var strengthTRIMP: Double = 0
+        var hasBothCardioAndStrength = false
+        
         if let strengthDuration = inputs.strengthDurationMinutes,
            strengthDuration > 0 {
             
@@ -388,11 +427,37 @@ class StrainScoreCalculator {
             // Use RPE if available, otherwise assume moderate intensity (RPE 6-7)
             let rpe = inputs.strengthSessionRPE ?? 6.5 // Default to moderate-hard
             
+            // Apply muscle group multiplier if available
+            var muscleGroupFactor: Double = 1.0
+            if let muscleGroups = inputs.muscleGroupsTrained, !muscleGroups.isEmpty {
+                // Use highest systemic fatigue factor
+                muscleGroupFactor = muscleGroups.map { $0.systemicFatigueFactor }.max() ?? 1.0
+            }
+            
             // More generous strength TRIMP calculation
             // Strength training is metabolically demanding even at lower heart rates
             let estimatedHRFraction = max(0.5, (rpe - 1.0) / 9.0) // Minimum 50% intensity
-            let strengthTRIMP = estimatedHRFraction * strengthDuration * 120 // 2x multiplier for metabolic demand
+            strengthTRIMP = estimatedHRFraction * strengthDuration * 120 * muscleGroupFactor
+            
+            // Apply eccentric multiplier if focused on negatives
+            if let isEccentric = inputs.isEccentricFocused, isEccentric {
+                strengthTRIMP *= 1.3  // 30% more demanding
+            }
+            
             workoutTRIMP += strengthTRIMP
+            
+            // Detect concurrent training
+            if let cardioTRIMP = inputs.cardioDailyTRIMP, cardioTRIMP > 0 {
+                hasBothCardioAndStrength = true
+            }
+        }
+        
+        // Apply concurrent training interference penalty
+        // Research shows cardio + strength same day increases total stress
+        if hasBothCardioAndStrength {
+            let interferenceFactor = 1.15  // 15% penalty for concurrent training
+            workoutTRIMP *= interferenceFactor
+            print("   Concurrent training detected: +15% interference penalty")
         }
         
         // 2. Add daily activity with intelligent calorie-step blending

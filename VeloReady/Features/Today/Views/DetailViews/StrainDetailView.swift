@@ -490,6 +490,7 @@ struct StrainDetailView_Previews: PreviewProvider {
                 cardioDailyTRIMP: 2800,
                 cardioDurationMinutes: 120,
                 averageIntensityFactor: 0.82,
+                workoutTypes: ["Cycling", "Running"],
                 strengthSessionRPE: 8.0,
                 strengthDurationMinutes: 45,
                 strengthVolume: nil,

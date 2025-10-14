@@ -147,6 +147,19 @@ class StrainScoreService: ObservableObject {
         let cardioDuration = workouts.reduce(0.0) { $0 + $1.duration }
         let averageIF: Double? = nil // Not available from HealthKit alone
         
+        // Collect workout types for activity differentiation
+        let workoutTypes = workouts.map { workout -> String in
+            switch workout.workoutActivityType {
+            case .running: return "Running"
+            case .cycling: return "Cycling"
+            case .swimming: return "Swimming"
+            case .walking: return "Walking"
+            case .hiking: return "Hiking"
+            case .rowing: return "Rowing"
+            default: return "Other"
+            }
+        }
+        
         // Detect strength workouts and get RPE
         let strengthWorkouts = workouts.filter {
             $0.workoutActivityType == .traditionalStrengthTraining ||
@@ -183,6 +196,7 @@ class StrainScoreService: ObservableObject {
             cardioDailyTRIMP: cardioTRIMP,
             cardioDurationMinutes: cardioDuration > 0 ? cardioDuration / 60 : nil,
             averageIntensityFactor: averageIF,
+            workoutTypes: workoutTypes.isEmpty ? nil : workoutTypes,
             strengthSessionRPE: strengthRPE,
             strengthDurationMinutes: strengthDuration > 0 ? strengthDuration / 60 : nil,
             strengthVolume: nil,
