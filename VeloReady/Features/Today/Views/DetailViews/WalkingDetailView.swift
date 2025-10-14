@@ -125,6 +125,8 @@ struct WalkingDetailView: View {
             let rpe = WorkoutMetadataService.shared.getRPE(for: workout)
             let muscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout)
             
+            let _ = print("🟣 WorkoutTypeSection rendering - RPE: \(rpe?.description ?? "nil"), Muscle Groups: \(muscleGroups?.map { $0.rawValue } ?? [])")
+            
             if rpe != nil || muscleGroups != nil {
                 VStack(alignment: .leading, spacing: 8) {
                     // Show RPE if available
@@ -142,6 +144,7 @@ struct WalkingDetailView: View {
                     
                     // Show muscle groups if available
                     if let muscleGroups = muscleGroups, !muscleGroups.isEmpty {
+                        let _ = print("🟣 Rendering \(muscleGroups.count) muscle group tags")
                         FlowLayout(spacing: 8) {
                             ForEach(muscleGroups, id: \.self) { group in
                                 Text(group.rawValue)
@@ -156,6 +159,7 @@ struct WalkingDetailView: View {
                     }
                 }
             } else {
+                let _ = print("🟣 Showing 'Not specified'")
                 Text("Not specified")
                     .font(.subheadline)
                     .foregroundColor(Color.text.tertiary)

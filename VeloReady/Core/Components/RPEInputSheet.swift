@@ -19,6 +19,10 @@ struct RPEInputSheet: View {
         let existingRPE = WorkoutMetadataService.shared.getRPE(for: workout) ?? 6.5
         let existingMuscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout) ?? []
         
+        print("🔵 RPEInputSheet init - Workout UUID: \(workout.uuid)")
+        print("🔵 Existing RPE: \(existingRPE)")
+        print("🔵 Existing muscle groups: \(existingMuscleGroups.map { $0.rawValue })")
+        
         _rpeValue = State(initialValue: existingRPE)
         _selectedMuscleGroups = State(initialValue: Set(existingMuscleGroups))
     }
@@ -222,6 +226,12 @@ struct RPEInputSheet: View {
     private func saveDetails() {
         isSaving = true
         
+        print("🟢 RPEInputSheet saveDetails called")
+        print("🟢 RPE: \(rpeValue)")
+        print("🟢 Selected muscle groups count: \(selectedMuscleGroups.count)")
+        print("🟢 Selected muscle groups: \(selectedMuscleGroups.map { $0.rawValue })")
+        print("🟢 Workout UUID: \(workout.uuid)")
+        
         // Save to new Core Data service
         WorkoutMetadataService.shared.saveMetadata(
             for: workout,
@@ -229,6 +239,8 @@ struct RPEInputSheet: View {
             muscleGroups: selectedMuscleGroups.isEmpty ? nil : Array(selectedMuscleGroups),
             isEccentricFocused: nil // TODO: Add UI for this
         )
+        
+        print("🟢 Save completed, refreshing strain score...")
         
         // Trigger strain score refresh
         Task {

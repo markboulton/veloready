@@ -72,18 +72,26 @@ class WorkoutMetadataService {
     
     /// Get muscle groups for a workout
     func getMuscleGroups(for workout: HKWorkout) -> [MuscleGroup]? {
+        print("🔍 getMuscleGroups for workout: \(workout.uuid)")
+        
         // Try Core Data first
         if let metadata = fetchMetadata(for: workout) {
-            return metadata.muscleGroupEnums
+            let groups = metadata.muscleGroupEnums
+            print("🔍 Found in Core Data: \(groups?.map { $0.rawValue } ?? [])")
+            return groups
         }
+        
+        print("🔍 Not found in Core Data, checking legacy...")
         
         // Fallback to legacy
         if let legacyGroups = legacyRPEService.getMuscleGroups(for: workout) {
+            print("🔍 Found in legacy: \(legacyGroups.map { $0.rawValue })")
             // Migrate to Core Data
             migrateFromLegacy(workout: workout, muscleGroups: legacyGroups)
             return legacyGroups
         }
         
+        print("🔍 No muscle groups found anywhere")
         return nil
     }
     
@@ -98,7 +106,15 @@ class WorkoutMetadataService {
         fetchRequest.predicate = NSPredicate(format: "workoutUUID == %@", workout.uuid.uuidString)
         fetchRequest.fetchLimit = 1
         
+        print("🔎 Fetching metadata for UUID: \(workout.uuid.uuidString)")
         let results = persistenceController.fetch(fetchRequest)
+        
+        if let metadata = results.first {
+            print("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroups ?? [])")
+        } else {
+            print("🔎 No metadata found in Core Data")
+        }
+        
         return results.first
     }
     
