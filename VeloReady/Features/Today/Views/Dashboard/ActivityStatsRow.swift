@@ -10,41 +10,53 @@ struct ActivityStatsRow: View {
     }
     
     var body: some View {
-        HStack(spacing: Spacing.lg) {
-            // Steps Panel - Full Height
-            VStack(alignment: .leading, spacing: Spacing.cardContentSpacing) {
-                HStack {
-                    Text(ActivityContent.Metrics.steps)
-                        .font(.heading)
-                    Spacer()
-                    if !liveActivityService.isLoading && !hourlySteps.isEmpty {
-                        StepsSparkline(hourlySteps: hourlySteps)
-                            .frame(width: 50)
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Steps Panel - Full Height
+                VStack(alignment: .leading, spacing: Spacing.cardContentSpacing) {
+                    HStack {
+                        Text(ActivityContent.Metrics.steps)
+                            .font(.heading)
+                        Spacer()
+                        if !liveActivityService.isLoading && !hourlySteps.isEmpty {
+                            StepsSparkline(hourlySteps: hourlySteps)
+                                .frame(width: 50)
+                        }
                     }
+                    .task {
+                        // Fetch real hourly steps from HealthKit
+                        await loadHourlySteps()
+                    }
+                    
+                    if liveActivityService.isLoading {
+                        LoadingStateView(size: .small)
+                    } else {
+                        MetricDisplay(
+                            formatSteps(liveActivityService.dailySteps),
+                            label: liveActivityService.walkingDistance > 0 ? formatDistance(liveActivityService.walkingDistance) : nil,
+                            size: .medium
+                        )
+                    }
+                    
+                    Spacer()
                 }
-                .task {
-                    // Fetch real hourly steps from HealthKit
-                    await loadHourlySteps()
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .cardStyle()
                 
-                if liveActivityService.isLoading {
-                    LoadingStateView(size: .small)
-                } else {
-                    MetricDisplay(
-                        formatSteps(liveActivityService.dailySteps),
-                        label: liveActivityService.walkingDistance > 0 ? formatDistance(liveActivityService.walkingDistance) : nil,
-                        size: .medium
-                    )
-                }
+                // 2px Vertical Divider
+                Rectangle()
+                    .fill(Color(.systemGray3))
+                    .frame(width: 2)
                 
-                Spacer()
+                // Detailed Calories Panel
+                DetailedCaloriePanel(liveActivityService: liveActivityService)
+                    .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .cardStyle()
             
-            // Detailed Calories Panel
-            DetailedCaloriePanel(liveActivityService: liveActivityService)
-                .frame(maxWidth: .infinity)
+            // Full-width horizontal divider
+            Rectangle()
+                .fill(Color(.systemGray3))
+                .frame(height: 2)
         }
     }
     
