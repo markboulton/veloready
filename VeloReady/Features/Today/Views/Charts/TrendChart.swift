@@ -57,8 +57,7 @@ struct TrendChart: View {
             }
         }
         .padding(Spacing.cardPadding)
-        .background(Color.background.secondary)
-        .cornerRadius(Spacing.cardCornerRadius)
+        .background(Color(.systemBackground))
     }
     
     private var periodSelector: some View {
@@ -92,7 +91,6 @@ struct TrendChart: View {
                         y: .value("Value", animateChart ? point.value : 0)
                     )
                     .foregroundStyle(colorForValue(point.value))
-                    .cornerRadius(4)
                     .annotation(position: .top, alignment: .center) {
                         if selectedPeriod == .sevenDays {
                             Text("\(Int(point.value))\(unit)")

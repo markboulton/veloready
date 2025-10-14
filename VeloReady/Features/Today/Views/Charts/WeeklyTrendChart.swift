@@ -46,8 +46,7 @@ struct WeeklyTrendChart_Legacy: View {
             }
         }
         .padding()
-        .background(Color.background.secondary)
-        .cornerRadius(12)
+        .background(Color(.systemBackground))
     }
     
     private var periodSelector: some View {
