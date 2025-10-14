@@ -18,9 +18,9 @@ class TRIMPCalculator {
         )
         
         guard !hrSamples.isEmpty else {
-            print("⚠️ No HR data for workout, using calorie estimate")
-            // Fallback: estimate from calories and duration
-            return estimateTRIMPFromCalories(workout)
+            print("⚠️ No HR data for workout, using estimate")
+            // Fallback: estimate from calories/duration based on activity type
+            return estimateTRIMPFromWorkout(workout)
         }
         
         // Get user's HR parameters
@@ -149,17 +149,42 @@ class TRIMPCalculator {
         return trimp
     }
     
-    /// Estimate TRIMP from calories when HR data is unavailable
-    /// Not as accurate but better than nothing
-    private func estimateTRIMPFromCalories(_ workout: HKWorkout) -> Double {
+    /// Estimate TRIMP from workout when HR data is unavailable
+    /// Uses different multipliers based on activity type
+    private func estimateTRIMPFromWorkout(_ workout: HKWorkout) -> Double {
         let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
         let durationMinutes = workout.duration / 60.0
         
-        // Rough estimate: 1 active calorie ≈ 0.5-1.0 TRIMP depending on intensity
-        // For moderate intensity, use 0.7 as multiplier
-        let estimatedTRIMP = calories * 0.7
+        // Different multipliers based on workout type
+        // Strength training creates high muscular stress despite lower calorie burn
+        let multiplier: Double
+        let activityName: String
         
-        print("💓 Estimated TRIMP from \(Int(calories))kcal over \(String(format: "%.1f", durationMinutes))min: \(String(format: "%.1f", estimatedTRIMP))")
+        switch workout.workoutActivityType {
+        case .functionalStrengthTraining, .traditionalStrengthTraining:
+            // Strength training: higher multiplier (1.5x) to account for muscular stress
+            multiplier = 1.5
+            activityName = "Strength"
+        case .cycling:
+            multiplier = 0.8
+            activityName = "Cycling"
+        case .running:
+            multiplier = 1.0
+            activityName = "Running"
+        case .swimming:
+            multiplier = 0.9
+            activityName = "Swimming"
+        case .walking, .hiking:
+            multiplier = 0.5
+            activityName = "Walking/Hiking"
+        default:
+            multiplier = 0.7
+            activityName = "Other"
+        }
+        
+        let estimatedTRIMP = calories * multiplier
+        
+        print("💓 Estimated TRIMP for \(activityName): \(Int(calories))kcal × \(multiplier) = \(String(format: "%.1f", estimatedTRIMP))")
         
         return estimatedTRIMP
     }
