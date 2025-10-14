@@ -5,7 +5,7 @@ struct ActivitiesEmptyStateView: View {
     let onRefresh: () async -> Void
     
     var body: some View {
-        EmptyStateView(
+        EmptyStateCard(
             icon: "figure.outdoor.cycle",
             title: ActivitiesContent.noActivities,
             message: ActivitiesContent.noActivitiesMessage,

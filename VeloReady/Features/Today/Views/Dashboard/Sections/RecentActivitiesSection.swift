@@ -26,10 +26,11 @@ struct RecentActivitiesSection: View {
                 allActivities
             
             if remainingActivities.isEmpty {
-                Text(TodayContent.noActivities)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .padding()
+                EmptyStateCard(
+                    icon: "figure.walk",
+                    title: "No Recent Activities",
+                    message: TodayContent.noActivities
+                )
             } else {
                 LazyVStack(spacing: 0) {
                     ForEach(remainingActivities) { activity in

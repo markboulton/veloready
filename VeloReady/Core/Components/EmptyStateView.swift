@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// Reusable empty state view with icon, title, message, and optional action
+/// Updated to use new design system typography
 struct EmptyStateView: View {
     let icon: String
     let title: String
@@ -23,37 +24,33 @@ struct EmptyStateView: View {
     }
     
     var body: some View {
-        VStack(spacing: Spacing.lg) {
+        VStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: TypeScale.xxl))
-                .foregroundColor(Color.text.tertiary)
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
             
-            VStack(spacing: Spacing.sm) {
-                Text(title)
-                    .font(.system(size: TypeScale.md, weight: .semibold))
-                    .foregroundColor(Color.text.primary)
-                
-                Text(message)
-                    .font(.system(size: TypeScale.sm))
-                    .foregroundColor(Color.text.secondary)
-                    .multilineTextAlignment(.center)
-            }
+            Text(title)
+                .font(.heading)
+                .foregroundColor(.primary)
+            
+            Text(message)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
             
             if let actionTitle = actionTitle, let action = action {
                 Button(action: action) {
                     Text(actionTitle)
-                        .font(.system(size: TypeScale.sm, weight: .semibold))
+                        .font(.button)
                         .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.xl)
-                        .padding(.vertical, Spacing.md)
-                        .background(Color.button.primary)
-                        .cornerRadius(Spacing.buttonCornerRadius)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(ColorPalette.blue)
                 }
-                .padding(.top, Spacing.sm)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(Spacing.xxl)
+        .padding(32)
     }
 }
 
