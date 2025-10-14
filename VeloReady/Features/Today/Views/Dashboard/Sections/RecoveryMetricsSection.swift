@@ -47,7 +47,6 @@ struct RecoveryMetricsSection: View {
             }
             
             SectionDivider()
-                .padding(.top, 20)
         }
     }
     

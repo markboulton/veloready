@@ -45,7 +45,6 @@ struct RecentActivitiesSection: View {
             }
             
             SectionDivider()
-                .padding(.top, 20)
         }
     }
 }

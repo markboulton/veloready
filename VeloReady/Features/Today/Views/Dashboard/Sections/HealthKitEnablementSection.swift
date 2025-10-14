@@ -59,7 +59,6 @@ struct HealthKitEnablementSection: View {
             }
             
             SectionDivider()
-                .padding(.top, 20)
         }
     }
 }

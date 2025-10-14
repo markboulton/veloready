@@ -292,7 +292,6 @@ struct TodayView: View {
             }
             
             SectionDivider()
-                .padding(.top, 20)
         }
     }
     
