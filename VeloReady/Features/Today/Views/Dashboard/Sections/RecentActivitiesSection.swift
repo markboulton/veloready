@@ -8,9 +8,7 @@ struct RecentActivitiesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(TodayContent.activitiesSection)
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                SectionHeader(TodayContent.activitiesSection)
                 Spacer()
                 ActivitySparkline(
                     dailyActivities: dailyActivityData,
@@ -29,7 +27,7 @@ struct RecentActivitiesSection: View {
             
             if remainingActivities.isEmpty {
                 Text(TodayContent.noActivities)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundColor(.secondary)
                     .padding()
             } else {

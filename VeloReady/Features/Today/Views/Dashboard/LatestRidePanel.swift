@@ -26,72 +26,46 @@ struct LatestRidePanel: View {
         
         // Activity name
         Text(activity.name ?? LatestRideContent.unnamedActivity)
-            .font(.title2)
-            .fontWeight(.bold)
+            .font(.title)
         
         // Date and time
         if let startDate = parseActivityDate(activity.startDateLocal) {
             Text(formatActivityDate(startDate))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .captionStyle()
         }
         
         // Stats row - all metrics in one consistent row
         HStack(alignment: .top, spacing: 20) {
                 if let duration = activity.duration {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(formatDuration(duration))
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Text(LatestRideContent.Metrics.duration)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    MetricDisplay(
+                        formatDuration(duration),
+                        label: LatestRideContent.Metrics.duration,
+                        size: .small
+                    )
                 }
                 
                 if let distance = activity.distance {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(String(format: "%.1f", distance / 1000.0)) km")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Text(LatestRideContent.Metrics.distance)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    MetricDisplay(
+                        "\(String(format: "%.1f", distance / 1000.0)) km",
+                        label: LatestRideContent.Metrics.distance,
+                        size: .small
+                    )
                 }
                 
                 if let power = activity.normalizedPower {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(Int(power)) W")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Text("NP")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    MetricDisplay(
+                        "\(Int(power)) W",
+                        label: "NP",
+                        size: .small
+                    )
                 }
                 
                 if let tss = activity.tss {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(Int(tss))")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Text("TSS")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    MetricDisplay(
+                        "\(Int(tss))",
+                        label: "TSS",
+                        size: .small
+                    )
                 }
                 
                 Spacer()
