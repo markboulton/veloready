@@ -59,11 +59,11 @@ struct PerformanceOverviewCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Getting started with trends")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("This overview requires:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -85,11 +85,11 @@ struct PerformanceOverviewCard: View {
                         Text("At least 7 days of consistent tracking")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Your three most important metrics in one view")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
@@ -119,7 +119,7 @@ struct PerformanceOverviewCard: View {
                             .fill(ColorScale.greenAccent)
                             .frame(width: 6, height: 6)
                         Text("Recovery: Starts appearing after 1 day of HRV + RHR + Sleep tracking")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
                 }
@@ -129,7 +129,7 @@ struct PerformanceOverviewCard: View {
                             .fill(Color.workout.tss)
                             .frame(width: 6, height: 6)
                         Text("Load: Appears when you upload rides to Intervals.icu")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
                 }
@@ -139,7 +139,7 @@ struct PerformanceOverviewCard: View {
                             .fill(Color.health.sleep)
                             .frame(width: 6, height: 6)
                         Text("Sleep: Starts after 1 night wearing Apple Watch to bed")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
                 }
@@ -194,7 +194,7 @@ struct PerformanceOverviewCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -205,7 +205,7 @@ struct PerformanceOverviewCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -250,7 +250,7 @@ struct PerformanceOverviewCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }
@@ -293,7 +293,7 @@ private struct LegendItem: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 if let value = value {
@@ -303,7 +303,7 @@ private struct LegendItem: View {
                         .fontWeight(.medium)
                 } else {
                     Text("--")
-                        .font(.labelSecondary)
+                        .font(.caption)
                         .foregroundColor(.text.tertiary)
                 }
             }

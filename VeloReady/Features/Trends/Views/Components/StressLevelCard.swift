@@ -27,7 +27,7 @@ struct StressLevelCard: View {
                                 .foregroundColor(stressColor(averageStress))
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -58,11 +58,11 @@ struct StressLevelCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Stress calculation requires data")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("Stress is inferred from:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -88,11 +88,11 @@ struct StressLevelCard: View {
                         Text("Training load intensity")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Appears once recovery data starts collecting")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
@@ -138,7 +138,7 @@ struct StressLevelCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -149,7 +149,7 @@ struct StressLevelCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -189,7 +189,7 @@ struct StressLevelCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

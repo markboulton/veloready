@@ -22,7 +22,7 @@ struct TrendsTimeRangeSelector: View {
                             }
                         }) {
                             Text(range.rawValue)
-                                .font(.buttonSmall)
+                                .font(.button)
                                 .foregroundColor(
                                     viewModel.selectedTimeRange == range ? .white : .text.primary
                                 )

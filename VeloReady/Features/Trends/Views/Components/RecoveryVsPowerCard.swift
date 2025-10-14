@@ -21,7 +21,7 @@ struct RecoveryVsPowerCard: View {
                         if let correlation = correlation {
                             HStack(spacing: Spacing.xs) {
                                 Text("\(correlation.significance.description) Correlation")
-                                    .font(.bodySecondary)
+                                    .font(.body)
                                     .foregroundColor(correlationColor(correlation))
                                 
                                 Text("(r=\(CorrelationCalculator.formatCoefficient(correlation.coefficient)))")
@@ -30,7 +30,7 @@ struct RecoveryVsPowerCard: View {
                             }
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -67,11 +67,11 @@ struct RecoveryVsPowerCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Not enough data for correlation")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("This unique analysis requires:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -93,11 +93,11 @@ struct RecoveryVsPowerCard: View {
                         Text("HRV + sleep tracking enabled")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Only VeloReady can show this correlation")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
@@ -134,7 +134,7 @@ struct RecoveryVsPowerCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)%")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -147,7 +147,7 @@ struct RecoveryVsPowerCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)W")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -207,7 +207,7 @@ struct RecoveryVsPowerCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight(correlation))
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

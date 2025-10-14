@@ -37,7 +37,7 @@ struct WeeklyTSSTrendCard: View {
                             }
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -69,11 +69,11 @@ struct WeeklyTSSTrendCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("No training data yet")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("To see weekly training load:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -95,11 +95,11 @@ struct WeeklyTSSTrendCard: View {
                         Text("Track for 2+ weeks to see trends")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("TSS = Training Stress Score (workout intensity × duration)")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
             }
@@ -124,7 +124,7 @@ struct WeeklyTSSTrendCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -137,7 +137,7 @@ struct WeeklyTSSTrendCard: View {
                 if let date = value.as(Date.self) {
                     AxisValueLabel {
                         Text(date, format: .dateTime.month(.abbreviated).day())
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -179,7 +179,7 @@ struct WeeklyTSSTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

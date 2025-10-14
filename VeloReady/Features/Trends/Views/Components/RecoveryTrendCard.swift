@@ -27,7 +27,7 @@ struct RecoveryTrendCard: View {
                                 .foregroundColor(recoveryColor(averageRecovery))
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -59,11 +59,11 @@ struct RecoveryTrendCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Not enough recovery history")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("To see recovery trends:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -89,11 +89,11 @@ struct RecoveryTrendCard: View {
                         Text("After 7 days: Trends become meaningful")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Your recovery scores are calculated daily at midnight")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
@@ -134,7 +134,7 @@ struct RecoveryTrendCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)%")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -145,7 +145,7 @@ struct RecoveryTrendCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -161,7 +161,7 @@ struct RecoveryTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

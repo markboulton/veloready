@@ -10,16 +10,16 @@ Old Font Name          →  New Font Name       Usage
 -------------------       ---------------      ------
 .cardTitle             →  .heading            Section headers, card titles
 .sectionTitle          →  .title              Page titles, main headings  
-.subsectionTitle       →  .heading            Sub-headers
+.heading       →  .heading            Sub-headers
 .bodyPrimary           →  .body               Main content text
-.bodySecondary         →  .body               Alternative body text
+.body         →  .body               Alternative body text
 .bodySmall             →  .caption            Small text
 .metricLarge           →  .metric             Large metric displays
 .metricMedium          →  .title              Medium metrics
 .metricSmall           →  .heading            Small metrics
 .labelPrimary          →  .caption            Primary labels
-.labelSecondary        →  .caption            Secondary labels
-.labelTertiary         →  .caption            Tertiary labels
+.caption        →  .caption            Secondary labels
+.caption         →  .caption            Tertiary labels
 .recoveryScore         →  .metric             Score displays
 .buttonSmall           →  .button             Button text
 

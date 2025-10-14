@@ -22,7 +22,7 @@ struct FTPTrendCard: View {
                                 .foregroundColor(ColorScale.blueAccent)
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -56,11 +56,11 @@ struct FTPTrendCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("FTP tracking coming soon")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("What you need:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -78,11 +78,11 @@ struct FTPTrendCard: View {
                         Text("FTP will be auto-detected over time")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Check Today tab to view your current FTP")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
@@ -96,7 +96,7 @@ struct FTPTrendCard: View {
     private var singleDataPoint: some View {
         VStack(spacing: Spacing.sm) {
             Text("Current FTP")
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
             
             if let ftp = data.first?.value {
@@ -106,7 +106,7 @@ struct FTPTrendCard: View {
             }
             
             Text("Historical FTP tracking coming soon")
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 .padding(.top, Spacing.xs)
         }
@@ -139,14 +139,14 @@ struct FTPTrendCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { _ in
                 AxisValueLabel()
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -162,7 +162,7 @@ struct FTPTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             Text("Track your FTP changes over time to see fitness progression.")
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

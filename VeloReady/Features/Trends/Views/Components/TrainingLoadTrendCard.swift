@@ -31,7 +31,7 @@ struct TrainingLoadTrendCard: View {
                         }
                     } else {
                         Text("No data")
-                            .font(.bodySecondary)
+                            .font(.body)
                             .foregroundColor(.text.secondary)
                     }
                 }
@@ -56,11 +56,11 @@ struct TrainingLoadTrendCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("No training load data")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("To see training load trends:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -82,20 +82,20 @@ struct TrainingLoadTrendCard: View {
                         Text("Track for 4+ weeks to see trends")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("CTL = Chronic Training Load (fitness)")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
                 
                 Text("ATL = Acute Training Load (fatigue)")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                 
                 Text("TSB = Training Stress Balance (form)")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
             }
             .multilineTextAlignment(.center)
@@ -169,7 +169,7 @@ struct TrainingLoadTrendCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -180,7 +180,7 @@ struct TrainingLoadTrendCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -222,7 +222,7 @@ struct TrainingLoadTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }
@@ -329,7 +329,7 @@ private struct LegendItem: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 if let value = value {
@@ -339,7 +339,7 @@ private struct LegendItem: View {
                         .fontWeight(.medium)
                 } else {
                     Text("--")
-                        .font(.labelSecondary)
+                        .font(.caption)
                         .foregroundColor(.text.tertiary)
                 }
             }

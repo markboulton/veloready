@@ -39,7 +39,7 @@ struct HRVTrendCard: View {
                             }
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -71,11 +71,11 @@ struct HRVTrendCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("No HRV data found")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("To track HRV:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -97,11 +97,11 @@ struct HRVTrendCard: View {
                         Text("Baseline calculated after 7 days")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("HRV is your best recovery indicator")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
             }
@@ -120,7 +120,7 @@ struct HRVTrendCard: View {
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .annotation(position: .top, alignment: .trailing) {
                         Text("Baseline")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundColor(.text.tertiary)
                             .padding(.horizontal, Spacing.xs)
                             .background(Color.background.card)
@@ -155,7 +155,7 @@ struct HRVTrendCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -166,7 +166,7 @@ struct HRVTrendCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -182,7 +182,7 @@ struct HRVTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

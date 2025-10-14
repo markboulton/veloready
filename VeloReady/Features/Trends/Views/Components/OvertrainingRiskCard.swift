@@ -26,7 +26,7 @@ struct OvertrainingRiskCard: View {
                             }
                         } else {
                             Text("Calculating...")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -52,15 +52,15 @@ struct OvertrainingRiskCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Not enough health data")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("Enable all health permissions")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                 
                 Text("Risk assessment requires:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -82,11 +82,11 @@ struct OvertrainingRiskCard: View {
                         Text("Sleep data with debt calculation")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("Check back after a week of tracking")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
             }
@@ -100,7 +100,7 @@ struct OvertrainingRiskCard: View {
         return VStack(alignment: .leading, spacing: Spacing.md) {
             // Risk level description
             Text(risk.riskLevel.description)
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
             
             // Risk factors
@@ -123,7 +123,7 @@ struct OvertrainingRiskCard: View {
                                     .foregroundColor(.text.primary)
                                 
                                 Text(factor.description)
-                                    .font(.labelSecondary)
+                                    .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                             
@@ -146,7 +146,7 @@ struct OvertrainingRiskCard: View {
                     .foregroundColor(.text.secondary)
                 
                 Text(risk.recommendation)
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
             }
         }

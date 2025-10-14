@@ -37,7 +37,7 @@ struct RestingHRCard: View {
                             }
                         } else {
                             Text("No data")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -68,11 +68,11 @@ struct RestingHRCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("No resting heart rate data")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("To track resting HR:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -94,11 +94,11 @@ struct RestingHRCard: View {
                         Text("Lower RHR indicates better fitness")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
                 Text("RHR elevation can indicate stress or illness")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
             }
@@ -116,7 +116,7 @@ struct RestingHRCard: View {
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                 .annotation(position: .top, alignment: .trailing) {
                     Text("Baseline")
-                        .font(.labelSecondary)
+                        .font(.caption)
                         .foregroundColor(.text.tertiary)
                         .padding(.horizontal, Spacing.xs)
                         .background(Color.background.card)
@@ -150,7 +150,7 @@ struct RestingHRCard: View {
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
-                            .font(.labelSecondary)
+                            .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
@@ -161,7 +161,7 @@ struct RestingHRCard: View {
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
                 AxisValueLabel(format: .dateTime.month().day())
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundStyle(Color.text.tertiary)
             }
         }
@@ -177,7 +177,7 @@ struct RestingHRCard: View {
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
         }
     }

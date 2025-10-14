@@ -46,50 +46,6 @@ extension Font {
     
     /// Button text (uses heading)
     static let button: Font = .heading
-    
-    // MARK: - Legacy Aliases (for backwards compatibility during migration)
-    
-    @available(*, deprecated, renamed: "heading")
-    static let cardTitle: Font = .heading
-    
-    @available(*, deprecated, renamed: "title")
-    static let sectionTitle: Font = .title
-    
-    @available(*, deprecated, renamed: "heading")
-    static let subsectionTitle: Font = .heading
-    
-    @available(*, deprecated, renamed: "body")
-    static let bodyPrimary: Font = .body
-    
-    @available(*, deprecated, renamed: "body")
-    static let bodySecondary: Font = .body
-    
-    @available(*, deprecated, renamed: "caption")
-    static let bodySmall: Font = .caption
-    
-    @available(*, deprecated, renamed: "metric")
-    static let metricLarge: Font = .metric
-    
-    @available(*, deprecated, renamed: "metric")
-    static let metricMedium: Font = .metric
-    
-    @available(*, deprecated, renamed: "heading")
-    static let metricSmall: Font = .heading
-    
-    @available(*, deprecated, renamed: "caption")
-    static let labelPrimary: Font = .caption
-    
-    @available(*, deprecated, renamed: "caption")
-    static let labelSecondary: Font = .caption
-    
-    @available(*, deprecated, renamed: "caption")
-    static let labelTertiary: Font = .caption
-    
-    @available(*, deprecated, renamed: "metric")
-    static let recoveryScore: Font = .metric
-    
-    @available(*, deprecated, renamed: "button")
-    static let buttonSmall: Font = .button
 }
 
 /// Text style modifiers for semantic styling

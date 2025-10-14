@@ -20,7 +20,7 @@ struct TrainingPhaseCard: View {
                                 .foregroundColor(phaseColor(phase.phase))
                         } else {
                             Text("Detecting...")
-                                .font(.bodySecondary)
+                                .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
                     }
@@ -46,15 +46,15 @@ struct TrainingPhaseCard: View {
             
             VStack(spacing: Spacing.xs) {
                 Text("Not enough training data")
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
                 
                 Text("Complete 4+ weeks of workouts")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                 
                 Text("Phase detection requires:")
-                    .font(.labelSecondary)
+                    .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
@@ -72,7 +72,7 @@ struct TrainingPhaseCard: View {
                         Text("Variety of intensities (easy, hard, race)")
                     }
                 }
-                .font(.labelSecondary)
+                .font(.caption)
                 .foregroundColor(.text.tertiary)
             }
             .multilineTextAlignment(.center)
@@ -85,7 +85,7 @@ struct TrainingPhaseCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Phase description
             Text(phase.phase.description)
-                .font(.bodySecondary)
+                .font(.body)
                 .foregroundColor(.text.secondary)
             
             // Metrics
@@ -166,7 +166,7 @@ struct TrainingPhaseCard: View {
                     .foregroundColor(.text.secondary)
                 
                 Text(phase.recommendation)
-                    .font(.bodySecondary)
+                    .font(.body)
                     .foregroundColor(.text.secondary)
             }
         }
