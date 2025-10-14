@@ -70,6 +70,9 @@ struct WalkingDetailView: View {
                 checkRPEStatus()
             }
         }
+        .sheet(isPresented: $showingTrainingLoadInfo) {
+            TrainingLoadInfoSheet()
+        }
     }
     
     // MARK: - Heart Rate Chart
@@ -266,18 +269,18 @@ struct WalkingDetailView: View {
         hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
     }
     
-    private func trainingLoadColor(_ load: Double) -> Color {
-        // Color code based on training load intensity
+    private func trainingLoadLabel(_ load: Double) -> String {
+        // Label based on training load intensity
         // Research-based thresholds for strength training load
         switch load {
         case 0..<1500:
-            return ColorScale.greenAccent  // Light
+            return "Light"
         case 1500..<3000:
-            return ColorScale.yellowAccent  // Moderate
+            return "Moderate"
         case 3000..<4500:
-            return ColorScale.amberAccent  // Hard
+            return "Hard"
         default:
-            return ColorScale.redAccent  // Very Hard
+            return "Very Hard"
         }
     }
     
