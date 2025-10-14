@@ -10,6 +10,7 @@ struct WalkingDetailView: View {
     @StateObject private var viewModel = WalkingDetailViewModel()
     @State private var showingRPESheet = false
     @State private var hasRPE = false
+    @State private var showingTrainingLoadInfo = false
     
     var body: some View {
         ScrollView {
@@ -138,14 +139,23 @@ struct WalkingDetailView: View {
                             isEccentricFocused: false
                         )
                         
+                        let simplifiedLoad = trainingLoad / 100.0
+                        let loadLabel = trainingLoadLabel(trainingLoad)
+                        
                         HStack(spacing: 4) {
                             Text("Training Load:")
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.0f", trainingLoad))
+                            Text(String(format: "%.1f, %@", simplifiedLoad, loadLabel))
                                 .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(trainingLoadColor(trainingLoad))
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color.text.primary)
+                            
+                            Button(action: { showingTrainingLoadInfo = true }) {
+                                Text("Learn more")
+                                    .font(.caption)
+                                    .foregroundColor(ColorScale.blueAccent)
+                            }
                         }
                     }
                     
