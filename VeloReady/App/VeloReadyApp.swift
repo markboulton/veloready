@@ -6,6 +6,11 @@ struct VeloReadyApp: App {
     let persistenceController = PersistenceController.shared
     
     init() {
+        // Initialize service container early for optimal performance
+        Task { @MainActor in
+            ServiceContainer.shared.initialize()
+        }
+        
         // Configure AI Brief
         Task { @MainActor in
             AIBriefConfig.configure()
