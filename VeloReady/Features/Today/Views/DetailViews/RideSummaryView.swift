@@ -15,44 +15,25 @@ struct RideSummaryView: View {
         
         return AnyView(
             VStack(spacing: 0) {
-                Card {
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Header
-                        HStack {
-                            Image(systemName: "sparkles")
-                                .foregroundColor(ColorScale.purpleAccent)
-                            Text(RideSummaryContent.title)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            // PRO badge (on the right like zone charts)
-                            Text(RideSummaryContent.proBadge)
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(ColorScale.purpleAccent)
-                                .cornerRadius(4)
-                        }
-                        
-                        // Content
-                        if service.isLoading {
-                            LoadingView()
-                        } else if let error = service.error {
-                            ErrorView(error: error, activity: activity)
-                        } else if let summary = service.currentSummary {
-                            SummaryContentView(summary: summary)
-                        } else {
-                            Text(RideSummaryContent.loading)
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                .italic()
-                        }
+                VStack(alignment: .leading, spacing: 16) {
+                    // Header
+                    SectionHeader(RideSummaryContent.title, icon: "sparkles")
+                    
+                    // Content
+                    if service.isLoading {
+                        LoadingView()
+                    } else if let error = service.error {
+                        ErrorView(error: error, activity: activity)
+                    } else if let summary = service.currentSummary {
+                        SummaryContentView(summary: summary)
+                    } else {
+                        Text(RideSummaryContent.loading)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .italic()
                     }
                 }
+                .padding()
                 .onAppear {
                     // Fetch summary on appear if not already loaded
                     if !hasLoaded && service.currentSummary == nil && !service.isLoading {

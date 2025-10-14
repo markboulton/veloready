@@ -38,17 +38,6 @@ struct ZonePieChartSection: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                if proConfig.hasProAccess {
-                    Text("PRO")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(ColorScale.purpleAccent)
-                        .cornerRadius(4)
-                }
-                
                 Spacer()
             }
             
@@ -210,17 +199,6 @@ struct ZonePieChartSection: View {
                 Text(proConfig.hasProAccess ? "Adaptive Power Zones" : "Power Zones")
                     .font(.headline)
                     .fontWeight(.semibold)
-                
-                if proConfig.hasProAccess {
-                    Text("PRO")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(ColorScale.purpleAccent)
-                        .cornerRadius(4)
-                }
                 
                 Spacer()
             }

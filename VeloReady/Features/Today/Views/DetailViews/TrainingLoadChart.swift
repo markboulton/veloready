@@ -45,20 +45,11 @@ struct TrainingLoadChart: View {
         
         return AnyView(
             VStack(alignment: .leading, spacing: 16) {
-                // Header with PRO badge inline
+                // Header
                 HStack(spacing: 8) {
                     Text(TrainingLoadContent.title)
                         .font(.headline)
                         .fontWeight(.semibold)
-                    
-                    Text(TrainingLoadContent.proBadge)
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(ColorScale.purpleAccent)
-                        .cornerRadius(4)
                     
                     Spacer()
                 }
@@ -73,7 +64,7 @@ struct TrainingLoadChart: View {
                             yStart: .value("Min", -50),
                             yEnd: .value("Max", max(ridePoint.ctl, ridePoint.atl) + 20)
                         )
-                        .foregroundStyle(Color.button.primary)
+                        .foregroundStyle(Color.primary.opacity(0.08))
                     }
                     
                     // Vertical line marking today
