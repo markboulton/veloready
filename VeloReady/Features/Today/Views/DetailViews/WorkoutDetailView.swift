@@ -128,19 +128,19 @@ struct WorkoutDetailView: View {
                 // Zone Pie Charts Section - Free and Pro versions (has its own margins)
                 ZonePieChartSection(activity: displayActivity)
                 
-                SectionDivider()
-                
                 // Interactive Map - only show if GPS data exists
                 if !routeCoordinates.isEmpty || isLoadingMap {
+                    SectionDivider()
+                    
                     WorkoutMapSection(
                         coordinates: routeCoordinates,
                         isLoading: isLoadingMap
                     )
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
-                    
-                    SectionDivider()
                 }
+                
+                SectionDivider()
                 
                 // Additional Data Section - use enriched activity
                 AdditionalDataSection(activity: displayActivity)

@@ -214,8 +214,6 @@ struct TrainingLoadChart: View {
                         .foregroundColor(Color.text.secondary)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 24)
         )
         .task {
             // Fetch historical activities for chart

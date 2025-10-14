@@ -23,20 +23,11 @@ struct IntensityChart: View {
         
         return AnyView(
             VStack(alignment: .leading, spacing: 16) {
-                // Header with PRO badge inline
+                // Header
                 HStack(spacing: 8) {
                     Text("Ride Intensity")
                         .font(.headline)
                         .fontWeight(.semibold)
-                    
-                    Text("PRO")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(ColorScale.purpleAccent)
-                        .cornerRadius(4)
                     
                     Spacer()
                 }
@@ -144,8 +135,6 @@ struct IntensityChart: View {
                         .foregroundColor(Color.text.secondary)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 24)
         )
     }
     

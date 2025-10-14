@@ -33,7 +33,6 @@ struct RideSummaryView: View {
                             .italic()
                     }
                 }
-                .padding()
                 .onAppear {
                     // Fetch summary on appear if not already loaded
                     if !hasLoaded && service.currentSummary == nil && !service.isLoading {
@@ -78,7 +77,7 @@ private struct ErrorView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(Color.semantic.warning)
+                    .foregroundColor(.primary)
                 Text(error.localizedDescription)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -138,7 +137,7 @@ private struct SummaryContentView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(ColorScale.greenAccent)
+                                    .foregroundColor(.primary)
                                     .font(.caption)
                                 Text(RideSummaryContent.strengths)
                                     .font(.subheadline)
@@ -163,7 +162,7 @@ private struct SummaryContentView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(Color.semantic.warning)
+                                    .foregroundColor(.primary)
                                     .font(.caption)
                                 Text(RideSummaryContent.areasToImprove)
                                     .font(.subheadline)
@@ -192,7 +191,7 @@ private struct SummaryContentView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "lightbulb")
-                            .foregroundColor(Color.button.primary)
+                            .foregroundColor(.primary)
                             .font(.caption)
                         Text(RideSummaryContent.nextSteps)
                             .font(.subheadline)
