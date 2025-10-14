@@ -130,7 +130,7 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             TodayView()
                 .tabItem {
-                    Label("Today", systemImage: "house.fill")
+                    Label("Today", systemImage: "house")
                 }
                 .tag(0)
             
@@ -155,12 +155,31 @@ struct MainTabView: View {
             
             ProfileTabView(oauthManager: oauthManager)
                 .tabItem {
-                    Label("Profile", systemImage: "person.fill")
+                    Label("Profile", systemImage: "person")
                 }
                 .tag(3)
         }
         .environmentObject(apiClient)
         .environmentObject(athleteZoneService)
+        .onAppear {
+            // Reduce tab bar icon size
+            let appearance = UITabBarAppearance()
+            appearance.configureWithDefaultBackground()
+            
+            // Smaller icons
+            let itemAppearance = UITabBarItemAppearance()
+            itemAppearance.normal.iconColor = UIColor.label
+            itemAppearance.selected.iconColor = UIColor.label
+            
+            appearance.stackedLayoutAppearance = itemAppearance
+            appearance.inlineLayoutAppearance = itemAppearance
+            appearance.compactInlineLayoutAppearance = itemAppearance
+            
+            UITabBar.appearance().standardAppearance = appearance
+            if #available(iOS 15.0, *) {
+                UITabBar.appearance().scrollEdgeAppearance = appearance
+            }
+        }
         .onChange(of: selectedTab) { oldValue, newValue in
             // When tapping the same tab again, post notification to pop to root
             if oldValue == newValue {
