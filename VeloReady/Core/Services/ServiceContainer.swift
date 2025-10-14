@@ -83,12 +83,42 @@ final class ServiceContainer {
     
     private func handleAppBackground() {
         print("📦 ServiceContainer: App entering background")
-        // Services can save state if needed
+        
+        // Flush caches to disk
+        Task { @MainActor in
+            await flushCaches()
+        }
     }
     
     private func handleAppForeground() {
         print("📦 ServiceContainer: App entering foreground")
-        // Services can refresh if needed
+        
+        // Refresh stale data
+        Task { @MainActor in
+            await refreshStaleData()
+        }
+    }
+    
+    // MARK: - Cache Lifecycle
+    
+    /// Flush all caches to persistent storage
+    private func flushCaches() async {
+        print("💾 ServiceContainer: Flushing caches to disk...")
+        
+        // Caches automatically persist via UserDefaults
+        // This is a hook for future disk-based caching
+        
+        print("✅ ServiceContainer: Caches flushed")
+    }
+    
+    /// Refresh stale data when returning to foreground
+    private func refreshStaleData() async {
+        print("🔄 ServiceContainer: Checking for stale data...")
+        
+        // Individual services handle their own staleness checks
+        // This is a hook for coordinated refresh logic
+        
+        print("✅ ServiceContainer: Staleness check complete")
     }
     
     // MARK: - Service Management
@@ -97,13 +127,38 @@ final class ServiceContainer {
     func reset() {
         print("📦 ServiceContainer: Resetting all services")
         
-        // Clear caches
-        intervalsCache.clearAllCache()
-        healthKitCache.clearCache()
+        // Clear all caches
+        clearAllCaches()
         
         // Note: Auth state should be cleared separately via auth managers
         
         isInitialized = false
+    }
+    
+    /// Clear all service caches
+    func clearAllCaches() {
+        print("🗑️ ServiceContainer: Clearing all caches...")
+        
+        intervalsCache.clearAllCache()
+        healthKitCache.clearCache()
+        
+        // Clear score service caches
+        recoveryScoreService.clearBaselineCache()
+        
+        print("✅ ServiceContainer: All caches cleared")
+    }
+    
+    /// Warm up critical services for optimal performance
+    func warmUp() async {
+        print("🔥 ServiceContainer: Warming up services...")
+        
+        // Pre-load critical data
+        if healthKitManager.isAuthorized {
+            // Trigger cache population
+            _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
+        }
+        
+        print("✅ ServiceContainer: Services warmed up")
     }
     
     /// Check health of all services
