@@ -43,6 +43,32 @@ final class ServiceContainer {
     lazy var strainScoreService = StrainScoreService.shared
     lazy var wellnessDetectionService = WellnessDetectionService.shared
     
+    // MARK: - ViewModels Registry
+    
+    private var viewModels: [String: Any] = [:]
+    
+    /// Register a ViewModel for reuse
+    func register<T>(_ viewModel: T, for key: String) {
+        viewModels[key] = viewModel
+        print("📝 ServiceContainer: Registered ViewModel '\(key)'")
+    }
+    
+    /// Retrieve a registered ViewModel
+    func retrieve<T>(_ type: T.Type, for key: String) -> T? {
+        return viewModels[key] as? T
+    }
+    
+    /// Remove a ViewModel from registry
+    func unregister(for key: String) {
+        viewModels.removeValue(forKey: key)
+        print("🗑️ ServiceContainer: Unregistered ViewModel '\(key)'")
+    }
+    
+    /// Get all registered ViewModel keys
+    var registeredViewModels: [String] {
+        Array(viewModels.keys)
+    }
+    
     // MARK: - Initialization
     
     private init() {
