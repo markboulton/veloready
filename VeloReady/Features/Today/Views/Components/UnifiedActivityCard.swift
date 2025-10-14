@@ -17,8 +17,8 @@ struct UnifiedActivityCard: View {
             }
             .buttonStyle(PlainButtonStyle())
         } else if let healthWorkout = activity.healthKitWorkout {
-            // Apple Health workout
-            NavigationLink(destination: ActivityDetailView(activityData: .fromHealthKit(healthWorkout))) {
+            // Apple Health workout - use WalkingDetailView
+            NavigationLink(destination: WalkingDetailView(workout: healthWorkout)) {
                 SharedActivityRowView(activity: activity)
             }
             .buttonStyle(PlainButtonStyle())

@@ -31,13 +31,15 @@ struct WalkingDetailView: View {
                         .padding(.bottom, 20)
                 }
                 
-                // Map - using shared component
-                WorkoutMapSection(
-                    coordinates: viewModel.routeCoordinates ?? [],
-                    isLoading: viewModel.isLoadingMap
-                )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
+                // Map - only for walking workouts
+                if !isStrengthWorkout {
+                    WorkoutMapSection(
+                        coordinates: viewModel.routeCoordinates ?? [],
+                        isLoading: viewModel.isLoadingMap
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
+                }
             }
         }
         .background(Color.background.primary)
@@ -199,20 +201,10 @@ struct WalkingWorkoutInfoHeader: View {
                 
                 // RPE for strength workouts
                 if isStrengthWorkout, let rpe = storedRPE {
-                    HStack(spacing: 4) {
-                        CompactMetricItem(
-                            label: "RPE",
-                            value: String(format: "%.1f", rpe)
-                        )
-                        
-                        Button(action: {
-                            showingRPESheet = true
-                        }) {
-                            Text("edit")
-                                .font(.caption)
-                                .foregroundColor(.blue)
-                        }
-                    }
+                    RPEMetricWithEdit(
+                        rpe: rpe,
+                        onEdit: { showingRPESheet = true }
+                    )
                 }
             }
             
@@ -291,6 +283,34 @@ struct WalkingWorkoutInfoHeader: View {
     
     private func loadRPE() {
         storedRPE = RPEStorageService.shared.getRPE(for: workout)
+    }
+}
+
+// MARK: - RPE Metric with Edit Link
+
+struct RPEMetricWithEdit: View {
+    let rpe: Double
+    let onEdit: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("RPE")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 4) {
+                Text(String(format: "%.1f", rpe))
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                
+                Button(action: onEdit) {
+                    Text("edit")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
