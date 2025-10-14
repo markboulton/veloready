@@ -8,7 +8,7 @@ enum TodayContent {
     // MARK: - Sections
     static let recoverySection = "Recovery"  /// Recovery section title
     static let sleepSection = "Sleep"  /// Sleep section title
-    static let strainSection = "Load"  /// Load/Strain section title
+    static let loadSection = "Load"  /// Load section title
     static let activitiesSection = "Activities"  /// Activities section title
     static let aiBriefSection = "AI Brief"  /// AI Brief section title
     
@@ -31,7 +31,7 @@ enum TodayContent {
     enum Scores {
         static let recoveryScore = "Recovery"  /// Recovery score label
         static let sleepScore = "Sleep"  /// Sleep score label
-        static let strainScore = "Load"  /// Strain score label
+        static let loadScore = "Load"  /// Load score label
     }
     
     // MARK: - AI Brief

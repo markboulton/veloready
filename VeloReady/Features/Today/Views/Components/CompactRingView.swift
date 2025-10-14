@@ -47,10 +47,12 @@ struct CompactRingView: View {
             
             // Title
             Text(title)
-                .font(.caption)
+                .font(.smcaption)
                 .fontWeight(.medium)
+                .lineSpacing(Spacing.lineHeightRelaxed)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
+                .padding(.top, 8)  // ← Add 4pt padding to top
         }
     }
     

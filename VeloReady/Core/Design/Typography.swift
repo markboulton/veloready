@@ -24,13 +24,20 @@ extension Font {
     /// Level 3: Body - Main text content (15pt, regular)
     /// Color: Always foreground
     static let body: Font = TypeScale.font(
-        size: TypeScale.sm,
+        size: TypeScale.md,
         weight: .regular
     )
     
-    /// Level 4: Caption - Small labels, secondary text, explainers (13pt, regular)
+    /// Level 4: Caption - labels, secondary text, explainers (15pt, regular)
     /// Color: Grey (.secondary)
     static let caption: Font = TypeScale.font(
+        size: TypeScale.sm,
+        weight: .regular
+    )
+
+    /// Level 5: Small Caption - Small labels, secondary text, explainers (13pt, regular)
+    /// Color: Grey (.secondary)
+    static let smcaption: Font = TypeScale.font(
         size: TypeScale.xs,
         weight: .regular
     )
@@ -70,6 +77,7 @@ extension Text {
         self
             .font(.body)
             .foregroundColor(.primary)
+            .lineSpacing(Spacing.lineHeightNormal)
     }
     
     /// Apply caption styling (Level 4) - grey text

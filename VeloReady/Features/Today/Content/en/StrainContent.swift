@@ -1,7 +1,7 @@
 import Foundation
 
-/// Content strings for Strain/Load feature
-enum StrainContent {
+/// Content strings for Load feature
+enum LoadContent {
     // MARK: - Navigation
     static let title = "Load Analysis"  /// Navigation title
     
@@ -15,10 +15,10 @@ enum StrainContent {
     
     // MARK: - Bands
     enum Bands {
-        static let low = "Low"  /// Low strain (0-39)
-        static let moderate = "Moderate"  /// Moderate strain (40-59)
-        static let high = "High"  /// High strain (60-79)
-        static let extreme = "Extreme"  /// Extreme strain (80-100)
+        static let low = "Low"  /// Low load (0-39)
+        static let moderate = "Moderate"  /// Moderate load (40-59)
+        static let high = "High"  /// High load (60-79)
+        static let extreme = "Extreme"  /// Extreme load (80-100)
     }
     
     // MARK: - Band Descriptions
@@ -67,10 +67,10 @@ enum StrainContent {
     
     // MARK: - Recommendations
     enum Recommendations {
-        static let lowStrain = "Consider increasing training load for adaptation"  /// Low strain recommendation
-        static let moderateStrain = "Good training load. Maintain consistency."  /// Moderate strain recommendation
-        static let highStrain = "High training load. Ensure adequate recovery."  /// High strain recommendation
-        static let extremeStrain = "Very high load. Recovery day recommended tomorrow."  /// Extreme strain recommendation
+        static let lowLoad = "Consider increasing training load for adaptation"  /// Low load recommendation
+        static let moderateLoad = "Good training load. Maintain consistency."  /// Moderate load recommendation
+        static let highLoad = "High training load. Ensure adequate recovery."  /// High load recommendation
+        static let extremeLoad = "Very high load. Recovery day recommended tomorrow."  /// Extreme load recommendation
     }
     
     // MARK: - Pro Features

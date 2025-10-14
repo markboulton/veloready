@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Detailed view showing strain score breakdown and analysis
+/// Detailed view showing load score breakdown and analysis
 struct StrainDetailView: View {
     let strainScore: StrainScore
     @Environment(\.dismiss) private var dismiss
@@ -50,7 +50,7 @@ struct StrainDetailView: View {
                         .padding()
                 }
             }
-        .navigationTitle(StrainContent.title)
+        .navigationTitle(LoadContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }
     
@@ -58,12 +58,12 @@ struct StrainDetailView: View {
     
     private var weeklyTrendSection: some View {
         ProFeatureGate(
-            upgradeContent: .weeklyStrainTrend,
+            upgradeContent: .weeklyLoadTrend,
             isEnabled: proConfig.canView7DayLoad,
             showBenefits: true
         ) {
             TrendChart(
-                title: StrainContent.trendTitle,
+                title: LoadContent.trendTitle,
                 getData: { period in getHistoricalLoadData(for: period) },
                 chartType: .bar,
                 unit: "TSS",
@@ -115,7 +115,7 @@ struct StrainDetailView: View {
                 GridItem(.flexible())
             ], spacing: 16) {
                 if let cardioDuration = strainScore.inputs.cardioDurationMinutes {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Cardio Time",
                         value: formatDuration(cardioDuration),
                         icon: "bicycle",
@@ -124,7 +124,7 @@ struct StrainDetailView: View {
                 }
                 
                 if let avgIF = strainScore.inputs.averageIntensityFactor {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Avg Intensity",
                         value: String(format: "%.2f IF", avgIF),
                         icon: "speedometer",
@@ -133,7 +133,7 @@ struct StrainDetailView: View {
                 }
                 
                 if let steps = strainScore.inputs.dailySteps {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Daily Steps",
                         value: "\(steps)",
                         icon: "figure.run",
@@ -142,7 +142,7 @@ struct StrainDetailView: View {
                 }
                 
                 if let calories = strainScore.inputs.activeEnergyCalories {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Active Calories",
                         value: String(format: "%.0f", calories),
                         icon: "flame.fill",
@@ -151,7 +151,7 @@ struct StrainDetailView: View {
                 }
                 
                 if let strengthRPE = strainScore.inputs.strengthSessionRPE {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Strength RPE",
                         value: String(format: "%.1f", strengthRPE),
                         icon: "dumbbell.fill",
@@ -160,7 +160,7 @@ struct StrainDetailView: View {
                 }
                 
                 if let strengthDuration = strainScore.inputs.strengthDurationMinutes {
-                    StrainMetricCard(
+                    LoadMetricCard(
                         title: "Strength Time",
                         value: formatDuration(strengthDuration),
                         icon: "clock.fill",
@@ -220,7 +220,7 @@ struct StrainDetailView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text("Adjusts strain based on recovery")
+                    Text("Adjusts load based on recovery")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -274,16 +274,16 @@ struct StrainDetailView: View {
     private func generateRecommendations() -> [String] {
         var recommendations: [String] = []
         
-        // Strain level recommendations
+        // Load level recommendations
         switch strainScore.band {
         case .low:
-            recommendations.append("Low strain day - consider adding some training.")
+            recommendations.append("Low load day - consider adding some training.")
         case .moderate:
             recommendations.append("Good balance of training and recovery.")
         case .high:
-            recommendations.append("High strain day - prioritize recovery tomorrow.")
+            recommendations.append("High load day - prioritize recovery tomorrow.")
         case .extreme:
-            recommendations.append("Extreme strain - take extra recovery time.")
+            recommendations.append("Extreme load - take extra recovery time.")
         }
         
         // Component-specific recommendations
@@ -301,7 +301,7 @@ struct StrainDetailView: View {
         
         // Recovery factor recommendations
         if strainScore.subScores.recoveryFactor < 0.95 {
-            recommendations.append("Recovery is affecting strain - prioritize sleep and nutrition.")
+            recommendations.append("Recovery is affecting load - prioritize sleep and nutrition.")
         } else if strainScore.subScores.recoveryFactor > 1.05 {
             recommendations.append("Good recovery - you're ready for training.")
         }
@@ -411,7 +411,7 @@ struct LoadComponentRow: View {
     }
 }
 
-struct StrainMetricCard: View {
+struct LoadMetricCard: View {
     let title: String
     let value: String
     let icon: String

@@ -13,6 +13,11 @@ enum Spacing {
     static let xxl: CGFloat = 24  /// Extra extra large spacing (24pt)
     static let huge: CGFloat = 32  /// Huge spacing (32pt)
     
+    // MARK: - Typography Spacing
+    static let lineHeightTight: CGFloat = 2   /// Tight line spacing (2pt)
+    static let lineHeightNormal: CGFloat = 3  /// Normal line spacing (3pt)
+    static let lineHeightRelaxed: CGFloat = 5 /// Relaxed line spacing (5pt)
+    
     // MARK: - Semantic Spacing
     static let cardPadding: CGFloat = lg  /// Padding inside cards/panels
     static let cardSpacing: CGFloat = lg  /// Spacing between cards

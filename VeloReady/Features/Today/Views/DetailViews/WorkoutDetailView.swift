@@ -121,8 +121,12 @@ struct WorkoutDetailView: View {
                         SectionDivider()
                     } else {
                         // Single combined Pro upgrade card for free users
-                        RideDetailProCard()
-                            .padding(.horizontal, 16)
+                        ProUpgradeCard(
+                            content: .advancedRideAnalytics,
+                            showBenefits: true,
+                            learnMore: .advancedRideAnalytics
+                        )
+                        .padding(.horizontal, 16)
                         
                         SectionDivider()
                     }

@@ -215,7 +215,7 @@ struct RecoveryMetricsSection: View {
                 NavigationLink(destination: StrainDetailView(strainScore: strainScore)) {
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
-                            Text(TodayContent.Scores.strainScore)
+                            Text(TodayContent.Scores.loadScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Image(systemName: "chevron.right")
@@ -241,7 +241,7 @@ struct RecoveryMetricsSection: View {
                 .buttonStyle(PlainButtonStyle())
             } else {
                 VStack(spacing: 12) {
-                    Text(TodayContent.Scores.strainScore)
+                    Text(TodayContent.Scores.loadScore)
                         .font(.headline)
                         .fontWeight(.semibold)
                     

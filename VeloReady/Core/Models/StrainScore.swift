@@ -359,25 +359,14 @@ class StrainScoreCalculator {
             workoutTRIMP += strengthTRIMP
         }
         
-        // 2. Add daily activity floor effect (more generous)
+        // 2. Add daily activity floor effect (continuous scale)
         var dailyActivityAdjustment: Double = 0
         
         if let steps = inputs.dailySteps {
-            // More generous step adjustments to better reflect daily activity
-            switch steps {
-            case 0..<2000:
-                dailyActivityAdjustment = 0
-            case 2000..<5000:
-                dailyActivityAdjustment = 1.0
-            case 5000..<8000:
-                dailyActivityAdjustment = 2.0  // 6k steps now = 2.0
-            case 8000..<12000:
-                dailyActivityAdjustment = 3.0
-            case 12000..<16000:
-                dailyActivityAdjustment = 4.0
-            default:
-                dailyActivityAdjustment = 5.0 // Cap at 5 strain points for very active days
-            }
+            // Continuous scale: every 1000 steps adds ~0.5 strain points
+            // This gives more granular feedback for daily activity
+            let baseStrain = Double(steps) / 1000.0 * 0.5
+            dailyActivityAdjustment = min(5.0, baseStrain) // Cap at 5.0 (10k steps)
         }
         
         // 3. Calculate total TRIMP

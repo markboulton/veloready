@@ -104,6 +104,15 @@ struct TodayView: View {
                                 viewModel.unifiedActivities,
                             dailyActivityData: generateDailyActivityData()
                         )
+                        
+                        // Pro upgrade CTA (only for free users)
+                        if !ProFeatureConfig.shared.hasProAccess {
+                            ProUpgradeCard(
+                                content: .unlockProFeatures,
+                                showBenefits: true
+                            )
+                            .padding(.top, 8)
+                        }
                     }
                     .padding()
                 }

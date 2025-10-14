@@ -42,7 +42,7 @@ struct ProUpgradeCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(content.description)
                         .font(.subheadline)
-                        .foregroundColor(invertedTextColor.opacity(0.8))
+                        .foregroundColor(invertedTextColor.opacity(1.0))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -58,7 +58,7 @@ struct ProUpgradeCard: View {
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: benefit.icon)
                                     .font(.system(size: 20))
-                                    .foregroundColor(Color.button.primary)
+                                    .foregroundColor(invertedTextColor.opacity(1.0))
                                     .frame(width: 24)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
@@ -69,7 +69,7 @@ struct ProUpgradeCard: View {
                                     
                                     Text(benefit.description)
                                         .font(.caption)
-                                        .foregroundColor(invertedTextColor.opacity(0.8))
+                                        .foregroundColor(invertedTextColor.opacity(1.0))
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -102,11 +102,11 @@ struct ProUpgradeCard: View {
     // MARK: - Colors
     
     private var invertedBackgroundColor: Color {
-        colorScheme == .dark ? .white : .black
+        colorScheme == .dark ? Color.white.opacity(1.0) : Color.black.opacity(1.0)
     }
-    
+
     private var invertedTextColor: Color {
-        colorScheme == .dark ? .black : .white
+        colorScheme == .dark ? .black : .white  // Keep text solid
     }
 }
 
