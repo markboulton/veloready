@@ -8,19 +8,10 @@ struct SharedActivityRowView: View {
         HStack(spacing: 0) {
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(activity.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
-                    
-                    // Type badge with pastel colors
-                    if let rawType = activity.rawType {
-                        ActivityTypeBadge(rawType, size: .small)
-                    } else {
-                        ActivityTypeBadge(activity.type.rawValue, size: .small)
-                    }
-                }
+                Text(activity.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
                 
                 HStack(spacing: 8) {
                     Text(formatDate(activity.startDate))
@@ -48,11 +39,11 @@ struct SharedActivityRowView: View {
             // Show chevron for all tappable activities
             if activity.intervalsActivity != nil || activity.stravaActivity != nil || activity.healthKitWorkout != nil {
                 Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.primary)
                     .font(.caption)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
         .contentShape(Rectangle())
     }
     
