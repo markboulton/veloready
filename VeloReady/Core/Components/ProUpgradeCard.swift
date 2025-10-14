@@ -53,16 +53,25 @@ struct ProUpgradeCard: View {
                 
                 // Benefits (optional)
                 if showBenefits, let benefits = content.benefits {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(benefits, id: \.self) { benefit in
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption)
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(Array(benefits.enumerated()), id: \.offset) { _, benefit in
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: benefit.icon)
+                                    .font(.system(size: 20))
                                     .foregroundColor(Color.button.primary)
+                                    .frame(width: 24)
                                 
-                                Text(benefit)
-                                    .font(.caption)
-                                    .foregroundColor(invertedTextColor.opacity(0.8))
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(benefit.title)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(invertedTextColor)
+                                    
+                                    Text(benefit.description)
+                                        .font(.caption)
+                                        .foregroundColor(invertedTextColor.opacity(0.8))
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
                             }
                         }
                     }

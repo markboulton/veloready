@@ -4,6 +4,7 @@ import SwiftUI
 /// Combines AI Analysis, Training Load, and Intensity features into one CTA
 struct RideDetailProCard: View {
     @State private var showPaywall = false
+    @State private var showLearnMore = false
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -26,6 +27,16 @@ struct RideDetailProCard: View {
                         .cornerRadius(4)
                     
                     Spacer()
+                }
+                
+                // Learn More link
+                Button(action: {
+                    showLearnMore = true
+                }) {
+                    Text("Learn more")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.button.primary)
                 }
                 
                 // Three feature bullets
@@ -73,6 +84,9 @@ struct RideDetailProCard: View {
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showPaywall) {
             PaywallView()
+        }
+        .sheet(isPresented: $showLearnMore) {
+            LearnMoreSheet(content: .advancedRideAnalytics, isPresented: $showLearnMore)
         }
     }
     

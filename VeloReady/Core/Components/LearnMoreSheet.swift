@@ -24,7 +24,8 @@ struct LearnMoreSheet: View {
                             
                             Text(section.body)
                                 .font(.body)
-                                .foregroundColor(Color.text.secondary)
+                                .lineSpacing(4)
+                                .foregroundColor(Color.text.primary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         

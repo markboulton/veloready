@@ -4,38 +4,32 @@ import Foundation
 struct ProUpgradeContent {
     let title: String
     let description: String
-    let benefits: [String]?
+    let benefits: [Benefit]?
+    
+    struct Benefit {
+        let icon: String
+        let title: String
+        let description: String
+    }
     
     // MARK: - Workout Detail Upgrades
     
     static let trainingLoad = ProUpgradeContent(
         title: "Training Load Analysis",
         description: "Track your fitness, fatigue, and form with CTL, ATL, and TSB metrics over time.",
-        benefits: [
-            "37-day fitness trend visualization",
-            "Understand training stress balance",
-            "Optimize recovery and performance"
-        ]
+        benefits: nil
     )
     
     static let intensityAnalysis = ProUpgradeContent(
         title: "Ride Intensity Breakdown",
         description: "See exactly how hard you pushed with detailed intensity factor and zone distribution analysis.",
-        benefits: [
-            "Intensity factor tracking",
-            "Training zone distribution",
-            "Effort optimization insights"
-        ]
+        benefits: nil
     )
     
     static let aiRideSummary = ProUpgradeContent(
         title: "AI Ride Analysis",
         description: "Get intelligent insights and personalized recommendations for every ride.",
-        benefits: [
-            "AI-powered ride summaries",
-            "Performance insights",
-            "Training recommendations"
-        ]
+        benefits: nil
     )
     
     // MARK: - Recovery Detail Upgrades
@@ -43,11 +37,7 @@ struct ProUpgradeContent {
     static let weeklyRecoveryTrend = ProUpgradeContent(
         title: "Weekly Recovery Trends",
         description: "Track your recovery patterns over the past 7 days to optimize training timing.",
-        benefits: [
-            "7-day recovery visualization",
-            "Identify recovery patterns",
-            "Plan training around readiness"
-        ]
+        benefits: nil
     )
     
     // MARK: - Strain Detail Upgrades
@@ -55,11 +45,7 @@ struct ProUpgradeContent {
     static let weeklyStrainTrend = ProUpgradeContent(
         title: "Weekly Strain Analysis",
         description: "Monitor your training load over the past 7 days to prevent overtraining.",
-        benefits: [
-            "7-day strain tracking",
-            "Overtraining prevention",
-            "Load management insights"
-        ]
+        benefits: nil
     )
     
     // MARK: - Sleep Detail Upgrades
@@ -67,11 +53,7 @@ struct ProUpgradeContent {
     static let weeklySleepTrend = ProUpgradeContent(
         title: "Weekly Sleep Patterns",
         description: "Understand your sleep quality trends to improve recovery and performance.",
-        benefits: [
-            "7-day sleep analysis",
-            "Quality trend tracking",
-            "Recovery optimization"
-        ]
+        benefits: nil
     )
     
     // MARK: - Trends View Upgrades
@@ -79,11 +61,7 @@ struct ProUpgradeContent {
     static let advancedTrends = ProUpgradeContent(
         title: "Advanced Performance Trends",
         description: "Unlock detailed analytics and long-term performance tracking.",
-        benefits: [
-            "Extended historical data",
-            "Advanced metrics",
-            "Performance predictions"
-        ]
+        benefits: nil
     )
     
     // MARK: - Training Zones Upgrades
@@ -91,20 +69,28 @@ struct ProUpgradeContent {
     static let customTrainingZones = ProUpgradeContent(
         title: "Custom Training Zones",
         description: "Set personalized heart rate and power zones for more accurate training guidance.",
-        benefits: [
-            "Personalized zone configuration",
-            "Accurate training guidance",
-            "Better performance tracking"
-        ]
+        benefits: nil
     )
     
     static let adaptiveZones = ProUpgradeContent(
         title: "Adaptive Zones",
         description: "A comprehensive, research-backed athlete profiling system that uses cutting-edge sports science to compute and adapt training zones from actual performance data.",
         benefits: [
-            "Automatically computed from your rides",
-            "Research-backed algorithms",
-            "Adapts as your fitness changes"
+            Benefit(
+                icon: "cpu.fill",
+                title: "Automatically Computed",
+                description: "Zones calculated from your actual ride data"
+            ),
+            Benefit(
+                icon: "chart.bar.doc.horizontal.fill",
+                title: "Research-Backed",
+                description: "Based on proven sports science algorithms"
+            ),
+            Benefit(
+                icon: "arrow.triangle.2.circlepath",
+                title: "Continuously Adapts",
+                description: "Updates as your fitness changes over time"
+            )
         ]
     )
 }
