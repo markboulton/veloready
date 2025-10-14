@@ -9,14 +9,17 @@ struct RideDetailProCard: View {
     
     var body: some View {
         Button(action: { showPaywall = true }) {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header with title and PRO badge
-                HStack(spacing: 8) {
-                    Text("Unlock Advanced Ride Analytics")
-                        .font(.title3)
-                        .fontWeight(.bold)
+            VStack(alignment: .leading, spacing: 16) {
+                // Header with title and PRO badge (aligned top right)
+                HStack(alignment: .top, spacing: 12) {
+                    Text("Advanced Ride Analytics")
+                        .font(.headline)
+                        .fontWeight(.semibold)
                         .foregroundColor(invertedTextColor)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
+                    // PRO badge (top right)
                     Text("PRO")
                         .font(.caption)
                         .fontWeight(.bold)
@@ -25,18 +28,24 @@ struct RideDetailProCard: View {
                         .padding(.vertical, 4)
                         .background(Color.button.primary)
                         .cornerRadius(4)
-                    
-                    Spacer()
                 }
                 
-                // Learn More link
-                Button(action: {
-                    showLearnMore = true
-                }) {
-                    Text("Learn more")
+                // Description with Learn More link
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Get complete insights into every ride with AI analysis, training load tracking, and intensity breakdown.")
                         .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.button.primary)
+                        .foregroundColor(invertedTextColor.opacity(0.8))
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Button(action: {
+                        showLearnMore = true
+                    }) {
+                        Text("Learn more")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.button.primary)
+                    }
                 }
                 
                 // Three feature bullets
@@ -60,24 +69,18 @@ struct RideDetailProCard: View {
                     )
                 }
                 
-                // Upgrade button
-                HStack {
-                    Spacer()
-                    
-                    Text("Upgrade to Pro")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(Color.button.primary)
-                        .cornerRadius(8)
-                    
-                    Spacer()
-                }
-                .padding(.top, 4)
+                // Upgrade button (full width)
+                Text("Upgrade to Pro")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.button.primary)
+                    .cornerRadius(8)
+                    .padding(.top, 4)
             }
-            .padding(20)
+            .padding(16)
             .frame(maxWidth: .infinity)
             .background(invertedBackgroundColor)
         }
