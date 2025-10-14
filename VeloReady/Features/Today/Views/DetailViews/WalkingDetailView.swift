@@ -21,8 +21,8 @@ struct WalkingDetailView: View {
                 
                 // Full-width divider
                 Rectangle()
-                    .fill(Color(.systemGray3))
-                    .frame(height: 2)
+                    .fill(ColorScale.divider)
+                    .frame(height: 1)
                     .padding(.bottom, 24)
                 
                 // Heart Rate Chart

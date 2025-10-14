@@ -13,8 +13,8 @@ struct SectionDivider: View {
     
     var body: some View {
         Rectangle()
-            .fill(Color(.systemGray3))
-            .frame(height: 2)
+            .fill(ColorScale.divider)
+            .frame(height: 1)
             .padding(.top, topPadding)
             .padding(.bottom, bottomPadding)
             .frame(maxWidth: .infinity)

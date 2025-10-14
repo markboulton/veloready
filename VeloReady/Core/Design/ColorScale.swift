@@ -8,11 +8,15 @@ enum ColorScale {
     
     static let gray100 = Color(.systemGray6)    /// Lightest gray
     static let gray200 = Color(.systemGray5)    /// Very light gray
-    static let gray300 = Color(.systemGray4)    /// Light gray
+    static let gray300 = Color(.systemGray4)    /// Light gray (dividers)
     static let gray400 = Color(.systemGray3)    /// Medium light gray
     static let gray500 = Color(.systemGray2)    /// Medium gray
     static let gray600 = Color(.systemGray)     /// Dark gray
     static let gray900 = Color(.label)          /// Darkest gray
+    
+    // MARK: - Divider Colors (Adaptive)
+    
+    static let divider = Color(.separator)      /// Standard divider (lighter, adaptive)
     
     // MARK: - Background Colors (Adaptive)
     
@@ -23,7 +27,7 @@ enum ColorScale {
     // MARK: - Label Colors (Adaptive)
     
     static let labelPrimary = Color.primary         /// Primary label
-    static let labelSecondary = Color.secondary     /// Secondary label
+    static let labelSecondary = Color(.secondaryLabel)     /// Secondary label (better contrast)
     static let labelTertiary = Color(.tertiaryLabel)    /// Tertiary label
     
     // MARK: - Black & White
