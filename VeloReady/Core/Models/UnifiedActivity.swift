@@ -51,15 +51,15 @@ struct UnifiedActivity: Identifiable {
         
         var icon: String {
             switch self {
-            case .cycling: return "bicycle"
-            case .running: return "figure.run"
-            case .walking: return "figure.walk"
-            case .hiking: return "figure.hiking"
-            case .swimming: return "figure.pool.swim"
-            case .strength: return "dumbbell.fill"
-            case .yoga: return "figure.mind.and.body"
-            case .hiit: return "flame.fill"
-            case .other: return "figure.mixed.cardio"
+            case .cycling: return Icons.Activity.cycling
+            case .running: return Icons.Activity.running
+            case .walking: return Icons.Activity.walking
+            case .hiking: return Icons.Activity.hiking
+            case .swimming: return Icons.Activity.swimming
+            case .strength: return Icons.Activity.strength
+            case .yoga: return Icons.Activity.yoga
+            case .hiit: return Icons.Activity.hiit
+            case .other: return Icons.Activity.other
             }
         }
         

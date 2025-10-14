@@ -30,7 +30,7 @@ struct AIBriefView: View {
                         .padding(.vertical, 8)
                 }
                 
-                SectionDivider()
+                SectionDivider(bottomPadding: 0)
             }
             .onAppear {
             // Fetch brief on appear if not already loaded

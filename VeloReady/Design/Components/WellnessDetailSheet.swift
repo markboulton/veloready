@@ -33,7 +33,7 @@ struct WellnessDetailSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill")
+                        Image(systemName: Icons.Navigation.close)
                             .foregroundColor(ColorScale.labelSecondary)
                     }
                 }
@@ -69,7 +69,7 @@ struct WellnessDetailSheet: View {
     
     private var disclaimerSection: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "info.circle.fill")
+            Image(systemName: Icons.Status.info)
                 .foregroundColor(ColorScale.labelSecondary)
                 .font(.body)
             
@@ -109,7 +109,7 @@ struct WellnessDetailSheet: View {
                     metricCard(
                         title: WellnessContent.Metrics.elevatedRHR,
                         description: WellnessContent.Metrics.elevatedRHRDescription,
-                        icon: "heart.fill",
+                        icon: Icons.Health.heart,
                         color: ColorScale.redAccent
                     )
                 }
@@ -127,7 +127,7 @@ struct WellnessDetailSheet: View {
                     metricCard(
                         title: WellnessContent.Metrics.elevatedRespiratory,
                         description: WellnessContent.Metrics.elevatedRespiratoryDescription,
-                        icon: "lungs.fill",
+                        icon: Icons.Health.respiratory,
                         color: ColorScale.yellowAccent
                     )
                 }
@@ -145,7 +145,7 @@ struct WellnessDetailSheet: View {
                     metricCard(
                         title: WellnessContent.Metrics.poorSleep,
                         description: WellnessContent.Metrics.poorSleepDescription,
-                        icon: "moon.fill",
+                        icon: Icons.Health.sleep,
                         color: ColorScale.amberAccent
                     )
                 }
@@ -194,7 +194,7 @@ struct WellnessDetailSheet: View {
             
             // Medical disclaimer
             HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "exclamationmark.triangle.fill")
+                Image(systemName: Icons.Status.warning)
                     .foregroundColor(ColorScale.labelSecondary)
                     .font(.caption)
                 

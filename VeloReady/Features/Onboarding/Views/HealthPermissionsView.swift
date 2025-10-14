@@ -12,7 +12,7 @@ struct HealthPermissionsView: View {
             VStack(spacing: 30) {
                 // Header
                 VStack(spacing: 20) {
-                    Image(systemName: "heart.fill")
+                    Image(systemName: Icons.Health.heart)
                         .font(.system(size: 80))
                         .foregroundColor(Color.health.heartRate)
                     
@@ -33,10 +33,10 @@ struct HealthPermissionsView: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    HealthDataRow(icon: "moon.fill", title: "Sleep Analysis", color: Color.health.sleep)
-                    HealthDataRow(icon: "heart.fill", title: "Heart Rate Variability", color: Color.health.hrv)
-                    HealthDataRow(icon: "heart.circle.fill", title: "Resting Heart Rate", color: Color.health.heartRate)
-                    HealthDataRow(icon: "lungs.fill", title: "Respiratory Rate", color: Color.health.respiratory)
+                    HealthDataRow(icon: Icons.Health.sleep, title: "Sleep Analysis", color: Color.health.sleep)
+                    HealthDataRow(icon: Icons.Health.hrv, title: "Heart Rate Variability", color: Color.health.hrv)
+                    HealthDataRow(icon: Icons.Health.heartRate, title: "Resting Heart Rate", color: Color.health.heartRate)
+                    HealthDataRow(icon: Icons.Health.respiratory, title: "Respiratory Rate", color: Color.health.respiratory)
                     HealthDataRow(icon: "figure.walk", title: "Steps & Activity", color: Color.health.activity)
                 }
                 .padding()

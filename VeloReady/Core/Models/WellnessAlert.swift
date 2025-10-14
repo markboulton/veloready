@@ -25,7 +25,7 @@ struct WellnessAlert: Identifiable {
         }
         
         var icon: String {
-            "exclamationmark.triangle.fill"
+            Icons.Status.warning
         }
     }
     

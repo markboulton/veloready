@@ -23,10 +23,10 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
     /// Icon for the source
     var icon: String {
         switch self {
-        case .intervalsICU: return "chart.line.uptrend.xyaxis"
-        case .strava: return "figure.outdoor.cycle"
-        case .garmin: return "applewatch"
-        case .appleHealth: return "heart.fill"
+        case .intervalsICU: return Icons.DataSource.intervalsICU
+        case .strava: return Icons.DataSource.strava
+        case .garmin: return Icons.DataSource.garmin
+        case .appleHealth: return Icons.DataSource.appleHealth
         }
     }
     

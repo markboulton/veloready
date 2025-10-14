@@ -1,0 +1,163 @@
+import SwiftUI
+
+/// Icon type - either SF Symbol or custom asset
+enum IconType {
+    case system(String)  // SF Symbol
+    case custom(String)  // Asset catalog name
+    
+    /// SwiftUI Image for this icon
+    var image: Image {
+        switch self {
+        case .system(let name):
+            return Image(systemName: name)
+        case .custom(let name):
+            return Image(name)
+        }
+    }
+    
+    /// String name (for backwards compatibility)
+    var name: String {
+        switch self {
+        case .system(let name), .custom(let name):
+            return name
+        }
+    }
+}
+
+/// Centralized icon system using SF Symbols and custom icons
+/// All SF Symbols use outlined style for consistency across the app
+enum Icons {
+    
+    // MARK: - Activity Types
+    
+    enum Activity {
+        // Standard SF Symbols
+        static let cycling = "bicycle"
+        static let running = "figure.run"
+        static let walking = "figure.walk"
+        static let hiking = "figure.hiking"
+        static let swimming = "figure.pool.swim"
+        static let strength = "dumbbell"
+        static let yoga = "figure.mind.and.body"
+        static let hiit = "flame"
+        static let other = "figure.mixed.cardio"
+        
+        // Custom branded icons (if needed)
+        // static let cyclingCustom = IconType.custom("custom-cycling")
+        // static let strengthCustom = IconType.custom("custom-strength")
+    }
+    
+    // MARK: - Health & Wellness
+    
+    enum Health {
+        static let heart = "heart"
+        static let heartRate = "waveform.path.ecg"
+        static let hrv = "heart.circle"
+        static let sleep = "moon"
+        static let respiratory = "lungs"
+        static let steps = "figure.walk"
+        static let calories = "flame"
+        static let recovery = "leaf"
+    }
+    
+    // MARK: - Status & Feedback
+    
+    enum Status {
+        static let success = "checkmark.circle"
+        static let error = "xmark.circle"
+        static let warning = "exclamationmark.triangle"
+        static let info = "info.circle"
+        static let alert = "exclamationmark.circle"
+    }
+    
+    // MARK: - Data Sources
+    
+    enum DataSource {
+        static let intervalsICU = "chart.line.uptrend.xyaxis"
+        static let strava = "figure.outdoor.cycle"
+        static let garmin = "applewatch"
+        static let appleHealth = "heart"
+    }
+    
+    // MARK: - Navigation & Actions
+    
+    enum Navigation {
+        static let close = "xmark"
+        static let back = "chevron.left"
+        static let forward = "chevron.right"
+        static let expand = "chevron.down"
+        static let collapse = "chevron.up"
+        static let menu = "line.3.horizontal"
+        static let settings = "gearshape"
+    }
+    
+    // MARK: - Training & Performance
+    
+    enum Training {
+        static let power = "bolt"
+        static let speed = "speedometer"
+        static let distance = "location"
+        static let duration = "clock"
+        static let elevation = "mountain.2"
+        static let cadence = "metronome"
+        static let tss = "gauge.medium"
+        static let intensity = "chart.bar"
+    }
+    
+    // MARK: - User & Profile
+    
+    enum User {
+        static let profile = "person.circle"
+        static let athlete = "figure.strengthtraining.traditional"
+        static let preferences = "slider.horizontal.3"
+    }
+    
+    // MARK: - Features
+    
+    enum Feature {
+        static let ai = "sparkles"
+        static let pro = "crown"
+        static let trends = "chart.xyaxis.line"
+        static let calendar = "calendar"
+        static let analytics = "chart.bar.doc.horizontal"
+    }
+    
+    // MARK: - Visibility
+    
+    enum Visibility {
+        static let show = "eye"
+        static let hide = "eye.slash"
+    }
+    
+    // MARK: - Selection
+    
+    enum Selection {
+        static let selected = "checkmark.circle"
+        static let unselected = "circle"
+        static let radio = "circle"
+    }
+    
+    // MARK: - Document & Data
+    
+    enum Document {
+        static let file = "doc.text"
+        static let download = "arrow.down.circle"
+        static let upload = "arrow.up.circle"
+        static let refresh = "arrow.clockwise"
+    }
+    
+    // MARK: - Custom Icons
+    // Add your custom branded/bespoke icons here
+    
+    enum Custom {
+        // Example: Brand-specific icons from Assets.xcassets
+        // static let brandedLogo = IconType.custom("veloready-logo")
+        // static let customCycling = IconType.custom("custom-cycling-icon")
+        // static let customHeart = IconType.custom("custom-heart-icon")
+        
+        // Usage:
+        // Icons.Custom.brandedLogo.image
+        //   .resizable()
+        //   .frame(width: 24, height: 24)
+    }
+}
