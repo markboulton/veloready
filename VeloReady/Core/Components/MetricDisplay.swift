@@ -24,8 +24,8 @@ struct MetricDisplay: View {
         VStack(alignment: .leading, spacing: 4) {
             if let icon = icon {
                 Image(systemName: icon)
-                    .foregroundColor(.primary)
                     .font(size.iconFont)
+                    .foregroundColor(.secondary)
             }
             
             Text(value)
@@ -38,6 +38,7 @@ struct MetricDisplay: View {
                     .foregroundColor(.secondary)
             }
         }
+        .trackComponent(.metricDisplay)
     }
 }
 

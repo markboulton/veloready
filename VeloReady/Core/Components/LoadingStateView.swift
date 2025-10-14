@@ -15,17 +15,21 @@ struct LoadingStateView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .scaleEffect(size.scale)
-                .progressViewStyle(CircularProgressViewStyle(tint: .primary))
-            
-            if let message = message {
-                Text(message)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        HStack {
+            Spacer()
+            VStack(spacing: 8) {
+                ProgressView()
+                    .scaleEffect(size.scale)
+                
+                if let message = message {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
+            Spacer()
         }
+        .trackComponent(.loadingStateView)
     }
 }
 

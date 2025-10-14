@@ -22,23 +22,21 @@ struct SectionHeader: View {
             if let icon = icon {
                 Image(systemName: icon)
                     .foregroundColor(.primary)
-                    .font(.system(size: TypeScale.sm))
             }
             
             Text(title)
                 .font(.heading)
-                .foregroundColor(.primary)
             
             Spacer()
             
-            if action != nil {
-                Button(action: { action?() }) {
+            if let action = action {
+                Button(action: action) {
                     Image(systemName: "chevron.right")
                         .foregroundColor(.primary)
-                        .font(.caption)
                 }
             }
         }
+        .trackComponent(.sectionHeader)
     }
 }
 
