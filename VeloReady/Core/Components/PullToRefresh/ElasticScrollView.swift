@@ -93,10 +93,28 @@ class ElasticScrollViewController<Content: View>: UIViewController, UIScrollView
             hostingController.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             hostingController.view.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
         ])
+        
+        // Force layout to calculate proper content size
+        hostingController.view.setNeedsLayout()
+        hostingController.view.layoutIfNeeded()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        // Update hosting controller size
+        let targetSize = CGSize(width: scrollView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+        let size = hostingController.sizeThatFits(in: targetSize)
+        
+        // Update content size if needed
+        if scrollView.contentSize.height != size.height {
+            scrollView.contentSize = CGSize(width: scrollView.bounds.width, height: size.height)
+        }
     }
     
     func updateContent(_ content: Content) {
         hostingController.rootView = content
+        view.setNeedsLayout()
     }
     
     // MARK: - UIScrollViewDelegate

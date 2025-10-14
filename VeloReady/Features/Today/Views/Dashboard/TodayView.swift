@@ -48,9 +48,7 @@ struct TodayView: View {
                     // Gradient background
                     GradientBackground()
                     
-                ElasticScrollView(onRefresh: {
-                    await viewModel.forceRefreshData()
-                }) {
+                ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: 0) {
                         // Missing sleep data warning
@@ -109,10 +107,14 @@ struct TodayView: View {
                     }
                     .padding()
                 }
+                .coordinateSpace(name: "scroll")
             }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
+            .refreshable {
+                await viewModel.forceRefreshData()
+            }
             .onAppear {
                 handleViewAppear()
             }
