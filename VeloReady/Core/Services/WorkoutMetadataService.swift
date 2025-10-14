@@ -45,7 +45,7 @@ class WorkoutMetadataService {
         persistenceController.save(context: context)
         
         print("💪 Saved workout metadata for \(workout.uuid)")
-        print("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroups ?? [])")
+        print("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
         
         // Post notification for UI updates
         NotificationCenter.default.post(name: .workoutMetadataDidUpdate, object: nil, userInfo: ["workoutUUID": workout.uuid.uuidString])
@@ -110,7 +110,7 @@ class WorkoutMetadataService {
         let results = persistenceController.fetch(fetchRequest)
         
         if let metadata = results.first {
-            print("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroups ?? [])")
+            print("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
         } else {
             print("🔎 No metadata found in Core Data")
         }
@@ -202,7 +202,7 @@ class WorkoutMetadataService {
                 "workoutUUID": item.workoutUUID,
                 "workoutDate": ISO8601DateFormatter().string(from: item.workoutDate),
                 "rpe": item.rpe,
-                "muscleGroups": item.muscleGroups ?? [],
+                "muscleGroups": item.muscleGroupStrings ?? [],
                 "isEccentricFocused": item.isEccentricFocused,
                 "createdAt": ISO8601DateFormatter().string(from: item.createdAt),
                 "updatedAt": ISO8601DateFormatter().string(from: item.updatedAt)
@@ -228,7 +228,7 @@ class WorkoutMetadataService {
         var csv = "Workout UUID,Date,RPE,Muscle Groups,Eccentric Focused,Created At,Updated At\n"
         
         for item in metadata {
-            let muscleGroupsStr = item.muscleGroups?.joined(separator: "; ") ?? ""
+            let muscleGroupsStr = item.muscleGroupStrings?.joined(separator: "; ") ?? ""
             csv += "\"\(item.workoutUUID)\","
             csv += "\"\(dateFormatter.string(from: item.workoutDate))\","
             csv += "\(item.rpe),"

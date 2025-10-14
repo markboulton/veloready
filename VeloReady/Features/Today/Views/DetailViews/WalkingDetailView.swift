@@ -145,7 +145,9 @@ struct WalkingDetailView: View {
                     // Show muscle groups if available
                     if let muscleGroups = muscleGroups, !muscleGroups.isEmpty {
                         let _ = print("🟣 Rendering \(muscleGroups.count) muscle group tags")
-                        FlowLayout(spacing: 8) {
+                        
+                        // Use native SwiftUI layout with wrapping
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 8)], spacing: 8) {
                             ForEach(muscleGroups, id: \.self) { group in
                                 Text(group.rawValue)
                                     .font(.subheadline)
