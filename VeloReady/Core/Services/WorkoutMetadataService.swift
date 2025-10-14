@@ -25,30 +25,30 @@ class WorkoutMetadataService {
     ) {
         let context = persistenceController.viewContext
         
-        context.perform {
-            // Fetch existing or create new
-            let metadata = self.fetchOrCreateMetadata(for: workout, in: context)
-            
-            // Update fields
-            if let rpe = rpe {
-                metadata.rpe = rpe
-            }
-            if let muscleGroups = muscleGroups {
-                metadata.muscleGroupEnums = muscleGroups
-            }
-            if let isEccentricFocused = isEccentricFocused {
-                metadata.isEccentricFocused = isEccentricFocused
-            }
-            
-            metadata.updatedAt = Date()
-            
-            self.persistenceController.save(context: context)
-            
-            print("💪 Saved workout metadata for \(workout.uuid)")
-            
-            // Post notification for UI updates
-            NotificationCenter.default.post(name: .workoutMetadataDidUpdate, object: nil, userInfo: ["workoutUUID": workout.uuid.uuidString])
+        // Fetch existing or create new
+        let metadata = self.fetchOrCreateMetadata(for: workout, in: context)
+        
+        // Update fields
+        if let rpe = rpe {
+            metadata.rpe = rpe
         }
+        if let muscleGroups = muscleGroups {
+            metadata.muscleGroupEnums = muscleGroups
+            print("💪 Saving muscle groups: \(muscleGroups.map { $0.rawValue })")
+        }
+        if let isEccentricFocused = isEccentricFocused {
+            metadata.isEccentricFocused = isEccentricFocused
+        }
+        
+        metadata.updatedAt = Date()
+        
+        persistenceController.save(context: context)
+        
+        print("💪 Saved workout metadata for \(workout.uuid)")
+        print("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroups ?? [])")
+        
+        // Post notification for UI updates
+        NotificationCenter.default.post(name: .workoutMetadataDidUpdate, object: nil, userInfo: ["workoutUUID": workout.uuid.uuidString])
     }
     
     // MARK: - Fetch

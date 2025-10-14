@@ -62,6 +62,13 @@ struct WalkingDetailView: View {
             await viewModel.loadWorkoutData(workout: workout)
             checkRPEStatus()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutMetadataDidUpdate)) { notification in
+            // Refresh when metadata is updated
+            if let workoutUUID = notification.userInfo?["workoutUUID"] as? String,
+               workoutUUID == workout.uuid.uuidString {
+                checkRPEStatus()
+            }
+        }
     }
     
     // MARK: - Heart Rate Chart
