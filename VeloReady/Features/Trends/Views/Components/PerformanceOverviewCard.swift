@@ -25,11 +25,11 @@ struct PerformanceOverviewCard: View {
                 // Header
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.Cards.performanceOverview)
-                        .font(.cardTitle)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                     
                     Text("Recovery, Training Load & Sleep")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                 }
                 
@@ -108,7 +108,7 @@ struct PerformanceOverviewCard: View {
                     .foregroundColor(.chart.primary)
                 
                 Text("Building your trend data")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
             }
             
@@ -246,7 +246,7 @@ struct PerformanceOverviewCard: View {
             Divider()
             
             Text("Key Insight")
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
@@ -298,7 +298,7 @@ private struct LegendItem: View {
                 
                 if let value = value {
                     Text("\(Int(value))\(unit)")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.primary)
                         .fontWeight(.medium)
                 } else {

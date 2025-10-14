@@ -18,12 +18,12 @@ struct StressLevelCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.stressLevel)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
                             Text("\(Int(averageStress))/100")
-                                .font(.metricMedium)
+                                .font(.title)
                                 .foregroundColor(stressColor(averageStress))
                         } else {
                             Text("No data")
@@ -163,21 +163,21 @@ struct StressLevelCard: View {
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Avg Stress")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(Int(averageStress))")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(stressColor(averageStress))
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Level")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text(stressLabel(averageStress))
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
             }
@@ -185,7 +185,7 @@ struct StressLevelCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())

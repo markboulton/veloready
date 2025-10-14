@@ -11,17 +11,17 @@ struct OvertrainingRiskCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.overtrainingRisk)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if let risk = risk {
                             HStack(spacing: Spacing.xs) {
                                 Text(risk.riskLevel.rawValue)
-                                    .font(.metricMedium)
+                                    .font(.title)
                                     .foregroundColor(riskColor(risk.riskLevel))
                                 
                                 Text("(\(Int(risk.riskScore))/100)")
-                                    .font(.labelPrimary)
+                                    .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
@@ -107,7 +107,7 @@ struct OvertrainingRiskCard: View {
             if !risk.factors.isEmpty {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Risk Factors:")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     ForEach(risk.factors.sorted(by: { $0.severity > $1.severity }).prefix(3), id: \.name) { factor in
@@ -119,7 +119,7 @@ struct OvertrainingRiskCard: View {
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(factor.name)
-                                    .font(.labelPrimary)
+                                    .font(.caption)
                                     .foregroundColor(.text.primary)
                                 
                                 Text(factor.description)
@@ -142,7 +142,7 @@ struct OvertrainingRiskCard: View {
             // Recommendation
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(TrendsContent.actionRequired)
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text(risk.recommendation)

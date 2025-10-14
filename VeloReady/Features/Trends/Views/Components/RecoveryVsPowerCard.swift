@@ -15,7 +15,7 @@ struct RecoveryVsPowerCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.recoveryVsPower)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if let correlation = correlation {
@@ -25,7 +25,7 @@ struct RecoveryVsPowerCard: View {
                                     .foregroundColor(correlationColor(correlation))
                                 
                                 Text("(r=\(CorrelationCalculator.formatCoefficient(correlation.coefficient)))")
-                                    .font(.labelPrimary)
+                                    .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
@@ -162,31 +162,31 @@ struct RecoveryVsPowerCard: View {
         HStack(spacing: Spacing.lg) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Correlation")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text(CorrelationCalculator.formatCoefficient(correlation.coefficient))
-                    .font(.metricSmall)
+                    .font(.heading)
                     .foregroundColor(correlationColor(correlation))
             }
             
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("R² (Variance)")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text("\(Int(correlation.rSquared * 100))%")
-                    .font(.metricSmall)
+                    .font(.heading)
                     .foregroundColor(.text.primary)
             }
             
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Activities")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text("\(correlation.sampleSize)")
-                    .font(.metricSmall)
+                    .font(.heading)
                     .foregroundColor(.text.primary)
             }
             
@@ -203,7 +203,7 @@ struct RecoveryVsPowerCard: View {
             Divider()
             
             Text(TrendsContent.uniqueInsight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight(correlation))

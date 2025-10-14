@@ -16,17 +16,17 @@ struct TrainingLoadTrendCard: View {
                 // Header
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.Cards.trainingLoad)
-                        .font(.cardTitle)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                     
                     if let latest = chartData.last {
                         HStack(spacing: Spacing.xs) {
                             Text("TSB:")
-                                .font(.labelPrimary)
+                                .font(.caption)
                                 .foregroundColor(.text.secondary)
                             
                             Text(String(format: "%.1f", latest.tsb))
-                                .font(.metricMedium)
+                                .font(.title)
                                 .foregroundColor(tsbColor(latest.tsb))
                         }
                     } else {
@@ -218,7 +218,7 @@ struct TrainingLoadTrendCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())
@@ -334,7 +334,7 @@ private struct LegendItem: View {
                 
                 if let value = value {
                     Text(String(format: "%.1f", value))
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.primary)
                         .fontWeight(.medium)
                 } else {

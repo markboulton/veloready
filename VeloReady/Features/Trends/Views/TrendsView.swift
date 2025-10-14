@@ -63,7 +63,7 @@ struct TrendsView: View {
         Card(style: .flat) {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Text(oauthManager.isAuthenticated ? "Performance Summary" : "Health Summary")
-                    .font(.cardTitle)
+                    .font(.heading)
                     .foregroundColor(.text.primary)
                 
                 HStack(spacing: Spacing.lg) {
@@ -220,7 +220,7 @@ struct TrendsView: View {
     private func sectionHeader(title: String, icon: String, color: Color) -> some View {
         HStack(spacing: Spacing.sm) {
             Text(title)
-                .font(.sectionTitle)
+                .font(.title)
                 .foregroundColor(.text.primary)
             
             Spacer()
@@ -311,7 +311,7 @@ private struct StatPill: View {
                 .foregroundColor(.text.secondary)
             
             Text(value)
-                .font(.metricSmall)
+                .font(.heading)
                 .foregroundColor(color)
         }
     }
@@ -323,12 +323,12 @@ private struct FeatureBullet: View {
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
             Text("•")
-                .font(.bodyPrimary)
+                .font(.body)
                 .foregroundColor(.text.primary)
                 .frame(width: 12)
             
             Text(text)
-                .font(.bodyPrimary)
+                .font(.body)
                 .foregroundColor(.text.primary)
             
             Spacer()

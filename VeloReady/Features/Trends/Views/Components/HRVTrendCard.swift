@@ -22,18 +22,18 @@ struct HRVTrendCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.hrvTrend)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
                             HStack(spacing: Spacing.xs) {
                                 Text("\(Int(averageHRV))ms")
-                                    .font(.metricMedium)
+                                    .font(.title)
                                     .foregroundColor(ColorScale.greenAccent)
                                 
                                 if let baseline = baselineHRV {
                                     Text("(\(baseline, specifier: "%.0f") baseline)")
-                                        .font(.labelPrimary)
+                                        .font(.caption)
                                         .foregroundColor(.text.secondary)
                                 }
                             }
@@ -178,7 +178,7 @@ struct HRVTrendCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())

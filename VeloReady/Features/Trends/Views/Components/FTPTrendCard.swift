@@ -13,12 +13,12 @@ struct FTPTrendCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.ftpTrend)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if let currentFTP = data.last?.value {
                             Text("\(Int(currentFTP))W")
-                                .font(.metricMedium)
+                                .font(.title)
                                 .foregroundColor(ColorScale.blueAccent)
                         } else {
                             Text("No data")
@@ -158,7 +158,7 @@ struct FTPTrendCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text("Track your FTP changes over time to see fitness progression.")

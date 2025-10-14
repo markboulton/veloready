@@ -22,17 +22,17 @@ struct RestingHRCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.restingHR)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
                             HStack(spacing: Spacing.xs) {
                                 Text("\(Int(averageRHR)) bpm")
-                                    .font(.metricMedium)
+                                    .font(.title)
                                     .foregroundColor(ColorScale.pinkAccent)
                                 
                                 Text("avg")
-                                    .font(.labelPrimary)
+                                    .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
@@ -173,7 +173,7 @@ struct RestingHRCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())

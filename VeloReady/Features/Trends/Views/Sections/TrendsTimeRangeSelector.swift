@@ -7,7 +7,7 @@ struct TrendsTimeRangeSelector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("Time Range")
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             ScrollView(.horizontal, showsIndicators: false) {

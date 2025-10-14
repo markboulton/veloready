@@ -22,17 +22,17 @@ struct WeeklyTSSTrendCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.weeklyTSS)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
                             HStack(spacing: Spacing.xs) {
                                 Text("\(Int(averageTSS))")
-                                    .font(.metricMedium)
+                                    .font(.title)
                                     .foregroundColor(.workout.tss)
                                 
                                 Text("TSS/week avg")
-                                    .font(.labelPrimary)
+                                    .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
@@ -153,21 +153,21 @@ struct WeeklyTSSTrendCard: View {
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Total TSS")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(Int(totalTSS))")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Weeks")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(data.count)")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
             }
@@ -175,7 +175,7 @@ struct WeeklyTSSTrendCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())

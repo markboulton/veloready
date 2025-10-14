@@ -18,12 +18,12 @@ struct RecoveryTrendCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.recoveryTrend)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
                             Text("\(Int(averageRecovery))% avg")
-                                .font(.metricMedium)
+                                .font(.title)
                                 .foregroundColor(recoveryColor(averageRecovery))
                         } else {
                             Text("No data")
@@ -157,7 +157,7 @@ struct RecoveryTrendCard: View {
             Divider()
             
             Text(TrendsContent.insight)
-                .font(.labelPrimary)
+                .font(.caption)
                 .foregroundColor(.text.secondary)
             
             Text(generateInsight())

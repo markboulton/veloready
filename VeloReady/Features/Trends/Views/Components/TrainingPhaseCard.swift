@@ -11,12 +11,12 @@ struct TrainingPhaseCard: View {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.Cards.trainingPhase)
-                            .font(.cardTitle)
+                            .font(.heading)
                             .foregroundColor(.text.primary)
                         
                         if let phase = phase {
                             Text(phase.phase.rawValue)
-                                .font(.metricMedium)
+                                .font(.title)
                                 .foregroundColor(phaseColor(phase.phase))
                         } else {
                             Text("Detecting...")
@@ -92,31 +92,31 @@ struct TrainingPhaseCard: View {
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Weekly TSS")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(Int(phase.weeklyTSS))")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Low Intensity")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(Int(phase.lowIntensityPercent))%")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("High Intensity")
-                        .font(.labelPrimary)
+                        .font(.caption)
                         .foregroundColor(.text.secondary)
                     
                     Text("\(Int(phase.highIntensityPercent))%")
-                        .font(.metricSmall)
+                        .font(.heading)
                         .foregroundColor(.text.primary)
                 }
                 
@@ -130,11 +130,11 @@ struct TrainingPhaseCard: View {
             // Confidence
             HStack {
                 Text("Confidence:")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text("\(Int(phase.confidence * 100))%")
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(confidenceColor(phase.confidence))
                 
                 Spacer()
@@ -162,7 +162,7 @@ struct TrainingPhaseCard: View {
             // Recommendation
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(TrendsContent.recommendation)
-                    .font(.labelPrimary)
+                    .font(.caption)
                     .foregroundColor(.text.secondary)
                 
                 Text(phase.recommendation)
