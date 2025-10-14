@@ -145,16 +145,25 @@ struct WalkingWorkoutInfoHeader: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Title and Date/Time
-            VStack(alignment: .leading, spacing: 4) {
-                Text(workoutTitle)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.text.primary)
+            // Title and Date/Time with Edit RPE button
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(workoutTitle)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.text.primary)
+                    
+                    Text(formattedDateAndTime)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.text.secondary)
+                }
                 
-                Text(formattedDateAndTime)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.text.secondary)
+                Spacer()
+                
+                // Edit RPE button for strength workouts with RPE
+                if isStrengthWorkout, storedRPE != nil {
+                    SecondaryButton(title: "Edit RPE", action: { showingRPESheet = true })
+                }
             }
             
             // Primary Metrics Grid - 3 columns like cycling
@@ -201,9 +210,9 @@ struct WalkingWorkoutInfoHeader: View {
                 
                 // RPE for strength workouts
                 if isStrengthWorkout, let rpe = storedRPE {
-                    RPEMetricWithEdit(
-                        rpe: rpe,
-                        onEdit: { showingRPESheet = true }
+                    CompactMetricItem(
+                        label: "RPE",
+                        value: String(format: "%.1f", rpe)
                     )
                 }
             }
@@ -283,30 +292,6 @@ struct WalkingWorkoutInfoHeader: View {
     
     private func loadRPE() {
         storedRPE = RPEStorageService.shared.getRPE(for: workout)
-    }
-}
-
-// MARK: - RPE Metric with Edit Button
-
-struct RPEMetricWithEdit: View {
-    let rpe: Double
-    let onEdit: () -> Void
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("RPE")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(String(format: "%.1f", rpe))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                
-                SecondaryButton(title: "Edit RPE", action: onEdit)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
