@@ -16,6 +16,11 @@ struct VeloReadyApp: App {
             AIBriefConfig.configure()
         }
         
+        // Migrate workout metadata from UserDefaults to Core Data
+        Task { @MainActor in
+            WorkoutMetadataService.shared.migrateAllLegacyData()
+        }
+        
         // Register background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.veloready.app.refresh", using: nil) { task in
             Self.handleBackgroundRefresh(task: task as! BGAppRefreshTask)

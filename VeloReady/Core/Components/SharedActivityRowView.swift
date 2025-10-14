@@ -106,6 +106,6 @@ struct SharedActivityRowView: View {
     
     private func checkRPEStatus() {
         guard let workout = activity.healthKitWorkout else { return }
-        hasRPE = RPEStorageService.shared.hasRPE(for: workout)
+        hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
     }
 }

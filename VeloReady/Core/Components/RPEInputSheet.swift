@@ -15,9 +15,12 @@ struct RPEInputSheet: View {
         self.workout = workout
         self.onSave = onSave
         
-        // Initialize with existing RPE or default to 6.5
-        let existingRPE = RPEStorageService.shared.getRPE(for: workout) ?? 6.5
+        // Initialize with existing data or defaults
+        let existingRPE = WorkoutMetadataService.shared.getRPE(for: workout) ?? 6.5
+        let existingMuscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout) ?? []
+        
         _rpeValue = State(initialValue: existingRPE)
+        _selectedMuscleGroups = State(initialValue: Set(existingMuscleGroups))
     }
     
     var body: some View {
@@ -219,11 +222,12 @@ struct RPEInputSheet: View {
     private func saveDetails() {
         isSaving = true
         
-        // Save RPE and muscle groups
-        RPEStorageService.shared.saveRPE(
-            rpeValue,
+        // Save to new Core Data service
+        WorkoutMetadataService.shared.saveMetadata(
+            for: workout,
+            rpe: rpeValue,
             muscleGroups: selectedMuscleGroups.isEmpty ? nil : Array(selectedMuscleGroups),
-            for: workout
+            isEccentricFocused: nil // TODO: Add UI for this
         )
         
         // Trigger strain score refresh

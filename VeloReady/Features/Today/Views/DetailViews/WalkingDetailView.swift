@@ -109,7 +109,7 @@ struct WalkingDetailView: View {
             }
             
             // Display selected muscle groups and workout types
-            if let muscleGroups = RPEStorageService.shared.getMuscleGroups(for: workout), !muscleGroups.isEmpty {
+            if let muscleGroups = WorkoutMetadataService.shared.getMuscleGroups(for: workout), !muscleGroups.isEmpty {
                 FlowLayout(spacing: 8) {
                     ForEach(muscleGroups, id: \.self) { group in
                         Text(group.rawValue)
@@ -172,7 +172,7 @@ struct WalkingDetailView: View {
     }
     
     private func checkRPEStatus() {
-        hasRPE = RPEStorageService.shared.hasRPE(for: workout)
+        hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
     }
     
 }
@@ -333,7 +333,7 @@ struct WalkingWorkoutInfoHeader: View {
     }
     
     private func loadRPE() {
-        storedRPE = RPEStorageService.shared.getRPE(for: workout)
+        storedRPE = WorkoutMetadataService.shared.getRPE(for: workout)
     }
 }
 

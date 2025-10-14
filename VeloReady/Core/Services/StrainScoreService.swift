@@ -171,8 +171,8 @@ class StrainScoreService: ObservableObject {
         var strengthRPE: Double? = nil
         var muscleGroupsTrained: [MuscleGroup]? = nil
         if let firstStrength = strengthWorkouts.first {
-            strengthRPE = RPEStorageService.shared.getRPE(for: firstStrength)
-            muscleGroupsTrained = RPEStorageService.shared.getMuscleGroups(for: firstStrength)
+            strengthRPE = WorkoutMetadataService.shared.getRPE(for: firstStrength)
+            muscleGroupsTrained = WorkoutMetadataService.shared.getMuscleGroups(for: firstStrength)
         }
         
         print("🔍 Strain Score Inputs:")
