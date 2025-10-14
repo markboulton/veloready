@@ -35,13 +35,6 @@ struct SharedActivityRowView: View {
             }
             
             Spacer()
-            
-            // Show chevron for all tappable activities
-            if activity.intervalsActivity != nil || activity.stravaActivity != nil || activity.healthKitWorkout != nil {
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.primary)
-                    .font(.caption)
-            }
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
