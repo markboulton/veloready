@@ -1,21 +1,9 @@
 import Foundation
 
-/// Content structure for Learn More educational content
-struct LearnMoreContent {
-    let title: String
-    let sections: [Section]
-    
-    struct Section {
-        let heading: String?
-        let body: String
-    }
-}
-
-// MARK: - Learn More Content Library
-
+/// Learn More content for Training Zones topics
 extension LearnMoreContent {
     
-    // MARK: - Training & Zones
+    // MARK: - Adaptive Zones
     
     static let adaptiveZones = LearnMoreContent(
         title: "Adaptive Zones",
@@ -74,62 +62,53 @@ extension LearnMoreContent {
         ]
     )
     
-    // MARK: - Performance Metrics
+    // MARK: - Heart Rate Zones
     
-    static let trainingLoad = LearnMoreContent(
-        title: "Training Load",
+    static let heartRateZones = LearnMoreContent(
+        title: "Heart Rate Zones",
         sections: [
             Section(
-                heading: "Understanding Training Load",
+                heading: "Understanding HR Zones",
                 body: """
-                Training load quantifies the stress your body experiences from training. VeloReady tracks three key metrics: CTL (Chronic Training Load), ATL (Acute Training Load), and TSB (Training Stress Balance).
+                Heart rate zones divide your cardiovascular capacity into distinct training intensities. Each zone targets specific physiological adaptations.
                 """
             ),
             Section(
-                heading: "CTL - Fitness",
+                heading: "The Seven Zones",
                 body: """
-                Chronic Training Load represents your long-term fitness. It's a 42-day weighted average of your daily training stress. As CTL increases, you're getting fitter.
-                """
-            ),
-            Section(
-                heading: "ATL - Fatigue",
-                body: """
-                Acute Training Load represents your short-term fatigue. It's a 7-day weighted average that shows recent training stress. High ATL means you're accumulating fatigue.
-                """
-            ),
-            Section(
-                heading: "TSB - Form",
-                body: """
-                Training Stress Balance (TSB = CTL - ATL) indicates your readiness to perform. Positive TSB means you're fresh, negative means you're fatigued. The sweet spot for racing is typically +5 to +25.
+                Zone 1 (Recovery): 50-60% of max HR - Active recovery
+                Zone 2 (Endurance): 60-70% - Aerobic base building
+                Zone 3 (Tempo): 70-80% - Sustained aerobic work
+                Zone 4 (Threshold): 80-90% - Lactate threshold training
+                Zone 5 (VO2max): 90-95% - Maximum aerobic capacity
+                Zone 6 (Anaerobic): 95-100% - Anaerobic capacity
+                Zone 7 (Neuromuscular): 100%+ - Sprint power
                 """
             )
         ]
     )
     
-    static let intensityFactor = LearnMoreContent(
-        title: "Intensity Factor",
+    // MARK: - Power Zones
+    
+    static let powerZones = LearnMoreContent(
+        title: "Power Zones",
         sections: [
             Section(
-                heading: "What is Intensity Factor?",
+                heading: "Understanding Power Zones",
                 body: """
-                Intensity Factor (IF) measures how hard a workout was relative to your threshold power (FTP). It's expressed as a decimal from 0 to 1.0+.
+                Power zones are based on your Functional Threshold Power (FTP) - the maximum power you can sustain for one hour.
                 """
             ),
             Section(
-                heading: "IF Ranges",
+                heading: "The Seven Zones",
                 body: """
-                • 0.50-0.65 - Recovery rides
-                • 0.65-0.75 - Endurance rides
-                • 0.75-0.85 - Tempo rides
-                • 0.85-0.95 - Threshold work
-                • 0.95-1.05 - VO2max intervals
-                • 1.05+ - Anaerobic efforts
-                """
-            ),
-            Section(
-                heading: "Why It Matters",
-                body: """
-                IF helps you understand if you're training at the right intensity for your goals. Combined with duration, it determines Training Stress Score (TSS) and helps prevent overtraining.
+                Zone 1 (Active Recovery): <55% FTP
+                Zone 2 (Endurance): 55-75% FTP
+                Zone 3 (Tempo): 75-90% FTP
+                Zone 4 (Lactate Threshold): 90-105% FTP
+                Zone 5 (VO2max): 105-120% FTP
+                Zone 6 (Anaerobic Capacity): 120-150% FTP
+                Zone 7 (Neuromuscular Power): >150% FTP
                 """
             )
         ]
