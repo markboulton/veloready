@@ -43,24 +43,6 @@ struct WalkingDetailView: View {
         .background(Color.background.primary)
         .navigationTitle(workoutTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                if isStrengthWorkout {
-                    Button(action: {
-                        showingRPESheet = true
-                    }) {
-                        Text(hasRPE ? "Edit RPE" : "Add RPE")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                    }
-                }
-            }
-        }
         .sheet(isPresented: $showingRPESheet) {
             RPEInputSheet(workout: workout) {
                 hasRPE = true
@@ -156,6 +138,8 @@ struct WalkingDetailView: View {
 struct WalkingWorkoutInfoHeader: View {
     let workout: HKWorkout
     @ObservedObject var viewModel: WalkingDetailViewModel
+    @State private var showingRPESheet = false
+    @State private var storedRPE: Double?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -212,6 +196,52 @@ struct WalkingWorkoutInfoHeader: View {
                         value: "\(Int(maxHR))"
                     )
                 }
+                
+                // RPE for strength workouts
+                if isStrengthWorkout, let rpe = storedRPE {
+                    HStack(spacing: 4) {
+                        CompactMetricItem(
+                            label: "RPE",
+                            value: String(format: "%.1f", rpe)
+                        )
+                        
+                        Button(action: {
+                            showingRPESheet = true
+                        }) {
+                            Text("edit")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+            
+            // Add RPE button for strength workouts without RPE
+            if isStrengthWorkout && storedRPE == nil {
+                Button(action: {
+                    showingRPESheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add RPE")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .padding(.top, 8)
+            }
+        }
+        .onAppear {
+            loadRPE()
+        }
+        .sheet(isPresented: $showingRPESheet) {
+            RPEInputSheet(workout: workout) {
+                loadRPE()
             }
         }
     }
@@ -252,6 +282,15 @@ struct WalkingWorkoutInfoHeader: View {
     private func formatDistance(_ meters: Double) -> String {
         let km = meters / 1000.0
         return String(format: "%.2f km", km)
+    }
+    
+    private var isStrengthWorkout: Bool {
+        return workout.workoutActivityType == .traditionalStrengthTraining ||
+               workout.workoutActivityType == .functionalStrengthTraining
+    }
+    
+    private func loadRPE() {
+        storedRPE = RPEStorageService.shared.getRPE(for: workout)
     }
 }
 
@@ -347,6 +386,9 @@ struct HeartRateChart: View {
                         }
                     }
                 }
+            }
+            .chartBackground { _ in
+                Color.clear
             }
             .padding(.horizontal, 16)
             .chartYScale(domain: yAxisRange)
