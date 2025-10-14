@@ -20,9 +20,9 @@ struct ZonePieChartSection: View {
             
             // Single Upgrade CTA (only show if not Pro)
             if !proConfig.hasProAccess {
-                ProUpgradeButton(
-                    title: "Upgrade to Pro for Adaptive Zones",
-                    description: "A comprehensive, research-backed athlete profiling system that uses cutting-edge sports science to compute and adapt training zones from actual performance data."
+                ProUpgradeCard(
+                    content: .adaptiveZones,
+                    showBenefits: true
                 )
                 .padding(.horizontal)
             }

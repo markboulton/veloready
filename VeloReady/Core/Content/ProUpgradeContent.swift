@@ -97,4 +97,14 @@ struct ProUpgradeContent {
             "Better performance tracking"
         ]
     )
+    
+    static let adaptiveZones = ProUpgradeContent(
+        title: "Adaptive Zones",
+        description: "A comprehensive, research-backed athlete profiling system that uses cutting-edge sports science to compute and adapt training zones from actual performance data.",
+        benefits: [
+            "Automatically computed from your rides",
+            "Research-backed algorithms",
+            "Adapts as your fitness changes"
+        ]
+    )
 }
