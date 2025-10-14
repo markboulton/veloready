@@ -298,7 +298,7 @@ struct TodayView: View {
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            Rectangle()
                 .stroke(Color.primary.opacity(0.1), lineWidth: 1)
         )
     }
@@ -573,9 +573,8 @@ struct StatCard: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(12)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            Rectangle()
                 .stroke(Color.primary.opacity(0.1), lineWidth: 1)
         )
     }
@@ -602,7 +601,6 @@ struct RecentActivityCard: View {
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(Color(.systemGray5))
-                                .cornerRadius(4)
                         }
                     }
                     
@@ -709,7 +707,6 @@ struct TodayHealthDataCard: View {
         }
         .padding()
         .background(Color(.systemBackground))
-        .cornerRadius(8)
     }
     
     private func formatHealthDate(_ date: Date) -> String {
