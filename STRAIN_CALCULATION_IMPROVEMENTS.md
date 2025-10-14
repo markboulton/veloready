@@ -234,7 +234,7 @@ func amplifyDailyActivityByRecovery(
 
 ## Implementation Status
 
-### ✅ Phase 1 Complete (October 14, 2025)
+### ✅ Phase 1 Complete (October 14, 2025 - Commit 9b6c6c9)
 - [x] Muscle group tracking infrastructure (MuscleGroup enum with recovery times)
 - [x] Active calories integration (calorie-based strain estimation)
 - [x] Step-calorie intelligent blending (detect high-intensity activity)
@@ -242,12 +242,18 @@ func amplifyDailyActivityByRecovery(
 - [x] Comprehensive documentation
 - [x] Build verified, committed to main
 
-### 🔄 Ready for Phase 2 (User Input Required)
-- [ ] **Workout type differentiation** - Service needs workout type detection from HealthKit
-- [ ] **Strength load decay** - Requires historical session storage (48-72h tracking)
-- [ ] **Concurrent training interference** - Needs time tracking between sessions
-- [ ] **Muscle group selection UI** - User input for which muscles trained
-- [ ] **Eccentric focus flag** - Optional user input for heavy negatives
+### ✅ Phase 2 Complete (October 14, 2025 - Commit ccfcfae)
+- [x] **Workout type differentiation** - Automatic detection from HealthKit with multipliers
+- [x] **Concurrent training interference** - 15% penalty when cardio + strength same day
+- [x] **Muscle group strength multipliers** - Legs=1.5x, Back=1.2x systemic fatigue
+- [x] **Eccentric focus multiplier** - 1.3x for heavy negative work
+- [x] **Enhanced logging** - Visibility into calculation factors
+- [x] Build verified, committed to main
+
+### 🔄 Ready for Phase 3 (Requires Historical Tracking)
+- [ ] **Strength load decay over 48-72h** - Track residual fatigue from previous days
+- [ ] **Time-based interference** - Fine-grained penalties based on hours between sessions
+- [ ] **Muscle group selection UI** - User input for which muscles trained (optional enhancement)
 
 ### 🎯 Phase 3: Advanced Features (Future)
 - [ ] Progressive baseline (learn user's typical activity over 7-30 days)
@@ -257,23 +263,46 @@ func amplifyDailyActivityByRecovery(
 - [ ] Environmental factors (heat, altitude, humidity)
 - [ ] Travel/timezone fatigue multipliers
 
-## Current Capabilities
-✅ **Active calories now primary signal** - Captures intensity beyond steps  
-✅ **Intelligent blending** - Detects yard work, stairs, vigorous activity  
+## Current Capabilities (After Phase 2)
+✅ **Active calories primary signal** - Captures intensity beyond steps  
+✅ **Intelligent calorie-step blending** - Detects yard work, stairs, vigorous activity  
 ✅ **Recovery modulation** - Poor sleep amplifies perceived daily load  
 ✅ **Granular feedback** - 2000 steps = ~1.5 strain (no longer 0)  
-✅ **Foundation ready** - Model supports muscle groups, eccentric tracking  
+✅ **Workout type differentiation** - Running=1.2x, Swimming=1.3x, Walking=0.6x  
+✅ **Concurrent training detection** - 15% penalty for cardio + strength same day  
+✅ **Muscle group awareness** - Legs=1.5x, Back=1.2x systemic fatigue  
+✅ **Eccentric work recognition** - 1.3x multiplier for heavy negatives  
+✅ **Enhanced logging** - Full visibility into calculation factors  
+
+## Example Scenarios
+
+### Scenario 1: Running vs Cycling (Same HR)
+- **Before**: Both show 10.0 strain  
+- **After**: Running shows 12.0 strain (1.2x multiplier)  
+- **Why**: Running has higher impact, metabolic cost
+
+### Scenario 2: Bike Ride + Leg Day
+- **Before**: TRIMP + Strength = 15.0 strain  
+- **After**: (TRIMP + Strength) × 1.15 = 17.3 strain  
+- **Why**: Concurrent training interference penalty
+
+### Scenario 3: Heavy Squat Session
+- **Before**: RPE 8 × 45min = moderate strain  
+- **After**: RPE 8 × 45min × 1.5 (legs) = high systemic strain  
+- **Why**: Legs create most overall fatigue
 
 ## Testing Notes
-- Test with various activity levels (sedentary, active, very active)
-- Compare to Whoop/Garmin strain scores for validation
-- Monitor user feedback on "feels right" vs "too harsh/lenient"
-- Track false positives (high strain when user feels fine)
-- Track false negatives (low strain when user feels fatigued)
+- ✅ Test with various activity types (running, cycling, swimming)
+- ✅ Test concurrent training scenarios (bike + gym same day)
+- ✅ Verify muscle group multipliers apply correctly
+- ⏳ Compare to Whoop/Garmin strain scores for validation
+- ⏳ Monitor user feedback on "feels right" vs "too harsh/lenient"
 
 ---
 
-**Last Updated**: October 14, 2025  
-**Status**: Phase 1 Complete - Phase 2 Ready  
+**Last Updated**: October 14, 2025 (7:30pm UTC+01:00)  
+**Status**: Phase 1 & 2 Complete - Phase 3 Ready  
 **Contributors**: Based on peer-reviewed sports science research  
-**Commit**: 9b6c6c9 (feat: Strain calculation improvements - Phase 1)
+**Commits**:
+- Phase 1: 9b6c6c9 (Foundation + active calories + recovery modulation)
+- Phase 2: ccfcfae (Workout types + concurrent training + muscle groups)
