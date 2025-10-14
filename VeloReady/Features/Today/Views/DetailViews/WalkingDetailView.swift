@@ -11,11 +11,17 @@ struct WalkingDetailView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            VStack(spacing: 0) {
                 // Header with key metrics - using shared component
                 WalkingWorkoutInfoHeader(workout: workout, viewModel: viewModel)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 20)
+                
+                // Full-width divider
+                Rectangle()
+                    .fill(Color(.systemGray3))
+                    .frame(height: 2)
+                    .padding(.bottom, 24)
                 
                 // Heart Rate Chart
                 if !viewModel.heartRateSamples.isEmpty {

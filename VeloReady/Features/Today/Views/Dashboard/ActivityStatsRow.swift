@@ -41,7 +41,7 @@ struct ActivityStatsRow: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .cardStyle()
+                .cardStyle(leading: 0)
                 
                 // 2px Vertical Divider
                 Rectangle()

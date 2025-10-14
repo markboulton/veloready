@@ -36,4 +36,14 @@ extension View {
             .padding(Spacing.cardPadding)
             .background(Color(.systemBackground))
     }
+    
+    /// Apply card styling with custom padding per edge
+    func cardStyle(leading: CGFloat? = nil, trailing: CGFloat? = nil, top: CGFloat? = nil, bottom: CGFloat? = nil) -> some View {
+        self
+            .padding(.leading, leading ?? Spacing.cardPadding)
+            .padding(.trailing, trailing ?? Spacing.cardPadding)
+            .padding(.top, top ?? Spacing.cardPadding)
+            .padding(.bottom, bottom ?? Spacing.cardPadding)
+            .background(Color(.systemBackground))
+    }
 }

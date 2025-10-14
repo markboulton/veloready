@@ -7,7 +7,7 @@ struct RecentActivitiesSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: 4) {
                 SectionHeader(TodayContent.activitiesSection)
                 ActivitySparkline(
                     dailyActivities: dailyActivityData,

@@ -71,6 +71,8 @@ struct WorkoutDetailView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 24)
                     
+                    SectionDivider()
+                    
                     // Show loading skeleton while fetching data
                     if viewModel.isLoading {
                     VStack(spacing: 20) {
