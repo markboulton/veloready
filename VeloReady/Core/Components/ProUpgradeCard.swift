@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Reusable Pro upgrade card component
+/// Reusable Pro upgrade card component with inverted color scheme
 struct ProUpgradeCard: View {
     let content: ProUpgradeContent
     let showBenefits: Bool
     @State private var showPaywall = false
+    @Environment(\.colorScheme) var colorScheme
     
     init(content: ProUpgradeContent, showBenefits: Bool = false) {
         self.content = content
@@ -20,7 +21,7 @@ struct ProUpgradeCard: View {
                     Text(content.title)
                         .font(.headline)
                         .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
+                        .foregroundColor(invertedTextColor)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -38,7 +39,7 @@ struct ProUpgradeCard: View {
                 // Description
                 Text(content.description)
                     .font(.subheadline)
-                    .foregroundColor(Color.text.secondary)
+                    .foregroundColor(invertedTextColor.opacity(0.8))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -53,7 +54,7 @@ struct ProUpgradeCard: View {
                                 
                                 Text(benefit)
                                     .font(.caption)
-                                    .foregroundColor(Color.text.secondary)
+                                    .foregroundColor(invertedTextColor.opacity(0.8))
                             }
                         }
                     }
@@ -73,13 +74,22 @@ struct ProUpgradeCard: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity)
-            .background(ColorScale.gray100)
-            .cornerRadius(12)
+            .background(invertedBackgroundColor)
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }
+    }
+    
+    // MARK: - Colors
+    
+    private var invertedBackgroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+    
+    private var invertedTextColor: Color {
+        colorScheme == .dark ? .black : .white
     }
 }
 
