@@ -2,14 +2,21 @@ import Foundation
 import HealthKit
 import SwiftUI
 
-/// Muscle groups for strength training tracking
+/// Muscle groups and workout patterns for strength training tracking
 enum MuscleGroup: String, Codable, CaseIterable {
+    // Specific muscle groups
     case legs = "Legs"
     case back = "Back"
     case chest = "Chest"
     case shoulders = "Shoulders"
     case arms = "Arms"
     case core = "Core"
+    
+    // Workout patterns (research-backed categories)
+    case push = "Push"           // Chest, shoulders, triceps
+    case pull = "Pull"           // Back, biceps, rear delts
+    case fullBody = "Full Body"  // Multiple muscle groups, compound movements
+    case conditioning = "Conditioning" // HIIT, circuits, metabolic work
     
     /// Base recovery time needed after training this muscle group (in hours)
     var baseRecoveryHours: Double {
@@ -20,20 +27,51 @@ enum MuscleGroup: String, Codable, CaseIterable {
         case .shoulders: return 36  // 36h - medium muscle group
         case .arms: return 36  // 36h - smaller muscle group
         case .core: return 24  // 24h - recovers faster, frequent training possible
+        case .push: return 48  // 48h - multiple pressing muscle groups
+        case .pull: return 48  // 48h - multiple pulling muscle groups
+        case .fullBody: return 72  // 72h - entire body taxed
+        case .conditioning: return 36  // 36h - metabolic stress, faster recovery
         }
     }
     
-    /// Multiplier for systemic fatigue impact (legs create most overall fatigue)
+    /// Multiplier for systemic fatigue impact
+    /// Based on research: larger muscle mass + compound movements = higher systemic stress
     var systemicFatigueFactor: Double {
         switch self {
-        case .legs: return 1.5  // Legs create highest systemic stress
-        case .back: return 1.2  // Back also creates significant systemic stress
-        case .chest: return 1.0  // Baseline
+        case .legs: return 1.5  // Highest - largest muscle group
+        case .back: return 1.2  // High - large pulling muscles
+        case .chest: return 1.0  // Baseline - large pressing muscles
         case .shoulders: return 0.9
         case .arms: return 0.7
         case .core: return 0.8
+        case .push: return 1.1  // Moderate-high - multiple pressing muscles
+        case .pull: return 1.2  // High - back dominant, large muscle mass
+        case .fullBody: return 1.4  // Very high - entire body, most demanding
+        case .conditioning: return 1.3  // High - metabolic + cardiovascular stress
         }
     }
+    
+    /// Category for intelligent grouping
+    var category: WorkoutCategory {
+        switch self {
+        case .legs, .back, .chest, .shoulders, .arms, .core:
+            return .specificMuscle
+        case .push, .pull:
+            return .movementPattern
+        case .fullBody:
+            return .compound
+        case .conditioning:
+            return .metabolic
+        }
+    }
+}
+
+/// Workout category for intelligent multi-selection handling
+enum WorkoutCategory {
+    case specificMuscle  // Individual muscle groups
+    case movementPattern // Push/Pull patterns
+    case compound        // Full body
+    case metabolic       // Conditioning
 }
 
 /// Strain/Load Score calculation and data model
@@ -402,6 +440,62 @@ class StrainScoreCalculator {
         return maxMultiplier
     }
     
+    /// Calculate intelligent multiplier for multiple muscle group selections
+    /// Research-backed approach: compound movements and multiple muscle groups = higher systemic stress
+    private static func calculateMultiSelectionFactor(muscleGroups: [MuscleGroup]) -> Double {
+        // Single selection - use that factor
+        if muscleGroups.count == 1 {
+            return muscleGroups[0].systemicFatigueFactor
+        }
+        
+        // Multiple selections - intelligent compounding
+        let hasFullBody = muscleGroups.contains(.fullBody)
+        let hasConditioning = muscleGroups.contains(.conditioning)
+        let hasLegs = muscleGroups.contains(.legs)
+        let hasPush = muscleGroups.contains(.push) || muscleGroups.contains(.chest) || muscleGroups.contains(.shoulders)
+        let hasPull = muscleGroups.contains(.pull) || muscleGroups.contains(.back)
+        
+        // Full body is inherently max - don't compound further
+        if hasFullBody {
+            let baseFactor = MuscleGroup.fullBody.systemicFatigueFactor
+            // Add conditioning on top if present
+            return hasConditioning ? baseFactor + 0.1 : baseFactor
+        }
+        
+        // Upper/Lower split (very common): Push/Pull + Legs
+        if hasLegs && (hasPush || hasPull) {
+            // Research: upper+lower same session = high systemic stress
+            // Use legs base (1.5) + 10% for upper body volume
+            return 1.6
+        }
+        
+        // Push + Pull (common full upper body day)
+        if hasPush && hasPull {
+            // Take average of push/pull + bonus for volume
+            let pushFactor = muscleGroups.first(where: { $0 == .push || $0 == .chest || $0 == .shoulders })?.systemicFatigueFactor ?? 1.1
+            let pullFactor = muscleGroups.first(where: { $0 == .pull || $0 == .back })?.systemicFatigueFactor ?? 1.2
+            return ((pushFactor + pullFactor) / 2) + 0.15  // +15% volume bonus
+        }
+        
+        // Multiple specific muscles from same category
+        let specificMuscles = muscleGroups.filter { $0.category == .specificMuscle }
+        if specificMuscles.count >= 2 {
+            // Take max + bonus for volume (10%)
+            let maxFactor = specificMuscles.map { $0.systemicFatigueFactor }.max() ?? 1.0
+            return maxFactor + 0.1
+        }
+        
+        // Conditioning adds metabolic stress
+        if hasConditioning {
+            let baseFactor = muscleGroups.filter { $0 != .conditioning }.map { $0.systemicFatigueFactor }.max() ?? 1.0
+            return baseFactor + 0.2  // +20% for metabolic component
+        }
+        
+        // Default: take max factor + small bonus for multi-group
+        let maxFactor = muscleGroups.map { $0.systemicFatigueFactor }.max() ?? 1.0
+        return maxFactor + 0.05
+    }
+    
     /// Calculate strain using Whoop-style approach: TRIMP backbone + daily activity adjustments
     private static func calculateWhoopStyleStrain(inputs: StrainScore.StrainInputs, recoveryFactor: Double) -> (score: Double, band: StrainScore.StrainBand) {
         
@@ -427,11 +521,10 @@ class StrainScoreCalculator {
             // Use RPE if available, otherwise assume moderate intensity (RPE 6-7)
             let rpe = inputs.strengthSessionRPE ?? 6.5 // Default to moderate-hard
             
-            // Apply muscle group multiplier if available
+            // Apply intelligent muscle group multiplier
             var muscleGroupFactor: Double = 1.0
             if let muscleGroups = inputs.muscleGroupsTrained, !muscleGroups.isEmpty {
-                // Use highest systemic fatigue factor
-                muscleGroupFactor = muscleGroups.map { $0.systemicFatigueFactor }.max() ?? 1.0
+                muscleGroupFactor = calculateMultiSelectionFactor(muscleGroups: muscleGroups)
             }
             
             // More generous strength TRIMP calculation
