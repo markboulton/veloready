@@ -21,7 +21,6 @@ struct RecoveryHeaderSection: View {
         }
         .padding()
         .background(Color.recovery.sectionBackground)
-        .cornerRadius(16)
     }
     
     private func colorForBand(_ band: RecoveryScore.RecoveryBand) -> Color {

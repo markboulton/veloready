@@ -9,20 +9,29 @@ struct RecoveryDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 0) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Sub-scores breakdown
                     subScoresSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Apple Health metrics
                     healthMetricsSection
+                        .padding()
                 }
-                .padding()
             }
         .navigationTitle(RecoveryContent.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -92,9 +101,6 @@ struct RecoveryDetailView: View {
                 )
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
     
     private func subScoreRow(title: String, score: Int, weight: String, icon: String, color: Color, hasBaseline: Bool) -> some View {
@@ -194,9 +200,6 @@ struct RecoveryDetailView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
     
     private func healthMetricRow(title: String, current: String, baseline: String, change: Double, icon: String, color: Color) -> some View {

@@ -41,7 +41,5 @@ struct SleepHeaderSection: View {
                 .padding(.horizontal)
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
 }

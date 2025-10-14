@@ -8,31 +8,47 @@ struct SleepDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 0) {
                     // Header with main score
                     SleepHeaderSection(sleepScore: sleepScore)
+                        .padding()
                     
                     // Missing data warning if no sleep duration
                     if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
                         missingSleepDataWarning
+                            .padding()
                     }
+                    
+                    SectionDivider()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Score breakdown
                     scoreBreakdownSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Sleep metrics
                     sleepMetricsSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Sleep stages
                     sleepStagesSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Recommendations
                     recommendationsSection
+                        .padding()
                 }
-                .padding()
             }
         .navigationTitle(SleepContent.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -66,7 +82,6 @@ struct SleepDetailView: View {
         }
         .padding()
         .background(Color(.systemOrange).opacity(0.1))
-        .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(.systemOrange).opacity(0.3), lineWidth: 1)
@@ -135,8 +150,6 @@ struct SleepDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var sleepMetricsSection: some View {
@@ -186,8 +199,6 @@ struct SleepDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var sleepStagesSection: some View {
@@ -242,8 +253,6 @@ struct SleepDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var recommendationsSection: some View {
@@ -268,8 +277,6 @@ struct SleepDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     // MARK: - Helper Methods
@@ -414,7 +421,6 @@ struct SleepMetricCard: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color(.systemBackground))
-        .cornerRadius(12)
     }
 }
 

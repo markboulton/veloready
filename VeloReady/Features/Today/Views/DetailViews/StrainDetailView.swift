@@ -8,29 +8,47 @@ struct StrainDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 0) {
                     // Header with main score
                     StrainHeaderSection(strainScore: strainScore)
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Score breakdown
                     scoreBreakdownSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Load components
                     loadComponentsSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Activity summary
                     activitySummarySection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Recovery modulation
                     recoveryModulationSection
+                        .padding()
+                    
+                    SectionDivider()
                     
                     // Recommendations
                     recommendationsSection
+                        .padding()
                 }
-                .padding()
             }
         .navigationTitle(StrainContent.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -85,8 +103,6 @@ struct StrainDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var loadComponentsSection: some View {
@@ -155,8 +171,6 @@ struct StrainDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var activitySummarySection: some View {
@@ -195,8 +209,6 @@ struct StrainDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var recoveryModulationSection: some View {
@@ -226,8 +238,6 @@ struct StrainDetailView: View {
             .padding(.vertical, 8)
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     private var recommendationsSection: some View {
@@ -252,8 +262,6 @@ struct StrainDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
     }
     
     // MARK: - Helper Methods
@@ -433,7 +441,6 @@ struct StrainMetricCard: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color(.systemBackground))
-        .cornerRadius(12)
     }
 }
 
