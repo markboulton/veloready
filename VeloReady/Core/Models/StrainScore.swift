@@ -440,6 +440,34 @@ class StrainScoreCalculator {
         return maxMultiplier
     }
     
+    /// Calculate training load for a single strength workout
+    /// Returns a score representing the physiological demand
+    public static func calculateWorkoutLoad(
+        duration: TimeInterval,
+        rpe: Double,
+        muscleGroups: [MuscleGroup]?,
+        isEccentricFocused: Bool = false
+    ) -> Double {
+        let durationMinutes = duration / 60.0
+        
+        // Apply intelligent muscle group multiplier
+        var muscleGroupFactor: Double = 1.0
+        if let muscleGroups = muscleGroups, !muscleGroups.isEmpty {
+            muscleGroupFactor = calculateMultiSelectionFactor(muscleGroups: muscleGroups)
+        }
+        
+        // Calculate TRIMP (same formula as strain calculation)
+        let estimatedHRFraction = max(0.5, (rpe - 1.0) / 9.0)
+        var load = estimatedHRFraction * durationMinutes * 120 * muscleGroupFactor
+        
+        // Apply eccentric multiplier if focused on negatives
+        if isEccentricFocused {
+            load *= 1.3
+        }
+        
+        return load
+    }
+    
     /// Calculate intelligent multiplier for multiple muscle group selections
     /// Research-backed approach: compound movements and multiple muscle groups = higher systemic stress
     private static func calculateMultiSelectionFactor(muscleGroups: [MuscleGroup]) -> Double {

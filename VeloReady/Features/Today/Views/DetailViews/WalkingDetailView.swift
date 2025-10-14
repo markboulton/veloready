@@ -128,10 +128,30 @@ struct WalkingDetailView: View {
             let _ = print("🟣 WorkoutTypeSection rendering - RPE: \(rpe?.description ?? "nil"), Muscle Groups: \(muscleGroups?.map { $0.rawValue } ?? [])")
             
             if rpe != nil || muscleGroups != nil {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
+                    // Calculate and show training load
+                    if let rpe = rpe {
+                        let trainingLoad = StrainScoreCalculator.calculateWorkoutLoad(
+                            duration: workout.duration,
+                            rpe: rpe,
+                            muscleGroups: muscleGroups,
+                            isEccentricFocused: false
+                        )
+                        
+                        HStack(spacing: 4) {
+                            Text("Training Load:")
+                                .font(.subheadline)
+                                .foregroundColor(Color.text.secondary)
+                            Text(String(format: "%.0f", trainingLoad))
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(trainingLoadColor(trainingLoad))
+                        }
+                    }
+                    
                     // Show RPE if available
                     if let rpe = rpe {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 4) {
                             Text("Effort:")
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
@@ -144,18 +164,39 @@ struct WalkingDetailView: View {
                     
                     // Show muscle groups if available
                     if let muscleGroups = muscleGroups, !muscleGroups.isEmpty {
-                        let _ = print("🟣 Rendering \(muscleGroups.count) muscle group tags")
+                        let _ = print("🟣 Rendering \(muscleGroups.count) muscle groups")
                         
-                        // Use native SwiftUI layout with wrapping
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 8)], spacing: 8) {
-                            ForEach(muscleGroups, id: \.self) { group in
-                                Text(group.rawValue)
+                        // Separate specific muscle groups from workout types
+                        let specificMuscles = muscleGroups.filter { 
+                            $0.category == .specificMuscle 
+                        }
+                        let workoutTypes = muscleGroups.filter { 
+                            $0.category == .movementPattern || $0.category == .compound || $0.category == .metabolic
+                        }
+                        
+                        // Show specific muscle groups
+                        if !specificMuscles.isEmpty {
+                            HStack(spacing: 4) {
+                                Text("Muscle Groups:")
                                     .font(.subheadline)
+                                    .foregroundColor(Color.text.secondary)
+                                Text(specificMuscles.map { $0.rawValue }.joined(separator: ", "))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
                                     .foregroundColor(Color.text.primary)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(ColorScale.gray100)
-                                    .cornerRadius(8)
+                            }
+                        }
+                        
+                        // Show workout types
+                        if !workoutTypes.isEmpty {
+                            HStack(spacing: 4) {
+                                Text("Workout Type:")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.text.secondary)
+                                Text(workoutTypes.map { $0.rawValue }.joined(separator: ", "))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color.text.primary)
                             }
                         }
                     }
@@ -213,6 +254,21 @@ struct WalkingDetailView: View {
     
     private func checkRPEStatus() {
         hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
+    }
+    
+    private func trainingLoadColor(_ load: Double) -> Color {
+        // Color code based on training load intensity
+        // Research-based thresholds for strength training load
+        switch load {
+        case 0..<1500:
+            return ColorScale.greenAccent  // Light
+        case 1500..<3000:
+            return ColorScale.yellowAccent  // Moderate
+        case 3000..<4500:
+            return ColorScale.amberAccent  // Hard
+        default:
+            return ColorScale.redAccent  // Very Hard
+        }
     }
     
 }
