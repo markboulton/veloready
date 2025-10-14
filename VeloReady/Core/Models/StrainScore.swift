@@ -2,6 +2,40 @@ import Foundation
 import HealthKit
 import SwiftUI
 
+/// Muscle groups for strength training tracking
+enum MuscleGroup: String, Codable, CaseIterable {
+    case legs = "Legs"
+    case back = "Back"
+    case chest = "Chest"
+    case shoulders = "Shoulders"
+    case arms = "Arms"
+    case core = "Core"
+    
+    /// Base recovery time needed after training this muscle group (in hours)
+    var baseRecoveryHours: Double {
+        switch self {
+        case .legs: return 72  // 72h - largest muscle groups, most systemic fatigue
+        case .back: return 48  // 48h - large muscle group
+        case .chest: return 48  // 48h - large muscle group
+        case .shoulders: return 36  // 36h - medium muscle group
+        case .arms: return 36  // 36h - smaller muscle group
+        case .core: return 24  // 24h - recovers faster, frequent training possible
+        }
+    }
+    
+    /// Multiplier for systemic fatigue impact (legs create most overall fatigue)
+    var systemicFatigueFactor: Double {
+        switch self {
+        case .legs: return 1.5  // Legs create highest systemic stress
+        case .back: return 1.2  // Back also creates significant systemic stress
+        case .chest: return 1.0  // Baseline
+        case .shoulders: return 0.9
+        case .arms: return 0.7
+        case .core: return 0.8
+        }
+    }
+}
+
 /// Strain/Load Score calculation and data model
 /// Implements a Whoop-like strain scoring algorithm that combines cardio, strength, and daily activity
 /// Score is on a 0-18 scale with decimals (similar to perceived exertion but more granular)
@@ -69,6 +103,8 @@ struct StrainScore: Codable {
         let strengthDurationMinutes: Double? // Strength training duration
         let strengthVolume: Double? // Total volume (weight × reps)
         let strengthSets: Int? // Number of working sets
+        let muscleGroupsTrained: [MuscleGroup]? // Which muscle groups were trained
+        let isEccentricFocused: Bool? // Was it eccentric-focused (e.g., heavy negatives)
         
         // Non-exercise inputs
         let dailySteps: Int? // Total steps
@@ -359,15 +395,48 @@ class StrainScoreCalculator {
             workoutTRIMP += strengthTRIMP
         }
         
-        // 2. Add daily activity floor effect (continuous scale)
+        // 2. Add daily activity with intelligent calorie-step blending
         var dailyActivityAdjustment: Double = 0
         
-        if let steps = inputs.dailySteps {
-            // Continuous scale: every 1000 steps adds ~0.5 strain points
-            // This gives more granular feedback for daily activity
-            let baseStrain = Double(steps) / 1000.0 * 0.5
-            dailyActivityAdjustment = min(5.0, baseStrain) // Cap at 5.0 (10k steps)
+        // Calculate base from steps
+        var stepBasedStrain: Double = 0
+        if let steps = inputs.dailySteps, steps > 0 {
+            stepBasedStrain = Double(steps) / 1000.0 * 0.5
         }
+        
+        // Calculate from active calories (better captures intensity)
+        var calorieBasedStrain: Double = 0
+        if let activeCalories = inputs.activeEnergyCalories, activeCalories > 0 {
+            // ~7.5 cal/min = moderate-vigorous activity mix
+            let estimatedMinutes = activeCalories / 7.5
+            calorieBasedStrain = estimatedMinutes * 0.6 * 0.1 // Scale to match step-based
+        }
+        
+        // Use whichever is higher (more generous)
+        dailyActivityAdjustment = max(stepBasedStrain, calorieBasedStrain)
+        
+        // Detect high-intensity activity by comparing actual vs expected calories
+        if let steps = inputs.dailySteps, let activeCalories = inputs.activeEnergyCalories,
+           steps > 0, activeCalories > 0 {
+            let expectedCaloriesFromSteps = Double(steps) * 0.04 // ~0.04 cal/step
+            let intensityRatio = activeCalories / expectedCaloriesFromSteps
+            
+            // High intensity beyond just walking
+            if intensityRatio > 1.5 {
+                let bonusStrain = min(2.0, (intensityRatio - 1.0) * 1.5)
+                dailyActivityAdjustment += bonusStrain
+            }
+        }
+        
+        // Apply recovery-adjusted perception
+        // Poor recovery makes daily activity feel harder
+        if recoveryFactor < 0.95 {
+            let amplification = 1.0 + (0.95 - recoveryFactor) * 2.0
+            dailyActivityAdjustment *= amplification
+        }
+        
+        // Cap at reasonable maximum
+        dailyActivityAdjustment = min(7.0, dailyActivityAdjustment)
         
         // 3. Calculate total TRIMP
         let totalTRIMP = workoutTRIMP + dailyActivityAdjustment

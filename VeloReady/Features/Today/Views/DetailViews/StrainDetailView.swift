@@ -494,6 +494,8 @@ struct StrainDetailView_Previews: PreviewProvider {
                 strengthDurationMinutes: 45,
                 strengthVolume: nil,
                 strengthSets: 12,
+                muscleGroupsTrained: [.legs, .core],
+                isEccentricFocused: false,
                 dailySteps: 12000,
                 activeEnergyCalories: 580,
                 nonWorkoutMETmin: nil,

@@ -187,6 +187,8 @@ class StrainScoreService: ObservableObject {
             strengthDurationMinutes: strengthDuration > 0 ? strengthDuration / 60 : nil,
             strengthVolume: nil,
             strengthSets: nil,
+            muscleGroupsTrained: nil, // TODO: Implement muscle group tracking UI
+            isEccentricFocused: nil, // TODO: Implement eccentric focus flag
             dailySteps: stepsValue,
             activeEnergyCalories: activeCaloriesValue,
             nonWorkoutMETmin: nil,
