@@ -22,7 +22,8 @@ struct ZonePieChartSection: View {
             if !proConfig.hasProAccess {
                 ProUpgradeCard(
                     content: .adaptiveZones,
-                    showBenefits: true
+                    showBenefits: true,
+                    learnMore: .adaptiveZones
                 )
                 .padding(.horizontal)
             }

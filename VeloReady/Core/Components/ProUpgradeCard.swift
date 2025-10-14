@@ -4,12 +4,14 @@ import SwiftUI
 struct ProUpgradeCard: View {
     let content: ProUpgradeContent
     let showBenefits: Bool
+    let learnMoreContent: LearnMoreContent?
     @State private var showPaywall = false
     @Environment(\.colorScheme) var colorScheme
     
-    init(content: ProUpgradeContent, showBenefits: Bool = false) {
+    init(content: ProUpgradeContent, showBenefits: Bool = false, learnMore: LearnMoreContent? = nil) {
         self.content = content
         self.showBenefits = showBenefits
+        self.learnMoreContent = learnMore
     }
     
     var body: some View {
@@ -36,12 +38,18 @@ struct ProUpgradeCard: View {
                         .cornerRadius(4)
                 }
                 
-                // Description
-                Text(content.description)
-                    .font(.subheadline)
-                    .foregroundColor(invertedTextColor.opacity(0.8))
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                // Description with optional Learn More link
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(content.description)
+                        .font(.subheadline)
+                        .foregroundColor(invertedTextColor.opacity(0.8))
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    if let learnMoreContent = learnMoreContent {
+                        LearnMoreLink(content: learnMoreContent)
+                    }
+                }
                 
                 // Benefits (optional)
                 if showBenefits, let benefits = content.benefits {
