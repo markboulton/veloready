@@ -9,7 +9,7 @@ struct RecoveryMetricsSection: View {
     @Binding var missingSleepBannerDismissed: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
             // Show empty state rings when HealthKit is not authorized
             if !isHealthKitAuthorized {
                 HStack(spacing: 12) {
@@ -45,14 +45,10 @@ struct RecoveryMetricsSection: View {
                     loadScoreView
                 }
             }
+            
+            SectionDivider()
+                .padding(.top, 20)
         }
-        .padding()
-        .background(Color(.systemBackground).opacity(0.6))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
     }
     
     // MARK: - Recovery Score

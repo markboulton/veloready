@@ -6,7 +6,7 @@ struct RecentActivitiesSection: View {
     let dailyActivityData: [DailyActivityData]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(TodayContent.activitiesSection)
                     .font(.headline)
@@ -19,6 +19,7 @@ struct RecentActivitiesSection: View {
                 )
                 .frame(width: 120)
             }
+            .padding(.bottom, 16)
             
             // Show all activities except the first cycling one (which is shown in latest ride panel)
             let firstCyclingIndex = allActivities.firstIndex(where: { $0.type == .cycling })
@@ -39,20 +40,14 @@ struct RecentActivitiesSection: View {
                         
                         if activity.id != remainingActivities.last?.id {
                             Divider()
-                                .padding(.leading, 20)
                         }
                     }
                 }
             }
+            
+            SectionDivider()
+                .padding(.top, 20)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(Color(.systemBackground).opacity(0.6))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-        )
     }
 }
 
