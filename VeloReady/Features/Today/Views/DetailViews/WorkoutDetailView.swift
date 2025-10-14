@@ -46,6 +46,7 @@ struct WorkoutDetailView: View {
     let maxHR: Double?
     
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var routeCoordinates: [CLLocationCoordinate2D] = []
     @State private var isLoadingMap = false
     
@@ -99,23 +100,32 @@ struct WorkoutDetailView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 40)
                 } else {
-                    // AI Ride Summary - PRO feature (below metadata, before charts)
-                    RideSummaryView(activity: displayActivity)
-                        .padding(.horizontal, 16)
-                    
-                    SectionDivider()
-                    
-                    // Training Load Chart - PRO feature (has its own margins)
-                    TrainingLoadChart(activity: displayActivity)
-                        .padding(.horizontal, 16)
-                    
-                    SectionDivider()
-                    
-                    // Intensity Chart - PRO feature (has its own margins)
-                    IntensityChart(activity: displayActivity)
-                        .padding(.horizontal, 16)
-                    
-                    SectionDivider()
+                    // Pro features section
+                    if proConfig.hasProAccess {
+                        // AI Ride Summary - PRO feature (below metadata, before charts)
+                        RideSummaryView(activity: displayActivity)
+                            .padding(.horizontal, 16)
+                        
+                        SectionDivider()
+                        
+                        // Training Load Chart - PRO feature (has its own margins)
+                        TrainingLoadChart(activity: displayActivity)
+                            .padding(.horizontal, 16)
+                        
+                        SectionDivider()
+                        
+                        // Intensity Chart - PRO feature (has its own margins)
+                        IntensityChart(activity: displayActivity)
+                            .padding(.horizontal, 16)
+                        
+                        SectionDivider()
+                    } else {
+                        // Single combined Pro upgrade card for free users
+                        RideDetailProCard()
+                            .padding(.horizontal, 16)
+                        
+                        SectionDivider()
+                    }
                     
                     // Charts Section - always show, charts handle empty data
                     WorkoutChartsSection(

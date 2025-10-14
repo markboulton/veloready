@@ -10,9 +10,7 @@ struct RideSummaryView: View {
     var body: some View {
         // Only show for PRO users
         guard proConfig.hasProAccess else {
-            return AnyView(
-                ProUpgradeCard(content: .aiRideSummary, showBenefits: true)
-            )
+            return AnyView(EmptyView())
         }
         
         return AnyView(
