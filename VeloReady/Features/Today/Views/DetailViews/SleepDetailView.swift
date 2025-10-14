@@ -89,9 +89,9 @@ struct SleepDetailView: View {
     
     private var weeklyTrendSection: some View {
         ProFeatureGate(
-            featureName: SleepContent.weeklyTrendFeature,
-            featureDescription: SleepContent.weeklyTrendDescription,
-            isEnabled: proConfig.canViewWeeklyTrends
+            upgradeContent: .weeklySleepTrend,
+            isEnabled: proConfig.canViewWeeklyTrends,
+            showBenefits: true
         ) {
             TrendChart(
                 title: SleepContent.trendTitle,

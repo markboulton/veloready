@@ -3,22 +3,21 @@ import SwiftUI
 /// Gate component that shows content if Pro, otherwise shows upgrade prompt
 struct ProFeatureGate<Content: View>: View {
     @ObservedObject var config = ProFeatureConfig.shared
-    @State private var showPaywall = false
     
-    let featureName: String
-    let featureDescription: String
+    let upgradeContent: ProUpgradeContent
     let isEnabled: Bool
+    let showBenefits: Bool
     let content: () -> Content
     
     init(
-        featureName: String,
-        featureDescription: String,
+        upgradeContent: ProUpgradeContent,
         isEnabled: Bool,
+        showBenefits: Bool = false,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.featureName = featureName
-        self.featureDescription = featureDescription
+        self.upgradeContent = upgradeContent
         self.isEnabled = isEnabled
+        self.showBenefits = showBenefits
         self.content = content
     }
     
@@ -26,66 +25,15 @@ struct ProFeatureGate<Content: View>: View {
         if isEnabled {
             content()
         } else {
-            upgradePrompt
-        }
-    }
-    
-    private var upgradePrompt: some View {
-        Button(action: { showPaywall = true }) {
-            VStack(spacing: 12) {
-                Image(systemName: "star.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(Color.gradient.proIcon)
-                
-                Text(featureName)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Text(featureDescription)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                
-                Text("Upgrade to VeloReady Pro")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.gradient.pro)
-                    .cornerRadius(8)
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.background.secondary)
-            .cornerRadius(12)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            ProUpgradeCard(content: upgradeContent, showBenefits: showBenefits)
         }
     }
 }
 
-/// Inline Pro upsell button
+/// Inline Pro upsell button (deprecated - use ProBadgeButton instead)
 struct ProBadge: View {
-    @State private var showPaywall = false
-    
     var body: some View {
-        Button(action: {
-            showPaywall = true
-        }) {
-            Text("Upgrade")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(ColorPalette.blue)
-        }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
-        }
+        ProBadgeButton()
     }
 }
 
@@ -132,9 +80,9 @@ struct ProNavigationLink<Destination: View, Label: View>: View {
 
 #Preview("Feature Gate") {
     ProFeatureGate(
-        featureName: "Weekly Trends",
-        featureDescription: "View your performance trends over the past 7 days",
-        isEnabled: false
+        upgradeContent: .weeklyRecoveryTrend,
+        isEnabled: false,
+        showBenefits: true
     ) {
         Text("Trend content here")
     }
@@ -142,5 +90,5 @@ struct ProNavigationLink<Destination: View, Label: View>: View {
 }
 
 #Preview("Pro Badge") {
-    ProBadge()
+    ProBadgeButton()
 }

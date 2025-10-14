@@ -58,9 +58,9 @@ struct StrainDetailView: View {
     
     private var weeklyTrendSection: some View {
         ProFeatureGate(
-            featureName: StrainContent.weeklyTrendFeature,
-            featureDescription: StrainContent.weeklyTrendDescription,
-            isEnabled: proConfig.canView7DayLoad
+            upgradeContent: .weeklyStrainTrend,
+            isEnabled: proConfig.canView7DayLoad,
+            showBenefits: true
         ) {
             TrendChart(
                 title: StrainContent.trendTitle,

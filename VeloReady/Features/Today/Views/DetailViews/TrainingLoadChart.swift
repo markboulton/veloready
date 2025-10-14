@@ -12,7 +12,9 @@ struct TrainingLoadChart: View {
     
     var body: some View {
         guard proConfig.hasProAccess else {
-            return AnyView(EmptyView())
+            return AnyView(
+                ProUpgradeCard(content: .trainingLoad, showBenefits: true)
+            )
         }
         
         guard let ctlAfter = activity.ctl,

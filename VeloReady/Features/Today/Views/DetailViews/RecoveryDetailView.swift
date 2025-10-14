@@ -41,9 +41,9 @@ struct RecoveryDetailView: View {
     
     private var weeklyTrendSection: some View {
         ProFeatureGate(
-            featureName: RecoveryContent.weeklyTrendFeature,
-            featureDescription: RecoveryContent.weeklyTrendDescription,
-            isEnabled: proConfig.canViewWeeklyTrends
+            upgradeContent: .weeklyRecoveryTrend,
+            isEnabled: proConfig.canViewWeeklyTrends,
+            showBenefits: true
         ) {
             TrendChart(
                 title: RecoveryContent.trendTitle,

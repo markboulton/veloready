@@ -9,7 +9,9 @@ struct IntensityChart: View {
     
     var body: some View {
         guard proConfig.hasProAccess else {
-            return AnyView(EmptyView())
+            return AnyView(
+                ProUpgradeCard(content: .intensityAnalysis, showBenefits: true)
+            )
         }
         
         guard let intensityFactorRaw = activity.intensityFactor,
