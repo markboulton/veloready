@@ -1,11 +1,12 @@
 import SwiftUI
 import HealthKit
 
-/// Sheet for inputting RPE (Rate of Perceived Exertion) for a workout
+/// Sheet for inputting RPE (Rate of Perceived Exertion) and muscle groups for a workout
 struct RPEInputSheet: View {
     let workout: HKWorkout
     @Environment(\.dismiss) private var dismiss
     @State private var rpeValue: Double
+    @State private var selectedMuscleGroups: Set<MuscleGroup> = []
     @State private var isSaving = false
     
     var onSave: (() -> Void)?
@@ -24,14 +25,15 @@ struct RPEInputSheet: View {
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 8) {
-                    Text("Rate Your Effort")
+                    Text("Workout Details")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(Color.text.primary)
                     
-                    Text("How hard did this workout feel?")
+                    Text("Rate your effort and select muscle groups trained")
                         .font(.subheadline)
                         .foregroundColor(Color.text.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .padding(.top, 32)
                 
@@ -49,6 +51,12 @@ struct RPEInputSheet: View {
                 
                 // Slider with custom styling
                 VStack(spacing: 16) {
+                    Text("Effort Level")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                    
                     Slider(value: $rpeValue, in: 1...10, step: 0.5)
                         .tint(Color.button.primary)
                         .padding(.horizontal)
@@ -66,6 +74,30 @@ struct RPEInputSheet: View {
                 }
                 .padding(.horizontal, 8)
                 
+                // Muscle Groups Selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Muscle Groups (Optional)")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        ForEach(MuscleGroup.allCases, id: \.self) { group in
+                            MuscleGroupButton(
+                                group: group,
+                                isSelected: selectedMuscleGroups.contains(group)
+                            ) {
+                                if selectedMuscleGroups.contains(group) {
+                                    selectedMuscleGroups.remove(group)
+                                } else {
+                                    selectedMuscleGroups.insert(group)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                
                 // RPE Guide
                 VStack(alignment: .leading, spacing: 12) {
                     rpeGuideRow(range: "1-2", label: "Very Light", description: "Minimal effort")
@@ -82,14 +114,14 @@ struct RPEInputSheet: View {
                 Spacer()
                 
                 // Save Button
-                Button(action: saveRPE) {
+                Button(action: saveDetails) {
                     HStack {
                         if isSaving {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
                             Image(systemName: "checkmark")
-                            Text("Save RPE")
+                            Text("Save Details")
                         }
                     }
                     .font(.headline)
@@ -103,7 +135,7 @@ struct RPEInputSheet: View {
                 .padding(.horizontal)
                 .padding(.bottom, 32)
             }
-            .navigationTitle("RPE Rating")
+            .navigationTitle("Workout Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -152,11 +184,15 @@ struct RPEInputSheet: View {
         }
     }
     
-    private func saveRPE() {
+    private func saveDetails() {
         isSaving = true
         
-        // Save RPE
-        RPEStorageService.shared.saveRPE(rpeValue, for: workout)
+        // Save RPE and muscle groups
+        RPEStorageService.shared.saveRPE(
+            rpeValue,
+            muscleGroups: selectedMuscleGroups.isEmpty ? nil : Array(selectedMuscleGroups),
+            for: workout
+        )
         
         // Trigger strain score refresh
         Task {
@@ -168,6 +204,39 @@ struct RPEInputSheet: View {
                 dismiss()
             }
         }
+    }
+}
+
+// MARK: - Muscle Group Button
+
+private struct MuscleGroupButton: View {
+    let group: MuscleGroup
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isSelected ? Color.button.primary : Color.text.secondary)
+                Text(group.rawValue)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundColor(isSelected ? Color.button.primary : Color.text.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color.button.primary.opacity(0.1) : ColorScale.gray100)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isSelected ? Color.button.primary : Color.clear, lineWidth: 1.5)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

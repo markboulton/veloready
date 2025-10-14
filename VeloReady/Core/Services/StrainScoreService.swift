@@ -167,10 +167,12 @@ class StrainScoreService: ObservableObject {
         }
         let strengthDuration = strengthWorkouts.reduce(0.0) { $0 + $1.duration }
         
-        // Get RPE from storage for strength workouts (use first if multiple)
+        // Get RPE and muscle groups from storage for strength workouts (use first if multiple)
         var strengthRPE: Double? = nil
+        var muscleGroupsTrained: [MuscleGroup]? = nil
         if let firstStrength = strengthWorkouts.first {
             strengthRPE = RPEStorageService.shared.getRPE(for: firstStrength)
+            muscleGroupsTrained = RPEStorageService.shared.getMuscleGroups(for: firstStrength)
         }
         
         print("🔍 Strain Score Inputs:")
@@ -178,8 +180,12 @@ class StrainScoreService: ObservableObject {
         print("   Active Calories: \(activeCaloriesValue ?? 0)")
         print("   Cardio TRIMP: \(cardioTRIMP)")
         print("   Cardio Duration: \(cardioDuration)s")
+        print("   Workout Types: \(workoutTypes)")
         print("   Strength Duration: \(strengthDuration / 60)min")
         print("   Strength RPE: \(strengthRPE != nil ? String(format: "%.1f", strengthRPE!) : "nil (using default 6.5)")")
+        if let muscleGroups = muscleGroupsTrained {
+            print("   Muscle Groups: \(muscleGroups.map { $0.rawValue }.joined(separator: ", "))")
+        }
         print("   Average IF: \(averageIF ?? 0.0)")
         print("   Sleep Score: \(sleepScoreService.currentSleepScore?.score ?? -1)")
         if let hrvSample = hrvValue.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) {
@@ -201,8 +207,8 @@ class StrainScoreService: ObservableObject {
             strengthDurationMinutes: strengthDuration > 0 ? strengthDuration / 60 : nil,
             strengthVolume: nil,
             strengthSets: nil,
-            muscleGroupsTrained: nil, // TODO: Implement muscle group tracking UI
-            isEccentricFocused: nil, // TODO: Implement eccentric focus flag
+            muscleGroupsTrained: muscleGroupsTrained,
+            isEccentricFocused: nil, // TODO: Add eccentric focus flag to UI
             dailySteps: stepsValue,
             activeEnergyCalories: activeCaloriesValue,
             nonWorkoutMETmin: nil,

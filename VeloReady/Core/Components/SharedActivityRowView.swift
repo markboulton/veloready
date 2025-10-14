@@ -39,19 +39,21 @@ struct SharedActivityRowView: View {
             
             Spacer()
             
-            // Add RPE button for strength workouts without RPE
+            // Add details button for strength workouts
             if shouldShowRPEButton {
                 Button(action: {
                     showingRPESheet = true
                 }) {
-                    Text(hasRPE ? "Edit RPE" : "Add RPE")
+                    Text("Add details")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.button.primary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.blue)
-                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.button.primary, lineWidth: 1.5)
+                        )
                 }
                 .buttonStyle(PlainButtonStyle())
             }
