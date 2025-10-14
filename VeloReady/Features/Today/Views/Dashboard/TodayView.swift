@@ -49,34 +49,30 @@ struct TodayView: View {
                     GradientBackground()
                     
                 ScrollView {
-                    
-                    VStack(spacing: 0) {
-                        // Recovery Metrics (Three Graphs) - Lazy loaded
-                        // Missing sleep data warning (collapsible, above metrics)
+                    // Use LazyVStack as main container for better performance
+                    LazyVStack(spacing: 0) {
+                        // Missing sleep data warning
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
                            recoveryScore.inputs.sleepDuration == nil {
                             missingSleepDataBanner
                         }
                         
-                        LazyVStack(spacing: 0) {
-                            RecoveryMetricsSection(
-                                recoveryScoreService: viewModel.recoveryScoreService,
-                                sleepScoreService: viewModel.sleepScoreService,
-                                strainScoreService: viewModel.strainScoreService,
-                                isHealthKitAuthorized: healthKitManager.isAuthorized,
-                                missingSleepBannerDismissed: $missingSleepBannerDismissed
-                            )
-                        }
+                        // Recovery Metrics (Three Graphs)
+                        RecoveryMetricsSection(
+                            recoveryScoreService: viewModel.recoveryScoreService,
+                            sleepScoreService: viewModel.sleepScoreService,
+                            strainScoreService: viewModel.strainScoreService,
+                            isHealthKitAuthorized: healthKitManager.isAuthorized,
+                            missingSleepBannerDismissed: $missingSleepBannerDismissed
+                        )
                         
-                        // AI Daily Brief - Lazy loaded (only show when HealthKit authorized)
+                        // AI Daily Brief (only when HealthKit authorized)
                         if healthKitManager.isAuthorized {
-                            LazyVStack(spacing: 0) {
-                                AIBriefView()
-                            }
+                            AIBriefView()
                         }
                         
-                        // Wellness Alert Banner - shows below daily brief when health patterns detected
+                        // Wellness Alert Banner
                         if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
                             WellnessBanner(alert: alert) {
                                 showingWellnessDetailSheet = true
@@ -84,52 +80,30 @@ struct TodayView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                         }
                         
-                        // HealthKit Enablement Section (only shown when not authorized)
+                        // HealthKit Enablement Section (only when not authorized)
                         if !viewModel.isHealthKitAuthorized {
                             HealthKitEnablementSection(
                                 showingHealthKitPermissionsSheet: $showingHealthKitPermissionsSheet
                             )
                         }
                         
-                        // Latest Ride Panel - Lazy loaded (first cycling activity from any source)
+                        // Latest Ride Panel
                         if let latestCyclingActivity = viewModel.unifiedActivities.first(where: { $0.type == .cycling }) {
-                            LazyVStack(spacing: 0) {
-                                // Section heading
-                                HStack {
-                                    Text("Latest Ride")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    Spacer()
-                                }
-                                .padding(.bottom, 12)
-                                
-                                // Show Intervals ride panel if available, otherwise show unified activity card
-                                if let intervalsRide = latestCyclingActivity.intervalsActivity {
-                                    latestRideSection(latestRide: intervalsRide)
-                                } else {
-                                    // Fallback for Strava/Health activities
-                                    UnifiedActivityCard(activity: latestCyclingActivity)
-                                }
-                                
-                                SectionDivider()
-                                    .padding(.top, 20)
-                            }
+                            latestRideView(for: latestCyclingActivity)
                         }
                         
-                        // Activity stats row (steps and calories) - Always show if HealthKit is authorized
+                        // Activity stats row (steps and calories)
                         if healthKitManager.isAuthorized {
                             ActivityStatsRow(liveActivityService: liveActivityService)
                         }
                         
-                        // Recent Activities (excluding the latest one) - Lazy loaded
-                        LazyVStack(spacing: 0) {
-                            RecentActivitiesSection(
-                                allActivities: viewModel.unifiedActivities.isEmpty ?
-                                    viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                                    viewModel.unifiedActivities,
-                                dailyActivityData: generateDailyActivityData()
-                            )
-                        }
+                        // Recent Activities (excluding the latest one)
+                        RecentActivitiesSection(
+                            allActivities: viewModel.unifiedActivities.isEmpty ?
+                                viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+                                viewModel.unifiedActivities,
+                            dailyActivityData: generateDailyActivityData()
+                        )
                     }
                     .padding()
                 }
@@ -303,9 +277,23 @@ struct TodayView: View {
         )
     }
     
-    private func latestRideSection(latestRide: IntervalsActivity) -> some View {
-        // Latest ride panel
-        LatestRidePanel(activity: latestRide)
+    // MARK: - Latest Ride View
+    
+    @ViewBuilder
+    private func latestRideView(for activity: UnifiedActivity) -> some View {
+        VStack(spacing: 0) {
+            SectionHeader("Latest Ride")
+                .padding(.bottom, 12)
+            
+            if let intervalsRide = activity.intervalsActivity {
+                LatestRidePanel(activity: intervalsRide)
+            } else {
+                UnifiedActivityCard(activity: activity)
+            }
+            
+            SectionDivider()
+                .padding(.top, 20)
+        }
     }
     
     
