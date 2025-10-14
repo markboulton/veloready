@@ -258,6 +258,15 @@ func amplifyDailyActivityByRecovery(
 - [x] **Hybrid approach** - Optional input with conservative defaults
 - [x] Build verified, committed to main
 
+### ✅ Phase 2.6 Complete (October 14, 2025 - Commit ef06064)
+- [x] **Workout pattern types added** - Push (1.1x), Pull (1.2x), Full Body (1.4x), Conditioning (1.3x)
+- [x] **Intelligent multi-selection logic** - Handles compound effects scientifically
+- [x] **Upper/Lower split recognition** - Push/Pull + Legs = 1.6x (very high systemic stress)
+- [x] **Push + Pull detection** - Full upper body day = avg + 15% volume bonus
+- [x] **Conditioning integration** - Adds 20% metabolic stress on top of resistance work
+- [x] **UI auto-expansion** - Grid now shows all 10 options (5 rows × 2 columns)
+- [x] Build verified, committed to main
+
 ### 🔄 Future Enhancements (Phase 3+)
 - [ ] **Strength load decay over 48-72h** - Track residual fatigue from previous days' sessions
 - [ ] **Time-based interference** - Fine-grained penalties based on hours between cardio/strength
@@ -271,14 +280,16 @@ func amplifyDailyActivityByRecovery(
 - [ ] Environmental factors (heat, altitude, humidity)
 - [ ] Travel/timezone fatigue multipliers
 
-## Current Capabilities (After Phase 2)
+## Current Capabilities (After Phase 2.6)
 ✅ **Active calories primary signal** - Captures intensity beyond steps  
 ✅ **Intelligent calorie-step blending** - Detects yard work, stairs, vigorous activity  
 ✅ **Recovery modulation** - Poor sleep amplifies perceived daily load  
 ✅ **Granular feedback** - 2000 steps = ~1.5 strain (no longer 0)  
 ✅ **Workout type differentiation** - Running=1.2x, Swimming=1.3x, Walking=0.6x  
 ✅ **Concurrent training detection** - 15% penalty for cardio + strength same day  
-✅ **Muscle group awareness** - Legs=1.5x, Back=1.2x systemic fatigue  
+✅ **10 muscle group/pattern options** - Legs, Back, Chest, Shoulders, Arms, Core, Push, Pull, Full Body, Conditioning  
+✅ **Intelligent multi-selection** - Compounds effects scientifically (e.g., Push+Legs=1.6x)  
+✅ **Workout pattern recognition** - Full Body=1.4x, Conditioning=1.3x  
 ✅ **Eccentric work recognition** - 1.3x multiplier for heavy negatives  
 ✅ **Enhanced logging** - Full visibility into calculation factors  
 
@@ -299,6 +310,24 @@ func amplifyDailyActivityByRecovery(
 - **After**: RPE 8 × 45min × 1.5 (legs) = high systemic strain  
 - **Why**: Legs create most overall fatigue
 
+### Scenario 4: Push + Legs Day
+- **Workout**: Squats + Bench + Overhead Press
+- **Selection**: Push + Legs
+- **Factor**: 1.6x (upper/lower split recognition)
+- **Why**: Compound session, very high systemic stress
+
+### Scenario 5: Full Upper Day
+- **Workout**: Chest + Back
+- **Selection**: Push + Pull
+- **Factor**: 1.3x (average + 15% volume bonus)
+- **Why**: High total volume, full upper body
+
+### Scenario 6: Conditioning Finisher
+- **Workout**: Leg day + HIIT circuits
+- **Selection**: Legs + Conditioning
+- **Factor**: 1.5 + 0.2 = 1.7x
+- **Why**: Resistance + metabolic stress combined
+
 ## Testing Notes
 - ✅ Test with various activity types (running, cycling, swimming)
 - ✅ Test concurrent training scenarios (bike + gym same day)
@@ -308,10 +337,11 @@ func amplifyDailyActivityByRecovery(
 
 ---
 
-**Last Updated**: October 14, 2025 (7:35pm UTC+01:00)  
-**Status**: Phase 1, 2, and 2.5 Complete - Production Ready  
+**Last Updated**: October 14, 2025 (7:45pm UTC+01:00)  
+**Status**: Phases 1, 2, 2.5, and 2.6 Complete - Production Ready  
 **Contributors**: Based on peer-reviewed sports science research  
 **Commits**:
 - Phase 1: 9b6c6c9 (Foundation + active calories + recovery modulation)
 - Phase 2: ccfcfae (Workout types + concurrent training + muscle groups)
 - Phase 2.5: ad43683 (Muscle group selection UI + hybrid approach)
+- Phase 2.6: ef06064 (Workout patterns + intelligent multi-selection)
