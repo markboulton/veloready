@@ -50,9 +50,8 @@ struct StyledButton: View {
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .background(variant.backgroundColor)
-            .cornerRadius(Spacing.buttonCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: Spacing.buttonCornerRadius)
+                Rectangle()
                     .stroke(variant.borderColor, lineWidth: variant.borderWidth)
             )
         }

@@ -20,16 +20,9 @@ struct Card<Content: View>: View {
         content
             .padding(padding)
             .background(style.backgroundColor)
-            .cornerRadius(Spacing.cardCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                Rectangle()
                     .stroke(style.borderColor, lineWidth: style.borderWidth)
-            )
-            .shadow(
-                color: style.shadowColor,
-                radius: style.shadowRadius,
-                x: 0,
-                y: style.shadowY
             )
     }
 }

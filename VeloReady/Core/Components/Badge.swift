@@ -41,7 +41,6 @@ struct Badge: View {
                 }
             }
         )
-        .cornerRadius(size.cornerRadius)
     }
 }
 
