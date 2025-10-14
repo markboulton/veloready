@@ -1,157 +1,132 @@
 import SwiftUI
 
-/// Design system typography tokens
-/// Centralized font definitions for consistent styling across the app
+/// Rationalized typography system with 4 semantic levels
+/// Enforces consistent type sizes and colors across the app
 /// Built on top of TypeScale for foundational sizing
 extension Font {
     
-    // MARK: - Headings
+    // MARK: - Core 4 Type Levels (Design System)
     
-    /// Large section headers (e.g., "Your Health Today")
-    static let sectionTitle: Font = TypeScale.font(
-        size: TypeScale.mlg,
+    /// Level 1: Titles - Page titles and main headings (34pt, bold)
+    /// Color: Always foreground
+    static let title: Font = TypeScale.font(
+        size: TypeScale.xl,
         weight: .bold
     )
     
-    /// Card/panel titles (e.g., "Steps", "Calories", "Integrations", "Recent Activities")
-    static let cardTitle: Font = TypeScale.font(
+    /// Level 2: Heading - Section headers and card titles (17pt, semibold)
+    /// Color: Always foreground
+    static let heading: Font = TypeScale.font(
         size: TypeScale.md,
         weight: .semibold
     )
     
-    /// Sub-section headers
-    static let subsectionTitle: Font = TypeScale.font(
-        size: TypeScale.sm,
-        weight: .semibold
-    )
-    
-    // MARK: - Body Text
-    
-    /// Primary body text
-    static let bodyPrimary: Font = TypeScale.font(
-        size: TypeScale.md,
-        weight: .regular
-    )
-    
-    /// Secondary body text
-    static let bodySecondary: Font = TypeScale.font(
+    /// Level 3: Body - Main text content (15pt, regular)
+    /// Color: Always foreground
+    static let body: Font = TypeScale.font(
         size: TypeScale.sm,
         weight: .regular
     )
     
-    /// Small body text
-    static let bodySmall: Font = TypeScale.font(
+    /// Level 4: Caption - Small labels, secondary text, explainers (13pt, regular)
+    /// Color: Grey (.secondary)
+    static let caption: Font = TypeScale.font(
         size: TypeScale.xs,
         weight: .regular
     )
     
-    // MARK: - Data Display
+    // MARK: - Specialized Variants (build on core 4)
     
-    /// Large metric values (e.g., step count, calorie total)
-    static let metricLarge: Font = TypeScale.font(
+    /// Large metric display (uses title with rounded design)
+    static let metric: Font = TypeScale.font(
         size: TypeScale.xl,
         weight: .bold,
         design: .rounded
     )
     
-    /// Medium metric values
-    static let metricMedium: Font = TypeScale.font(
-        size: TypeScale.lg,
-        weight: .bold,
-        design: .rounded
-    )
+    /// Button text (uses heading)
+    static let button: Font = .heading
     
-    /// Small metric values
-    static let metricSmall: Font = TypeScale.font(
-        size: TypeScale.md,
-        weight: .semibold
-    )
+    // MARK: - Legacy Aliases (for backwards compatibility during migration)
     
-    // MARK: - Labels
+    @available(*, deprecated, renamed: "heading")
+    static let cardTitle: Font = .heading
     
-    /// Primary labels (e.g., integration names, metric labels)
-    static let labelPrimary: Font = TypeScale.font(
-        size: TypeScale.xs,
-        weight: .regular
-    )
+    @available(*, deprecated, renamed: "title")
+    static let sectionTitle: Font = .title
     
-    /// Secondary labels (smaller, less prominent)
-    static let labelSecondary: Font = TypeScale.font(
-        size: TypeScale.xxs,
-        weight: .regular
-    )
+    @available(*, deprecated, renamed: "heading")
+    static let subsectionTitle: Font = .heading
     
-    /// Tertiary labels (smallest)
-    static let labelTertiary: Font = TypeScale.font(
-        size: TypeScale.tiny,
-        weight: .regular
-    )
+    @available(*, deprecated, renamed: "body")
+    static let bodyPrimary: Font = .body
     
-    // MARK: - Special
+    @available(*, deprecated, renamed: "body")
+    static let bodySecondary: Font = .body
     
-    /// Recovery score display
-    static let recoveryScore: Font = TypeScale.font(
-        size: TypeScale.xxl,
-        weight: .bold,
-        design: .rounded
-    )
+    @available(*, deprecated, renamed: "caption")
+    static let bodySmall: Font = .caption
     
-    /// Button text
-    static let button: Font = TypeScale.font(
-        size: TypeScale.md,
-        weight: .semibold
-    )
+    @available(*, deprecated, renamed: "metric")
+    static let metricLarge: Font = .metric
     
-    /// Small button text
-    static let buttonSmall: Font = TypeScale.font(
-        size: TypeScale.sm,
-        weight: .medium
-    )
+    @available(*, deprecated, renamed: "metric")
+    static let metricMedium: Font = .metric
+    
+    @available(*, deprecated, renamed: "heading")
+    static let metricSmall: Font = .heading
+    
+    @available(*, deprecated, renamed: "caption")
+    static let labelPrimary: Font = .caption
+    
+    @available(*, deprecated, renamed: "caption")
+    static let labelSecondary: Font = .caption
+    
+    @available(*, deprecated, renamed: "caption")
+    static let labelTertiary: Font = .caption
+    
+    @available(*, deprecated, renamed: "metric")
+    static let recoveryScore: Font = .metric
+    
+    @available(*, deprecated, renamed: "button")
+    static let buttonSmall: Font = .button
 }
 
-/// Text style modifiers for common patterns
+/// Text style modifiers for semantic styling
 extension Text {
     
-    /// Apply card title styling
-    func cardTitleStyle() -> some View {
+    /// Apply title styling (Level 1)
+    func titleStyle() -> some View {
         self
-            .font(.cardTitle)
+            .font(.title)
             .foregroundColor(.primary)
     }
     
-    /// Apply section title styling
-    func sectionTitleStyle() -> some View {
+    /// Apply heading styling (Level 2)
+    func headingStyle() -> some View {
         self
-            .font(.sectionTitle)
+            .font(.heading)
             .foregroundColor(.primary)
     }
     
-    /// Apply label styling (small grey text)
-    func labelStyle() -> some View {
+    /// Apply body styling (Level 3)
+    func bodyStyle() -> some View {
         self
-            .font(.labelPrimary)
+            .font(.body)
+            .foregroundColor(.primary)
+    }
+    
+    /// Apply caption styling (Level 4) - grey text
+    func captionStyle() -> some View {
+        self
+            .font(.caption)
             .foregroundColor(.secondary)
     }
     
-    /// Apply metric value styling
-    func metricStyle(size: MetricSize = .medium) -> some View {
+    /// Apply metric display styling
+    func metricStyle() -> some View {
         self
-            .font(size.font)
+            .font(.metric)
             .foregroundColor(.primary)
-    }
-}
-
-/// Metric size variants
-enum MetricSize {
-    case large
-    case medium
-    case small
-    
-    var font: Font {
-        switch self {
-        case .large: return .metricLarge
-        case .medium: return .metricMedium
-        case .small: return .metricSmall
-        }
     }
 }
