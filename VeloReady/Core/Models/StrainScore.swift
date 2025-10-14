@@ -345,33 +345,38 @@ class StrainScoreCalculator {
         }
         
         // Add strength training as equivalent TRIMP
-        if let strengthRPE = inputs.strengthSessionRPE,
-           let strengthDuration = inputs.strengthDurationMinutes,
+        if let strengthDuration = inputs.strengthDurationMinutes,
            strengthDuration > 0 {
             
-            // Convert sRPE to equivalent TRIMP
-            // sRPE 1-10 maps to HR zones 1-5, so we can estimate TRIMP
-            let estimatedHRFraction = (strengthRPE - 1.0) / 9.0 // 0-1 range
-            let strengthTRIMP = estimatedHRFraction * strengthDuration * 60 // Convert to seconds
+            // Convert strength to equivalent TRIMP
+            // Use RPE if available, otherwise assume moderate intensity (RPE 6-7)
+            let rpe = inputs.strengthSessionRPE ?? 6.5 // Default to moderate-hard
+            
+            // More generous strength TRIMP calculation
+            // Strength training is metabolically demanding even at lower heart rates
+            let estimatedHRFraction = max(0.5, (rpe - 1.0) / 9.0) // Minimum 50% intensity
+            let strengthTRIMP = estimatedHRFraction * strengthDuration * 120 // 2x multiplier for metabolic demand
             workoutTRIMP += strengthTRIMP
         }
         
-        // 2. Add daily activity floor effect (Whoop-style)
+        // 2. Add daily activity floor effect (more generous)
         var dailyActivityAdjustment: Double = 0
         
         if let steps = inputs.dailySteps {
-            // Whoop-style step adjustments (conservative)
+            // More generous step adjustments to better reflect daily activity
             switch steps {
-            case 0..<4000:
+            case 0..<2000:
                 dailyActivityAdjustment = 0
-            case 4000..<8000:
-                dailyActivityAdjustment = 0.5
-            case 8000..<12000:
+            case 2000..<5000:
                 dailyActivityAdjustment = 1.0
+            case 5000..<8000:
+                dailyActivityAdjustment = 2.0  // 6k steps now = 2.0
+            case 8000..<12000:
+                dailyActivityAdjustment = 3.0
             case 12000..<16000:
-                dailyActivityAdjustment = 1.5
+                dailyActivityAdjustment = 4.0
             default:
-                dailyActivityAdjustment = 2.0 // Cap at 2 strain points
+                dailyActivityAdjustment = 5.0 // Cap at 5 strain points for very active days
             }
         }
         
