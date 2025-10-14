@@ -17,7 +17,7 @@ struct RecentActivitiesSection: View {
                 .frame(width: 120)
                 Spacer()
             }
-            .padding(.bottom, 16)
+            .padding(.bottom, 0)
             
             // Show all activities except the first cycling one (which is shown in latest ride panel)
             let firstCyclingIndex = allActivities.firstIndex(where: { $0.type == .cycling })

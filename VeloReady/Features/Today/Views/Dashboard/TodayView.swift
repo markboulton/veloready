@@ -291,7 +291,7 @@ struct TodayView: View {
                 UnifiedActivityCard(activity: activity)
             }
             
-            SectionDivider()
+            SectionDivider(bottomPadding: 0)
         }
     }
     
