@@ -24,17 +24,14 @@ struct RPEInputSheet: View {
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 8) {
-                    Image(systemName: "dumbbell.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(.blue)
-                    
                     Text("Rate Your Effort")
                         .font(.title2)
                         .fontWeight(.bold)
+                        .foregroundStyle(Color.text.primary)
                     
                     Text("How hard did this workout feel?")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.text.secondary)
                 }
                 .padding(.top, 32)
                 
@@ -42,28 +39,28 @@ struct RPEInputSheet: View {
                 VStack(spacing: 8) {
                     Text(String(format: "%.1f", rpeValue))
                         .font(.system(size: 72, weight: .bold))
-                        .foregroundColor(.blue)
+                        .foregroundStyle(Color.text.primary)
                     
                     Text(rpeDescription)
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.text.secondary)
                 }
                 .padding(.vertical, 16)
                 
-                // Slider
+                // Slider with custom styling
                 VStack(spacing: 16) {
                     Slider(value: $rpeValue, in: 1...10, step: 0.5)
-                        .accentColor(.blue)
+                        .tint(Color.button.primary)
                         .padding(.horizontal)
                     
                     HStack {
                         Text("1 - Very Light")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color.text.secondary)
                         Spacer()
                         Text("10 - Maximum")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color.text.secondary)
                     }
                     .padding(.horizontal)
                 }
@@ -78,7 +75,7 @@ struct RPEInputSheet: View {
                     rpeGuideRow(range: "9-10", label: "Maximum", description: "Can't sustain long")
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(ColorScale.gray100)
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
@@ -99,7 +96,7 @@ struct RPEInputSheet: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.button.primary)
                     .cornerRadius(12)
                 }
                 .disabled(isSaving)
@@ -123,17 +120,18 @@ struct RPEInputSheet: View {
             Text(range)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.blue)
+                .foregroundColor(Color.text.primary)
                 .frame(width: 36, alignment: .leading)
             
             Text(label)
                 .font(.caption)
                 .fontWeight(.semibold)
+                .foregroundColor(Color.text.primary)
                 .frame(width: 70, alignment: .leading)
             
             Text(description)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.text.secondary)
             
             Spacer()
         }
