@@ -4,6 +4,7 @@ import SwiftUI
 struct DetailedCaloriePanel: View {
     @ObservedObject private var liveActivityService: LiveActivityService
     @StateObject private var userSettings = UserSettings.shared
+    @State private var dataOpacity: Double = 0.0
     
     init(liveActivityService: LiveActivityService) {
         self.liveActivityService = liveActivityService
@@ -22,21 +23,13 @@ struct DetailedCaloriePanel: View {
                 valueColor: ColorPalette.peach
             )
             
-            // Active Energy
-            if liveActivityService.isLoading {
-                HStack {
-                    Text("Active Energy")
-                        .captionStyle()
-                    Spacer()
-                    LoadingStateView(size: .small)
-                }
-            } else {
-                StatRow(
-                    label: "Active Energy",
-                    value: "\(Int(liveActivityService.activeCalories))",
-                    valueColor: Color.semantic.success
-                )
-            }
+            // Active Energy - always show to preserve layout
+            StatRow(
+                label: "Active Energy",
+                value: "\(Int(liveActivityService.activeCalories))",
+                valueColor: Color.semantic.success
+            )
+            .opacity(dataOpacity)
             
             // Divider
             Divider()
@@ -49,13 +42,10 @@ struct DetailedCaloriePanel: View {
                 
                 Spacer()
                 
-                if liveActivityService.isLoading {
-                    LoadingStateView(size: .small)
-                } else {
-                    Text("\(Int(totalCalories))")
-                        .font(.heading)
-                        .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
-                }
+                Text("\(Int(totalCalories))")
+                    .font(.heading)
+                    .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
+                    .opacity(dataOpacity)
             }
             
             // Last updated
@@ -65,6 +55,18 @@ struct DetailedCaloriePanel: View {
             }
         }
         .cardStyle()
+        .onChange(of: liveActivityService.isLoading) { isLoading in
+            if !isLoading {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    dataOpacity = 1.0
+                }
+            }
+        }
+        .onAppear {
+            if !liveActivityService.isLoading {
+                dataOpacity = 1.0
+            }
+        }
     }
     
     private var effectiveGoal: Double {

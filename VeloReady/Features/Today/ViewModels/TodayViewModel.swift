@@ -12,6 +12,7 @@ class TodayViewModel: ObservableObject {
     @Published var isInitializing = true
     @Published var isDataLoaded = false // Track when all initial data is ready
     @Published var errorMessage: String?
+    @Published var animationTrigger = UUID() // Triggers ring animations on refresh
     
     // Track if initial UI has been loaded to prevent duplicate calls
     private var hasLoadedInitialUI = false
@@ -245,6 +246,9 @@ class TodayViewModel: ObservableObject {
         
         // Then refresh our local data
         await refreshData()
+        
+        // Trigger ring animations after refresh completes
+        animationTrigger = UUID()
     }
     
     func refreshHealthKitAuthorizationStatus() async {

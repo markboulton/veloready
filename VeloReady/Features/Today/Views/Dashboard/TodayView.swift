@@ -64,7 +64,8 @@ struct TodayView: View {
                             sleepScoreService: viewModel.sleepScoreService,
                             strainScoreService: viewModel.strainScoreService,
                             isHealthKitAuthorized: healthKitManager.isAuthorized,
-                            missingSleepBannerDismissed: $missingSleepBannerDismissed
+                            missingSleepBannerDismissed: $missingSleepBannerDismissed,
+                            animationTrigger: viewModel.animationTrigger
                         )
                         
                         // AI Daily Brief (only when HealthKit authorized)

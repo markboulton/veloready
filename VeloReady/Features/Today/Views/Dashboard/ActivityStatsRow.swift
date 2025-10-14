@@ -4,6 +4,7 @@ import SwiftUI
 struct ActivityStatsRow: View {
     @ObservedObject private var liveActivityService: LiveActivityService
     @State private var hourlySteps: [HourlyStepData] = []
+    @State private var dataOpacity: Double = 0.0
     
     init(liveActivityService: LiveActivityService) {
         self.liveActivityService = liveActivityService
@@ -28,14 +29,24 @@ struct ActivityStatsRow: View {
                         await loadHourlySteps()
                     }
                     
-                    if liveActivityService.isLoading {
-                        LoadingStateView(size: .small)
-                    } else {
-                        MetricDisplay(
-                            formatSteps(liveActivityService.dailySteps),
-                            label: liveActivityService.walkingDistance > 0 ? formatDistance(liveActivityService.walkingDistance) : nil,
-                            size: .medium
-                        )
+                    // Always show metric display to preserve layout
+                    MetricDisplay(
+                        formatSteps(liveActivityService.dailySteps),
+                        label: liveActivityService.walkingDistance > 0 ? formatDistance(liveActivityService.walkingDistance) : nil,
+                        size: .medium
+                    )
+                    .opacity(dataOpacity)
+                    .onChange(of: liveActivityService.isLoading) { isLoading in
+                        if !isLoading {
+                            withAnimation(.easeIn(duration: 0.3)) {
+                                dataOpacity = 1.0
+                            }
+                        }
+                    }
+                    .onAppear {
+                        if !liveActivityService.isLoading {
+                            dataOpacity = 1.0
+                        }
                     }
                     
                     Spacer()

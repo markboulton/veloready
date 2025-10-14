@@ -7,6 +7,7 @@ struct RecoveryMetricsSection: View {
     @ObservedObject var strainScoreService: StrainScoreService
     let isHealthKitAuthorized: Bool
     @Binding var missingSleepBannerDismissed: Bool
+    let animationTrigger: UUID // Triggers animations on change
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -79,7 +80,8 @@ struct RecoveryMetricsSection: View {
                             action: {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
-                            centerText: nil
+                            centerText: nil,
+                            animationTrigger: animationTrigger
                         )
                     }
                     .frame(maxWidth: .infinity)
@@ -135,7 +137,8 @@ struct RecoveryMetricsSection: View {
                                 action: {
                                     // Action handled by button wrapper
                                 },
-                                centerText: nil
+                                centerText: nil,
+                                animationTrigger: animationTrigger
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -162,7 +165,8 @@ struct RecoveryMetricsSection: View {
                                 action: {
                                     // Empty action - navigation handled by parent NavigationLink
                                 },
-                                centerText: nil
+                                centerText: nil,
+                                animationTrigger: animationTrigger
                             )
                         }
                         .frame(maxWidth: .infinity)
@@ -197,7 +201,8 @@ struct RecoveryMetricsSection: View {
                             action: {
                                 // Action handled by button wrapper
                             },
-                            centerText: nil
+                            centerText: nil,
+                            animationTrigger: animationTrigger
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -233,7 +238,8 @@ struct RecoveryMetricsSection: View {
                             action: {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
-                            centerText: strainScore.formattedScore
+                            centerText: strainScore.formattedScore,
+                            animationTrigger: animationTrigger
                         )
                     }
                     .frame(maxWidth: .infinity)
@@ -269,7 +275,8 @@ struct RecoveryMetricsSection_Previews: PreviewProvider {
             sleepScoreService: SleepScoreService.shared,
             strainScoreService: StrainScoreService.shared,
             isHealthKitAuthorized: true,
-            missingSleepBannerDismissed: .constant(false)
+            missingSleepBannerDismissed: .constant(false),
+            animationTrigger: UUID()
         )
         .padding()
         .previewLayout(.sizeThatFits)
