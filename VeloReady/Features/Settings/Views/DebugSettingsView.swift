@@ -24,6 +24,9 @@ struct DebugSettingsView: View {
     
     var body: some View {
         Form {
+                // Monitoring Dashboards
+                monitoringDashboardsSection
+                
                 // 1. Auth Status
                 authStatusSection
                 
@@ -805,6 +808,46 @@ struct DebugSettingsView: View {
             Label(DebugSettingsContent.SectionHeaders.oauthActions, systemImage: "key.horizontal")
         } footer: {
             Text("Connect or disconnect from Intervals.icu and Strava for testing")
+        }
+    }
+    
+    // MARK: - Monitoring Dashboards Section
+    
+    private var monitoringDashboardsSection: some View {
+        Section {
+            NavigationLink(destination: ServiceHealthDashboard()) {
+                HStack {
+                    Image(systemName: "heart.text.square.fill")
+                        .foregroundColor(.green)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Service Health")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Monitor service status and connections")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            NavigationLink(destination: TelemetryDashboard()) {
+                HStack {
+                    Image(systemName: "chart.bar.fill")
+                        .foregroundColor(.blue)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Component Telemetry")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Track component usage statistics")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
+        } footer: {
+            Text("Real-time monitoring of app services and component usage")
         }
     }
     
