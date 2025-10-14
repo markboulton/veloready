@@ -54,7 +54,8 @@ struct WalkingDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingRPESheet) {
             RPEInputSheet(workout: workout) {
-                hasRPE = true
+                // Refresh state after saving
+                checkRPEStatus()
             }
         }
         .task {
@@ -105,7 +106,12 @@ struct WalkingDetailView: View {
                 
                 Spacer()
                 
-                TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
+                // Show appropriate button based on whether details exist
+                if hasRPE {
+                    TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
+                } else {
+                    SecondaryButton(title: "Add details", action: { showingRPESheet = true })
+                }
             }
             
             // Display selected muscle groups and workout types
@@ -187,25 +193,16 @@ struct WalkingWorkoutInfoHeader: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Title and Date/Time with Edit RPE button
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(workoutTitle)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.text.primary)
-                    
-                    Text(formattedDateAndTime)
-                        .font(.subheadline)
-                        .foregroundStyle(Color.text.secondary)
-                }
+            // Title and Date/Time
+            VStack(alignment: .leading, spacing: 4) {
+                Text(workoutTitle)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.text.primary)
                 
-                Spacer()
-                
-                // Edit RPE button for strength workouts with RPE
-                if isStrengthWorkout, storedRPE != nil {
-                    SecondaryButton(title: "Edit RPE", action: { showingRPESheet = true })
-                }
+                Text(formattedDateAndTime)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.text.secondary)
             }
             
             // Primary Metrics Grid - 3 columns like cycling

@@ -39,23 +39,15 @@ struct SharedActivityRowView: View {
             
             Spacer()
             
-            // Add details button for strength workouts
+            // Add/Edit details button for strength workouts
             if shouldShowRPEButton {
-                Button(action: {
-                    showingRPESheet = true
-                }) {
-                    Text("Add details")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(ColorScale.blueAccent)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(ColorScale.blueAccent, lineWidth: 1)
-                        )
+                if hasRPE {
+                    // Tertiary style when details exist
+                    TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
+                } else {
+                    // Secondary style when no details
+                    SecondaryButton(title: "Add details", action: { showingRPESheet = true })
                 }
-                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.vertical, 8)
