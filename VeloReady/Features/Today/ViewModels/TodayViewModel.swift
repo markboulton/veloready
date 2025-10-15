@@ -142,11 +142,11 @@ class TodayViewModel: ObservableObject {
         }
         print("⚡ Starting parallel score calculations...")
         
-        async let sleepTask = sleepScoreService.calculateSleepScore()
-        async let strainTask = strainScoreService.calculateStrainScore()
+        async let _ = sleepScoreService.calculateSleepScore()
+        async let _ = strainScoreService.calculateStrainScore()
         
         // Wait for sleep score first (needed for recovery)
-        await sleepTask
+        _ = await sleepScoreService.calculateSleepScore()
         print("✅ Sleep score calculated")
         
         // Start recovery calculation after sleep is done
@@ -304,7 +304,7 @@ class TodayViewModel: ObservableObject {
         // Debug: Print details of cached data
         if !cachedDays.isEmpty {
             for day in cachedDays {
-                print("📊 Core Data cached day: \(day.date)")
+                print("📊 Core Data cached day: \(String(describing: day.date))")
                 print("   Recovery: \(day.recoveryScore), Sleep: \(day.sleepScore), Strain: \(day.strainScore)")
                 print("   HRV: \(day.physio?.hrv ?? 0), RHR: \(day.physio?.rhr ?? 0)")
                 print("   CTL: \(day.load?.ctl ?? 0), ATL: \(day.load?.atl ?? 0), TSS: \(day.load?.tss ?? 0)")

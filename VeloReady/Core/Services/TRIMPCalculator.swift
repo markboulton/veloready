@@ -153,7 +153,7 @@ class TRIMPCalculator {
     /// Uses different multipliers based on activity type
     private func estimateTRIMPFromWorkout(_ workout: HKWorkout) -> Double {
         let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
-        let durationMinutes = workout.duration / 60.0
+        _ = workout.duration / 60.0
         
         // Different multipliers based on workout type
         // Strength training creates high muscular stress despite lower calorie burn

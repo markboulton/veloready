@@ -112,7 +112,7 @@ class ReadinessForecastService: ObservableObject {
         let rhrRatio = baselineRHR / max(currentRHR, 1)
         
         // If well-recovered, maintain; if fatigued, gradual improvement
-        let hrvTrend = hrvRatio < 0.95 ? 0.02 * Double(day) : 0  // 2% improvement per day if low
+        _ = hrvRatio < 0.95 ? 0.02 * Double(day) : 0  // 2% improvement per day if low
         let rhrTrend = rhrRatio < 0.95 ? 0.02 * Double(day) : 0  // 2% improvement per day if high
         
         // TSB influence (positive TSB = fresh, negative = fatigued)

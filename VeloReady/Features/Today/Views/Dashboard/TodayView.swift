@@ -344,7 +344,7 @@ struct TodayView: View {
                 let duration: Double = {
                     if let dur = activity.duration, dur > 0 {
                         return dur / 60.0 // Convert seconds to minutes
-                    } else if let intervalsActivity = activity.intervalsActivity {
+                    } else if activity.intervalsActivity != nil {
                         // For Intervals activities, use TSS as a proxy for duration/intensity
                         // TSS roughly correlates to workout duration and intensity
                         // Use a fixed height for visibility (e.g., 60 minutes)

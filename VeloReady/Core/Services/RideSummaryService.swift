@@ -198,7 +198,7 @@ class RideSummaryService: ObservableObject {
         guard let hrZoneTimes = activity.icuHrZoneTimes,
               !hrZoneTimes.isEmpty,
               let avgHR = activity.averageHeartRate,
-              let maxHR = activity.maxHeartRate,
+              let _ = activity.maxHeartRate,
               avgHR > 0 else {
             return nil
         }

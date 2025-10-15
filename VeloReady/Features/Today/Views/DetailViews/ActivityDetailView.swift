@@ -69,7 +69,7 @@ struct ActivityDetailView: View {
         switch activityData.type {
         case .cycling:
             // Power and HR charts for cycling
-            if let samples = activityData.intervalsActivity?.id {
+            if activityData.intervalsActivity?.id != nil {
                 WorkoutChartsSection(
                     samples: viewModel.workoutSamples,
                     ftp: viewModel.ftp,

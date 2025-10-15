@@ -508,7 +508,7 @@ class RideDetailViewModel: ObservableObject {
         let cadences = streams.first(where: { $0.type == "cadence" })?.data.simpleData ?? []
         let altitudes = streams.first(where: { $0.type == "altitude" })?.data.simpleData ?? []
         let speeds = streams.first(where: { $0.type == "velocity_smooth" })?.data.simpleData ?? [] // m/s
-        let distances = streams.first(where: { $0.type == "distance" })?.data.simpleData ?? []
+        _ = streams.first(where: { $0.type == "distance" })?.data.simpleData ?? []
         let latlngs = streams.first(where: { $0.type == "latlng" })?.data.latlngData ?? []
         
         print("🔄 Stream data available:")
