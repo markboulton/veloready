@@ -87,33 +87,15 @@ struct SharedActivityRowView: View {
         if calendar.isDateInToday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            let timeString = timeFormatter.string(from: date)
-            
-            if let location = activity.location, !location.isEmpty {
-                return "Today at \(timeString) · \(location)"
-            } else {
-                return "Today at \(timeString)"
-            }
+            return "Today at \(timeFormatter.string(from: date))"
         } else if calendar.isDateInYesterday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            let timeString = timeFormatter.string(from: date)
-            
-            if let location = activity.location, !location.isEmpty {
-                return "Yesterday at \(timeString) · \(location)"
-            } else {
-                return "Yesterday at \(timeString)"
-            }
+            return "Yesterday at \(timeFormatter.string(from: date))"
         } else {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d MMM yyyy 'at' HH:mm"
-            let dateString = dateFormatter.string(from: date)
-            
-            if let location = activity.location, !location.isEmpty {
-                return "\(dateString) · \(location)"
-            } else {
-                return dateString
-            }
+            return dateFormatter.string(from: date)
         }
     }
     
@@ -158,8 +140,14 @@ struct SharedActivityRowView: View {
             return "figure.pool.swim"
         case .walking:
             return "figure.walk"
+        case .hiking:
+            return "figure.hiking"
         case .strength:
             return "dumbbell.fill"
+        case .yoga:
+            return "figure.yoga"
+        case .hiit:
+            return "flame.fill"
         case .other:
             return "figure.mixed.cardio"
         }
@@ -175,8 +163,14 @@ struct SharedActivityRowView: View {
             return ColorScale.cyanAccent
         case .walking:
             return ColorScale.greenAccent
+        case .hiking:
+            return ColorScale.amberAccent
         case .strength:
             return ColorScale.purpleAccent
+        case .yoga:
+            return ColorScale.pinkAccent
+        case .hiit:
+            return ColorScale.redAccent
         case .other:
             return ColorScale.gray400
         }
