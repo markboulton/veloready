@@ -27,6 +27,27 @@ class WellnessDetectionService: ObservableObject {
     
     /// Analyze recent health trends for potential illness indicators
     func analyzeHealthTrends() async {
+        // Debug mode: show mock wellness warning
+        #if DEBUG
+        if ProFeatureConfig.shared.showWellnessWarningForTesting {
+            print("🧪 DEBUG: Showing mock wellness warning")
+            currentAlert = WellnessAlert(
+                severity: .red,
+                type: .multipleIndicators,
+                detectedAt: Date(),
+                metrics: WellnessAlert.AffectedMetrics(
+                    elevatedRHR: true,
+                    depressedHRV: true,
+                    elevatedRespiratoryRate: true,
+                    elevatedBodyTemp: false,
+                    poorSleep: true
+                ),
+                trendDays: 3
+            )
+            return
+        }
+        #endif
+        
         guard !isAnalyzing else {
             print("⏭️ Wellness analysis already in progress, skipping...")
             return

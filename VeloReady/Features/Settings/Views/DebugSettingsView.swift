@@ -254,6 +254,20 @@ struct DebugSettingsView: View {
                 }
             }
             
+            // Wellness Warning Toggle
+            Toggle("Show Wellness Warning", isOn: $config.showWellnessWarningForTesting)
+            
+            if config.showWellnessWarningForTesting {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                    Text("Mock wellness warning enabled")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
+            
             // Subscription Status
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
