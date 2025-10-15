@@ -28,7 +28,7 @@ struct TrainingLoadChart: View {
         dateFormatter.timeZone = TimeZone.current
         
         guard let rideDate = dateFormatter.date(from: activity.startDateLocal) else {
-            Logger.error("TrainingLoadChart: Failed to parse date from '\(activity.startDateLocal)'")
+            // Cannot log during view body computation
             return AnyView(EmptyView())
         }
         
