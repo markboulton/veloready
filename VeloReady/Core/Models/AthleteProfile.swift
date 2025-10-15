@@ -101,13 +101,23 @@ class AthleteProfileManager: ObservableObject {
     }
     
     /// Use Strava athlete FTP as fallback if no computed FTP yet
+    /// Only runs if user is NOT authenticated with Intervals.icu (to avoid interfering)
     private func useStravaFTPIfAvailable() async {
-        // Only fetch if we don't have FTP yet
+        // Early exit if FTP already exists
         guard profile.ftp == nil || profile.ftp == 0 else { return }
         
+        // OPTIMIZATION: Only use Strava fallback if user is NOT using Intervals
+        // This prevents unnecessary API calls for Intervals users
+        let intervalsAuthenticated = await MainActor.run { IntervalsOAuthManager.shared.isAuthenticated }
+        if intervalsAuthenticated {
+            Logger.data("⏭️ Skipping Strava FTP fallback - user has Intervals.icu")
+            return
+        }
+        
         do {
-            Logger.data("📊 Attempting to fetch Strava athlete FTP as fallback...")
-            let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
+            Logger.data("📊 Attempting to fetch Strava athlete FTP as fallback (Strava-only user)...")
+            // Use cache to avoid repeated API calls
+            let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
             
             if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                 Logger.data("✅ Using Strava FTP as fallback: \(stravaFTP)W")

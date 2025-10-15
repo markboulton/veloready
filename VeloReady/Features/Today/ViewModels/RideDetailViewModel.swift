@@ -448,7 +448,8 @@ class RideDetailViewModel: ObservableObject {
                 // Fallback 2: Try to get FTP from Strava athlete if not computed
                 if ftp == nil || ftp == 0 {
                     do {
-                        let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
+                        // Use cache to avoid repeated API calls
+                        let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
                         if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                             ftp = Double(stravaFTP)
                             Logger.debug("🟠 Using Strava FTP: \(Int(ftp!))W")
