@@ -537,15 +537,42 @@ class RideDetailViewModel: ObservableObject {
                         fileType: enriched.fileType,
                         tss: tss,
                         intensityFactor: intensityFactor,
-                        atl: nil, // Will be calculated from activity history if needed
-                        ctl: nil, // Will be calculated from activity history if needed
+                        atl: nil, // Will be set below from activity history
+                        ctl: nil, // Will be set below from activity history
                         icuZoneTimes: enriched.icuZoneTimes,
                         icuHrZoneTimes: enriched.icuHrZoneTimes
                     )
                     
-                    // TODO: Calculate CTL/ATL from recent activity history
-                    // This would require fetching recent activities and computing rolling averages
-                    // For now, these remain nil for Strava activities
+                    // Calculate CTL/ATL from recent activity history
+                    Logger.debug("🟠 Calculating CTL/ATL from activity history...")
+                    let (ctl, atl) = await calculateCTLATL(currentActivity: enriched, ftp: ftpValue)
+                    
+                    // Update enriched activity with CTL/ATL
+                    enriched = IntervalsActivity(
+                        id: enriched.id,
+                        name: enriched.name,
+                        description: enriched.description,
+                        startDateLocal: enriched.startDateLocal,
+                        type: enriched.type,
+                        duration: enriched.duration,
+                        distance: enriched.distance,
+                        elevationGain: enriched.elevationGain,
+                        averagePower: enriched.averagePower,
+                        normalizedPower: enriched.normalizedPower,
+                        averageHeartRate: enriched.averageHeartRate,
+                        maxHeartRate: enriched.maxHeartRate,
+                        averageCadence: enriched.averageCadence,
+                        averageSpeed: enriched.averageSpeed,
+                        maxSpeed: enriched.maxSpeed,
+                        calories: enriched.calories,
+                        fileType: enriched.fileType,
+                        tss: enriched.tss,
+                        intensityFactor: enriched.intensityFactor,
+                        atl: atl,
+                        ctl: ctl,
+                        icuZoneTimes: enriched.icuZoneTimes,
+                        icuHrZoneTimes: enriched.icuHrZoneTimes
+                    )
                     
                     Logger.debug("🟠 ========== ENRICHED ACTIVITY CREATED ==========")
                     Logger.debug("🟠 Enriched TSS: \(enriched.tss?.description ?? "nil")")
@@ -639,6 +666,106 @@ class RideDetailViewModel: ObservableObject {
         Logger.debug("  - GPS points: \(samples.filter { $0.latitude != nil && $0.longitude != nil }.count)")
         
         return samples
+    }
+    
+    /// Calculate CTL and ATL from recent activity history
+    /// - Parameters:
+    ///   - currentActivity: The current activity being viewed
+    ///   - ftp: The FTP value used for TSS calculation
+    /// - Returns: Tuple of (ctl, atl)
+    private func calculateCTLATL(currentActivity: IntervalsActivity, ftp: Double) async -> (ctl: Double, atl: Double) {
+        do {
+            // Fetch recent activities (42 days for CTL calculation)
+            Logger.debug("🟠 Fetching recent activities for CTL/ATL calculation...")
+            let activities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
+            
+            Logger.debug("🟠 Fetched \(activities.count) activities from Strava")
+            
+            // Convert to IntervalsActivity and calculate TSS for each
+            var enrichedActivities: [IntervalsActivity] = []
+            
+            for stravaActivity in activities {
+                // Convert to IntervalsActivity
+                var activity = convertStravaToIntervals(stravaActivity)
+                
+                // Calculate TSS if activity has power data
+                if let np = activity.normalizedPower ?? (activity.averagePower.map { $0 * 1.05 }),
+                   np > 50 {
+                    let duration = activity.duration ?? 0
+                    let if_value = np / ftp
+                    let tss = (duration * np * if_value) / (ftp * 36.0)
+                    
+                    // Update activity with TSS
+                    activity = IntervalsActivity(
+                        id: activity.id,
+                        name: activity.name,
+                        description: activity.description,
+                        startDateLocal: activity.startDateLocal,
+                        type: activity.type,
+                        duration: activity.duration,
+                        distance: activity.distance,
+                        elevationGain: activity.elevationGain,
+                        averagePower: activity.averagePower,
+                        normalizedPower: np,
+                        averageHeartRate: activity.averageHeartRate,
+                        maxHeartRate: activity.maxHeartRate,
+                        averageCadence: activity.averageCadence,
+                        averageSpeed: activity.averageSpeed,
+                        maxSpeed: activity.maxSpeed,
+                        calories: activity.calories,
+                        fileType: activity.fileType,
+                        tss: tss,
+                        intensityFactor: if_value,
+                        atl: nil,
+                        ctl: nil,
+                        icuZoneTimes: nil,
+                        icuHrZoneTimes: nil
+                    )
+                }
+                
+                enrichedActivities.append(activity)
+            }
+            
+            // Calculate CTL/ATL using TrainingLoadCalculator
+            let calculator = TrainingLoadCalculator()
+            let (ctl, atl) = calculator.calculateTrainingLoadFromActivities(enrichedActivities)
+            
+            Logger.debug("🟠 ✅ CTL: \(String(format: "%.1f", ctl)), ATL: \(String(format: "%.1f", atl))")
+            
+            return (ctl, atl)
+        } catch {
+            Logger.warning("🟠 ❌ Failed to calculate CTL/ATL: \(error)")
+            return (0, 0)
+        }
+    }
+    
+    /// Convert Strava activity to Intervals activity format
+    private func convertStravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
+        IntervalsActivity(
+            id: "strava_\(strava.id)",
+            name: strava.name,
+            description: nil,
+            startDateLocal: strava.start_date_local,
+            type: strava.sport_type,
+            duration: TimeInterval(strava.moving_time),
+            distance: strava.distance,
+            elevationGain: strava.total_elevation_gain,
+            averagePower: strava.average_watts,
+            normalizedPower: strava.weighted_average_watts.map { Double($0) },
+            averageHeartRate: strava.average_heartrate,
+            maxHeartRate: strava.max_heartrate.map { Double($0) },
+            averageCadence: strava.average_cadence,
+            averageSpeed: strava.average_speed,
+            maxSpeed: strava.max_speed,
+            calories: strava.calories.map { Int($0) },
+            fileType: nil,
+            tss: nil,
+            intensityFactor: nil,
+            atl: nil,
+            ctl: nil,
+            icuZoneTimes: nil,
+            icuHrZoneTimes: nil
+        )
     }
     
     /// Ensure zones are available before enriching activities

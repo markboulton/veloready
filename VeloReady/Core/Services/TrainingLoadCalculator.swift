@@ -9,6 +9,55 @@ class TrainingLoadCalculator {
     private let trimpCalculator = TRIMPCalculator()
     private let healthKitManager = HealthKitManager.shared
     
+    /// Calculate CTL and ATL from Strava activities using TSS
+    /// - Parameter activities: Array of activities with TSS values
+    /// - Returns: Tuple of (ctl, atl) for the most recent date
+    func calculateTrainingLoadFromActivities(_ activities: [IntervalsActivity]) -> (ctl: Double, atl: Double) {
+        Logger.data("📊 Calculating CTL/ATL from \(activities.count) activities...")
+        
+        // Group activities by date and sum TSS
+        var dailyTSS: [Date: Double] = [:]
+        let calendar = Calendar.current
+        
+        for activity in activities {
+            guard let tss = activity.tss, tss > 0 else { continue }
+            guard let activityDate = parseActivityDate(activity.startDateLocal) else { continue }
+            
+            let day = calendar.startOfDay(for: activityDate)
+            dailyTSS[day, default: 0] += tss
+        }
+        
+        Logger.data("📊 Found \(dailyTSS.count) days with TSS data")
+        
+        // Create array of last 42 days with TSS values
+        let today = calendar.startOfDay(for: Date())
+        var dailyValues: [Double] = []
+        
+        for i in 0..<42 {
+            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
+            let tss = dailyTSS[date] ?? 0
+            dailyValues.insert(tss, at: 0) // Insert at beginning to maintain chronological order
+        }
+        
+        let ctl = calculateCTL(from: dailyValues)
+        let atl = calculateATL(from: dailyValues)
+        let tsb = ctl - atl
+        
+        Logger.data("📊 Training Load from Activities:")
+        Logger.data("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
+        Logger.data("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
+        Logger.data("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
+        
+        return (ctl, atl)
+    }
+    
+    /// Parse activity date string
+    private func parseActivityDate(_ dateString: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
+        return formatter.date(from: dateString)
+    }
+    
     /// Calculate current CTL and ATL from HealthKit workouts
     /// - Returns: Tuple of (ctl, atl) or nil if insufficient data
     func calculateTrainingLoad() async -> (ctl: Double, atl: Double) {
