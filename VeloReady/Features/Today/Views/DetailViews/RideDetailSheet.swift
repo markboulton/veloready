@@ -11,6 +11,21 @@ struct RideDetailSheet: View {
     @StateObject private var profileManager = AthleteProfileManager.shared
     
     var body: some View {
+        Logger.debug("🏁 ========== RIDE DETAIL SHEET RENDERING ==========")
+        Logger.debug("🏁 Original Activity ID: \(activity.id)")
+        Logger.debug("🏁 Original Activity TSS: \(activity.tss?.description ?? "nil")")
+        Logger.debug("🏁 Original Activity IF: \(activity.intensityFactor?.description ?? "nil")")
+        Logger.debug("🏁 Enriched Activity: \(viewModel.enrichedActivity != nil ? "EXISTS" : "NIL")")
+        if let enriched = viewModel.enrichedActivity {
+            Logger.debug("🏁 Enriched Activity TSS: \(enriched.tss?.description ?? "nil")")
+            Logger.debug("🏁 Enriched Activity IF: \(enriched.intensityFactor?.description ?? "nil")")
+            Logger.debug("🏁 Enriched Activity Power Zones: \(enriched.icuZoneTimes?.count ?? 0) zones")
+            Logger.debug("🏁 Enriched Activity HR Zones: \(enriched.icuHrZoneTimes?.count ?? 0) zones")
+        }
+        Logger.debug("🏁 Profile FTP: \(profileManager.profile.ftp?.description ?? "nil")")
+        Logger.debug("🏁 Profile Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
+        Logger.debug("🏁 Profile HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
+        Logger.debug("🏁 ================================================")
         
         return WorkoutDetailView(
             activity: viewModel.enrichedActivity ?? activity,

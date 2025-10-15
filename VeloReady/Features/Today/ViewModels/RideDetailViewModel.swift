@@ -439,30 +439,49 @@ class RideDetailViewModel: ObservableObject {
                 var enriched = enrichActivityWithStreamData(activity: activity, samples: workoutSamples, profileManager: profileManager)
                 
                 // Calculate TSS and IF with fallbacks for missing data
+                Logger.debug("🟠 ========== TSS CALCULATION START ==========")
+                Logger.debug("🟠 Activity Average Power: \(activity.averagePower?.description ?? "nil")")
+                Logger.debug("🟠 Activity Normalized Power: \(activity.normalizedPower?.description ?? "nil")")
+                Logger.debug("🟠 Profile FTP: \(profileManager.profile.ftp?.description ?? "nil")")
+                
                 var normalizedPower = activity.normalizedPower
                 var ftp = profileManager.profile.ftp
                 
                 // Fallback 1: Estimate NP from average power if missing
                 if normalizedPower == nil, let avgPower = activity.averagePower, avgPower > 0 {
                     normalizedPower = avgPower * 1.05 // Conservative NP estimate
-                    Logger.debug("🟠 Estimated NP from average power: \(Int(normalizedPower!))W (avg power: \(Int(avgPower))W)")
+                    Logger.debug("🟠 ✅ Estimated NP from average power: \(Int(normalizedPower!))W (avg power: \(Int(avgPower))W)")
+                } else if normalizedPower != nil {
+                    Logger.debug("🟠 ✅ Using activity normalized power: \(Int(normalizedPower!))W")
+                } else {
+                    Logger.warning("🟠 ❌ No power data available (avg or normalized)")
                 }
                 
                 // Fallback 2: Try to get FTP from Strava athlete if not computed
                 if ftp == nil || ftp == 0 {
+                    Logger.debug("🟠 No FTP in profile, fetching from Strava...")
                     do {
                         // Use cache to avoid repeated API calls
                         let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
                         if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                             ftp = Double(stravaFTP)
-                            Logger.debug("🟠 Using Strava FTP: \(Int(ftp!))W")
+                            Logger.debug("🟠 ✅ Using Strava FTP: \(Int(ftp!))W")
+                        } else {
+                            Logger.warning("🟠 ❌ Strava athlete has no FTP set")
                         }
                     } catch {
-                        Logger.warning("🟠 Could not fetch Strava FTP: \(error)")
+                        Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error)")
                     }
+                } else {
+                    Logger.debug("🟠 ✅ Using profile FTP: \(Int(ftp!))W")
                 }
                 
                 // Calculate TSS if we have both NP and FTP
+                Logger.debug("🟠 Checking TSS calculation requirements:")
+                Logger.debug("🟠   - NP available: \(normalizedPower != nil)")
+                Logger.debug("🟠   - FTP available: \(ftp != nil && ftp! > 0)")
+                Logger.debug("🟠   - NP > 0: \((normalizedPower ?? 0) > 0)")
+                
                 if let np = normalizedPower, let ftpValue = ftp, ftpValue > 0, np > 0 {
                     let intensityFactor = np / ftpValue
                     let duration = activity.duration ?? 0
@@ -500,11 +519,24 @@ class RideDetailViewModel: ObservableObject {
                     // TODO: Calculate CTL/ATL from recent activity history
                     // This would require fetching recent activities and computing rolling averages
                     // For now, these remain nil for Strava activities
+                    
+                    Logger.debug("🟠 ========== ENRICHED ACTIVITY CREATED ==========")
+                    Logger.debug("🟠 Enriched TSS: \(enriched.tss?.description ?? "nil")")
+                    Logger.debug("🟠 Enriched IF: \(enriched.intensityFactor?.description ?? "nil")")
+                    Logger.debug("🟠 Enriched Power Zones: \(enriched.icuZoneTimes?.count ?? 0) zones")
+                    Logger.debug("🟠 Enriched HR Zones: \(enriched.icuHrZoneTimes?.count ?? 0) zones")
+                    Logger.debug("🟠 ================================================")
                 } else {
-                    Logger.warning("🟠 Cannot calculate TSS - missing data (NP: \(normalizedPower != nil), FTP: \(ftp != nil && ftp! > 0))")
+                    Logger.warning("🟠 ❌ ========== TSS CALCULATION FAILED ==========")
+                    Logger.warning("🟠 Cannot calculate TSS - missing data:")
+                    Logger.warning("🟠   - NP: \(normalizedPower?.description ?? "nil")")
+                    Logger.warning("🟠   - FTP: \(ftp?.description ?? "nil")")
+                    Logger.warning("🟠   - FTP > 0: \(ftp != nil && ftp! > 0)")
+                    Logger.warning("🟠 ================================================")
                 }
                 
                 enrichedActivity = enriched
+                Logger.debug("🟠 ✅ enrichedActivity SET on viewModel")
                 Logger.debug("🟠 ✅ Successfully loaded Strava stream data")
             } else {
                 Logger.warning("️ No stream data available, using generated data")
@@ -585,45 +617,72 @@ class RideDetailViewModel: ObservableObject {
     /// Ensure zones are available before enriching activities
     /// Generates default zones from FTP/maxHR if not already computed
     private func ensureZonesAvailable(profileManager: AthleteProfileManager) async {
+        Logger.debug("🟠 ========== ENSURING ZONES AVAILABLE ==========")
+        Logger.debug("🟠 Current Profile State:")
+        Logger.debug("🟠   - FTP: \(profileManager.profile.ftp?.description ?? "nil")")
+        Logger.debug("🟠   - Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
+        Logger.debug("🟠   - Max HR: \(profileManager.profile.maxHR?.description ?? "nil")")
+        Logger.debug("🟠   - HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
+        
         var needsSave = false
         
         // Ensure FTP and power zones
         if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+            Logger.debug("🟠 No FTP found, trying to get from Strava...")
             // Try to get FTP from Strava
             do {
                 let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
                 if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
-                    Logger.debug("🟠 Setting FTP from Strava: \(stravaFTP)W")
+                    Logger.debug("🟠 ✅ Setting FTP from Strava: \(stravaFTP)W")
                     profileManager.profile.ftp = Double(stravaFTP)
                     profileManager.profile.ftpSource = .intervals
                     needsSave = true
+                } else {
+                    Logger.warning("🟠 ❌ Strava athlete has no FTP set")
                 }
             } catch {
-                Logger.warning("🟠 Could not fetch Strava FTP: \(error)")
+                Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error)")
             }
+        } else {
+            Logger.debug("🟠 ✅ FTP already exists: \(Int(profileManager.profile.ftp!))W")
         }
         
         // Generate power zones if missing
         if (profileManager.profile.powerZones == nil || profileManager.profile.powerZones!.isEmpty),
            let ftp = profileManager.profile.ftp, ftp > 0 {
-            Logger.debug("🟠 Generating power zones from FTP: \(Int(ftp))W")
+            Logger.debug("🟠 ✅ Generating power zones from FTP: \(Int(ftp))W")
             profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+            Logger.debug("🟠 Generated zones: \(profileManager.profile.powerZones!.map { Int($0) })")
             needsSave = true
+        } else if profileManager.profile.powerZones != nil {
+            Logger.debug("🟠 ✅ Power zones already exist: \(profileManager.profile.powerZones!.count) zones")
+        } else {
+            Logger.warning("🟠 ❌ Cannot generate power zones - no FTP available")
         }
         
         // Generate HR zones if missing (use default maxHR if needed)
         if (profileManager.profile.hrZones == nil || profileManager.profile.hrZones!.isEmpty) {
             let maxHR = profileManager.profile.maxHR ?? 190.0 // Use default if not set
-            Logger.debug("🟠 Generating HR zones from maxHR: \(Int(maxHR))bpm")
+            Logger.debug("🟠 ✅ Generating HR zones from maxHR: \(Int(maxHR))bpm")
             profileManager.profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+            Logger.debug("🟠 Generated zones: \(profileManager.profile.hrZones!.map { Int($0) })")
             if profileManager.profile.maxHR == nil {
                 profileManager.profile.maxHR = maxHR
             }
             needsSave = true
+        } else {
+            Logger.debug("🟠 ✅ HR zones already exist: \(profileManager.profile.hrZones!.count) zones")
         }
         
         if needsSave {
+            Logger.debug("🟠 Saving profile with updated zones/FTP")
             profileManager.save()
         }
+        
+        Logger.debug("🟠 Final Profile State:")
+        Logger.debug("🟠   - FTP: \(profileManager.profile.ftp?.description ?? "nil")")
+        Logger.debug("🟠   - Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
+        Logger.debug("🟠   - HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
+        Logger.debug("🟠 ================================================")
     }
 }
