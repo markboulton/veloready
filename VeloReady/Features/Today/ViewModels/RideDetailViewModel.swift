@@ -404,6 +404,9 @@ class RideDetailViewModel: ObservableObject {
     private func loadStravaActivityData(activity: IntervalsActivity, profileManager: AthleteProfileManager) async {
         Logger.debug("🟠 ========== LOADING STRAVA ACTIVITY DATA ==========")
         
+        // CRITICAL: Ensure zones are available before enriching activity
+        await ensureZonesAvailable(profileManager: profileManager)
+        
         // Extract numeric Strava ID from "strava_123456" format
         guard let stravaId = activity.id.components(separatedBy: "_").last else {
             Logger.error("Failed to extract Strava ID from: \(activity.id)")
@@ -488,11 +491,15 @@ class RideDetailViewModel: ObservableObject {
                         fileType: enriched.fileType,
                         tss: tss,
                         intensityFactor: intensityFactor,
-                        atl: enriched.atl,
-                        ctl: enriched.ctl,
+                        atl: nil, // Will be calculated from activity history if needed
+                        ctl: nil, // Will be calculated from activity history if needed
                         icuZoneTimes: enriched.icuZoneTimes,
                         icuHrZoneTimes: enriched.icuHrZoneTimes
                     )
+                    
+                    // TODO: Calculate CTL/ATL from recent activity history
+                    // This would require fetching recent activities and computing rolling averages
+                    // For now, these remain nil for Strava activities
                 } else {
                     Logger.warning("🟠 Cannot calculate TSS - missing data (NP: \(normalizedPower != nil), FTP: \(ftp != nil && ftp! > 0))")
                 }
@@ -573,5 +580,50 @@ class RideDetailViewModel: ObservableObject {
         Logger.debug("  - GPS points: \(samples.filter { $0.latitude != nil && $0.longitude != nil }.count)")
         
         return samples
+    }
+    
+    /// Ensure zones are available before enriching activities
+    /// Generates default zones from FTP/maxHR if not already computed
+    private func ensureZonesAvailable(profileManager: AthleteProfileManager) async {
+        var needsSave = false
+        
+        // Ensure FTP and power zones
+        if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+            // Try to get FTP from Strava
+            do {
+                let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+                if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
+                    Logger.debug("🟠 Setting FTP from Strava: \(stravaFTP)W")
+                    profileManager.profile.ftp = Double(stravaFTP)
+                    profileManager.profile.ftpSource = .intervals
+                    needsSave = true
+                }
+            } catch {
+                Logger.warning("🟠 Could not fetch Strava FTP: \(error)")
+            }
+        }
+        
+        // Generate power zones if missing
+        if (profileManager.profile.powerZones == nil || profileManager.profile.powerZones!.isEmpty),
+           let ftp = profileManager.profile.ftp, ftp > 0 {
+            Logger.debug("🟠 Generating power zones from FTP: \(Int(ftp))W")
+            profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+            needsSave = true
+        }
+        
+        // Generate HR zones if missing (use default maxHR if needed)
+        if (profileManager.profile.hrZones == nil || profileManager.profile.hrZones!.isEmpty) {
+            let maxHR = profileManager.profile.maxHR ?? 190.0 // Use default if not set
+            Logger.debug("🟠 Generating HR zones from maxHR: \(Int(maxHR))bpm")
+            profileManager.profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+            if profileManager.profile.maxHR == nil {
+                profileManager.profile.maxHR = maxHR
+            }
+            needsSave = true
+        }
+        
+        if needsSave {
+            profileManager.save()
+        }
     }
 }

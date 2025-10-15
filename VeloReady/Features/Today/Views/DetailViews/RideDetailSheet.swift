@@ -13,7 +13,7 @@ struct RideDetailSheet: View {
     var body: some View {
         
         return WorkoutDetailView(
-            activity: activity,
+            activity: viewModel.enrichedActivity ?? activity,
             viewModel: viewModel,
             ftp: profileManager.profile.ftp,
             maxHR: profileManager.profile.maxHR
