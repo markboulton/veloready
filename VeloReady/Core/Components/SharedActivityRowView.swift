@@ -137,28 +137,37 @@ struct SharedActivityRowView: View {
         let predicate = HKQuery.predicateForObjects(from: workout)
         
         return await withCheckedContinuation { continuation in
+            var hasResumed = false
+            
             let query = HKAnchoredObjectQuery(
                 type: routeType,
                 predicate: predicate,
                 anchor: nil,
                 limit: HKObjectQueryNoLimit
             ) { _, samples, _, _, error in
+                guard !hasResumed else { return }
+                
                 guard error == nil,
                       let routes = samples as? [HKWorkoutRoute],
                       let route = routes.first else {
+                    hasResumed = true
                     continuation.resume(returning: nil)
                     return
                 }
                 
                 // Query route data to get first location
                 let routeQuery = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
+                    guard !hasResumed else { return }
+                    
                     if let locations = locations, let firstLocation = locations.first {
+                        hasResumed = true
                         // Reverse geocode the first location
                         Task {
                             let location = await self.reverseGeocode(coordinate: firstLocation.coordinate)
                             continuation.resume(returning: location)
                         }
                     } else if done {
+                        hasResumed = true
                         continuation.resume(returning: nil)
                     }
                 }
