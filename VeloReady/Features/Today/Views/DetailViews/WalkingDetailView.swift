@@ -371,22 +371,27 @@ struct WalkingWorkoutInfoHeader: View {
                 }
             }
             
-            // Add RPE button for strength workouts without RPE
-            if isStrengthWorkout && storedRPE == nil {
-                Button(action: {
-                    showingRPESheet = true
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add RPE")
+            // Compact RPE badge for strength workouts
+            if isStrengthWorkout {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingRPESheet = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: storedRPE != nil ? "checkmark.circle.fill" : "plus.circle")
+                                .font(.caption)
+                            Text(storedRPE != nil ? "RPE" : "Add")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(storedRPE != nil ? ColorScale.greenAccent : ColorScale.gray600)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(storedRPE != nil ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray200)
+                        .cornerRadius(12)
                     }
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.top, 8)
             }

@@ -32,8 +32,14 @@ struct SharedActivityRowView: View {
             
             Spacer()
             
-            // Compact RPE indicator for strength workouts (always show for testing)
-            if shouldShowRPEButton || true { // Always show for testing
+            // Navigation chevron (shown when in NavigationLink)
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .opacity(0.5)
+            
+            // Compact RPE indicator for strength workouts
+            if shouldShowRPEButton {
                 Button(action: { showingRPESheet = true }) {
                     HStack(spacing: 4) {
                         Image(systemName: hasRPE ? "checkmark.circle.fill" : "plus.circle")
