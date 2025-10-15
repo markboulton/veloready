@@ -51,12 +51,6 @@ struct TodayView: View {
                 ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: 0) {
-                        // Custom header with wellness indicator
-                        TodayHeader(
-                            alert: healthKitManager.isAuthorized ? wellnessService.currentAlert : nil,
-                            onAlertTap: { showingWellnessDetailSheet = true }
-                        )
-                        
                         // Missing sleep data warning
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
@@ -109,12 +103,22 @@ struct TodayView: View {
                             .padding(.top, 8)
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom)
+                    .padding()
                 }
                 .coordinateSpace(name: "scroll")
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Today")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.automatic, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
+                        WellnessIndicator(alert: alert) {
+                            showingWellnessDetailSheet = true
+                        }
+                    }
+                }
+            }
             .refreshable {
                 await viewModel.forceRefreshData()
             }
