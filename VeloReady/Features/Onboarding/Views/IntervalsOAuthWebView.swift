@@ -29,7 +29,7 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
     }
     
     private func loadURLWithSSLHandling(webView: WKWebView, url: URL) {
-        print("🌐 Loading URL with SSL handling: \(url.absoluteString)")
+        Logger.debug("🌐 Loading URL with SSL handling: \(url.absoluteString)")
         
         // Create a custom URL session with SSL handling
         let session = URLSession(configuration: .default, delegate: SSLDelegate(), delegateQueue: nil)
@@ -40,12 +40,12 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
         session.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("❌ SSL handling failed: \(error.localizedDescription)")
+                    Logger.error("SSL handling failed: \(error.localizedDescription)")
                     // Fallback to regular WebView load
                     let fallbackRequest = URLRequest(url: url)
                     webView.load(fallbackRequest)
                 } else {
-                    print("✅ SSL handling successful")
+                    Logger.debug("✅ SSL handling successful")
                     // Load the response in WebView
                     if let data = data, let html = String(data: data, encoding: .utf8) {
                         webView.loadHTMLString(html, baseURL: url)
@@ -75,12 +75,12 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
                 return
             }
             
-            print("🌐 WebView navigating to: \(url.absoluteString)")
+            Logger.debug("🌐 WebView navigating to: \(url.absoluteString)")
             
             // Check if this is our OAuth callback
             if url.scheme == "veloready" || url.scheme == "com.veloready.app" {
-                print("✅ OAuth callback detected in WebView: \(url.scheme ?? "unknown")://")
-                print("   Full URL: \(url.absoluteString)")
+                Logger.debug("✅ OAuth callback detected in WebView: \(url.scheme ?? "unknown")://")
+                Logger.debug("   Full URL: \(url.absoluteString)")
                 parent.onCallback(url)
                 decisionHandler(.cancel)
                 return
@@ -88,7 +88,7 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
             
             // Check for intervals.icu domain
             if let host = url.host, host.contains("intervals.icu") {
-                print("🌐 Navigating within intervals.icu: \(url.absoluteString)")
+                Logger.debug("🌐 Navigating within intervals.icu: \(url.absoluteString)")
                 decisionHandler(.allow)
                 return
             }
@@ -98,15 +98,15 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            print("❌ WebView navigation failed: \(error.localizedDescription)")
+            Logger.error("WebView navigation failed: \(error.localizedDescription)")
             
             // Check if it's a TLS/SSL error
             if let nsError = error as NSError? {
-                print("❌ Error domain: \(nsError.domain)")
-                print("❌ Error code: \(nsError.code)")
+                Logger.error("Error domain: \(nsError.domain)")
+                Logger.error("Error code: \(nsError.code)")
                 
                 if nsError.code == -1200 { // NSURLErrorSecureConnectionFailed
-                    print("🔒 TLS/SSL Error detected - trying alternative approach")
+                    Logger.debug("🔒 TLS/SSL Error detected - trying alternative approach")
                     // Try loading with different approach
                     tryAlternativeLoading(webView: webView)
                 }
@@ -114,15 +114,15 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            print("❌ WebView navigation failed: \(error.localizedDescription)")
+            Logger.error("WebView navigation failed: \(error.localizedDescription)")
         }
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("✅ WebView finished loading: \(webView.url?.absoluteString ?? "unknown")")
+            Logger.debug("✅ WebView finished loading: \(webView.url?.absoluteString ?? "unknown")")
         }
         
         private func tryAlternativeLoading(webView: WKWebView) {
-            print("🔄 Trying alternative loading approach...")
+            Logger.debug("🔄 Trying alternative loading approach...")
             
             // Try loading with a different user agent and approach
             let configuration = WKWebViewConfiguration()
@@ -144,11 +144,11 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
 // Custom SSL delegate to handle certificate challenges
 final class SSLDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
     nonisolated func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        print("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
+        Logger.debug("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
         
         // Check if certificate bypass is enabled for intervals.icu
         if CertificateBypassManager.shared.shouldBypassCertificate(for: challenge.protectionSpace.host) {
-            print("🔒 Certificate bypass enabled - accepting corporate certificate")
+            Logger.debug("🔒 Certificate bypass enabled - accepting corporate certificate")
             if let serverTrust = challenge.protectionSpace.serverTrust {
                 let credential = URLCredential(trust: serverTrust)
                 DispatchQueue.main.async {
@@ -181,7 +181,7 @@ struct IntervalsOAuthWebViewContainer: View {
                     onDismiss: onDismiss
                 )
                 .onAppear {
-                    print("🌐 Starting OAuth WebView with SSL handling: \(url.absoluteString)")
+                    Logger.debug("🌐 Starting OAuth WebView with SSL handling: \(url.absoluteString)")
                 }
             }
             .navigationTitle("Connect to intervals.icu")

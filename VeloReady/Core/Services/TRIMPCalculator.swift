@@ -18,7 +18,7 @@ class TRIMPCalculator {
         )
         
         guard !hrSamples.isEmpty else {
-            print("⚠️ No HR data for workout, using estimate")
+            Logger.warning("️ No HR data for workout, using estimate")
             // Fallback: estimate from calories/duration based on activity type
             return estimateTRIMPFromWorkout(workout)
         }
@@ -36,7 +36,7 @@ class TRIMPCalculator {
             maxHR: maxHR
         )
         
-        print("💓 TRIMP Result: \(String(format: "%.1f", trimp))")
+        Logger.debug("💓 TRIMP Result: \(String(format: "%.1f", trimp))")
         return trimp
     }
     
@@ -79,7 +79,7 @@ class TRIMPCalculator {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if let error = error {
-                    print("❌ Failed to fetch heart rate samples: \(error)")
+                    Logger.error("Failed to fetch heart rate samples: \(error)")
                     continuation.resume(returning: [])
                     return
                 }
@@ -98,7 +98,7 @@ class TRIMPCalculator {
         let hrReserveRange = maxHR - restingHR
         
         guard hrReserveRange > 0 else {
-            print("⚠️ Invalid HR range (maxHR=\(maxHR), restingHR=\(restingHR))")
+            Logger.warning("️ Invalid HR range (maxHR=\(maxHR), restingHR=\(restingHR))")
             return 0
         }
         
@@ -184,7 +184,7 @@ class TRIMPCalculator {
         
         let estimatedTRIMP = calories * multiplier
         
-        print("💓 Estimated TRIMP for \(activityName): \(Int(calories))kcal × \(multiplier) = \(String(format: "%.1f", estimatedTRIMP))")
+        Logger.debug("💓 Estimated TRIMP for \(activityName): \(Int(calories))kcal × \(multiplier) = \(String(format: "%.1f", estimatedTRIMP))")
         
         return estimatedTRIMP
     }

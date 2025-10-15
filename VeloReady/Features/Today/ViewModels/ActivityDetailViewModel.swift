@@ -78,9 +78,9 @@ class ActivityDetailViewModel: ObservableObject {
             
             self.workoutSamples = downsampled
             self.chartSamples = downsampled
-            print("✅ Loaded \(samples.count) workout samples (downsampled to \(downsampled.count))")
+            Logger.debug("✅ Loaded \(samples.count) workout samples (downsampled to \(downsampled.count))")
         } catch {
-            print("❌ Failed to load workout samples: \(error)")
+            Logger.error("Failed to load workout samples: \(error)")
         }
     }
     
@@ -93,12 +93,12 @@ class ActivityDetailViewModel: ObservableObject {
         }
         
         guard !coordinates.isEmpty else {
-            print("🗺️ No GPS coordinates found in workout data")
+            Logger.debug("🗺️ No GPS coordinates found in workout data")
             return
         }
         
         self.routeCoordinates = coordinates
-        print("✅ Loaded \(coordinates.count) GPS coordinates for interactive map")
+        Logger.debug("✅ Loaded \(coordinates.count) GPS coordinates for interactive map")
     }
     
     // MARK: - HealthKit Data
@@ -145,7 +145,7 @@ class ActivityDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch heart rate: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch heart rate: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -183,7 +183,7 @@ class ActivityDetailViewModel: ObservableObject {
                         self.maxHeartRate = hrValues.max()
                     }
                     
-                    print("✅ Loaded \(samples.count) heart rate samples (downsampled to \(downsampled.count))")
+                    Logger.debug("✅ Loaded \(samples.count) heart rate samples (downsampled to \(downsampled.count))")
                     
                     continuation.resume()
                 }
@@ -210,13 +210,13 @@ class ActivityDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch route: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch route: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
                 
                 guard let routes = samples as? [HKWorkoutRoute], let route = routes.first else {
-                    print("⚠️ No route data available")
+                    Logger.warning("️ No route data available")
                     continuation.resume()
                     return
                 }
@@ -242,7 +242,7 @@ class ActivityDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to load route locations: \(error.localizedDescription)")
+                    Logger.error("Failed to load route locations: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -254,7 +254,7 @@ class ActivityDetailViewModel: ObservableObject {
                 if done {
                     Task { @MainActor in
                         if !coordinates.isEmpty {
-                            print("✅ Loaded \(coordinates.count) route points")
+                            Logger.debug("✅ Loaded \(coordinates.count) route points")
                             self.routeCoordinates = coordinates
                         }
                         continuation.resume()
@@ -289,7 +289,7 @@ class ActivityDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch steps: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch steps: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -298,7 +298,7 @@ class ActivityDetailViewModel: ObservableObject {
                     let steps = Int(sum.doubleValue(for: .count()))
                     Task { @MainActor in
                         self.steps = steps
-                        print("✅ Loaded steps: \(steps)")
+                        Logger.debug("✅ Loaded steps: \(steps)")
                         continuation.resume()
                     }
                 } else {
@@ -334,9 +334,9 @@ class ActivityDetailViewModel: ObservableObject {
             let snapshot = try await snapshotter.start()
             let image = addRouteToSnapshot(snapshot: snapshot, coordinates: coordinates)
             self.mapSnapshot = image
-            print("✅ Generated map snapshot with route overlay")
+            Logger.debug("✅ Generated map snapshot with route overlay")
         } catch {
-            print("❌ Failed to generate map snapshot: \(error)")
+            Logger.error("Failed to generate map snapshot: \(error)")
         }
     }
     

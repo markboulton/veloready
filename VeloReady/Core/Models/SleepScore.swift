@@ -92,13 +92,13 @@ class SleepScoreCalculator {
         let band = determineBand(score: finalScore)
         
         // Log calculation with new weights
-        print("💤 SLEEP SCORE CALCULATION (NEW WEIGHTS):")
-        print("   Sub-scores: Perf=\(subScores.performance), Quality=\(subScores.stageQuality), Eff=\(subScores.efficiency), Disturb=\(subScores.disturbances), Timing=\(subScores.timing)")
-        print("   Weighted:   Perf=\(String(format: "%.1f", performanceFactor)) (30%), Quality=\(String(format: "%.1f", stageQualityFactor)) (30%), Eff=\(String(format: "%.1f", efficiencyFactor)) (20%), Disturb=\(String(format: "%.1f", disturbancesFactor)) (15%), Timing=\(String(format: "%.1f", timingFactor)) (5%)")
-        print("   Final Score: \(Int(finalScore)) (\(band.rawValue) - \(band.color.uppercased()))")
+        Logger.debug("💤 SLEEP SCORE CALCULATION (NEW WEIGHTS):")
+        Logger.debug("   Sub-scores: Perf=\(subScores.performance), Quality=\(subScores.stageQuality), Eff=\(subScores.efficiency), Disturb=\(subScores.disturbances), Timing=\(subScores.timing)")
+        Logger.debug("   Weighted:   Perf=\(String(format: "%.1f", performanceFactor)) (30%), Quality=\(String(format: "%.1f", stageQualityFactor)) (30%), Eff=\(String(format: "%.1f", efficiencyFactor)) (20%), Disturb=\(String(format: "%.1f", disturbancesFactor)) (15%), Timing=\(String(format: "%.1f", timingFactor)) (5%)")
+        Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue) - \(band.color.uppercased()))")
         
         if subScores.stageQuality < 60 || subScores.disturbances < 75 {
-            print("   ⚠️ Poor sleep quality detected - likely alcohol impact")
+            Logger.debug("   ⚠️ Poor sleep quality detected - likely alcohol impact")
         }
         
         return SleepScore(

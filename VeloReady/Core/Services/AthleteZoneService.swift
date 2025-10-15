@@ -30,7 +30,7 @@ class AthleteZoneService: ObservableObject {
         if let lastFetch = lastFetchDate {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
             if timeSinceLastFetch < cacheExpirationInterval {
-                print("✅ Using cached athlete data (age: \(Int(timeSinceLastFetch/3600)) hours)")
+                Logger.debug("✅ Using cached athlete data (age: \(Int(timeSinceLastFetch/3600)) hours)")
                 return
             }
         }
@@ -41,13 +41,13 @@ class AthleteZoneService: ObservableObject {
             if timeSinceLastAttempt < minimumFetchInterval {
                 let remainingTime = Int(minimumFetchInterval - timeSinceLastAttempt)
                 lastError = "Please wait \(remainingTime) seconds before trying again"
-                print("⚠️ Rate limited: Please wait \(remainingTime) seconds")
+                Logger.warning("️ Rate limited: Please wait \(remainingTime) seconds")
                 return
             }
         }
         
         guard !isLoading else { 
-            print("⚠️ Already loading athlete data")
+            Logger.warning("️ Already loading athlete data")
             return 
         }
         
@@ -57,25 +57,25 @@ class AthleteZoneService: ObservableObject {
         defer { isLoading = false }
         
         do {
-            print("🔍 Fetching athlete data from Intervals.icu...")
+            Logger.debug("🔍 Fetching athlete data from Intervals.icu...")
             let athleteData = try await apiClient.fetchAthleteData()
             self.athlete = athleteData
             self.lastFetchDate = Date()
             
             // Debug: Print raw athlete data
-            print("🔍 Raw athlete data: \(athleteData)")
-            print("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
-            print("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
+            Logger.debug("🔍 Raw athlete data: \(athleteData)")
+            Logger.debug("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
+            Logger.debug("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
             
             // Update user settings with zone data
             await updateUserSettingsWithZones(athleteData)
             
-            print("✅ Successfully fetched athlete data: \(athleteData.id)")
-            print("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
-            print("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
+            Logger.debug("✅ Successfully fetched athlete data: \(athleteData.id)")
+            Logger.debug("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
+            Logger.debug("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
             
         } catch {
-            print("❌ Failed to fetch athlete data: \(error)")
+            Logger.error("Failed to fetch athlete data: \(error)")
             lastError = "Failed to fetch athlete data: \(error.localizedDescription)"
         }
     }
@@ -86,7 +86,7 @@ class AthleteZoneService: ObservableObject {
         if let powerZones = athlete.powerZones,
            let zones = powerZones.zones,
            zones.count >= 5 {
-            print("🔍 Updating power zones from Intervals.icu: \(zones)")
+            Logger.debug("🔍 Updating power zones from Intervals.icu: \(zones)")
             
             // Intervals.icu zones are typically boundaries, we need to convert to max values
             // Assuming zones are [0, zone1_max, zone2_max, zone3_max, zone4_max, zone5_max]
@@ -103,7 +103,7 @@ class AthleteZoneService: ObservableObject {
         if let hrZones = athlete.heartRateZones,
            let zones = hrZones.zones,
            zones.count >= 5 {
-            print("🔍 Updating HR zones from Intervals.icu: \(zones)")
+            Logger.debug("🔍 Updating HR zones from Intervals.icu: \(zones)")
             
             // Intervals.icu zones are typically boundaries, we need to convert to max values
             // Assuming zones are [0, zone1_max, zone2_max, zone3_max, zone4_max, zone5_max]

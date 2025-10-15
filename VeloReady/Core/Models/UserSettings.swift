@@ -255,7 +255,7 @@ class UserSettings: ObservableObject {
     
     @objc private func handleCloudRestore() {
         loadSettings()
-        print("☁️ User settings restored from iCloud")
+        Logger.debug("☁️ User settings restored from iCloud")
     }
     
     // MARK: - Settings Management
@@ -291,14 +291,14 @@ class UserSettings: ObservableObject {
         
         if let encoded = try? JSONEncoder().encode(settings) {
             UserDefaults.standard.set(encoded, forKey: "UserSettings")
-            print("💾 User settings saved")
+            Logger.debug("💾 User settings saved")
         }
     }
     
     private func loadSettings() {
         guard let data = UserDefaults.standard.data(forKey: "UserSettings"),
               let settings = try? JSONDecoder().decode(UserSettingsData.self, from: data) else {
-            print("📱 No saved settings found, using defaults")
+            Logger.debug("📱 No saved settings found, using defaults")
             return
         }
         
@@ -328,7 +328,7 @@ class UserSettings: ObservableObject {
         sleepReminderTime = settings.sleepReminderTime
         recoveryAlerts = settings.recoveryAlerts
         
-        print("📱 User settings loaded")
+        Logger.debug("📱 User settings loaded")
     }
     
     /// Reset all settings to defaults
@@ -360,7 +360,7 @@ class UserSettings: ObservableObject {
         recoveryAlerts = true
         
         saveSettings()
-        print("🔄 Settings reset to defaults")
+        Logger.debug("🔄 Settings reset to defaults")
     }
 }
 

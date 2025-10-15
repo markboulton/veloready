@@ -85,7 +85,7 @@ struct ActivitiesView: View {
             .onChange(of: stravaAuthService.connectionState) { _, newState in
                 // Force refresh when Strava connects
                 if case .connected = newState, case .disconnected = lastStravaConnectionState {
-                    print("🔄 Strava connected - forcing activities refresh")
+                    Logger.debug("🔄 Strava connected - forcing activities refresh")
                     Task {
                         await viewModel.forceRefresh(apiClient: apiClient)
                     }
@@ -353,7 +353,7 @@ class ActivitiesViewModel: ObservableObject {
     func loadActivitiesIfNeeded(apiClient: IntervalsAPIClient) async {
         // Only load if we haven't loaded before
         guard !hasLoadedInitialData else {
-            print("ℹ️ Activities already loaded, skipping")
+            Logger.debug("ℹ️ Activities already loaded, skipping")
             return
         }
         await loadActivities(apiClient: apiClient)
@@ -361,7 +361,7 @@ class ActivitiesViewModel: ObservableObject {
     
     /// Force refresh activities (e.g., after Strava auth)
     func forceRefresh(apiClient: IntervalsAPIClient) async {
-        print("🔄 Force refreshing activities (e.g., after Strava auth)")
+        Logger.debug("🔄 Force refreshing activities (e.g., after Strava auth)")
         hasLoadedInitialData = false // Reset flag to force reload
         await loadActivities(apiClient: apiClient)
     }
@@ -369,7 +369,7 @@ class ActivitiesViewModel: ObservableObject {
     func loadActivities(apiClient: IntervalsAPIClient) async {
         // Prevent concurrent loads
         guard !isLoading else {
-            print("⚠️ Activities already loading, skipping duplicate request")
+            Logger.warning("️ Activities already loading, skipping duplicate request")
             return
         }
         
@@ -381,16 +381,16 @@ class ActivitiesViewModel: ObservableObject {
         // FREE: 30 days, PRO: 30 days initially (can load 60 more)
         let daysBack = 30
         
-        print("📊 Loading activities: \(daysBack) days (PRO: \(proConfig.hasProAccess))")
+        Logger.data("Loading activities: \(daysBack) days (PRO: \(proConfig.hasProAccess))")
         
         // Try to fetch activities from Intervals.icu (optional)
         var intervalsActivities: [IntervalsActivity] = []
         do {
             intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: daysBack)
-            print("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
+            Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
-            print("⚠️ Intervals.icu not available: \(error.localizedDescription)")
-            print("📱 Continuing with HealthKit-only mode")
+            Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
+            Logger.debug("📱 Continuing with HealthKit-only mode")
         }
         
         // Fetch Strava activities using shared service
@@ -399,7 +399,7 @@ class ActivitiesViewModel: ObservableObject {
         
         // Always fetch Apple Health workouts (this is our primary source now)
         let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: daysBack)
-        print("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
+        Logger.debug("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
         
         // Convert to unified format and filter Strava-sourced activities from Intervals
         var intervalsUnified: [UnifiedActivity] = []
@@ -417,7 +417,7 @@ class ActivitiesViewModel: ObservableObject {
         let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
         let healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
         
-        print("🔍 Filtered Intervals activities: \(intervalsActivities.count) total → \(intervalsUnified.count) native (removed \(stravaFilteredCount) Strava)")
+        Logger.debug("🔍 Filtered Intervals activities: \(intervalsActivities.count) total → \(intervalsUnified.count) native (removed \(stravaFilteredCount) Strava)")
         
         // Deduplicate activities across all sources
         let deduplicationService = ActivityDeduplicationService.shared
@@ -436,7 +436,7 @@ class ActivitiesViewModel: ObservableObject {
         // Apply filters and group
         applyFilters()
         
-        print("📊 Total unified activities: \(allActivities.count)")
+        Logger.data("Total unified activities: \(allActivities.count)")
         
         isLoading = false
     }
@@ -447,7 +447,7 @@ class ActivitiesViewModel: ObservableObject {
         isLoadingMore = true
         
         do {
-            print("📊 Loading extended activities: 31-90 days")
+            Logger.data("Loading extended activities: 31-90 days")
             
             // Fetch activities from day 31 to day 90 (60 additional days)
             let intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)
@@ -462,7 +462,7 @@ class ActivitiesViewModel: ObservableObject {
                     perPage: 200,
                     after: ninetyDaysAgo
                 )) ?? []
-                print("✅ Loaded \(stravaActivities.count) extended Strava activities")
+                Logger.debug("✅ Loaded \(stravaActivities.count) extended Strava activities")
             }
             
             let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: 90)
@@ -496,7 +496,7 @@ class ActivitiesViewModel: ObservableObject {
                 .filter { $0.startDate < thirtyDaysAgo }
                 .map { UnifiedActivity(from: $0) }
             
-            print("🔍 Extended activities (31-90 days): Intervals=\(intervalsUnified.count), Strava=\(stravaUnified.count), Health=\(healthUnified.count) (filtered \(stravaFilteredCount) Strava from Intervals)")
+            Logger.debug("🔍 Extended activities (31-90 days): Intervals=\(intervalsUnified.count), Strava=\(stravaUnified.count), Health=\(healthUnified.count) (filtered \(stravaFilteredCount) Strava from Intervals)")
             
             // Deduplicate extended activities
             let deduplicationService = ActivityDeduplicationService.shared
@@ -518,11 +518,11 @@ class ActivitiesViewModel: ObservableObject {
             hasLoadedExtended = true
             isLoadingMore = false
             
-            print("📊 Loaded \(deduplicated.count) extended activities")
+            Logger.data("Loaded \(deduplicated.count) extended activities")
         } catch {
             self.error = error.localizedDescription
             isLoadingMore = false
-            print("❌ Error loading extended activities: \(error)")
+            Logger.error("Error loading extended activities: \(error)")
         }
     }
     

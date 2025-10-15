@@ -170,15 +170,15 @@ struct WorkoutDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
         .task {
-            print("🎯 WorkoutDetailView: .task triggered - initial load")
+            Logger.debug("🎯 WorkoutDetailView: .task triggered - initial load")
             // Initial load attempt (will have empty samples)
             await loadMapSnapshot()
         }
         .onChange(of: samples.count) { _, newCount in
-            print("🎯 WorkoutDetailView: samples.count changed to \(newCount)")
+            Logger.debug("🎯 WorkoutDetailView: samples.count changed to \(newCount)")
             // Reload when samples count changes (especially from 0 to non-zero)
             if newCount > 0 {
-                print("🎯 WorkoutDetailView: Reloading map snapshot due to sample count change")
+                Logger.debug("🎯 WorkoutDetailView: Reloading map snapshot due to sample count change")
                 Task {
                     await loadMapSnapshot()
                 }
@@ -199,18 +199,18 @@ struct WorkoutDetailView: View {
     }
     
     private func extractGPSCoordinates() -> [CLLocationCoordinate2D] {
-        print("🗺️ ========== EXTRACTING GPS COORDINATES ==========")
-        print("🗺️ Total samples: \(samples.count)")
+        Logger.debug("🗺️ ========== EXTRACTING GPS COORDINATES ==========")
+        Logger.debug("🗺️ Total samples: \(samples.count)")
         
         // Count how many samples have GPS data
         let samplesWithGPS = samples.filter { $0.latitude != nil && $0.longitude != nil }
-        print("🗺️ Samples with GPS data: \(samplesWithGPS.count)")
+        Logger.debug("🗺️ Samples with GPS data: \(samplesWithGPS.count)")
         
         // Show first few GPS samples for debugging
         if samplesWithGPS.count > 0 {
-            print("🗺️ First 3 GPS samples:")
+            Logger.debug("🗺️ First 3 GPS samples:")
             for (index, sample) in samplesWithGPS.prefix(3).enumerated() {
-                print("🗺️   [\(index)] lat=\(sample.latitude ?? 0), lng=\(sample.longitude ?? 0)")
+                Logger.debug("🗺️   [\(index)] lat=\(sample.latitude ?? 0), lng=\(sample.longitude ?? 0)")
             }
         }
         
@@ -228,7 +228,7 @@ struct WorkoutDetailView: View {
             return CLLocationCoordinate2D(latitude: lat, longitude: lng)
         }
         
-        print("🗺️ Valid GPS coordinates extracted: \(coordinates.count)")
+        Logger.debug("🗺️ Valid GPS coordinates extracted: \(coordinates.count)")
         
         // Check if we have valid coordinates but they're all the same (stationary workout)
         // Check if there's any movement by looking at the range of coordinates
@@ -238,33 +238,33 @@ struct WorkoutDetailView: View {
             let latRange = (lats.max() ?? 0) - (lats.min() ?? 0)
             let lngRange = (lngs.max() ?? 0) - (lngs.min() ?? 0)
             
-            print("🗺️ GPS Range Analysis:")
-            print("🗺️   - Latitude range: \(latRange)")
-            print("🗺️   - Longitude range: \(lngRange)")
-            print("🗺️   - Min lat: \(lats.min() ?? 0), Max lat: \(lats.max() ?? 0)")
-            print("🗺️   - Min lng: \(lngs.min() ?? 0), Max lng: \(lngs.max() ?? 0)")
+            Logger.debug("🗺️ GPS Range Analysis:")
+            Logger.debug("🗺️   - Latitude range: \(latRange)")
+            Logger.debug("🗺️   - Longitude range: \(lngRange)")
+            Logger.debug("🗺️   - Min lat: \(lats.min() ?? 0), Max lat: \(lats.max() ?? 0)")
+            Logger.debug("🗺️   - Min lng: \(lngs.min() ?? 0), Max lng: \(lngs.max() ?? 0)")
             
             // If the total range is less than ~10 meters in both directions, it's stationary
             let isStationary = latRange < 0.0001 && lngRange < 0.0001
             
             if isStationary {
-                print("🗺️ ⚠️ Detected stationary workout - GPS range too small")
-                print("🗺️ Returning empty coordinates to hide map")
+                Logger.debug("🗺️ ⚠️ Detected stationary workout - GPS range too small")
+                Logger.debug("🗺️ Returning empty coordinates to hide map")
                 return [] // Return empty to show "no GPS" message instead of a single point
             } else {
-                print("🗺️ ✅ Movement detected - will show map")
+                Logger.debug("🗺️ ✅ Movement detected - will show map")
             }
         } else if !coordinates.isEmpty {
-            print("🗺️ ⚠️ Too few coordinates (\(coordinates.count)) for range analysis")
+            Logger.debug("🗺️ ⚠️ Too few coordinates (\(coordinates.count)) for range analysis")
         }
         
         if coordinates.isEmpty {
-            print("🗺️ ❌ No valid GPS coordinates found in workout data")
+            Logger.debug("🗺️ ❌ No valid GPS coordinates found in workout data")
         } else {
-            print("🗺️ ✅ Returning \(coordinates.count) GPS coordinates for map display")
+            Logger.debug("🗺️ ✅ Returning \(coordinates.count) GPS coordinates for map display")
         }
         
-        print("🗺️ ================================================")
+        Logger.debug("🗺️ ================================================")
         
         return coordinates
     }

@@ -114,9 +114,9 @@ final class CacheManager: ObservableObject {
             await saveToCache(date: today, health: health, intervals: intervals)
             
             lastRefreshDate = Date()
-            print("✅ Refreshed today's data")
+            Logger.debug("✅ Refreshed today's data")
         } catch {
-            print("❌ Failed to refresh today: \(error)")
+            Logger.error("Failed to refresh today: \(error)")
             throw error
         }
     }
@@ -125,7 +125,7 @@ final class CacheManager: ObservableObject {
     func refreshRecentDays(count: Int = 7, force: Bool = false) async throws {
         // Prevent runaway refreshes - check if already refreshing
         guard !isRefreshing else {
-            print("⚠️ Cache refresh already in progress, skipping")
+            Logger.warning("️ Cache refresh already in progress, skipping")
             return
         }
         
@@ -154,13 +154,13 @@ final class CacheManager: ObservableObject {
                 await saveToCache(date: date, health: health, intervals: intervals)
                 refreshedCount += 1
             } catch {
-                print("⚠️ Failed to refresh \(date): \(error)")
+                Logger.warning("️ Failed to refresh \(date): \(error)")
                 // Continue with other days
             }
         }
         
         lastRefreshDate = Date()
-        print("✅ Cache refresh complete: \(refreshedCount)/\(count) days updated")
+        Logger.debug("✅ Cache refresh complete: \(refreshedCount)/\(count) days updated")
     }
     
     // MARK: - Fetch from APIs
@@ -245,7 +245,7 @@ final class CacheManager: ObservableObject {
             let athleteData = try await intervalsAPI.fetchAthleteData()
             ftp = athleteData.powerZones?.ftp
         } catch {
-            print("⚠️ Could not fetch athlete data (non-critical): \(error)")
+            Logger.warning("️ Could not fetch athlete data (non-critical): \(error)")
             // Continue without FTP - not critical for caching
         }
         
@@ -350,17 +350,17 @@ final class CacheManager: ObservableObject {
             scores.lastUpdated = Date()
             
             // Debug logging
-            print("💾 Saving to Core Data:")
-            print("   Date: \(startOfDay)")
-            print("   HRV: \(physio.hrv), RHR: \(physio.rhr), Sleep: \(physio.sleepDuration/3600)h")
-            print("   CTL: \(load.ctl), ATL: \(load.atl), TSS: \(load.tss)")
-            print("   Recovery: \(scores.recoveryScore) (\(scores.recoveryBand ?? "unknown"))")
-            print("   Sleep Score: \(scores.sleepScore), Strain: \(scores.strainScore)")
-            print("   Effort Target: \(scores.effortTarget)")
+            Logger.debug("💾 Saving to Core Data:")
+            Logger.debug("   Date: \(startOfDay)")
+            Logger.debug("   HRV: \(physio.hrv), RHR: \(physio.rhr), Sleep: \(physio.sleepDuration/3600)h")
+            Logger.debug("   CTL: \(load.ctl), ATL: \(load.atl), TSS: \(load.tss)")
+            Logger.debug("   Recovery: \(scores.recoveryScore) (\(scores.recoveryBand ?? "unknown"))")
+            Logger.debug("   Sleep Score: \(scores.sleepScore), Strain: \(scores.strainScore)")
+            Logger.debug("   Effort Target: \(scores.effortTarget)")
             
             self.persistence.save(context: context)
             
-            print("✅ Core Data save completed successfully")
+            Logger.debug("✅ Core Data save completed successfully")
         }
     }
     

@@ -30,7 +30,7 @@ class WellnessDetectionService: ObservableObject {
         // Debug mode: show mock wellness warning
         #if DEBUG
         if ProFeatureConfig.shared.showWellnessWarningForTesting {
-            print("🧪 DEBUG: Showing mock wellness warning")
+            Logger.debug("🧪 DEBUG: Showing mock wellness warning")
             currentAlert = WellnessAlert(
                 severity: .red,
                 type: .multipleIndicators,
@@ -49,13 +49,13 @@ class WellnessDetectionService: ObservableObject {
         #endif
         
         guard !isAnalyzing else {
-            print("⏭️ Wellness analysis already in progress, skipping...")
+            Logger.warning("️ Wellness analysis already in progress, skipping...")
             return
         }
         
         // Skip wellness analysis if sleep data is missing (unreliable)
         if SleepScoreService.shared.currentSleepScore == nil {
-            print("⏭️ Skipping wellness analysis - no sleep data available (unreliable without sleep)")
+            Logger.warning("️ Skipping wellness analysis - no sleep data available (unreliable without sleep)")
             currentAlert = nil
             return
         }
@@ -64,7 +64,7 @@ class WellnessDetectionService: ObservableObject {
         if let lastAnalysis = lastAnalysisDate {
             let timeSinceLastAnalysis = Date().timeIntervalSince(lastAnalysis)
             if timeSinceLastAnalysis < minimumAnalysisInterval {
-                print("⏭️ Wellness analysis ran \(Int(timeSinceLastAnalysis/60))m ago, skipping (min interval: \(Int(minimumAnalysisInterval/60))m)")
+                Logger.warning("️ Wellness analysis ran \(Int(timeSinceLastAnalysis/60))m ago, skipping (min interval: \(Int(minimumAnalysisInterval/60))m)")
                 return
             }
         }
@@ -73,7 +73,7 @@ class WellnessDetectionService: ObservableObject {
         lastAnalysisDate = Date()
         defer { isAnalyzing = false }
         
-        print("🔍 Starting wellness trend analysis...")
+        Logger.debug("🔍 Starting wellness trend analysis...")
         
         // Fetch multi-day data for trend analysis (3 days)
         async let rhrTrend = analyzeRHRTrend(days: 3)
@@ -87,12 +87,12 @@ class WellnessDetectionService: ObservableObject {
             rhrTrend, hrvTrend, respiratoryTrend, bodyTempTrend, sleepTrend
         )
         
-        print("🔍 Trend Analysis Results:")
-        print("   RHR Elevated: \(rhrResult.isAbnormal) (\(rhrResult.consecutiveDays) days)")
-        print("   HRV Depressed: \(hrvResult.isAbnormal) (\(hrvResult.consecutiveDays) days)")
-        print("   Respiratory Elevated: \(respResult.isAbnormal) (\(respResult.consecutiveDays) days)")
-        print("   Body Temp Elevated: \(tempResult.isAbnormal) (\(tempResult.consecutiveDays) days)")
-        print("   Sleep Quality Poor: \(sleepResult.isAbnormal) (\(sleepResult.consecutiveDays) days)")
+        Logger.debug("🔍 Trend Analysis Results:")
+        Logger.debug("   RHR Elevated: \(rhrResult.isAbnormal) (\(rhrResult.consecutiveDays) days)")
+        Logger.debug("   HRV Depressed: \(hrvResult.isAbnormal) (\(hrvResult.consecutiveDays) days)")
+        Logger.debug("   Respiratory Elevated: \(respResult.isAbnormal) (\(respResult.consecutiveDays) days)")
+        Logger.debug("   Body Temp Elevated: \(tempResult.isAbnormal) (\(tempResult.consecutiveDays) days)")
+        Logger.debug("   Sleep Quality Poor: \(sleepResult.isAbnormal) (\(sleepResult.consecutiveDays) days)")
         
         // Create affected metrics summary
         let affectedMetrics = WellnessAlert.AffectedMetrics(
@@ -112,9 +112,9 @@ class WellnessDetectionService: ObservableObject {
         currentAlert = alert
         
         if let alert = alert {
-            print("⚠️ WELLNESS ALERT: \(alert.severity.rawValue) - \(alert.bannerMessage)")
+            Logger.warning("️ WELLNESS ALERT: \(alert.severity.rawValue) - \(alert.bannerMessage)")
         } else {
-            print("✅ No wellness concerns detected")
+            Logger.debug("✅ No wellness concerns detected")
         }
     }
     

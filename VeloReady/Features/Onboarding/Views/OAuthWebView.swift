@@ -40,11 +40,11 @@ struct OAuthWebView: UIViewRepresentable {
         
         // Handle SSL certificate challenges
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-            print("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
+            Logger.debug("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
             
             // For intervals.icu, we'll accept the certificate
             if challenge.protectionSpace.host.contains("intervals.icu") {
-                print("🔒 Accepting certificate for intervals.icu")
+                Logger.debug("🔒 Accepting certificate for intervals.icu")
                 if let serverTrust = challenge.protectionSpace.serverTrust {
                     let credential = URLCredential(trust: serverTrust)
                     completionHandler(.useCredential, credential)
@@ -62,12 +62,12 @@ struct OAuthWebView: UIViewRepresentable {
                 return
             }
             
-            print("🌐 WebView navigating to: \(url.absoluteString)")
+            Logger.debug("🌐 WebView navigating to: \(url.absoluteString)")
             
             // Check if this is our OAuth callback
             if url.scheme == "veloready" || url.scheme == "com.veloready.app" {
-                print("✅ OAuth callback detected in WebView: \(url.scheme ?? "unknown")://")
-                print("   Full URL: \(url.absoluteString)")
+                Logger.debug("✅ OAuth callback detected in WebView: \(url.scheme ?? "unknown")://")
+                Logger.debug("   Full URL: \(url.absoluteString)")
                 parent.onCallback(url)
                 decisionHandler(.cancel)
                 return
@@ -75,7 +75,7 @@ struct OAuthWebView: UIViewRepresentable {
             
             // Check for intervals.icu domain to ensure we're on the right site
             if let host = url.host, host.contains("intervals.icu") {
-                print("🌐 Navigating within intervals.icu: \(url.absoluteString)")
+                Logger.debug("🌐 Navigating within intervals.icu: \(url.absoluteString)")
                 decisionHandler(.allow)
                 return
             }
@@ -85,22 +85,22 @@ struct OAuthWebView: UIViewRepresentable {
         }
         
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            print("❌ WebView navigation failed: \(error.localizedDescription)")
+            Logger.error("WebView navigation failed: \(error.localizedDescription)")
             
             // Check if it's a network error
             if let nsError = error as NSError? {
-                print("❌ Error domain: \(nsError.domain)")
-                print("❌ Error code: \(nsError.code)")
-                print("❌ Error userInfo: \(nsError.userInfo)")
+                Logger.error("Error domain: \(nsError.domain)")
+                Logger.error("Error code: \(nsError.code)")
+                Logger.error("Error userInfo: \(nsError.userInfo)")
             }
         }
         
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            print("❌ WebView navigation failed: \(error.localizedDescription)")
+            Logger.error("WebView navigation failed: \(error.localizedDescription)")
         }
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("✅ WebView finished loading: \(webView.url?.absoluteString ?? "unknown")")
+            Logger.debug("✅ WebView finished loading: \(webView.url?.absoluteString ?? "unknown")")
         }
     }
 }
@@ -121,7 +121,7 @@ struct OAuthWebViewContainer: View {
                     onDismiss: onDismiss
                 )
                 .onAppear {
-                    print("🌐 Starting OAuth WebView with URL: \(url.absoluteString)")
+                    Logger.debug("🌐 Starting OAuth WebView with URL: \(url.absoluteString)")
                 }
             }
             .navigationTitle("Connect to intervals.icu")

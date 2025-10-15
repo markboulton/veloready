@@ -28,7 +28,7 @@ struct TrainingLoadChart: View {
         dateFormatter.timeZone = TimeZone.current
         
         guard let rideDate = dateFormatter.date(from: activity.startDateLocal) else {
-            print("❌ TrainingLoadChart: Failed to parse date from '\(activity.startDateLocal)'")
+            Logger.error("TrainingLoadChart: Failed to parse date from '\(activity.startDateLocal)'")
             return AnyView(EmptyView())
         }
         
@@ -226,30 +226,30 @@ struct TrainingLoadChart: View {
     private func loadHistoricalActivities(rideDate: Date) async {
         do {
             // Fetch 60 days of activities to ensure full history
-            print("📊 TrainingLoadChart: Fetching activities (60 days, limit 300)")
+            Logger.data("TrainingLoadChart: Fetching activities (60 days, limit 300)")
             let activities = try await apiClient.fetchRecentActivities(limit: 300, daysBack: 60)
-            print("📊 TrainingLoadChart: Fetched \(activities.count) activities")
+            Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
             
             // Filter to only activities with CTL/ATL data
             let activitiesWithData = activities.filter { $0.ctl != nil && $0.atl != nil }
-            print("📊 TrainingLoadChart: \(activitiesWithData.count) activities have CTL/ATL data")
+            Logger.data("TrainingLoadChart: \(activitiesWithData.count) activities have CTL/ATL data")
             
             // Check first few activities
             if activitiesWithData.count > 0 {
                 let first = activitiesWithData[0]
-                print("📊 TrainingLoadChart: First activity with data:")
-                print("  - date: \(first.startDateLocal)")
-                print("  - name: \(first.name ?? "Unnamed")")
-                print("  - CTL: \(first.ctl ?? -1)")
-                print("  - ATL: \(first.atl ?? -1)")
-                print("  - TSS: \(first.tss ?? -1)")
+                Logger.data("TrainingLoadChart: First activity with data:")
+                Logger.debug("  - date: \(first.startDateLocal)")
+                Logger.debug("  - name: \(first.name ?? "Unnamed")")
+                Logger.debug("  - CTL: \(first.ctl ?? -1)")
+                Logger.debug("  - ATL: \(first.atl ?? -1)")
+                Logger.debug("  - TSS: \(first.tss ?? -1)")
             }
             
             await MainActor.run {
                 self.historicalActivities = activitiesWithData
             }
         } catch {
-            print("❌ TrainingLoadChart: Failed to fetch activities: \(error)")
+            Logger.error("TrainingLoadChart: Failed to fetch activities: \(error)")
         }
     }
     
@@ -322,7 +322,7 @@ struct TrainingLoadChart: View {
             ))
         }
         
-        print("📊 TrainingLoadChart: Generated \(data.count) historical data points")
+        Logger.data("TrainingLoadChart: Generated \(data.count) historical data points")
         
         // 7 days of future projection (decay without training)
         for dayOffset in 1...7 {
@@ -347,8 +347,8 @@ struct TrainingLoadChart: View {
             ))
         }
         
-        print("📊 TrainingLoadChart: Total data points = \(data.count) (30 past + 7 future)")
-        print("📊 TrainingLoadChart: Date range = \(simpleDateFormatter.string(from: data.first?.date ?? Date())) to \(simpleDateFormatter.string(from: data.last?.date ?? Date()))")
+        Logger.data("TrainingLoadChart: Total data points = \(data.count) (30 past + 7 future)")
+        Logger.data("TrainingLoadChart: Date range = \(simpleDateFormatter.string(from: data.first?.date ?? Date())) to \(simpleDateFormatter.string(from: data.last?.date ?? Date()))")
         
         return data
     }

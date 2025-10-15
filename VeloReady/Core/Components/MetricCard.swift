@@ -93,7 +93,7 @@ struct MetricCard: View {
             title: "Calories Burned",
             color: .orange,
             action: {
-                print("Tapped")
+                Logger.debug("Tapped")
             }
         )
         

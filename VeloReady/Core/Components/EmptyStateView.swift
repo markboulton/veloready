@@ -73,7 +73,7 @@ struct EmptyStateView: View {
                 message: ComponentContent.EmptyState.noActivitiesMessage,
                 actionTitle: ComponentContent.EmptyState.addActivity,
                 action: {
-                    print("Add activity tapped")
+                    Logger.debug("Add activity tapped")
                 }
             )
             
@@ -85,7 +85,7 @@ struct EmptyStateView: View {
                 message: ComponentContent.EmptyState.healthDataMessage,
                 actionTitle: ComponentContent.EmptyState.grantAccess,
                 action: {
-                    print("Grant access tapped")
+                    Logger.debug("Grant access tapped")
                 }
             )
             

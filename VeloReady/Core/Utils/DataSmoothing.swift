@@ -116,7 +116,7 @@ struct DataSmoothing {
             }
         }
         
-        print("📉 Downsampled \(samples.count) → \(result.count) points (target: \(targetPoints))")
+        Logger.debug("📉 Downsampled \(samples.count) → \(result.count) points (target: \(targetPoints))")
         return result
     }
     
@@ -150,7 +150,7 @@ struct DataSmoothing {
             }
         }
         
-        print("📉 Downsampled HR: \(samples.count) → \(result.count) points")
+        Logger.debug("📉 Downsampled HR: \(samples.count) → \(result.count) points")
         return result
     }
 }

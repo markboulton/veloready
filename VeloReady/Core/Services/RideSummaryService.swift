@@ -31,7 +31,7 @@ class RideSummaryService: ObservableObject {
         // Generate new anonymous ID
         let newId = UUID().uuidString
         UserDefaults.standard.set(newId, forKey: userIdKey)
-        print("🆔 Generated new anonymous user ID: \(newId.prefix(8))...")
+        Logger.debug("🆔 Generated new anonymous user ID: \(newId.prefix(8))...")
         return newId
     }
     
@@ -51,21 +51,21 @@ class RideSummaryService: ObservableObject {
             let response = try await client.fetchSummary(request: request, userId: userId, bypassCache: bypassCache)
             currentSummary = response
             
-            print("✅ Ride summary updated (\(response.cached ?? false ? "cached" : "fresh"))")
+            Logger.debug("✅ Ride summary updated (\(response.cached ?? false ? "cached" : "fresh"))")
         } catch let summaryError as RideSummaryError {
             error = summaryError
             currentSummary = nil
-            print("❌ Ride summary error: \(summaryError)")
+            Logger.error("Ride summary error: \(summaryError)")
         } catch {
             self.error = .networkError(error.localizedDescription)
             currentSummary = nil
-            print("❌ Ride summary error: \(error.localizedDescription)")
+            Logger.error("Ride summary error: \(error.localizedDescription)")
         }
     }
     
     /// Refresh summary (bypass cache)
     func refresh(for activity: IntervalsActivity) async {
-        print("🔄 Refreshing ride summary (bypass cache)")
+        Logger.debug("🔄 Refreshing ride summary (bypass cache)")
         await fetchSummary(for: activity, bypassCache: true)
     }
     
@@ -148,20 +148,20 @@ class RideSummaryService: ObservableObject {
         )
         
         #if DEBUG
-        print("📊 Ride Summary Request Data:")
-        print("   Ride ID: \(request.rideId)")
-        print("   Title: \(request.title)")
-        print("   Duration: \(request.durationSec?.description ?? "nil")s")
-        print("   Distance: \(request.distanceKm?.description ?? "nil")km")
-        print("   TSS: \(request.tss?.description ?? "nil")")
-        print("   IF: \(request.if?.description ?? "nil")")
-        print("   NP: \(request.np?.description ?? "nil")")
-        print("   Avg Power: \(request.avgPower?.description ?? "nil")")
-        print("   FTP: \(request.ftp?.description ?? "nil")")
-        print("   Power Variability: \(request.powerVariabilityPct?.description ?? "nil")%")
-        print("   HR: avg=\(request.hr?.avg?.description ?? "nil"), max=\(request.hr?.max?.description ?? "nil"), drift=\(request.hr?.lfhddriftPct?.description ?? "nil")%")
-        print("   Cadence: avg=\(request.cadence?.avg?.description ?? "nil")")
-        print("   Context: recovery=\(request.context?.recoveryPct?.description ?? "nil")%, tsb=\(request.context?.tsb?.description ?? "nil")")
+        Logger.data("Ride Summary Request Data:")
+        Logger.debug("   Ride ID: \(request.rideId)")
+        Logger.debug("   Title: \(request.title)")
+        Logger.debug("   Duration: \(request.durationSec?.description ?? "nil")s")
+        Logger.debug("   Distance: \(request.distanceKm?.description ?? "nil")km")
+        Logger.debug("   TSS: \(request.tss?.description ?? "nil")")
+        Logger.debug("   IF: \(request.if?.description ?? "nil")")
+        Logger.debug("   NP: \(request.np?.description ?? "nil")")
+        Logger.debug("   Avg Power: \(request.avgPower?.description ?? "nil")")
+        Logger.debug("   FTP: \(request.ftp?.description ?? "nil")")
+        Logger.debug("   Power Variability: \(request.powerVariabilityPct?.description ?? "nil")%")
+        Logger.debug("   HR: avg=\(request.hr?.avg?.description ?? "nil"), max=\(request.hr?.max?.description ?? "nil"), drift=\(request.hr?.lfhddriftPct?.description ?? "nil")%")
+        Logger.debug("   Cadence: avg=\(request.cadence?.avg?.description ?? "nil")")
+        Logger.debug("   Context: recovery=\(request.context?.recoveryPct?.description ?? "nil")%, tsb=\(request.context?.tsb?.description ?? "nil")")
         #endif
         
         return request

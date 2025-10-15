@@ -84,10 +84,10 @@ class RecoveryScoreCalculator {
         
         var finalScore = hrvFactor + rhrFactor + sleepFactor + respiratoryFactor + loadFactor
         
-        print("🏥 RECOVERY SCORE CALCULATION (NEW WEIGHTS):")
-        print("   Sub-scores: HRV=\(subScores.hrv), RHR=\(subScores.rhr), Sleep=\(subScores.sleep), Resp=\(subScores.respiratory), Load=\(subScores.form)")
-        print("   Weighted:   HRV=\(String(format: "%.1f", hrvFactor)) (30%), RHR=\(String(format: "%.1f", rhrFactor)) (20%), Sleep=\(String(format: "%.1f", sleepFactor)) (30%), Resp=\(String(format: "%.1f", respiratoryFactor)) (10%), Load=\(String(format: "%.1f", loadFactor)) (10%)")
-        print("   Base Score: \(String(format: "%.1f", finalScore)) (before alcohol detection)")
+        Logger.debug("🏥 RECOVERY SCORE CALCULATION (NEW WEIGHTS):")
+        Logger.debug("   Sub-scores: HRV=\(subScores.hrv), RHR=\(subScores.rhr), Sleep=\(subScores.sleep), Resp=\(subScores.respiratory), Load=\(subScores.form)")
+        Logger.debug("   Weighted:   HRV=\(String(format: "%.1f", hrvFactor)) (30%), RHR=\(String(format: "%.1f", rhrFactor)) (20%), Sleep=\(String(format: "%.1f", sleepFactor)) (30%), Resp=\(String(format: "%.1f", respiratoryFactor)) (10%), Load=\(String(format: "%.1f", loadFactor)) (10%)")
+        Logger.debug("   Base Score: \(String(format: "%.1f", finalScore)) (before alcohol detection)")
         
         // Apply alcohol-specific compound effect detection
         finalScore = applyAlcoholCompoundEffect(
@@ -101,7 +101,7 @@ class RecoveryScoreCalculator {
         finalScore = max(0, min(100, finalScore))
         let band = determineBand(score: finalScore)
         
-        print("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
+        Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
         
         return RecoveryScore(
             score: Int(finalScore),
@@ -314,7 +314,7 @@ class RecoveryScoreCalculator {
         
         // Skip alcohol detection if sleep data is missing (unreliable)
         guard inputs.sleepScore != nil else {
-            print("🍷 Skipping alcohol detection - no sleep data available (unreliable without sleep)")
+            Logger.debug("🍷 Skipping alcohol detection - no sleep data available (unreliable without sleep)")
             return baseScore
         }
         
@@ -337,7 +337,7 @@ class RecoveryScoreCalculator {
         // Calculate overnight HRV change for alcohol detection
         if let overnightHrv = hrvForAlcoholDetection, let hrvBase = hrvBaseline, hrvBase > 0 {
             let hrvChange = ((overnightHrv - hrvBase) / hrvBase) * 100
-            print("🍷 Alcohol Detection - Overnight HRV Change: \(String(format: "%.1f", hrvChange))%")
+            Logger.debug("🍷 Alcohol Detection - Overnight HRV Change: \(String(format: "%.1f", hrvChange))%")
             
             // Determine alcohol severity based on HRV drop magnitude
             let alcoholSeverity: String
@@ -351,25 +351,25 @@ class RecoveryScoreCalculator {
                 alcoholSeverity = "light" // <20% drop = 1-2 drinks or none
             }
             
-            print("🍷 Alcohol Severity Assessment: \(alcoholSeverity) (HRV drop: \(String(format: "%.1f", abs(hrvChange)))%)")
+            Logger.debug("🍷 Alcohol Severity Assessment: \(alcoholSeverity) (HRV drop: \(String(format: "%.1f", abs(hrvChange)))%)")
             
             // Primary alcohol detection: HRV-based with graduated penalties
             if hrvChange < -35.0 {
                 // Heavy drinking (>35% HRV drop)
                 alcoholPenalty = 12.0
-                print("🍷 Heavy alcohol detected (>\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 12pt penalty")
+                Logger.debug("🍷 Heavy alcohol detected (>\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 12pt penalty")
             } else if hrvChange < -25.0 {
                 // Moderate-heavy drinking (25-35% HRV drop)
                 alcoholPenalty = 8.0
-                print("🍷 Moderate-heavy alcohol detected (\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 8pt penalty")
+                Logger.debug("🍷 Moderate-heavy alcohol detected (\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 8pt penalty")
             } else if hrvChange < -20.0 {
                 // Moderate drinking (20-25% HRV drop) - e.g., 2-3 glasses of wine
                 alcoholPenalty = 5.0
-                print("🍷 Moderate alcohol detected (\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 5pt penalty")
+                Logger.debug("🍷 Moderate alcohol detected (\(String(format: "%.0f", abs(hrvChange)))% HRV drop) - applying 5pt penalty")
             } else if hrvScore < alcoholHRVThreshold {
                 // Light impact or natural HRV variation
                 alcoholPenalty = 3.0
-                print("🍷 Light alcohol impact detected - applying 3pt penalty")
+                Logger.debug("🍷 Light alcohol impact detected - applying 3pt penalty")
             }
             
             // Sleep quality mitigation: Good sleep reduces alcohol penalty
@@ -377,22 +377,22 @@ class RecoveryScoreCalculator {
                 // Excellent sleep (80+) mitigates alcohol impact by 30%
                 let sleepMitigation = alcoholPenalty * 0.30
                 alcoholPenalty -= sleepMitigation
-                print("🍷 Sleep quality mitigation: Excellent sleep (\(sleepScore)/100) reduces penalty by \(String(format: "%.1f", sleepMitigation))pts")
+                Logger.debug("🍷 Sleep quality mitigation: Excellent sleep (\(sleepScore)/100) reduces penalty by \(String(format: "%.1f", sleepMitigation))pts")
             } else if sleepScore >= 65 && alcoholPenalty > 0 {
                 // Good sleep (65-79) mitigates alcohol impact by 15%
                 let sleepMitigation = alcoholPenalty * 0.15
                 alcoholPenalty -= sleepMitigation
-                print("🍷 Sleep quality mitigation: Good sleep (\(sleepScore)/100) reduces penalty by \(String(format: "%.1f", sleepMitigation))pts")
+                Logger.debug("🍷 Sleep quality mitigation: Good sleep (\(sleepScore)/100) reduces penalty by \(String(format: "%.1f", sleepMitigation))pts")
             } else if sleepScore < alcoholSleepThreshold && alcoholPenalty > 0 {
                 // Poor sleep + alcohol = compound effect (worse recovery)
                 alcoholPenalty += 3.0
-                print("🍷 Alcohol + poor sleep compound effect - applying additional 3pt penalty")
+                Logger.debug("🍷 Alcohol + poor sleep compound effect - applying additional 3pt penalty")
             }
             
             // RHR confirmation: If RHR is also elevated, increase penalty slightly
             if rhrScore < alcoholRHRThreshold && alcoholPenalty > 0 {
                 alcoholPenalty += 2.0
-                print("🍷 RHR elevation confirms alcohol impact - applying additional 2pt penalty")
+                Logger.debug("🍷 RHR elevation confirms alcohol impact - applying additional 2pt penalty")
             }
             
             // Cap maximum alcohol penalty at 15 points (reasonable for moderate consumption)
@@ -404,14 +404,14 @@ class RecoveryScoreCalculator {
         
         // Log alcohol detection for debugging
         if alcoholPenalty > 0 {
-            print("🍷 ========================================")
-            print("🍷 ALCOHOL COMPOUND EFFECT APPLIED:")
-            print("🍷   Base Score: \(String(format: "%.1f", baseScore))")
-            print("🍷   Alcohol Penalty: -\(String(format: "%.1f", alcoholPenalty)) points")
-            print("🍷   Adjusted Score: \(String(format: "%.1f", adjustedScore))")
-            print("🍷 ========================================")
+            Logger.debug("🍷 ========================================")
+            Logger.debug("🍷 ALCOHOL COMPOUND EFFECT APPLIED:")
+            Logger.debug("🍷   Base Score: \(String(format: "%.1f", baseScore))")
+            Logger.debug("🍷   Alcohol Penalty: -\(String(format: "%.1f", alcoholPenalty)) points")
+            Logger.debug("🍷   Adjusted Score: \(String(format: "%.1f", adjustedScore))")
+            Logger.debug("🍷 ========================================")
         } else {
-            print("🍷 No alcohol detected - recovery score unchanged")
+            Logger.debug("🍷 No alcohol detected - recovery score unchanged")
         }
         
         return adjustedScore

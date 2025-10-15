@@ -38,7 +38,7 @@ class SleepScoreService: ObservableObject {
         // Check if we have sleep data from LAST NIGHT (not older data)
         guard let sleepInfo = await healthKitManager.fetchDetailedSleepData() else {
             // No sleep data at all - clear cache and set to nil
-            print("⚠️ No sleep data detected - clearing cache")
+            Logger.warning("️ No sleep data detected - clearing cache")
             clearSleepScoreCache()
             currentSleepScore = nil
             return
@@ -52,11 +52,11 @@ class SleepScoreService: ObservableObject {
         // Sleep should have ended within the last 24 hours
         if let wakeTime = sleepInfo.wakeTime, wakeTime > yesterday {
             // Fresh sleep data from last night - safe to load cache
-            print("✅ Sleep data from last night detected (wake: \(wakeTime))")
+            Logger.debug("✅ Sleep data from last night detected (wake: \(wakeTime))")
             loadCachedSleepScore()
         } else {
             // Sleep data is old (from 2+ nights ago) - clear cache
-            print("⚠️ Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - clearing cache")
+            Logger.warning("️ Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - clearing cache")
             clearSleepScoreCache()
             currentSleepScore = nil
         }
@@ -75,11 +75,11 @@ class SleepScoreService: ObservableObject {
     }
     
     private func performCalculation() async {
-        print("🔄 Starting sleep score calculation")
+        Logger.debug("🔄 Starting sleep score calculation")
         
         // Check if already loading to prevent multiple concurrent calculations
         guard !isLoading else {
-            print("⚠️ Sleep score calculation already in progress, skipping...")
+            Logger.warning("️ Sleep score calculation already in progress, skipping...")
             return
         }
         
@@ -109,13 +109,13 @@ class SleepScoreService: ObservableObject {
                 calculationTask.cancel()
             }
             
-            print("✅ Sleep score calculation completed successfully")
+            Logger.debug("✅ Sleep score calculation completed successfully")
         } catch {
             if error is CancellationError {
-                print("⏰ Sleep score calculation timed out after 10 seconds")
+                Logger.debug("⏰ Sleep score calculation timed out after 10 seconds")
                 errorMessage = "Calculation timed out. Please try again."
             } else {
-                print("❌ Sleep score calculation error: \(error)")
+                Logger.error("Sleep score calculation error: \(error)")
                 errorMessage = "Calculation failed: \(error.localizedDescription)"
             }
         }
@@ -129,7 +129,7 @@ class SleepScoreService: ObservableObject {
         let sleepStatus = healthKitManager.getAuthorizationStatus(for: sleepType)
         
         if sleepStatus == .sharingDenied {
-            print("❌ Sleep permissions explicitly denied - skipping calculation")
+            Logger.error("Sleep permissions explicitly denied - skipping calculation")
             await MainActor.run {
                 currentSleepScore = nil
                 isLoading = false
@@ -147,7 +147,7 @@ class SleepScoreService: ObservableObject {
         } else {
             // Clear cache if no sleep data available (user didn't wear watch)
             clearSleepScoreCache()
-            print("🗑️ Cleared sleep score cache - no data available")
+            Logger.debug("🗑️ Cleared sleep score cache - no data available")
             
             // Only trigger recovery refresh if it hasn't been calculated yet
             // (No need to recalculate if recovery is already done - it handles missing sleep gracefully)
@@ -155,11 +155,11 @@ class SleepScoreService: ObservableObject {
                 Task {
                     // Wait 2 seconds to let UI settle
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
-                    print("🔄 Triggering deferred recovery score refresh due to missing sleep data")
+                    Logger.debug("🔄 Triggering deferred recovery score refresh due to missing sleep data")
                     await RecoveryScoreService.shared.forceRefreshRecoveryScoreIgnoringDailyLimit()
                 }
             } else {
-                print("⏭️ Recovery already calculated today - skipping force refresh")
+                Logger.warning("️ Recovery already calculated today - skipping force refresh")
             }
         }
     }
@@ -175,7 +175,7 @@ class SleepScoreService: ObservableObject {
         let (sleepInfo, hrv, (hrvBaseline, _, _, _)) = await (sleepData, hrvData, baselines)
         
         guard let sleepInfo = sleepInfo else {
-            print("❌ No sleep data available")
+            Logger.error("No sleep data available")
             return nil
         }
         
@@ -186,11 +186,11 @@ class SleepScoreService: ObservableObject {
         
         // Sleep should have ended within the last 24 hours
         guard let wakeTime = sleepInfo.wakeTime, wakeTime > yesterday else {
-            print("❌ Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - not calculating score")
+            Logger.error("Sleep data is outdated (wake: \(sleepInfo.wakeTime?.description ?? "unknown")) - not calculating score")
             return nil
         }
         
-        print("✅ Sleep data is fresh (wake: \(wakeTime)) - calculating score")
+        Logger.debug("✅ Sleep data is fresh (wake: \(wakeTime)) - calculating score")
         
         // Calculate sleep need based on user target and training load
         let sleepNeed = calculateSleepNeed()
@@ -217,15 +217,15 @@ class SleepScoreService: ObservableObject {
             hrvBaseline: hrvBaseline
         )
         
-        print("🔍 Sleep Score Inputs:")
-        print("   Sleep Duration: \(inputs.sleepDuration?.description ?? "nil") seconds")
-        print("   Time in Bed: \(inputs.timeInBed?.description ?? "nil") seconds")
-        print("   Sleep Need: \(inputs.sleepNeed?.description ?? "nil") seconds")
-        print("   Deep Sleep: \(inputs.deepSleepDuration?.description ?? "nil") seconds")
-        print("   REM Sleep: \(inputs.remSleepDuration?.description ?? "nil") seconds")
-        print("   Wake Events: \(inputs.wakeEvents?.description ?? "nil")")
-        print("   HRV Overnight: \(inputs.hrvOvernight?.description ?? "nil") ms")
-        print("   HRV Baseline: \(inputs.hrvBaseline?.description ?? "nil") ms")
+        Logger.debug("🔍 Sleep Score Inputs:")
+        Logger.debug("   Sleep Duration: \(inputs.sleepDuration?.description ?? "nil") seconds")
+        Logger.debug("   Time in Bed: \(inputs.timeInBed?.description ?? "nil") seconds")
+        Logger.debug("   Sleep Need: \(inputs.sleepNeed?.description ?? "nil") seconds")
+        Logger.debug("   Deep Sleep: \(inputs.deepSleepDuration?.description ?? "nil") seconds")
+        Logger.debug("   REM Sleep: \(inputs.remSleepDuration?.description ?? "nil") seconds")
+        Logger.debug("   Wake Events: \(inputs.wakeEvents?.description ?? "nil")")
+        Logger.debug("   HRV Overnight: \(inputs.hrvOvernight?.description ?? "nil") ms")
+        Logger.debug("   HRV Baseline: \(inputs.hrvBaseline?.description ?? "nil") ms")
         
         return SleepScoreCalculator.calculate(inputs: inputs)
     }
@@ -246,7 +246,7 @@ class SleepScoreService: ObservableObject {
     /// Calculate real baseline bedtime from historical sleep data
     private func calculateRealBaselineBedtime(from sleepTimes: [(bedtime: Date?, wakeTime: Date?)]) -> Date? {
         guard !sleepTimes.isEmpty else {
-            print("⚠️ No historical sleep data for baseline calculation")
+            Logger.warning("️ No historical sleep data for baseline calculation")
             return Calendar.current.date(byAdding: .hour, value: -10, to: Date()) // Fallback to 10 PM
         }
         
@@ -254,7 +254,7 @@ class SleepScoreService: ObservableObject {
         let validBedtimes = sleepTimes.compactMap { $0.bedtime }
         
         guard !validBedtimes.isEmpty else {
-            print("⚠️ No valid bedtime data for baseline calculation")
+            Logger.warning("️ No valid bedtime data for baseline calculation")
             return Calendar.current.date(byAdding: .hour, value: -10, to: Date()) // Fallback to 10 PM
         }
         
@@ -271,14 +271,14 @@ class SleepScoreService: ObservableObject {
         let today = calendar.startOfDay(for: Date())
         let timeOnlyBaseline = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: today)
         
-        print("🔍 BASELINE CALCULATION:")
-        print("   Valid bedtime samples: \(validBedtimes.count)")
+        Logger.debug("🔍 BASELINE CALCULATION:")
+        Logger.debug("   Valid bedtime samples: \(validBedtimes.count)")
         for (index, bedtime) in validBedtimes.enumerated() {
             let formatter = DateFormatter()
             formatter.dateFormat = "HH:mm"
-            print("     Sample \(index + 1): \(formatter.string(from: bedtime))")
+            Logger.debug("     Sample \(index + 1): \(formatter.string(from: bedtime))")
         }
-        print("   Calculated baseline bedtime: \(timeOnlyBaseline?.description ?? "nil")")
+        Logger.debug("   Calculated baseline bedtime: \(timeOnlyBaseline?.description ?? "nil")")
         
         return timeOnlyBaseline
     }
@@ -286,7 +286,7 @@ class SleepScoreService: ObservableObject {
     /// Calculate real baseline wake time from historical sleep data
     private func calculateRealBaselineWakeTime(from sleepTimes: [(bedtime: Date?, wakeTime: Date?)]) -> Date? {
         guard !sleepTimes.isEmpty else {
-            print("⚠️ No historical sleep data for baseline calculation")
+            Logger.warning("️ No historical sleep data for baseline calculation")
             return Calendar.current.date(byAdding: .hour, value: -6, to: Date()) // Fallback to 6 AM
         }
         
@@ -294,7 +294,7 @@ class SleepScoreService: ObservableObject {
         let validWakeTimes = sleepTimes.compactMap { $0.wakeTime }
         
         guard !validWakeTimes.isEmpty else {
-            print("⚠️ No valid wake time data for baseline calculation")
+            Logger.warning("️ No valid wake time data for baseline calculation")
             return Calendar.current.date(byAdding: .hour, value: -6, to: Date()) // Fallback to 6 AM
         }
         
@@ -311,13 +311,13 @@ class SleepScoreService: ObservableObject {
         let today = calendar.startOfDay(for: Date())
         let timeOnlyBaseline = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: today)
         
-        print("   Valid wake time samples: \(validWakeTimes.count)")
+        Logger.debug("   Valid wake time samples: \(validWakeTimes.count)")
         for (index, wakeTime) in validWakeTimes.enumerated() {
             let formatter = DateFormatter()
             formatter.dateFormat = "HH:mm"
-            print("     Sample \(index + 1): \(formatter.string(from: wakeTime))")
+            Logger.debug("     Sample \(index + 1): \(formatter.string(from: wakeTime))")
         }
-        print("   Calculated baseline wake time: \(timeOnlyBaseline?.description ?? "nil")")
+        Logger.debug("   Calculated baseline wake time: \(timeOnlyBaseline?.description ?? "nil")")
         
         return timeOnlyBaseline
     }
@@ -325,7 +325,7 @@ class SleepScoreService: ObservableObject {
     /// Update sleep target
     func updateSleepTarget(_ target: Double) {
         userSettings.sleepTargetHours = target / 3600
-        print("🔄 Sleep target updated to \(String(format: "%.1f", target/3600)) hours")
+        Logger.debug("🔄 Sleep target updated to \(String(format: "%.1f", target/3600)) hours")
     }
     
     /// Get current sleep target
@@ -399,7 +399,7 @@ extension SleepScoreService {
     private func loadCachedSleepScore() {
         guard let cachedData = userDefaults.data(forKey: cachedSleepScoreKey),
               let cachedDate = userDefaults.object(forKey: cachedSleepScoreDateKey) as? Date else {
-            print("📦 No cached sleep score found")
+            Logger.debug("📦 No cached sleep score found")
             return
         }
         
@@ -410,12 +410,12 @@ extension SleepScoreService {
                 let decoder = JSONDecoder()
                 let cachedScore = try decoder.decode(SleepScore.self, from: cachedData)
                 currentSleepScore = cachedScore
-                print("⚡ Loaded cached sleep score: \(cachedScore.score)")
+                Logger.debug("⚡ Loaded cached sleep score: \(cachedScore.score)")
             } catch {
-                print("❌ Failed to decode cached sleep score: \(error)")
+                Logger.error("Failed to decode cached sleep score: \(error)")
             }
         } else {
-            print("📦 Cached sleep score is outdated, clearing cache")
+            Logger.debug("📦 Cached sleep score is outdated, clearing cache")
             clearSleepScoreCache()
         }
     }
@@ -427,9 +427,9 @@ extension SleepScoreService {
             let data = try encoder.encode(score)
             userDefaults.set(data, forKey: cachedSleepScoreKey)
             userDefaults.set(Date(), forKey: cachedSleepScoreDateKey)
-            print("💾 Saved sleep score to cache: \(score.score)")
+            Logger.debug("💾 Saved sleep score to cache: \(score.score)")
         } catch {
-            print("❌ Failed to save sleep score to cache: \(error)")
+            Logger.error("Failed to save sleep score to cache: \(error)")
         }
     }
     

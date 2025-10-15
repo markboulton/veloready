@@ -57,7 +57,7 @@ struct DataSourcesSettingsView: View {
                 // Trigger a data refresh across the app
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     NotificationCenter.default.post(name: .refreshDataAfterIntervalsConnection, object: nil)
-                    print("🔄 Posted notification to refresh data after Intervals.icu connection")
+                    Logger.debug("🔄 Posted notification to refresh data after Intervals.icu connection")
                 }
             }
         }
@@ -220,7 +220,7 @@ struct DataSourcesSettingsView: View {
                                 // Trigger a data refresh to switch to HealthKit-only mode
                                 await MainActor.run {
                                     NotificationCenter.default.post(name: .refreshDataAfterIntervalsConnection, object: nil)
-                                    print("🔄 Posted notification to refresh data after Intervals.icu disconnection")
+                                    Logger.debug("🔄 Posted notification to refresh data after Intervals.icu disconnection")
                                 }
                             }
                         }

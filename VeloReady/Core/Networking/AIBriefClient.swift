@@ -102,7 +102,7 @@ class AIBriefClient: AIBriefClientProtocol {
         // Check cache first (unless bypassed)
         if !bypassCache {
             if let cached = cache.get(userId: userId) {
-                print("📦 Using cached AI brief (age: \(String(format: "%.1f", Date().timeIntervalSince(cached.timestamp) / 60))m)")
+                Logger.debug("📦 Using cached AI brief (age: \(String(format: "%.1f", Date().timeIntervalSince(cached.timestamp) / 60))m)")
                 
                 // Emit telemetry
                 emitTelemetry(
@@ -136,7 +136,7 @@ class AIBriefClient: AIBriefClientProtocol {
                     userId: userId
                 )
                 
-                print("✅ AI brief fetched successfully (latency: \(latencyMs)ms, server cached: \(response.cached ?? false))")
+                Logger.debug("✅ AI brief fetched successfully (latency: \(latencyMs)ms, server cached: \(response.cached ?? false))")
                 return response
                 
             } catch let error as AIBriefError {
@@ -145,7 +145,7 @@ class AIBriefClient: AIBriefClientProtocol {
                 // Don't retry on client errors (4xx)
                 switch error {
                 case .invalidSignature, .missingSecret, .invalidResponse, .encodingError:
-                    print("❌ AI brief error (non-retryable): \(error.localizedDescription)")
+                    Logger.error("AI brief error (non-retryable): \(error.localizedDescription)")
                     emitTelemetry(
                         result: "error",
                         httpStatus: 401,
@@ -159,7 +159,7 @@ class AIBriefClient: AIBriefClientProtocol {
                     // Retry on 5xx
                     if code >= 500 && attempt < maxRetries {
                         let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                        print("⚠️ Server error \(code), retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
+                        Logger.warning("️ Server error \(code), retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
                         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                         continue
                     }
@@ -168,7 +168,7 @@ class AIBriefClient: AIBriefClientProtocol {
                     // Retry on network errors
                     if attempt < maxRetries {
                         let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                        print("⚠️ Network error, retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
+                        Logger.warning("️ Network error, retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
                         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                         continue
                     }
@@ -220,10 +220,10 @@ class AIBriefClient: AIBriefClientProtocol {
         urlRequest.timeoutInterval = 10
         
         #if DEBUG
-        print("🌐 AI Brief Request:")
-        print("   User: \(userId)")
-        print("   Signature: \(signature.prefix(4))...\(signature.suffix(4))")
-        print("   Body size: \(bodyData.count) bytes")
+        Logger.debug("🌐 AI Brief Request:")
+        Logger.debug("   User: \(userId)")
+        Logger.debug("   Signature: \(signature.prefix(4))...\(signature.suffix(4))")
+        Logger.debug("   Body size: \(bodyData.count) bytes")
         #endif
         
         // Send request
@@ -233,7 +233,7 @@ class AIBriefClient: AIBriefClientProtocol {
             throw AIBriefError.networkError("Invalid response type")
         }
         
-        print("📊 AI Brief Response: HTTP \(httpResponse.statusCode)")
+        Logger.data("AI Brief Response: HTTP \(httpResponse.statusCode)")
         
         // Handle HTTP errors
         switch httpResponse.statusCode {
@@ -268,7 +268,7 @@ class AIBriefClient: AIBriefClientProtocol {
             #if DEBUG
             if let text = String(data: data, encoding: .utf8) {
                 let preview = String(text.prefix(80))
-                print("❌ Invalid JSON response (first 80 chars): \(preview)")
+                Logger.error("Invalid JSON response (first 80 chars): \(preview)")
             }
             #endif
             throw AIBriefError.invalidResponse
@@ -287,7 +287,7 @@ class AIBriefClient: AIBriefClientProtocol {
     
     func setHMACSecret(_ secret: String) {
         KeychainHelper.shared.set(secret, service: keychainService, account: secretKey)
-        print("🔐 HMAC secret configured (length: \(secret.count) chars)")
+        Logger.debug("🔐 HMAC secret configured (length: \(secret.count) chars)")
     }
     
     private func emitTelemetry(result: String, httpStatus: Int, latencyMs: Int, serverCached: Bool, userId: String) {
@@ -295,12 +295,12 @@ class AIBriefClient: AIBriefClientProtocol {
         let hashedUserId = hashUserId(userId)
         
         #if DEBUG
-        print("📊 AI Brief Telemetry:")
-        print("   Result: \(result)")
-        print("   HTTP Status: \(httpStatus)")
-        print("   Latency: \(latencyMs)ms")
-        print("   Server Cached: \(serverCached)")
-        print("   User (hashed): \(hashedUserId)")
+        Logger.data("AI Brief Telemetry:")
+        Logger.debug("   Result: \(result)")
+        Logger.debug("   HTTP Status: \(httpStatus)")
+        Logger.debug("   Latency: \(latencyMs)ms")
+        Logger.debug("   Server Cached: \(serverCached)")
+        Logger.debug("   User (hashed): \(hashedUserId)")
         #endif
         
         // TODO: Send to analytics service
@@ -322,7 +322,7 @@ class AIBriefClient: AIBriefClientProtocol {
     // Debug helper
     func clearCache() {
         cache.clear()
-        print("🗑️ AI brief cache cleared")
+        Logger.debug("🗑️ AI brief cache cleared")
     }
 }
 
@@ -371,7 +371,7 @@ class AIBriefCache {
             date: today
         )
         
-        print("💾 Cached AI brief for user \(userId.prefix(8))... (date: \(today))")
+        Logger.debug("💾 Cached AI brief for user \(userId.prefix(8))... (date: \(today))")
     }
     
     func clear() {
@@ -416,9 +416,9 @@ class KeychainHelper {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status == errSecSuccess {
-            print("✅ Keychain: Saved \(account)")
+            Logger.debug("✅ Keychain: Saved \(account)")
         } else {
-            print("❌ Keychain: Failed to save \(account) (status: \(status))")
+            Logger.error("Keychain: Failed to save \(account) (status: \(status))")
         }
     }
     

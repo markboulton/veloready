@@ -19,7 +19,7 @@ struct RideDetailSheet: View {
             maxHR: profileManager.profile.maxHR
         )
         .task {
-            print("🏁 RideDetailSheet: .task triggered - loading activity data")
+            Logger.debug("🏁 RideDetailSheet: .task triggered - loading activity data")
             // Load activity data when view appears
             await viewModel.loadActivityData(
                 activity: activity,
@@ -27,15 +27,15 @@ struct RideDetailSheet: View {
                 profileManager: AthleteProfileManager.shared
             )
             
-            print("🏁 RideDetailSheet: Activity data loaded, checking athlete data")
+            Logger.debug("🏁 RideDetailSheet: Activity data loaded, checking athlete data")
             // Fetch athlete data if needed
             if athleteZoneService.shouldRefreshAthleteData {
-                print("🏁 RideDetailSheet: Fetching athlete data")
+                Logger.debug("🏁 RideDetailSheet: Fetching athlete data")
                 await athleteZoneService.fetchAthleteData()
             } else {
-                print("🏁 RideDetailSheet: Athlete data is fresh, skipping fetch")
+                Logger.debug("🏁 RideDetailSheet: Athlete data is fresh, skipping fetch")
             }
-            print("🏁 RideDetailSheet: .task complete")
+            Logger.debug("🏁 RideDetailSheet: .task complete")
         }
     }
     

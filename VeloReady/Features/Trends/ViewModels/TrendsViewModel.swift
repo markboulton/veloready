@@ -130,7 +130,7 @@ class TrendsViewModel: ObservableObject {
             ]
         }
         
-        print("📈 Loaded FTP trend: \(ftpTrendData.count) points")
+        Logger.debug("📈 Loaded FTP trend: \(ftpTrendData.count) points")
     }
     
     // MARK: - Recovery Trend
@@ -138,7 +138,7 @@ class TrendsViewModel: ObservableObject {
     private func loadRecoveryTrend() async {
         if proConfig.showMockDataForTesting {
             recoveryTrendData = generateMockRecoveryData()
-            print("📈 Loaded recovery trend: \(recoveryTrendData.count) points [MOCK DATA]")
+            Logger.debug("📈 Loaded recovery trend: \(recoveryTrendData.count) points [MOCK DATA]")
             return
         }
         
@@ -154,7 +154,7 @@ class TrendsViewModel: ObservableObject {
             return TrendDataPoint(date: date, value: cached.recoveryScore)
         }
         
-        print("📈 Loaded recovery trend: \(recoveryTrendData.count) points from Core Data")
+        Logger.debug("📈 Loaded recovery trend: \(recoveryTrendData.count) points from Core Data")
     }
     
     // MARK: - HRV Trend
@@ -162,7 +162,7 @@ class TrendsViewModel: ObservableObject {
     private func loadHRVTrend() async {
         if proConfig.showMockDataForTesting {
             hrvTrendData = generateMockHRVData()
-            print("📈 Loaded HRV trend: \(hrvTrendData.count) days [MOCK DATA]")
+            Logger.debug("📈 Loaded HRV trend: \(hrvTrendData.count) days [MOCK DATA]")
             return
         }
         
@@ -189,9 +189,9 @@ class TrendsViewModel: ObservableObject {
                 return HRVTrendDataPoint(date: date, value: avgHRV, baseline: baseline)
             }.sorted { $0.date < $1.date }
             
-            print("📈 Loaded HRV trend: \(hrvTrendData.count) days from HealthKit")
+            Logger.debug("📈 Loaded HRV trend: \(hrvTrendData.count) days from HealthKit")
         } catch {
-            print("❌ Failed to load HRV: \(error)")
+            Logger.error("Failed to load HRV: \(error)")
             hrvTrendData = []
         }
     }
@@ -228,11 +228,11 @@ class TrendsViewModel: ObservableObject {
                 WeeklyTSSDataPoint(weekStart: date, tss: tss)
             }.sorted { $0.weekStart < $1.weekStart }
             
-            print("📈 Loaded weekly TSS trend: \(weeklyTSSData.count) weeks from Intervals.icu")
+            Logger.debug("📈 Loaded weekly TSS trend: \(weeklyTSSData.count) weeks from Intervals.icu")
             
         } catch {
-            print("⚠️ Intervals.icu not available for TSS: \(error.localizedDescription)")
-            print("📱 Weekly training load requires Intervals.icu or will use HealthKit TRIMP in future")
+            Logger.warning("️ Intervals.icu not available for TSS: \(error.localizedDescription)")
+            Logger.debug("📱 Weekly training load requires Intervals.icu or will use HealthKit TRIMP in future")
             // TODO: Calculate weekly TRIMP from HealthKit workouts using TrainingLoadCalculator
             weeklyTSSData = []
         }
@@ -284,16 +284,16 @@ class TrendsViewModel: ObservableObject {
                 )
                 
                 if let correlation = recoveryVsPowerCorrelation {
-                    print("📈 Recovery vs Power correlation: r=\(correlation.coefficient), R²=\(correlation.rSquared), n=\(correlation.sampleSize)")
+                    Logger.debug("📈 Recovery vs Power correlation: r=\(correlation.coefficient), R²=\(correlation.rSquared), n=\(correlation.sampleSize)")
                 }
             } else {
-                print("⚠️ Not enough data for correlation: \(correlationData.count) points (need 3+)")
-                print("   Activities: \(activities.count), Recovery points: \(recoveryTrendData.count)")
+                Logger.warning("️ Not enough data for correlation: \(correlationData.count) points (need 3+)")
+                Logger.debug("   Activities: \(activities.count), Recovery points: \(recoveryTrendData.count)")
             }
             
         } catch {
-            print("⚠️ Intervals.icu not available: Recovery vs Power correlation is cycling-specific")
-            print("📱 This feature requires power meter data from Intervals.icu")
+            Logger.warning("️ Intervals.icu not available: Recovery vs Power correlation is cycling-specific")
+            Logger.debug("📱 This feature requires power meter data from Intervals.icu")
             recoveryVsPowerData = []
             recoveryVsPowerCorrelation = nil
         }
@@ -304,7 +304,7 @@ class TrendsViewModel: ObservableObject {
     private func loadTrainingPhaseDetection() async {
         // Calculate from recent weekly TSS data
         guard !weeklyTSSData.isEmpty else {
-            print("⚠️ No TSS data for phase detection")
+            Logger.warning("️ No TSS data for phase detection")
             return
         }
         
@@ -324,7 +324,7 @@ class TrendsViewModel: ObservableObject {
         )
         
         if let phase = currentTrainingPhase {
-            print("📈 Training phase: \(phase.phase.rawValue) (confidence: \(phase.confidence))")
+            Logger.debug("📈 Training phase: \(phase.phase.rawValue) (confidence: \(phase.confidence))")
         }
     }
     
@@ -333,7 +333,7 @@ class TrendsViewModel: ObservableObject {
     private func loadOvertrainingRisk() async {
         // Calculate from recovery and HRV trends
         guard !recoveryTrendData.isEmpty else {
-            print("⚠️ No recovery data for overtraining risk")
+            Logger.warning("️ No recovery data for overtraining risk")
             return
         }
         
@@ -367,7 +367,7 @@ class TrendsViewModel: ObservableObject {
         )
         
         if let risk = overtrainingRisk {
-            print("📈 Overtraining risk: \(risk.riskLevel.rawValue) (\(Int(risk.riskScore))/100)")
+            Logger.debug("📈 Overtraining risk: \(risk.riskLevel.rawValue) (\(Int(risk.riskScore))/100)")
         }
     }
     
@@ -377,8 +377,8 @@ class TrendsViewModel: ObservableObject {
         if proConfig.showMockDataForTesting {
             dailyLoadData = generateMockDailyLoadData()
             activitiesForLoad = generateMockActivitiesForLoad()
-            print("📈 Loaded daily load trend: \(dailyLoadData.count) days [MOCK DATA]")
-            print("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL [MOCK DATA]")
+            Logger.debug("📈 Loaded daily load trend: \(dailyLoadData.count) days [MOCK DATA]")
+            Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL [MOCK DATA]")
             return
         }
         
@@ -413,12 +413,12 @@ class TrendsViewModel: ObservableObject {
                 return TrendDataPoint(date: date, value: normalizedTSS)
             }.sorted { $0.date < $1.date }
             
-            print("📈 Loaded daily load trend: \(dailyLoadData.count) days from Intervals.icu")
-            print("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL for training load chart")
+            Logger.debug("📈 Loaded daily load trend: \(dailyLoadData.count) days from Intervals.icu")
+            Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL for training load chart")
             
         } catch {
-            print("⚠️ Intervals.icu not available for daily load: \(error.localizedDescription)")
-            print("📱 Daily load chart requires Intervals.icu or will use HealthKit TRIMP in future")
+            Logger.warning("️ Intervals.icu not available for daily load: \(error.localizedDescription)")
+            Logger.debug("📱 Daily load chart requires Intervals.icu or will use HealthKit TRIMP in future")
             // TODO: Calculate daily TRIMP from HealthKit workouts using TRIMPCalculator
             dailyLoadData = []
             activitiesForLoad = []
@@ -430,7 +430,7 @@ class TrendsViewModel: ObservableObject {
     private func loadSleepTrend() async {
         if proConfig.showMockDataForTesting {
             sleepData = generateMockSleepData()
-            print("📈 Loaded sleep trend: \(sleepData.count) days [MOCK DATA]")
+            Logger.debug("📈 Loaded sleep trend: \(sleepData.count) days [MOCK DATA]")
             return
         }
         
@@ -446,7 +446,7 @@ class TrendsViewModel: ObservableObject {
             return TrendDataPoint(date: date, value: cached.sleepScore)
         }
         
-        print("📈 Loaded sleep trend: \(sleepData.count) days from Core Data")
+        Logger.debug("📈 Loaded sleep trend: \(sleepData.count) days from Core Data")
     }
     
     // MARK: - Resting HR Trend
@@ -454,7 +454,7 @@ class TrendsViewModel: ObservableObject {
     private func loadRestingHRTrend() async {
         if proConfig.showMockDataForTesting {
             restingHRData = generateMockRestingHRData()
-            print("📈 Loaded resting HR trend: \(restingHRData.count) days [MOCK DATA]")
+            Logger.debug("📈 Loaded resting HR trend: \(restingHRData.count) days [MOCK DATA]")
             return
         }
         
@@ -477,9 +477,9 @@ class TrendsViewModel: ObservableObject {
                 return TrendDataPoint(date: date, value: avgRHR)
             }.sorted { $0.date < $1.date }
             
-            print("📈 Loaded resting HR trend: \(restingHRData.count) days from HealthKit")
+            Logger.debug("📈 Loaded resting HR trend: \(restingHRData.count) days from HealthKit")
         } catch {
-            print("❌ Failed to load resting HR: \(error)")
+            Logger.error("Failed to load resting HR: \(error)")
             restingHRData = []
         }
     }
@@ -496,7 +496,7 @@ class TrendsViewModel: ObservableObject {
         // - High training load
         
         guard !recoveryTrendData.isEmpty else {
-            print("⚠️ No recovery data for stress calculation")
+            Logger.warning("️ No recovery data for stress calculation")
             return
         }
         
@@ -554,7 +554,7 @@ class TrendsViewModel: ObservableObject {
         }
         
         stressData = stressPoints
-        print("📈 Loaded stress trend: \(stressData.count) days")
+        Logger.debug("📈 Loaded stress trend: \(stressData.count) days")
     }
     
     // MARK: - Helper Methods

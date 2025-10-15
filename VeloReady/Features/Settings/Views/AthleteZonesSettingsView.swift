@@ -48,7 +48,7 @@ struct AthleteZonesSettingsView: View {
         .task {
             // Trigger recompute on first load if no data
             if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
-                print("📊 No FTP data found, triggering initial recompute...")
+                Logger.data("No FTP data found, triggering initial recompute...")
                 recomputeZones()
             }
         }
@@ -630,22 +630,22 @@ struct AthleteZonesSettingsView: View {
     
     private func fetchAndRecompute() async {
         do {
-            print("📊 Starting manual recomputation...")
+            Logger.data("Starting manual recomputation...")
             
             // Fetch 120 days of activities with high limit for accurate zone computation
             let activities = try await intervalsAPIClient.fetchRecentActivities(limit: 300, daysBack: 120)
             
-            print("📊 Fetched \(activities.count) activities for recomputation (last 120 days)")
+            Logger.data("Fetched \(activities.count) activities for recomputation (last 120 days)")
             
             // Recompute zones on main actor
             await MainActor.run {
                 profileManager.computeFromActivities(activities)
             }
             
-            print("📊 ✅ Recomputation complete")
+            Logger.data("✅ Recomputation complete")
             
         } catch {
-            print("❌ Failed to fetch activities for recomputation: \(error)")
+            Logger.error("Failed to fetch activities for recomputation: \(error)")
         }
     }
     
@@ -662,7 +662,7 @@ struct AthleteZonesSettingsView: View {
             // Trigger Intervals.icu sync
             Task {
                 // TODO: Implement Intervals.icu zone sync
-                print("📊 Intervals.icu zone sync not yet implemented")
+                Logger.data("Intervals.icu zone sync not yet implemented")
             }
         case .computed:
             // Zones will recompute on next activity sync
@@ -684,7 +684,7 @@ struct AthleteZonesSettingsView: View {
             // Trigger Intervals.icu sync
             Task {
                 // TODO: Implement Intervals.icu zone sync
-                print("📊 Intervals.icu zone sync not yet implemented")
+                Logger.data("Intervals.icu zone sync not yet implemented")
             }
         case .computed:
             // Zones will recompute on next activity sync

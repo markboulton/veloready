@@ -17,7 +17,7 @@ struct AIBriefConfig {
     @MainActor
     static func configure() {
         AIBriefClient.shared.setHMACSecret(hmacSecret)
-        print("🔐 AI Brief configured successfully")
+        Logger.debug("🔐 AI Brief configured successfully")
     }
     
     /// Check if AI Brief is configured

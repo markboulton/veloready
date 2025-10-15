@@ -27,7 +27,7 @@ class AIBriefService: ObservableObject {
         // Generate new anonymous ID
         let newId = UUID().uuidString
         UserDefaults.standard.set(newId, forKey: userIdKey)
-        print("🆔 Generated new anonymous user ID: \(newId.prefix(8))...")
+        Logger.debug("🆔 Generated new anonymous user ID: \(newId.prefix(8))...")
         return newId
     }
     
@@ -41,7 +41,7 @@ class AIBriefService: ObservableObject {
         if !bypassCache, let cachedBrief = loadFromCoreData() {
             briefText = cachedBrief
             isCached = true
-            print("📦 Using cached AI brief from Core Data")
+            Logger.debug("📦 Using cached AI brief from Core Data")
             return
         }
         
@@ -49,7 +49,7 @@ class AIBriefService: ObservableObject {
         // The API handles missing sleep gracefully
         let sleepDataMissing = SleepScoreService.shared.currentSleepScore == nil
         if sleepDataMissing {
-            print("⚠️ Sleep data missing - fetching AI brief anyway (recovery score available)")
+            Logger.warning("️ Sleep data missing - fetching AI brief anyway (recovery score available)")
         }
         
         isLoading = true
@@ -65,23 +65,23 @@ class AIBriefService: ObservableObject {
             // Save to Core Data
             saveToCoreData(text: response.text)
             
-            print("✅ AI brief updated (\(response.cached ?? false ? "cached" : "fresh"))")
+            Logger.debug("✅ AI brief updated (\(response.cached ?? false ? "cached" : "fresh"))")
         } catch let briefError as AIBriefError {
             error = briefError
             briefText = getFallbackMessage()
             isCached = false
-            print("❌ AI brief error: \(briefError)")
+            Logger.error("AI brief error: \(briefError)")
         } catch {
             self.error = .networkError(error.localizedDescription)
             briefText = getFallbackMessage()
             isCached = false
-            print("❌ AI brief error: \(error.localizedDescription)")
+            Logger.error("AI brief error: \(error.localizedDescription)")
         }
     }
     
     /// Refresh brief (bypass cache)
     func refresh() async {
-        print("🔄 Refreshing AI brief (bypass cache)")
+        Logger.debug("🔄 Refreshing AI brief (bypass cache)")
         await fetchBrief(bypassCache: true)
     }
     
@@ -122,20 +122,20 @@ class AIBriefService: ObservableObject {
             plan: plan
         )
         
-        print("📊 ========================================")
-        print("📊 AI BRIEF REQUEST DATA:")
-        print("📊   Recovery: \(request.recovery)")
-        print("📊   Sleep Delta: \(request.sleepDelta.map { String(format: "%.1f", $0) + "h" } ?? "nil")")
-        print("📊   HRV Delta: \(request.hrvDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
-        print("📊   RHR Delta: \(request.rhrDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
-        print("📊   TSB: \(String(format: "%.1f", request.tsb))")
-        print("📊   TSS Range: \(request.tssLow)-\(request.tssHigh)")
-        print("📊   Plan: \(request.plan ?? "none")")
+        Logger.data("========================================")
+        Logger.data("AI BRIEF REQUEST DATA:")
+        Logger.data("  Recovery: \(request.recovery)")
+        Logger.data("  Sleep Delta: \(request.sleepDelta.map { String(format: "%.1f", $0) + "h" } ?? "nil")")
+        Logger.data("  HRV Delta: \(request.hrvDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
+        Logger.data("  RHR Delta: \(request.rhrDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
+        Logger.data("  TSB: \(String(format: "%.1f", request.tsb))")
+        Logger.data("  TSS Range: \(request.tssLow)-\(request.tssHigh)")
+        Logger.data("  Plan: \(request.plan ?? "none")")
         
         // Show what AI will recommend based on recovery
         let recoveryBand = request.recovery >= 70 ? "GREEN" : request.recovery >= 40 ? "AMBER" : "RED"
-        print("📊   Expected Recommendation: \(recoveryBand) zone training")
-        print("📊 ========================================")
+        Logger.data("  Expected Recommendation: \(recoveryBand) zone training")
+        Logger.data("========================================")
         
         return request
     }
@@ -258,12 +258,12 @@ extension AIBriefService {
         request.fetchLimit = 1
         
         guard let scores = persistence.fetch(request).first else {
-            print("⚠️ No DailyScores found for today - AI brief not saved")
+            Logger.warning("️ No DailyScores found for today - AI brief not saved")
             return
         }
         
         scores.aiBriefText = text
         persistence.save()
-        print("💾 Saved AI brief to Core Data")
+        Logger.debug("💾 Saved AI brief to Core Data")
     }
 }

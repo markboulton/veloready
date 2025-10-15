@@ -94,9 +94,9 @@ struct SettingsView: View {
                 context.delete(object)
             }
             try context.save()
-            print("✅ All local data deleted")
+            Logger.debug("✅ All local data deleted")
         } catch {
-            print("❌ Error deleting Core Data: \(error)")
+            Logger.error("Error deleting Core Data: \(error)")
         }
     }
     

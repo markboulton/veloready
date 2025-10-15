@@ -28,19 +28,19 @@ class IntervalsCache: ObservableObject {
         
         // Check if we need to fetch new data
         if forceRefresh || shouldRefreshCache(lastFetchKey: lastFetchKey) {
-            print("🔄 Fetching fresh activities from API...")
+            Logger.debug("🔄 Fetching fresh activities from API...")
             let newActivities = try await fetchAndCacheActivities(apiClient: apiClient)
             return newActivities
         }
         
         // Return cached data
         if let cachedActivities = getCachedActivities() {
-            print("📱 Using cached activities (\(cachedActivities.count) items)")
+            Logger.debug("📱 Using cached activities (\(cachedActivities.count) items)")
             return cachedActivities
         }
         
         // No cache available, fetch fresh
-        print("🔄 No cache available, fetching fresh activities...")
+        Logger.debug("🔄 No cache available, fetching fresh activities...")
         return try await fetchAndCacheActivities(apiClient: apiClient)
     }
     
@@ -50,19 +50,19 @@ class IntervalsCache: ObservableObject {
         
         // Check if we need to fetch new data
         if forceRefresh || shouldRefreshCache(lastFetchKey: lastFetchKey) {
-            print("🔄 Fetching fresh wellness data from API...")
+            Logger.debug("🔄 Fetching fresh wellness data from API...")
             let newWellness = try await fetchAndCacheWellness(apiClient: apiClient)
             return newWellness
         }
         
         // Return cached data
         if let cachedWellness = getCachedWellness() {
-            print("📱 Using cached wellness data (\(cachedWellness.count) items)")
+            Logger.debug("📱 Using cached wellness data (\(cachedWellness.count) items)")
             return cachedWellness
         }
         
         // No cache available, fetch fresh
-        print("🔄 No cache available, fetching fresh wellness data...")
+        Logger.debug("🔄 No cache available, fetching fresh wellness data...")
         return try await fetchAndCacheWellness(apiClient: apiClient)
     }
     
@@ -77,7 +77,7 @@ class IntervalsCache: ObservableObject {
         let shouldRefresh = timeSinceLastFetch > (cacheExpiryHours * 3600)
         
         if shouldRefresh {
-            print("⏰ Cache expired (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), refreshing...")
+            Logger.debug("⏰ Cache expired (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), refreshing...")
         }
         
         return shouldRefresh
@@ -94,7 +94,7 @@ class IntervalsCache: ObservableObject {
         saveActivitiesToCache(mergedActivities)
         UserDefaults.standard.set(Date(), forKey: CacheKey.lastActivityFetch.rawValue)
         
-        print("💾 Cached \(mergedActivities.count) activities")
+        Logger.debug("💾 Cached \(mergedActivities.count) activities")
         return mergedActivities
     }
     
@@ -109,7 +109,7 @@ class IntervalsCache: ObservableObject {
         saveWellnessToCache(recentWellness)
         UserDefaults.standard.set(Date(), forKey: CacheKey.lastWellnessFetch.rawValue)
         
-        print("💾 Cached \(recentWellness.count) wellness records")
+        Logger.debug("💾 Cached \(recentWellness.count) wellness records")
         return recentWellness
     }
     
@@ -137,7 +137,7 @@ class IntervalsCache: ObservableObject {
         // Keep only the most recent activities
         let trimmedActivities = Array(allActivities.prefix(maxActivities))
         
-        print("🔄 Merged activities: \(cachedActivities.count) cached + \(uniqueNewActivities.count) new = \(trimmedActivities.count) total")
+        Logger.debug("🔄 Merged activities: \(cachedActivities.count) cached + \(uniqueNewActivities.count) new = \(trimmedActivities.count) total")
         return trimmedActivities
     }
     
@@ -154,7 +154,7 @@ class IntervalsCache: ObservableObject {
             let data = try JSONEncoder().encode(activities)
             UserDefaults.standard.set(data, forKey: CacheKey.activities.rawValue)
         } catch {
-            print("❌ Failed to cache activities: \(error)")
+            Logger.error("Failed to cache activities: \(error)")
         }
     }
     
@@ -166,7 +166,7 @@ class IntervalsCache: ObservableObject {
         do {
             return try JSONDecoder().decode([IntervalsActivity].self, from: data)
         } catch {
-            print("❌ Failed to decode cached activities: \(error)")
+            Logger.error("Failed to decode cached activities: \(error)")
             return nil
         }
     }
@@ -176,7 +176,7 @@ class IntervalsCache: ObservableObject {
             let data = try JSONEncoder().encode(wellness)
             UserDefaults.standard.set(data, forKey: CacheKey.wellness.rawValue)
         } catch {
-            print("❌ Failed to cache wellness data: \(error)")
+            Logger.error("Failed to cache wellness data: \(error)")
         }
     }
     
@@ -188,7 +188,7 @@ class IntervalsCache: ObservableObject {
         do {
             return try JSONDecoder().decode([IntervalsWellness].self, from: data)
         } catch {
-            print("❌ Failed to decode cached wellness data: \(error)")
+            Logger.error("Failed to decode cached wellness data: \(error)")
             return nil
         }
     }
@@ -201,7 +201,7 @@ class IntervalsCache: ObservableObject {
         UserDefaults.standard.removeObject(forKey: CacheKey.wellness.rawValue)
         UserDefaults.standard.removeObject(forKey: CacheKey.lastActivityFetch.rawValue)
         UserDefaults.standard.removeObject(forKey: CacheKey.lastWellnessFetch.rawValue)
-        print("🗑️ Cleared all Intervals.icu cache")
+        Logger.debug("🗑️ Cleared all Intervals.icu cache")
     }
     
     /// Clear all cached data (alias for clearCache)
@@ -236,7 +236,7 @@ class IntervalsCache: ObservableObject {
         let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
         let isFresh = timeSinceLastFetch < (cacheExpiryHours * 3600)
         
-        print("📱 Cache status: \(isFresh ? "Fresh" : "Stale") (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago)")
+        Logger.debug("📱 Cache status: \(isFresh ? "Fresh" : "Stale") (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago)")
         return isFresh
     }
 }

@@ -61,21 +61,21 @@ class DataSourceManager: ObservableObject {
     func enableSource(_ source: DataSource) {
         enabledSources.insert(source)
         saveConfiguration()
-        print("📊 DataSourceManager: Enabled \(source.displayName)")
+        Logger.data("DataSourceManager: Enabled \(source.displayName)")
     }
     
     /// Disable a data source
     func disableSource(_ source: DataSource) {
         enabledSources.remove(source)
         saveConfiguration()
-        print("📊 DataSourceManager: Disabled \(source.displayName)")
+        Logger.data("DataSourceManager: Disabled \(source.displayName)")
     }
     
     /// Update source priority (for conflict resolution)
     func updatePriority(_ newPriority: [DataSource]) {
         sourcePriority = newPriority
         saveConfiguration()
-        print("📊 DataSourceManager: Updated priority: \(newPriority.map { $0.displayName })")
+        Logger.data("DataSourceManager: Updated priority: \(newPriority.map { $0.displayName })")
     }
     
     // MARK: - Connection Status
@@ -127,7 +127,7 @@ class DataSourceManager: ObservableObject {
         
         // Strava
         #if DEBUG
-        print("🔍 [DataSourceManager] Checking Strava state: \(stravaAuthService.connectionState)")
+        Logger.debug("🔍 [DataSourceManager] Checking Strava state: \(stravaAuthService.connectionState)")
         #endif
         switch stravaAuthService.connectionState {
         case .connected:
@@ -143,9 +143,9 @@ class DataSourceManager: ObservableObject {
         // Garmin (not yet implemented)
         connectionStatuses[.garmin] = .notConnected
         
-        print("📊 DataSourceManager: Updated connection statuses")
+        Logger.data("DataSourceManager: Updated connection statuses")
         connectionStatuses.forEach { source, status in
-            print("   \(source.displayName): \(status.displayText)")
+            Logger.debug("   \(source.displayName): \(status.displayText)")
         }
     }
     
@@ -159,7 +159,7 @@ class DataSourceManager: ObservableObject {
         case .intervalsICU:
             // Connection handled by IntervalsOAuthManager
             // User needs to authenticate via the login view
-            print("📊 DataSourceManager: Intervals.icu requires OAuth flow")
+            Logger.data("DataSourceManager: Intervals.icu requires OAuth flow")
             
         case .appleHealth:
             // Request HealthKit authorization
@@ -187,7 +187,7 @@ class DataSourceManager: ObservableObject {
             
         case .appleHealth:
             // Cannot programmatically revoke HealthKit - user must do it in Settings
-            print("📊 DataSourceManager: Apple Health permissions must be revoked in Settings app")
+            Logger.data("DataSourceManager: Apple Health permissions must be revoked in Settings app")
             
         case .strava:
             // Disconnect from Strava
@@ -195,7 +195,7 @@ class DataSourceManager: ObservableObject {
             
         case .garmin:
             // TODO: Implement Garmin disconnect
-            print("📊 DataSourceManager: Garmin disconnect not yet implemented")
+            Logger.data("DataSourceManager: Garmin disconnect not yet implemented")
         }
         
         disableSource(source)

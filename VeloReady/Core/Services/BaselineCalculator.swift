@@ -35,13 +35,13 @@ final class BaselineCalculator: @unchecked Sendable {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if error != nil {
-                    print("❌ Error fetching HRV baseline: \(error?.localizedDescription ?? "Unknown error")")
+                    Logger.error("Error fetching HRV baseline: \(error?.localizedDescription ?? "Unknown error")")
                     continuation.resume(returning: nil)
                 } else {
                     let hrvSamples = samples as? [HKQuantitySample] ?? []
                     let values = hrvSamples.map { $0.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) }
                     let baseline = self.calculateAverage(values) // Use average instead of median for 7-day
-                    print("📊 HRV Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
+                    Logger.data("HRV Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
             }
@@ -70,13 +70,13 @@ final class BaselineCalculator: @unchecked Sendable {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if error != nil {
-                    print("❌ Error fetching RHR baseline: \(error?.localizedDescription ?? "Unknown error")")
+                    Logger.error("Error fetching RHR baseline: \(error?.localizedDescription ?? "Unknown error")")
                     continuation.resume(returning: nil)
                 } else {
                     let rhrSamples = samples as? [HKQuantitySample] ?? []
                     let values = rhrSamples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
                     let baseline = self.calculateAverage(values) // Use average instead of median for 7-day
-                    print("📊 RHR Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
+                    Logger.data("RHR Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
             }
@@ -105,7 +105,7 @@ final class BaselineCalculator: @unchecked Sendable {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if error != nil {
-                    print("❌ Error fetching sleep baseline: \(error?.localizedDescription ?? "Unknown error")")
+                    Logger.error("Error fetching sleep baseline: \(error?.localizedDescription ?? "Unknown error")")
                     continuation.resume(returning: nil)
                 } else {
                     let sleepSamples = samples as? [HKCategorySample] ?? []
@@ -137,7 +137,7 @@ final class BaselineCalculator: @unchecked Sendable {
                             // Only log sleep data in debug mode to reduce performance impact
                             #if DEBUG
                             if ProcessInfo.processInfo.environment["SLEEP_DEBUG"] == "1" {
-                                print("🛏️ Adding sleep: \(duration/3600)h to date \(dateString) (sample from \(sample.startDate))")
+                                Logger.debug("🛏️ Adding sleep: \(duration/3600)h to date \(dateString) (sample from \(sample.startDate))")
                             }
                             #endif
                         }
@@ -147,18 +147,18 @@ final class BaselineCalculator: @unchecked Sendable {
                     let actualSleepDurations = sleepByDate.values.filter { $0 >= 3600 }
                     
                     // Debug sleep baseline calculation
-                    print("🔍 Sleep Baseline Debug:")
-                    print("   Total sleep samples: \(sleepSamples.count)")
-                    print("   Sleep nights with 1+ hour: \(actualSleepDurations.count)")
+                    Logger.debug("🔍 Sleep Baseline Debug:")
+                    Logger.debug("   Total sleep samples: \(sleepSamples.count)")
+                    Logger.debug("   Sleep nights with 1+ hour: \(actualSleepDurations.count)")
                     if !actualSleepDurations.isEmpty {
                         let minSleep = actualSleepDurations.min() ?? 0
                         let maxSleep = actualSleepDurations.max() ?? 0
                         let avgSleep = actualSleepDurations.reduce(0, +) / Double(actualSleepDurations.count)
-                        print("   Sleep range: \(minSleep/3600)h - \(maxSleep/3600)h (avg: \(avgSleep/3600)h)")
+                        Logger.debug("   Sleep range: \(minSleep/3600)h - \(maxSleep/3600)h (avg: \(avgSleep/3600)h)")
                     }
                     
                     let baseline = self.calculateAverage(actualSleepDurations)
-                    print("📊 Sleep Baseline (7-day avg): \(baseline?.description ?? "No data") seconds from \(actualSleepDurations.count) actual sleep periods (filtered from \(sleepSamples.count) total samples)")
+                    Logger.data("Sleep Baseline (7-day avg): \(baseline?.description ?? "No data") seconds from \(actualSleepDurations.count) actual sleep periods (filtered from \(sleepSamples.count) total samples)")
                     continuation.resume(returning: baseline)
                 }
             }
@@ -187,13 +187,13 @@ final class BaselineCalculator: @unchecked Sendable {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if error != nil {
-                    print("❌ Error fetching respiratory baseline: \(error?.localizedDescription ?? "Unknown error")")
+                    Logger.error("Error fetching respiratory baseline: \(error?.localizedDescription ?? "Unknown error")")
                     continuation.resume(returning: nil)
                 } else {
                     let respiratorySamples = samples as? [HKQuantitySample] ?? []
                     let values = respiratorySamples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
                     let baseline = self.calculateAverage(values)
-                    print("📊 Respiratory Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
+                    Logger.data("Respiratory Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
             }
@@ -208,11 +208,11 @@ final class BaselineCalculator: @unchecked Sendable {
         if let cached = cachedBaselines,
            let timestamp = cacheTimestamp,
            Date().timeIntervalSince(timestamp) < cacheExpiryInterval {
-            print("📱 Using cached baselines (age: \(String(format: "%.1f", Date().timeIntervalSince(timestamp) / 60)) minutes)")
+            Logger.debug("📱 Using cached baselines (age: \(String(format: "%.1f", Date().timeIntervalSince(timestamp) / 60)) minutes)")
             return cached
         }
         
-        print("🔄 Calculating fresh baselines...")
+        Logger.debug("🔄 Calculating fresh baselines...")
         
         // Calculate all baselines concurrently
         async let hrvBaseline = calculateHRVBaseline()
@@ -226,11 +226,11 @@ final class BaselineCalculator: @unchecked Sendable {
         cachedBaselines = (hrv, rhr, sleep, respiratory)
         cacheTimestamp = Date()
         
-        print("📊 All 7-Day Baselines Calculated & Cached:")
-        print("   HRV: \(hrv?.description ?? "No data") ms")
-        print("   RHR: \(rhr?.description ?? "No data") bpm")
-        print("   Sleep: \(sleep?.description ?? "No data") seconds")
-        print("   Respiratory: \(respiratory?.description ?? "No data") breaths/min")
+        Logger.data("All 7-Day Baselines Calculated & Cached:")
+        Logger.debug("   HRV: \(hrv?.description ?? "No data") ms")
+        Logger.debug("   RHR: \(rhr?.description ?? "No data") bpm")
+        Logger.debug("   Sleep: \(sleep?.description ?? "No data") seconds")
+        Logger.debug("   Respiratory: \(respiratory?.description ?? "No data") breaths/min")
         
         return (hrv, rhr, sleep, respiratory)
     }
@@ -239,7 +239,7 @@ final class BaselineCalculator: @unchecked Sendable {
     func clearCache() {
         cachedBaselines = nil
         cacheTimestamp = nil
-        print("🗑️ Baseline cache cleared")
+        Logger.debug("🗑️ Baseline cache cleared")
     }
     
     // MARK: - Helper Methods

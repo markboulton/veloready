@@ -33,12 +33,12 @@ struct RPEBadge_Previews: PreviewProvider {
         VStack(spacing: Spacing.lg) {
             // With RPE
             RPEBadge(hasRPE: true) {
-                print("RPE tapped")
+                Logger.debug("RPE tapped")
             }
             
             // Without RPE
             RPEBadge(hasRPE: false) {
-                print("Add RPE tapped")
+                Logger.debug("Add RPE tapped")
             }
         }
         .padding()

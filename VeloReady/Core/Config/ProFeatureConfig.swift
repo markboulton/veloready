@@ -31,7 +31,7 @@ class ProFeatureConfig: ObservableObject {
             bypassSubscriptionForTesting = true
             UserDefaults.standard.set(true, forKey: "bypassProForTesting")
             UserDefaults.standard.set(true, forKey: "hasSetProTestingPreference")
-            print("🎯 DEBUG: Pro features enabled by default for testing")
+            Logger.debug("🎯 DEBUG: Pro features enabled by default for testing")
         }
         #endif
     }

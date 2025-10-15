@@ -46,7 +46,7 @@ struct RecoveryRingView: View {
     /// Progress value for the ring (0.0 to 1.0)
     private var progressValue: Double {
         let value = Double(score) / 100.0
-        print("📊 RecoveryRingView: score=\(score), progressValue=\(value), ringFill=\(Int(value * 100))%")
+        Logger.data("RecoveryRingView: score=\(score), progressValue=\(value), ringFill=\(Int(value * 100))%")
         return value
     }
     

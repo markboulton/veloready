@@ -37,11 +37,11 @@ class iCloudSyncService: ObservableObject {
         isCloudAvailable = ubiquityIdentityToken != nil
         
         if isCloudAvailable {
-            print("☁️ iCloud is available for sync")
+            Logger.debug("☁️ iCloud is available for sync")
             loadLastSyncDate()
             setupCloudNotifications()
         } else {
-            print("⚠️ iCloud is not available")
+            Logger.warning("️ iCloud is not available")
         }
     }
     
@@ -70,14 +70,14 @@ class iCloudSyncService: ObservableObject {
         // Handle different change reasons
         switch changeReason {
         case NSUbiquitousKeyValueStoreServerChange, NSUbiquitousKeyValueStoreInitialSyncChange:
-            print("☁️ iCloud data changed externally, syncing...")
+            Logger.debug("☁️ iCloud data changed externally, syncing...")
             Task {
                 await syncFromCloud()
             }
         case NSUbiquitousKeyValueStoreQuotaViolationChange:
             syncError = "iCloud storage quota exceeded"
         case NSUbiquitousKeyValueStoreAccountChange:
-            print("☁️ iCloud account changed")
+            Logger.debug("☁️ iCloud account changed")
             isCloudAvailable = FileManager.default.ubiquityIdentityToken != nil
         default:
             break
@@ -107,10 +107,10 @@ class iCloudSyncService: ObservableObject {
             lastSyncDate = Date()
             saveLastSyncDate()
             
-            print("☁️ Successfully synced to iCloud")
+            Logger.debug("☁️ Successfully synced to iCloud")
         } catch {
             syncError = "Failed to sync to iCloud: \(error.localizedDescription)"
-            print("❌ iCloud sync error: \(error)")
+            Logger.error("iCloud sync error: \(error)")
         }
         
         isSyncing = false
@@ -140,10 +140,10 @@ class iCloudSyncService: ObservableObject {
             lastSyncDate = Date()
             saveLastSyncDate()
             
-            print("☁️ Successfully restored from iCloud")
+            Logger.debug("☁️ Successfully restored from iCloud")
         } catch {
             syncError = "Failed to restore from iCloud: \(error.localizedDescription)"
-            print("❌ iCloud restore error: \(error)")
+            Logger.error("iCloud restore error: \(error)")
         }
         
         isSyncing = false
@@ -241,7 +241,7 @@ class iCloudSyncService: ObservableObject {
             defaults.set(value, forKey: key)
         }
         
-        print("☁️ Restored \(data.count) RPE entries from iCloud")
+        Logger.debug("☁️ Restored \(data.count) RPE entries from iCloud")
     }
     
     // MARK: - Muscle Group Data Collection
@@ -267,7 +267,7 @@ class iCloudSyncService: ObservableObject {
             defaults.set(value, forKey: key)
         }
         
-        print("☁️ Restored \(data.count) muscle group entries from iCloud")
+        Logger.debug("☁️ Restored \(data.count) muscle group entries from iCloud")
     }
     
     // MARK: - Core Data Metadata Sync
@@ -313,9 +313,9 @@ class iCloudSyncService: ObservableObject {
                     NSUbiquitousKeyValueStore.default.set(data, forKey: CloudKeys.workoutMetadataSync)
                 }
                 
-                print("☁️ Synced \(metadata.count) workout metadata entries to iCloud")
+                Logger.debug("☁️ Synced \(metadata.count) workout metadata entries to iCloud")
             } catch {
-                print("❌ Failed to sync Core Data metadata: \(error)")
+                Logger.error("Failed to sync Core Data metadata: \(error)")
                 throw error
             }
         }
@@ -326,7 +326,7 @@ class iCloudSyncService: ObservableObject {
         
         guard let data = cloudStore.data(forKey: CloudKeys.workoutMetadataSync),
               let metadataArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-            print("☁️ No workout metadata found in iCloud")
+            Logger.debug("☁️ No workout metadata found in iCloud")
             return
         }
         
@@ -363,7 +363,7 @@ class iCloudSyncService: ObservableObject {
             }
             
             try context.save()
-            print("☁️ Restored \(metadataArray.count) workout metadata entries from iCloud")
+            Logger.debug("☁️ Restored \(metadataArray.count) workout metadata entries from iCloud")
         }
     }
     
@@ -406,7 +406,7 @@ class iCloudSyncService: ObservableObject {
             }
             .store(in: &cancellables)
         
-        print("☁️ Automatic iCloud sync enabled")
+        Logger.debug("☁️ Automatic iCloud sync enabled")
     }
     
     // MARK: - Error Handling

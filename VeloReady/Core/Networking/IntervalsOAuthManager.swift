@@ -63,8 +63,8 @@ class IntervalsOAuthManager: ObservableObject {
         ]
         
         let url = components.url
-        print("🔗 OAuth URL: \(url?.absoluteString ?? "nil")")
-        print("🔗 Scopes: \(scopeString)")
+        Logger.debug("🔗 OAuth URL: \(url?.absoluteString ?? "nil")")
+        Logger.debug("🔗 Scopes: \(scopeString)")
         return url
     }
     
@@ -87,48 +87,48 @@ class IntervalsOAuthManager: ObservableObject {
         ]
         
         let url = components.url
-        print("🔗 OAuth URL (space-separated): \(url?.absoluteString ?? "nil")")
-        print("🔗 Scopes: \(scopeString)")
+        Logger.debug("🔗 OAuth URL (space-separated): \(url?.absoluteString ?? "nil")")
+        Logger.debug("🔗 Scopes: \(scopeString)")
         return url
     }
     
     /// Handle OAuth callback
     func handleCallback(url: URL) async {
-        print("📱 OAuth Callback URL: \(url.absoluteString)")
+        Logger.debug("📱 OAuth Callback URL: \(url.absoluteString)")
         
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems else {
             lastError = "Invalid callback URL"
-            print("❌ Invalid callback URL")
+            Logger.error("Invalid callback URL")
             return
         }
         
         // Check for error in callback
         if let error = queryItems.first(where: { $0.name == "error" })?.value {
             lastError = "OAuth error: \(error)"
-            print("❌ OAuth error: \(error)")
+            Logger.error("OAuth error: \(error)")
             return
         }
         
         // Extract authorization code
         guard let code = queryItems.first(where: { $0.name == "code" })?.value else {
             lastError = "No authorization code received"
-            print("❌ No authorization code received")
+            Logger.error("No authorization code received")
             return
         }
         
-        print("✅ Authorization code received")
+        Logger.debug("✅ Authorization code received")
         
         // Verify state parameter
         let storedState = UserDefaults.standard.string(forKey: "oauth_state")
         guard let state = queryItems.first(where: { $0.name == "state" })?.value,
               state == storedState else {
             lastError = "Invalid state parameter"
-            print("❌ Invalid state parameter")
+            Logger.error("Invalid state parameter")
             return
         }
         
-        print("✅ State parameter verified")
+        Logger.debug("✅ State parameter verified")
         
         // Exchange code for tokens
         await exchangeCodeForTokens(code: code)
@@ -139,12 +139,12 @@ class IntervalsOAuthManager: ObservableObject {
     private func exchangeCodeForTokens(code: String) async {
         guard let url = URL(string: tokenURL) else {
             lastError = "Invalid token URL"
-            print("❌ Invalid token URL")
+            Logger.error("Invalid token URL")
             return
         }
         
-        print("🔄 Exchanging code for tokens...")
-        print("📍 Token URL: \(tokenURL)")
+        Logger.debug("🔄 Exchanging code for tokens...")
+        Logger.debug("📍 Token URL: \(tokenURL)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -162,26 +162,26 @@ class IntervalsOAuthManager: ObservableObject {
         let bodyString = body.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
         request.httpBody = bodyString.data(using: .utf8)
         
-        print("📤 Request body: \(bodyString)")
-        print("📤 Request URL: \(url.absoluteString)")
+        Logger.debug("📤 Request body: \(bodyString)")
+        Logger.debug("📤 Request URL: \(url.absoluteString)")
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse {
-                print("📊 HTTP Status: \(httpResponse.statusCode)")
-                print("📊 Response Headers: \(httpResponse.allHeaderFields)")
+                Logger.data("HTTP Status: \(httpResponse.statusCode)")
+                Logger.data("Response Headers: \(httpResponse.allHeaderFields)")
                 
                 if httpResponse.statusCode != 200 {
                     let responseString = String(data: data, encoding: .utf8) ?? "Unknown error"
-                    print("❌ HTTP Error Response: \(responseString)")
+                    Logger.error("HTTP Error Response: \(responseString)")
                     lastError = "HTTP \(httpResponse.statusCode): \(responseString)"
                     return
                 }
             }
             
             let responseString = String(data: data, encoding: .utf8) ?? "No response"
-            print("📥 Token response: \(responseString)")
+            Logger.debug("📥 Token response: \(responseString)")
             
             // Try to decode the response
             do {
@@ -190,10 +190,10 @@ class IntervalsOAuthManager: ObservableObject {
                 accessToken = tokenResponse.accessToken
                 refreshToken = tokenResponse.refreshToken
                 
-                print("✅ Tokens received successfully")
-                print("✅ Access Token: \(tokenResponse.accessToken.prefix(20))...")
+                Logger.debug("✅ Tokens received successfully")
+                Logger.debug("✅ Access Token: \(tokenResponse.accessToken.prefix(20))...")
                 if let refreshToken = tokenResponse.refreshToken {
-                    print("✅ Refresh Token: \(refreshToken.prefix(20))...")
+                    Logger.debug("✅ Refresh Token: \(refreshToken.prefix(20))...")
                 }
                 
                 // Extract athlete info from token response
@@ -207,7 +207,7 @@ class IntervalsOAuthManager: ObservableObject {
                         createdAt: "",
                         updatedAt: ""
                     )
-                    print("✅ Athlete info from OAuth: \(athlete.name) (ID: \(athlete.id))")
+                    Logger.debug("✅ Athlete info from OAuth: \(athlete.name) (ID: \(athlete.id))")
                 }
                 
                 // Store credentials securely
@@ -222,15 +222,15 @@ class IntervalsOAuthManager: ObservableObject {
                 lastError = nil
                 
             } catch let decodeError {
-                print("❌ JSON Decode Error: \(decodeError)")
-                print("❌ Raw response: \(responseString)")
+                Logger.error("JSON Decode Error: \(decodeError)")
+                Logger.error("Raw response: \(responseString)")
                 lastError = "Failed to decode token response: \(decodeError.localizedDescription)"
             }
             
         } catch {
             let errorMessage = "Failed to exchange code for tokens: \(error.localizedDescription)"
             lastError = errorMessage
-            print("❌ Token exchange error: \(errorMessage)")
+            Logger.error("Token exchange error: \(errorMessage)")
         }
     }
     
@@ -262,14 +262,14 @@ class IntervalsOAuthManager: ObservableObject {
                         createdAt: "",
                         updatedAt: ""
                     )
-                    print("✅ User authenticated (fallback method)")
+                    Logger.debug("✅ User authenticated (fallback method)")
                 } else {
-                    print("❌ Failed to verify user: HTTP \(httpResponse.statusCode)")
+                    Logger.error("Failed to verify user: HTTP \(httpResponse.statusCode)")
                     lastError = "Failed to verify user: HTTP \(httpResponse.statusCode)"
                 }
             }
         } catch {
-            print("❌ Failed to verify user: \(error)")
+            Logger.error("Failed to verify user: \(error)")
             lastError = "Failed to verify user: \(error.localizedDescription)"
         }
     }
@@ -333,7 +333,7 @@ class IntervalsOAuthManager: ObservableObject {
         
         // Clear cached Intervals data so only HealthKit data is shown
         _ = await IntervalsCache.shared.clearCache()
-        print("🗑️ Cleared Intervals.icu cache on sign out - switching to HealthKit-only mode")
+        Logger.debug("🗑️ Cleared Intervals.icu cache on sign out - switching to HealthKit-only mode")
     }
     
     // MARK: - Credential Management

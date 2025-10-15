@@ -117,7 +117,7 @@ class StravaAPIClient: ObservableObject {
                 )
             }
             
-            print("✅ [Strava API] Decoded \(streams.count) stream types: \(streams.map { $0.type }.joined(separator: ", "))")
+            Logger.debug("✅ [Strava API] Decoded \(streams.count) stream types: \(streams.map { $0.type }.joined(separator: ", "))")
             
             // Log stream details
             for stream in streams {
@@ -128,7 +128,7 @@ class StravaAPIClient: ObservableObject {
                 case .latlng(let coords):
                     dataCount = coords.count
                 }
-                print("  📊 \(stream.type): \(dataCount) samples")
+                Logger.debug("  📊 \(stream.type): \(dataCount) samples")
             }
             
             return streams
@@ -138,7 +138,7 @@ class StravaAPIClient: ObservableObject {
             throw error
         } catch {
             isLoading = false
-            print("⚠️ [Strava API] No streams available for activity \(id): \(error)")
+            Logger.warning("️ [Strava API] No streams available for activity \(id): \(error)")
             return []
         }
     }
@@ -187,8 +187,8 @@ class StravaAPIClient: ObservableObject {
             do {
                 return try decoder.decode(T.self, from: data)
             } catch {
-                print("❌ [Strava API] Decoding error: \(error)")
-                print("📄 Response: \(String(data: data, encoding: .utf8) ?? "no data")")
+                Logger.error("[Strava API] Decoding error: \(error)")
+                Logger.debug("📄 Response: \(String(data: data, encoding: .utf8) ?? "no data")")
                 throw StravaAPIError.decodingError(error)
             }
         } catch let error as StravaAPIError {

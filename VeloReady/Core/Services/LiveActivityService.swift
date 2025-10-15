@@ -28,7 +28,7 @@ class LiveActivityService: ObservableObject {
         // Start in loading state to show spinners immediately
         // Don't load cached data here - let the UI show spinners first
         self.isLoading = true
-        print("🎯 DEBUG: LiveActivityService initialized with isLoading = true (no cached data loaded)")
+        Logger.debug("🎯 DEBUG: LiveActivityService initialized with isLoading = true (no cached data loaded)")
     }
     
     /// Load cached data synchronously during initialization
@@ -59,13 +59,13 @@ class LiveActivityService: ObservableObject {
         let activeCaloriesValue = activeCalories + intervalsCaloriesValue
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         
-        print("📱 Loaded cached data during init - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
+        Logger.debug("📱 Loaded cached data during init - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
     }
     
     /// Clear cached data to force fresh loading
     func clearCachedData() {
-        print("🗑️ Clearing cached live activity data to force fresh loading")
-        print("🎯 DEBUG: Setting isLoading = true to show spinners immediately")
+        Logger.debug("🗑️ Clearing cached live activity data to force fresh loading")
+        Logger.debug("🎯 DEBUG: Setting isLoading = true to show spinners immediately")
         isLoading = true // Set loading state FIRST to show spinners immediately
         dailySteps = 0
         dailyCalories = 0
@@ -73,7 +73,7 @@ class LiveActivityService: ObservableObject {
         bmrCalories = 0
         intervalsCalories = 0
         lastUpdated = Date.distantPast
-        print("🎯 DEBUG: Cached data cleared, isLoading = \(isLoading)")
+        Logger.debug("🎯 DEBUG: Cached data cleared, isLoading = \(isLoading)")
     }
     
     /// Update live activity data immediately (for app foreground events)
@@ -92,7 +92,7 @@ class LiveActivityService: ObservableObject {
     func startAutoUpdates() {
         // Prevent starting multiple update cycles
         guard updateTimer == nil else {
-            print("⚠️ LiveActivityService auto-updates already running, skipping duplicate call")
+            Logger.warning("️ LiveActivityService auto-updates already running, skipping duplicate call")
             return
         }
         
@@ -124,9 +124,9 @@ class LiveActivityService: ObservableObject {
     private func performUpdate() async {
         // If already loading, just continue (don't skip)
         if isLoading {
-            print("🔄 LiveActivityService already loading - continuing with update")
+            Logger.debug("🔄 LiveActivityService already loading - continuing with update")
         } else {
-            print("🔄 LiveActivityService starting update - setting isLoading = true")
+            Logger.debug("🔄 LiveActivityService starting update - setting isLoading = true")
             isLoading = true
         }
         
@@ -136,12 +136,12 @@ class LiveActivityService: ObservableObject {
         // PHASE 2: Update with fresh data from HealthKit
         await updateWithFreshData()
         
-        print("✅ LiveActivityService update completed - setting isLoading = false")
+        Logger.debug("✅ LiveActivityService update completed - setting isLoading = false")
         isLoading = false
     }
     
     private func loadCachedData() async {
-        print("📱 Loading cached live activity data for immediate display")
+        Logger.debug("📱 Loading cached live activity data for immediate display")
         
         // Load cached HealthKit data (if available)
         let cachedSteps = UserDefaults.standard.integer(forKey: "cached_steps")
@@ -150,17 +150,17 @@ class LiveActivityService: ObservableObject {
         
         if cachedSteps > 0 {
             dailySteps = cachedSteps
-            print("📱 Loaded cached steps: \(cachedSteps)")
+            Logger.debug("📱 Loaded cached steps: \(cachedSteps)")
         }
         
         if cachedWalkingDistance > 0 {
             walkingDistance = cachedWalkingDistance
-            print("📱 Loaded cached walking distance: \(cachedWalkingDistance)km")
+            Logger.debug("📱 Loaded cached walking distance: \(cachedWalkingDistance)km")
         }
         
         if cachedActiveCalories > 0 {
             activeCalories = cachedActiveCalories
-            print("📱 Loaded cached active calories: \(cachedActiveCalories)")
+            Logger.debug("📱 Loaded cached active calories: \(cachedActiveCalories)")
         }
         
         // Calculate BMR (this is fast)
@@ -173,11 +173,11 @@ class LiveActivityService: ObservableObject {
         _ = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         
-        print("📱 Cached data loaded - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
+        Logger.debug("📱 Cached data loaded - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
     }
     
     private func updateWithFreshData() async {
-        print("🔄 Updating with fresh data from HealthKit and Intervals.icu")
+        Logger.debug("🔄 Updating with fresh data from HealthKit and Intervals.icu")
         
         // Fetch HealthKit data
         let healthData = await healthKitManager.fetchTodayActivity()
@@ -209,12 +209,12 @@ class LiveActivityService: ObservableObject {
         UserDefaults.standard.set(activeCaloriesValue, forKey: "cached_active_calories")
         UserDefaults.standard.set(intervalsCaloriesValue, forKey: "cached_intervals_calories")
         
-        print("📊 Live Activity Update:")
-        print("   Steps: \(dailySteps)")
-        print("   Active Calories: \(activeCaloriesValue)")
-        print("   Intervals Calories: \(intervalsCaloriesValue)")
-        print("   BMR Calories: \(bmrCaloriesValue)")
-        print("   Total Calories: \(dailyCalories)")
+        Logger.data("Live Activity Update:")
+        Logger.debug("   Steps: \(dailySteps)")
+        Logger.debug("   Active Calories: \(activeCaloriesValue)")
+        Logger.debug("   Intervals Calories: \(intervalsCaloriesValue)")
+        Logger.debug("   BMR Calories: \(bmrCaloriesValue)")
+        Logger.debug("   Total Calories: \(dailyCalories)")
     }
     
     /// Fetch calories from today's Intervals.icu rides
@@ -237,12 +237,12 @@ class LiveActivityService: ObservableObject {
             
             let totalCalories = todayActivities.compactMap { $0.calories }.reduce(0, +)
             
-            print("🚴 Today's Intervals rides: \(todayActivities.count), Total calories: \(totalCalories)")
+            Logger.debug("🚴 Today's Intervals rides: \(todayActivities.count), Total calories: \(totalCalories)")
             
             return Double(totalCalories)
             
         } catch {
-            print("❌ Failed to fetch Intervals calories: \(error)")
+            Logger.error("Failed to fetch Intervals calories: \(error)")
             return 0.0
         }
     }
@@ -286,11 +286,11 @@ class LiveActivityService: ObservableObject {
         // Return BMR calories for the portion of the day that has passed
         let todayBMR = bmr * dayProgress
         
-        print("🧮 BMR Calculation:")
-        print("   Weight: \(weight) kg, Height: \(height) cm, Age: \(age), Male: \(isMale)")
-        print("   Daily BMR: \(bmr) kcal")
-        print("   Day Progress: \(String(format: "%.1f", dayProgress * 100))%")
-        print("   Today's BMR: \(String(format: "%.1f", todayBMR)) kcal")
+        Logger.debug("🧮 BMR Calculation:")
+        Logger.debug("   Weight: \(weight) kg, Height: \(height) cm, Age: \(age), Male: \(isMale)")
+        Logger.debug("   Daily BMR: \(bmr) kcal")
+        Logger.debug("   Day Progress: \(String(format: "%.1f", dayProgress * 100))%")
+        Logger.debug("   Today's BMR: \(String(format: "%.1f", todayBMR)) kcal")
         
         return todayBMR
     }

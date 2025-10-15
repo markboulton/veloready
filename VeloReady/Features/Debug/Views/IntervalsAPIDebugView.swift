@@ -360,90 +360,90 @@ class IntervalsAPIDebugViewModel: ObservableObject {
     func fetchDebugData(apiClient: IntervalsAPIClient) async {
         isLoading = true
         
-        print("🔍 ========== INTERVALS API DEBUG: FETCHING DATA ==========")
+        Logger.debug("🔍 ========== INTERVALS API DEBUG: FETCHING DATA ==========")
         
         // Fetch athlete data
         do {
-            print("🔍 Fetching athlete profile...")
+            Logger.debug("🔍 Fetching athlete profile...")
             let athlete = try await fetchAthleteWithRawJSON(apiClient: apiClient)
             self.athleteData = athlete
             
-            print("🔍 ========== ATHLETE DATA RECEIVED ==========")
-            print("🔍 BASIC INFORMATION:")
-            print("🔍   ID: \(athlete.id)")
-            print("🔍   Name: \(athlete.name ?? "❌ nil")")
-            print("🔍   Email: \(athlete.email ?? "❌ nil")")
-            print("🔍   Profile Picture: \(athlete.profileMedium ?? "❌ nil")")
-            print("🔍   Sex: \(athlete.sex ?? "❌ nil")")
-            print("🔍   City: \(athlete.city ?? "❌ nil")")
-            print("🔍   State: \(athlete.state ?? "❌ nil")")
-            print("🔍   Country: \(athlete.country ?? "❌ nil")")
-            print("🔍   Timezone: \(athlete.timezone ?? "❌ nil")")
-            print("🔍   Bio: \(athlete.bio ?? "❌ nil")")
-            print("🔍   Website: \(athlete.website ?? "❌ nil")")
-            print("🔍")
-            print("🔍 POWER ZONES: \(athlete.powerZones != nil ? "✅ Present" : "❌ NIL")")
+            Logger.debug("🔍 ========== ATHLETE DATA RECEIVED ==========")
+            Logger.debug("🔍 BASIC INFORMATION:")
+            Logger.debug("🔍   ID: \(athlete.id)")
+            Logger.debug("🔍   Name: \(athlete.name ?? "❌ nil")")
+            Logger.debug("🔍   Email: \(athlete.email ?? "❌ nil")")
+            Logger.debug("🔍   Profile Picture: \(athlete.profileMedium ?? "❌ nil")")
+            Logger.debug("🔍   Sex: \(athlete.sex ?? "❌ nil")")
+            Logger.debug("🔍   City: \(athlete.city ?? "❌ nil")")
+            Logger.debug("🔍   State: \(athlete.state ?? "❌ nil")")
+            Logger.debug("🔍   Country: \(athlete.country ?? "❌ nil")")
+            Logger.debug("🔍   Timezone: \(athlete.timezone ?? "❌ nil")")
+            Logger.debug("🔍   Bio: \(athlete.bio ?? "❌ nil")")
+            Logger.debug("🔍   Website: \(athlete.website ?? "❌ nil")")
+            Logger.debug("🔍")
+            Logger.debug("🔍 POWER ZONES: \(athlete.powerZones != nil ? "✅ Present" : "❌ NIL")")
             if let powerZones = athlete.powerZones {
-                print("🔍   - FTP: \(powerZones.ftp ?? 0) W")
-                print("🔍   - Zone boundaries: \(powerZones.zones?.count ?? 0)")
+                Logger.debug("🔍   - FTP: \(powerZones.ftp ?? 0) W")
+                Logger.debug("🔍   - Zone boundaries: \(powerZones.zones?.count ?? 0)")
                 if let zones = powerZones.zones {
-                    print("🔍   - Boundaries: \(zones.map { Int($0) })")
+                    Logger.debug("🔍   - Boundaries: \(zones.map { Int($0) })")
                 }
             }
-            print("🔍")
-            print("🔍 HEART RATE ZONES: \(athlete.heartRateZones != nil ? "✅ Present" : "❌ NIL")")
+            Logger.debug("🔍")
+            Logger.debug("🔍 HEART RATE ZONES: \(athlete.heartRateZones != nil ? "✅ Present" : "❌ NIL")")
             if let hrZones = athlete.heartRateZones {
-                print("🔍   - Max HR: \(hrZones.maxHr ?? 0) bpm")
-                print("🔍   - Zone boundaries: \(hrZones.zones?.count ?? 0)")
+                Logger.debug("🔍   - Max HR: \(hrZones.maxHr ?? 0) bpm")
+                Logger.debug("🔍   - Zone boundaries: \(hrZones.zones?.count ?? 0)")
                 if let zones = hrZones.zones {
-                    print("🔍   - Boundaries: \(zones.map { Int($0) })")
+                    Logger.debug("🔍   - Boundaries: \(zones.map { Int($0) })")
                 }
             }
-            print("🔍 ================================================")
+            Logger.debug("🔍 ================================================")
             
         } catch {
-            print("🔍 ❌ Failed to fetch athlete: \(error)")
+            Logger.debug("🔍 ❌ Failed to fetch athlete: \(error)")
         }
         
         // Fetch activities
         do {
-            print("🔍 Fetching recent activities...")
+            Logger.debug("🔍 Fetching recent activities...")
             let activities = try await fetchActivitiesWithRawJSON(apiClient: apiClient)
             self.activities = activities
             
-            print("🔍 ========== ACTIVITIES DATA RECEIVED ==========")
-            print("🔍 Total activities: \(activities.count)")
+            Logger.debug("🔍 ========== ACTIVITIES DATA RECEIVED ==========")
+            Logger.debug("🔍 Total activities: \(activities.count)")
             
             for (index, activity) in activities.prefix(5).enumerated() {
-                print("🔍 Activity \(index + 1): \(activity.name ?? "Unnamed")")
-                print("🔍   - ID: \(activity.id)")
-                print("🔍   - Type: \(activity.type ?? "nil")")
-                print("🔍   - Duration: \(activity.duration != nil ? "\(activity.duration!)s" : "NIL ❌")")
-                print("🔍   - Distance: \(activity.distance != nil ? "\(activity.distance!)m" : "NIL ❌")")
-                print("🔍   - Avg Power: \(activity.averagePower != nil ? "\(activity.averagePower!)W" : "NIL ❌")")
-                print("🔍   - Norm Power: \(activity.normalizedPower != nil ? "\(activity.normalizedPower!)W" : "NIL ❌")")
-                print("🔍   - Avg HR: \(activity.averageHeartRate != nil ? "\(activity.averageHeartRate!)bpm" : "NIL ❌")")
-                print("🔍   - Max HR: \(activity.maxHeartRate != nil ? "\(activity.maxHeartRate!)bpm" : "NIL ❌")")
-                print("🔍   - Avg Speed: \(activity.averageSpeed != nil ? "\(activity.averageSpeed!)km/h" : "NIL ❌")")
-                print("🔍   - Avg Cadence: \(activity.averageCadence != nil ? "\(activity.averageCadence!)rpm" : "NIL ❌")")
-                print("🔍   - Elevation: \(activity.elevationGain != nil ? "\(activity.elevationGain!)m" : "NIL ❌")")
-                print("🔍   - TSS: \(activity.tss != nil ? "\(activity.tss!)" : "NIL ❌")")
-                print("🔍   - IF: \(activity.intensityFactor != nil ? "\(activity.intensityFactor!)" : "NIL ❌")")
-                print("🔍   ")
-                print("🔍   ATHLETE DATA (at time of activity):")
-                print("🔍   - FTP: \(activity.icuFtp != nil ? "\(Int(activity.icuFtp!))W ✅" : "NIL ❌")")
-                print("🔍   - Power Zones: \(activity.icuPowerZones != nil ? "\(activity.icuPowerZones!.map { Int($0) }) ✅" : "NIL ❌")")
-                print("🔍   - HR Zones: \(activity.icuHrZones != nil ? "\(activity.icuHrZones!.map { Int($0) }) ✅" : "NIL ❌")")
-                print("🔍   - LTHR: \(activity.lthr != nil ? "\(Int(activity.lthr!))bpm ✅" : "NIL ❌")")
-                print("🔍   - Resting HR: \(activity.icuRestingHr != nil ? "\(Int(activity.icuRestingHr!))bpm ✅" : "NIL ❌")")
-                print("🔍   - Weight: \(activity.icuWeight != nil ? "\(activity.icuWeight!)kg ✅" : "NIL ❌")")
-                print("🔍   - Max HR: \(activity.athleteMaxHr != nil ? "\(Int(activity.athleteMaxHr!))bpm ✅" : "NIL ❌")")
-                print("🔍   ---")
+                Logger.debug("🔍 Activity \(index + 1): \(activity.name ?? "Unnamed")")
+                Logger.debug("🔍   - ID: \(activity.id)")
+                Logger.debug("🔍   - Type: \(activity.type ?? "nil")")
+                Logger.debug("🔍   - Duration: \(activity.duration != nil ? "\(activity.duration!)s" : "NIL ❌")")
+                Logger.debug("🔍   - Distance: \(activity.distance != nil ? "\(activity.distance!)m" : "NIL ❌")")
+                Logger.debug("🔍   - Avg Power: \(activity.averagePower != nil ? "\(activity.averagePower!)W" : "NIL ❌")")
+                Logger.debug("🔍   - Norm Power: \(activity.normalizedPower != nil ? "\(activity.normalizedPower!)W" : "NIL ❌")")
+                Logger.debug("🔍   - Avg HR: \(activity.averageHeartRate != nil ? "\(activity.averageHeartRate!)bpm" : "NIL ❌")")
+                Logger.debug("🔍   - Max HR: \(activity.maxHeartRate != nil ? "\(activity.maxHeartRate!)bpm" : "NIL ❌")")
+                Logger.debug("🔍   - Avg Speed: \(activity.averageSpeed != nil ? "\(activity.averageSpeed!)km/h" : "NIL ❌")")
+                Logger.debug("🔍   - Avg Cadence: \(activity.averageCadence != nil ? "\(activity.averageCadence!)rpm" : "NIL ❌")")
+                Logger.debug("🔍   - Elevation: \(activity.elevationGain != nil ? "\(activity.elevationGain!)m" : "NIL ❌")")
+                Logger.debug("🔍   - TSS: \(activity.tss != nil ? "\(activity.tss!)" : "NIL ❌")")
+                Logger.debug("🔍   - IF: \(activity.intensityFactor != nil ? "\(activity.intensityFactor!)" : "NIL ❌")")
+                Logger.debug("🔍   ")
+                Logger.debug("🔍   ATHLETE DATA (at time of activity):")
+                Logger.debug("🔍   - FTP: \(activity.icuFtp != nil ? "\(Int(activity.icuFtp!))W ✅" : "NIL ❌")")
+                Logger.debug("🔍   - Power Zones: \(activity.icuPowerZones != nil ? "\(activity.icuPowerZones!.map { Int($0) }) ✅" : "NIL ❌")")
+                Logger.debug("🔍   - HR Zones: \(activity.icuHrZones != nil ? "\(activity.icuHrZones!.map { Int($0) }) ✅" : "NIL ❌")")
+                Logger.debug("🔍   - LTHR: \(activity.lthr != nil ? "\(Int(activity.lthr!))bpm ✅" : "NIL ❌")")
+                Logger.debug("🔍   - Resting HR: \(activity.icuRestingHr != nil ? "\(Int(activity.icuRestingHr!))bpm ✅" : "NIL ❌")")
+                Logger.debug("🔍   - Weight: \(activity.icuWeight != nil ? "\(activity.icuWeight!)kg ✅" : "NIL ❌")")
+                Logger.debug("🔍   - Max HR: \(activity.athleteMaxHr != nil ? "\(Int(activity.athleteMaxHr!))bpm ✅" : "NIL ❌")")
+                Logger.debug("🔍   ---")
             }
-            print("🔍 ================================================")
+            Logger.debug("🔍 ================================================")
             
         } catch {
-            print("🔍 ❌ Failed to fetch activities: \(error)")
+            Logger.debug("🔍 ❌ Failed to fetch activities: \(error)")
         }
         
         isLoading = false
@@ -456,20 +456,20 @@ class IntervalsAPIDebugViewModel: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(apiClient.getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("🔍 Fetching from URL: \(url.absoluteString)")
+        Logger.debug("🔍 Fetching from URL: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = response as? HTTPURLResponse {
-            print("🔍 HTTP Status: \(httpResponse.statusCode)")
+            Logger.debug("🔍 HTTP Status: \(httpResponse.statusCode)")
         }
         
         // Store raw JSON and print FULL response
         if let jsonString = String(data: data, encoding: .utf8) {
             self.athleteRawJSON = jsonString
-            print("🔍 ========== FULL ATHLETE PROFILE JSON ==========")
+            Logger.debug("🔍 ========== FULL ATHLETE PROFILE JSON ==========")
             print(jsonString)
-            print("🔍 ================================================")
+            Logger.debug("🔍 ================================================")
         }
         
         // The /profile endpoint returns a wrapper object with athlete nested inside
@@ -490,20 +490,20 @@ class IntervalsAPIDebugViewModel: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(apiClient.getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("🔍 Fetching from URL: \(url.absoluteString)")
+        Logger.debug("🔍 Fetching from URL: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = response as? HTTPURLResponse {
-            print("🔍 HTTP Status: \(httpResponse.statusCode)")
+            Logger.debug("🔍 HTTP Status: \(httpResponse.statusCode)")
         }
         
         // Store raw JSON and print FULL response
         if let jsonString = String(data: data, encoding: .utf8) {
             self.activitiesRawJSON = jsonString
-            print("🔍 ========== FULL ACTIVITIES JSON ==========")
+            Logger.debug("🔍 ========== FULL ACTIVITIES JSON ==========")
             print(jsonString)
-            print("🔍 ==========================================")
+            Logger.debug("🔍 ==========================================")
         }
         
         let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)

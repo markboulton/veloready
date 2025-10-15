@@ -25,7 +25,7 @@ class WalkingDetailViewModel: ObservableObject {
     private let healthStore = HKHealthStore()
     
     func loadWorkoutData(workout: HKWorkout) async {
-        print("🏃 Loading workout data for: \(workout.workoutActivityType.name)")
+        Logger.debug("🏃 Loading workout data for: \(workout.workoutActivityType.name)")
         
         // Load heart rate data
         await loadHeartRateData(for: workout)
@@ -76,7 +76,7 @@ class WalkingDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch heart rate: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch heart rate: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -105,8 +105,8 @@ class WalkingDetailViewModel: ObservableObject {
                         self.maxHeartRate = hrValues.max()
                     }
                     
-                    print("✅ Loaded \(samples.count) heart rate samples")
-                    print("   Avg HR: \(self.averageHeartRate ?? 0), Max HR: \(self.maxHeartRate ?? 0)")
+                    Logger.debug("✅ Loaded \(samples.count) heart rate samples")
+                    Logger.debug("   Avg HR: \(self.averageHeartRate ?? 0), Max HR: \(self.maxHeartRate ?? 0)")
                     
                     continuation.resume()
                 }
@@ -136,13 +136,13 @@ class WalkingDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch route: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch route: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
                 
                 guard let routes = samples as? [HKWorkoutRoute], let route = routes.first else {
-                    print("⚠️ No route data available")
+                    Logger.warning("️ No route data available")
                     continuation.resume()
                     return
                 }
@@ -169,7 +169,7 @@ class WalkingDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to load route locations: \(error.localizedDescription)")
+                    Logger.error("Failed to load route locations: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -190,7 +190,7 @@ class WalkingDetailViewModel: ObservableObject {
                             )
                         }
                         
-                        print("✅ Loaded \(coordinates.count) route points")
+                        Logger.debug("✅ Loaded \(coordinates.count) route points")
                         continuation.resume()
                     }
                 }
@@ -225,7 +225,7 @@ class WalkingDetailViewModel: ObservableObject {
                 }
                 
                 if let error = error {
-                    print("❌ Failed to fetch steps: \(error.localizedDescription)")
+                    Logger.error("Failed to fetch steps: \(error.localizedDescription)")
                     continuation.resume()
                     return
                 }
@@ -234,7 +234,7 @@ class WalkingDetailViewModel: ObservableObject {
                     let steps = Int(sum.doubleValue(for: .count()))
                     Task { @MainActor in
                         self.steps = steps
-                        print("✅ Loaded steps: \(steps)")
+                        Logger.debug("✅ Loaded steps: \(steps)")
                         continuation.resume()
                     }
                 } else {
@@ -299,9 +299,9 @@ class WalkingDetailViewModel: ObservableObject {
             let snapshot = try await snapshotter.start()
             let image = addRouteToSnapshot(snapshot: snapshot, coordinates: coordinates)
             self.mapSnapshot = image
-            print("✅ Generated map snapshot with route overlay")
+            Logger.debug("✅ Generated map snapshot with route overlay")
         } catch {
-            print("❌ Failed to generate map snapshot: \(error)")
+            Logger.error("Failed to generate map snapshot: \(error)")
         }
     }
     

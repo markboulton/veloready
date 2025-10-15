@@ -23,9 +23,9 @@ class RPEStorageService {
             let muscleGroupStrings = muscleGroups.map { $0.rawValue }
             let muscleKey = muscleGroupsKey(for: workout)
             userDefaults.set(muscleGroupStrings, forKey: muscleKey)
-            print("💪 Saved RPE \(rpe) with muscle groups \(muscleGroupStrings) for workout: \(workout.uuid)")
+            Logger.debug("💪 Saved RPE \(rpe) with muscle groups \(muscleGroupStrings) for workout: \(workout.uuid)")
         } else {
-            print("💪 Saved RPE \(rpe) for workout: \(workout.uuid)")
+            Logger.debug("💪 Saved RPE \(rpe) for workout: \(workout.uuid)")
         }
         
         // Post notification that RPE was updated

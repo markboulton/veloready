@@ -61,10 +61,10 @@ class SubscriptionManager: ObservableObject {
                 }
             }
             
-            print("✅ Loaded \(products.count) subscription products")
+            Logger.debug("✅ Loaded \(products.count) subscription products")
         } catch {
             self.error = .productLoadFailed(error.localizedDescription)
-            print("❌ Failed to load products: \(error)")
+            Logger.error("Failed to load products: \(error)")
         }
     }
     
@@ -88,20 +88,20 @@ class SubscriptionManager: ObservableObject {
                 // Finish the transaction
                 await transaction.finish()
                 
-                print("✅ Purchase successful: \(product.id)")
+                Logger.debug("✅ Purchase successful: \(product.id)")
                 
             case .userCancelled:
-                print("ℹ️ User cancelled purchase")
+                Logger.debug("ℹ️ User cancelled purchase")
                 
             case .pending:
-                print("⏳ Purchase pending (Ask to Buy)")
+                Logger.debug("⏳ Purchase pending (Ask to Buy)")
                 
             @unknown default:
                 break
             }
         } catch {
             self.error = .purchaseFailed(error.localizedDescription)
-            print("❌ Purchase failed: \(error)")
+            Logger.error("Purchase failed: \(error)")
             throw error
         }
     }
@@ -115,10 +115,10 @@ class SubscriptionManager: ObservableObject {
         do {
             try await AppStore.sync()
             await updateSubscriptionStatus()
-            print("✅ Purchases restored")
+            Logger.debug("✅ Purchases restored")
         } catch {
             self.error = .restoreFailed(error.localizedDescription)
-            print("❌ Restore failed: \(error)")
+            Logger.error("Restore failed: \(error)")
         }
     }
     
@@ -146,13 +146,13 @@ class SubscriptionManager: ObservableObject {
                     // Get expiration date
                     expirationDate = transaction.expirationDate
                     
-                    print("✅ Active subscription: \(transaction.productID)")
+                    Logger.debug("✅ Active subscription: \(transaction.productID)")
                     if isInTrialPeriod {
-                        print("🎁 In trial period")
+                        Logger.debug("🎁 In trial period")
                     }
                 }
             } catch {
-                print("❌ Transaction verification failed: \(error)")
+                Logger.error("Transaction verification failed: \(error)")
             }
         }
         
@@ -187,7 +187,7 @@ class SubscriptionManager: ObservableObject {
                     // Finish the transaction
                     await transaction.finish()
                 } catch {
-                    print("❌ Transaction update failed: \(error)")
+                    Logger.error("Transaction update failed: \(error)")
                 }
             }
         }

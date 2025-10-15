@@ -165,7 +165,7 @@ struct SubscriptionStepView: View {
             VStack(spacing: 12) {
                 Button(action: {
                     // TODO: Implement actual subscription flow
-                    print("🔥 Starting \(selectedPlan.rawValue) subscription")
+                    Logger.debug("🔥 Starting \(selectedPlan.rawValue) subscription")
                     onboardingManager.completeOnboarding()
                 }) {
                     Text("Start Free Trial")

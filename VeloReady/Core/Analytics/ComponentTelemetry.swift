@@ -30,7 +30,7 @@ final class ComponentTelemetry {
         lastUsed[key] = Date()
         
         #if DEBUG
-        print("📊 Telemetry: \(key) used \(usageCounts[key] ?? 0) times")
+        Logger.data("Telemetry: \(key) used \(usageCounts[key] ?? 0) times")
         #endif
     }
     
@@ -68,7 +68,7 @@ final class ComponentTelemetry {
         usageCounts.removeAll()
         firstUsed.removeAll()
         lastUsed.removeAll()
-        print("📊 Telemetry: Reset all data")
+        Logger.data("Telemetry: Reset all data")
     }
 }
 

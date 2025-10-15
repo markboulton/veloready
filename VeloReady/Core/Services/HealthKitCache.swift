@@ -25,7 +25,7 @@ class HealthKitCache: ObservableObject {
         
         // Check if we need to fetch new data
         if forceRefresh || shouldRefreshCache(lastFetchKey: lastFetchKey) {
-            print("🔄 Fetching fresh workouts from Apple Health...")
+            Logger.debug("🔄 Fetching fresh workouts from Apple Health...")
             return await fetchAndCacheWorkouts(healthKitManager: healthKitManager)
         }
         
@@ -33,14 +33,14 @@ class HealthKitCache: ObservableObject {
         if let lastFetch = UserDefaults.standard.object(forKey: lastFetchKey) as? Date {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
             if timeSinceLastFetch < (cacheExpiryHours * 3600) {
-                print("📱 Health workout cache still valid (last fetch \(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), fetching with current time...")
+                Logger.debug("📱 Health workout cache still valid (last fetch \(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), fetching with current time...")
                 // Fetch fresh since we can't serialize HKWorkout (but cache timestamp prevents repeated fetches)
                 return await healthKitManager.fetchRecentWorkouts(limit: 50, daysBack: 30)
             }
         }
         
         // No cache or expired, fetch fresh
-        print("🔄 No cache available, fetching fresh health workouts...")
+        Logger.debug("🔄 No cache available, fetching fresh health workouts...")
         return await fetchAndCacheWorkouts(healthKitManager: healthKitManager)
     }
     
@@ -49,7 +49,7 @@ class HealthKitCache: ObservableObject {
         
         // Save timestamp to track cache freshness
         UserDefaults.standard.set(Date(), forKey: CacheKey.lastWorkoutFetch.rawValue)
-        print("💾 Cached timestamp for \(workouts.count) health workouts")
+        Logger.debug("💾 Cached timestamp for \(workouts.count) health workouts")
         
         return workouts
     }
@@ -63,7 +63,7 @@ class HealthKitCache: ObservableObject {
         let shouldRefresh = timeSinceLastFetch > (cacheExpiryHours * 3600)
         
         if shouldRefresh {
-            print("⏰ Health workout cache expired (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), refreshing...")
+            Logger.debug("⏰ Health workout cache expired (\(String(format: "%.1f", timeSinceLastFetch / 3600))h ago), refreshing...")
         }
         
         return shouldRefresh
@@ -73,6 +73,6 @@ class HealthKitCache: ObservableObject {
     func clearCache() {
         UserDefaults.standard.removeObject(forKey: CacheKey.workouts.rawValue)
         UserDefaults.standard.removeObject(forKey: CacheKey.lastWorkoutFetch.rawValue)
-        print("🗑️ Cleared health workout cache")
+        Logger.debug("🗑️ Cleared health workout cache")
     }
 }

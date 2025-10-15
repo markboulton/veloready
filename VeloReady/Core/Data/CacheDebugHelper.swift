@@ -10,7 +10,7 @@ class CacheDebugHelper {
     /// Print all cached data to console
     func printCacheContents() {
         print("\n" + String(repeating: "=", count: 60))
-        print("📊 CORE DATA CACHE CONTENTS")
+        Logger.data("CORE DATA CACHE CONTENTS")
         print(String(repeating: "=", count: 60))
         
         // Fetch all DailyScores
@@ -19,43 +19,43 @@ class CacheDebugHelper {
         
         let allScores = persistence.fetch(request)
         
-        print("Total cached days: \(allScores.count)")
+        Logger.debug("Total cached days: \(allScores.count)")
         print("")
         
         if allScores.isEmpty {
-            print("⚠️ Cache is EMPTY - no data saved yet")
+            Logger.warning("️ Cache is EMPTY - no data saved yet")
         } else {
             for (index, scores) in allScores.enumerated() {
-                print("Day \(index + 1): \(formatDate(scores.date ?? Date()))")
-                print("  Recovery: \(Int(scores.recoveryScore)) (\(scores.recoveryBand ?? "unknown"))")
-                print("  Sleep Score: \(Int(scores.sleepScore))")
-                print("  Strain Score: \(Int(scores.strainScore))")
-                print("  Effort Target: \(Int(scores.effortTarget))")
+                Logger.debug("Day \(index + 1): \(formatDate(scores.date ?? Date()))")
+                Logger.debug("  Recovery: \(Int(scores.recoveryScore)) (\(scores.recoveryBand ?? "unknown"))")
+                Logger.debug("  Sleep Score: \(Int(scores.sleepScore))")
+                Logger.debug("  Strain Score: \(Int(scores.strainScore))")
+                Logger.debug("  Effort Target: \(Int(scores.effortTarget))")
                 
                 if let physio = scores.physio {
-                    print("  Physio:")
-                    print("    HRV: \(String(format: "%.1f", physio.hrv))ms (baseline: \(String(format: "%.1f", physio.hrvBaseline))ms)")
-                    print("    RHR: \(String(format: "%.0f", physio.rhr))bpm (baseline: \(String(format: "%.0f", physio.rhrBaseline))bpm)")
-                    print("    Sleep: \(String(format: "%.1f", physio.sleepDuration/3600))h (baseline: \(String(format: "%.1f", physio.sleepBaseline/3600))h)")
+                    Logger.debug("  Physio:")
+                    Logger.debug("    HRV: \(String(format: "%.1f", physio.hrv))ms (baseline: \(String(format: "%.1f", physio.hrvBaseline))ms)")
+                    Logger.debug("    RHR: \(String(format: "%.0f", physio.rhr))bpm (baseline: \(String(format: "%.0f", physio.rhrBaseline))bpm)")
+                    Logger.debug("    Sleep: \(String(format: "%.1f", physio.sleepDuration/3600))h (baseline: \(String(format: "%.1f", physio.sleepBaseline/3600))h)")
                 }
                 
                 if let aiBrief = scores.aiBriefText {
-                    print("  AI Brief: \(aiBrief)")
+                    Logger.debug("  AI Brief: \(aiBrief)")
                 }
                 
                 if let load = scores.load {
-                    print("  Load:")
-                    print("    CTL: \(String(format: "%.1f", load.ctl))")
-                    print("    ATL: \(String(format: "%.1f", load.atl))")
-                    print("    TSB: \(String(format: "%.1f", load.tsb))")
-                    print("    TSS: \(String(format: "%.0f", load.tss))")
-                    print("    eFTP: \(String(format: "%.0f", load.eftp))")
+                    Logger.debug("  Load:")
+                    Logger.debug("    CTL: \(String(format: "%.1f", load.ctl))")
+                    Logger.debug("    ATL: \(String(format: "%.1f", load.atl))")
+                    Logger.debug("    TSB: \(String(format: "%.1f", load.tsb))")
+                    Logger.debug("    TSS: \(String(format: "%.0f", load.tss))")
+                    Logger.debug("    eFTP: \(String(format: "%.0f", load.eftp))")
                     if let workoutName = load.workoutName {
-                        print("    Workout: \(workoutName)")
+                        Logger.debug("    Workout: \(workoutName)")
                     }
                 }
                 
-                print("  Last Updated: \(formatTime(scores.lastUpdated ?? Date()))")
+                Logger.debug("  Last Updated: \(formatTime(scores.lastUpdated ?? Date()))")
                 print("")
             }
         }
@@ -63,7 +63,7 @@ class CacheDebugHelper {
         print(String(repeating: "=", count: 60))
         
         // Print AI Brief cache info
-        print("\n🤖 AI BRIEF CACHE")
+        Logger.debug("\n🤖 AI BRIEF CACHE")
         print(String(repeating: "=", count: 60))
         print(AIBriefService.shared.getDebugInfo())
         print(String(repeating: "=", count: 60))
@@ -102,7 +102,7 @@ class CacheDebugHelper {
         persistence.deleteAll(DailyScores.self)
         persistence.deleteAll(DailyPhysio.self)
         persistence.deleteAll(DailyLoad.self)
-        print("🗑️ Core Data cache cleared")
+        Logger.debug("🗑️ Core Data cache cleared")
     }
     
     // MARK: - Helpers

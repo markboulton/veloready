@@ -64,7 +64,7 @@ class OnboardingManager: ObservableObject {
         withAnimation {
             hasCompletedOnboarding = true
         }
-        print("✅ Onboarding completed")
+        Logger.debug("✅ Onboarding completed")
     }
     
     // MARK: - Reset (for debugging)
@@ -80,6 +80,6 @@ class OnboardingManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "selectedActivityTypes")
         UserDefaults.standard.removeObject(forKey: "enableNotifications")
         
-        print("🔄 Onboarding reset - will go through all 7 steps: Welcome → Benefits → HealthKit → Data Sources → Preferences → Subscription → Complete")
+        Logger.debug("🔄 Onboarding reset - will go through all 7 steps: Welcome → Benefits → HealthKit → Data Sources → Preferences → Subscription → Complete")
     }
 }

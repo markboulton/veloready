@@ -535,7 +535,7 @@ class StrainScoreCalculator {
             let typeMultiplier = getWorkoutTypeMultiplier(workoutTypes: inputs.workoutTypes)
             workoutTRIMP += cardioTRIMP * typeMultiplier
             
-            print("   Workout type multiplier: \(String(format: "%.2f", typeMultiplier))")
+            Logger.debug("   Workout type multiplier: \(String(format: "%.2f", typeMultiplier))")
         }
         
         // Add strength training as equivalent TRIMP
@@ -578,7 +578,7 @@ class StrainScoreCalculator {
         if hasBothCardioAndStrength {
             let interferenceFactor = 1.15  // 15% penalty for concurrent training
             workoutTRIMP *= interferenceFactor
-            print("   Concurrent training detected: +15% interference penalty")
+            Logger.debug("   Concurrent training detected: +15% interference penalty")
         }
         
         // 2. Add daily activity with intelligent calorie-step blending
@@ -642,14 +642,14 @@ class StrainScoreCalculator {
         let finalScore = max(0.0, min(18.0, scaledStrain))
         let band = determineBand(score: finalScore)
         
-        print("🏃 Whoop-Style Strain Calculation:")
-        print("   Workout TRIMP: \(workoutTRIMP)")
-        print("   Daily Activity Adjustment: \(dailyActivityAdjustment)")
-        print("   Total TRIMP: \(totalTRIMP)")
-        print("   EPOC: \(epoc)")
-        print("   Raw Strain: \(strain)")
-        print("   Recovery Factor: \(recoveryFactor)")
-        print("   Final Score: \(finalScore)")
+        Logger.debug("🏃 Whoop-Style Strain Calculation:")
+        Logger.debug("   Workout TRIMP: \(workoutTRIMP)")
+        Logger.debug("   Daily Activity Adjustment: \(dailyActivityAdjustment)")
+        Logger.debug("   Total TRIMP: \(totalTRIMP)")
+        Logger.debug("   EPOC: \(epoc)")
+        Logger.debug("   Raw Strain: \(strain)")
+        Logger.debug("   Recovery Factor: \(recoveryFactor)")
+        Logger.debug("   Final Score: \(finalScore)")
         
         return (score: finalScore, band: band)
     }

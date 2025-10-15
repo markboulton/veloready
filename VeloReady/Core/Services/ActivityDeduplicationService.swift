@@ -19,10 +19,10 @@ class ActivityDeduplicationService {
         stravaActivities: [UnifiedActivity],
         appleHealthActivities: [UnifiedActivity]
     ) -> [UnifiedActivity] {
-        print("🔍 [Deduplication] Starting with:")
-        print("   Intervals.icu: \(intervalsActivities.count)")
-        print("   Strava: \(stravaActivities.count)")
-        print("   Apple Health: \(appleHealthActivities.count)")
+        Logger.debug("🔍 [Deduplication] Starting with:")
+        Logger.debug("   Intervals.icu: \(intervalsActivities.count)")
+        Logger.debug("   Strava: \(stravaActivities.count)")
+        Logger.debug("   Apple Health: \(appleHealthActivities.count)")
         
         var result: [UnifiedActivity] = []
         var processedActivities: Set<String> = []
@@ -41,8 +41,8 @@ class ActivityDeduplicationService {
             matchingHealth.forEach { processedActivities.insert($0.id) }
             
             if !matchingStrava.isEmpty || !matchingHealth.isEmpty {
-                print("🔗 [Deduplication] Intervals activity '\(activity.name)' matched:")
-                print("     Strava: \(matchingStrava.count), Health: \(matchingHealth.count)")
+                Logger.debug("🔗 [Deduplication] Intervals activity '\(activity.name)' matched:")
+                Logger.debug("     Strava: \(matchingStrava.count), Health: \(matchingHealth.count)")
             }
         }
         
@@ -56,8 +56,8 @@ class ActivityDeduplicationService {
             processedActivities.insert(activity.id)
             
             if !matchingHealth.isEmpty {
-                print("🔗 [Deduplication] Strava activity '\(activity.name)' matched:")
-                print("     Health: \(matchingHealth.count)")
+                Logger.debug("🔗 [Deduplication] Strava activity '\(activity.name)' matched:")
+                Logger.debug("     Health: \(matchingHealth.count)")
             }
         }
         
@@ -71,8 +71,8 @@ class ActivityDeduplicationService {
         // Sort by date (newest first)
         result.sort { $0.startDate > $1.startDate }
         
-        print("✅ [Deduplication] Result: \(result.count) unique activities")
-        print("   Removed \(intervalsActivities.count + stravaActivities.count + appleHealthActivities.count - result.count) duplicates")
+        Logger.debug("✅ [Deduplication] Result: \(result.count) unique activities")
+        Logger.debug("   Removed \(intervalsActivities.count + stravaActivities.count + appleHealthActivities.count - result.count) duplicates")
         
         return result
     }
@@ -105,7 +105,7 @@ class ActivityDeduplicationService {
         
         // Log time difference for debugging
         if timeDifference > 3000 { // More than 50 minutes
-            print("⏰ [Deduplication] Large time difference: \(Int(timeDifference))s between '\(a.name)' and '\(b.name)'")
+            Logger.debug("⏰ [Deduplication] Large time difference: \(Int(timeDifference))s between '\(a.name)' and '\(b.name)'")
         }
         
         // Different types = probably not duplicate
@@ -136,15 +136,15 @@ class ActivityDeduplicationService {
         }
         
         // All checks passed - likely a duplicate
-        print("🔗 [Deduplication] Match found:")
-        print("   A: \(a.name) (\(a.source.displayName)) - \(a.type.rawValue)")
-        print("   B: \(b.name) (\(b.source.displayName)) - \(b.type.rawValue)")
-        print("   Time diff: \(Int(timeDifference))s (\(String(format: "%.1f", timeDifference/60))min)")
+        Logger.debug("🔗 [Deduplication] Match found:")
+        Logger.debug("   A: \(a.name) (\(a.source.displayName)) - \(a.type.rawValue)")
+        Logger.debug("   B: \(b.name) (\(b.source.displayName)) - \(b.type.rawValue)")
+        Logger.debug("   Time diff: \(Int(timeDifference))s (\(String(format: "%.1f", timeDifference/60))min)")
         if let durationA = a.duration, let durationB = b.duration {
-            print("   Duration: A=\(Int(durationA/60))min, B=\(Int(durationB/60))min")
+            Logger.debug("   Duration: A=\(Int(durationA/60))min, B=\(Int(durationB/60))min")
         }
         if let distanceA = a.distance, let distanceB = b.distance {
-            print("   Distance: A=\(String(format: "%.1f", distanceA/1000))km, B=\(String(format: "%.1f", distanceB/1000))km")
+            Logger.debug("   Distance: A=\(String(format: "%.1f", distanceA/1000))km, B=\(String(format: "%.1f", distanceB/1000))km")
         }
         
         return true

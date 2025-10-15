@@ -50,7 +50,7 @@ final class ServiceContainer {
     /// Register a ViewModel for reuse
     func register<T>(_ viewModel: T, for key: String) {
         viewModels[key] = viewModel
-        print("📝 ServiceContainer: Registered ViewModel '\(key)'")
+        Logger.debug("📝 ServiceContainer: Registered ViewModel '\(key)'")
     }
     
     /// Retrieve a registered ViewModel
@@ -61,7 +61,7 @@ final class ServiceContainer {
     /// Remove a ViewModel from registry
     func unregister(for key: String) {
         viewModels.removeValue(forKey: key)
-        print("🗑️ ServiceContainer: Unregistered ViewModel '\(key)'")
+        Logger.debug("🗑️ ServiceContainer: Unregistered ViewModel '\(key)'")
     }
     
     /// Get all registered ViewModel keys
@@ -80,14 +80,14 @@ final class ServiceContainer {
     func initialize() {
         guard !isInitialized else { return }
         
-        print("📦 ServiceContainer: Initializing...")
+        Logger.debug("📦 ServiceContainer: Initializing...")
         
         // Initialize core services that need early setup
         _ = healthKitManager
         _ = intervalsOAuthManager
         
         isInitialized = true
-        print("✅ ServiceContainer: Initialized")
+        Logger.debug("✅ ServiceContainer: Initialized")
     }
     
     // MARK: - Lifecycle Management
@@ -108,7 +108,7 @@ final class ServiceContainer {
     }
     
     private func handleAppBackground() {
-        print("📦 ServiceContainer: App entering background")
+        Logger.debug("📦 ServiceContainer: App entering background")
         
         // Flush caches to disk
         Task { @MainActor in
@@ -117,7 +117,7 @@ final class ServiceContainer {
     }
     
     private func handleAppForeground() {
-        print("📦 ServiceContainer: App entering foreground")
+        Logger.debug("📦 ServiceContainer: App entering foreground")
         
         // Refresh stale data
         Task { @MainActor in
@@ -129,29 +129,29 @@ final class ServiceContainer {
     
     /// Flush all caches to persistent storage
     private func flushCaches() async {
-        print("💾 ServiceContainer: Flushing caches to disk...")
+        Logger.debug("💾 ServiceContainer: Flushing caches to disk...")
         
         // Caches automatically persist via UserDefaults
         // This is a hook for future disk-based caching
         
-        print("✅ ServiceContainer: Caches flushed")
+        Logger.debug("✅ ServiceContainer: Caches flushed")
     }
     
     /// Refresh stale data when returning to foreground
     private func refreshStaleData() async {
-        print("🔄 ServiceContainer: Checking for stale data...")
+        Logger.debug("🔄 ServiceContainer: Checking for stale data...")
         
         // Individual services handle their own staleness checks
         // This is a hook for coordinated refresh logic
         
-        print("✅ ServiceContainer: Staleness check complete")
+        Logger.debug("✅ ServiceContainer: Staleness check complete")
     }
     
     // MARK: - Service Management
     
     /// Reset all services (useful for testing or logout)
     func reset() {
-        print("📦 ServiceContainer: Resetting all services")
+        Logger.debug("📦 ServiceContainer: Resetting all services")
         
         // Clear all caches
         clearAllCaches()
@@ -163,7 +163,7 @@ final class ServiceContainer {
     
     /// Clear all service caches
     func clearAllCaches() {
-        print("🗑️ ServiceContainer: Clearing all caches...")
+        Logger.debug("🗑️ ServiceContainer: Clearing all caches...")
         
         intervalsCache.clearAllCache()
         healthKitCache.clearCache()
@@ -171,12 +171,12 @@ final class ServiceContainer {
         // Clear score service caches
         recoveryScoreService.clearBaselineCache()
         
-        print("✅ ServiceContainer: All caches cleared")
+        Logger.debug("✅ ServiceContainer: All caches cleared")
     }
     
     /// Warm up critical services for optimal performance
     func warmUp() async {
-        print("🔥 ServiceContainer: Warming up services...")
+        Logger.debug("🔥 ServiceContainer: Warming up services...")
         
         // Pre-load critical data
         if healthKitManager.isAuthorized {
@@ -184,7 +184,7 @@ final class ServiceContainer {
             _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
         }
         
-        print("✅ ServiceContainer: Services warmed up")
+        Logger.debug("✅ ServiceContainer: Services warmed up")
     }
     
     /// Check health of all services

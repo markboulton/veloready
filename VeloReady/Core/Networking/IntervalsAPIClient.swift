@@ -46,14 +46,14 @@ class IntervalsAPIClient: ObservableObject {
             let timeSinceLastRequest = Date().timeIntervalSince(lastRequest)
             if timeSinceLastRequest < minimumRequestInterval {
                 let delay = minimumRequestInterval - timeSinceLastRequest
-                print("⏱️ Rate limiting: waiting \(String(format: "%.1f", delay))s before request")
+                Logger.warning("️ Rate limiting: waiting \(String(format: "%.1f", delay))s before request")
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
         }
         
         // Check if request is already in progress
         if let existingTask = pendingRequests[requestKey] {
-            print("🔄 Reusing existing request for: \(url.lastPathComponent)")
+            Logger.debug("🔄 Reusing existing request for: \(url.lastPathComponent)")
             return try await existingTask.value
         }
         
@@ -65,7 +65,7 @@ class IntervalsAPIClient: ObservableObject {
                 lastRequestTime = Date()
             }
             
-            print("🌐 Making request to: \(url.lastPathComponent)")
+            Logger.debug("🌐 Making request to: \(url.lastPathComponent)")
             
             var request = URLRequest(url: url)
             if let authHeader = authHeader {
@@ -146,27 +146,27 @@ class IntervalsAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("📡 Fetching activities from: \(url.absoluteString)")
+        Logger.debug("📡 Fetching activities from: \(url.absoluteString)")
         
         // Use optimized request method with deduplication
         let data = try await makeRequest(url: url, authHeader: getAuthHeader())
         
         // Debug: Print raw JSON to see all available fields (only when needed)
         if let jsonString = String(data: data, encoding: .utf8) {
-            print("🔍 Raw API Response (first 200 chars): \(String(jsonString.prefix(200)))")
+            Logger.debug("🔍 Raw API Response (first 200 chars): \(String(jsonString.prefix(200)))")
         }
         
         let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)
-        print("✅ Fetched \(activities.count) activities")
+        Logger.debug("✅ Fetched \(activities.count) activities")
         
         // Debug: Show what fields we actually parsed
         if let first = activities.first {
-            print("🔍 Parsed activity '\(first.name ?? "Unknown")':")
-            print("   - tss: \(first.tss?.description ?? "nil")")
-            print("   - atl: \(first.atl?.description ?? "nil")")
-            print("   - ctl: \(first.ctl?.description ?? "nil")")
-            print("   - avg_power: \(first.averagePower?.description ?? "nil")")
-            print("   - type: \(first.type ?? "nil")")
+            Logger.debug("🔍 Parsed activity '\(first.name ?? "Unknown")':")
+            Logger.debug("   - tss: \(first.tss?.description ?? "nil")")
+            Logger.debug("   - atl: \(first.atl?.description ?? "nil")")
+            Logger.debug("   - ctl: \(first.ctl?.description ?? "nil")")
+            Logger.debug("   - avg_power: \(first.averagePower?.description ?? "nil")")
+            Logger.debug("   - type: \(first.type ?? "nil")")
         }
         
         return activities
@@ -229,7 +229,7 @@ class IntervalsAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("📡 Fetching wellness from: \(url.absoluteString)")
+        Logger.debug("📡 Fetching wellness from: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -237,16 +237,16 @@ class IntervalsAPIClient: ObservableObject {
             throw IntervalsAPIError.invalidResponse
         }
         
-        print("📊 Wellness API Status: \(httpResponse.statusCode)")
+        Logger.data("Wellness API Status: \(httpResponse.statusCode)")
         
         guard httpResponse.statusCode == 200 else {
             let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("❌ Wellness API Error: \(errorString)")
+            Logger.error("Wellness API Error: \(errorString)")
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
         let wellness = try JSONDecoder().decode([IntervalsWellness].self, from: data)
-        print("✅ Fetched \(wellness.count) wellness records (last 30 days only)")
+        Logger.debug("✅ Fetched \(wellness.count) wellness records (last 30 days only)")
         return wellness
     }
     
@@ -276,7 +276,7 @@ class IntervalsAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("📡 Fetching wellness from: \(url.absoluteString)")
+        Logger.debug("📡 Fetching wellness from: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -284,16 +284,16 @@ class IntervalsAPIClient: ObservableObject {
             throw IntervalsAPIError.invalidResponse
         }
         
-        print("📊 Wellness API Status: \(httpResponse.statusCode)")
+        Logger.data("Wellness API Status: \(httpResponse.statusCode)")
         
         guard httpResponse.statusCode == 200 else {
             let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("❌ Wellness API Error: \(errorString)")
+            Logger.error("Wellness API Error: \(errorString)")
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
         let wellnessData = try JSONDecoder().decode([IntervalsWellness].self, from: data)
-        print("✅ Fetched \(wellnessData.count) wellness records for date range")
+        Logger.debug("✅ Fetched \(wellnessData.count) wellness records for date range")
         
         return wellnessData
     }
@@ -331,7 +331,7 @@ class IntervalsAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue(getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("📡 Fetching strain activities from: \(url.absoluteString)")
+        Logger.debug("📡 Fetching strain activities from: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -339,16 +339,16 @@ class IntervalsAPIClient: ObservableObject {
             throw IntervalsAPIError.invalidResponse
         }
         
-        print("📊 Strain Activities API Status: \(httpResponse.statusCode)")
+        Logger.data("Strain Activities API Status: \(httpResponse.statusCode)")
         
         guard httpResponse.statusCode == 200 else {
             let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("❌ Strain Activities API Error: \(errorString)")
+            Logger.error("Strain Activities API Error: \(errorString)")
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
         let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)
-        print("✅ Fetched \(activities.count) activities for strain calculation")
+        Logger.debug("✅ Fetched \(activities.count) activities for strain calculation")
         return activities
     }
     
@@ -371,10 +371,10 @@ class IntervalsAPIClient: ObservableObject {
            Date().timeIntervalSince(cachedTimestamp) < 86400 { // 24 hours
             do {
                 let athlete = try JSONDecoder().decode(IntervalsAthlete.self, from: cachedData)
-                print("📦 Using cached athlete data: \(athlete.name ?? "Unknown") (age: \(String(format: "%.1f", Date().timeIntervalSince(cachedTimestamp) / 3600))h)")
+                Logger.debug("📦 Using cached athlete data: \(athlete.name ?? "Unknown") (age: \(String(format: "%.1f", Date().timeIntervalSince(cachedTimestamp) / 3600))h)")
                 return athlete
             } catch {
-                print("⚠️ Failed to decode cached athlete data, fetching fresh")
+                Logger.warning("️ Failed to decode cached athlete data, fetching fresh")
             }
         }
         
@@ -389,31 +389,31 @@ class IntervalsAPIClient: ObservableObject {
             let profile = try JSONDecoder().decode(IntervalsAthleteProfile.self, from: data)
             let athlete = profile.athlete
             
-            print("✅ Successfully fetched athlete profile data: \(athlete.name ?? "Unknown") (ID: \(athlete.id))")
-            print("🔍 Power Zones: \(athlete.powerZones != nil ? "Present (FTP: \(athlete.powerZones?.ftp ?? 0)W)" : "NIL")")
-            print("🔍 HR Zones: \(athlete.heartRateZones != nil ? "Present (Max HR: \(athlete.heartRateZones?.maxHr ?? 0)bpm)" : "NIL")")
+            Logger.debug("✅ Successfully fetched athlete profile data: \(athlete.name ?? "Unknown") (ID: \(athlete.id))")
+            Logger.debug("🔍 Power Zones: \(athlete.powerZones != nil ? "Present (FTP: \(athlete.powerZones?.ftp ?? 0)W)" : "NIL")")
+            Logger.debug("🔍 HR Zones: \(athlete.heartRateZones != nil ? "Present (Max HR: \(athlete.heartRateZones?.maxHr ?? 0)bpm)" : "NIL")")
             
             // Cache the athlete data (not the wrapper)
             if let athleteData = try? JSONEncoder().encode(athlete) {
                 UserDefaults.standard.set(athleteData, forKey: cacheKey)
                 UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
-                print("💾 Cached athlete data for 24 hours")
+                Logger.debug("💾 Cached athlete data for 24 hours")
             }
             
             return athlete
         } catch {
-            print("❌ Failed to fetch athlete data from \(endpoint): \(error)")
+            Logger.error("Failed to fetch athlete data from \(endpoint): \(error)")
             
             // Try to use stale cache if available
             if let cachedData = UserDefaults.standard.data(forKey: cacheKey),
                let athlete = try? JSONDecoder().decode(IntervalsAthlete.self, from: cachedData) {
-                print("📦 Using stale cached athlete data as fallback")
+                Logger.debug("📦 Using stale cached athlete data as fallback")
                 return athlete
             }
             
             // Return mock data - not critical for app functionality
             // We get all needed data (CTL, ATL, TSS) from activities and wellness endpoints
-            print("ℹ️ Using mock athlete data (ID: \(athleteId))")
+            Logger.debug("ℹ️ Using mock athlete data (ID: \(athleteId))")
             return IntervalsAthlete(
                 id: athleteId,
                 name: oauthManager.user?.name ?? "Athlete",
@@ -841,20 +841,20 @@ extension IntervalsAPIClient {
     /// - Parameter activityId: The ID of the activity to fetch data for
     /// - Returns: Array of WorkoutSample data points
     func fetchActivityStreams(activityId: String) async throws -> [WorkoutSample] {
-        print("🗺️ ========== FETCHING ACTIVITY STREAMS ==========")
-        print("🗺️ Activity ID: \(activityId)")
+        Logger.debug("🗺️ ========== FETCHING ACTIVITY STREAMS ==========")
+        Logger.debug("🗺️ Activity ID: \(activityId)")
         
         guard await ensureAuthenticated() else {
             throw IntervalsAPIError.notAuthenticated
         }
         
         let url = URL(string: "\(baseURL)/api/v1/activity/\(activityId)/streams")!
-        print("🗺️ API URL: \(url.absoluteString)")
+        Logger.debug("🗺️ API URL: \(url.absoluteString)")
         
         var request = URLRequest(url: url)
         request.setValue(getAuthHeader(), forHTTPHeaderField: "Authorization")
         
-        print("📡 Fetching activity streams from: \(url.absoluteString)")
+        Logger.debug("📡 Fetching activity streams from: \(url.absoluteString)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -862,17 +862,17 @@ extension IntervalsAPIClient {
             throw IntervalsAPIError.invalidResponse
         }
         
-        print("📊 Activity Streams API Status: \(httpResponse.statusCode)")
+        Logger.data("Activity Streams API Status: \(httpResponse.statusCode)")
         
         guard httpResponse.statusCode == 200 else {
             let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("❌ Activity Streams API Error: \(errorString)")
+            Logger.error("Activity Streams API Error: \(errorString)")
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
         // Debug: Print raw response to understand the structure
         if let jsonString = String(data: data, encoding: .utf8) {
-            print("🔍 Raw Activity Streams Response: \(String(jsonString.prefix(500)))")
+            Logger.debug("🔍 Raw Activity Streams Response: \(String(jsonString.prefix(500)))")
         }
         
         // Try to decode as different possible formats
@@ -880,17 +880,17 @@ extension IntervalsAPIClient {
             let streamData = try JSONDecoder().decode(ActivityStreamData.self, from: data)
             return convertStreamDataToSamples(streamData)
         } catch {
-            print("❌ Failed to decode as ActivityStreamData: \(error)")
+            Logger.error("Failed to decode as ActivityStreamData: \(error)")
             
             // Try to decode as array format (common in some APIs)
             do {
                 let arrayData = try JSONDecoder().decode([ActivityStreamItem].self, from: data)
                 return convertArrayDataToSamples(arrayData)
             } catch {
-                print("❌ Failed to decode as array format: \(error)")
+                Logger.error("Failed to decode as array format: \(error)")
                 
                 // Fall back to generated data
-                print("⚠️ Using generated data as fallback")
+                Logger.warning("️ Using generated data as fallback")
                 return []
             }
         }
@@ -927,18 +927,18 @@ extension IntervalsAPIClient {
         var longitudeData: [Double?] = [] // Separate longitude array
         
         // Parse array format where each item has type and data
-        print("🗺️ ========== PARSING STREAM DATA ==========")
-        print("🗺️ Total stream types in response: \(arrayData.count)")
+        Logger.debug("🗺️ ========== PARSING STREAM DATA ==========")
+        Logger.debug("🗺️ Total stream types in response: \(arrayData.count)")
         for item in arrayData {
             let itemType = item.type.lowercased()
-            print("🗺️ Stream type: '\(item.type)' | Data points: \(item.data.count) | Has data2: \(item.data2 != nil)")
+            Logger.debug("🗺️ Stream type: '\(item.type)' | Data points: \(item.data.count) | Has data2: \(item.data2 != nil)")
             
             switch itemType {
             case "time":
                 timeData = item.data
             case "watts", "power":
                 powerData = item.data
-                print("✅ Found power data: \(item.data.count) samples")
+                Logger.debug("✅ Found power data: \(item.data.count) samples")
             case "heartrate", "heart_rate":
                 heartrateData = item.data
             case "cadence":
@@ -950,34 +950,34 @@ extension IntervalsAPIClient {
             case "latlng":
                 latlngData = item.data
                 longitudeData = item.data2 ?? []
-                print("🗺️ ========== GPS DATA FOUND ==========")
-                print("🗺️ Latitude values: \(item.data.count)")
-                print("🗺️ Longitude values: \(item.data2?.count ?? 0)")
-                print("🗺️ data2 is nil: \(item.data2 == nil)")
+                Logger.debug("🗺️ ========== GPS DATA FOUND ==========")
+                Logger.debug("🗺️ Latitude values: \(item.data.count)")
+                Logger.debug("🗺️ Longitude values: \(item.data2?.count ?? 0)")
+                Logger.debug("🗺️ data2 is nil: \(item.data2 == nil)")
                 
                 // Debug: Print first few GPS values to understand structure
                 let sampleCount = min(5, item.data.count)
-                print("🗺️ First \(sampleCount) GPS coordinates:")
+                Logger.debug("🗺️ First \(sampleCount) GPS coordinates:")
                 for i in 0..<sampleCount {
                     let lat = item.data[safe: i] ?? nil
                     let lng = (item.data2 ?? [])[safe: i] ?? nil
-                    print("🗺️   GPS[\(i)]: lat=\(lat?.description ?? "nil"), lng=\(lng?.description ?? "nil")")
+                    Logger.debug("🗺️   GPS[\(i)]: lat=\(lat?.description ?? "nil"), lng=\(lng?.description ?? "nil")")
                 }
                 
                 // Check if any coordinates are non-zero
                 let nonZeroLats = item.data.compactMap { $0 }.filter { $0 != 0 }
                 let nonZeroLngs = (item.data2 ?? []).compactMap { $0 }.filter { $0 != 0 }
-                print("🗺️ Non-zero latitudes: \(nonZeroLats.count)")
-                print("🗺️ Non-zero longitudes: \(nonZeroLngs.count)")
+                Logger.debug("🗺️ Non-zero latitudes: \(nonZeroLats.count)")
+                Logger.debug("🗺️ Non-zero longitudes: \(nonZeroLngs.count)")
             default:
-                print("🔍 Unknown stream type: \(item.type)")
+                Logger.debug("🔍 Unknown stream type: \(item.type)")
             }
         }
         
-        print("🗺️ ========== CREATING WORKOUT SAMPLES ==========")
-        print("🗺️ Time data points: \(timeData.count)")
-        print("🗺️ Latitude data points: \(latlngData.count)")
-        print("🗺️ Longitude data points: \(longitudeData.count)")
+        Logger.debug("🗺️ ========== CREATING WORKOUT SAMPLES ==========")
+        Logger.debug("🗺️ Time data points: \(timeData.count)")
+        Logger.debug("🗺️ Latitude data points: \(latlngData.count)")
+        Logger.debug("🗺️ Longitude data points: \(longitudeData.count)")
         
         var samples: [WorkoutSample] = []
         var gpsCoordinatesFound = 0
@@ -1000,7 +1000,7 @@ extension IntervalsAPIClient {
                         
                         // Log first few valid coordinates
                         if samples.count < 3 {
-                            print("🗺️ Sample \(samples.count) GPS: lat=\(lat), lng=\(lng)")
+                            Logger.debug("🗺️ Sample \(samples.count) GPS: lat=\(lat), lng=\(lng)")
                         }
                     } else {
                         gpsCoordinatesFiltered += 1
@@ -1022,12 +1022,12 @@ extension IntervalsAPIClient {
             samples.append(sample)
         }
         
-        print("🗺️ ========== SAMPLE CREATION COMPLETE ==========")
-        print("🗺️ Total samples created: \(samples.count)")
-        print("🗺️ GPS coordinates found in data: \(gpsCoordinatesFound)")
-        print("🗺️ GPS coordinates filtered (0,0): \(gpsCoordinatesFiltered)")
-        print("🗺️ Samples with valid GPS: \(samples.filter { $0.latitude != nil && $0.longitude != nil }.count)")
-        print("🗺️ ===============================================")
+        Logger.debug("🗺️ ========== SAMPLE CREATION COMPLETE ==========")
+        Logger.debug("🗺️ Total samples created: \(samples.count)")
+        Logger.debug("🗺️ GPS coordinates found in data: \(gpsCoordinatesFound)")
+        Logger.debug("🗺️ GPS coordinates filtered (0,0): \(gpsCoordinatesFiltered)")
+        Logger.debug("🗺️ Samples with valid GPS: \(samples.filter { $0.latitude != nil && $0.longitude != nil }.count)")
+        Logger.debug("🗺️ ===============================================")
         
         return samples
     }

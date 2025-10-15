@@ -143,7 +143,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
         // Check cache first (unless bypassed)
         if !bypassCache {
             if let cached = cache.get(rideId: request.rideId) {
-                print("📦 Using cached ride summary (age: \(String(format: "%.1f", Date().timeIntervalSince(cached.timestamp) / 60))m)")
+                Logger.debug("📦 Using cached ride summary (age: \(String(format: "%.1f", Date().timeIntervalSince(cached.timestamp) / 60))m)")
                 
                 // Emit telemetry
                 emitTelemetry(
@@ -177,7 +177,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
                     userId: userId
                 )
                 
-                print("✅ Ride summary fetched successfully (latency: \(latencyMs)ms, cached: \(response.cached ?? false))")
+                Logger.debug("✅ Ride summary fetched successfully (latency: \(latencyMs)ms, cached: \(response.cached ?? false))")
                 return response
                 
             } catch let error as RideSummaryError {
@@ -186,7 +186,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
                 // Don't retry on client errors (4xx)
                 switch error {
                 case .invalidSignature, .missingSecret, .invalidResponse, .encodingError:
-                    print("❌ Ride summary error (non-retryable): \(error.localizedDescription)")
+                    Logger.error("Ride summary error (non-retryable): \(error.localizedDescription)")
                     emitTelemetry(
                         result: "error_\(error)",
                         httpStatus: 401,
@@ -200,7 +200,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
                     // Retry on 5xx
                     if code >= 500 && attempt < maxRetries {
                         let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                        print("⚠️ Server error \(code), retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
+                        Logger.warning("️ Server error \(code), retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
                         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                         continue
                     }
@@ -209,7 +209,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
                     // Retry on network errors
                     if attempt < maxRetries {
                         let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                        print("⚠️ Network error, retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
+                        Logger.warning("️ Network error, retrying in \(delay)s (attempt \(attempt + 1)/\(maxRetries + 1))")
                         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                         continue
                     }
@@ -261,16 +261,16 @@ class RideSummaryClient: RideSummaryClientProtocol {
         urlRequest.timeoutInterval = timeoutInterval
         
         #if DEBUG
-        print("🌐 Ride Summary Request:")
-        print("   Ride ID: \(request.rideId)")
-        print("   User: \(userId.prefix(8))...")
-        print("   Signature: \(signature.prefix(4))...\(signature.suffix(4))")
-        print("   Body size: \(bodyData.count) bytes")
+        Logger.debug("🌐 Ride Summary Request:")
+        Logger.debug("   Ride ID: \(request.rideId)")
+        Logger.debug("   User: \(userId.prefix(8))...")
+        Logger.debug("   Signature: \(signature.prefix(4))...\(signature.suffix(4))")
+        Logger.debug("   Body size: \(bodyData.count) bytes")
         #endif
         
         // Redact body in release logs (just show size)
         #if !DEBUG
-        print("🌐 Ride Summary Request: ride=\(request.rideId), user=\(userId.prefix(4))..., size=\(bodyData.count)B")
+        Logger.debug("🌐 Ride Summary Request: ride=\(request.rideId), user=\(userId.prefix(4))..., size=\(bodyData.count)B")
         #endif
         
         // Send request
@@ -280,7 +280,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
             throw RideSummaryError.networkError("Invalid response type")
         }
         
-        print("📊 Ride Summary Response: HTTP \(httpResponse.statusCode)")
+        Logger.data("Ride Summary Response: HTTP \(httpResponse.statusCode)")
         
         // Handle HTTP errors
         switch httpResponse.statusCode {
@@ -320,8 +320,8 @@ class RideSummaryClient: RideSummaryClientProtocol {
             // If not JSON, log full response and error for debugging
             #if DEBUG
             if let text = String(data: data, encoding: .utf8) {
-                print("❌ JSON Decoding Error: \(error)")
-                print("❌ Full Response (\(data.count) bytes):")
+                Logger.error("JSON Decoding Error: \(error)")
+                Logger.error("Full Response (\(data.count) bytes):")
                 print(text)
             }
             #endif
@@ -330,7 +330,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
             // In release, just log preview
             if let text = String(data: data, encoding: .utf8) {
                 let preview = String(text.prefix(80))
-                print("❌ Invalid JSON response (first 80 chars): \(preview)")
+                Logger.error("Invalid JSON response (first 80 chars): \(preview)")
             }
             #endif
             
@@ -353,12 +353,12 @@ class RideSummaryClient: RideSummaryClientProtocol {
         let hashedUserId = hashUserId(userId)
         
         #if DEBUG
-        print("📊 Ride Summary Telemetry:")
-        print("   Result: \(result)")
-        print("   HTTP Status: \(httpStatus)")
-        print("   Latency: \(latencyMs)ms")
-        print("   Ride ID: \(rideId)")
-        print("   User (hashed): \(hashedUserId)")
+        Logger.data("Ride Summary Telemetry:")
+        Logger.debug("   Result: \(result)")
+        Logger.debug("   HTTP Status: \(httpStatus)")
+        Logger.debug("   Latency: \(latencyMs)ms")
+        Logger.debug("   Ride ID: \(rideId)")
+        Logger.debug("   User (hashed): \(hashedUserId)")
         #endif
         
         // TODO: Send to analytics service
@@ -380,7 +380,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
     // Debug helper
     func clearCache() {
         cache.clear()
-        print("🗑️ Ride summary cache cleared")
+        Logger.debug("🗑️ Ride summary cache cleared")
     }
 }
 
@@ -405,7 +405,7 @@ class RideSummaryCache {
             timestamp: Date()
         )
         
-        print("💾 Cached ride summary for ride \(rideId)")
+        Logger.debug("💾 Cached ride summary for ride \(rideId)")
     }
     
     func clear() {

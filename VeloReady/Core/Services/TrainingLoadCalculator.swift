@@ -12,24 +12,24 @@ class TrainingLoadCalculator {
     /// Calculate current CTL and ATL from HealthKit workouts
     /// - Returns: Tuple of (ctl, atl) or nil if insufficient data
     func calculateTrainingLoad() async -> (ctl: Double, atl: Double) {
-        print("📊 Calculating training load from HealthKit workouts...")
+        Logger.data("Calculating training load from HealthKit workouts...")
         
         // Get last 42 days of TRIMP values
         let dailyTRIMP = await getDailyTRIMP(days: 42)
         
         // Need at least 7 days of data for meaningful calculation
         let nonZeroDays = dailyTRIMP.filter { $0 > 0 }.count
-        print("📊 Found \(nonZeroDays) days with workout data in last 42 days")
+        Logger.data("Found \(nonZeroDays) days with workout data in last 42 days")
         
         let ctl = calculateCTL(from: dailyTRIMP)
         let atl = calculateATL(from: dailyTRIMP)
         
         let tsb = ctl - atl
         
-        print("📊 Training Load Results:")
-        print("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
-        print("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
-        print("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
+        Logger.data("Training Load Results:")
+        Logger.debug("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
+        Logger.debug("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
+        Logger.debug("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
         
         return (ctl, atl)
     }
@@ -63,7 +63,7 @@ class TrainingLoadCalculator {
         let today = calendar.startOfDay(for: Date())
         let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
         
-        print("📊 Fetching workouts from \(startDate) to \(Date())")
+        Logger.data("Fetching workouts from \(startDate) to \(Date())")
         
         // Get all workouts in range
         let workouts = await healthKitManager.fetchWorkouts(
@@ -72,7 +72,7 @@ class TrainingLoadCalculator {
             activityTypes: [.cycling, .running, .swimming, .walking, .functionalStrengthTraining, .traditionalStrengthTraining, .hiking, .rowing, .other]
         )
         
-        print("📊 Found \(workouts.count) workouts to analyze")
+        Logger.data("Found \(workouts.count) workouts to analyze")
         
         // Group by day and calculate TRIMP
         var dailyTRIMP: [Date: Double] = [:]
@@ -82,7 +82,7 @@ class TrainingLoadCalculator {
             let trimp = await trimpCalculator.calculateTRIMP(for: workout)
             dailyTRIMP[day, default: 0] += trimp
             
-            print("   Workout on \(day): +\(String(format: "%.1f", trimp)) TRIMP")
+            Logger.debug("   Workout on \(day): +\(String(format: "%.1f", trimp)) TRIMP")
         }
         
         // Create array with 0 for days with no workouts (maintains exponential weighting)
@@ -170,13 +170,13 @@ extension HealthKitManager {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
             ) { _, samples, error in
                 if let error = error {
-                    print("❌ Failed to fetch workouts: \(error)")
+                    Logger.error("Failed to fetch workouts: \(error)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let workouts = samples as? [HKWorkout] ?? []
-                print("✅ Fetched \(workouts.count) workouts from HealthKit")
+                Logger.debug("✅ Fetched \(workouts.count) workouts from HealthKit")
                 continuation.resume(returning: workouts)
             }
             

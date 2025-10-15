@@ -34,7 +34,7 @@ class WorkoutMetadataService {
         }
         if let muscleGroups = muscleGroups {
             metadata.muscleGroupEnums = muscleGroups
-            print("💪 Saving muscle groups: \(muscleGroups.map { $0.rawValue })")
+            Logger.debug("💪 Saving muscle groups: \(muscleGroups.map { $0.rawValue })")
         }
         if let isEccentricFocused = isEccentricFocused {
             metadata.isEccentricFocused = isEccentricFocused
@@ -44,8 +44,8 @@ class WorkoutMetadataService {
         
         persistenceController.save(context: context)
         
-        print("💪 Saved workout metadata for \(workout.uuid)")
-        print("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
+        Logger.debug("💪 Saved workout metadata for \(workout.uuid)")
+        Logger.debug("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
         
         // Post notification for UI updates
         NotificationCenter.default.post(name: .workoutMetadataDidUpdate, object: nil, userInfo: ["workoutUUID": workout.uuid.uuidString])
@@ -72,26 +72,26 @@ class WorkoutMetadataService {
     
     /// Get muscle groups for a workout
     func getMuscleGroups(for workout: HKWorkout) -> [MuscleGroup]? {
-        print("🔍 getMuscleGroups for workout: \(workout.uuid)")
+        Logger.debug("🔍 getMuscleGroups for workout: \(workout.uuid)")
         
         // Try Core Data first
         if let metadata = fetchMetadata(for: workout) {
             let groups = metadata.muscleGroupEnums
-            print("🔍 Found in Core Data: \(groups?.map { $0.rawValue } ?? [])")
+            Logger.debug("🔍 Found in Core Data: \(groups?.map { $0.rawValue } ?? [])")
             return groups
         }
         
-        print("🔍 Not found in Core Data, checking legacy...")
+        Logger.debug("🔍 Not found in Core Data, checking legacy...")
         
         // Fallback to legacy
         if let legacyGroups = legacyRPEService.getMuscleGroups(for: workout) {
-            print("🔍 Found in legacy: \(legacyGroups.map { $0.rawValue })")
+            Logger.debug("🔍 Found in legacy: \(legacyGroups.map { $0.rawValue })")
             // Migrate to Core Data
             migrateFromLegacy(workout: workout, muscleGroups: legacyGroups)
             return legacyGroups
         }
         
-        print("🔍 No muscle groups found anywhere")
+        Logger.debug("🔍 No muscle groups found anywhere")
         return nil
     }
     
@@ -106,13 +106,13 @@ class WorkoutMetadataService {
         fetchRequest.predicate = NSPredicate(format: "workoutUUID == %@", workout.uuid.uuidString)
         fetchRequest.fetchLimit = 1
         
-        print("🔎 Fetching metadata for UUID: \(workout.uuid.uuidString)")
+        Logger.debug("🔎 Fetching metadata for UUID: \(workout.uuid.uuidString)")
         let results = persistenceController.fetch(fetchRequest)
         
         if let metadata = results.first {
-            print("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
+            Logger.debug("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
         } else {
-            print("🔎 No metadata found in Core Data")
+            Logger.debug("🔎 No metadata found in Core Data")
         }
         
         return results.first
@@ -220,7 +220,7 @@ class WorkoutMetadataService {
         do {
             return try JSONSerialization.data(withJSONObject: exportData, options: .prettyPrinted)
         } catch {
-            print("❌ Failed to export workout metadata: \(error)")
+            Logger.error("Failed to export workout metadata: \(error)")
             return nil
         }
     }
@@ -263,25 +263,25 @@ class WorkoutMetadataService {
         guard !hasAttemptedMigration else { return }
         hasAttemptedMigration = true
         
-        print("🔄 Starting migration of legacy workout metadata...")
+        Logger.debug("🔄 Starting migration of legacy workout metadata...")
         
         // This is a one-time migration - scan UserDefaults for all workout metadata
         // Since UserDefaults keys are based on UUIDs, we can't easily enumerate them
         // Migration will happen lazily as workouts are accessed
         
-        print("✅ Legacy migration configured (will migrate on-demand)")
+        Logger.debug("✅ Legacy migration configured (will migrate on-demand)")
     }
     
     /// Migrate a single workout from legacy storage
     private func migrateFromLegacy(workout: HKWorkout, rpe: Double? = nil, muscleGroups: [MuscleGroup]? = nil) {
-        print("🔄 Migrating workout \(workout.uuid) from legacy storage...")
+        Logger.debug("🔄 Migrating workout \(workout.uuid) from legacy storage...")
         
         let legacyRPE = rpe ?? legacyRPEService.getRPE(for: workout)
         let legacyGroups = muscleGroups ?? legacyRPEService.getMuscleGroups(for: workout)
         
         if legacyRPE != nil || legacyGroups != nil {
             saveMetadata(for: workout, rpe: legacyRPE, muscleGroups: legacyGroups)
-            print("✅ Migrated workout \(workout.uuid)")
+            Logger.debug("✅ Migrated workout \(workout.uuid)")
         }
     }
     
@@ -295,7 +295,7 @@ class WorkoutMetadataService {
         // Also delete from legacy storage
         legacyRPEService.deleteRPE(for: workout)
         
-        print("🗑️ Deleted metadata for workout \(workout.uuid)")
+        Logger.debug("🗑️ Deleted metadata for workout \(workout.uuid)")
     }
     
     /// Prune old workout metadata
@@ -311,7 +311,7 @@ class WorkoutMetadataService {
             if let metadata = try? context.fetch(fetchRequest) {
                 metadata.forEach { context.delete($0) }
                 self.persistenceController.save(context: context)
-                print("🗑️ Pruned \(metadata.count) workout metadata entries older than \(days) days")
+                Logger.debug("🗑️ Pruned \(metadata.count) workout metadata entries older than \(days) days")
             }
         }
     }

@@ -92,7 +92,7 @@ final class PersistenceController {
             if let error = error {
                 fatalError("Failed to load Core Data stack: \(error)")
             }
-            print("☁️ Core Data stack loaded with CloudKit sync enabled")
+            Logger.debug("☁️ Core Data stack loaded with CloudKit sync enabled")
         }
         
         // Configure view context
@@ -120,13 +120,13 @@ final class PersistenceController {
         }
         
         if event.type == .import {
-            print("☁️ CloudKit import completed")
+            Logger.debug("☁️ CloudKit import completed")
         } else if event.type == .export {
-            print("☁️ CloudKit export completed")
+            Logger.debug("☁️ CloudKit export completed")
         }
         
         if let error = event.error {
-            print("❌ CloudKit sync error: \(error.localizedDescription)")
+            Logger.error("CloudKit sync error: \(error.localizedDescription)")
         }
     }
     
@@ -148,7 +148,7 @@ final class PersistenceController {
         do {
             try targetContext.save()
         } catch {
-            print("❌ Failed to save Core Data context: \(error)")
+            Logger.error("Failed to save Core Data context: \(error)")
         }
     }
     
@@ -160,7 +160,7 @@ final class PersistenceController {
         do {
             return try targetContext.fetch(request)
         } catch {
-            print("❌ Failed to fetch \(T.self): \(error)")
+            Logger.error("Failed to fetch \(T.self): \(error)")
             return []
         }
     }
@@ -182,7 +182,7 @@ final class PersistenceController {
             objects.forEach { targetContext.delete($0) }
             save(context: targetContext)
         } catch {
-            print("❌ Failed to delete all \(type): \(error)")
+            Logger.error("Failed to delete all \(type): \(error)")
         }
     }
     
@@ -220,7 +220,7 @@ final class PersistenceController {
             }
             
             self.save(context: context)
-            print("🗑️ Pruned data older than \(days) days")
+            Logger.debug("🗑️ Pruned data older than \(days) days")
         }
     }
 }

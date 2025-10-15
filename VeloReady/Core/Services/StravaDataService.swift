@@ -22,25 +22,25 @@ class StravaDataService: ObservableObject {
         if !forceRefresh, let lastFetch = lastFetchDate {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
             if timeSinceLastFetch < TimeInterval(cacheExpiryMinutes * 60) {
-                print("🟠 [StravaDataService] Using cached data (\(Int(timeSinceLastFetch))s old)")
+                Logger.debug("🟠 [StravaDataService] Using cached data (\(Int(timeSinceLastFetch))s old)")
                 return
             }
         }
         
         // Check connection
         guard case .connected(let athleteId) = stravaAuthService.connectionState else {
-            print("ℹ️ [StravaDataService] Strava not connected")
+            Logger.debug("ℹ️ [StravaDataService] Strava not connected")
             activities = []
             return
         }
         
         guard !isLoading else {
-            print("⚠️ [StravaDataService] Already loading, skipping duplicate request")
+            Logger.warning("️ [StravaDataService] Already loading, skipping duplicate request")
             return
         }
         
         isLoading = true
-        print("🟠 [StravaDataService] Fetching activities (athlete: \(athleteId ?? "unknown"))")
+        Logger.debug("🟠 [StravaDataService] Fetching activities (athlete: \(athleteId ?? "unknown"))")
         
         do {
             let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())
@@ -53,9 +53,9 @@ class StravaDataService: ObservableObject {
             activities = fetchedActivities
             lastFetchDate = Date()
             
-            print("✅ [StravaDataService] Loaded \(fetchedActivities.count) activities from Strava")
+            Logger.debug("✅ [StravaDataService] Loaded \(fetchedActivities.count) activities from Strava")
         } catch {
-            print("⚠️ [StravaDataService] Fetch failed: \(error.localizedDescription)")
+            Logger.warning("️ [StravaDataService] Fetch failed: \(error.localizedDescription)")
         }
         
         isLoading = false
@@ -65,6 +65,6 @@ class StravaDataService: ObservableObject {
     func clearCache() {
         activities = []
         lastFetchDate = nil
-        print("🗑️ [StravaDataService] Cache cleared")
+        Logger.debug("🗑️ [StravaDataService] Cache cleared")
     }
 }

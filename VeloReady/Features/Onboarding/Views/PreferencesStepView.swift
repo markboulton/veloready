@@ -234,7 +234,7 @@ struct PreferencesStepView: View {
         // Save notification preference
         UserDefaults.standard.set(enableNotifications, forKey: "enableNotifications")
         
-        print("✅ Preferences saved: \(selectedUnit.rawValue), \(activityNames.joined(separator: ", "))")
+        Logger.debug("✅ Preferences saved: \(selectedUnit.rawValue), \(activityNames.joined(separator: ", "))")
     }
 }
 

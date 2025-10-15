@@ -63,7 +63,7 @@ struct DebugSettingsView: View {
                 // Trigger a data refresh across the app
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     NotificationCenter.default.post(name: .refreshDataAfterIntervalsConnection, object: nil)
-                    print("🔄 Posted notification to refresh data after Intervals.icu connection")
+                    Logger.debug("🔄 Posted notification to refresh data after Intervals.icu connection")
                 }
             }
         }
@@ -731,7 +731,7 @@ struct DebugSettingsView: View {
                             // Trigger a data refresh to switch to HealthKit-only mode
                             await MainActor.run {
                                 NotificationCenter.default.post(name: .refreshDataAfterIntervalsConnection, object: nil)
-                                print("🔄 Posted notification to refresh data after Intervals.icu disconnection")
+                                Logger.debug("🔄 Posted notification to refresh data after Intervals.icu disconnection")
                             }
                         }
                     }) {
@@ -926,7 +926,7 @@ struct DebugSettingsView: View {
         // Use IntervalsCache to clear all cached data properly
         Task {
             IntervalsCache.shared.clearCache()
-            print("🗑️ Cleared Intervals.icu cache from Debug Settings")
+            Logger.debug("🗑️ Cleared Intervals.icu cache from Debug Settings")
             
             await MainActor.run {
                 cacheCleared = true
@@ -959,7 +959,7 @@ struct DebugSettingsView: View {
                 coreDataCleared = false
             }
         } catch {
-            print("❌ Error clearing Core Data: \(error)")
+            Logger.error("Error clearing Core Data: \(error)")
         }
     }
 }

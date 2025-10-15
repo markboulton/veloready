@@ -7,35 +7,35 @@ struct ActivityDataTransformer {
     /// - Parameter activity: The activity summary from Intervals.icu
     /// - Returns: Array of WorkoutSample data points
     static func generateSamples(from activity: IntervalsActivity) -> [WorkoutSample] {
-        print("🔄 ========== ACTIVITY DATA TRANSFORMER: GENERATE SAMPLES ==========")
-        print("🔄 Activity: \(activity.name ?? "Unknown")")
-        print("🔄 Activity ID: \(activity.id)")
-        print("🔄 Activity Type: \(activity.type ?? "Unknown")")
+        Logger.debug("🔄 ========== ACTIVITY DATA TRANSFORMER: GENERATE SAMPLES ==========")
+        Logger.debug("🔄 Activity: \(activity.name ?? "Unknown")")
+        Logger.debug("🔄 Activity ID: \(activity.id)")
+        Logger.debug("🔄 Activity Type: \(activity.type ?? "Unknown")")
         
         // Use duration if available, otherwise estimate from other metrics
         var duration = activity.duration ?? 0
-        print("🔄 Initial duration: \(duration)s")
+        Logger.debug("🔄 Initial duration: \(duration)s")
         
         // If duration is 0 or nil, estimate based on distance and average speed
         if duration <= 0 {
-            print("🔄 Duration is 0 or nil, attempting to estimate...")
+            Logger.debug("🔄 Duration is 0 or nil, attempting to estimate...")
             if let distance = activity.distance, let avgSpeed = activity.averageSpeed, 
                distance > 0 && avgSpeed > 0 {
                 // Estimate duration: distance (m) / speed (km/h) / 1000 * 3600 (seconds/hour)
                 duration = (distance / 1000 / avgSpeed) * 3600
-                print("🔄 Estimated duration: \(duration)s from distance \(distance)m and speed \(avgSpeed)km/h")
+                Logger.debug("🔄 Estimated duration: \(duration)s from distance \(distance)m and speed \(avgSpeed)km/h")
             } else {
                 // Default to a reasonable workout duration if we can't estimate
                 duration = 3600 // 1 hour default
-                print("🔄 Using default duration: \(duration)s (no distance/speed available)")
-                print("🔄   - Distance: \(activity.distance ?? 0)m")
-                print("🔄   - Avg Speed: \(activity.averageSpeed ?? 0)km/h")
+                Logger.debug("🔄 Using default duration: \(duration)s (no distance/speed available)")
+                Logger.debug("🔄   - Distance: \(activity.distance ?? 0)m")
+                Logger.debug("🔄   - Avg Speed: \(activity.averageSpeed ?? 0)km/h")
             }
         }
         
         guard duration > 0 else { 
-            print("⚠️ Cannot generate samples: duration is still 0")
-            print("🔄 ================================================================")
+            Logger.warning("️ Cannot generate samples: duration is still 0")
+            Logger.debug("🔄 ================================================================")
             return [] 
         }
         
@@ -50,12 +50,12 @@ struct ActivityDataTransformer {
         let cadenceRange = getMetricRange(avg: activity.averageCadence)
         let elevationRange = getElevationRange(gain: activity.elevationGain)
         
-        print("🔄 Metric Ranges for Generation:")
-        print("🔄   - Power: \(powerRange.min)-\(powerRange.max)W (avg: \(activity.averagePower ?? 0)W)")
-        print("🔄   - HR: \(hrRange.min)-\(hrRange.max)bpm (avg: \(activity.averageHeartRate ?? 0)bpm, max: \(activity.maxHeartRate ?? 0)bpm)")
-        print("🔄   - Speed: \(speedRange.min)-\(speedRange.max)km/h (avg: \(activity.averageSpeed ?? 0)km/h, max: \(activity.maxSpeed ?? 0)km/h)")
-        print("🔄   - Cadence: \(cadenceRange.min)-\(cadenceRange.max)rpm (avg: \(activity.averageCadence ?? 0)rpm)")
-        print("🔄   - Elevation: \(elevationRange.min)-\(elevationRange.max)m (gain: \(activity.elevationGain ?? 0)m)")
+        Logger.debug("🔄 Metric Ranges for Generation:")
+        Logger.debug("🔄   - Power: \(powerRange.min)-\(powerRange.max)W (avg: \(activity.averagePower ?? 0)W)")
+        Logger.debug("🔄   - HR: \(hrRange.min)-\(hrRange.max)bpm (avg: \(activity.averageHeartRate ?? 0)bpm, max: \(activity.maxHeartRate ?? 0)bpm)")
+        Logger.debug("🔄   - Speed: \(speedRange.min)-\(speedRange.max)km/h (avg: \(activity.averageSpeed ?? 0)km/h, max: \(activity.maxSpeed ?? 0)km/h)")
+        Logger.debug("🔄   - Cadence: \(cadenceRange.min)-\(cadenceRange.max)rpm (avg: \(activity.averageCadence ?? 0)rpm)")
+        Logger.debug("🔄   - Elevation: \(elevationRange.min)-\(elevationRange.max)m (gain: \(activity.elevationGain ?? 0)m)")
         
         // Generate samples
         for time in stride(from: 0, to: duration, by: sampleInterval) {
@@ -78,18 +78,18 @@ struct ActivityDataTransformer {
             ))
         }
         
-        print("🔄 Generated \(samples.count) samples for activity '\(activity.name ?? "Unknown")'")
+        Logger.debug("🔄 Generated \(samples.count) samples for activity '\(activity.name ?? "Unknown")'")
         
         // Verify generated data quality
         let avgPower = samples.map { $0.power }.filter { $0 > 0 }.reduce(0, +) / Double(samples.count)
         let avgHR = samples.map { $0.heartRate }.filter { $0 > 0 }.reduce(0, +) / Double(samples.count)
         let avgSpeed = samples.map { $0.speed }.filter { $0 > 0 }.reduce(0, +) / Double(samples.count)
         
-        print("🔄 Generated Data Verification:")
-        print("🔄   - Avg Power: \(Int(avgPower))W (target: \(activity.averagePower ?? 0)W)")
-        print("🔄   - Avg HR: \(Int(avgHR))bpm (target: \(activity.averageHeartRate ?? 0)bpm)")
-        print("🔄   - Avg Speed: \(String(format: "%.1f", avgSpeed))km/h (target: \(activity.averageSpeed ?? 0)km/h)")
-        print("🔄 ================================================================")
+        Logger.debug("🔄 Generated Data Verification:")
+        Logger.debug("🔄   - Avg Power: \(Int(avgPower))W (target: \(activity.averagePower ?? 0)W)")
+        Logger.debug("🔄   - Avg HR: \(Int(avgHR))bpm (target: \(activity.averageHeartRate ?? 0)bpm)")
+        Logger.debug("🔄   - Avg Speed: \(String(format: "%.1f", avgSpeed))km/h (target: \(activity.averageSpeed ?? 0)km/h)")
+        Logger.debug("🔄 ================================================================")
         
         return samples
     }

@@ -46,12 +46,12 @@ class TodayViewModel: ObservableObject {
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() {
         recoveryScoreService.clearBaselineCache()
-        print("🗑️ Cleared baseline cache - will fetch fresh historical data from HealthKit")
+        Logger.debug("🗑️ Cleared baseline cache - will fetch fresh historical data from HealthKit")
     }
     
     /// Force refresh HealthKit workouts (clears cache)
     func forceRefreshHealthKitWorkouts() async {
-        print("🔄 Force refreshing HealthKit workouts...")
+        Logger.debug("🔄 Force refreshing HealthKit workouts...")
         healthKitCache.clearCache()
         await refreshData()
     }
@@ -76,7 +76,7 @@ class TodayViewModel: ObservableObject {
     
     func refreshData(forceRecoveryRecalculation: Bool = false) async {
         let startTime = CFAbsoluteTimeGetCurrent()
-        print("⏱️ Starting full data refresh...")
+        Logger.warning("️ Starting full data refresh...")
         
         isLoading = true
         isDataLoaded = false
@@ -90,9 +90,9 @@ class TodayViewModel: ObservableObject {
         do {
             intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: false)
             wellness = try await intervalsCache.getCachedWellness(apiClient: apiClient, forceRefresh: false)
-            print("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
+            Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
-            print("⚠️ Intervals.icu not available: \(error.localizedDescription)")
+            Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
         }
         
         // Fetch Strava activities using shared service
@@ -101,7 +101,7 @@ class TodayViewModel: ObservableObject {
         
         // Always fetch Apple Health workouts
         let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
-        print("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
+        Logger.debug("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
         
         // Keep backwards compatibility
         recentActivities = Array(intervalsActivities.prefix(15))
@@ -120,7 +120,7 @@ class TodayViewModel: ObservableObject {
             intervalsUnified.append(UnifiedActivity(from: intervalsActivity))
         }
         
-        print("🔍 Filtered Intervals activities: \(intervalsActivities.count) total → \(intervalsUnified.count) native (removed \(stravaFilteredCount) Strava)")
+        Logger.debug("🔍 Filtered Intervals activities: \(intervalsActivities.count) total → \(intervalsUnified.count) native (removed \(stravaFilteredCount) Strava)")
         
         let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
         let healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
@@ -135,16 +135,16 @@ class TodayViewModel: ObservableObject {
         // Sort by date (most recent first) and take top 15
         unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
         
-        print("🔍 Found \(intervalsUnified.count) Intervals + \(stravaActivities.count) Strava + \(healthWorkouts.count) Apple Health")
-        print("🔍 Showing \(unifiedActivities.count) unique unified activities (after deduplication)")
+        Logger.debug("🔍 Found \(intervalsUnified.count) Intervals + \(stravaActivities.count) Strava + \(healthWorkouts.count) Apple Health")
+        Logger.debug("🔍 Showing \(unifiedActivities.count) unique unified activities (after deduplication)")
         for activity in unifiedActivities.prefix(5) {
-            print("🔍 Activity: \(activity.name) - Type: \(activity.type.rawValue) - Source: \(activity.source)")
+            Logger.debug("🔍 Activity: \(activity.name) - Type: \(activity.type.rawValue) - Source: \(activity.source)")
         }
-        print("⚡ Starting parallel score calculations...")
+        Logger.debug("⚡ Starting parallel score calculations...")
         
         // Start sleep and strain calculations in parallel
         await sleepScoreService.calculateSleepScore()
-        print("✅ Sleep score calculated")
+        Logger.debug("✅ Sleep score calculated")
         
         // Start recovery and strain calculations in parallel
         async let recoveryCalculation: Void = {
@@ -160,19 +160,19 @@ class TodayViewModel: ObservableObject {
         _ = await recoveryCalculation
         _ = await strainCalculation
         
-        print("✅ All score calculations completed")
+        Logger.debug("✅ All score calculations completed")
         
         // Save to Core Data cache after scores are calculated
         do {
             try await cacheManager.refreshToday()
-            print("💾 Saved today's data to Core Data cache")
+            Logger.debug("💾 Saved today's data to Core Data cache")
         } catch {
-            print("❌ Failed to save to Core Data cache: \(error)")
+            Logger.error("Failed to save to Core Data cache: \(error)")
         }
         
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalTime = endTime - startTime
-        print("⏱️ Total refresh time: \(String(format: "%.2f", totalTime))s")
+        Logger.warning("️ Total refresh time: \(String(format: "%.2f", totalTime))s")
         
         isLoading = false
         isDataLoaded = true
@@ -188,7 +188,7 @@ class TodayViewModel: ObservableObject {
         
         do {
             let athlete = try await stravaAPIClient.fetchAthlete()
-            print("📊 Syncing athlete profile from Strava:")
+            Logger.data("Syncing athlete profile from Strava:")
             
             let profileManager = AthleteProfileManager.shared
             var updatedProfile = profileManager.profile
@@ -201,7 +201,7 @@ class TodayViewModel: ObservableObject {
                     updatedProfile.ftp = ftpDouble
                     updatedProfile.ftpSource = .intervals // Mark as from external source
                     hasUpdates = true
-                    print("   FTP: \(ftp)W (synced from Strava)")
+                    Logger.debug("   FTP: \(ftp)W (synced from Strava)")
                 }
             }
             
@@ -210,7 +210,7 @@ class TodayViewModel: ObservableObject {
                 if updatedProfile.weight != weight {
                     updatedProfile.weight = weight
                     hasUpdates = true
-                    print("   Weight: \(weight)kg (synced from Strava)")
+                    Logger.debug("   Weight: \(weight)kg (synced from Strava)")
                 }
             }
             
@@ -219,23 +219,23 @@ class TodayViewModel: ObservableObject {
                 updatedProfile.lastUpdated = Date()
                 profileManager.profile = updatedProfile
                 profileManager.save()
-                print("✅ Athlete profile synced from Strava")
+                Logger.debug("✅ Athlete profile synced from Strava")
             }
         } catch {
-            print("⚠️ Failed to sync athlete profile from Strava: \(error.localizedDescription)")
+            Logger.warning("️ Failed to sync athlete profile from Strava: \(error.localizedDescription)")
         }
     }
     
     /// Force refresh data from API (ignoring cache)
     func forceRefreshData() async {
-        print("🔄 Force refreshing data from API...")
+        Logger.debug("🔄 Force refreshing data from API...")
         
         // Refresh Core Data cache
         do {
             try await cacheManager.refreshRecentDays(count: 7, force: true)
-            print("✅ Core Data cache refreshed")
+            Logger.debug("✅ Core Data cache refreshed")
         } catch {
-            print("❌ Failed to refresh cache: \(error)")
+            Logger.error("Failed to refresh cache: \(error)")
         }
         
         // Test alcohol detection algorithm
@@ -261,7 +261,7 @@ class TodayViewModel: ObservableObject {
         hasLoadedInitialUI = true
         
         let startTime = CFAbsoluteTimeGetCurrent()
-        print("🎯 PHASE 2: Loading UI framework (skeleton/empty state)")
+        Logger.debug("🎯 PHASE 2: Loading UI framework (skeleton/empty state)")
         
         // Set HealthKit status immediately (lightweight)
         isHealthKitAuthorized = healthKitManager.isAuthorized
@@ -271,12 +271,12 @@ class TodayViewModel: ObservableObject {
         
         let endTime = CFAbsoluteTimeGetCurrent()
         let startupTime = endTime - startTime
-        print("⚡ PHASE 2: UI framework loaded in \(String(format: "%.3f", startupTime))s")
+        Logger.debug("⚡ PHASE 2: UI framework loaded in \(String(format: "%.3f", startupTime))s")
         
         // PHASE 3: Defer ALL heavy operations to background
         Task {
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
-            print("🎯 PHASE 3: Starting background data refresh...")
+            Logger.debug("🎯 PHASE 3: Starting background data refresh...")
             await refreshData()
             
             // Mark as initialized and data loaded with smooth transition
@@ -286,34 +286,34 @@ class TodayViewModel: ObservableObject {
                     isDataLoaded = true
                 }
             }
-            print("✅ PHASE 3: Background data refresh completed")
+            Logger.debug("✅ PHASE 3: Background data refresh completed")
         }
     }
     
     /// Load only cached data without any network calls or heavy calculations
     private func loadCachedDataOnly() {
-        print("⚡ Loading cached data only for fast startup...")
+        Logger.debug("⚡ Loading cached data only for fast startup...")
         
         // Load from Core Data cache (instant)
         let cachedDays = cacheManager.fetchCachedDays(count: 7)
-        print("⚡ Loaded \(cachedDays.count) days from Core Data cache")
+        Logger.debug("⚡ Loaded \(cachedDays.count) days from Core Data cache")
         
         // Debug: Print details of cached data
         if !cachedDays.isEmpty {
             for day in cachedDays {
-                print("📊 Core Data cached day: \(String(describing: day.date))")
-                print("   Recovery: \(day.recoveryScore), Sleep: \(day.sleepScore), Strain: \(day.strainScore)")
-                print("   HRV: \(day.physio?.hrv ?? 0), RHR: \(day.physio?.rhr ?? 0)")
-                print("   CTL: \(day.load?.ctl ?? 0), ATL: \(day.load?.atl ?? 0), TSS: \(day.load?.tss ?? 0)")
+                Logger.data("Core Data cached day: \(String(describing: day.date))")
+                Logger.debug("   Recovery: \(day.recoveryScore), Sleep: \(day.sleepScore), Strain: \(day.strainScore)")
+                Logger.debug("   HRV: \(day.physio?.hrv ?? 0), RHR: \(day.physio?.rhr ?? 0)")
+                Logger.debug("   CTL: \(day.load?.ctl ?? 0), ATL: \(day.load?.atl ?? 0), TSS: \(day.load?.tss ?? 0)")
             }
         } else {
-            print("⚠️ Core Data cache is empty - will populate on background refresh")
+            Logger.warning("️ Core Data cache is empty - will populate on background refresh")
         }
         
         // Load cached activities from UserDefaults (fallback)
         if let cachedActivities = getCachedActivitiesSync() {
             recentActivities = Array(cachedActivities.prefix(15))
-            print("⚡ Loaded \(recentActivities.count) cached activities instantly")
+            Logger.debug("⚡ Loaded \(recentActivities.count) cached activities instantly")
         }
         
         // Set HealthKit status immediately
@@ -329,7 +329,7 @@ class TodayViewModel: ObservableObject {
         do {
             return try JSONDecoder().decode([IntervalsActivity].self, from: data)
         } catch {
-            print("❌ Failed to decode cached activities: \(error)")
+            Logger.error("Failed to decode cached activities: \(error)")
             return nil
         }
     }
@@ -342,7 +342,7 @@ class TodayViewModel: ObservableObject {
         // HealthKit status is now observed from HealthKitManager
         isHealthKitAuthorized = healthKitManager.isAuthorized
         
-        print("⚡ Ultra-fast initialization completed - no heavy operations")
+        Logger.debug("⚡ Ultra-fast initialization completed - no heavy operations")
     }
     
     // HealthKit data loading will be handled by new HealthKitManager

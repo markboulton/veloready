@@ -24,7 +24,7 @@ struct VeloReadyApp: App {
         // Enable automatic iCloud sync
         Task { @MainActor in
             iCloudSyncService.shared.enableAutomaticSync()
-            print("☁️ iCloud automatic sync initialized")
+            Logger.debug("☁️ iCloud automatic sync initialized")
         }
         
         // Register background task
@@ -49,17 +49,17 @@ struct VeloReadyApp: App {
         
         do {
             try BGTaskScheduler.shared.submit(request)
-            print("📱 Background refresh scheduled")
+            Logger.debug("📱 Background refresh scheduled")
         } catch {
-            print("❌ Failed to schedule background refresh: \(error)")
+            Logger.error("Failed to schedule background refresh: \(error)")
         }
     }
     
     private static func handleBackgroundRefresh(task: BGAppRefreshTask) {
-        print("🔄 Background refresh started")
+        Logger.debug("🔄 Background refresh started")
         
         task.expirationHandler = {
-            print("⏰ Background refresh expired")
+            Logger.debug("⏰ Background refresh expired")
             task.setTaskCompleted(success: false)
         }
         
@@ -68,9 +68,9 @@ struct VeloReadyApp: App {
             let cacheManager = await CacheManager.shared
             do {
                 try await cacheManager.refreshToday()
-                print("✅ Core Data cache refreshed in background")
+                Logger.debug("✅ Core Data cache refreshed in background")
             } catch {
-                print("❌ Failed to refresh cache in background: \(error)")
+                Logger.error("Failed to refresh cache in background: \(error)")
             }
             
             // Refresh all scores
@@ -83,7 +83,7 @@ struct VeloReadyApp: App {
             await sleepService.calculateSleepScore()
             await strainService.calculateStrainScore()
             
-            print("✅ Background refresh completed")
+            Logger.debug("✅ Background refresh completed")
             task.setTaskCompleted(success: true)
             
             // Schedule next refresh
@@ -107,13 +107,13 @@ struct RootView: View {
         }
         .onOpenURL { url in
             // Handle OAuth callbacks
-            print("🔗 App received URL: \(url.absoluteString)")
-            print("🔗 URL scheme: \(url.scheme ?? "nil"), host: \(url.host ?? "nil")")
+            Logger.debug("🔗 App received URL: \(url.absoluteString)")
+            Logger.debug("🔗 URL scheme: \(url.scheme ?? "nil"), host: \(url.host ?? "nil")")
             
             // Handle Strava OAuth (Universal Link or custom scheme)
             if ((url.scheme == "https" && url.host == "veloready.app" && url.path.contains("/auth/strava")) ||
                 (url.scheme == "veloready" && url.path.contains("/auth/strava"))) {
-                print("✅ Strava OAuth callback detected")
+                Logger.debug("✅ Strava OAuth callback detected")
                 Task {
                     await stravaAuthService.handleCallback(url: url)
                 }
@@ -123,14 +123,14 @@ struct RootView: View {
             // Handle Intervals.icu OAuth
             if ((url.scheme == "veloready" && url.path.contains("/auth/intervals")) ||
                 url.scheme == "com.veloready.app") {
-                print("✅ Intervals.icu OAuth callback detected")
+                Logger.debug("✅ Intervals.icu OAuth callback detected")
                 Task {
                     await oauthManager.handleCallback(url: url)
                 }
                 return
             }
             
-            print("❌ Unknown callback URL scheme")
+            Logger.error("Unknown callback URL scheme")
         }
     }
 }
