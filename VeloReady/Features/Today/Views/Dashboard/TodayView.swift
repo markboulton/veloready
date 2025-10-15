@@ -61,6 +61,12 @@ struct TodayView: View {
                         }
                         .frame(height: 0)
                         
+                        // Custom header with wellness indicator (scrolls with content)
+                        TodayHeader(
+                            alert: healthKitManager.isAuthorized ? wellnessService.currentAlert : nil,
+                            onAlertTap: { showingWellnessDetailSheet = true }
+                        )
+                        
                         // Missing sleep data warning
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
@@ -124,9 +130,9 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {
-                // Only show custom title when:
+                // Only show custom left-aligned title when:
                 // 1. Wellness alert is present AND
-                // 2. User has scrolled (scrollOffset < -50 means scrolled down)
+                // 2. User has scrolled
                 if healthKitManager.isAuthorized, 
                    wellnessService.currentAlert != nil,
                    scrollOffset < -50 {
@@ -136,14 +142,6 @@ struct TodayView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
-                        }
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
-                        WellnessIndicator(alert: alert) {
-                            showingWellnessDetailSheet = true
                         }
                     }
                 }
