@@ -29,16 +29,171 @@ enum OnboardingContent {
         static let retry = "Retry Connection"  /// Retry button
     }
     
-    // MARK: - Welcome
-    enum Welcome {
-        static let title = "Welcome to VeloReady"  /// Welcome title
-        static let subtitle = "Your Personal Cycling Performance Tracker"  /// Subtitle
-        static let getStarted = "Get Started"  /// Get started button
-        static let feature1Title = "Track Recovery"  /// Feature 1 title
-        static let feature1Description = "Monitor your recovery with HRV, sleep, and training load"  /// Feature 1 description
-        static let feature2Title = "Analyze Performance"  /// Feature 2 title
-        static let feature2Description = "Detailed workout analysis with power, heart rate, and more"  /// Feature 2 description
-        static let feature3Title = "AI Coaching"  /// Feature 3 title
-        static let feature3Description = "Get personalized insights and training recommendations"  /// Feature 3 description
+    // MARK: - Screen 1: Value Proposition
+    enum ValueProp {
+        static let title = "Welcome to VeloReady"  /// Main title
+        static let subtitle = "Your intelligent training companion"  /// Subtitle
+        static let continueButton = "Get Started"  /// Continue button
+        
+        // Benefits
+        static let benefit1Icon = "chart.line.uptrend.xyaxis"  /// Progress tracking icon
+        static let benefit1Title = "Track Your Progress"  /// Progress title
+        static let benefit1Description = "Monitor recovery, sleep, and training load in one place"  /// Progress description
+        
+        static let benefit2Icon = "brain.head.profile"  /// AI insights icon
+        static let benefit2Title = "AI-Powered Insights"  /// AI title
+        static let benefit2Description = "Get personalized coaching based on your data"  /// AI description
+        
+        static let benefit3Icon = "figure.outdoor.cycle"  /// Cycling icon
+        static let benefit3Title = "Cycling Focused"  /// Cycling title
+        static let benefit3Description = "Built specifically for cyclists and their training needs"  /// Cycling description
+        
+        static let benefit4Icon = "heart.text.square"  /// Recovery icon
+        static let benefit4Title = "Smart Recovery"  /// Recovery title
+        static let benefit4Description = "Know when to push hard and when to rest"  /// Recovery description
+        
+        static let benefit5Icon = "bolt.fill"  /// Training load icon
+        static let benefit5Title = "Training Load Balance"  /// Load title
+        static let benefit5Description = "Avoid overtraining with intelligent TSB tracking"  /// Load description
+    }
+    
+    // MARK: - Screen 2: What VeloReady Does
+    enum WhatVeloReady {
+        static let title = "What VeloReady Does"  /// Main title
+        static let subtitle = "Built for athletes who value data-driven training"  /// Subtitle
+        static let continueButton = "Continue"  /// Continue button
+        
+        // Feature 1: Riding First
+        static let feature1Icon = "figure.outdoor.cycle"  /// Riding icon
+        static let feature1Title = "Riding First"  /// Riding title
+        static let feature1Description = "Track power, heart rate, and training load. Connect with Strava, Intervals.icu, or Wahoo for seamless data sync."  /// Riding description
+        
+        // Feature 2: Intelligence Layer
+        static let feature2Icon = "brain.filled.head.profile"  /// AI icon
+        static let feature2Title = "Intelligence Layer"  /// AI title
+        static let feature2Description = "AI analyzes your data to provide daily coaching insights, workout recommendations, and recovery guidance."  /// AI description
+        
+        // Feature 3: General Health
+        static let feature3Icon = "heart.circle.fill"  /// Health icon
+        static let feature3Title = "General Health"  /// Health title
+        static let feature3Description = "Monitor HRV, resting heart rate, sleep quality, and overall wellness metrics from Apple Health."  /// Health description
+        
+        // Feature 4: Recovery Focus
+        static let feature4Icon = "bed.double.fill"  /// Recovery icon
+        static let feature4Title = "Recovery Focus"  /// Recovery title
+        static let feature4Description = "Balance training stress with recovery. Know when to push hard and when to back off to avoid burnout."  /// Recovery description
+    }
+    
+    // MARK: - Screen 3: Apple Health
+    enum AppleHealth {
+        static let title = "Connect Apple Health"  /// Main title
+        static let subtitle = "VeloReady uses Apple Health to monitor your recovery and training metrics"  /// Subtitle
+        static let allowButton = "Allow Access"  /// Allow button
+        static let continueButton = "Continue"  /// Continue button
+        
+        // Required section
+        static let requiredTitle = "Required"  /// Required section title
+        static let requiredItem1Icon = "heart.fill"  /// HRV icon
+        static let requiredItem1Title = "Heart Rate Variability"  /// HRV title
+        static let requiredItem1Description = "Tracks your recovery status"  /// HRV description
+        
+        static let requiredItem2Icon = "waveform.path.ecg"  /// RHR icon
+        static let requiredItem2Title = "Resting Heart Rate"  /// RHR title
+        static let requiredItem2Description = "Monitors baseline fitness"  /// RHR description
+        
+        static let requiredItem3Icon = "bed.double.fill"  /// Sleep icon
+        static let requiredItem3Title = "Sleep Analysis"  /// Sleep title
+        static let requiredItem3Description = "Tracks sleep duration and quality"  /// Sleep description
+        
+        // Optional section
+        static let optionalTitle = "Optional"  /// Optional section title
+        static let optionalItem1Icon = "figure.run"  /// Workouts icon
+        static let optionalItem1Title = "Workouts"  /// Workouts title
+        static let optionalItem1Description = "Syncs your training activities"  /// Workouts description
+        
+        static let optionalItem2Icon = "flame.fill"  /// Energy icon
+        static let optionalItem2Title = "Active Energy"  /// Energy title
+        static let optionalItem2Description = "Tracks calories burned"  /// Energy description
+    }
+    
+    // MARK: - Screen 4: Data Sources
+    enum DataSources {
+        static let title = "Connect Data Sources"  /// Main title
+        static let subtitleCycling = "Connect to Strava, Intervals.icu, or Wahoo to sync your rides and track your progress. This step is optional."  /// Cycling subtitle
+        static let subtitleNonCycling = "We'll use Apple Health to track your activities and health metrics"  /// Non-cycling subtitle
+        static let continueButton = "Continue"  /// Continue button
+        static let optionalNote = "Optional: Connect your training platform"  /// Optional note
+        static let allSetTitle = "You're all set!"  /// All set title
+        static let allSetMessage = "We'll track your activities through Apple Health"  /// All set message
+        
+        // Strava
+        static let stravaConnect = "Connect with Strava"  /// Strava connect button
+        static let stravaConnecting = "Connecting..."  /// Strava connecting state
+        static let stravaDisconnect = "Disconnect from Strava"  /// Strava disconnect button
+        static let stravaError = "Error"  /// Strava error prefix
+        
+        // Intervals.icu
+        static let intervalsConnect = "Connect with Intervals.icu"  /// Intervals connect button
+        static let intervalsDisconnect = "Disconnect from Intervals.icu"  /// Intervals disconnect button
+        
+        // Wahoo
+        static let wahooComingSoon = "Wahoo (Coming Soon)"  /// Wahoo button
+    }
+    
+    // MARK: - Screen 5: Profile Setup
+    enum ProfileSetup {
+        static let title = "Set Up Your Profile"  /// Main title
+        static let subtitleConnected = "Your profile information has been pulled from your connected accounts"  /// Connected subtitle
+        static let subtitleHealthKit = "We'll use Apple Health to track your metrics"  /// HealthKit subtitle
+        static let continueButton = "Continue"  /// Continue button
+        
+        // Name section
+        static let nameLabel = "Name"  /// Name field label
+        static let nameLoading = "Loading..."  /// Name loading state
+        
+        // Units section
+        static let unitsLabel = "Units"  /// Units field label
+        static let metricOption = "Metric"  /// Metric option
+        static let imperialOption = "Imperial"  /// Imperial option
+        static let metricDistance = "Kilometers"  /// Metric distance
+        static let metricWeight = "Kilograms"  /// Metric weight
+        static let imperialDistance = "Miles"  /// Imperial distance
+        static let imperialWeight = "Pounds"  /// Imperial weight
+    }
+    
+    // MARK: - Screen 6: Subscription
+    enum Subscription {
+        static let title = "Unlock Pro Features"  /// Main title
+        static let subtitle = "Get the most out of your training with advanced analytics and AI coaching"  /// Subtitle
+        static let continueButton = "Start Free Trial"  /// Continue button
+        static let skipButton = "Skip for Now"  /// Skip button
+        static let restoreButton = "Restore Purchase"  /// Restore button
+        
+        // Features
+        static let feature1Icon = "chart.xyaxis.line"  /// Advanced analytics icon
+        static let feature1Title = "Advanced Analytics"  /// Analytics title
+        static let feature1Description = "Deep dive into your training data with comprehensive charts and trends"  /// Analytics description
+        
+        static let feature2Icon = "brain.head.profile"  /// AI coaching icon
+        static let feature2Title = "AI Coaching"  /// AI title
+        static let feature2Description = "Get personalized daily briefs and ride summaries powered by GPT-4"  /// AI description
+        
+        static let feature3Icon = "arrow.triangle.2.circlepath"  /// Unlimited sync icon
+        static let feature3Title = "Unlimited Syncing"  /// Sync title
+        static let feature3Description = "Connect all your platforms: Strava, Intervals.icu, and Wahoo"  /// Sync description
+        
+        static let feature4Icon = "bell.badge.fill"  /// Smart notifications icon
+        static let feature4Title = "Smart Notifications"  /// Notifications title
+        static let feature4Description = "Get timely reminders and insights to optimize your training"  /// Notifications description
+        
+        // Plan
+        static let planAnnualTitle = "Annual Plan"  /// Annual plan title
+        static let planAnnualPrice = "$49.99/year"  /// Annual plan price
+        static let planAnnualSavings = "Save 30%"  /// Annual plan savings
+        static let planMonthlyTitle = "Monthly Plan"  /// Monthly plan title
+        static let planMonthlyPrice = "$5.99/month"  /// Monthly plan price
+        
+        // Fine print
+        static let finePrint = "7-day free trial. Cancel anytime. Payment charged to Apple ID at confirmation of purchase. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period."  /// Fine print
     }
 }
