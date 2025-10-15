@@ -8,9 +8,9 @@ struct SharedActivityRowView: View {
     @State private var hasRPE = false
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             // Activity Details
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 // Activity name
                 Text(activity.name)
                     .font(.subheadline)
@@ -18,8 +18,8 @@ struct SharedActivityRowView: View {
                     .foregroundColor(.primary)
                 
                 // Date/time with icon and optional location
-                HStack(spacing: 6) {
-                    Image(systemName: activityIcon)
+                HStack(spacing: Spacing.sm - 2) {
+                    Image(systemName: activity.type.icon)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -39,24 +39,12 @@ struct SharedActivityRowView: View {
             
             // Compact RPE indicator for strength workouts
             if shouldShowRPEButton {
-                Button(action: { showingRPESheet = true }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: hasRPE ? "checkmark.circle.fill" : "plus.circle")
-                            .font(.caption)
-                        Text(hasRPE ? "RPE" : "Add")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(hasRPE ? ColorScale.greenAccent : ColorScale.gray600)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(hasRPE ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray200)
-                    .cornerRadius(12)
+                RPEBadge(hasRPE: hasRPE) {
+                    showingRPESheet = true
                 }
-                .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
         .onAppear {
             checkRPEStatus()
@@ -108,31 +96,6 @@ struct SharedActivityRowView: View {
     private func checkRPEStatus() {
         guard let workout = activity.healthKitWorkout else { return }
         hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
-    }
-    
-    // MARK: - Activity Icon & Color
-    
-    private var activityIcon: String {
-        switch activity.type {
-        case .cycling:
-            return "bicycle"
-        case .running:
-            return "figure.run"
-        case .swimming:
-            return "figure.pool.swim"
-        case .walking:
-            return "figure.walk"
-        case .hiking:
-            return "figure.hiking"
-        case .strength:
-            return "dumbbell.fill"
-        case .yoga:
-            return "figure.yoga"
-        case .hiit:
-            return "flame.fill"
-        case .other:
-            return "figure.mixed.cardio"
-        }
     }
     
 }

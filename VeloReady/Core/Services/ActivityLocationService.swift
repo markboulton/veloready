@@ -147,9 +147,7 @@ class ActivityLocationService {
             return components.isEmpty ? nil : components.joined(separator: ", ")
         } catch {
             // Silent failure - location is nice-to-have, not critical
-            #if DEBUG
-            print("⚠️ Reverse geocoding failed: \(error)")
-            #endif
+            Logger.debug("Reverse geocoding failed: \(error.localizedDescription)", category: .location)
             return nil
         }
     }

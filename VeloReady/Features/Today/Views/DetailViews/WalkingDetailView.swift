@@ -375,25 +375,11 @@ struct WalkingWorkoutInfoHeader: View {
             if isStrengthWorkout {
                 HStack {
                     Spacer()
-                    Button(action: {
+                    RPEBadge(hasRPE: storedRPE != nil) {
                         showingRPESheet = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: storedRPE != nil ? "checkmark.circle.fill" : "plus.circle")
-                                .font(.caption)
-                            Text(storedRPE != nil ? "RPE" : "Add")
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                        }
-                        .foregroundColor(storedRPE != nil ? ColorScale.greenAccent : ColorScale.gray600)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(storedRPE != nil ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray200)
-                        .cornerRadius(12)
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.top, 8)
+                .padding(.top, Spacing.sm)
             }
         }
         .onAppear {
