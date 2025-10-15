@@ -472,6 +472,25 @@ class RideDetailViewModel: ObservableObject {
                     } catch {
                         Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error)")
                     }
+                    
+                    // Fallback 3: Estimate FTP from this ride's power data
+                    if (ftp == nil || ftp == 0), let np = normalizedPower, np > 50 {
+                        // Conservative estimate: FTP is typically 15-20% higher than sustained power
+                        // Using 1.15 multiplier for conservative estimate
+                        let duration = activity.duration ?? 0
+                        var multiplier = 1.15
+                        
+                        // Adjust multiplier based on ride duration
+                        if duration >= 3600 { // 1+ hour
+                            multiplier = 1.10 // Closer to FTP for long rides
+                        } else if duration < 1800 { // < 30 min
+                            multiplier = 1.25 // Likely well above FTP for short rides
+                        }
+                        
+                        ftp = np * multiplier
+                        Logger.warning("🟠 ⚠️ ESTIMATED FTP from ride data: \(Int(ftp!))W (NP: \(Int(np))W × \(String(format: "%.2f", multiplier)))")
+                        Logger.warning("🟠 ⚠️ User should set actual FTP in Settings for accurate calculations")
+                    }
                 } else {
                     Logger.debug("🟠 ✅ Using profile FTP: \(Int(ftp!))W")
                 }
@@ -638,10 +657,10 @@ class RideDetailViewModel: ObservableObject {
                     profileManager.profile.ftpSource = .intervals
                     needsSave = true
                 } else {
-                    Logger.warning("🟠 ❌ Strava athlete has no FTP set")
+                    Logger.warning("🟠 ❌ Strava athlete has no FTP set - will estimate")
                 }
             } catch {
-                Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error)")
+                Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error) - will estimate")
             }
         } else {
             Logger.debug("🟠 ✅ FTP already exists: \(Int(profileManager.profile.ftp!))W")

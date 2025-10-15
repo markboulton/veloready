@@ -115,6 +115,29 @@ struct RideDetailSheet: View {
                 )
                 .opacity(activity.tss != nil ? 1.0 : 0.5)
             }
+            
+            // FTP Warning/Info
+            if activity.tss == nil || activity.intensityFactor == nil {
+                if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("FTP Required")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.orange)
+                            NavigationLink(destination: AthleteZonesSettingsView()) {
+                                Text("Set FTP in Settings to see TSS and Intensity")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
         }
         .padding()
         .background(Color(.systemGray6))
@@ -304,50 +327,28 @@ struct RideDetailSheet: View {
                         }
                     }
                 } else {
-                    // Fallback: Show mock data for testing
-                    let mockZoneTimes: [Double] = [120, 600, 360, 120, 0] // Mock power zones in seconds
-                    let mockDuration: Double = 1200 // 20 minutes
-                    let chartWidth: CGFloat = UIScreen.main.bounds.width - 40
-                    
-                    VStack(spacing: 8) {
-                        HStack(spacing: 0) {
-                            ForEach(0..<5, id: \.self) { zoneIndex in
-                                let timeInZone = mockZoneTimes[zoneIndex]
-                                let percentage = mockDuration > 0 ? timeInZone / mockDuration : 0
-                                let width = max(CGFloat(percentage) * chartWidth, 0.5)
-                                
-                                Rectangle()
-                                    .fill(powerZoneColors[zoneIndex])
-                                    .frame(width: width, height: 20)
-                            }
+                    // No power zone data available
+                    VStack(spacing: 12) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "bolt.slash.fill")
+                                .foregroundColor(.orange)
+                            Text("Power zones not available")
+                                .font(.callout)
+                                .foregroundColor(.secondary)
                         }
-                        .cornerRadius(2)
-                        .overlay(
-                            Text("Mock Power Data")
-                                .font(.caption2)
-                                .foregroundColor(Color.development.mockDataIndicator)
-                                .padding(2)
-                                .background(Color.development.mockDataIndicator)
-                                .cornerRadius(2),
-                            alignment: .topTrailing
-                        )
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
                         
-                        HStack(spacing: 12) {
-                            ForEach(0..<5, id: \.self) { zoneIndex in
-                                let timeInZone = mockZoneTimes[zoneIndex]
-                                if timeInZone > 0 {
-                                    HStack(spacing: 4) {
-                                        Circle()
-                                            .fill(powerZoneColors[zoneIndex])
-                                            .frame(width: 10, height: 10)
-                                        Text("Z\(zoneIndex + 1)")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                        Text("\(Int(timeInZone/60))m")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
+                        if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+                            NavigationLink(destination: AthleteZonesSettingsView()) {
+                                HStack {
+                                    Image(systemName: "gear")
+                                    Text("Set FTP in Settings to see power zones")
+                                        .font(.caption)
                                 }
+                                .foregroundColor(.blue)
                             }
                         }
                     }

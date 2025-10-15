@@ -59,33 +59,67 @@ struct AthleteZonesSettingsView: View {
     private var summarySection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                // Adaptive FTP
-                HStack {
-                    Image(systemName: "bolt.fill")
-                        .foregroundColor(ColorScale.purpleAccent)
-                    VStack(alignment: .leading) {
-                        HStack(spacing: 6) {
-                            Text(AthleteZonesContent.Summary.adaptiveFTP)
+                // FTP Input - Always Accessible
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("FTP (Functional Threshold Power)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    if isEditingFTP {
+                        HStack {
+                            TextField("Enter FTP", text: $editedFTP)
+                                .keyboardType(.numberPad)
+                                .textFieldStyle(.roundedBorder)
+                            Text("watts")
+                                .foregroundColor(.secondary)
+                            
+                            Button("Save") {
+                                saveFTPManual()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(editedFTP.isEmpty || Int(editedFTP) == nil)
+                            
+                            Button("Cancel") {
+                                isEditingFTP = false
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    } else {
+                        HStack {
+                            if let ftp = profileManager.profile.ftp, ftp > 0 {
+                                Text("\(Int(ftp)) W")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(ColorScale.purpleAccent)
+                                
+                                if profileManager.profile.ftpSource == .intervals && ftp < 100 {
+                                    Text("• Estimated")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
+                            } else {
+                                Text("Not Set")
+                                    .font(.title3)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(profileManager.profile.ftp != nil ? "Edit" : "Set FTP") {
+                                startEditingFTP()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        
+                        if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+                            Text("⚠️ FTP required for TSS and Intensity calculations")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        } else if profileManager.profile.ftpSource == .intervals {
+                            Text("From Strava profile")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            if proConfig.hasProAccess {
-                                Text(AthleteZonesContent.Summary.proBadge)
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(ColorScale.purpleAccent)
-                                    .cornerRadius(3)
-                            }
                         }
-                        Text("\(Int(profileManager.profile.ftp ?? 0)) W")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                    }
-                    Spacer()
-                    if proConfig.hasProAccess {
-                        sourceLabel(profileManager.profile.ftpSource)
                     }
                 }
                 
@@ -605,6 +639,30 @@ struct AthleteZonesSettingsView: View {
         profileManager.setManualFTP(ftp, zones: zones)
         
         isEditingFTP = false
+    }
+    
+    private func saveFTPManual() {
+        guard let ftp = Double(editedFTP), ftp > 0 else { return }
+        
+        Logger.data("💾 User manually set FTP to \(Int(ftp))W")
+        
+        // Generate zones from FTP
+        let zones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+        
+        // Set as manual FTP
+        profileManager.profile.ftp = ftp
+        profileManager.profile.ftpSource = .manual
+        profileManager.profile.powerZones = zones
+        profileManager.profile.lastUpdated = Date()
+        profileManager.save()
+        
+        // Clear Strava cache to fetch fresh data next time
+        Task { @MainActor in
+            StravaAthleteCache.shared.clearCache()
+        }
+        
+        isEditingFTP = false
+        Logger.data("✅ FTP saved: \(Int(ftp))W with generated zones")
     }
     
     private func startEditingMaxHR() {
