@@ -27,6 +27,9 @@ struct DebugSettingsView: View {
                 // Monitoring Dashboards
                 monitoringDashboardsSection
                 
+                // Debug Logging Toggle
+                loggingSection
+                
                 // 1. Auth Status
                 authStatusSection
                 
@@ -80,6 +83,41 @@ struct DebugSettingsView: View {
             } message: {
                 Text(DebugSettingsContent.Alerts.clearCoreDataMessage)
             }
+    }
+    
+    // MARK: - Logging Section
+    
+    private var loggingSection: some View {
+        Section {
+            Toggle("Enable Debug Logging", isOn: Binding(
+                get: { Logger.isDebugLoggingEnabled },
+                set: { Logger.isDebugLoggingEnabled = $0 }
+            ))
+            
+            if Logger.isDebugLoggingEnabled {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(Color.semantic.success)
+                        .font(.caption)
+                    Text("Verbose logging enabled")
+                        .font(.caption)
+                        .foregroundColor(Color.semantic.success)
+                }
+            } else {
+                HStack {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    Text("Logging disabled (optimal performance)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        } header: {
+            Label("Debug Logging", systemImage: "doc.text.magnifyingglass")
+        } footer: {
+            Text("Enable verbose logging for debugging. Logs are DEBUG-only and never shipped to production. Toggle OFF for best performance during normal testing.")
+        }
     }
     
     // MARK: - API Debug Section

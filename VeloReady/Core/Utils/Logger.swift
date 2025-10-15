@@ -6,6 +6,28 @@ import os.log
 /// Uses print() for DEBUG builds (easier to read during development)
 enum Logger {
     
+    // MARK: - Debug Toggle
+    
+    private static let debugLoggingKey = "com.veloready.debugLoggingEnabled"
+    
+    /// Enable/disable verbose debug logging at runtime
+    /// Persists across app launches
+    static var isDebugLoggingEnabled: Bool {
+        get {
+            #if DEBUG
+            return UserDefaults.standard.bool(forKey: debugLoggingKey)
+            #else
+            return false // Always disabled in production
+            #endif
+        }
+        set {
+            #if DEBUG
+            UserDefaults.standard.set(newValue, forKey: debugLoggingKey)
+            print("🔧 Debug logging \(newValue ? "ENABLED" : "DISABLED")")
+            #endif
+        }
+    }
+    
     // MARK: - Log Categories
     
     private static let subsystem = "com.veloready"
@@ -23,9 +45,10 @@ enum Logger {
     
     // MARK: - Logging Methods
     
-    /// Log debug information (DEBUG builds only)
+    /// Log debug information (DEBUG builds only, respects debug toggle)
     static func debug(_ message: String, category: Category = .performance) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         print("🔍 [\(category.rawValue)] \(message)")
         #endif
     }
@@ -68,9 +91,10 @@ enum Logger {
         #endif
     }
     
-    /// Log performance metrics (DEBUG only, with timing)
+    /// Log performance metrics (DEBUG only, with timing, respects debug toggle)
     static func performance(_ message: String, duration: TimeInterval? = nil) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         if let duration = duration {
             print("⚡ [Performance] \(message) (\(String(format: "%.2f", duration))s)")
         } else {
@@ -79,30 +103,34 @@ enum Logger {
         #endif
     }
     
-    /// Log network activity (DEBUG only)
+    /// Log network activity (DEBUG only, respects debug toggle)
     static func network(_ message: String) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         print("🌐 [Network] \(message)")
         #endif
     }
     
-    /// Log data operations (DEBUG only)
+    /// Log data operations (DEBUG only, respects debug toggle)
     static func data(_ message: String) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         print("📊 [Data] \(message)")
         #endif
     }
     
-    /// Log health/fitness data (DEBUG only)
+    /// Log health/fitness data (DEBUG only, respects debug toggle)
     static func health(_ message: String) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         print("💓 [Health] \(message)")
         #endif
     }
     
-    /// Log cache operations (DEBUG only)
+    /// Log cache operations (DEBUG only, respects debug toggle)
     static func cache(_ message: String) {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return }
         print("💾 [Cache] \(message)")
         #endif
     }
@@ -114,6 +142,7 @@ extension Logger {
     /// Measure and log the execution time of a closure
     static func measure<T>(_ label: String, _ closure: () throws -> T) rethrows -> T {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return try closure() }
         let start = Date()
         defer {
             let duration = Date().timeIntervalSince(start)
@@ -126,6 +155,7 @@ extension Logger {
     /// Measure and log the execution time of an async closure
     static func measureAsync<T>(_ label: String, _ closure: () async throws -> T) async rethrows -> T {
         #if DEBUG
+        guard isDebugLoggingEnabled else { return try await closure() }
         let start = Date()
         defer {
             let duration = Date().timeIntervalSince(start)
