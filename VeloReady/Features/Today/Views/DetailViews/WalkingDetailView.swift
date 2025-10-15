@@ -29,7 +29,15 @@ struct WalkingDetailView: View {
                 // Heart Rate Chart
                 if !viewModel.heartRateSamples.isEmpty {
                     heartRateChartSection
-                        .padding(.bottom, 20)
+                }
+                
+                // Divider between HR chart and workout type (only for strength workouts)
+                if isStrengthWorkout && !viewModel.heartRateSamples.isEmpty {
+                    Rectangle()
+                        .fill(ColorScale.divider)
+                        .frame(height: 1)
+                        .padding(.top, 24)
+                        .padding(.bottom, 24)
                 }
                 
                 // Workout Type section - only for strength workouts
@@ -117,11 +125,9 @@ struct WalkingDetailView: View {
                 
                 Spacer()
                 
-                // Show appropriate button based on whether details exist
-                if hasRPE {
-                    TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
-                } else {
-                    SecondaryButton(title: "Add details", action: { showingRPESheet = true })
+                // RPE Badge button
+                RPEBadge(hasRPE: hasRPE) {
+                    showingRPESheet = true
                 }
             }
             
@@ -371,16 +377,6 @@ struct WalkingWorkoutInfoHeader: View {
                 }
             }
             
-            // Compact RPE badge for strength workouts
-            if isStrengthWorkout {
-                HStack {
-                    Spacer()
-                    RPEBadge(hasRPE: storedRPE != nil) {
-                        showingRPESheet = true
-                    }
-                }
-                .padding(.top, Spacing.sm)
-            }
         }
         .onAppear {
             loadRPE()
