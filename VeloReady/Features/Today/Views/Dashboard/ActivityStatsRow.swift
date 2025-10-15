@@ -36,7 +36,7 @@ struct ActivityStatsRow: View {
                         size: .medium
                     )
                     .opacity(dataOpacity)
-                    .onChange(of: liveActivityService.isLoading) { isLoading in
+                    .onChange(of: liveActivityService.isLoading) { _, isLoading in
                         if !isLoading {
                             withAnimation(.easeIn(duration: 0.3)) {
                                 dataOpacity = 1.0

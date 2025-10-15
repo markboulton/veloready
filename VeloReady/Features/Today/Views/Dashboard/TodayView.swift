@@ -126,7 +126,7 @@ struct TodayView: View {
             .onAppear {
                 handleViewAppear()
             }
-            .onChange(of: healthKitManager.isAuthorized) { newValue in
+            .onChange(of: healthKitManager.isAuthorized) { _, newValue in
                 handleHealthKitAuthChange(newValue)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in

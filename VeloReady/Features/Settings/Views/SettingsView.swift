@@ -112,7 +112,7 @@ struct ProFeatureToggle: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Toggle("Enable Pro Features (Testing)", isOn: $config.bypassSubscriptionForTesting)
-                .onChange(of: config.bypassSubscriptionForTesting) { newValue in
+                .onChange(of: config.bypassSubscriptionForTesting) { _, newValue in
                     if newValue {
                         config.enableProForTesting()
                     } else {

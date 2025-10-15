@@ -183,7 +183,7 @@ struct TrendChart: View {
                 }
             }
         }
-        .onChange(of: selectedPeriod) { _ in
+        .onChange(of: selectedPeriod) { _, _ in
             if reduceMotion {
                 animateChart = true
                 sweepProgress = 1.0

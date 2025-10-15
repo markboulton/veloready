@@ -200,7 +200,7 @@ struct AthleteZonesSettingsView: View {
                         Text("Intervals.icu").tag(AthleteProfile.ZoneSource.intervals)
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: profileManager.profile.ftpSource) { newSource in
+                    .onChange(of: profileManager.profile.ftpSource) { _, newSource in
                         handlePowerSourceChange(newSource)
                     }
                     
@@ -315,7 +315,7 @@ struct AthleteZonesSettingsView: View {
                         Text("Intervals.icu").tag(AthleteProfile.ZoneSource.intervals)
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: profileManager.profile.hrZonesSource) { newSource in
+                    .onChange(of: profileManager.profile.hrZonesSource) { _, newSource in
                         handleHRSourceChange(newSource)
                     }
                     

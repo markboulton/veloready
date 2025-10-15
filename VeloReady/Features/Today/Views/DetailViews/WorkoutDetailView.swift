@@ -174,7 +174,7 @@ struct WorkoutDetailView: View {
             // Initial load attempt (will have empty samples)
             await loadMapSnapshot()
         }
-        .onChange(of: samples.count) { newCount in
+        .onChange(of: samples.count) { _, newCount in
             print("🎯 WorkoutDetailView: samples.count changed to \(newCount)")
             // Reload when samples count changes (especially from 0 to non-zero)
             if newCount > 0 {

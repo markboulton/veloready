@@ -69,7 +69,7 @@ struct CompactRingView: View {
             
             animateRing()
         }
-        .onChange(of: score) { newScore in
+        .onChange(of: score) { _, newScore in
             // Re-animate if score changes after initial load
             guard newScore != nil else {
                 animatedProgress = 0.0
@@ -83,7 +83,7 @@ struct CompactRingView: View {
             
             animateRing()
         }
-        .onChange(of: animationTrigger) { _ in
+        .onChange(of: animationTrigger) { _, _ in
             // Re-animate when pull-to-refresh completes
             guard score != nil else { return }
             

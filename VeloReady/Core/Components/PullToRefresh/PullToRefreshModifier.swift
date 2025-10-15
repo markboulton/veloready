@@ -56,7 +56,7 @@ struct RefreshableScrollView<Content: View>: View {
                 handleScrollOffsetChange(value)
             }
         }
-        .onChange(of: state) { newState in
+        .onChange(of: state) { _, newState in
             handleStateChange(newState)
         }
     }
