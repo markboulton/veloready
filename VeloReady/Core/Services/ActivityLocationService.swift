@@ -6,7 +6,20 @@ import CoreLocation
 class ActivityLocationService {
     static let shared = ActivityLocationService()
     
-    private init() {}
+    // Reuse health store instance for performance
+    private let healthStore: HKHealthStore
+    
+    // Cache locations to avoid repeated queries and geocoding
+    private var locationCache: [UUID: String] = [:]
+    private let cacheQueue = DispatchQueue(label: "com.veloready.locationCache")
+    
+    // Rate limiting for geocoding (Apple has undocumented limits)
+    private var lastGeocodingTime: Date?
+    private let minimumGeocodingInterval: TimeInterval = 1.0
+    
+    private init(healthStore: HKHealthStore = HKHealthStore()) {
+        self.healthStore = healthStore
+    }
     
     /// Get location string for a Strava activity
     func getStravaLocation(_ stravaActivity: StravaActivity) async -> String? {
@@ -21,7 +34,11 @@ class ActivityLocationService {
     
     /// Get location string for an Apple Health workout
     func getHealthKitLocation(_ workout: HKWorkout) async -> String? {
-        let healthStore = HKHealthStore()
+        // Check cache first
+        let cachedLocation = cacheQueue.sync { locationCache[workout.uuid] }
+        if let cached = cachedLocation {
+            return cached
+        }
         
         // Query for workout route
         let routeType = HKSeriesType.workoutRoute()
@@ -55,6 +72,12 @@ class ActivityLocationService {
                         // Reverse geocode the first location
                         Task {
                             let location = await self.reverseGeocode(coordinate: firstLocation.coordinate)
+                            // Cache the result
+                            if let location = location {
+                                self.cacheQueue.async {
+                                    self.locationCache[workout.uuid] = location
+                                }
+                            }
                             continuation.resume(returning: location)
                         }
                     } else if done {
@@ -63,10 +86,10 @@ class ActivityLocationService {
                     }
                 }
                 
-                healthStore.execute(routeQuery)
+                self.healthStore.execute(routeQuery)
             }
             
-            healthStore.execute(query)
+            self.healthStore.execute(query)
         }
     }
     
@@ -89,8 +112,18 @@ class ActivityLocationService {
         return nil
     }
     
-    /// Reverse geocode a coordinate to "City, Country" format
+    /// Reverse geocode a coordinate to "City, Country" format with rate limiting
     private func reverseGeocode(coordinate: CLLocationCoordinate2D) async -> String? {
+        // Rate limiting - Apple has undocumented geocoding limits
+        if let lastTime = lastGeocodingTime {
+            let elapsed = Date().timeIntervalSince(lastTime)
+            if elapsed < minimumGeocodingInterval {
+                let delay = minimumGeocodingInterval - elapsed
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+        }
+        lastGeocodingTime = Date()
+        
         let geocoder = CLGeocoder()
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         
@@ -113,8 +146,18 @@ class ActivityLocationService {
             
             return components.isEmpty ? nil : components.joined(separator: ", ")
         } catch {
+            // Silent failure - location is nice-to-have, not critical
+            #if DEBUG
             print("⚠️ Reverse geocoding failed: \(error)")
+            #endif
             return nil
+        }
+    }
+    
+    /// Clear the location cache (useful for testing or memory pressure)
+    func clearCache() {
+        cacheQueue.async {
+            self.locationCache.removeAll()
         }
     }
 }

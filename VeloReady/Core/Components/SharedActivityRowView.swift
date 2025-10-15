@@ -1,6 +1,5 @@
 import SwiftUI
 import HealthKit
-import CoreLocation
 
 /// Shared activity row view used in both Today and Activities list
 struct SharedActivityRowView: View {
@@ -73,38 +72,29 @@ struct SharedActivityRowView: View {
     
     // MARK: - Formatting Helpers
     
+    // Static formatters for performance - DateFormatter creation is expensive
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter
+    }()
+    
+    private static let dateTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy 'at' HH:mm"
+        return formatter
+    }()
+    
+    private static let calendar = Calendar.current
+    
     private func formatSmartDate(_ date: Date) -> String {
-        let calendar = Calendar.current
-        
-        if calendar.isDateInToday(date) {
-            let timeFormatter = DateFormatter()
-            timeFormatter.dateFormat = "h:mm a"
-            return "Today at \(timeFormatter.string(from: date))"
-        } else if calendar.isDateInYesterday(date) {
-            let timeFormatter = DateFormatter()
-            timeFormatter.dateFormat = "h:mm a"
-            return "Yesterday at \(timeFormatter.string(from: date))"
+        if Self.calendar.isDateInToday(date) {
+            return "Today at \(Self.timeFormatter.string(from: date))"
+        } else if Self.calendar.isDateInYesterday(date) {
+            return "Yesterday at \(Self.timeFormatter.string(from: date))"
         } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "d MMM yyyy 'at' HH:mm"
-            return dateFormatter.string(from: date)
+            return Self.dateTimeFormatter.string(from: date)
         }
-    }
-    
-    private func formatDuration(_ seconds: TimeInterval) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        
-        if hours > 0 {
-            return "\(hours)h \(minutes)m"
-        } else {
-            return "\(minutes)m"
-        }
-    }
-    
-    private func formatDistance(_ meters: Double) -> String {
-        let km = meters / 1000.0
-        return String(format: "%.1f km", km)
     }
     
     // MARK: - RPE Helpers
