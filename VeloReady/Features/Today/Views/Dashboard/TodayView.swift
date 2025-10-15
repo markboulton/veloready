@@ -111,12 +111,16 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack {
-                        Text("Today")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        Spacer()
+                // Only show custom title when wellness alert is present
+                // Otherwise, use default centered title
+                if healthKitManager.isAuthorized, wellnessService.currentAlert != nil {
+                    ToolbarItem(placement: .principal) {
+                        HStack {
+                            Text("Today")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
                     }
                 }
                 
