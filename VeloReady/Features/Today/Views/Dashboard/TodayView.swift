@@ -111,6 +111,15 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("Today")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
                         WellnessIndicator(alert: alert) {
