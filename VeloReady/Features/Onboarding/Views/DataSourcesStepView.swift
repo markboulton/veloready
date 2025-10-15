@@ -1,11 +1,16 @@
 import SwiftUI
 
-/// Step 4: Connect Strava or Intervals.icu
+/// Step 5: Connect Data Sources (conditional based on sport)
 struct DataSourcesStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var intervalsManager = IntervalsOAuthManager.shared
     @State private var showingIntervalsAuth = false
     @State private var showingStravaAuth = false
+    
+    // Check if user selected cycling as primary sport
+    private var showCyclingIntegrations: Bool {
+        onboardingManager.primarySport == .cycling
+    }
     
     var body: some View {
         VStack(spacing: 32) {
@@ -13,50 +18,79 @@ struct DataSourcesStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: "link.circle.fill")
+                Image(systemName: showCyclingIntegrations ? "link.circle.fill" : "checkmark.circle.fill")
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("Connect Your Data")
+                Text(showCyclingIntegrations ? "Connect Your Cycling Data" : "Connect Your Data")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Connect to Intervals.icu or Strava to import your rides and track your progress")
+                Text(headerDescription)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
             
-            // Connection options
-            VStack(spacing: 16) {
-                // Intervals.icu
-                ConnectWithIntervalsButton(
-                    action: {
-                        showingIntervalsAuth = true
-                    },
-                    isConnected: intervalsManager.isAuthenticated
-                )
+            // Connection options (conditional)
+            if showCyclingIntegrations {
+                VStack(spacing: 16) {
+                    // Strava (top)
+                    ConnectWithStravaButton(
+                        action: {
+                            showingStravaAuth = true
+                        },
+                        isConnected: false // TODO: Update when Strava implemented
+                    )
+                    
+                    // Intervals.icu (middle)
+                    ConnectWithIntervalsButton(
+                        action: {
+                            showingIntervalsAuth = true
+                        },
+                        isConnected: intervalsManager.isAuthenticated
+                    )
+                    
+                    // Wahoo (bottom) - Coming soon
+                    DataSourceConnectionCard(
+                        icon: "app.connected.to.app.below.fill",
+                        title: "Wahoo",
+                        description: "Coming soon",
+                        color: .orange,
+                        isConnected: false,
+                        action: {}
+                    )
+                }
+                .padding(.horizontal, 24)
                 
-                // Strava
-                ConnectWithStravaButton(
-                    action: {
-                        showingStravaAuth = true
-                    },
-                    isConnected: false // TODO: Update when Strava implemented
-                )
-            }
-            .padding(.horizontal, 24)
-            
-            if intervalsManager.isAuthenticated {
-                Text("✓ You're all set!")
-                    .font(.headline)
-                    .foregroundColor(.green)
+                if intervalsManager.isAuthenticated {
+                    Text("✓ You're connected!")
+                        .font(.headline)
+                        .foregroundColor(.green)
+                } else {
+                    Text("Optional: Connect your training platform")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             } else {
-                Text("You can connect either one or both")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                // Non-cycling message
+                VStack(spacing: 16) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.green)
+                    
+                    Text("You're all set!")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Text("We'll track your activities through Apple Health")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 24)
             }
             
             Spacer()
@@ -111,6 +145,16 @@ struct DataSourcesStepView: View {
                 }
             }
             .padding()
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var headerDescription: String {
+        if showCyclingIntegrations {
+            return "Connect to Strava, Intervals.icu, or Wahoo to sync your rides and track your progress. This step is optional."
+        } else {
+            return "We'll use Apple Health to track your activities and health metrics"
         }
     }
 }
