@@ -7,7 +7,7 @@ extension DailyLoad {
         return NSFetchRequest<DailyLoad>(entityName: "DailyLoad")
     }
     
-    @NSManaged public var date: Date
+    @NSManaged public var date: Date?
     @NSManaged public var ctl: Double
     @NSManaged public var atl: Double
     @NSManaged public var tsb: Double
@@ -16,7 +16,7 @@ extension DailyLoad {
     @NSManaged public var workoutId: String?
     @NSManaged public var workoutName: String?
     @NSManaged public var workoutType: String?
-    @NSManaged public var lastUpdated: Date
+    @NSManaged public var lastUpdated: Date?
     @NSManaged public var scores: DailyScores?
     
 }

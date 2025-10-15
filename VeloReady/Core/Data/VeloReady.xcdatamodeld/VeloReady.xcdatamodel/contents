@@ -1,68 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="DailyPhysio" representedClassName="DailyPhysio" syncable="YES">
-        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hrv" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="hrvBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="rhr" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="rhrBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="sleepDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="sleepBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="scores" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DailyScores" inverseName="physio" inverseEntity="DailyScores"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="date"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
     </entity>
     <entity name="DailyLoad" representedClassName="DailyLoad" syncable="YES">
         <attribute name="atl" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="ctl" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="eftp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="tsb" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tss" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="workoutId" optional="YES" attributeType="String"/>
         <attribute name="workoutName" optional="YES" attributeType="String"/>
         <attribute name="workoutType" optional="YES" attributeType="String"/>
         <relationship name="scores" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DailyScores" inverseName="load" inverseEntity="DailyScores"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="date"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
     </entity>
     <entity name="DailyScores" representedClassName="DailyScores" syncable="YES">
         <attribute name="aiBriefText" optional="YES" attributeType="String"/>
-        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="effortTarget" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="recoveryBand" optional="YES" attributeType="String"/>
         <attribute name="recoveryScore" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="sleepScore" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="strainScore" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="load" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DailyLoad" inverseName="scores" inverseEntity="DailyLoad"/>
         <relationship name="physio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DailyPhysio" inverseName="scores" inverseEntity="DailyPhysio"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="date"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
     </entity>
     <entity name="WorkoutMetadata" representedClassName="WorkoutMetadata" syncable="YES">
-        <attribute name="workoutUUID" attributeType="String"/>
-        <attribute name="workoutDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="workoutUUID" optional="YES" attributeType="String"/>
+        <attribute name="workoutDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="rpe" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="muscleGroups" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData"/>
         <attribute name="isEccentricFocused" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="workoutUUID"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
 </model>

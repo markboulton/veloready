@@ -26,7 +26,7 @@ class CacheDebugHelper {
             print("⚠️ Cache is EMPTY - no data saved yet")
         } else {
             for (index, scores) in allScores.enumerated() {
-                print("Day \(index + 1): \(formatDate(scores.date))")
+                print("Day \(index + 1): \(formatDate(scores.date ?? Date()))")
                 print("  Recovery: \(Int(scores.recoveryScore)) (\(scores.recoveryBand ?? "unknown"))")
                 print("  Sleep Score: \(Int(scores.sleepScore))")
                 print("  Strain Score: \(Int(scores.strainScore))")
@@ -55,7 +55,7 @@ class CacheDebugHelper {
                     }
                 }
                 
-                print("  Last Updated: \(formatTime(scores.lastUpdated))")
+                print("  Last Updated: \(formatTime(scores.lastUpdated ?? Date()))")
                 print("")
             }
         }

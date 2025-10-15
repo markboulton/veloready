@@ -149,8 +149,9 @@ class TrendsViewModel: ObservableObject {
         let persistence = PersistenceController.shared
         let cachedDays = persistence.fetch(request)
         
-        recoveryTrendData = cachedDays.map { cached in
-            TrendDataPoint(date: cached.date, value: cached.recoveryScore)
+        recoveryTrendData = cachedDays.compactMap { cached in
+            guard let date = cached.date else { return nil }
+            return TrendDataPoint(date: date, value: cached.recoveryScore)
         }
         
         print("📈 Loaded recovery trend: \(recoveryTrendData.count) points from Core Data")
@@ -440,8 +441,9 @@ class TrendsViewModel: ObservableObject {
         let persistence = PersistenceController.shared
         let cachedDays = persistence.fetch(request)
         
-        sleepData = cachedDays.map { cached in
-            TrendDataPoint(date: cached.date, value: cached.sleepScore)
+        sleepData = cachedDays.compactMap { cached in
+            guard let date = cached.date else { return nil }
+            return TrendDataPoint(date: date, value: cached.sleepScore)
         }
         
         print("📈 Loaded sleep trend: \(sleepData.count) days from Core Data")

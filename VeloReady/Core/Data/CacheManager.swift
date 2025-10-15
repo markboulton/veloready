@@ -75,7 +75,11 @@ final class CacheManager: ObservableObject {
             return true // No cache = needs refresh
         }
         
-        let age = Date().timeIntervalSince(cached.lastUpdated)
+        guard let lastUpdated = cached.lastUpdated else {
+            return true // No lastUpdated = needs refresh
+        }
+        
+        let age = Date().timeIntervalSince(lastUpdated)
         let daysAgo = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
         
         switch daysAgo {

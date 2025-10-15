@@ -158,11 +158,7 @@ class iCloudSyncService: ObservableObject {
         isSyncing = true
         syncError = nil
         
-        do {
-            await syncFromCloud()
-        } catch {
-            throw error
-        }
+        await syncFromCloud()
         
         isSyncing = false
     }
@@ -279,7 +275,7 @@ class iCloudSyncService: ObservableObject {
     private func syncCoreDataMetadataToCloud() async throws {
         let context = PersistenceController.shared.viewContext
         
-        await context.perform {
+        try await context.perform {
             let fetchRequest = WorkoutMetadata.fetchRequest()
             
             do {
@@ -289,13 +285,20 @@ class iCloudSyncService: ObservableObject {
                 var metadataDict: [[String: Any]] = []
                 
                 for item in metadata {
+                    guard let workoutUUID = item.workoutUUID,
+                          let workoutDate = item.workoutDate,
+                          let createdAt = item.createdAt,
+                          let updatedAt = item.updatedAt else {
+                        continue
+                    }
+                    
                     var dict: [String: Any] = [
-                        "workoutUUID": item.workoutUUID,
-                        "workoutDate": item.workoutDate.timeIntervalSince1970,
+                        "workoutUUID": workoutUUID,
+                        "workoutDate": workoutDate.timeIntervalSince1970,
                         "rpe": item.rpe,
                         "isEccentricFocused": item.isEccentricFocused,
-                        "createdAt": item.createdAt.timeIntervalSince1970,
-                        "updatedAt": item.updatedAt.timeIntervalSince1970
+                        "createdAt": createdAt.timeIntervalSince1970,
+                        "updatedAt": updatedAt.timeIntervalSince1970
                     ]
                     
                     if let muscleGroups = item.muscleGroupStrings {
@@ -329,7 +332,7 @@ class iCloudSyncService: ObservableObject {
         
         let context = PersistenceController.shared.newBackgroundContext()
         
-        await context.perform {
+        try await context.perform {
             for dict in metadataArray {
                 guard let workoutUUID = dict["workoutUUID"] as? String,
                       let workoutDateInterval = dict["workoutDate"] as? TimeInterval,

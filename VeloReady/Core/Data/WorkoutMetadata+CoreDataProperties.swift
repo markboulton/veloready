@@ -7,13 +7,13 @@ extension WorkoutMetadata {
         return NSFetchRequest<WorkoutMetadata>(entityName: "WorkoutMetadata")
     }
     
-    @NSManaged public var workoutUUID: String
-    @NSManaged public var workoutDate: Date
+    @NSManaged public var workoutUUID: String?
+    @NSManaged public var workoutDate: Date?
     @NSManaged public var rpe: Double
     @NSManaged private var muscleGroups: NSObject?
     @NSManaged public var isEccentricFocused: Bool
-    @NSManaged public var createdAt: Date
-    @NSManaged public var updatedAt: Date
+    @NSManaged public var createdAt: Date?
+    @NSManaged public var updatedAt: Date?
     
     /// Computed property to convert string array to MuscleGroup array
     var muscleGroupEnums: [MuscleGroup]? {

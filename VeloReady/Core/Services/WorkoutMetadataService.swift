@@ -173,7 +173,8 @@ class WorkoutMetadataService {
         // Group by date
         var volumeByDate: [Date: Int] = [:]
         for item in metadata {
-            let day = calendar.startOfDay(for: item.workoutDate)
+            guard let workoutDate = item.workoutDate else { continue }
+            let day = calendar.startOfDay(for: workoutDate)
             volumeByDate[day, default: 0] += 1
         }
         
@@ -197,15 +198,22 @@ class WorkoutMetadataService {
         
         let metadata = persistenceController.fetch(fetchRequest)
         
-        let exportData = metadata.map { item in
-            [
-                "workoutUUID": item.workoutUUID,
-                "workoutDate": ISO8601DateFormatter().string(from: item.workoutDate),
+        let exportData = metadata.compactMap { item -> [String: Any]? in
+            guard let workoutUUID = item.workoutUUID,
+                  let workoutDate = item.workoutDate,
+                  let createdAt = item.createdAt,
+                  let updatedAt = item.updatedAt else {
+                return nil
+            }
+            
+            return [
+                "workoutUUID": workoutUUID,
+                "workoutDate": ISO8601DateFormatter().string(from: workoutDate),
                 "rpe": item.rpe,
                 "muscleGroups": item.muscleGroupStrings ?? [],
                 "isEccentricFocused": item.isEccentricFocused,
-                "createdAt": ISO8601DateFormatter().string(from: item.createdAt),
-                "updatedAt": ISO8601DateFormatter().string(from: item.updatedAt)
+                "createdAt": ISO8601DateFormatter().string(from: createdAt),
+                "updatedAt": ISO8601DateFormatter().string(from: updatedAt)
             ] as [String : Any]
         }
         
@@ -228,14 +236,21 @@ class WorkoutMetadataService {
         var csv = "Workout UUID,Date,RPE,Muscle Groups,Eccentric Focused,Created At,Updated At\n"
         
         for item in metadata {
+            guard let workoutUUID = item.workoutUUID,
+                  let workoutDate = item.workoutDate,
+                  let createdAt = item.createdAt,
+                  let updatedAt = item.updatedAt else {
+                continue
+            }
+            
             let muscleGroupsStr = item.muscleGroupStrings?.joined(separator: "; ") ?? ""
-            csv += "\"\(item.workoutUUID)\","
-            csv += "\"\(dateFormatter.string(from: item.workoutDate))\","
+            csv += "\"\(workoutUUID)\","
+            csv += "\"\(dateFormatter.string(from: workoutDate))\","
             csv += "\(item.rpe),"
             csv += "\"\(muscleGroupsStr)\","
             csv += "\(item.isEccentricFocused),"
-            csv += "\"\(dateFormatter.string(from: item.createdAt))\","
-            csv += "\"\(dateFormatter.string(from: item.updatedAt))\"\n"
+            csv += "\"\(dateFormatter.string(from: createdAt))\","
+            csv += "\"\(dateFormatter.string(from: updatedAt))\"\n"
         }
         
         return csv
