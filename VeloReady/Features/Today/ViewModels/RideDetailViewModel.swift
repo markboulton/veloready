@@ -490,6 +490,14 @@ class RideDetailViewModel: ObservableObject {
                         ftp = np * multiplier
                         Logger.warning("🟠 ⚠️ ESTIMATED FTP from ride data: \(Int(ftp!))W (NP: \(Int(np))W × \(String(format: "%.2f", multiplier)))")
                         Logger.warning("🟠 ⚠️ User should set actual FTP in Settings for accurate calculations")
+                        
+                        // Save estimated FTP to profile for zone generation
+                        // Mark as 'intervals' source to indicate it's estimated/external
+                        profileManager.profile.ftp = ftp
+                        profileManager.profile.ftpSource = .intervals // Mark as estimated
+                        profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp!)
+                        profileManager.save()
+                        Logger.warning("🟠 💾 Saved estimated FTP to profile for zone generation")
                     }
                 } else {
                     Logger.debug("🟠 ✅ Using profile FTP: \(Int(ftp!))W")
