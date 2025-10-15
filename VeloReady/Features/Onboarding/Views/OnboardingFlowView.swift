@@ -21,8 +21,6 @@ struct OnboardingFlowView: View {
                     ValuePropStepView()
                 case .whatVeloReady:
                     WhatVeloReadyStepView()
-                case .sportRanking:
-                    SportRankingStepView()
                 case .healthKit:
                     HealthKitStepView()
                 case .dataSources:

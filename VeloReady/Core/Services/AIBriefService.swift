@@ -16,7 +16,6 @@ class AIBriefService: ObservableObject {
     private let sleepService = SleepScoreService.shared
     private let cacheManager = CacheManager.shared
     private let persistence = PersistenceController.shared
-    private let userSettings = UserSettings.shared
     
     // Anonymous user ID (persisted across app launches)
     private let userIdKey = "ai_brief_user_id"
@@ -112,9 +111,6 @@ class AIBriefService: ObservableObject {
         // Get planned workout from today's cache (if available)
         let plan = getTodaysPlannedWorkout()
         
-        // Get primary sport from user settings
-        let primarySport = userSettings.primarySport.rawValue // "cycling", "strength", or "general"
-        
         let request = AIBriefRequest(
             recovery: recovery.score,
             sleepDelta: sleepDelta,
@@ -123,8 +119,7 @@ class AIBriefService: ObservableObject {
             tsb: tsb,
             tssLow: tssLow,
             tssHigh: tssHigh,
-            plan: plan,
-            primarySport: primarySport
+            plan: plan
         )
         
         Logger.data("========================================")
@@ -136,7 +131,6 @@ class AIBriefService: ObservableObject {
         Logger.data("  TSB: \(String(format: "%.1f", request.tsb))")
         Logger.data("  TSS Range: \(request.tssLow)-\(request.tssHigh)")
         Logger.data("  Plan: \(request.plan ?? "none")")
-        Logger.data("  Primary Sport: \(request.primarySport)")
         
         // Show what AI will recommend based on recovery
         let recoveryBand = request.recovery >= 70 ? "GREEN" : request.recovery >= 40 ? "AMBER" : "RED"

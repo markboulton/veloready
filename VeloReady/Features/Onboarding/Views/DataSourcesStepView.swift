@@ -6,9 +6,9 @@ struct DataSourcesStepView: View {
     @StateObject private var intervalsManager = IntervalsOAuthManager.shared
     @StateObject private var stravaAuthService = StravaAuthService.shared
     
-    // Check if user selected cycling as primary sport
+    // VeloReady is cycling-specific - always show cycling integrations
     private var showCyclingIntegrations: Bool {
-        onboardingManager.primarySport == .cycling
+        true
     }
     
     var body: some View {
