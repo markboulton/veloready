@@ -293,6 +293,7 @@ struct WalkingWorkoutInfoHeader: View {
     @ObservedObject var viewModel: WalkingDetailViewModel
     @State private var showingRPESheet = false
     @State private var storedRPE: Double?
+    @State private var locationString: String? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -303,9 +304,20 @@ struct WalkingWorkoutInfoHeader: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.text.primary)
                 
-                Text(formattedDateAndTime)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.text.secondary)
+                HStack(spacing: 4) {
+                    Text(formattedDateAndTime)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.text.secondary)
+                    
+                    if let location = locationString {
+                        Text("·")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.text.secondary)
+                        Text(location)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.text.secondary)
+                    }
+                }
             }
             
             // Primary Metrics Grid - 3 columns like cycling
@@ -381,6 +393,9 @@ struct WalkingWorkoutInfoHeader: View {
         }
         .onAppear {
             loadRPE()
+            Task {
+                await loadLocation()
+            }
         }
         .sheet(isPresented: $showingRPESheet) {
             RPEInputSheet(workout: workout) {
@@ -434,6 +449,14 @@ struct WalkingWorkoutInfoHeader: View {
     
     private func loadRPE() {
         storedRPE = WorkoutMetadataService.shared.getRPE(for: workout)
+    }
+    
+    private func loadLocation() async {
+        if let location = await ActivityLocationService.shared.getHealthKitLocation(workout) {
+            await MainActor.run {
+                locationString = location
+            }
+        }
     }
 }
 

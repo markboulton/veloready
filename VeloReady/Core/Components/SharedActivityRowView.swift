@@ -7,7 +7,6 @@ struct SharedActivityRowView: View {
     let activity: UnifiedActivity
     @State private var showingRPESheet = false
     @State private var hasRPE = false
-    @State private var locationString: String? = nil
     
     var body: some View {
         HStack(spacing: 12) {
@@ -25,7 +24,7 @@ struct SharedActivityRowView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text(formatSmartDateWithLocation(activity.startDate))
+                    Text(formatSmartDate(activity.startDate))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -56,9 +55,6 @@ struct SharedActivityRowView: View {
         .contentShape(Rectangle())
         .onAppear {
             checkRPEStatus()
-            Task {
-                await loadLocation()
-            }
         }
         .sheet(isPresented: $showingRPESheet) {
             if let workout = activity.healthKitWorkout {
@@ -71,139 +67,21 @@ struct SharedActivityRowView: View {
     
     // MARK: - Formatting Helpers
     
-    private func formatSmartDateWithLocation(_ date: Date) -> String {
+    private func formatSmartDate(_ date: Date) -> String {
         let calendar = Calendar.current
         
-        var dateString: String
         if calendar.isDateInToday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            dateString = "Today at \(timeFormatter.string(from: date))"
+            return "Today at \(timeFormatter.string(from: date))"
         } else if calendar.isDateInYesterday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            dateString = "Yesterday at \(timeFormatter.string(from: date))"
+            return "Yesterday at \(timeFormatter.string(from: date))"
         } else {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d MMM yyyy 'at' HH:mm"
-            dateString = dateFormatter.string(from: date)
-        }
-        
-        if let location = locationString {
-            return "\(dateString) · \(location)"
-        } else {
-            return dateString
-        }
-    }
-    
-    private func loadLocation() async {
-        // Try Strava first (has start_latlng)
-        if let stravaActivity = activity.stravaActivity {
-            if let location = await getStravaLocation(stravaActivity) {
-                await MainActor.run {
-                    locationString = location
-                }
-                return
-            }
-        }
-        
-        // Try Apple Health workout route
-        if let workout = activity.healthKitWorkout {
-            if let location = await getHealthKitLocation(workout) {
-                await MainActor.run {
-                    locationString = location
-                }
-                return
-            }
-        }
-    }
-    
-    private func getStravaLocation(_ stravaActivity: StravaActivity) async -> String? {
-        // Strava activities have start_latlng in the summary
-        guard let latlng = stravaActivity.start_latlng,
-              latlng.count == 2 else {
-            return nil
-        }
-        
-        let coordinate = CLLocationCoordinate2D(latitude: latlng[0], longitude: latlng[1])
-        return await reverseGeocode(coordinate: coordinate)
-    }
-    
-    private func getHealthKitLocation(_ workout: HKWorkout) async -> String? {
-        let healthStore = HKHealthStore()
-        
-        // Query for workout route
-        let routeType = HKSeriesType.workoutRoute()
-        let predicate = HKQuery.predicateForObjects(from: workout)
-        
-        return await withCheckedContinuation { continuation in
-            var hasResumed = false
-            
-            let query = HKAnchoredObjectQuery(
-                type: routeType,
-                predicate: predicate,
-                anchor: nil,
-                limit: HKObjectQueryNoLimit
-            ) { _, samples, _, _, error in
-                guard !hasResumed else { return }
-                
-                guard error == nil,
-                      let routes = samples as? [HKWorkoutRoute],
-                      let route = routes.first else {
-                    hasResumed = true
-                    continuation.resume(returning: nil)
-                    return
-                }
-                
-                // Query route data to get first location
-                let routeQuery = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
-                    guard !hasResumed else { return }
-                    
-                    if let locations = locations, let firstLocation = locations.first {
-                        hasResumed = true
-                        // Reverse geocode the first location
-                        Task {
-                            let location = await self.reverseGeocode(coordinate: firstLocation.coordinate)
-                            continuation.resume(returning: location)
-                        }
-                    } else if done {
-                        hasResumed = true
-                        continuation.resume(returning: nil)
-                    }
-                }
-                
-                healthStore.execute(routeQuery)
-            }
-            
-            healthStore.execute(query)
-        }
-    }
-    
-    private func reverseGeocode(coordinate: CLLocationCoordinate2D) async -> String? {
-        let geocoder = CLGeocoder()
-        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            guard let placemark = placemarks.first else { return nil }
-            
-            // Format as "City, Country" (e.g., "Llantwit Major, UK")
-            var components: [String] = []
-            
-            if let locality = placemark.locality {
-                components.append(locality)
-            } else if let subLocality = placemark.subLocality {
-                components.append(subLocality)
-            }
-            
-            if let countryCode = placemark.isoCountryCode {
-                components.append(countryCode)
-            }
-            
-            return components.isEmpty ? nil : components.joined(separator: ", ")
-        } catch {
-            print("⚠️ Reverse geocoding failed: \(error)")
-            return nil
+            return dateFormatter.string(from: date)
         }
     }
     

@@ -274,6 +274,7 @@ struct WorkoutDetailView: View {
 
 struct WorkoutInfoHeader: View {
     let activity: IntervalsActivity
+    @State private var locationString: String? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -284,12 +285,26 @@ struct WorkoutInfoHeader: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.text.primary)
                 
-                Text(formattedDateAndTime)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.text.secondary)
+                HStack(spacing: 4) {
+                    Text(formattedDateAndTime)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.text.secondary)
+                    
+                    if let location = locationString {
+                        Text("·")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.text.secondary)
+                        Text(location)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.text.secondary)
+                    }
+                }
             }
             .onAppear {
                 logActivityData()
+                Task {
+                    await loadLocation()
+                }
             }
             
             // Primary Metrics Grid - Always show these specific metrics
@@ -415,6 +430,13 @@ struct WorkoutInfoHeader: View {
     
     private func logActivityData() {
         // Logging disabled to prevent runaway logs on ride detail pages
+    }
+    
+    private func loadLocation() async {
+        // For Intervals activities, location data is not directly available
+        // Would need to be added to IntervalsActivity model from API
+        // For now, return nil
+        locationString = nil
     }
 }
 
