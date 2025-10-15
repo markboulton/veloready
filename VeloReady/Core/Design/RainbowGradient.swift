@@ -1,20 +1,15 @@
 import SwiftUI
 
 /// Rainbow gradient modifier for AI-powered features
-/// Applies a 30-degree gradient with pink, purple, blue, and cyan colors
+/// Uses design tokens from ColorPalette.aiGradientColors and ColorPalette.aiGradientAngle
 struct RainbowGradient: ViewModifier {
     func body(content: Content) -> some View {
         content
             .overlay(
                 LinearGradient(
-                    gradient: Gradient(colors: [
-                        ColorPalette.pink,
-                        ColorPalette.purple,
-                        ColorPalette.blue,
-                        ColorPalette.cyan
-                    ]),
-                    startPoint: UnitPoint(x: 0, y: 0),
-                    endPoint: UnitPoint(x: 1, y: 0.577) // 30 degree angle (tan(30°) ≈ 0.577)
+                    gradient: Gradient(colors: ColorPalette.aiGradientColors),
+                    startPoint: ColorPalette.aiGradientAngle.start,
+                    endPoint: ColorPalette.aiGradientAngle.end
                 )
             )
             .mask(content)
@@ -22,7 +17,8 @@ struct RainbowGradient: ViewModifier {
 }
 
 extension View {
-    /// Applies rainbow gradient to text and icons for AI features
+    /// Applies AI gradient to text and icons for AI-powered features
+    /// Uses design tokens: ColorPalette.aiGradientColors and ColorPalette.aiGradientAngle
     func rainbowGradient() -> some View {
         modifier(RainbowGradient())
     }

@@ -10,7 +10,7 @@ struct AIBriefView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
                         .font(.heading)
-                        .foregroundColor(ColorPalette.pink)
+                        .foregroundColor(ColorPalette.aiIconColor)
                     
                     Text(TodayContent.AIBrief.title)
                         .font(.heading)

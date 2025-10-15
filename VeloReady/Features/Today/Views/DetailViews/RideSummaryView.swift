@@ -20,7 +20,7 @@ struct RideSummaryView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "sparkles")
                             .font(.heading)
-                            .foregroundColor(ColorPalette.pink)
+                            .foregroundColor(ColorPalette.aiIconColor)
                         
                         Text(RideSummaryContent.title)
                             .font(.heading)

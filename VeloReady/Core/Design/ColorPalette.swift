@@ -41,4 +41,24 @@ enum ColorPalette {
     static let labelPrimary = ColorScale.labelPrimary
     static let labelSecondary = ColorScale.labelSecondary
     static let labelTertiary = ColorScale.labelTertiary
+    
+    // MARK: - AI Feature Gradients
+    
+    /// Gradient colors for AI-powered features (Daily Brief, Ride Summary)
+    /// Order: Pink → Purple → Blue → Cyan
+    static let aiGradientColors: [Color] = [
+        pink,
+        purple,
+        blue,
+        cyan
+    ]
+    
+    /// Starting color for AI feature icons (solid fill)
+    static let aiIconColor = pink
+    
+    /// Gradient angle for AI features (30 degrees)
+    static let aiGradientAngle: (start: UnitPoint, end: UnitPoint) = (
+        start: UnitPoint(x: 0, y: 0),
+        end: UnitPoint(x: 1, y: 0.577) // tan(30°) ≈ 0.577
+    )
 }
