@@ -9,19 +9,16 @@ struct UnifiedActivityCard: View {
             NavigationLink(destination: RideDetailSheet(activity: intervalsActivity)) {
                 SharedActivityRowView(activity: activity)
             }
-            .buttonStyle(PlainButtonStyle())
         } else if let stravaActivity = activity.stravaActivity {
             // Strava activity - convert to Intervals format for now
             NavigationLink(destination: RideDetailSheet(activity: convertStravaToIntervals(stravaActivity))) {
                 SharedActivityRowView(activity: activity)
             }
-            .buttonStyle(PlainButtonStyle())
         } else if let healthWorkout = activity.healthKitWorkout {
             // Apple Health workout - use WalkingDetailView
             NavigationLink(destination: WalkingDetailView(workout: healthWorkout)) {
                 SharedActivityRowView(activity: activity)
             }
-            .buttonStyle(PlainButtonStyle())
         } else {
             SharedActivityRowView(activity: activity)
         }
