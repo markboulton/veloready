@@ -17,20 +17,20 @@ struct OnboardingFlowView: View {
             // Step content
             Group {
                 switch onboardingManager.currentStep {
-                case .welcome:
-                    WelcomeStepView()
-                case .benefits:
-                    BenefitsStepView()
+                case .valueProp:
+                    ValuePropStepView()
+                case .whatVeloReady:
+                    WhatVeloReadyStepView()
+                case .sportRanking:
+                    SportRankingStepView()
                 case .healthKit:
                     HealthKitStepView()
                 case .dataSources:
                     DataSourcesStepView()
-                case .preferences:
-                    PreferencesStepView()
+                case .profile:
+                    ProfileSetupStepView()
                 case .subscription:
                     SubscriptionStepView()
-                case .complete:
-                    CompleteStepView()
                 }
             }
             .transition(.asymmetric(
