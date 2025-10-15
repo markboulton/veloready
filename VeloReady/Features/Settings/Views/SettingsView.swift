@@ -46,10 +46,11 @@ struct SettingsView: View {
             // About Section
             AboutSection()
             
-            #if DEBUG
-            // Debug/Testing Section
+            // Help & Feedback Section (always visible)
+            FeedbackSection()
+            
+            // Debug/Testing Section (developers only - controlled by DebugFlags)
             DebugSection()
-            #endif
         }
         .navigationTitle(SettingsContent.title)
         .navigationBarTitleDisplayMode(.large)
