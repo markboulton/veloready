@@ -103,22 +103,21 @@ final class CacheManager: ObservableObject {
         
         let today = Calendar.current.startOfDay(for: Date())
         
-        do {
-            // Fetch fresh data from APIs
-            async let healthData = fetchHealthData()
-            async let intervalsData = fetchIntervalsData()
-            
-            let (health, intervals) = try await (healthData, intervalsData)
-            
-            // Save to Core Data
-            await saveToCache(date: today, health: health, intervals: intervals)
-            
-            lastRefreshDate = Date()
-            Logger.debug("✅ Refreshed today's data")
-        } catch {
-            Logger.error("Failed to refresh today: \(error)")
-            throw error
-        }
+        // Fetch fresh data from APIs
+        async let healthData = fetchHealthData()
+        async let intervalsData = fetchIntervalsData()
+        
+        let (health, intervals) = try await (healthData, intervalsData)
+        
+        // Save to Core Data
+        await saveToCache(date: today, health: health, intervals: intervals)
+        
+        lastRefreshDate = Date()
+        
+        // Log summary
+        let hasHealth = health.hrv != nil || health.rhr != nil || health.sleep != nil
+        let hasIntervals = intervals.ctl != nil || intervals.atl != nil
+        Logger.debug("✅ Refreshed today's data (Health: \(hasHealth), Intervals: \(hasIntervals))")
     }
     
     /// Refresh last N days (smart refresh based on cache age)
@@ -201,62 +200,74 @@ final class CacheManager: ObservableObject {
     }
     
     private func fetchIntervalsData(for date: Date = Date()) async throws -> IntervalsData {
-        // Fetch wellness data (last 30 days)
-        let wellnessArray = try await intervalsAPI.fetchWellnessData()
-        
-        // Find wellness data for the specific date
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let targetDateString = dateFormatter.string(from: date)
-        let dateWellness = wellnessArray.first { $0.id == targetDateString }
-        
-        // Fetch recent activities (last 120 days for accurate zone computation)
-        let activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
-        
-        // Compute athlete zones from activities (async)
-        Task {
-            await MainActor.run {
-                AthleteProfileManager.shared.computeFromActivities(activities)
-            }
+        // Check if authenticated - if not, return empty data
+        guard oauthManager.isAuthenticated else {
+            Logger.debug("📊 Intervals.icu not authenticated - using empty data")
+            return IntervalsData(ctl: nil, atl: nil, tsb: nil, tss: nil, eftp: nil, workout: nil)
         }
         
-        // Find activity for the specific date
-        let calendar = Calendar.current
-        let targetDay = calendar.startOfDay(for: date)
-        let dateActivity = activities.first { activity in
-            let activityFormatter = ISO8601DateFormatter()
-            activityFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
-            guard let activityDate = activityFormatter.date(from: activity.startDateLocal) else { return false }
-            return calendar.isDate(activityDate, inSameDayAs: targetDay)
-        }
-        
-        // For CTL/ATL, use the most recent activity up to and including this date
-        // CTL/ATL are cumulative values that represent training load as of that date
-        let mostRecentActivity = activities.first { activity in
-            let activityFormatter = ISO8601DateFormatter()
-            activityFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
-            guard let activityDate = activityFormatter.date(from: activity.startDateLocal) else { return false }
-            return activityDate <= date
-        }
-        
-        // Try to fetch athlete data, but don't fail if it errors (403)
-        var ftp: Double? = nil
         do {
-            let athleteData = try await intervalsAPI.fetchAthleteData()
-            ftp = athleteData.powerZones?.ftp
+            // Fetch wellness data (last 30 days)
+            let wellnessArray = try await intervalsAPI.fetchWellnessData()
+            
+            // Find wellness data for the specific date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let targetDateString = dateFormatter.string(from: date)
+            let dateWellness = wellnessArray.first { $0.id == targetDateString }
+            
+            // Fetch recent activities (last 120 days for accurate zone computation)
+            let activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
+            
+            // Compute athlete zones from activities (async)
+            Task {
+                await MainActor.run {
+                    AthleteProfileManager.shared.computeFromActivities(activities)
+                }
+            }
+            
+            // Find activity for the specific date
+            let calendar = Calendar.current
+            let targetDay = calendar.startOfDay(for: date)
+            let dateActivity = activities.first { activity in
+                let activityFormatter = ISO8601DateFormatter()
+                activityFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                guard let activityDate = activityFormatter.date(from: activity.startDateLocal) else { return false }
+                return calendar.isDate(activityDate, inSameDayAs: targetDay)
+            }
+            
+            // For CTL/ATL, use the most recent activity up to and including this date
+            // CTL/ATL are cumulative values that represent training load as of that date
+            let mostRecentActivity = activities.first { activity in
+                let activityFormatter = ISO8601DateFormatter()
+                activityFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                guard let activityDate = activityFormatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate <= date
+            }
+            
+            // Try to fetch athlete data, but don't fail if it errors (403)
+            var ftp: Double? = nil
+            do {
+                let athleteData = try await intervalsAPI.fetchAthleteData()
+                ftp = athleteData.powerZones?.ftp
+            } catch {
+                Logger.warning("️ Could not fetch athlete data (non-critical): \(error)")
+                // Continue without FTP - not critical for caching
+            }
+            
+            return IntervalsData(
+                ctl: mostRecentActivity?.ctl ?? dateWellness?.fitness, // CTL from most recent activity or wellness.fitness
+                atl: mostRecentActivity?.atl ?? dateWellness?.fatigue, // ATL from most recent activity or wellness.fatigue
+                tsb: dateWellness?.form, // Form is TSB in Intervals.icu
+                tss: dateActivity?.tss, // TSS only for activities on this specific date
+                eftp: ftp,
+                workout: dateActivity // Workout only if there was one on this date
+            )
         } catch {
-            Logger.warning("️ Could not fetch athlete data (non-critical): \(error)")
-            // Continue without FTP - not critical for caching
+            // If any Intervals API call fails, return empty data instead of throwing
+            Logger.warning("️ Failed to fetch Intervals data: \(error) - using empty data")
+            return IntervalsData(ctl: nil, atl: nil, tsb: nil, tss: nil, eftp: nil, workout: nil)
         }
-        
-        return IntervalsData(
-            ctl: mostRecentActivity?.ctl ?? dateWellness?.fitness, // CTL from most recent activity or wellness.fitness
-            atl: mostRecentActivity?.atl ?? dateWellness?.fatigue, // ATL from most recent activity or wellness.fatigue
-            tsb: dateWellness?.form, // Form is TSB in Intervals.icu
-            tss: dateActivity?.tss, // TSS only for activities on this specific date
-            eftp: ftp,
-            workout: dateActivity // Workout only if there was one on this date
-        )
     }
     
     // MARK: - Save to Cache
