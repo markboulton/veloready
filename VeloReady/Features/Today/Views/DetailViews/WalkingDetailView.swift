@@ -324,13 +324,13 @@ struct WalkingWorkoutInfoHeader: View {
             LazyVGrid(columns: createGridColumns(), spacing: 12) {
                 CompactMetricItem(
                     label: "Duration",
-                    value: formatDuration(workout.duration)
+                    value: ActivityFormatters.formatDuration(workout.duration)
                 )
                 
                 if let distance = workout.totalDistance {
                     CompactMetricItem(
                         label: "Distance",
-                        value: formatDistance(distance.doubleValue(for: .meter()))
+                        value: ActivityFormatters.formatDistance(distance.doubleValue(for: .meter()))
                     )
                 }
                 
@@ -415,22 +415,6 @@ struct WalkingWorkoutInfoHeader: View {
     
     private func createGridColumns() -> [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-    }
-    
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let hours = Int(duration) / 3600
-        let minutes = Int(duration) % 3600 / 60
-        
-        if hours > 0 {
-            return String(format: "%dh %dm", hours, minutes)
-        } else {
-            return String(format: "%dm", minutes)
-        }
-    }
-    
-    private func formatDistance(_ meters: Double) -> String {
-        let km = meters / 1000.0
-        return String(format: "%.2f km", km)
     }
     
     private var isStrengthWorkout: Bool {

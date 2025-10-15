@@ -2,6 +2,15 @@ import Foundation
 import HealthKit
 import CoreLocation
 
+/// Errors that can occur during location fetching
+enum LocationError: Error {
+    case timeout
+    case networkUnavailable
+    case rateLimitExceeded
+    case invalidCoordinate
+    case noRouteData
+}
+
 /// Service for extracting and formatting location data from activities
 class ActivityLocationService {
     static let shared = ActivityLocationService()
@@ -16,6 +25,9 @@ class ActivityLocationService {
     // Rate limiting for geocoding (Apple has undocumented limits)
     private var lastGeocodingTime: Date?
     private let minimumGeocodingInterval: TimeInterval = 1.0
+    
+    // Timeout for HealthKit queries
+    private let queryTimeout: TimeInterval = 10.0
     
     private init(healthStore: HKHealthStore = HKHealthStore()) {
         self.healthStore = healthStore
@@ -32,13 +44,43 @@ class ActivityLocationService {
         return await reverseGeocode(coordinate: coordinate)
     }
     
-    /// Get location string for an Apple Health workout
+    /// Get location string for an Apple Health workout with timeout
     func getHealthKitLocation(_ workout: HKWorkout) async -> String? {
         // Check cache first
         let cachedLocation = cacheQueue.sync { locationCache[workout.uuid] }
         if let cached = cachedLocation {
             return cached
         }
+        
+        // Add timeout to prevent hanging
+        do {
+            return try await withThrowingTaskGroup(of: String?.self) { group in
+                // Add timeout task
+                group.addTask {
+                    try await Task.sleep(nanoseconds: UInt64(self.queryTimeout * 1_000_000_000))
+                    throw LocationError.timeout
+                }
+                
+                // Add actual work
+                group.addTask {
+                    return await self.fetchHealthKitLocationInternal(workout)
+                }
+                
+                // Return first result (either location or timeout)
+                if let result = try await group.next() {
+                    group.cancelAll()
+                    return result
+                }
+                return nil
+            }
+        } catch {
+            Logger.debug("Location fetch failed: \(error.localizedDescription)", category: .location)
+            return nil
+        }
+    }
+    
+    /// Internal method to fetch location from HealthKit (no timeout)
+    private func fetchHealthKitLocationInternal(_ workout: HKWorkout) async -> String? {
         
         // Query for workout route
         let routeType = HKSeriesType.workoutRoute()
@@ -93,7 +135,7 @@ class ActivityLocationService {
         }
     }
     
-    /// Get location for a unified activity (tries all sources)
+    /// Get location for a unified activity (tries all sources) with timeout
     func getActivityLocation(_ activity: UnifiedActivity) async -> String? {
         // Try Strava first
         if let stravaActivity = activity.stravaActivity {

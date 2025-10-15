@@ -312,13 +312,13 @@ struct WorkoutInfoHeader: View {
                 // Duration - always show
                 CompactMetricItem(
                     label: "Duration",
-                    value: activity.duration != nil ? formatDuration(activity.duration!) : "—"
+                    value: activity.duration != nil ? ActivityFormatters.formatDurationDetailed(activity.duration!) : "—"
                 )
                 
                 // Distance - always show
                 CompactMetricItem(
                     label: "Distance",
-                    value: activity.distance != nil ? formatDistance(activity.distance!) : "—"
+                    value: activity.distance != nil ? ActivityFormatters.formatDistance(activity.distance!) : "—"
                 )
                 
                 // TSS - always show
@@ -342,7 +342,7 @@ struct WorkoutInfoHeader: View {
                 // Average Speed - always show
                 CompactMetricItem(
                     label: "Avg Speed",
-                    value: activity.averageSpeed != nil ? formatSpeed(activity.averageSpeed!) : "—"
+                    value: activity.averageSpeed != nil ? ActivityFormatters.formatSpeed(activity.averageSpeed!) : "—"
                 )
             }
         }
@@ -370,60 +370,20 @@ struct WorkoutInfoHeader: View {
     
     // MARK: - Formatting Functions
     
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let hours = Int(duration) / 3600
-        let minutes = Int(duration) % 3600 / 60
-        let seconds = Int(duration) % 60
-        
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%d:%02d", minutes, seconds)
-        }
-    }
-    
-    private func formatDistance(_ distance: Double) -> String {
-        let userSettings = UserSettings.shared
-        let km = distance / 1000.0
-        
-        if userSettings.useMetricUnits {
-            return String(format: "%.1f km", km)
-        } else {
-            // Convert km to miles: multiply by 0.621371
-            let miles = km * 0.621371
-            return String(format: "%.1f mi", miles)
-        }
-    }
-    
     private func formatIntensityFactor(_ intensityFactor: Double) -> String {
-        return String(format: "%.2f", intensityFactor)
+        return ActivityFormatters.formatIntensityFactor(intensityFactor)
     }
     
     private func formatTSS(_ tss: Double) -> String {
-        return String(format: "%.0f", tss)
+        return ActivityFormatters.formatTSS(tss)
     }
     
     private func formatPower(_ power: Double) -> String {
-        return String(format: "%.0f W", power)
+        return ActivityFormatters.formatPower(power)
     }
     
     private func formatCalories(_ calories: Int) -> String {
-        return String(format: "%d cal", calories)
-    }
-    
-    private func formatSpeed(_ speed: Double) -> String {
-        // Speed from API is in m/s, convert to km/h or mph
-        let userSettings = UserSettings.shared
-        
-        if userSettings.useMetricUnits {
-            // Convert m/s to km/h: multiply by 3.6
-            let kmh = speed * 3.6
-            return String(format: "%.1f km/h", kmh)
-        } else {
-            // Convert m/s to mph: multiply by 2.237
-            let mph = speed * 2.237
-            return String(format: "%.1f mph", mph)
-        }
+        return ActivityFormatters.formatCalories(calories)
     }
     
     // MARK: - Debug Logging (disabled for performance)
@@ -602,7 +562,7 @@ struct AdditionalDataSection: View {
                 if let maxSpeed = activity.maxSpeed {
                     CompactMetricItem(
                         label: "Max Speed",
-                        value: formatSpeed(maxSpeed)
+                        value: ActivityFormatters.formatSpeed(maxSpeed)
                     )
                 }
                 
@@ -653,20 +613,6 @@ struct AdditionalDataSection: View {
         return String(format: "%.0f rpm", cadence)
     }
     
-    private func formatSpeed(_ speed: Double) -> String {
-        // Speed from API is in m/s, convert to km/h or mph
-        let userSettings = UserSettings.shared
-        
-        if userSettings.useMetricUnits {
-            // Convert m/s to km/h: multiply by 3.6
-            let kmh = speed * 3.6
-            return String(format: "%.1f km/h", kmh)
-        } else {
-            // Convert m/s to mph: multiply by 2.237
-            let mph = speed * 2.237
-            return String(format: "%.1f mph", mph)
-        }
-    }
     
     private func formatElevation(_ elevation: Double) -> String {
         let userSettings = UserSettings.shared
