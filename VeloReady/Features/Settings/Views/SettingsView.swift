@@ -37,6 +37,9 @@ struct SettingsView: View {
             // Notifications
             NotificationSettingsSection()
             
+            // iCloud Sync
+            iCloudSection()
+            
             // Account Section
             AccountSection(showingDeleteDataAlert: $showingDeleteDataAlert)
             

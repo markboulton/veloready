@@ -239,6 +239,23 @@ class UserSettings: ObservableObject {
     
     private init() {
         loadSettings()
+        setupCloudRestoreNotification()
+    }
+    
+    // MARK: - iCloud Restore
+    
+    private func setupCloudRestoreNotification() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCloudRestore),
+            name: .userSettingsDidRestore,
+            object: nil
+        )
+    }
+    
+    @objc private func handleCloudRestore() {
+        loadSettings()
+        print("☁️ User settings restored from iCloud")
     }
     
     // MARK: - Settings Management

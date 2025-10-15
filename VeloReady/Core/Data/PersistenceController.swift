@@ -68,25 +68,66 @@ final class PersistenceController {
     // MARK: - Initialization
     
     private init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "VeloReady")
+        container = NSPersistentCloudKitContainer(name: "VeloReady")
         
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            // Configure CloudKit sync
+            guard let description = container.persistentStoreDescriptions.first else {
+                fatalError("Failed to retrieve persistent store description")
+            }
+            
+            // Enable CloudKit sync
+            description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                containerIdentifier: "iCloud.com.markboulton.VeloReady2"
+            )
+            
+            // Configure persistent store options
+            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         }
-        
-        // Configure persistent store
-        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         
         container.loadPersistentStores { description, error in
             if let error = error {
                 fatalError("Failed to load Core Data stack: \(error)")
             }
+            print("☁️ Core Data stack loaded with CloudKit sync enabled")
         }
         
         // Configure view context
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        // Setup notifications for CloudKit sync
+        setupCloudKitNotifications()
+    }
+    
+    // MARK: - CloudKit Notifications
+    
+    private func setupCloudKitNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCloudKitImport(_:)),
+            name: NSPersistentCloudKitContainer.eventChangedNotification,
+            object: container
+        )
+    }
+    
+    @objc private func handleCloudKitImport(_ notification: Notification) {
+        guard let event = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey] as? NSPersistentCloudKitContainer.Event else {
+            return
+        }
+        
+        if event.type == .import {
+            print("☁️ CloudKit import completed")
+        } else if event.type == .export {
+            print("☁️ CloudKit export completed")
+        }
+        
+        if let error = event.error {
+            print("❌ CloudKit sync error: \(error.localizedDescription)")
+        }
     }
     
     // MARK: - Background Context

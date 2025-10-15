@@ -21,6 +21,12 @@ struct VeloReadyApp: App {
             WorkoutMetadataService.shared.migrateAllLegacyData()
         }
         
+        // Enable automatic iCloud sync
+        Task { @MainActor in
+            iCloudSyncService.shared.enableAutomaticSync()
+            print("☁️ iCloud automatic sync initialized")
+        }
+        
         // Register background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.veloready.app.refresh", using: nil) { task in
             Self.handleBackgroundRefresh(task: task as! BGAppRefreshTask)
