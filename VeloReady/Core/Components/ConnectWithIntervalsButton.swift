@@ -7,33 +7,18 @@ struct ConnectWithIntervalsButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                // Intervals.icu logo (using chart icon as placeholder)
-                Image(systemName: isConnected ? "xmark.circle.fill" : "chart.line.uptrend.xyaxis")
-                    .font(.title3)
-                    .foregroundColor(.white)
-                
-                Text(isConnected ? "Disconnect from Intervals.icu" : "Connect with Intervals.icu")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    colors: isConnected ? [
-                        Color.red,
-                        Color(red: 0.8, green: 0, blue: 0)
-                    ] : [
-                        Color(red: 0/255, green: 122/255, blue: 255/255), // Intervals blue
-                        Color(red: 0/255, green: 102/255, blue: 204/255)
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
+            Text(isConnected ? "Disconnect from Intervals.icu" : "Connect with Intervals.icu")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    isConnected
+                        ? Color.red
+                        : Color(red: 0/255, green: 122/255, blue: 255/255) // Intervals blue
                 )
-            )
-            .cornerRadius(8)
+                .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
     }

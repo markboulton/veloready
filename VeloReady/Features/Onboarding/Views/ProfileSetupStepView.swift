@@ -4,18 +4,12 @@ import SwiftUI
 struct ProfileSetupStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var userSettings = UserSettings.shared
+    @StateObject private var intervalsManager = IntervalsOAuthManager.shared
+    @StateObject private var stravaAuthService = StravaAuthService.shared
+    @StateObject private var healthKitManager = HealthKitManager.shared
     @State private var selectedUnit: UnitSystem = .metric
     @State private var userName: String = ""
-    @State private var selectedAvatar: String = "person.circle.fill"
-    
-    private let avatarOptions = [
-        "person.circle.fill",
-        "figure.outdoor.cycle",
-        "figure.strengthtraining.traditional",
-        "figure.run",
-        "figure.walk",
-        "figure.hiking"
-    ]
+    @State private var isLoadingProfile: Bool = false
     
     enum UnitSystem: String, CaseIterable {
         case metric = "Metric"
@@ -37,104 +31,76 @@ struct ProfileSetupStepView: View {
     }
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 0) {
             Spacer()
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: selectedAvatar)
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                
                 Text("Set Up Your Profile")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Customize your experience")
+                Text(profileDescription)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 48)
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Name (Optional)
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Name (Optional)")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        TextField("Your name", text: $userName)
-                            .textFieldStyle(.roundedBorder)
-                            .padding(.horizontal, 4)
-                    }
+            // Profile Info (auto-populated if available)
+            VStack(spacing: 24) {
+                // Name (auto-populated from connected service)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Name")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
                     
-                    // Avatar Selection
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Choose Avatar")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 60))], spacing: 16) {
-                            ForEach(avatarOptions, id: \.self) { avatar in
-                                Button(action: {
-                                    selectedAvatar = avatar
-                                }) {
-                                    Image(systemName: avatar)
-                                        .font(.title)
-                                        .foregroundColor(selectedAvatar == avatar ? .white : .blue)
-                                        .frame(width: 60, height: 60)
-                                        .background(selectedAvatar == avatar ? Color.blue : Color(.systemGray6))
-                                        .cornerRadius(12)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
+                    if isLoadingProfile {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Text(userName.isEmpty ? "Loading..." : userName)
+                            .font(.title3)
+                            .fontWeight(.medium)
                     }
+                }
+                
+                Divider()
+                
+                // Unit System
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Units")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
                     
-                    // Unit System
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Units")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        HStack(spacing: 12) {
-                            ForEach(UnitSystem.allCases, id: \.self) { unit in
-                                Button(action: {
-                                    selectedUnit = unit
-                                }) {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: unit == .metric ? "ruler" : "ruler.fill")
-                                            .font(.title2)
-                                            .foregroundColor(selectedUnit == unit ? .white : .blue)
-                                        
-                                        Text(unit.rawValue)
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(selectedUnit == unit ? .white : .primary)
-                                        
-                                        Text(unit.distance)
-                                            .font(.caption)
-                                            .foregroundColor(selectedUnit == unit ? .white.opacity(0.8) : .secondary)
-                                    }
+                    HStack(spacing: 12) {
+                        ForEach(UnitSystem.allCases, id: \.self) { unit in
+                            Button(action: {
+                                selectedUnit = unit
+                            }) {
+                                Text(unit.rawValue)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
                                     .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        selectedUnit == unit
-                                            ? Color.blue
-                                            : Color(.systemGray6)
+                                    .padding(.vertical, 12)
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(selectedUnit == unit ? Color.blue : Color(.systemGray4), lineWidth: selectedUnit == unit ? 2 : 1)
                                     )
-                                    .cornerRadius(12)
-                                }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }
-                .padding(.horizontal, 24)
             }
+            .padding(.horizontal, 32)
             
             Spacer()
             
@@ -155,27 +121,55 @@ struct ProfileSetupStepView: View {
             .padding(.bottom, 40)
         }
         .onAppear {
-            // Set initial values from UserSettings
-            selectedUnit = userSettings.useMetricUnits ? .metric : .imperial
+            loadProfileData()
         }
     }
     
     // MARK: - Helper Functions
+    
+    private func loadProfileData() {
+        isLoadingProfile = true
+        
+        // Set initial values from UserSettings
+        selectedUnit = userSettings.useMetricUnits ? .metric : .imperial
+        
+        // Try to get name from connected services
+        Task {
+            // Priority: Strava > Intervals > Health Kit
+            if stravaAuthService.connectionState.isConnected {
+                // TODO: Fetch athlete name from Strava when available
+                userName = "Athlete"
+            } else if intervalsManager.isAuthenticated {
+                // TODO: Fetch athlete name from Intervals when available
+                userName = "Athlete"
+            } else {
+                // Fallback to default
+                userName = "Athlete"
+            }
+            
+            isLoadingProfile = false
+        }
+    }
     
     private func saveProfile() {
         // Save unit preference
         userSettings.useMetricUnits = (selectedUnit == .metric)
         UserDefaults.standard.set(selectedUnit.rawValue, forKey: "preferredUnitSystem")
         
-        // Save name (if provided)
-        if !userName.isEmpty {
-            UserDefaults.standard.set(userName, forKey: "userName")
+        // Save name
+        UserDefaults.standard.set(userName, forKey: "userName")
+        
+        Logger.debug("✅ Profile saved: \(selectedUnit.rawValue), Name: \(userName)")
+    }
+    
+    private var profileDescription: String {
+        if stravaAuthService.connectionState.isConnected {
+            return "Profile data loaded from Strava"
+        } else if intervalsManager.isAuthenticated {
+            return "Profile data loaded from Intervals.icu"
+        } else {
+            return "Set your preferences"
         }
-        
-        // Save avatar
-        UserDefaults.standard.set(selectedAvatar, forKey: "userAvatar")
-        
-        Logger.debug("✅ Profile saved: \(selectedUnit.rawValue), Avatar: \(selectedAvatar)")
     }
 }
 

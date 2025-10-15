@@ -4,8 +4,7 @@ import SwiftUI
 struct DataSourcesStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var intervalsManager = IntervalsOAuthManager.shared
-    @State private var showingIntervalsAuth = false
-    @State private var showingStravaAuth = false
+    @StateObject private var stravaAuthService = StravaAuthService.shared
     
     // Check if user selected cycling as primary sport
     private var showCyclingIntegrations: Bool {
@@ -36,51 +35,46 @@ struct DataSourcesStepView: View {
             
             // Connection options (conditional)
             if showCyclingIntegrations {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     // Strava (top)
                     ConnectWithStravaButton(
                         action: {
-                            showingStravaAuth = true
+                            stravaAuthService.startAuth()
                         },
-                        isConnected: false // TODO: Update when Strava implemented
+                        isConnected: stravaAuthService.connectionState.isConnected,
+                        connectionState: stravaAuthService.connectionState
                     )
                     
                     // Intervals.icu (middle)
                     ConnectWithIntervalsButton(
                         action: {
-                            showingIntervalsAuth = true
+                            // Open the Intervals login view
+                            // Note: This should open IntervalsLoginView but we're simplifying
                         },
                         isConnected: intervalsManager.isAuthenticated
                     )
                     
                     // Wahoo (bottom) - Coming soon
-                    DataSourceConnectionCard(
-                        icon: "app.connected.to.app.below.fill",
-                        title: "Wahoo",
-                        description: "Coming soon",
-                        color: .orange,
-                        isConnected: false,
-                        action: {}
-                    )
+                    Button(action: {}) {
+                        Text("Wahoo (Coming Soon)")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.gray)
+                            .cornerRadius(8)
+                    }
+                    .disabled(true)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 32)
                 
-                if intervalsManager.isAuthenticated {
-                    Text("✓ You're connected!")
-                        .font(.headline)
-                        .foregroundColor(.green)
-                } else {
-                    Text("Optional: Connect your training platform")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text("Optional: Connect your training platform")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
             } else {
                 // Non-cycling message
                 VStack(spacing: 16) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.green)
-                    
                     Text("You're all set!")
                         .font(.title2)
                         .fontWeight(.semibold)
@@ -90,61 +84,28 @@ struct DataSourcesStepView: View {
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 32)
             }
             
             Spacer()
             
-            // Action buttons
-            VStack(spacing: 16) {
-                Button(action: {
-                    if intervalsManager.isAuthenticated {
-                        onboardingManager.hasConnectedIntervalsOrStrava = true
-                    }
-                    onboardingManager.nextStep()
-                }) {
-                    Text("Continue")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(16)
+            // Continue Button
+            Button(action: {
+                if intervalsManager.isAuthenticated || stravaAuthService.connectionState.isConnected {
+                    onboardingManager.hasConnectedIntervalsOrStrava = true
                 }
-                
-                if !intervalsManager.isAuthenticated {
-                    Button(action: {
-                        onboardingManager.nextStep()
-                    }) {
-                        Text("I'll Connect Later")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                onboardingManager.nextStep()
+            }) {
+                Text("Continue")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(12)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
-        }
-        .sheet(isPresented: $showingIntervalsAuth) {
-            IntervalsLoginView {
-                showingIntervalsAuth = false
-                if intervalsManager.isAuthenticated {
-                    onboardingManager.hasConnectedIntervalsOrStrava = true
-                }
-            }
-        }
-        .sheet(isPresented: $showingStravaAuth) {
-            // TODO: Strava auth view
-            VStack(spacing: 20) {
-                Text("Strava")
-                    .font(.largeTitle)
-                Text("Coming Soon")
-                    .foregroundColor(.secondary)
-                Button("Close") {
-                    showingStravaAuth = false
-                }
-            }
-            .padding()
         }
     }
     

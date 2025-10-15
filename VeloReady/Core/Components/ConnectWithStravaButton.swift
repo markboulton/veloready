@@ -9,36 +9,15 @@ struct ConnectWithStravaButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                // Icon based on state
-                Group {
-                    switch connectionState {
-                    case .connecting, .pending:
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    case .connected:
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
-                    case .error:
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                    case .disconnected:
-                        Image(systemName: "figure.outdoor.cycle")
-                            .font(.title3)
-                    }
-                }
+            // Text based on state
+            Text(buttonText)
+                .font(.headline)
+                .fontWeight(.semibold)
                 .foregroundColor(.white)
-                
-                // Text based on state
-                Text(buttonText)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(backgroundColor)
-            .cornerRadius(4) // Strava uses small corner radius
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(backgroundColor)
+                .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(connectionState.isLoading)

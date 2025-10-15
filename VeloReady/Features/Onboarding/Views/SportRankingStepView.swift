@@ -7,15 +7,11 @@ struct SportRankingStepView: View {
     @State private var sportOrder: [SportPreferences.Sport] = []
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 0) {
             Spacer()
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: "list.number.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                
                 Text("Choose Your Sports")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -27,7 +23,8 @@ struct SportRankingStepView: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 48)
             
             // Sport Selection Cards
             VStack(spacing: 16) {
@@ -42,9 +39,17 @@ struct SportRankingStepView: View {
                     )
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 32)
             
             Spacer()
+            
+            // Helper text - above button
+            if selectedSports.isEmpty {
+                Text("Select at least one sport to continue")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 12)
+            }
             
             // Continue Button
             Button(action: {
@@ -57,19 +62,11 @@ struct SportRankingStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(selectedSports.isEmpty ? Color.gray : Color.blue)
-                    .cornerRadius(16)
+                    .cornerRadius(12)
             }
             .disabled(selectedSports.isEmpty)
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
-            
-            // Helper text
-            if selectedSports.isEmpty {
-                Text("Select at least one sport to continue")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 20)
-            }
         }
     }
     
@@ -126,42 +123,45 @@ struct SportSelectionCard: View {
                 // Icon
                 Image(systemName: sport.icon)
                     .font(.title2)
-                    .foregroundColor(isSelected ? .white : .blue)
-                    .frame(width: 40)
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(Color.blue)
+                    .clipShape(Circle())
                 
-                // Content
+                // Content - Fixed width to prevent wrapping
                 VStack(alignment: .leading, spacing: 4) {
                     Text(sport.displayName)
                         .font(.headline)
-                        .foregroundColor(isSelected ? .white : .primary)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
                     
                     Text(sport.description)
                         .font(.caption)
-                        .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
                 
-                Spacer()
+                Spacer(minLength: 8)
                 
                 // Rank Badge
                 if let rank = rank {
                     ZStack {
                         Circle()
-                            .fill(Color.white)
+                            .fill(Color.blue)
                             .frame(width: 32, height: 32)
                         
                         Text("\(rank)")
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.white)
                     }
                 }
             }
-            .padding()
-            .background(isSelected ? Color.blue : Color(.systemGray6))
-            .cornerRadius(16)
+            .padding(16)
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                     .stroke(isSelected ? Color.blue : Color(.systemGray4), lineWidth: isSelected ? 2 : 1)
             )
         }

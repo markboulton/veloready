@@ -34,21 +34,11 @@ struct ValuePropStepView: View {
     ]
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 0) {
             Spacer()
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: "flag.checkered.circle.fill")
-                    .font(.system(size: 72))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.blue, .cyan],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
                 Text("Welcome to VeloReady")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -60,16 +50,15 @@ struct ValuePropStepView: View {
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal)
+            .padding(.bottom, 48)
             
-            // Benefits List
-            ScrollView {
-                VStack(spacing: 16) {
-                    ForEach(benefits) { benefit in
-                        ValuePropBenefitRow(benefit: benefit)
-                    }
+            // Benefits List - Not scrollable
+            VStack(spacing: 20) {
+                ForEach(benefits) { benefit in
+                    ValuePropBenefitRow(benefit: benefit)
                 }
-                .padding(.horizontal, 24)
             }
+            .padding(.horizontal, 32)
             
             Spacer()
             
@@ -83,7 +72,7 @@ struct ValuePropStepView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.blue)
-                    .cornerRadius(16)
+                    .cornerRadius(12)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
@@ -102,8 +91,10 @@ struct ValuePropBenefitRow: View {
             // Icon
             Image(systemName: benefit.icon)
                 .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 40)
+                .foregroundColor(.white)
+                .frame(width: 40, height: 40)
+                .background(Color.blue)
+                .clipShape(Circle())
             
             // Text
             VStack(alignment: .leading, spacing: 4) {
@@ -114,13 +105,11 @@ struct ValuePropBenefitRow: View {
                 Text(benefit.description)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
             Spacer()
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 }
 

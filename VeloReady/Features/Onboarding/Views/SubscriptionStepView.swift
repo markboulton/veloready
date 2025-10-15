@@ -33,27 +33,11 @@ struct SubscriptionStepView: View {
     }
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 0) {
             Spacer()
             
             // Header
             VStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.purple, Color.pink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 100, height: 100)
-                    
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 40))
-                        .foregroundColor(.white)
-                }
-                
                 Text("Unlock Pro Features")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -64,10 +48,11 @@ struct SubscriptionStepView: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 40)
             
             // Features
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 20) {
                 ProFeatureRow(
                     icon: "brain.head.profile",
                     title: "AI Daily Brief",
@@ -92,7 +77,8 @@ struct SubscriptionStepView: View {
                     description: "Recovery alerts and reminders"
                 )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 32)
             
             // Pricing
             VStack(spacing: 12) {
@@ -104,11 +90,11 @@ struct SubscriptionStepView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(plan.rawValue)
                                     .font(.headline)
-                                    .foregroundColor(selectedPlan == plan ? .white : .primary)
+                                    .foregroundColor(.primary)
                                 
                                 Text(plan.period)
                                     .font(.caption)
-                                    .foregroundColor(selectedPlan == plan ? .white.opacity(0.8) : .secondary)
+                                    .foregroundColor(.secondary)
                             }
                             
                             Spacer()
@@ -117,7 +103,7 @@ struct SubscriptionStepView: View {
                                 Text(plan.price)
                                     .font(.title3)
                                     .fontWeight(.bold)
-                                    .foregroundColor(selectedPlan == plan ? .white : .primary)
+                                    .foregroundColor(.primary)
                                 
                                 if let savings = plan.savings {
                                     Text(savings)
@@ -132,32 +118,20 @@ struct SubscriptionStepView: View {
                             }
                             
                             Image(systemName: selectedPlan == plan ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedPlan == plan ? .white : .secondary)
+                                .foregroundColor(selectedPlan == plan ? .blue : .secondary)
                         }
                         .padding()
-                        .background(
-                            selectedPlan == plan
-                                ? LinearGradient(
-                                    colors: [Color.purple, Color.pink],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                : LinearGradient(
-                                    colors: [Color(.systemGray6), Color(.systemGray6)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                        )
+                        .background(Color(.systemBackground))
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedPlan == plan ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                                .stroke(selectedPlan == plan ? Color.blue : Color(.systemGray4), lineWidth: selectedPlan == plan ? 2 : 1)
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 32)
             
             Spacer()
             
@@ -173,14 +147,8 @@ struct SubscriptionStepView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(
-                            LinearGradient(
-                                colors: [Color.purple, Color.pink],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
+                        .background(Color.blue)
+                        .cornerRadius(12)
                 }
                 
                 Button(action: {
@@ -204,17 +172,16 @@ struct ProFeatureRow: View {
     let description: String
     
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.purple.opacity(0.1))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: icon)
-                    .foregroundColor(.purple)
-            }
+        HStack(spacing: 16) {
+            // White icon on blue circle
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(.white)
+                .frame(width: 40, height: 40)
+                .background(Color.blue)
+                .clipShape(Circle())
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -225,10 +192,6 @@ struct ProFeatureRow: View {
             }
             
             Spacer()
-            
-            Image(systemName: "checkmark")
-                .font(.caption)
-                .foregroundColor(.green)
         }
     }
 }
