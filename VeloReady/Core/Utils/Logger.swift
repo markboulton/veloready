@@ -49,14 +49,14 @@ enum Logger {
     static func debug(_ message: String, category: Category = .performance) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        Logger.debug("🔍 [\(category.rawValue)] \(message)")
+        print("🔍 [\(category.rawValue)] \(message)")
         #endif
     }
     
     /// Log information (always shown, uses os_log in production)
     static func info(_ message: String, category: Category = .performance) {
         #if DEBUG
-        Logger.debug("ℹ️ [\(category.rawValue)] \(message)")
+        print("ℹ️ [\(category.rawValue)] \(message)")
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
         logger.info("\(message, privacy: .public)")
@@ -66,7 +66,7 @@ enum Logger {
     /// Log warnings (always shown)
     static func warning(_ message: String, category: Category = .performance) {
         #if DEBUG
-        Logger.warning("️ [\(category.rawValue)] \(message)")
+        print("⚠️ [\(category.rawValue)] \(message)")
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
         logger.warning("\(message, privacy: .public)")
@@ -77,9 +77,9 @@ enum Logger {
     static func error(_ message: String, error: Error? = nil, category: Category = .performance) {
         #if DEBUG
         if let error = error {
-            Logger.error("[\(category.rawValue)] \(message): \(error.localizedDescription)")
+            print("❌ [\(category.rawValue)] \(message): \(error.localizedDescription)")
         } else {
-            Logger.error("[\(category.rawValue)] \(message)")
+            print("❌ [\(category.rawValue)] \(message)")
         }
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
@@ -96,9 +96,9 @@ enum Logger {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
         if let duration = duration {
-            Logger.debug("⚡ [Performance] \(message) (\(String(format: "%.2f", duration))s)")
+            print("⚡ [Performance] \(message) (\(String(format: "%.2f", duration))s)")
         } else {
-            Logger.debug("⚡ [Performance] \(message)")
+            print("⚡ [Performance] \(message)")
         }
         #endif
     }
@@ -107,7 +107,7 @@ enum Logger {
     static func network(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        Logger.debug("🌐 [Network] \(message)")
+        print("🌐 [Network] \(message)")
         #endif
     }
     
@@ -115,7 +115,7 @@ enum Logger {
     static func data(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        Logger.data("[Data] \(message)")
+        print("📊 [Data] \(message)")
         #endif
     }
     
@@ -123,7 +123,7 @@ enum Logger {
     static func health(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        Logger.debug("💓 [Health] \(message)")
+        print("💓 [Health] \(message)")
         #endif
     }
     
@@ -131,7 +131,7 @@ enum Logger {
     static func cache(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        Logger.debug("💾 [Cache] \(message)")
+        print("💾 [Cache] \(message)")
         #endif
     }
 }
