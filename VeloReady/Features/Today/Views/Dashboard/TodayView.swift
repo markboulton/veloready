@@ -66,18 +66,8 @@ struct TodayView: View {
                             isHealthKitAuthorized: healthKitManager.isAuthorized,
                             missingSleepBannerDismissed: $missingSleepBannerDismissed,
                             animationTrigger: viewModel.animationTrigger,
-                            hideBottomDivider: healthKitManager.isAuthorized && wellnessService.currentAlert != nil
+                            hideBottomDivider: false
                         )
-                        
-                        // Wellness Alert Banner (full width, no horizontal padding, 16px vertical padding)
-                        if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
-                            WellnessBanner(alert: alert) {
-                                showingWellnessDetailSheet = true
-                            }
-                            .padding(.horizontal, -16) // Negative padding to extend to edges
-                            .padding(.vertical, 16) // 16px top and bottom padding
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                        }
                         
                         // AI Daily Brief (only when HealthKit authorized)
                         if healthKitManager.isAuthorized {
@@ -120,6 +110,15 @@ struct TodayView: View {
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
+                        WellnessIndicator(alert: alert) {
+                            showingWellnessDetailSheet = true
+                        }
+                    }
+                }
+            }
             .refreshable {
                 await viewModel.forceRefreshData()
             }

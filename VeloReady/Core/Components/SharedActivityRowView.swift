@@ -31,18 +31,18 @@ struct SharedActivityRowView: View {
             
             Spacer()
             
-            // Navigation chevron (shown when in NavigationLink)
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .opacity(0.5)
-            
             // Compact RPE indicator for strength workouts
             if shouldShowRPEButton {
                 RPEBadge(hasRPE: hasRPE) {
                     showingRPESheet = true
                 }
             }
+            
+            // Navigation chevron (shown when in NavigationLink)
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .opacity(0.5)
         }
         .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
