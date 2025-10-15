@@ -94,15 +94,12 @@ struct WorkoutDetailCharts: View {
     // Helper to check if metric has meaningful data (at least 5% of samples must be non-zero)
     private func hasData(_ getValue: (WorkoutSample) -> Double, metricName: String = "Unknown") -> Bool {
         guard !samples.isEmpty else {
-            Logger.data("[\(metricName)] No samples available")
             return false
         }
         
         let values = samples.map(getValue).filter { $0 > 0 }
         let percentage = Double(values.count) / Double(samples.count)
         let hasEnoughData = percentage >= 0.05
-        
-        Logger.data("[\(metricName)] Data check: \(values.count)/\(samples.count) samples have data (\(Int(percentage * 100))%) - \(hasEnoughData ? "SHOWING" : "HIDING") chart")
         
         // Require at least 5% of samples to have data to avoid showing charts with all zeros
         return hasEnoughData
