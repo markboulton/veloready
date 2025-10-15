@@ -8,6 +8,7 @@ struct RecoveryMetricsSection: View {
     let isHealthKitAuthorized: Bool
     @Binding var missingSleepBannerDismissed: Bool
     let animationTrigger: UUID // Triggers animations on change
+    var hideBottomDivider: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -47,7 +48,9 @@ struct RecoveryMetricsSection: View {
                 }
             }
             
-            SectionDivider()
+            if !hideBottomDivider {
+                SectionDivider()
+            }
         }
     }
     

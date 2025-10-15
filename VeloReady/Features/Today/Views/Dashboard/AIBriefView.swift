@@ -13,7 +13,7 @@ struct RainbowGradient: ViewModifier {
                         ColorPalette.cyan
                     ]),
                     startPoint: UnitPoint(x: 0, y: 0),
-                    endPoint: UnitPoint(x: 1, y: 1)
+                    endPoint: UnitPoint(x: 1, y: 0.577) // 30 degree angle (tan(30°) ≈ 0.577)
                 )
             )
             .mask(content)
@@ -36,7 +36,7 @@ struct AIBriefView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
                         .font(.heading)
-                        .rainbowGradient()
+                        .foregroundColor(ColorPalette.pink)
                     
                     Text(TodayContent.AIBrief.title)
                         .font(.heading)

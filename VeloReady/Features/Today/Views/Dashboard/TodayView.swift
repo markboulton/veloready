@@ -65,15 +65,17 @@ struct TodayView: View {
                             strainScoreService: viewModel.strainScoreService,
                             isHealthKitAuthorized: healthKitManager.isAuthorized,
                             missingSleepBannerDismissed: $missingSleepBannerDismissed,
-                            animationTrigger: viewModel.animationTrigger
+                            animationTrigger: viewModel.animationTrigger,
+                            hideBottomDivider: healthKitManager.isAuthorized && wellnessService.currentAlert != nil
                         )
                         
-                        // Wellness Alert Banner (full width, no padding)
+                        // Wellness Alert Banner (full width, no horizontal padding, 16px vertical padding)
                         if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
                             WellnessBanner(alert: alert) {
                                 showingWellnessDetailSheet = true
                             }
                             .padding(.horizontal, -16) // Negative padding to extend to edges
+                            .padding(.vertical, 16) // 16px top and bottom padding
                             .transition(.move(edge: .top).combined(with: .opacity))
                         }
                         
