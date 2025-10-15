@@ -637,10 +637,8 @@ struct AthleteZonesSettingsView: View {
             
             Logger.data("Fetched \(activities.count) activities for recomputation (last 120 days)")
             
-            // Recompute zones on main actor
-            await MainActor.run {
-                profileManager.computeFromActivities(activities)
-            }
+            // Recompute zones (already on main actor in SwiftUI view)
+            await profileManager.computeFromActivities(activities)
             
             Logger.data("✅ Recomputation complete")
             

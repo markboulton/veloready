@@ -90,13 +90,15 @@ struct RideDetailSheet: View {
                 
                 RideMetricCard(
                     title: "Intensity",
-                    value: formatIntensity(activity.intensityFactor ?? 0)
+                    value: activity.intensityFactor != nil ? formatIntensity(activity.intensityFactor!) : "N/A"
                 )
+                .opacity(activity.intensityFactor != nil ? 1.0 : 0.5)
                 
                 RideMetricCard(
                     title: "Load",
-                    value: formatLoad(activity.tss ?? 0)
+                    value: activity.tss != nil ? formatLoad(activity.tss!) : "N/A"
                 )
+                .opacity(activity.tss != nil ? 1.0 : 0.5)
             }
         }
         .padding()

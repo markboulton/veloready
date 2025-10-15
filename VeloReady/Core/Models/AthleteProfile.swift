@@ -100,11 +100,38 @@ class AthleteProfileManager: ObservableObject {
         }
     }
     
+    /// Use Strava athlete FTP as fallback if no computed FTP yet
+    private func useStravaFTPIfAvailable() async {
+        // Only fetch if we don't have FTP yet
+        guard profile.ftp == nil || profile.ftp == 0 else { return }
+        
+        do {
+            Logger.data("📊 Attempting to fetch Strava athlete FTP as fallback...")
+            let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
+            
+            if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
+                Logger.data("✅ Using Strava FTP as fallback: \(stravaFTP)W")
+                profile.ftp = Double(stravaFTP)
+                profile.ftpSource = .intervals // Mark as from external source
+                profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: Double(stravaFTP))
+                profile.lastUpdated = Date()
+                save()
+            } else {
+                Logger.data("⚠️ Strava athlete has no FTP set")
+            }
+        } catch {
+            Logger.warning("⚠️ Could not fetch Strava athlete data: \(error)")
+        }
+    }
+    
     /// Compute zones from recent activities using sports science algorithms (last 120 days)
     /// Uses Critical Power model, power curve analysis, and HR lactate threshold detection
-    func computeFromActivities(_ activities: [IntervalsActivity]) {
+    func computeFromActivities(_ activities: [IntervalsActivity]) async {
         Logger.data("========== COMPUTING ADAPTIVE ZONES FROM PERFORMANCE DATA ==========")
         Logger.data("Using modern sports science algorithms (CP model, power distribution, HR analysis)")
+        
+        // NEW: Try to get Strava FTP as fallback before computing
+        await useStravaFTPIfAvailable()
         
         let oneTwentyDaysAgo = Calendar.current.date(byAdding: .day, value: -120, to: Date())!
         
@@ -132,6 +159,17 @@ class AthleteProfileManager: ObservableObject {
         
         // Always update weight, resting HR, LTHR from most recent
         updateAuxiliaryMetrics(recentActivities)
+        
+        // Ensure zones are generated even if FTP/HR computation had limited data
+        if (profile.powerZones == nil || profile.powerZones!.isEmpty), let ftp = profile.ftp, ftp > 0 {
+            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+            Logger.data("✅ Generated default power zones from FTP: \(Int(ftp))W")
+        }
+        
+        if (profile.hrZones == nil || profile.hrZones!.isEmpty), let maxHR = profile.maxHR, maxHR > 0 {
+            profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+            Logger.data("✅ Generated default HR zones from max HR: \(Int(maxHR))bpm")
+        }
         
         profile.lastComputedFromActivities = Date()
         profile.lastUpdated = Date()

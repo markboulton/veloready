@@ -220,10 +220,8 @@ final class CacheManager: ObservableObject {
             let activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
             
             // Compute athlete zones from activities (async)
-            Task {
-                await MainActor.run {
-                    AthleteProfileManager.shared.computeFromActivities(activities)
-                }
+            Task { @MainActor in
+                await AthleteProfileManager.shared.computeFromActivities(activities)
             }
             
             // Find activity for the specific date

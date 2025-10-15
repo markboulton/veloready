@@ -435,13 +435,36 @@ class RideDetailViewModel: ObservableObject {
                 // Enrich activity with stream data
                 var enriched = enrichActivityWithStreamData(activity: activity, samples: workoutSamples, profileManager: profileManager)
                 
-                // Calculate TSS and IF from weighted_average_watts (Strava's normalized power)
-                if let normalizedPower = activity.normalizedPower, let ftp = profileManager.profile.ftp, ftp > 0 {
-                    let intensityFactor = normalizedPower / ftp
+                // Calculate TSS and IF with fallbacks for missing data
+                var normalizedPower = activity.normalizedPower
+                var ftp = profileManager.profile.ftp
+                
+                // Fallback 1: Estimate NP from average power if missing
+                if normalizedPower == nil, let avgPower = activity.averagePower, avgPower > 0 {
+                    normalizedPower = avgPower * 1.05 // Conservative NP estimate
+                    Logger.debug("🟠 Estimated NP from average power: \(Int(normalizedPower!))W (avg power: \(Int(avgPower))W)")
+                }
+                
+                // Fallback 2: Try to get FTP from Strava athlete if not computed
+                if ftp == nil || ftp == 0 {
+                    do {
+                        let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
+                        if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
+                            ftp = Double(stravaFTP)
+                            Logger.debug("🟠 Using Strava FTP: \(Int(ftp!))W")
+                        }
+                    } catch {
+                        Logger.warning("🟠 Could not fetch Strava FTP: \(error)")
+                    }
+                }
+                
+                // Calculate TSS if we have both NP and FTP
+                if let np = normalizedPower, let ftpValue = ftp, ftpValue > 0, np > 0 {
+                    let intensityFactor = np / ftpValue
                     let duration = activity.duration ?? 0
-                    let tss = (duration * normalizedPower * intensityFactor) / (ftp * 36.0)
+                    let tss = (duration * np * intensityFactor) / (ftpValue * 36.0)
                     
-                    Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(normalizedPower))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftp))W)")
+                    Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftpValue))W)")
                     
                     // Create new activity with TSS and IF
                     enriched = IntervalsActivity(
@@ -454,7 +477,7 @@ class RideDetailViewModel: ObservableObject {
                         distance: enriched.distance,
                         elevationGain: enriched.elevationGain,
                         averagePower: enriched.averagePower,
-                        normalizedPower: enriched.normalizedPower,
+                        normalizedPower: np, // Use calculated/fallback NP
                         averageHeartRate: enriched.averageHeartRate,
                         maxHeartRate: enriched.maxHeartRate,
                         averageCadence: enriched.averageCadence,
@@ -469,6 +492,8 @@ class RideDetailViewModel: ObservableObject {
                         icuZoneTimes: enriched.icuZoneTimes,
                         icuHrZoneTimes: enriched.icuHrZoneTimes
                     )
+                } else {
+                    Logger.warning("🟠 Cannot calculate TSS - missing data (NP: \(normalizedPower != nil), FTP: \(ftp != nil && ftp! > 0))")
                 }
                 
                 enrichedActivity = enriched

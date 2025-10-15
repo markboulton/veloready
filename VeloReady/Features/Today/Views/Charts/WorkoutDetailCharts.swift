@@ -503,7 +503,8 @@ struct ElevationChartView: View {
                 if !elevValue.isNaN && !elevValue.isInfinite {
                     AreaMark(
                         x: .value("Time", sample.time),
-                        y: .value("Elevation", elevValue)
+                        yStart: .value("Base", yAxisRange.lowerBound),
+                        yEnd: .value("Elevation", elevValue)
                     )
                 }
             }
