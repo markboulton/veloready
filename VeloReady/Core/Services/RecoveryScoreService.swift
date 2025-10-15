@@ -625,6 +625,8 @@ extension RecoveryScoreService {
                 Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
             } catch {
                 Logger.error("Failed to decode cached recovery score: \(error)")
+                Logger.warning("️ Clearing invalid cache - will recalculate")
+                clearCachedRecoveryScore()
             }
         } else {
             Logger.debug("📦 Cached recovery score is outdated, clearing cache")

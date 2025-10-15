@@ -486,6 +486,8 @@ extension StrainScoreService {
                 Logger.debug("⚡ Loaded cached strain score: \(cachedScore.score)")
             } catch {
                 Logger.error("Failed to decode cached strain score: \(error)")
+                Logger.warning("️ Clearing invalid cache - will recalculate")
+                clearCachedStrainScore()
             }
         } else {
             Logger.debug("📦 Cached strain score is outdated, clearing cache")
