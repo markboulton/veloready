@@ -248,7 +248,7 @@ class IntervalsOAuthManager: ObservableObject {
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (_, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
@@ -332,7 +332,7 @@ class IntervalsOAuthManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "intervals_user")
         
         // Clear cached Intervals data so only HealthKit data is shown
-        await IntervalsCache.shared.clearCache()
+        _ = await IntervalsCache.shared.clearCache()
         print("🗑️ Cleared Intervals.icu cache on sign out - switching to HealthKit-only mode")
     }
     

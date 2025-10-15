@@ -170,7 +170,7 @@ class LiveActivityService: ObservableObject {
         // Calculate total calories
         let intervalsCaloriesValue = UserDefaults.standard.double(forKey: "cached_intervals_calories")
         let activeCaloriesValue = activeCalories + intervalsCaloriesValue
-        let effectiveGoal = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
+        _ = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         
         print("📱 Cached data loaded - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
@@ -192,7 +192,7 @@ class LiveActivityService: ObservableObject {
         let activeCaloriesValue = healthData.activeCalories + intervalsCaloriesValue
         
         // Get effective calorie goal (BMR or user-set)
-        let effectiveGoal = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
+        _ = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
         
         // Update published properties with fresh data
         dailySteps = healthData.steps
