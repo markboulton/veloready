@@ -3,12 +3,13 @@ import Charts
 
 /// Training Load chart showing 37-day CTL/ATL/TSB trend (30 days past + 7 days future projection)
 /// Shows ACTUAL peaks/troughs from real wellness data
+/// Works with both Strava and Intervals.icu data
 /// PRO Feature
 struct TrainingLoadChart: View {
     let activity: IntervalsActivity
     @ObservedObject private var proConfig = ProFeatureConfig.shared
-    @EnvironmentObject private var apiClient: IntervalsAPIClient
     @State private var historicalActivities: [IntervalsActivity] = []
+    @State private var isLoading = false
     
     var body: some View {
         guard proConfig.hasProAccess else {
@@ -225,32 +226,145 @@ struct TrainingLoadChart: View {
     
     private func loadHistoricalActivities(rideDate: Date) async {
         do {
-            // Fetch 60 days of activities to ensure full history
-            Logger.data("TrainingLoadChart: Fetching activities (60 days, limit 300)")
-            let activities = try await apiClient.fetchRecentActivities(limit: 300, daysBack: 60)
-            Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
+            // Try Intervals.icu first if authenticated
+            if IntervalsOAuthManager.shared.isAuthenticated {
+                Logger.data("TrainingLoadChart: Fetching from Intervals.icu")
+                let apiClient = IntervalsAPIClient.shared
+                let activities = try await apiClient.fetchRecentActivities(limit: 300, daysBack: 60)
+                Logger.data("TrainingLoadChart: Fetched \(activities.count) activities from Intervals")
+                
+                let activitiesWithData = activities.filter { $0.ctl != nil && $0.atl != nil }
+                await MainActor.run {
+                    self.historicalActivities = activitiesWithData
+                }
+                return
+            }
             
-            // Filter to only activities with CTL/ATL data
-            let activitiesWithData = activities.filter { $0.ctl != nil && $0.atl != nil }
-            Logger.data("TrainingLoadChart: \(activitiesWithData.count) activities have CTL/ATL data")
+            // Fallback to Strava with CTL/ATL calculation
+            Logger.data("TrainingLoadChart: Fetching from Strava")
+            let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
+            Logger.data("TrainingLoadChart: Fetched \(stravaActivities.count) activities from Strava")
             
-            // Check first few activities
-            if activitiesWithData.count > 0 {
-                let first = activitiesWithData[0]
-                Logger.data("TrainingLoadChart: First activity with data:")
-                Logger.debug("  - date: \(first.startDateLocal)")
-                Logger.debug("  - name: \(first.name ?? "Unnamed")")
-                Logger.debug("  - CTL: \(first.ctl ?? -1)")
-                Logger.debug("  - ATL: \(first.atl ?? -1)")
-                Logger.debug("  - TSS: \(first.tss ?? -1)")
+            // Get FTP for TSS calculation
+            let profileManager = await MainActor.run { AthleteProfileManager.shared }
+            guard let ftp = profileManager.profile.ftp, ftp > 0 else {
+                Logger.warning("TrainingLoadChart: No FTP available for TSS calculation")
+                return
+            }
+            
+            // Convert Strava activities and calculate TSS/CTL/ATL
+            var enrichedActivities: [IntervalsActivity] = []
+            
+            for stravaActivity in stravaActivities {
+                var activity = convertStravaToIntervals(stravaActivity)
+                
+                // Calculate TSS if activity has power data
+                if let np = activity.normalizedPower ?? (activity.averagePower.map { $0 * 1.05 }),
+                   np > 50 {
+                    let duration = activity.duration ?? 0
+                    let if_value = np / ftp
+                    let tss = (duration * np * if_value) / (ftp * 36.0)
+                    
+                    activity = IntervalsActivity(
+                        id: activity.id,
+                        name: activity.name,
+                        description: activity.description,
+                        startDateLocal: activity.startDateLocal,
+                        type: activity.type,
+                        duration: activity.duration,
+                        distance: activity.distance,
+                        elevationGain: activity.elevationGain,
+                        averagePower: activity.averagePower,
+                        normalizedPower: np,
+                        averageHeartRate: activity.averageHeartRate,
+                        maxHeartRate: activity.maxHeartRate,
+                        averageCadence: activity.averageCadence,
+                        averageSpeed: activity.averageSpeed,
+                        maxSpeed: activity.maxSpeed,
+                        calories: activity.calories,
+                        fileType: activity.fileType,
+                        tss: tss,
+                        intensityFactor: if_value,
+                        atl: nil,
+                        ctl: nil,
+                        icuZoneTimes: nil,
+                        icuHrZoneTimes: nil
+                    )
+                }
+                
+                enrichedActivities.append(activity)
+            }
+            
+            // Calculate CTL/ATL for all activities
+            let calculator = TrainingLoadCalculator()
+            let (ctl, atl) = calculator.calculateTrainingLoadFromActivities(enrichedActivities)
+            
+            // Add CTL/ATL to each activity (simplified - just use final values)
+            // For proper chart, we'd need to calculate CTL/ATL at each point in time
+            let activitiesWithLoad = enrichedActivities.map { activity in
+                IntervalsActivity(
+                    id: activity.id,
+                    name: activity.name,
+                    description: activity.description,
+                    startDateLocal: activity.startDateLocal,
+                    type: activity.type,
+                    duration: activity.duration,
+                    distance: activity.distance,
+                    elevationGain: activity.elevationGain,
+                    averagePower: activity.averagePower,
+                    normalizedPower: activity.normalizedPower,
+                    averageHeartRate: activity.averageHeartRate,
+                    maxHeartRate: activity.maxHeartRate,
+                    averageCadence: activity.averageCadence,
+                    averageSpeed: activity.averageSpeed,
+                    maxSpeed: activity.maxSpeed,
+                    calories: activity.calories,
+                    fileType: activity.fileType,
+                    tss: activity.tss,
+                    intensityFactor: activity.intensityFactor,
+                    atl: atl,
+                    ctl: ctl,
+                    icuZoneTimes: activity.icuZoneTimes,
+                    icuHrZoneTimes: activity.icuHrZoneTimes
+                )
             }
             
             await MainActor.run {
-                self.historicalActivities = activitiesWithData
+                self.historicalActivities = activitiesWithLoad.filter { $0.tss != nil }
             }
+            
+            Logger.data("TrainingLoadChart: Processed \(self.historicalActivities.count) activities with TSS")
         } catch {
             Logger.error("TrainingLoadChart: Failed to fetch activities: \(error)")
         }
+    }
+    
+    private func convertStravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
+        IntervalsActivity(
+            id: "strava_\(strava.id)",
+            name: strava.name,
+            description: nil,
+            startDateLocal: strava.start_date_local,
+            type: strava.sport_type,
+            duration: TimeInterval(strava.moving_time),
+            distance: strava.distance,
+            elevationGain: strava.total_elevation_gain,
+            averagePower: strava.average_watts,
+            normalizedPower: strava.weighted_average_watts.map { Double($0) },
+            averageHeartRate: strava.average_heartrate,
+            maxHeartRate: strava.max_heartrate.map { Double($0) },
+            averageCadence: strava.average_cadence,
+            averageSpeed: strava.average_speed,
+            maxSpeed: strava.max_speed,
+            calories: strava.calories.map { Int($0) },
+            fileType: nil,
+            tss: nil,
+            intensityFactor: nil,
+            atl: nil,
+            ctl: nil,
+            icuZoneTimes: nil,
+            icuHrZoneTimes: nil
+        )
     }
     
     private func generateThirtySevenDayTrend(

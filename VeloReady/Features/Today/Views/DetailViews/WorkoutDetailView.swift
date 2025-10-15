@@ -109,16 +109,8 @@ struct WorkoutDetailView: View {
                         
                         SectionDivider()
                         
-                        // Training Load Summary (CTL/ATL/TSB)
-                        if displayActivity.ctl != nil || displayActivity.atl != nil {
-                            TrainingLoadSummaryView(activity: displayActivity)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 20)
-                            
-                            SectionDivider()
-                        }
-                        
                         // Training Load Chart - PRO feature (has its own margins)
+                        // Shows CTL/ATL/TSB trend over time with 3 intersecting lines
                         TrainingLoadChart(activity: displayActivity)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 20)
