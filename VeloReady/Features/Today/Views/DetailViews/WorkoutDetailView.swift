@@ -105,18 +105,21 @@ struct WorkoutDetailView: View {
                         // AI Ride Summary - PRO feature (below metadata, before charts)
                         RideSummaryView(activity: displayActivity)
                             .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
                         
                         SectionDivider()
                         
                         // Training Load Chart - PRO feature (has its own margins)
                         TrainingLoadChart(activity: displayActivity)
                             .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
                         
                         SectionDivider()
                         
                         // Intensity Chart - PRO feature (has its own margins)
                         IntensityChart(activity: displayActivity)
                             .padding(.horizontal, 16)
+                            .padding(.vertical, 20)
                         
                         SectionDivider()
                     } else {

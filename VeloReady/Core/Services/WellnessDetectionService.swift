@@ -17,9 +17,9 @@ class WellnessDetectionService: ObservableObject {
     private let minimumAnalysisInterval: TimeInterval = 3600 // 1 hour between analyses
     
     // Detection thresholds (conservative to avoid false positives)
-    private let rhrElevationThreshold = 0.10 // 10% above baseline
-    private let hrvDepressionThreshold = -0.15 // 15% below baseline
-    private let respiratoryElevationThreshold = 0.15 // 15% above baseline
+    private let rhrElevationThreshold = 0.15 // 15% above baseline (increased from 10%)
+    private let hrvDepressionThreshold = -0.20 // 20% below baseline (increased from 15%)
+    private let respiratoryElevationThreshold = 0.20 // 20% above baseline (increased from 15%)
     private let bodyTempElevationThreshold = 0.5 // 0.5°C above baseline
     private let minimumConsecutiveDays = 2 // Need at least 2 days of sustained changes
     
@@ -251,17 +251,24 @@ class WellnessDetectionService: ObservableObject {
     private func determineAlert(metrics: WellnessAlert.AffectedMetrics, maxConsecutiveDays: Int) -> WellnessAlert? {
         let affectedCount = metrics.count
         
-        // No alert if less than 2 metrics affected
-        guard affectedCount >= 2 else { return nil }
+        // No alert if less than 3 metrics affected (increased from 2)
+        guard affectedCount >= 3 else { return nil }
+        
+        // Override: If recovery score is good (>75), don't show alert unless very severe
+        if let recoveryScore = RecoveryScoreService.shared.currentRecoveryScore?.score,
+           recoveryScore > 75 {
+            // Only show alert if 4+ metrics affected (very severe)
+            guard affectedCount >= 4 else { return nil }
+        }
         
         // Determine severity based on number of affected metrics and duration
         let severity: WellnessAlert.Severity
         let type: WellnessAlert.AlertType
         
-        if affectedCount >= 4 || maxConsecutiveDays >= 3 {
+        if affectedCount >= 5 || maxConsecutiveDays >= 4 {
             severity = .red
             type = .multipleIndicators
-        } else if affectedCount >= 3 || maxConsecutiveDays >= 2 {
+        } else if affectedCount >= 4 || maxConsecutiveDays >= 3 {
             severity = .amber
             type = .sustainedElevation
         } else {

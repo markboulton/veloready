@@ -223,6 +223,13 @@ private struct SummaryContentView: View {
 private struct ExecutionScoreView: View {
     let score: Int
     
+    @State private var animatedProgress: Double = 0.0
+    @State private var numberOpacity: Double = 0.0
+    
+    private let animationDuration: Double = 0.84
+    private let numberFadeDuration: Double = 0.28
+    private let initialDelay: Double = 0.14
+    
     private var scoreColor: Color {
         switch score {
         case 90...100:
@@ -258,7 +265,7 @@ private struct ExecutionScoreView: View {
                     .frame(width: 60, height: 60)
                 
                 Circle()
-                    .trim(from: 0, to: CGFloat(score) / 100.0)
+                    .trim(from: 0, to: animatedProgress)
                     .stroke(scoreColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                     .frame(width: 60, height: 60)
                     .rotationEffect(.degrees(-90))
@@ -268,7 +275,11 @@ private struct ExecutionScoreView: View {
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(scoreColor)
+                        .opacity(numberOpacity)
                 }
+            }
+            .onAppear {
+                animateRing()
             }
             
             VStack(alignment: .leading, spacing: 4) {
@@ -289,6 +300,18 @@ private struct ExecutionScoreView: View {
             Spacer()
         }
         .padding(.vertical, 8)
+    }
+    
+    private func animateRing() {
+        let numberStartDelay = animationDuration * 0.7
+        
+        withAnimation(.easeOut(duration: animationDuration).delay(initialDelay)) {
+            animatedProgress = CGFloat(score) / 100.0
+        }
+        
+        withAnimation(.easeIn(duration: numberFadeDuration).delay(initialDelay + numberStartDelay)) {
+            numberOpacity = 1.0
+        }
     }
 }
 

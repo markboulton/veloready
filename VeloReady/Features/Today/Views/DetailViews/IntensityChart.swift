@@ -38,7 +38,7 @@ struct IntensityChart: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    HStack(spacing: 20) {
+                    HStack(alignment: .top, spacing: 20) {
                         // Circular gauge
                         ZStack {
                             // Background circle
@@ -80,30 +80,16 @@ struct IntensityChart: View {
                                 .font(.caption)
                                 .foregroundColor(Color.text.secondary)
                                 .padding(.top, 2)
-                            
-                            Divider()
-                            
-                            // Comparison to typical rides
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Predominant zone:")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(Color.text.secondary)
-                                
-                                comparisonRow(label: "Recovery", range: "< 0.65", matches: intensityFactor < 0.65)
-                                comparisonRow(label: "Endurance", range: "0.65-0.75", matches: intensityFactor >= 0.65 && intensityFactor < 0.75)
-                                comparisonRow(label: "Tempo", range: "0.75-0.85", matches: intensityFactor >= 0.75 && intensityFactor < 0.85)
-                                comparisonRow(label: "Threshold", range: "0.85-0.95", matches: intensityFactor >= 0.85 && intensityFactor < 0.95)
-                                comparisonRow(label: "VO2 Max", range: "> 0.95", matches: intensityFactor >= 0.95)
-                            }
                         }
                     }
                 }
                 
                 Divider()
+                    .padding(.vertical, 8)
                 
                 // TSS with explanation
                 VStack(alignment: .leading, spacing: 8) {
+                    
                     HStack {
                         Text("Training Stress Score (TSS)")
                             .font(.subheadline)
@@ -129,6 +115,8 @@ struct IntensityChart: View {
                         tssSegment(label: "Very Hard", range: 120..<200, value: tss, color: Color.semantic.error)
                     }
                     .frame(height: 24)
+                    .padding(.top, 12)
+                    .padding(.bottom, 12)
                     
                     Text(tssDescription(tss))
                         .font(.caption)
@@ -198,14 +186,15 @@ struct IntensityChart: View {
     // MARK: - Helper Functions
     
     private func intensityColor(_ if: Double) -> Color {
-        if `if` < 0.65 {
-            return Color.semantic.success
-        } else if `if` < 0.75 {
-            return Color.button.primary
+        // 4-zone RAG color system for intensity
+        if `if` < 0.75 {
+            return ColorScale.greenAccent  // Recovery & Endurance - Green
         } else if `if` < 0.85 {
-            return Color.semantic.warning
+            return ColorScale.yellowAccent // Tempo - Yellow
+        } else if `if` < 0.95 {
+            return ColorScale.amberAccent  // Threshold - Amber/Orange
         } else {
-            return Color.semantic.error
+            return ColorScale.redAccent    // VO2 Max+ - Red
         }
     }
     

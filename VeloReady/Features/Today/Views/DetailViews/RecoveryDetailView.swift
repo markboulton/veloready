@@ -78,7 +78,7 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.rhr,
                     weight: RecoveryContent.Weights.rhrWeight,
                     icon: "heart.circle.fill",
-                    color: .red,
+                    color: ColorScale.redAccent,
                     hasBaseline: recoveryScore.inputs.rhrBaseline != nil
                 )
                 
@@ -87,7 +87,7 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.sleep,
                     weight: RecoveryContent.Weights.sleepWeight,
                     icon: "moon.fill",
-                    color: .blue,
+                    color: recoveryScore.inputs.sleepScore?.band.colorToken ?? ColorScale.yellowAccent,
                     hasBaseline: recoveryScore.inputs.sleepBaseline != nil
                 )
                 
@@ -96,7 +96,7 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.form,
                     weight: RecoveryContent.Weights.loadWeight,
                     icon: "bicycle",
-                    color: .orange,
+                    color: ColorScale.amberAccent,
                     hasBaseline: true
                 )
             }
@@ -172,14 +172,14 @@ struct RecoveryDetailView: View {
                             baseline: String(format: "%.0f bpm", rhrBaseline),
                             change: calculatePercentageChange(current: rhr, baseline: rhrBaseline),
                             icon: "heart.circle.fill",
-                            color: .red
+                            color: ColorScale.redAccent
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: "Resting Heart Rate",
                             current: String(format: "%.0f bpm", rhr),
                             icon: "heart.circle.fill",
-                            color: .red
+                            color: ColorScale.redAccent
                         )
                     }
                 }
@@ -296,9 +296,10 @@ struct RecoveryDetailView: View {
     
     private func colorForBand(_ band: RecoveryScore.RecoveryBand) -> Color {
         switch band {
-        case .green: return .green
-        case .amber: return .orange
-        case .red: return .red
+        case .excellent: return ColorScale.greenAccent
+        case .good: return ColorScale.yellowAccent
+        case .fair: return ColorScale.amberAccent
+        case .poor: return ColorScale.redAccent
         }
     }
     

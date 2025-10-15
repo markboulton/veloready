@@ -93,7 +93,7 @@ struct StrainScore: Codable {
         var color: String {
             switch self {
             case .low: return "green"
-            case .moderate: return "blue"
+            case .moderate: return "yellow"
             case .high: return "orange"
             case .extreme: return "red"
             }
@@ -103,7 +103,7 @@ struct StrainScore: Codable {
         var colorToken: Color {
             switch self {
             case .low: return ColorScale.greenAccent
-            case .moderate: return ColorScale.blueAccent
+            case .moderate: return ColorScale.yellowAccent
             case .high: return ColorScale.amberAccent
             case .extreme: return ColorScale.redAccent
             }
@@ -176,11 +176,11 @@ class StrainScoreCalculator {
     
     // MARK: - Constants
     private static let cardioScaleFactor: Double = 18.0 // k_c for cardio load
-    private static let strengthScaleFactor: Double = 2.0 // k_s for strength load (increased from 1.5)
-    private static let nonExerciseScaleFactor: Double = 12.0 // k_n for non-exercise load (increased from 8.0)
+    private static let strengthScaleFactor: Double = 3.5 // k_s for strength load (increased for better sensitivity)
+    private static let nonExerciseScaleFactor: Double = 16.0 // k_n for non-exercise load (increased for all-day monitoring)
     private static let intensityBlendPower: Double = 0.6 // HR vs Power blend ratio
     private static let zoneWeightExponent: Double = 2.2 // Exponent for intensity weight
-    private static let dailyCap: Double = 30.0 // Max points from non-exercise activity (increased from 20.0)
+    private static let dailyCap: Double = 40.0 // Max points from non-exercise activity (increased for active users)
     private static let recoveryModulationRange: Double = 0.15 // ±15% recovery modulation
     
     /// Calculate strain score from inputs using Whoop-like algorithm
@@ -557,8 +557,8 @@ class StrainScoreCalculator {
             
             // More generous strength TRIMP calculation
             // Strength training is metabolically demanding even at lower heart rates
-            let estimatedHRFraction = max(0.5, (rpe - 1.0) / 9.0) // Minimum 50% intensity
-            strengthTRIMP = estimatedHRFraction * strengthDuration * 120 * muscleGroupFactor
+            let estimatedHRFraction = max(0.6, (rpe - 1.0) / 9.0) // Minimum 60% intensity (increased from 50%)
+            strengthTRIMP = estimatedHRFraction * strengthDuration * 150 * muscleGroupFactor  // Increased multiplier from 120 to 150
             
             // Apply eccentric multiplier if focused on negatives
             if let isEccentric = inputs.isEccentricFocused, isEccentric {
@@ -573,21 +573,21 @@ class StrainScoreCalculator {
             }
         }
         
-        // Apply concurrent training interference penalty
+        // Apply concurrent training interference bonus
         // Research shows cardio + strength same day increases total stress
         if hasBothCardioAndStrength {
-            let interferenceFactor = 1.15  // 15% penalty for concurrent training
+            let interferenceFactor = 1.25  // 25% bonus for concurrent training (increased from 15%)
             workoutTRIMP *= interferenceFactor
-            Logger.debug("   Concurrent training detected: +15% interference penalty")
+            Logger.debug("   Concurrent training detected: +25% interference bonus")
         }
         
         // 2. Add daily activity with intelligent calorie-step blending
         var dailyActivityAdjustment: Double = 0
         
-        // Calculate base from steps
+        // Calculate base from steps (more generous for all-day monitoring)
         var stepBasedStrain: Double = 0
         if let steps = inputs.dailySteps, steps > 0 {
-            stepBasedStrain = Double(steps) / 1000.0 * 0.5
+            stepBasedStrain = Double(steps) / 1000.0 * 0.8  // Increased from 0.5 to 0.8
         }
         
         // Calculate from active calories (better captures intensity)
@@ -678,12 +678,13 @@ class StrainScoreCalculator {
     // MARK: - Helper Functions
     
     private static func determineBand(score: Double) -> StrainScore.StrainBand {
-        // Updated bands for 0-18 scale
+        // Logarithmic distribution for 0-18 scale
+        // Most days cluster in low/moderate, extreme days are rare
         switch score {
-        case 0..<4.5: return .low      // 0-4.4 (light activity)
-        case 4.5..<9.0: return .moderate  // 4.5-8.9 (moderate activity)
-        case 9.0..<14.4: return .high     // 9.0-14.3 (high activity)
-        default: return .extreme        // 14.4-18.0 (extreme activity)
+        case 0..<6.0: return .low         // 0-5.9 (33% - easy/recovery days)
+        case 6.0..<10.5: return .moderate // 6.0-10.4 (29% - normal training)
+        case 10.5..<14.5: return .high    // 10.5-14.4 (22% - hard training)
+        default: return .extreme          // 14.5-18.0 (16% - very hard/race)
         }
     }
     
