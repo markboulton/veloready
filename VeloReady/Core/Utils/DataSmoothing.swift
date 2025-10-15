@@ -98,7 +98,7 @@ struct DataSmoothing {
         let range = maxValue - minValue
         
         // Start with 0.75% epsilon for balanced simplification
-        var epsilon = range * 0.0075
+        let epsilon = range * 0.0075
         var result = samples
         
         // Iteratively increase epsilon until we hit target (smaller steps)
@@ -133,7 +133,7 @@ struct DataSmoothing {
         let range = maxValue - minValue
         
         // 0.75% epsilon for balanced simplification
-        var epsilon = range * 0.0075
+        let epsilon = range * 0.0075
         var result = samples
         
         for multiplier in [1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0] {

@@ -65,7 +65,7 @@ private struct ErrorView: View {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(.primary)
-                Text(error.localizedDescription ?? "Unknown error")
+                Text(error.localizedDescription)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }

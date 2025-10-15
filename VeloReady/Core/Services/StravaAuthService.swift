@@ -388,8 +388,8 @@ class StravaAuthService: NSObject, ObservableObject {
         print("   AthleteId read: \(athleteId ?? "nil")")
         
         // Debug: List ALL UserDefaults keys containing "strava"
-        if let allKeys = UserDefaults.standard.dictionaryRepresentation().keys.filter({ $0.lowercased().contains("strava") }) as? [String],
-           !allKeys.isEmpty {
+        let allKeys = Array(UserDefaults.standard.dictionaryRepresentation().keys).filter({ $0.lowercased().contains("strava") })
+        if !allKeys.isEmpty {
             print("   All Strava-related keys in UserDefaults:")
             for key in allKeys {
                 let value = UserDefaults.standard.object(forKey: key)

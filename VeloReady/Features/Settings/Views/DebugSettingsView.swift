@@ -169,7 +169,7 @@ struct DebugSettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text(user.name ?? "Unknown")
+                    Text(user.name)
                         .font(.caption)
                         .fontWeight(.medium)
                 }
@@ -399,7 +399,7 @@ struct DebugSettingsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else if let error = aiBriefService.error {
-                        Text("\(DebugSettingsContent.AIBrief.error) \(error.localizedDescription ?? "Unknown")")
+                        Text("\(DebugSettingsContent.AIBrief.error) \(error.localizedDescription)")
                             .font(.caption)
                             .foregroundColor(Color.text.error)
                     } else if aiBriefService.briefText != nil {
@@ -462,7 +462,7 @@ struct DebugSettingsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else if let error = rideSummaryService.error {
-                        Text("Error: \(error.localizedDescription ?? "Unknown")")
+                        Text("Error: \(error.localizedDescription)")
                             .font(.caption)
                             .foregroundColor(Color.text.error)
                     } else if rideSummaryService.currentSummary != nil {
@@ -491,7 +491,7 @@ struct DebugSettingsView: View {
             .buttonStyle(.bordered)
             
             // Copy last response JSON (debug)
-            if let lastResponse = (rideSummaryService.cache as? RideSummaryCache)?.lastResponseJSON {
+            if let lastResponse = rideSummaryService.cache?.lastResponseJSON {
                 Button(action: {
                     UIPasteboard.general.string = lastResponse
                 }) {
@@ -887,7 +887,7 @@ struct DebugSettingsView: View {
     private func clearIntervalsCache() {
         // Use IntervalsCache to clear all cached data properly
         Task {
-            await IntervalsCache.shared.clearCache()
+            IntervalsCache.shared.clearCache()
             print("🗑️ Cleared Intervals.icu cache from Debug Settings")
             
             await MainActor.run {
