@@ -636,10 +636,9 @@ class StrainScoreCalculator {
         // 6. Apply recovery modulation
         let adjustedStrain = strain * recoveryFactor
         
-        // 7. Scale to 0-18 range and determine band
-        // Convert from 0-100 to 0-18 scale
-        let scaledStrain = (adjustedStrain / 100.0) * 18.0
-        let finalScore = max(0.0, min(18.0, scaledStrain))
+        // 7. Clamp to 0-18 range and determine band
+        // Strain is already on 0-18 scale from calculateWhoopStrain
+        let finalScore = max(0.0, min(18.0, adjustedStrain))
         let band = determineBand(score: finalScore)
         
         Logger.debug("🏃 Whoop-Style Strain Calculation:")
@@ -658,21 +657,21 @@ class StrainScoreCalculator {
     
     /// Convert TRIMP to EPOC estimate (Whoop-like approach)
     private static func convertTRIMPToEPOC(trimp: Double) -> Double {
-        // EPOC estimation based on research: EPOC ≈ 0.15 * TRIMP^1.2
-        // This creates a non-linear relationship where higher TRIMP leads to exponentially higher EPOC
-        return 0.15 * pow(trimp, 1.2)
+        // EPOC estimation - adjusted for better sensitivity
+        // Increased coefficient from 0.15 to 0.25 for more realistic scores
+        return 0.25 * pow(trimp, 1.1)  // Reduced exponent from 1.2 to 1.1 for less compression
     }
     
     /// Calculate strain using Whoop's logarithmic formula
     private static func calculateWhoopStrain(epoc: Double) -> Double {
-        // Whoop's formula: Strain = 21 × log(EPOC + 1) / log(EPOC_max + 1)
-        // We'll use a reasonable EPOC_max based on research (typically 200-400 ml/kg)
-        let epocMax: Double = 300.0 // Reasonable maximum EPOC for most people
+        // Whoop's formula: Strain = 18 × ln(EPOC + 1) / ln(EPOC_max + 1)
+        // Calibrated: EPOC 2700 → Strain 9 (moderate hard day)
+        // Math: 9 = 18 * ln(2700)/ln(EPOC_max) → EPOC_max = 2700^2 = 7,290,000
+        let epocMax: Double = 7_290_000.0  // Calibrated for realistic strain distribution
         
-        let strain = 21.0 * log(epoc + 1.0) / log(epocMax + 1.0)
+        let strain = 18.0 * log(epoc + 1.0) / log(epocMax + 1.0)
         
-        // Scale to 0-18 range (similar to RPE but more granular)
-        return strain * (18.0 / 21.0)
+        return max(0.0, min(18.0, strain))  // Clamp to 0-18 range
     }
     
     // MARK: - Helper Functions
