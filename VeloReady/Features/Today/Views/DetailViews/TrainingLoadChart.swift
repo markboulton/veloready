@@ -225,13 +225,19 @@ struct TrainingLoadChart: View {
         )
         .task {
             // Fetch historical activities for chart
+            Logger.data("TrainingLoadChart: .task triggered, fetching historical data for date: \(rideDate)")
             await loadHistoricalActivities(rideDate: rideDate)
+        }
+        .onAppear {
+            Logger.data("TrainingLoadChart: onAppear triggered")
         }
     }
     
     // MARK: - Helper Functions
     
     private func loadHistoricalActivities(rideDate: Date) async {
+        Logger.data("TrainingLoadChart: loadHistoricalActivities called for date: \(rideDate)")
+        
         do {
             // Try Intervals.icu first if authenticated
             if IntervalsOAuthManager.shared.isAuthenticated {
@@ -244,11 +250,12 @@ struct TrainingLoadChart: View {
                 await MainActor.run {
                     self.historicalActivities = activitiesWithData
                 }
+                Logger.data("TrainingLoadChart: Set \(activitiesWithData.count) Intervals activities")
                 return
             }
             
             // Fallback to Strava with CTL/ATL calculation
-            Logger.data("TrainingLoadChart: Fetching from Strava")
+            Logger.data("TrainingLoadChart: Fetching from Strava (not authenticated with Intervals)")
             let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
             Logger.data("TrainingLoadChart: Fetched \(stravaActivities.count) activities from Strava")
             
