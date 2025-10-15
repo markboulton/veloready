@@ -9,44 +9,30 @@ struct SharedActivityRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Activity Type Icon
-            Image(systemName: activityIcon)
-                .font(.title3)
-                .foregroundColor(activityColor)
-                .frame(width: 24, height: 24)
-            
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
-                Text(activity.name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                HStack(spacing: 8) {
-                    Text(formatSmartDate(activity.startDate))
-                        .font(.caption)
+                // Activity name with inline icon
+                HStack(spacing: 6) {
+                    Image(systemName: activityIcon)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    if let duration = activity.duration {
-                        Text("•").foregroundColor(.secondary)
-                        Text(formatDuration(duration))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    if let distance = activity.distance {
-                        Text("•").foregroundColor(.secondary)
-                        Text(formatDistance(distance))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text(activity.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                 }
+                
+                // Date/time with optional location
+                Text(formatSmartDateWithLocation(activity.startDate))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
             
-            // Compact RPE indicator for strength workouts
-            if shouldShowRPEButton {
+            // Compact RPE indicator for strength workouts (always show for testing)
+            if shouldShowRPEButton || true { // Always show for testing
                 Button(action: { showingRPESheet = true }) {
                     HStack(spacing: 4) {
                         Image(systemName: hasRPE ? "checkmark.circle.fill" : "plus.circle")
@@ -80,23 +66,51 @@ struct SharedActivityRowView: View {
     
     // MARK: - Formatting Helpers
     
-    private func formatSmartDate(_ date: Date) -> String {
+    private func formatSmartDateWithLocation(_ date: Date) -> String {
         let calendar = Calendar.current
-        let now = Date()
+        let location = getActivityLocation()
         
+        var dateString: String
         if calendar.isDateInToday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            return "Today at \(timeFormatter.string(from: date))"
+            dateString = "Today at \(timeFormatter.string(from: date))"
         } else if calendar.isDateInYesterday(date) {
             let timeFormatter = DateFormatter()
             timeFormatter.dateFormat = "h:mm a"
-            return "Yesterday at \(timeFormatter.string(from: date))"
+            dateString = "Yesterday at \(timeFormatter.string(from: date))"
         } else {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d MMM yyyy 'at' HH:mm"
-            return dateFormatter.string(from: date)
+            dateString = dateFormatter.string(from: date)
         }
+        
+        if let location = location {
+            return "\(dateString) · \(location)"
+        } else {
+            return dateString
+        }
+    }
+    
+    private func getActivityLocation() -> String? {
+        // Check Intervals.icu activity for location data
+        // Note: Intervals.icu doesn't currently expose location in their API
+        // This would need to be added to the IntervalsActivity model
+        
+        // Check Strava activity for location data
+        // Note: Strava has timezone which could be used to infer location
+        // but doesn't directly expose city/country in the summary endpoint
+        
+        // Check Apple Health workout for location
+        // Note: HKWorkout doesn't store location as metadata
+        // Location would need to be derived from route data (HKWorkoutRoute)
+        
+        // TODO: Implement location extraction from:
+        // 1. Intervals.icu API (if they add it)
+        // 2. Strava detailed activity endpoint
+        // 3. HKWorkoutRoute reverse geocoding
+        
+        return nil // No location data available yet
     }
     
     private func formatDuration(_ seconds: TimeInterval) -> String {
@@ -153,26 +167,4 @@ struct SharedActivityRowView: View {
         }
     }
     
-    private var activityColor: Color {
-        switch activity.type {
-        case .cycling:
-            return ColorScale.blueAccent
-        case .running:
-            return ColorScale.redAccent
-        case .swimming:
-            return ColorScale.cyanAccent
-        case .walking:
-            return ColorScale.greenAccent
-        case .hiking:
-            return ColorScale.amberAccent
-        case .strength:
-            return ColorScale.purpleAccent
-        case .yoga:
-            return ColorScale.pinkAccent
-        case .hiit:
-            return ColorScale.redAccent
-        case .other:
-            return ColorScale.gray400
-        }
-    }
 }
