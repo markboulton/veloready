@@ -272,6 +272,7 @@ struct StravaActivity: Codable, Identifiable {
     let elev_high: Double?
     let elev_low: Double?
     let calories: Double?
+    let start_latlng: [Double]? // [latitude, longitude]
     
     // Strava-specific IDs
     let external_id: String? // Original file ID (for deduplication)

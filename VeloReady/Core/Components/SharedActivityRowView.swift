@@ -1,32 +1,34 @@
 import SwiftUI
 import HealthKit
+import CoreLocation
 
 /// Shared activity row view used in both Today and Activities list
 struct SharedActivityRowView: View {
     let activity: UnifiedActivity
     @State private var showingRPESheet = false
     @State private var hasRPE = false
+    @State private var locationString: String? = nil
     
     var body: some View {
         HStack(spacing: 12) {
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
-                // Activity name with inline icon
+                // Activity name
+                Text(activity.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                // Date/time with icon and optional location
                 HStack(spacing: 6) {
                     Image(systemName: activityIcon)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text(activity.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
+                    Text(formatSmartDateWithLocation(activity.startDate))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                
-                // Date/time with optional location
-                Text(formatSmartDateWithLocation(activity.startDate))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
             
             Spacer()
@@ -41,10 +43,10 @@ struct SharedActivityRowView: View {
                             .font(.caption2)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(hasRPE ? ColorScale.greenAccent : ColorScale.gray400)
+                    .foregroundColor(hasRPE ? ColorScale.greenAccent : ColorScale.gray600)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(hasRPE ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray100)
+                    .background(hasRPE ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray200)
                     .cornerRadius(12)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -54,6 +56,9 @@ struct SharedActivityRowView: View {
         .contentShape(Rectangle())
         .onAppear {
             checkRPEStatus()
+            Task {
+                await loadLocation()
+            }
         }
         .sheet(isPresented: $showingRPESheet) {
             if let workout = activity.healthKitWorkout {
@@ -68,7 +73,6 @@ struct SharedActivityRowView: View {
     
     private func formatSmartDateWithLocation(_ date: Date) -> String {
         let calendar = Calendar.current
-        let location = getActivityLocation()
         
         var dateString: String
         if calendar.isDateInToday(date) {
@@ -85,32 +89,113 @@ struct SharedActivityRowView: View {
             dateString = dateFormatter.string(from: date)
         }
         
-        if let location = location {
+        if let location = locationString {
             return "\(dateString) · \(location)"
         } else {
             return dateString
         }
     }
     
-    private func getActivityLocation() -> String? {
-        // Check Intervals.icu activity for location data
-        // Note: Intervals.icu doesn't currently expose location in their API
-        // This would need to be added to the IntervalsActivity model
+    private func loadLocation() async {
+        // Try Strava first (has start_latlng)
+        if let stravaActivity = activity.stravaActivity {
+            if let location = await getStravaLocation(stravaActivity) {
+                await MainActor.run {
+                    locationString = location
+                }
+                return
+            }
+        }
         
-        // Check Strava activity for location data
-        // Note: Strava has timezone which could be used to infer location
-        // but doesn't directly expose city/country in the summary endpoint
+        // Try Apple Health workout route
+        if let workout = activity.healthKitWorkout {
+            if let location = await getHealthKitLocation(workout) {
+                await MainActor.run {
+                    locationString = location
+                }
+                return
+            }
+        }
+    }
+    
+    private func getStravaLocation(_ stravaActivity: StravaActivity) async -> String? {
+        // Strava activities have start_latlng in the summary
+        guard let latlng = stravaActivity.start_latlng,
+              latlng.count == 2 else {
+            return nil
+        }
         
-        // Check Apple Health workout for location
-        // Note: HKWorkout doesn't store location as metadata
-        // Location would need to be derived from route data (HKWorkoutRoute)
+        let coordinate = CLLocationCoordinate2D(latitude: latlng[0], longitude: latlng[1])
+        return await reverseGeocode(coordinate: coordinate)
+    }
+    
+    private func getHealthKitLocation(_ workout: HKWorkout) async -> String? {
+        let healthStore = HKHealthStore()
         
-        // TODO: Implement location extraction from:
-        // 1. Intervals.icu API (if they add it)
-        // 2. Strava detailed activity endpoint
-        // 3. HKWorkoutRoute reverse geocoding
+        // Query for workout route
+        let routeType = HKSeriesType.workoutRoute()
+        let predicate = HKQuery.predicateForObjects(from: workout)
         
-        return nil // No location data available yet
+        return await withCheckedContinuation { continuation in
+            let query = HKAnchoredObjectQuery(
+                type: routeType,
+                predicate: predicate,
+                anchor: nil,
+                limit: HKObjectQueryNoLimit
+            ) { _, samples, _, _, error in
+                guard error == nil,
+                      let routes = samples as? [HKWorkoutRoute],
+                      let route = routes.first else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                
+                // Query route data to get first location
+                let routeQuery = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
+                    if let locations = locations, let firstLocation = locations.first {
+                        // Reverse geocode the first location
+                        Task {
+                            let location = await self.reverseGeocode(coordinate: firstLocation.coordinate)
+                            continuation.resume(returning: location)
+                        }
+                    } else if done {
+                        continuation.resume(returning: nil)
+                    }
+                }
+                
+                healthStore.execute(routeQuery)
+            }
+            
+            healthStore.execute(query)
+        }
+    }
+    
+    private func reverseGeocode(coordinate: CLLocationCoordinate2D) async -> String? {
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location)
+            guard let placemark = placemarks.first else { return nil }
+            
+            // Format as "City, Country" (e.g., "Llantwit Major, UK")
+            var components: [String] = []
+            
+            if let locality = placemark.locality {
+                components.append(locality)
+            } else if let subLocality = placemark.subLocality {
+                components.append(subLocality)
+            }
+            
+            if let countryCode = placemark.isoCountryCode {
+                components.append(countryCode)
+            }
+            
+            return components.isEmpty ? nil : components.joined(separator: ", ")
+        } catch {
+            print("⚠️ Reverse geocoding failed: \(error)")
+            return nil
+        }
     }
     
     private func formatDuration(_ seconds: TimeInterval) -> String {
