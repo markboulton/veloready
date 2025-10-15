@@ -12,7 +12,10 @@ struct TrainingLoadChart: View {
     @State private var isLoading = false
     
     var body: some View {
+        Logger.data("TrainingLoadChart: Rendering - TSS: \(activity.tss?.description ?? "nil"), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
+        
         guard proConfig.hasProAccess else {
+            Logger.data("TrainingLoadChart: No PRO access - hiding chart")
             return AnyView(EmptyView())
         }
         
@@ -20,8 +23,11 @@ struct TrainingLoadChart: View {
         let ctlAfter = activity.ctl ?? 0
         let atlAfter = activity.atl ?? 0
         guard let tss = activity.tss else {
+            Logger.data("TrainingLoadChart: No TSS - hiding chart")
             return AnyView(EmptyView())
         }
+        
+        Logger.data("TrainingLoadChart: Showing chart with TSS: \(tss), CTL: \(ctlAfter), ATL: \(atlAfter)")
         
         // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37")
         let dateFormatter = DateFormatter()
