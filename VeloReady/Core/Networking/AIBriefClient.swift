@@ -12,6 +12,7 @@ struct AIBriefRequest: Codable {
     let tssLow: Int
     let tssHigh: Int
     let plan: String?
+    let primarySport: String // "cycling", "strength", or "general"
 }
 
 struct AIBriefResponse: Codable {
