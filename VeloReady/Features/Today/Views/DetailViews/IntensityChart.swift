@@ -17,9 +17,9 @@ struct IntensityChart: View {
             return AnyView(EmptyView())
         }
         
-        // Convert IF from percentage (0-100) to decimal (0-1.0)
-        // API returns 78.64 which means 0.7864
-        let intensityFactor = intensityFactorRaw / 100.0
+        // Normalize IF to 0-1.0 range
+        // Intervals.icu returns as percentage (78.64), Strava returns as decimal (0.81)
+        let intensityFactor = intensityFactorRaw > 10.0 ? intensityFactorRaw / 100.0 : intensityFactorRaw
         
         return AnyView(
             VStack(alignment: .leading, spacing: 16) {
