@@ -28,11 +28,12 @@ struct WellnessBanner: View {
                     .foregroundColor(.white)
             }
             .padding(12)
+            .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                Rectangle()
                     .fill(alert.severity.color.opacity(0.1))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        Rectangle()
                             .stroke(alert.severity.color.opacity(0.3), lineWidth: 1)
                     )
             )

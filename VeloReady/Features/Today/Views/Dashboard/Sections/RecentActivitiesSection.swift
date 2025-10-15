@@ -19,13 +19,8 @@ struct RecentActivitiesSection: View {
             }
             .padding(.bottom, 16)
             
-            // Show all activities except the first cycling one (which is shown in latest ride panel)
-            let firstCyclingIndex = allActivities.firstIndex(where: { $0.type == .cycling })
-            let remainingActivities = firstCyclingIndex != nil ?
-                Array(allActivities.enumerated().filter { $0.offset != firstCyclingIndex }.map { $0.element }) :
-                allActivities
-            
-            if remainingActivities.isEmpty {
+            // Show all activities including the latest ride (no offset)
+            if allActivities.isEmpty {
                 EmptyStateCard(
                     icon: "figure.walk",
                     title: "No Recent Activities",
@@ -33,11 +28,11 @@ struct RecentActivitiesSection: View {
                 )
             } else {
                 LazyVStack(spacing: 0) {
-                    ForEach(remainingActivities) { activity in
+                    ForEach(allActivities) { activity in
                         UnifiedActivityCard(activity: activity)
                             .padding(.vertical, 8)
                         
-                        if activity.id != remainingActivities.last?.id {
+                        if activity.id != allActivities.last?.id {
                             Divider()
                         }
                     }

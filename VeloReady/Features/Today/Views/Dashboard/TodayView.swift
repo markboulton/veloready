@@ -68,17 +68,18 @@ struct TodayView: View {
                             animationTrigger: viewModel.animationTrigger
                         )
                         
-                        // AI Daily Brief (only when HealthKit authorized)
-                        if healthKitManager.isAuthorized {
-                            AIBriefView()
-                        }
-                        
-                        // Wellness Alert Banner
+                        // Wellness Alert Banner (full width, no padding)
                         if healthKitManager.isAuthorized, let alert = wellnessService.currentAlert {
                             WellnessBanner(alert: alert) {
                                 showingWellnessDetailSheet = true
                             }
+                            .padding(.horizontal, -16) // Negative padding to extend to edges
                             .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        
+                        // AI Daily Brief (only when HealthKit authorized)
+                        if healthKitManager.isAuthorized {
+                            AIBriefView()
                         }
                         
                         // HealthKit Enablement Section (only when not authorized)

@@ -9,7 +9,7 @@ enum TodayContent {
     static let recoverySection = "Recovery"  /// Recovery section title
     static let sleepSection = "Sleep"  /// Sleep section title
     static let loadSection = "Load"  /// Load section title
-    static let activitiesSection = "Activities"  /// Activities section title
+    static let activitiesSection = "Recent Activities"  /// Activities section title
     static let aiBriefSection = "AI Brief"  /// AI Brief section title
     
     // MARK: - Empty States

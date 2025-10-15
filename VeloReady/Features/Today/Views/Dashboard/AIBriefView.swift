@@ -1,14 +1,53 @@
 import SwiftUI
 
+/// Rainbow gradient modifier for AI text and icons
+struct RainbowGradient: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        ColorPalette.pink,
+                        ColorPalette.purple,
+                        ColorPalette.blue,
+                        ColorPalette.cyan,
+                        ColorPalette.mint,
+                        ColorPalette.yellow,
+                        ColorPalette.peach
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .mask(content)
+    }
+}
+
+extension View {
+    func rainbowGradient() -> some View {
+        modifier(RainbowGradient())
+    }
+}
+
 /// View displaying AI-generated daily brief
 struct AIBriefView: View {
     @ObservedObject var service = AIBriefService.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-                // Header
-                SectionHeader(TodayContent.AIBrief.title, icon: "sparkles")
-                    .padding(.bottom, 12)
+                // Header with rainbow gradient
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.heading)
+                        .rainbowGradient()
+                    
+                    Text(TodayContent.AIBrief.title)
+                        .font(.heading)
+                        .rainbowGradient()
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 12)
                 
                 // Content
                 if service.isLoading {
