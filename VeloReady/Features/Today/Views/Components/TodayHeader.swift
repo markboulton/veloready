@@ -7,17 +7,13 @@ struct TodayHeader: View {
     
     var body: some View {
         HStack(alignment: .center) {
-            Text("Today")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
             Spacer()
             
             if let alert = alert {
                 WellnessIndicator(alert: alert, onTap: onAlertTap)
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
     }
