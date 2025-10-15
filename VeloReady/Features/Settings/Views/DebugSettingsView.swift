@@ -896,6 +896,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: SportPreferencesDebugView()) {
+                HStack {
+                    Image(systemName: "figure.outdoor.cycle")
+                        .foregroundColor(.purple)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Sport Preferences")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Test sport preferences and AI integration")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
         } footer: {
