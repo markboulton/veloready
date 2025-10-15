@@ -142,26 +142,23 @@ class TodayViewModel: ObservableObject {
         }
         print("⚡ Starting parallel score calculations...")
         
-        async let _ = sleepScoreService.calculateSleepScore()
-        async let _ = strainScoreService.calculateStrainScore()
-        
-        // Wait for sleep score first (needed for recovery)
-        _ = await sleepScoreService.calculateSleepScore()
+        // Start sleep and strain calculations in parallel
+        await sleepScoreService.calculateSleepScore()
         print("✅ Sleep score calculated")
         
-        // Start recovery calculation after sleep is done
-        // Use force refresh if HealthKit was just authorized to get fresh health data
-        let recoveryTask = Task {
+        // Start recovery and strain calculations in parallel
+        async let recoveryCalculation: Void = {
             if forceRecoveryRecalculation {
                 await recoveryScoreService.forceRefreshRecoveryScoreIgnoringDailyLimit()
             } else {
                 await recoveryScoreService.calculateRecoveryScore()
             }
-        }
+        }()
+        async let strainCalculation: Void = strainScoreService.calculateStrainScore()
         
-        // Wait for all remaining calculations
-        await strainTask
-        await recoveryTask.value
+        // Wait for both to complete
+        _ = await recoveryCalculation
+        _ = await strainCalculation
         
         print("✅ All score calculations completed")
         
