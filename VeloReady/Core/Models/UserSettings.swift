@@ -19,6 +19,23 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // MARK: - Sport Preferences
+    @Published var sportPreferences: SportPreferences = .default {
+        didSet {
+            saveSettings()
+        }
+    }
+    
+    /// Convenience accessor for primary sport
+    var primarySport: SportPreferences.Sport {
+        sportPreferences.primarySport
+    }
+    
+    /// Convenience accessor for ordered sports list
+    var orderedSports: [SportPreferences.Sport] {
+        sportPreferences.orderedSports
+    }
+    
     // MARK: - Heart Rate Zones (from Intervals.icu)
     @Published var hrZone1Max: Int = 120 {
         didSet {
@@ -264,6 +281,7 @@ class UserSettings: ObservableObject {
         let settings = UserSettingsData(
             sleepTargetHours: sleepTargetHours,
             sleepTargetMinutes: sleepTargetMinutes,
+            sportPreferences: sportPreferences,
             hrZone1Max: hrZone1Max,
             hrZone2Max: hrZone2Max,
             hrZone3Max: hrZone3Max,
@@ -304,6 +322,7 @@ class UserSettings: ObservableObject {
         
         sleepTargetHours = settings.sleepTargetHours
         sleepTargetMinutes = settings.sleepTargetMinutes
+        sportPreferences = settings.sportPreferences
         hrZone1Max = settings.hrZone1Max
         hrZone2Max = settings.hrZone2Max
         hrZone3Max = settings.hrZone3Max
@@ -335,6 +354,7 @@ class UserSettings: ObservableObject {
     func resetToDefaults() {
         sleepTargetHours = 8.0
         sleepTargetMinutes = 0
+        sportPreferences = .default
         hrZone1Max = 120
         hrZone2Max = 140
         hrZone3Max = 160
@@ -369,6 +389,7 @@ class UserSettings: ObservableObject {
 private struct UserSettingsData: Codable {
     let sleepTargetHours: Double
     let sleepTargetMinutes: Int
+    let sportPreferences: SportPreferences
     let hrZone1Max: Int
     let hrZone2Max: Int
     let hrZone3Max: Int
