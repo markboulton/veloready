@@ -1,5 +1,31 @@
 import SwiftUI
 
+/// Rainbow gradient modifier for AI text and icons
+private struct RainbowGradient: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        ColorPalette.pink,
+                        ColorPalette.purple,
+                        ColorPalette.blue,
+                        ColorPalette.cyan
+                    ]),
+                    startPoint: UnitPoint(x: 0, y: 0),
+                    endPoint: UnitPoint(x: 1, y: 0.577) // 30 degree angle
+                )
+            )
+            .mask(content)
+    }
+}
+
+private extension View {
+    func rainbowGradient() -> some View {
+        modifier(RainbowGradient())
+    }
+}
+
 /// View displaying AI-generated ride summary (PRO feature)
 struct RideSummaryView: View {
     let activity: IntervalsActivity
@@ -16,8 +42,18 @@ struct RideSummaryView: View {
         return AnyView(
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Header
-                    SectionHeader(RideSummaryContent.title, icon: "sparkles")
+                    // Header with rainbow gradient
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.heading)
+                            .foregroundColor(ColorPalette.pink)
+                        
+                        Text(RideSummaryContent.title)
+                            .font(.heading)
+                            .rainbowGradient()
+                        
+                        Spacer()
+                    }
                     
                     // Content
                     if service.isLoading {
