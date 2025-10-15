@@ -10,13 +10,10 @@ struct RainbowGradient: ViewModifier {
                         ColorPalette.pink,
                         ColorPalette.purple,
                         ColorPalette.blue,
-                        ColorPalette.cyan,
-                        ColorPalette.mint,
-                        ColorPalette.yellow,
-                        ColorPalette.peach
+                        ColorPalette.cyan
                     ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    startPoint: UnitPoint(x: 0, y: 0),
+                    endPoint: UnitPoint(x: 1, y: 1)
                 )
             )
             .mask(content)
