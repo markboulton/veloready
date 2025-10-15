@@ -26,6 +26,7 @@ struct TodayView: View {
     @State private var showMainSpinner = true
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
+    @State private var scrollOffset: CGFloat = 0
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -51,6 +52,15 @@ struct TodayView: View {
                 ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: 0) {
+                        // Invisible geometry reader to track scroll offset
+                        GeometryReader { geometry in
+                            Color.clear.preference(
+                                key: ScrollOffsetPreferenceKey.self,
+                                value: geometry.frame(in: .named("scroll")).minY
+                            )
+                        }
+                        .frame(height: 0)
+                        
                         // Missing sleep data warning
                         if healthKitManager.isAuthorized, 
                            let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
@@ -107,13 +117,19 @@ struct TodayView: View {
                 }
                 .coordinateSpace(name: "scroll")
             }
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollOffset = value
+            }
             .navigationTitle("Today")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {
-                // Only show custom title when wellness alert is present
-                // Otherwise, use default centered title
-                if healthKitManager.isAuthorized, wellnessService.currentAlert != nil {
+                // Only show custom title when:
+                // 1. Wellness alert is present AND
+                // 2. User has scrolled (scrollOffset < -50 means scrolled down)
+                if healthKitManager.isAuthorized, 
+                   wellnessService.currentAlert != nil,
+                   scrollOffset < -50 {
                     ToolbarItem(placement: .principal) {
                         HStack {
                             Text("Today")
