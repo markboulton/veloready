@@ -45,11 +45,11 @@ class StrainScoreService: ObservableObject {
     }
     
     private func performCalculation() async {
-        Logger.debug("🔄 Starting strain score calculation")
+        print("🔄 Starting strain score calculation")
         
         // Check if already loading to prevent multiple concurrent calculations
         guard !isLoading else {
-            Logger.warning("️ Strain score calculation already in progress, skipping...")
+            print("⚠️ Strain score calculation already in progress, skipping...")
             return
         }
         
@@ -79,13 +79,13 @@ class StrainScoreService: ObservableObject {
                 calculationTask.cancel()
             }
             
-            Logger.debug("✅ Strain score calculation completed successfully")
+            print("✅ Strain score calculation completed successfully")
         } catch {
             if error is CancellationError {
-                Logger.debug("⏰ Strain score calculation timed out after 15 seconds")
+                print("⏰ Strain score calculation timed out after 15 seconds")
                 errorMessage = "Calculation timed out. Please try again."
             } else {
-                Logger.error("Strain score calculation error: \(error)")
+                print("❌ Strain score calculation error: \(error)")
                 errorMessage = "Calculation failed: \(error.localizedDescription)"
             }
         }
@@ -99,7 +99,7 @@ class StrainScoreService: ObservableObject {
         let stepStatus = healthKitManager.getAuthorizationStatus(for: stepType)
         
         if stepStatus == .sharingDenied {
-            Logger.error("Strain permissions explicitly denied - skipping calculation")
+            print("❌ Strain permissions explicitly denied - skipping calculation")
             await MainActor.run {
                 currentStrainScore = nil
                 isLoading = false
@@ -175,25 +175,25 @@ class StrainScoreService: ObservableObject {
             muscleGroupsTrained = WorkoutMetadataService.shared.getMuscleGroups(for: firstStrength)
         }
         
-        Logger.debug("🔍 Strain Score Inputs:")
-        Logger.debug("   Steps: \(stepsValue ?? 0)")
-        Logger.debug("   Active Calories: \(activeCaloriesValue ?? 0)")
-        Logger.debug("   Cardio TRIMP: \(cardioTRIMP)")
-        Logger.debug("   Cardio Duration: \(cardioDuration)s")
-        Logger.debug("   Workout Types: \(workoutTypes)")
-        Logger.debug("   Strength Duration: \(strengthDuration / 60)min")
-        Logger.debug("   Strength RPE: \(strengthRPE != nil ? String(format: "%.1f", strengthRPE!) : "nil (using default 6.5)")")
+        print("🔍 Strain Score Inputs:")
+        print("   Steps: \(stepsValue ?? 0)")
+        print("   Active Calories: \(activeCaloriesValue ?? 0)")
+        print("   Cardio TRIMP: \(cardioTRIMP)")
+        print("   Cardio Duration: \(cardioDuration)s")
+        print("   Workout Types: \(workoutTypes)")
+        print("   Strength Duration: \(strengthDuration / 60)min")
+        print("   Strength RPE: \(strengthRPE != nil ? String(format: "%.1f", strengthRPE!) : "nil (using default 6.5)")")
         if let muscleGroups = muscleGroupsTrained {
-            Logger.debug("   Muscle Groups: \(muscleGroups.map { $0.rawValue }.joined(separator: ", "))")
+            print("   Muscle Groups: \(muscleGroups.map { $0.rawValue }.joined(separator: ", "))")
         }
-        Logger.debug("   Average IF: \(averageIF ?? 0.0)")
-        Logger.debug("   Sleep Score: \(sleepScoreService.currentSleepScore?.score ?? -1)")
+        print("   Average IF: \(averageIF ?? 0.0)")
+        print("   Sleep Score: \(sleepScoreService.currentSleepScore?.score ?? -1)")
         if let hrvSample = hrvValue.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) {
-            Logger.debug("   HRV: \(hrvSample) ms")
+            print("   HRV: \(hrvSample) ms")
         } else {
-            Logger.debug("   HRV: nil")
+            print("   HRV: nil")
         }
-        Logger.debug("   Recovery Factor: \((trainingLoads.atl, trainingLoads.ctl))")
+        print("   Recovery Factor: \((trainingLoads.atl, trainingLoads.ctl))")
         
         // Create inputs
         let inputs = StrainScore.StrainInputs(
@@ -224,11 +224,11 @@ class StrainScoreService: ObservableObject {
         )
         
         let result = StrainScoreCalculator.calculate(inputs: inputs)
-        Logger.debug("🔍 Strain Score Result:")
-        Logger.debug("   Final Score: \(result.score)")
-        Logger.debug("   Band: \(result.band.rawValue)")
-        Logger.debug("   Sub-scores: Cardio=\(result.subScores.cardioLoad), Strength=\(result.subScores.strengthLoad), Activity=\(result.subScores.nonExerciseLoad)")
-        Logger.debug("   Recovery Factor: \(String(format: "%.2f", result.subScores.recoveryFactor))")
+        print("🔍 Strain Score Result:")
+        print("   Final Score: \(result.score)")
+        print("   Band: \(result.band.rawValue)")
+        print("   Sub-scores: Cardio=\(result.subScores.cardioLoad), Strength=\(result.subScores.strengthLoad), Activity=\(result.subScores.nonExerciseLoad)")
+        print("   Recovery Factor: \(String(format: "%.2f", result.subScores.recoveryFactor))")
         return result
     }
     
@@ -303,15 +303,15 @@ class StrainScoreService: ObservableObject {
             let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
             
             if let latestActivity = activities.first {
-                Logger.data("Using Intervals.icu training loads: ATL=\(latestActivity.atl?.description ?? "nil"), CTL=\(latestActivity.ctl?.description ?? "nil")")
+                print("📊 Using Intervals.icu training loads: ATL=\(latestActivity.atl?.description ?? "nil"), CTL=\(latestActivity.ctl?.description ?? "nil")")
                 return (latestActivity.atl, latestActivity.ctl)
             } else {
-                Logger.warning("️ No Intervals.icu data, calculating from HealthKit")
+                print("⚠️ No Intervals.icu data, calculating from HealthKit")
                 return await calculateTrainingLoadsFromHealthKit()
             }
         } catch {
-            Logger.error("Intervals.icu not available: \(error)")
-            Logger.warning("️ Calculating training loads from HealthKit")
+            print("❌ Intervals.icu not available: \(error)")
+            print("⚠️ Calculating training loads from HealthKit")
             return await calculateTrainingLoadsFromHealthKit()
         }
     }
@@ -328,7 +328,7 @@ class StrainScoreService: ObservableObject {
             activityTypes: [.cycling, .running, .swimming, .walking, .functionalStrengthTraining, .traditionalStrengthTraining, .hiking, .rowing, .other]
         )
         
-        Logger.debug("🔍 Found \(workouts.count) HealthKit workouts for today")
+        print("🔍 Found \(workouts.count) HealthKit workouts for today")
         return workouts
     }
     
@@ -360,10 +360,10 @@ class StrainScoreService: ObservableObject {
             default: activityName = "Other"
             }
             
-            Logger.debug("   Workout: \(activityName) - TRIMP: \(String(format: "%.1f", trimp))")
+            print("   Workout: \(activityName) - TRIMP: \(String(format: "%.1f", trimp))")
         }
         
-        Logger.debug("🔍 Total TRIMP from \(workouts.count) workouts: \(String(format: "%.1f", totalTRIMP))")
+        print("🔍 Total TRIMP from \(workouts.count) workouts: \(String(format: "%.1f", totalTRIMP))")
         return totalTRIMP
     }
     
@@ -373,12 +373,12 @@ class StrainScoreService: ObservableObject {
         var totalTRIMP: Double = 0
         
         for activity in activities {
-            Logger.debug("🔍 Processing activity '\(activity.name ?? "Unknown")' for TRIMP:")
+            print("🔍 Processing activity '\(activity.name ?? "Unknown")' for TRIMP:")
             
             // First try to use TSS (Training Stress Score) if available
             // TSS is a better metric for cycling and is directly comparable to TRIMP
             if let tss = activity.tss, tss > 0 {
-                Logger.debug("   ✅ Using TSS: \(tss)")
+                print("   ✅ Using TSS: \(tss)")
                 totalTRIMP += tss
                 continue
             }
@@ -394,14 +394,14 @@ class StrainScoreService: ObservableObject {
                 let hrReserve = calculateHeartRateReserve(averageHR: avgHR)
                 let trimpForActivity = durationMinutes * hrReserve
                 
-                Logger.debug("   ✅ Using HR-based TRIMP: \(trimpForActivity) (duration: \(durationMinutes)m, avgHR: \(avgHR))")
+                print("   ✅ Using HR-based TRIMP: \(trimpForActivity) (duration: \(durationMinutes)m, avgHR: \(avgHR))")
                 totalTRIMP += trimpForActivity
             } else {
-                Logger.debug("   ⚠️ No TSS or HR data available, skipping activity")
+                print("   ⚠️ No TSS or HR data available, skipping activity")
             }
         }
         
-        Logger.debug("🔍 Total TRIMP from activities: \(totalTRIMP)")
+        print("🔍 Total TRIMP from activities: \(totalTRIMP)")
         return totalTRIMP
     }
     
@@ -472,7 +472,7 @@ extension StrainScoreService {
     private func loadCachedStrainScore() {
         guard let cachedData = userDefaults.data(forKey: cachedStrainScoreKey),
               let cachedDate = userDefaults.object(forKey: cachedStrainScoreDateKey) as? Date else {
-            Logger.debug("📦 No cached strain score found")
+            print("📦 No cached strain score found")
             return
         }
         
@@ -483,12 +483,12 @@ extension StrainScoreService {
                 let decoder = JSONDecoder()
                 let cachedScore = try decoder.decode(StrainScore.self, from: cachedData)
                 currentStrainScore = cachedScore
-                Logger.debug("⚡ Loaded cached strain score: \(cachedScore.score)")
+                print("⚡ Loaded cached strain score: \(cachedScore.score)")
             } catch {
-                Logger.error("Failed to decode cached strain score: \(error)")
+                print("❌ Failed to decode cached strain score: \(error)")
             }
         } else {
-            Logger.debug("📦 Cached strain score is outdated, clearing cache")
+            print("📦 Cached strain score is outdated, clearing cache")
             clearCachedStrainScore()
         }
     }
@@ -500,9 +500,9 @@ extension StrainScoreService {
             let data = try encoder.encode(score)
             userDefaults.set(data, forKey: cachedStrainScoreKey)
             userDefaults.set(Date(), forKey: cachedStrainScoreDateKey)
-            Logger.debug("💾 Saved strain score to cache: \(score.score)")
+            print("💾 Saved strain score to cache: \(score.score)")
         } catch {
-            Logger.error("Failed to save strain score to cache: \(error)")
+            print("❌ Failed to save strain score to cache: \(error)")
         }
     }
     

@@ -106,15 +106,15 @@ class HealthKitManager: ObservableObject {
     /// Request HealthKit authorization from the user
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else {
-            Logger.error("HealthKit not available on this device")
+            print("❌ HealthKit not available on this device")
             return
         }
         
         do {
-            Logger.debug("🔐 Requesting HealthKit authorization...")
-            Logger.debug("📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
+            print("🔐 Requesting HealthKit authorization...")
+            print("📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
             try await healthStore.requestAuthorization(toShare: [], read: readTypes)
-            Logger.debug("✅ Authorization sheet completed")
+            print("✅ Authorization sheet completed")
             
             // Check status after authorization with delay
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
@@ -123,7 +123,7 @@ class HealthKitManager: ObservableObject {
             }
             
         } catch {
-            Logger.error("HealthKit authorization error: \(error.localizedDescription)")
+            print("❌ HealthKit authorization error: \(error.localizedDescription)")
         }
     }
     
@@ -137,49 +137,49 @@ class HealthKitManager: ObservableObject {
     /// Request workout permissions specifically
     func requestWorkoutPermissions() async {
         guard HKHealthStore.isHealthDataAvailable() else {
-            Logger.error("HealthKit not available on this device")
+            print("❌ HealthKit not available on this device")
             return
         }
         
         do {
-            Logger.debug("🔐 Requesting Workout permissions...")
+            print("🔐 Requesting Workout permissions...")
             let workoutType = HKObjectType.workoutType()
             try await healthStore.requestAuthorization(toShare: [], read: [workoutType])
-            Logger.debug("✅ Workout authorization sheet completed")
+            print("✅ Workout authorization sheet completed")
             
             // Check status
             let status = healthStore.authorizationStatus(for: workoutType)
-            Logger.data("Workout permission status: \(status.rawValue)")
+            print("📊 Workout permission status: \(status.rawValue)")
             
         } catch {
-            Logger.error("Workout authorization error: \(error.localizedDescription)")
+            print("❌ Workout authorization error: \(error.localizedDescription)")
         }
     }
     
     /// Request workout route permissions (must request workout permission too)
     func requestWorkoutRoutePermissions() async {
         guard HKHealthStore.isHealthDataAvailable() else {
-            Logger.error("HealthKit not available on this device")
+            print("❌ HealthKit not available on this device")
             return
         }
         
         do {
-            Logger.debug("🔐 Requesting Workout + Route permissions...")
+            print("🔐 Requesting Workout + Route permissions...")
             let workoutType = HKObjectType.workoutType()
             let routeType = HKSeriesType.workoutRoute()
             
             // Must request both together
             try await healthStore.requestAuthorization(toShare: [], read: [workoutType, routeType])
-            Logger.debug("✅ Workout + Route authorization sheet completed")
+            print("✅ Workout + Route authorization sheet completed")
             
             // Check status
             let workoutStatus = healthStore.authorizationStatus(for: workoutType)
             let routeStatus = healthStore.authorizationStatus(for: routeType)
-            Logger.data("Workout permission status: \(workoutStatus.rawValue)")
-            Logger.data("Route permission status: \(routeStatus.rawValue)")
+            print("📊 Workout permission status: \(workoutStatus.rawValue)")
+            print("📊 Route permission status: \(routeStatus.rawValue)")
             
         } catch {
-            Logger.error("Workout Route authorization error: \(error.localizedDescription)")
+            print("❌ Workout Route authorization error: \(error.localizedDescription)")
         }
     }
     
@@ -222,7 +222,7 @@ class HealthKitManager: ObservableObject {
         // Apply the same fix: rawValue 1 should be treated as authorized
         // This is needed because iOS Settings shows permissions as ON but rawValue 1 = .sharingDenied
         if status.rawValue == 1 && status == .sharingDenied {
-            Logger.debug("🔧 Fixing authorization status: rawValue 1 treated as authorized for \(type.identifier)")
+            print("🔧 Fixing authorization status: rawValue 1 treated as authorized for \(type.identifier)")
             return .sharingAuthorized
         }
         
@@ -240,7 +240,7 @@ class HealthKitManager: ObservableObject {
     
     /// FAST authorization check - non-blocking, no heavy operations
     func checkAuthorizationStatusFast() async {
-        Logger.debug("⚡ Fast HealthKit authorization check")
+        print("⚡ Fast HealthKit authorization check")
         
         guard HKHealthStore.isHealthDataAvailable() else {
             await MainActor.run {
@@ -257,7 +257,7 @@ class HealthKitManager: ObservableObject {
         // Apply the same iOS rawValue bug fix as the main method
         let effectiveStatus: HKAuthorizationStatus
         if hrvStatus.rawValue == 1 && hrvStatus == .sharingDenied {
-            Logger.debug("🔧 Fast check: rawValue 1 treated as authorized for \(hrvType.identifier)")
+            print("🔧 Fast check: rawValue 1 treated as authorized for \(hrvType.identifier)")
             effectiveStatus = .sharingAuthorized
         } else {
             effectiveStatus = hrvStatus
@@ -268,7 +268,7 @@ class HealthKitManager: ObservableObject {
             self.isAuthorized = effectiveStatus == .sharingAuthorized
         }
         
-        Logger.debug("⚡ Fast HealthKit check completed: \(await authorizationState)")
+        print("⚡ Fast HealthKit check completed: \(await authorizationState)")
     }
     
     /// Check current authorization status
@@ -339,23 +339,23 @@ class HealthKitManager: ObservableObject {
         if authorizedCount == readTypes.count {
             authorizationState = .authorized
             isAuthorized = true
-            Logger.debug("✅ HealthKit fully authorized")
+            print("✅ HealthKit fully authorized")
         } else if deniedCount > 0 {
             // If ANY critical types are denied, treat as denied
             // This ensures we show the authorization prompt when permissions are off
             authorizationState = .denied
             isAuthorized = false
-            Logger.warning("️ HealthKit denied - critical permissions missing (\(deniedCount) denied, \(authorizedCount) authorized)")
+            print("⚠️ HealthKit denied - critical permissions missing (\(deniedCount) denied, \(authorizedCount) authorized)")
         } else if authorizedCount > 0 && deniedCount == 0 {
             // Only show partial if we have some permissions but no denials
             authorizationState = .partial
             isAuthorized = true
-            Logger.debug("✅ HealthKit partially authorized (\(authorizedCount)/\(readTypes.count))")
+            print("✅ HealthKit partially authorized (\(authorizedCount)/\(readTypes.count))")
         } else {
             // No permissions determined yet
             authorizationState = .notDetermined
             isAuthorized = false
-            Logger.warning("️ HealthKit authorization not determined")
+            print("⚠️ HealthKit authorization not determined")
         }
     }
     
@@ -440,7 +440,7 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 guard error == nil, let sleepSamples = samples as? [HKCategorySample], !sleepSamples.isEmpty else {
-                    Logger.error("No HealthKit sleep samples found: error=\(error?.localizedDescription ?? "none"), samplesCount=\(samples?.count ?? 0)")
+                    print("❌ No HealthKit sleep samples found: error=\(error?.localizedDescription ?? "none"), samplesCount=\(samples?.count ?? 0)")
                     continuation.resume(returning: nil)
                     return
                 }
@@ -475,12 +475,12 @@ class HealthKitManager: ObservableObject {
                 // Removed verbose session logging
                 
                 guard let mostRecentSession = sleepSessions.last else {
-                    Logger.error("No valid sleep sessions found")
+                    print("❌ No valid sleep sessions found")
                     continuation.resume(returning: nil)
                     return
                 }
                 
-                Logger.debug("✅ Using most recent sleep session (\(mostRecentSession.count) samples)")
+                print("✅ Using most recent sleep session (\(mostRecentSession.count) samples)")
                 
                 // Parse sleep stages from most recent session only
                 var deepSleep = 0.0
@@ -528,7 +528,7 @@ class HealthKitManager: ObservableObject {
                     latestWakeTime!.timeIntervalSince(earliestBedtime!) : totalSleep + awake
                 
                 // Simplified logging - only log summary
-                Logger.debug("💤 Sleep: \(String(format: "%.1f", totalSleep/3600))h (Deep: \(String(format: "%.1f", deepSleep/3600))h, REM: \(String(format: "%.1f", remSleep/3600))h, Core: \(String(format: "%.1f", coreSleep/3600))h)")
+                print("💤 Sleep: \(String(format: "%.1f", totalSleep/3600))h (Deep: \(String(format: "%.1f", deepSleep/3600))h, REM: \(String(format: "%.1f", remSleep/3600))h, Core: \(String(format: "%.1f", coreSleep/3600))h)")
                 
                 // Ensure we distinguish between actual sleep vs time in bed
                 let actualSleepDuration = totalSleep // This should be actual sleep only
@@ -539,11 +539,11 @@ class HealthKitManager: ObservableObject {
                 var correctedTimeInBed = actualTimeInBed
                 
                 if actualSleepDuration > 8*3600 && actualTimeInBed < actualSleepDuration {
-                    Logger.warning("️ POTENTIAL VALUE SWAP DETECTED: Swapping sleepDuration and timeInBed")
+                    print("⚠️ POTENTIAL VALUE SWAP DETECTED: Swapping sleepDuration and timeInBed")
                     correctedSleepDuration = actualTimeInBed
                     correctedTimeInBed = actualSleepDuration
-                    Logger.debug("   Corrected Sleep Duration: \(String(format: "%.2f", correctedSleepDuration/3600)) hrs")
-                    Logger.debug("   Corrected Time in Bed: \(String(format: "%.2f", correctedTimeInBed/3600)) hrs")
+                    print("   Corrected Sleep Duration: \(String(format: "%.2f", correctedSleepDuration/3600)) hrs")
+                    print("   Corrected Time in Bed: \(String(format: "%.2f", correctedTimeInBed/3600)) hrs")
                 }
                 
                 let sleepData = HealthKitSleepData(
@@ -594,13 +594,13 @@ class HealthKitManager: ObservableObject {
             ) { _, samples, error in
                 
                 guard error == nil, let sleepSamples = samples as? [HKCategorySample], !sleepSamples.isEmpty else {
-                    Logger.error("No historical sleep data found: error=\(error?.localizedDescription ?? "none"), samplesCount=\(samples?.count ?? 0)")
+                    print("❌ No historical sleep data found: error=\(error?.localizedDescription ?? "none"), samplesCount=\(samples?.count ?? 0)")
                     continuation.resume(returning: [])
                     return
                 }
                 
-                Logger.debug("🔍 HISTORICAL SLEEP ANALYSIS:")
-                Logger.data("Found \(sleepSamples.count) historical sleep samples over \(days) days")
+                print("🔍 HISTORICAL SLEEP ANALYSIS:")
+                print("📊 Found \(sleepSamples.count) historical sleep samples over \(days) days")
                 
                 // Group samples by sleep session (continuous sleep periods)
                 var allSleepSessions: [[HKCategorySample]] = []
@@ -625,7 +625,7 @@ class HealthKitManager: ObservableObject {
                     allSleepSessions.append(currentSession)
                 }
                 
-                Logger.debug("   Found \(allSleepSessions.count) total sleep sessions across \(days) days")
+                print("   Found \(allSleepSessions.count) total sleep sessions across \(days) days")
                 
                 // Extract bedtime and wake time for each session
                 var sleepTimes: [(bedtime: Date?, wakeTime: Date?)] = []
@@ -646,7 +646,7 @@ class HealthKitManager: ObservableObject {
                     
                     sleepTimes.append((bedtime: earliestBedtime, wakeTime: latestWakeTime))
                     
-                    Logger.debug("     Session \(index + 1): bedtime=\(earliestBedtime?.description ?? "nil"), wake=\(latestWakeTime?.description ?? "nil")")
+                    print("     Session \(index + 1): bedtime=\(earliestBedtime?.description ?? "nil"), wake=\(latestWakeTime?.description ?? "nil")")
                 }
                 
                 continuation.resume(returning: sleepTimes)
@@ -682,7 +682,7 @@ class HealthKitManager: ObservableObject {
         if let bedtime = bedtime, let wakeTime = wakeTime {
             overnightStart = bedtime
             overnightEnd = wakeTime
-            Logger.debug("🍷 Using ACTUAL sleep session times for overnight HRV")
+            print("🍷 Using ACTUAL sleep session times for overnight HRV")
         } else {
             // Fallback to estimated sleep window (6 PM yesterday to 6 AM today)
             let now = Date()
@@ -691,10 +691,10 @@ class HealthKitManager: ObservableObject {
             let endOfToday = calendar.startOfDay(for: now)
             overnightStart = calendar.date(byAdding: .hour, value: 18, to: startOfYesterday)!
             overnightEnd = calendar.date(byAdding: .hour, value: 6, to: endOfToday)!
-            Logger.debug("🍷 Using ESTIMATED sleep window for overnight HRV (no sleep session data)")
+            print("🍷 Using ESTIMATED sleep window for overnight HRV (no sleep session data)")
         }
         
-        Logger.debug("🍷 Fetching overnight HRV from \(overnightStart) to \(overnightEnd)")
+        print("🍷 Fetching overnight HRV from \(overnightStart) to \(overnightEnd)")
         
         // Get ALL HRV samples from overnight period and calculate average
         let predicate = HKQuery.predicateForSamples(withStart: overnightStart, end: overnightEnd, options: .strictStartDate)
@@ -708,7 +708,7 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
                 guard let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
-                    Logger.debug("🍷 ⚠️ No overnight HRV samples found - alcohol detection will be limited")
+                    print("🍷 ⚠️ No overnight HRV samples found - alcohol detection will be limited")
                     continuation.resume(returning: (nil, nil))
                     return
                 }
@@ -718,8 +718,8 @@ class HealthKitManager: ObservableObject {
                 let values = samples.map { $0.quantity.doubleValue(for: unit) }
                 let average = values.reduce(0, +) / Double(values.count)
                 
-                Logger.debug("🍷 Found \(samples.count) overnight HRV samples")
-                Logger.debug("🍷 Average overnight HRV: \(String(format: "%.2f", average)) ms (range: \(String(format: "%.2f", values.min() ?? 0))-\(String(format: "%.2f", values.max() ?? 0)))")
+                print("🍷 Found \(samples.count) overnight HRV samples")
+                print("🍷 Average overnight HRV: \(String(format: "%.2f", average)) ms (range: \(String(format: "%.2f", values.min() ?? 0))-\(String(format: "%.2f", values.max() ?? 0)))")
                 
                 // Return the first sample with the average value for consistency
                 continuation.resume(returning: (samples.first, average))
@@ -834,7 +834,7 @@ class HealthKitManager: ObservableObject {
             
             query.initialResultsHandler = { _, results, error in
                 if let error = error {
-                    Logger.error("HealthKit hourly steps error: \(error.localizedDescription)")
+                    print("❌ HealthKit hourly steps error: \(error.localizedDescription)")
                     continuation.resume(returning: Array(repeating: 0, count: 24))
                     return
                 }
@@ -929,7 +929,7 @@ class HealthKitManager: ObservableObject {
                 if let error = error {
                     // Only log meaningful errors (not "no data" errors)
                     if (error as NSError).code != 11 { // HKError code 11 = no data
-                        Logger.error("HealthKit fetchSum error for \(type.identifier): \(error.localizedDescription)")
+                        print("❌ HealthKit fetchSum error for \(type.identifier): \(error.localizedDescription)")
                     }
                     continuation.resume(returning: 0.0)
                     return
@@ -942,7 +942,7 @@ class HealthKitManager: ObservableObject {
                 }
                 
                 let value = sum.doubleValue(for: unit)
-                Logger.debug("✅ Fetched \(type.identifier): \(value)")
+                print("✅ Fetched \(type.identifier): \(value)")
                 continuation.resume(returning: value)
             }
             healthStore.execute(query)
@@ -1129,13 +1129,13 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if let error = error {
-                    Logger.error("Error fetching VO₂ Max data: \(error.localizedDescription)")
+                    print("❌ Error fetching VO₂ Max data: \(error.localizedDescription)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let vo2Samples = samples as? [HKQuantitySample] ?? []
-                Logger.data("Fetched \(vo2Samples.count) VO₂ Max samples")
+                print("📊 Fetched \(vo2Samples.count) VO₂ Max samples")
                 continuation.resume(returning: vo2Samples)
             }
             healthStore.execute(query)
@@ -1158,13 +1158,13 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if let error = error {
-                    Logger.error("Error fetching SpO2 data: \(error.localizedDescription)")
+                    print("❌ Error fetching SpO2 data: \(error.localizedDescription)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let spo2Samples = samples as? [HKQuantitySample] ?? []
-                Logger.data("Fetched \(spo2Samples.count) SpO2 samples")
+                print("📊 Fetched \(spo2Samples.count) SpO2 samples")
                 continuation.resume(returning: spo2Samples)
             }
             healthStore.execute(query)
@@ -1187,13 +1187,13 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
                 if let error = error {
-                    Logger.error("Error fetching body temperature data: \(error.localizedDescription)")
+                    print("❌ Error fetching body temperature data: \(error.localizedDescription)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let tempSamples = samples as? [HKQuantitySample] ?? []
-                Logger.data("Fetched \(tempSamples.count) body temperature samples")
+                print("📊 Fetched \(tempSamples.count) body temperature samples")
                 continuation.resume(returning: tempSamples)
             }
             healthStore.execute(query)
@@ -1214,7 +1214,7 @@ class HealthKitManager: ObservableObject {
             return []
         }
         
-        Logger.debug("🔍 Fetching workouts from \(startDate) to \(now)")
+        print("🔍 Fetching workouts from \(startDate) to \(now)")
         
         let datePredicate = HKQuery.predicateForSamples(
             withStart: startDate,
@@ -1253,13 +1253,13 @@ class HealthKitManager: ObservableObject {
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
                 if let error = error {
-                    Logger.error("Failed to fetch workouts: \(error.localizedDescription)")
+                    print("❌ Failed to fetch workouts: \(error.localizedDescription)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let workouts = samples as? [HKWorkout] ?? []
-                Logger.debug("✅ Fetched \(workouts.count) strength/walking workouts from Apple Health")
+                print("✅ Fetched \(workouts.count) strength/walking workouts from Apple Health")
                 
                 // Debug: Print details of each workout
                 for (index, workout) in workouts.prefix(5).enumerated() {
@@ -1277,11 +1277,11 @@ class HealthKitManager: ObservableObject {
                         calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
                     }
                     
-                    Logger.debug("   Workout \(index + 1): \(workout.workoutActivityType.name)")
-                    Logger.debug("      Date: \(workout.startDate)")
-                    Logger.debug("      Duration: \(Int(workout.duration / 60))m")
-                    Logger.debug("      Distance: \(String(format: "%.1f", distance / 1000))km")
-                    Logger.debug("      Calories: \(Int(calories)) kcal")
+                    print("   Workout \(index + 1): \(workout.workoutActivityType.name)")
+                    print("      Date: \(workout.startDate)")
+                    print("      Duration: \(Int(workout.duration / 60))m")
+                    print("      Distance: \(String(format: "%.1f", distance / 1000))km")
+                    print("      Calories: \(Int(calories)) kcal")
                 }
                 
                 continuation.resume(returning: workouts)

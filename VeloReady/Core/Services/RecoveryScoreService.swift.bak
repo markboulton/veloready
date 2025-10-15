@@ -41,8 +41,8 @@ class RecoveryScoreService: ObservableObject {
     func calculateRecoveryScore() async {
         // Check if we already calculated today's recovery score
         if hasCalculatedToday() {
-            Logger.debug("✅ Recovery score already calculated today - skipping recalculation")
-            Logger.debug("🍷 NOTE: To test new alcohol detection algorithm, use forceRefreshRecoveryScoreIgnoringDailyLimit()")
+            print("✅ Recovery score already calculated today - skipping recalculation")
+            print("🍷 NOTE: To test new alcohol detection algorithm, use forceRefreshRecoveryScoreIgnoringDailyLimit()")
             return
         }
         
@@ -70,7 +70,7 @@ class RecoveryScoreService: ObservableObject {
     
     /// Force refresh recovery score (ignores daily calculation limit)
     func forceRefreshRecoveryScoreIgnoringDailyLimit() async {
-        Logger.debug("🔄 FORCE REFRESH: Ignoring daily limit and recalculating recovery score")
+        print("🔄 FORCE REFRESH: Ignoring daily limit and recalculating recovery score")
         
         // Cancel any existing calculation
         calculationTask?.cancel()
@@ -83,11 +83,11 @@ class RecoveryScoreService: ObservableObject {
     }
     
     private func performCalculation(forceRefresh: Bool = false, ignoreDailyLimit: Bool = false) async {
-        Logger.debug("🔄 Starting recovery calculation (forceRefresh: \(forceRefresh))")
+        print("🔄 Starting recovery calculation (forceRefresh: \(forceRefresh))")
         
         // Check if already loading to prevent multiple concurrent calculations
         guard !isLoading else {
-            Logger.warning("️ Recovery calculation already in progress, skipping...")
+            print("⚠️ Recovery calculation already in progress, skipping...")
             return
         }
         
@@ -115,9 +115,9 @@ class RecoveryScoreService: ObservableObject {
                 timeoutTask.cancel()
             }
             
-            Logger.debug("✅ Recovery calculation completed successfully")
+            print("✅ Recovery calculation completed successfully")
         } catch {
-            Logger.error("Recovery calculation failed: \(error)")
+            print("❌ Recovery calculation failed: \(error)")
             isLoading = false
         }
         
@@ -130,7 +130,7 @@ class RecoveryScoreService: ObservableObject {
         let hrvStatus = healthKitManager.getAuthorizationStatus(for: hrvType)
         
         if hrvStatus == .sharingDenied {
-            Logger.error("Recovery permissions explicitly denied - skipping calculation")
+            print("❌ Recovery permissions explicitly denied - skipping calculation")
             await MainActor.run {
                 currentRecoveryScore = nil
                 isLoading = false
@@ -154,10 +154,10 @@ class RecoveryScoreService: ObservableObject {
             
             // Only refresh AI brief if recovery score actually changed (avoids unnecessary API calls)
             if scoreChanged {
-                Logger.data("Recovery score changed (\(previousScore?.score ?? 0) → \(score.score)) - refreshing AI brief")
+                print("📊 Recovery score changed (\(previousScore?.score ?? 0) → \(score.score)) - refreshing AI brief")
                 await AIBriefService.shared.refresh()
             } else {
-                Logger.warning("️ Recovery score unchanged - skipping AI brief refresh")
+                print("⏭️ Recovery score unchanged - skipping AI brief refresh")
             }
         }
     }
@@ -165,7 +165,7 @@ class RecoveryScoreService: ObservableObject {
     // MARK: - Real Data Calculation
     
     private func calculateRealRecoveryScore(forceRefresh: Bool = false) async -> RecoveryScore? {
-        Logger.debug("⚡ Starting parallel data fetching for recovery score...")
+        print("⚡ Starting parallel data fetching for recovery score...")
         
         // Sleep score should be calculated first so we can use actual sleep times for overnight HRV
         if sleepScoreService.currentSleepScore == nil {
@@ -192,7 +192,7 @@ class RecoveryScoreService: ObservableObject {
         let (atl, ctl) = await intervalsData
         let strain = await recentStrain
         
-        Logger.debug("⚡ All parallel data fetching completed")
+        print("⚡ All parallel data fetching completed")
         
         // Extract values for debugging
         let hrvValue = hrv.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
@@ -200,29 +200,29 @@ class RecoveryScoreService: ObservableObject {
         let rhrValue = rhr.sample?.quantity.doubleValue(for: HKUnit(from: "count/min"))
         let respiratoryValue = respiratoryRate.sample?.quantity.doubleValue(for: HKUnit(from: "count/min"))
         
-        Logger.debug("🔍 Recovery Score Inputs:")
-        Logger.debug("   HRV: \(hrvValue?.description ?? "nil") ms (baseline: \(hrvBaseline?.description ?? "nil"))")
-        Logger.debug("   Overnight HRV: \(overnightHrvValue?.description ?? "nil") ms (for alcohol detection)")
+        print("🔍 Recovery Score Inputs:")
+        print("   HRV: \(hrvValue?.description ?? "nil") ms (baseline: \(hrvBaseline?.description ?? "nil"))")
+        print("   Overnight HRV: \(overnightHrvValue?.description ?? "nil") ms (for alcohol detection)")
         if overnightHrvValue == nil {
-            Logger.debug("   ⚠️ WARNING: No overnight HRV data - alcohol detection may fail!")
+            print("   ⚠️ WARNING: No overnight HRV data - alcohol detection may fail!")
         }
-        Logger.debug("   RHR: \(rhrValue?.description ?? "nil") bpm (baseline: \(rhrBaseline?.description ?? "nil"))")
-        Logger.debug("   Sleep Score: \(sleepScoreResult?.score.description ?? "nil") (band: \(sleepScoreResult?.band.rawValue ?? "nil"))")
+        print("   RHR: \(rhrValue?.description ?? "nil") bpm (baseline: \(rhrBaseline?.description ?? "nil"))")
+        print("   Sleep Score: \(sleepScoreResult?.score.description ?? "nil") (band: \(sleepScoreResult?.band.rawValue ?? "nil"))")
         if let sleepScore = sleepScoreResult {
-            Logger.debug("   Sleep Breakdown: Perf=\(sleepScore.subScores.performance), Quality=\(sleepScore.subScores.stageQuality), Eff=\(sleepScore.subScores.efficiency), Disturb=\(sleepScore.subScores.disturbances)")
+            print("   Sleep Breakdown: Perf=\(sleepScore.subScores.performance), Quality=\(sleepScore.subScores.stageQuality), Eff=\(sleepScore.subScores.efficiency), Disturb=\(sleepScore.subScores.disturbances)")
         }
-        Logger.debug("   Respiratory: \(respiratoryValue?.description ?? "nil") breaths/min (baseline: \(respiratoryBaseline?.description ?? "nil"))")
-        Logger.debug("   ATL: \(atl?.description ?? "nil"), CTL: \(ctl?.description ?? "nil")")
-        Logger.debug("   Recent Strain: \(strain?.description ?? "nil")")
+        print("   Respiratory: \(respiratoryValue?.description ?? "nil") breaths/min (baseline: \(respiratoryBaseline?.description ?? "nil"))")
+        print("   ATL: \(atl?.description ?? "nil"), CTL: \(ctl?.description ?? "nil")")
+        print("   Recent Strain: \(strain?.description ?? "nil")")
         
         // Calculate percentage changes for alcohol detection using OVERNIGHT HRV
         if let overnightHrv = overnightHrvValue, let hrvBase = hrvBaseline, hrvBase > 0 {
             let hrvChange = ((overnightHrv - hrvBase) / hrvBase) * 100
-            Logger.debug("🍷 Overnight HRV Change: \(String(format: "%.1f", hrvChange))% (alcohol threshold: -15%)")
+            print("🍷 Overnight HRV Change: \(String(format: "%.1f", hrvChange))% (alcohol threshold: -15%)")
         }
         if let rhr = rhrValue, let rhrBase = rhrBaseline, rhrBase > 0 {
             let rhrChange = ((rhr - rhrBase) / rhrBase) * 100
-            Logger.debug("🍷 RHR Change: \(String(format: "%.1f", rhrChange))% (alcohol threshold: +10%)")
+            print("🍷 RHR Change: \(String(format: "%.1f", rhrChange))% (alcohol threshold: +10%)")
         }
         
         // Create inputs with sleep score
@@ -252,7 +252,7 @@ class RecoveryScoreService: ObservableObject {
             // Try Intervals.icu first (if available)
             let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: forceRefresh)
             
-            Logger.debug("🔍 Using pre-calculated CTL/ATL from \(activities.count) cached activities")
+            print("🔍 Using pre-calculated CTL/ATL from \(activities.count) cached activities")
             
             // Use the most recent activity's pre-calculated ATL/CTL values
             // Intervals.icu calculates these for us using their algorithms
@@ -260,9 +260,9 @@ class RecoveryScoreService: ObservableObject {
                 let atl = latestActivity.atl
                 let ctl = latestActivity.ctl
                 
-                Logger.data("Pre-calculated Training Load Data from latest activity '\(latestActivity.name ?? "Unknown")':")
-                Logger.debug("   ATL=\(atl?.description ?? "nil"), CTL=\(ctl?.description ?? "nil")")
-                Logger.debug("   TSS=\(latestActivity.tss?.description ?? "nil")")
+                print("📊 Pre-calculated Training Load Data from latest activity '\(latestActivity.name ?? "Unknown")':")
+                print("   ATL=\(atl?.description ?? "nil"), CTL=\(ctl?.description ?? "nil")")
+                print("   TSS=\(latestActivity.tss?.description ?? "nil")")
                 
                 // If Intervals.icu has CTL/ATL, use them
                 if atl != nil && ctl != nil {
@@ -270,15 +270,15 @@ class RecoveryScoreService: ObservableObject {
                 }
                 
                 // Otherwise fall through to calculate from unified activities
-                Logger.warning("️ Intervals.icu activities don't have CTL/ATL, calculating from unified activities")
+                print("⚠️ Intervals.icu activities don't have CTL/ATL, calculating from unified activities")
             }
             
             // Fall back to calculating from all unified activities (Strava + Intervals + HealthKit)
             return await calculateTrainingLoadFromUnifiedActivities()
             
         } catch {
-            Logger.error("Failed to fetch Intervals data: \(error)")
-            Logger.warning("️ Falling back to unified activities calculation")
+            print("❌ Failed to fetch Intervals data: \(error)")
+            print("⚠️ Falling back to unified activities calculation")
             return await calculateTrainingLoadFromUnifiedActivities()
         }
     }
@@ -286,7 +286,7 @@ class RecoveryScoreService: ObservableObject {
     /// Calculate training load from unified activities (Strava + Intervals + HealthKit)
     /// This is more robust than relying on Intervals.icu pre-calculated values
     private func calculateTrainingLoadFromUnifiedActivities() async -> (atl: Double?, ctl: Double?) {
-        Logger.data("Calculating CTL/ATL from unified activities (Strava + Intervals + HealthKit)...")
+        print("📊 Calculating CTL/ATL from unified activities (Strava + Intervals + HealthKit)...")
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -298,14 +298,14 @@ class RecoveryScoreService: ObservableObject {
         // 1. Try Intervals.icu activities
         do {
             let intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
-            Logger.data("Got \(intervalsActivities.count) Intervals.icu activities")
+            print("📊 Got \(intervalsActivities.count) Intervals.icu activities")
             
             // Convert to UnifiedActivity using proper initializer
             for activity in intervalsActivities {
                 allActivities.append(UnifiedActivity(from: activity))
             }
         } catch {
-            Logger.warning("️ Could not fetch Intervals activities: \(error)")
+            print("⚠️ Could not fetch Intervals activities: \(error)")
         }
         
         // Note: Strava activities are already included via Intervals.icu if synced
@@ -316,7 +316,7 @@ class RecoveryScoreService: ObservableObject {
             activity.startDate >= fortyTwoDaysAgo
         }
         
-        Logger.data("Found \(recentActivities.count) activities in last 42 days for CTL/ATL calculation")
+        print("📊 Found \(recentActivities.count) activities in last 42 days for CTL/ATL calculation")
         
         // Calculate daily TSS for each day
         var dailyTSS: [Date: Double] = [:]
@@ -333,9 +333,9 @@ class RecoveryScoreService: ObservableObject {
         // Calculate ATL (7-day exponentially weighted average)
         let atl = calculateATL(from: dailyTSS, today: today)
         
-        Logger.data("Calculated Training Load from unified activities:")
-        Logger.debug("   CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
-        Logger.debug("   TSB=\(String(format: "%.1f", ctl - atl))")
+        print("📊 Calculated Training Load from unified activities:")
+        print("   CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
+        print("   TSB=\(String(format: "%.1f", ctl - atl))")
         
         return (atl, ctl)
     }
@@ -419,32 +419,32 @@ class RecoveryScoreService: ObservableObject {
             let calendar = Calendar.current
             let eightDaysAgo = calendar.date(byAdding: .day, value: -8, to: Date()) ?? Date()
             
-            Logger.debug("🗓️ Filtering activities: eightDaysAgo=\(eightDaysAgo), today=\(Date())")
-            Logger.debug("🗓️ Sample activity dates from \(recentActivities.count) total activities:")
+            print("🗓️ Filtering activities: eightDaysAgo=\(eightDaysAgo), today=\(Date())")
+            print("🗓️ Sample activity dates from \(recentActivities.count) total activities:")
             for (index, activity) in recentActivities.prefix(3).enumerated() {
                 if let date = parseActivityDate(activity.startDateLocal) {
-                    Logger.debug("   Activity \(index + 1): '\(activity.name ?? "Unnamed")' - \(date) (\(activity.startDateLocal))")
+                    print("   Activity \(index + 1): '\(activity.name ?? "Unnamed")' - \(date) (\(activity.startDateLocal))")
                 } else {
-                    Logger.debug("   Activity \(index + 1): '\(activity.name ?? "Unnamed")' - FAILED TO PARSE (\(activity.startDateLocal))")
+                    print("   Activity \(index + 1): '\(activity.name ?? "Unnamed")' - FAILED TO PARSE (\(activity.startDateLocal))")
                 }
             }
             
             let recentActivitiesFiltered = recentActivities.filter { activity in
                 guard let activityDate = parseActivityDate(activity.startDateLocal) else { 
-                    Logger.warning("️ Failed to parse date: \(activity.startDateLocal)")
+                    print("⚠️ Failed to parse date: \(activity.startDateLocal)")
                     return false 
                 }
                 let isRecent = activityDate >= eightDaysAgo
                 if !isRecent {
-                    Logger.debug("🗓️ Activity '\(activity.name ?? "Unnamed")' is too old: \(activityDate) < \(eightDaysAgo)")
+                    print("🗓️ Activity '\(activity.name ?? "Unnamed")' is too old: \(activityDate) < \(eightDaysAgo)")
                 }
                 return isRecent
             }
             
             // Debug: Check what TSS values we have
-            Logger.debug("🔍 Checking TSS values in \(recentActivitiesFiltered.count) activities:")
+            print("🔍 Checking TSS values in \(recentActivitiesFiltered.count) activities:")
             for (index, activity) in recentActivitiesFiltered.prefix(5).enumerated() {
-                Logger.debug("   Activity \(index + 1): \(activity.name ?? "Unnamed") - TSS: \(activity.tss?.description ?? "nil"), IF: \(activity.intensityFactor?.description ?? "nil")")
+                print("   Activity \(index + 1): \(activity.name ?? "Unnamed") - TSS: \(activity.tss?.description ?? "nil"), IF: \(activity.intensityFactor?.description ?? "nil")")
             }
             
             // Calculate total TSS from recent activities
@@ -458,12 +458,12 @@ class RecoveryScoreService: ObservableObject {
                 return calendar.isDate(activityDate, inSameDayAs: yesterday)
             }.compactMap { $0.tss }.reduce(0, +)
             
-            Logger.data("Recent Strain: Total 8-day TSS=\(totalTSS), Yesterday TSS=\(yesterdayTSS) (from \(recentActivitiesFiltered.count) cached activities)")
+            print("📊 Recent Strain: Total 8-day TSS=\(totalTSS), Yesterday TSS=\(yesterdayTSS) (from \(recentActivitiesFiltered.count) cached activities)")
             
             // Return yesterday's TSS as the primary strain metric
             return yesterdayTSS > 0 ? yesterdayTSS : nil
         } catch {
-            Logger.error("Failed to fetch recent strain: \(error)")
+            print("❌ Failed to fetch recent strain: \(error)")
             return nil
         }
     }
@@ -486,24 +486,24 @@ class RecoveryScoreService: ObservableObject {
     
     /// Test cache serialization by clearing cache and verifying data persistence
     func testCacheSerialization() async {
-        Logger.debug("🧪 Testing cache serialization...")
+        print("🧪 Testing cache serialization...")
         
         // Clear cache and fetch fresh data
         intervalsCache.clearAllCache()
         
         do {
             // First fetch - should get fresh data from API
-            Logger.debug("🔄 First fetch (fresh from API)...")
+            print("🔄 First fetch (fresh from API)...")
             let activities1 = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: true)
             if let first1 = activities1.first {
-                Logger.debug("✅ Fresh API data: TSS=\(first1.tss?.description ?? "nil"), ATL=\(first1.atl?.description ?? "nil"), CTL=\(first1.ctl?.description ?? "nil")")
+                print("✅ Fresh API data: TSS=\(first1.tss?.description ?? "nil"), ATL=\(first1.atl?.description ?? "nil"), CTL=\(first1.ctl?.description ?? "nil")")
             }
             
             // Second fetch - should use cached data
-            Logger.debug("🔄 Second fetch (from cache)...")
+            print("🔄 Second fetch (from cache)...")
             let activities2 = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
             if let first2 = activities2.first {
-                Logger.debug("✅ Cached data: TSS=\(first2.tss?.description ?? "nil"), ATL=\(first2.atl?.description ?? "nil"), CTL=\(first2.ctl?.description ?? "nil")")
+                print("✅ Cached data: TSS=\(first2.tss?.description ?? "nil"), ATL=\(first2.atl?.description ?? "nil"), CTL=\(first2.ctl?.description ?? "nil")")
             }
             
             // Compare values
@@ -513,22 +513,22 @@ class RecoveryScoreService: ObservableObject {
                 let ctlMatch = first1.ctl == first2.ctl
                 
                 if tssMatch && atlMatch && ctlMatch {
-                    Logger.debug("✅ Cache serialization test PASSED - all values match!")
+                    print("✅ Cache serialization test PASSED - all values match!")
                 } else {
-                    Logger.error("Cache serialization test FAILED - values don't match")
-                    Logger.debug("   TSS: \(tssMatch ? "✅" : "❌") (\(first1.tss?.description ?? "nil") vs \(first2.tss?.description ?? "nil"))")
-                    Logger.debug("   ATL: \(atlMatch ? "✅" : "❌") (\(first1.atl?.description ?? "nil") vs \(first2.atl?.description ?? "nil"))")
-                    Logger.debug("   CTL: \(ctlMatch ? "✅" : "❌") (\(first1.ctl?.description ?? "nil") vs \(first2.ctl?.description ?? "nil"))")
+                    print("❌ Cache serialization test FAILED - values don't match")
+                    print("   TSS: \(tssMatch ? "✅" : "❌") (\(first1.tss?.description ?? "nil") vs \(first2.tss?.description ?? "nil"))")
+                    print("   ATL: \(atlMatch ? "✅" : "❌") (\(first1.atl?.description ?? "nil") vs \(first2.atl?.description ?? "nil"))")
+                    print("   CTL: \(ctlMatch ? "✅" : "❌") (\(first1.ctl?.description ?? "nil") vs \(first2.ctl?.description ?? "nil"))")
                 }
             }
         } catch {
-            Logger.error("Cache serialization test failed with error: \(error)")
+            print("❌ Cache serialization test failed with error: \(error)")
         }
     }
     
     /// Force refresh all data and clear caches
     func forceRefreshData() async {
-        Logger.debug("🔄 Force refreshing data from API...")
+        print("🔄 Force refreshing data from API...")
         
         // Clear all caches first
         intervalsCache.clearAllCache()
@@ -543,7 +543,7 @@ class RecoveryScoreService: ObservableObject {
     
     /// Test alcohol detection algorithm (ignores daily limit)
     func testAlcoholDetection() async {
-        Logger.debug("🍷 Testing alcohol detection algorithm...")
+        print("🍷 Testing alcohol detection algorithm...")
         
         // Clear cached recovery score first
         clearCachedRecoveryScore()
@@ -568,14 +568,14 @@ class RecoveryScoreService: ObservableObject {
     private func markAsCalculatedToday() {
         lastRecoveryCalculationDate = Date()
         userDefaults.set(lastRecoveryCalculationDate, forKey: recoveryScoreKey)
-        Logger.debug("📅 Marked recovery score as calculated for today")
+        print("📅 Marked recovery score as calculated for today")
     }
     
     /// Reset daily calculation tracking (useful for testing or new day)
     func resetDailyCalculation() {
         lastRecoveryCalculationDate = nil
         userDefaults.removeObject(forKey: recoveryScoreKey)
-        Logger.debug("🔄 Reset daily recovery calculation tracking")
+        print("🔄 Reset daily recovery calculation tracking")
     }
 }
 
@@ -611,7 +611,7 @@ extension RecoveryScoreService {
     private func loadCachedRecoveryScore() {
         guard let cachedData = userDefaults.data(forKey: cachedRecoveryScoreKey),
               let cachedDate = userDefaults.object(forKey: cachedRecoveryScoreDateKey) as? Date else {
-            Logger.debug("📦 No cached recovery score found")
+            print("📦 No cached recovery score found")
             return
         }
         
@@ -622,12 +622,12 @@ extension RecoveryScoreService {
                 let decoder = JSONDecoder()
                 let cachedScore = try decoder.decode(RecoveryScore.self, from: cachedData)
                 currentRecoveryScore = cachedScore
-                Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
+                print("⚡ Loaded cached recovery score: \(cachedScore.score)")
             } catch {
-                Logger.error("Failed to decode cached recovery score: \(error)")
+                print("❌ Failed to decode cached recovery score: \(error)")
             }
         } else {
-            Logger.debug("📦 Cached recovery score is outdated, clearing cache")
+            print("📦 Cached recovery score is outdated, clearing cache")
             clearCachedRecoveryScore()
         }
     }
@@ -653,9 +653,9 @@ extension RecoveryScoreService {
             let data = try encoder.encode(score)
             userDefaults.set(data, forKey: cachedRecoveryScoreKey)
             userDefaults.set(Date(), forKey: cachedRecoveryScoreDateKey)
-            Logger.debug("💾 Saved recovery score to cache: \(score.score)")
+            print("💾 Saved recovery score to cache: \(score.score)")
         } catch {
-            Logger.error("Failed to save recovery score to cache: \(error)")
+            print("❌ Failed to save recovery score to cache: \(error)")
         }
     }
     
