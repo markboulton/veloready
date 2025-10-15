@@ -9,7 +9,11 @@ struct WellnessIndicator: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 4) {
-                Text(alert.bannerMessage)
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundColor(alert.severity.color)
+                
+                Text("Key metrics elevated")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(alert.severity.color)
