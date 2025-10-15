@@ -16,9 +16,10 @@ struct TrainingLoadChart: View {
             return AnyView(EmptyView())
         }
         
-        guard let ctlAfter = activity.ctl,
-              let atlAfter = activity.atl,
-              let tss = activity.tss else {
+        // Show chart even if CTL/ATL not yet calculated - will load async
+        let ctlAfter = activity.ctl ?? 0
+        let atlAfter = activity.atl ?? 0
+        guard let tss = activity.tss else {
             return AnyView(EmptyView())
         }
         

@@ -449,8 +449,12 @@ class ActivitiesViewModel: ObservableObject {
         do {
             Logger.data("Loading extended activities: 31-90 days")
             
-            // Fetch activities from day 31 to day 90 (60 additional days)
-            let intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)
+            // Fetch activities from Intervals.icu if authenticated
+            var intervalsActivities: [IntervalsActivity] = []
+            if IntervalsOAuthManager.shared.isAuthenticated {
+                intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)) ?? []
+                Logger.debug("✅ Loaded \(intervalsActivities.count) extended Intervals activities")
+            }
             
             // Fetch Strava activities (if connected)
             var stravaActivities: [StravaActivity] = []
