@@ -9,6 +9,12 @@ struct SharedActivityRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
+            // Activity Type Icon
+            Image(systemName: activityIcon)
+                .font(.title3)
+                .foregroundColor(activityColor)
+                .frame(width: 24, height: 24)
+            
             // Activity Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(activity.name)
@@ -17,7 +23,7 @@ struct SharedActivityRowView: View {
                     .foregroundColor(.primary)
                 
                 HStack(spacing: 8) {
-                    Text(formatDate(activity.startDate))
+                    Text(formatSmartDate(activity.startDate))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -39,15 +45,23 @@ struct SharedActivityRowView: View {
             
             Spacer()
             
-            // Add/Edit details button for strength workouts
+            // Compact RPE indicator for strength workouts
             if shouldShowRPEButton {
-                if hasRPE {
-                    // Tertiary style when details exist
-                    TertiaryButton(title: "Edit details", action: { showingRPESheet = true })
-                } else {
-                    // Secondary style when no details
-                    SecondaryButton(title: "Add details", action: { showingRPESheet = true })
+                Button(action: { showingRPESheet = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: hasRPE ? "checkmark.circle.fill" : "plus.circle")
+                            .font(.caption)
+                        Text(hasRPE ? "RPE" : "Add")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(hasRPE ? ColorScale.greenAccent : ColorScale.gray400)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(hasRPE ? ColorScale.greenAccent.opacity(0.1) : ColorScale.gray100)
+                    .cornerRadius(12)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.vertical, 8)
@@ -66,10 +80,41 @@ struct SharedActivityRowView: View {
     
     // MARK: - Formatting Helpers
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, h:mm a"
-        return formatter.string(from: date)
+    private func formatSmartDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.isDateInToday(date) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            let timeString = timeFormatter.string(from: date)
+            
+            if let location = activity.location, !location.isEmpty {
+                return "Today at \(timeString) · \(location)"
+            } else {
+                return "Today at \(timeString)"
+            }
+        } else if calendar.isDateInYesterday(date) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            let timeString = timeFormatter.string(from: date)
+            
+            if let location = activity.location, !location.isEmpty {
+                return "Yesterday at \(timeString) · \(location)"
+            } else {
+                return "Yesterday at \(timeString)"
+            }
+        } else {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "d MMM yyyy 'at' HH:mm"
+            let dateString = dateFormatter.string(from: date)
+            
+            if let location = activity.location, !location.isEmpty {
+                return "\(dateString) · \(location)"
+            } else {
+                return dateString
+            }
+        }
     }
     
     private func formatDuration(_ seconds: TimeInterval) -> String {
@@ -99,5 +144,41 @@ struct SharedActivityRowView: View {
     private func checkRPEStatus() {
         guard let workout = activity.healthKitWorkout else { return }
         hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
+    }
+    
+    // MARK: - Activity Icon & Color
+    
+    private var activityIcon: String {
+        switch activity.type {
+        case .cycling:
+            return "bicycle"
+        case .running:
+            return "figure.run"
+        case .swimming:
+            return "figure.pool.swim"
+        case .walking:
+            return "figure.walk"
+        case .strength:
+            return "dumbbell.fill"
+        case .other:
+            return "figure.mixed.cardio"
+        }
+    }
+    
+    private var activityColor: Color {
+        switch activity.type {
+        case .cycling:
+            return ColorScale.blueAccent
+        case .running:
+            return ColorScale.redAccent
+        case .swimming:
+            return ColorScale.cyanAccent
+        case .walking:
+            return ColorScale.greenAccent
+        case .strength:
+            return ColorScale.purpleAccent
+        case .other:
+            return ColorScale.gray400
+        }
     }
 }

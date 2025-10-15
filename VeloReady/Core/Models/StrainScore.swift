@@ -176,11 +176,11 @@ class StrainScoreCalculator {
     
     // MARK: - Constants
     private static let cardioScaleFactor: Double = 18.0 // k_c for cardio load
-    private static let strengthScaleFactor: Double = 1.5 // k_s for strength load
-    private static let nonExerciseScaleFactor: Double = 8.0 // k_n for non-exercise load
+    private static let strengthScaleFactor: Double = 2.0 // k_s for strength load (increased from 1.5)
+    private static let nonExerciseScaleFactor: Double = 12.0 // k_n for non-exercise load (increased from 8.0)
     private static let intensityBlendPower: Double = 0.6 // HR vs Power blend ratio
     private static let zoneWeightExponent: Double = 2.2 // Exponent for intensity weight
-    private static let dailyCap: Double = 20.0 // Max points from non-exercise activity
+    private static let dailyCap: Double = 30.0 // Max points from non-exercise activity (increased from 20.0)
     private static let recoveryModulationRange: Double = 0.15 // ±15% recovery modulation
     
     /// Calculate strain score from inputs using Whoop-like algorithm
@@ -322,10 +322,10 @@ class StrainScoreCalculator {
         
         // Steps contribution - more generous calculation for regular users
         if let steps = inputs.dailySteps, steps > 0 {
-            // More generous baseline: 2000 steps = ~15 MET-minutes (was 10)
+            // More generous baseline: 2000 steps = ~20 MET-minutes (increased from 15)
             // This better reflects the effort of daily walking/activity
             let baseSteps = 2000.0
-            let metMinutesBaseline = 15.0 // Increased from 10.0 for better sensitivity
+            let metMinutesBaseline = 20.0 // Increased from 15.0 for better sensitivity
             let metMinutes = metMinutesBaseline * (Double(steps) / baseSteps)
             
             totalLoad += metMinutes
@@ -333,8 +333,8 @@ class StrainScoreCalculator {
         
         // Active energy contribution - more generous conversion
         if let activeCalories = inputs.activeEnergyCalories, activeCalories > 0 {
-            // More generous conversion: 1 calorie ≈ 0.002 MET-minutes (was 0.001)
-            let metMinutesFromCalories = activeCalories * 0.002
+            // More generous conversion: 1 calorie ≈ 0.003 MET-minutes (increased from 0.002)
+            let metMinutesFromCalories = activeCalories * 0.003
             totalLoad += metMinutesFromCalories
         }
         
