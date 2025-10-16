@@ -115,10 +115,16 @@ struct AthleteZonesSettingsView: View {
                             }
                         }
                     } else {
-                        Text("\(Int(profileManager.profile.ftp ?? 0)) W")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            Text("Computed from performance data")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
@@ -181,10 +187,16 @@ struct AthleteZonesSettingsView: View {
                             }
                         }
                     } else {
-                        Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            Text("Computed from performance data")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }

@@ -38,10 +38,10 @@ struct SleepScore: Codable {
         
         var description: String {
             switch self {
-            case .excellent: return "Excellent Sleep"
-            case .good: return "Good Sleep"
-            case .fair: return "Fair Sleep"
-            case .poor: return "Poor Sleep"
+            case .excellent: return "Excellent"
+            case .good: return "Good"
+            case .fair: return "Fair"
+            case .poor: return "Poor"
             }
         }
     }

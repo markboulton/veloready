@@ -111,10 +111,10 @@ struct StrainScore: Codable {
         
         var description: String {
             switch self {
-            case .low: return "Low Strain"
-            case .moderate: return "Moderate Strain"
-            case .high: return "High Strain"
-            case .extreme: return "Extreme Strain"
+            case .low: return "Low"
+            case .moderate: return "Moderate"
+            case .high: return "High"
+            case .extreme: return "Extreme"
             }
         }
     }

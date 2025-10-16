@@ -37,10 +37,10 @@ struct RecoveryScore: Codable {
         
         var description: String {
             switch self {
-            case .excellent: return "Excellent Recovery"
-            case .good: return "Good Recovery"
-            case .fair: return "Fair Recovery"
-            case .poor: return "Poor Recovery"
+            case .excellent: return "Excellent"
+            case .good: return "Good"
+            case .fair: return "Fair"
+            case .poor: return "Poor"
             }
         }
     }
