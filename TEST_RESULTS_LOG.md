@@ -170,6 +170,15 @@ The unified architecture is working correctly. The Training Load Chart issue was
 
 ## Changelog
 
+**v3 - October 16, 2025**
+- **CRITICAL FIX:** Training Load Chart date parsing bug
+  - Was using DateFormatter without Z timezone support
+  - Switched to ISO8601DateFormatter with fallback
+  - Chart task now executes and loads historical data
+- **UI FIX:** Removed empty dividers for HR-only rides
+  - Conditionally render chart sections based on data availability
+  - Clean UI when TSS/IF unavailable
+
 **v2 - October 16, 2025**
 - Fixed Training Load Chart task cancellation
 - Confirmed HR-only ride behavior is correct
