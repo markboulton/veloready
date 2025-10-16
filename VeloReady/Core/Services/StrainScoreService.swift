@@ -359,30 +359,45 @@ class StrainScoreService: ObservableObject {
         }
     }
     
-    /// Calculate TRIMP from Strava activities
+    /// Calculate TRIMP from unified activities (Intervals.icu or Strava)
+    /// Uses power data when available, falls back to TSS, then HR
     private func calculateTRIMPFromStravaActivities(activities: [IntervalsActivity]) -> Double {
         var totalTRIMP: Double = 0
         
         for activity in activities {
-            // Use TSS if available (best for cycling)
-            if let tss = activity.tss {
-                totalTRIMP += tss
-                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - TSS: \(String(format: "%.1f", tss))")
+            // PRIORITY 1: Use power data if available (most accurate)
+            // Check for normalized power first (better for variable efforts)
+            if let np = activity.normalizedPower,
+               let duration = activity.duration,
+               let ftp = getUserFTP(),
+               np > 0, ftp > 0 {
+                let intensityFactor = np / ftp
+                let estimatedTSS = (duration / 3600) * intensityFactor * intensityFactor * 100
+                totalTRIMP += estimatedTSS
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Power-based TSS: \(String(format: "%.1f", estimatedTSS)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)))")
                 continue
             }
             
-            // Fallback: Estimate from power/HR
+            // Check for average power
             if let avgPower = activity.averagePower,
                let duration = activity.duration,
-               let ftp = getUserFTP() {
+               let ftp = getUserFTP(),
+               avgPower > 0, ftp > 0 {
                 let intensityFactor = avgPower / ftp
                 let estimatedTSS = (duration / 3600) * intensityFactor * intensityFactor * 100
                 totalTRIMP += estimatedTSS
-                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - Estimated TSS: \(String(format: "%.1f", estimatedTSS))")
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Power-based TSS: \(String(format: "%.1f", estimatedTSS)) (Avg: \(Int(avgPower))W, IF: \(String(format: "%.2f", intensityFactor)))")
                 continue
             }
             
-            // Last resort: Estimate from HR if available
+            // PRIORITY 2: Use pre-calculated TSS if no power data
+            if let tss = activity.tss {
+                totalTRIMP += tss
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Pre-calculated TSS: \(String(format: "%.1f", tss))")
+                continue
+            }
+            
+            // PRIORITY 3: Estimate from HR if available
             if let avgHR = activity.averageHeartRate,
                let duration = activity.duration,
                let maxHR = getUserMaxHR(),
@@ -392,11 +407,11 @@ class StrainScoreService: ObservableObject {
                 let percentHRR = workingHR / hrReserve
                 let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
                 totalTRIMP += trimp
-                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
             }
         }
         
-        Logger.debug("🔍 Total TRIMP from \(activities.count) Strava activities: \(String(format: "%.1f", totalTRIMP))")
+        Logger.debug("🔍 Total TRIMP from \(activities.count) unified activities: \(String(format: "%.1f", totalTRIMP))")
         return totalTRIMP
     }
     
