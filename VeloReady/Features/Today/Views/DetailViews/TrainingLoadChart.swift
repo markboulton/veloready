@@ -359,7 +359,7 @@ struct TrainingLoadChart: View {
             name: strava.name,
             description: nil,
             startDateLocal: strava.start_date_local,
-            type: strava.sport_type,
+            type: strava.type, // Use type (VirtualRide, Ride) not sport_type for proper virtual detection
             duration: TimeInterval(strava.moving_time),
             distance: strava.distance,
             elevationGain: strava.total_elevation_gain,
@@ -432,9 +432,10 @@ struct TrainingLoadChart: View {
                     atlValue = mostRecent.atl
                     // Historical data point
                 } else {
-                    // No activity data before this date - skip
-                    // No data before first activity
-                    continue
+                    // No activity data before this date - use current values as baseline
+                    // This ensures chart shows even with no historical data
+                    ctlValue = ctlAfter
+                    atlValue = atlAfter
                 }
             }
             

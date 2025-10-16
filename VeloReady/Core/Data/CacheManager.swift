@@ -200,29 +200,88 @@ final class CacheManager: ObservableObject {
     }
     
     private func fetchIntervalsData(for date: Date = Date()) async throws -> IntervalsData {
-        // Check if authenticated - if not, return empty data
+        // Fetch activities for adaptive FTP calculation
+        var activities: [IntervalsActivity] = []
+        
+        // Check if authenticated with Intervals.icu
+        if oauthManager.isAuthenticated {
+            do {
+                // Fetch wellness data (last 30 days)
+                let wellnessArray = try await intervalsAPI.fetchWellnessData()
+                
+                // Find wellness data for the specific date
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                let targetDateString = dateFormatter.string(from: date)
+                let dateWellness = wellnessArray.first { $0.id == targetDateString }
+                
+                // Fetch recent activities (last 120 days for accurate zone computation)
+                activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
+                Logger.debug("📊 Fetched \(activities.count) activities from Intervals.icu for adaptive FTP")
+            } catch {
+                Logger.warning("⚠️ Failed to fetch Intervals data: \(error)")
+            }
+        } else {
+            Logger.debug("📊 Intervals.icu not authenticated - fetching Strava activities for adaptive FTP")
+            
+            // Fallback to Strava activities for adaptive FTP calculation
+            do {
+                let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
+                Logger.debug("📊 Fetched \(stravaActivities.count) activities from Strava")
+                
+                // Convert Strava activities to IntervalsActivity format
+                activities = stravaActivities.map { strava in
+                    IntervalsActivity(
+                        id: "strava_\(strava.id)",
+                        name: strava.name,
+                        description: nil,
+                        startDateLocal: strava.start_date_local,
+                        type: strava.type,
+                        duration: TimeInterval(strava.moving_time),
+                        distance: strava.distance,
+                        elevationGain: strava.total_elevation_gain,
+                        averagePower: strava.average_watts,
+                        normalizedPower: strava.weighted_average_watts.map { Double($0) },
+                        averageHeartRate: strava.average_heartrate,
+                        maxHeartRate: strava.max_heartrate.map { Double($0) },
+                        averageCadence: strava.average_cadence,
+                        averageSpeed: strava.average_speed,
+                        maxSpeed: strava.max_speed,
+                        calories: strava.calories.map { Int($0) },
+                        fileType: nil,
+                        tss: nil,
+                        intensityFactor: nil,
+                        atl: nil,
+                        ctl: nil,
+                        icuZoneTimes: nil,
+                        icuHrZoneTimes: nil
+                    )
+                }
+                Logger.debug("📊 Converted \(activities.count) Strava activities for adaptive FTP calculation")
+            } catch {
+                Logger.warning("⚠️ Failed to fetch Strava activities: \(error)")
+            }
+        }
+        
+        // Compute athlete zones from activities (async) - works with both Intervals and Strava
+        if !activities.isEmpty {
+            Task { @MainActor in
+                await AthleteProfileManager.shared.computeFromActivities(activities)
+            }
+        }
+        
+        // If not authenticated with Intervals, return empty Intervals-specific data
         guard oauthManager.isAuthenticated else {
-            Logger.debug("📊 Intervals.icu not authenticated - using empty data")
             return IntervalsData(ctl: nil, atl: nil, tsb: nil, tss: nil, eftp: nil, workout: nil)
         }
         
         do {
-            // Fetch wellness data (last 30 days)
+            // Fetch wellness data again for Intervals-specific metrics
             let wellnessArray = try await intervalsAPI.fetchWellnessData()
-            
-            // Find wellness data for the specific date
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd"
             let targetDateString = dateFormatter.string(from: date)
             let dateWellness = wellnessArray.first { $0.id == targetDateString }
-            
-            // Fetch recent activities (last 120 days for accurate zone computation)
-            let activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
-            
-            // Compute athlete zones from activities (async)
-            Task { @MainActor in
-                await AthleteProfileManager.shared.computeFromActivities(activities)
-            }
             
             // Find activity for the specific date
             let calendar = Calendar.current

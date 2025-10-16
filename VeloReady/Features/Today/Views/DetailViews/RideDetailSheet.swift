@@ -562,10 +562,20 @@ struct RideDetailSheet: View {
     }
     
     private func formatActivityDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        // Use same smart formatting as activity list (Today at 8pm, Yesterday at 9am, etc.)
+        let calendar = Calendar.current
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        
+        if calendar.isDateInToday(date) {
+            return "Today at \(timeFormatter.string(from: date))"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday at \(timeFormatter.string(from: date))"
+        } else {
+            let dateTimeFormatter = DateFormatter()
+            dateTimeFormatter.dateFormat = "MMM d 'at' h:mm a"
+            return dateTimeFormatter.string(from: date)
+        }
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {

@@ -64,6 +64,15 @@ struct WorkoutDetailView: View {
         viewModel.enrichedActivity != nil
     }
     
+    // Check if this is a virtual/indoor ride
+    private var isVirtualRide: Bool {
+        // Check activity type for "virtual" or "indoor"
+        if let type = displayActivity.type?.lowercased() {
+            return type.contains("virtual") || type.contains("indoor")
+        }
+        return false
+    }
+    
     var body: some View {
         ScrollView {
                 VStack(spacing: 0) {
@@ -148,8 +157,8 @@ struct WorkoutDetailView: View {
                 // Zone Pie Charts Section - Free and Pro versions (has its own margins)
                 ZonePieChartSection(activity: displayActivity)
                 
-                // Interactive Map - only show if GPS data exists
-                if !routeCoordinates.isEmpty || isLoadingMap {
+                // Interactive Map - only show if GPS data exists AND not a virtual ride
+                if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
                     SectionDivider()
                     
                     WorkoutMapSection(

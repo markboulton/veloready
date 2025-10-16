@@ -690,10 +690,50 @@ struct AthleteZonesSettingsView: View {
         do {
             Logger.data("Starting manual recomputation...")
             
-            // Fetch 120 days of activities with high limit for accurate zone computation
-            let activities = try await intervalsAPIClient.fetchRecentActivities(limit: 300, daysBack: 120)
+            var activities: [IntervalsActivity] = []
             
-            Logger.data("Fetched \(activities.count) activities for recomputation (last 120 days)")
+            // Try Intervals.icu first if authenticated
+            if IntervalsOAuthManager.shared.isAuthenticated {
+                activities = try await intervalsAPIClient.fetchRecentActivities(limit: 300, daysBack: 120)
+                Logger.data("Fetched \(activities.count) activities from Intervals.icu for recomputation")
+            } else {
+                // Fallback to Strava activities
+                Logger.data("Intervals.icu not authenticated - fetching from Strava")
+                let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
+                Logger.data("Fetched \(stravaActivities.count) activities from Strava")
+                
+                // Convert Strava activities to IntervalsActivity format
+                activities = stravaActivities.map { strava in
+                    IntervalsActivity(
+                        id: "strava_\(strava.id)",
+                        name: strava.name,
+                        description: nil,
+                        startDateLocal: strava.start_date_local,
+                        type: strava.type,
+                        duration: TimeInterval(strava.moving_time),
+                        distance: strava.distance,
+                        elevationGain: strava.total_elevation_gain,
+                        averagePower: strava.average_watts,
+                        normalizedPower: strava.weighted_average_watts.map { Double($0) },
+                        averageHeartRate: strava.average_heartrate,
+                        maxHeartRate: strava.max_heartrate.map { Double($0) },
+                        averageCadence: strava.average_cadence,
+                        averageSpeed: strava.average_speed,
+                        maxSpeed: strava.max_speed,
+                        calories: strava.calories.map { Int($0) },
+                        fileType: nil,
+                        tss: nil,
+                        intensityFactor: nil,
+                        atl: nil,
+                        ctl: nil,
+                        icuZoneTimes: nil,
+                        icuHrZoneTimes: nil
+                    )
+                }
+                Logger.data("Converted \(activities.count) Strava activities for recomputation")
+            }
+            
+            Logger.data("Total activities for recomputation: \(activities.count)")
             
             // Recompute zones (already on main actor in SwiftUI view)
             await profileManager.computeFromActivities(activities)

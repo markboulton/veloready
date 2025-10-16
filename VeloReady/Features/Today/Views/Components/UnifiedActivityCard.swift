@@ -31,7 +31,7 @@ struct UnifiedActivityCard: View {
             name: strava.name,
             description: nil,
             startDateLocal: strava.start_date_local,
-            type: strava.sport_type,
+            type: strava.type, // Use type (VirtualRide, Ride) not sport_type for proper virtual detection
             duration: TimeInterval(strava.moving_time),
             distance: strava.distance,
             elevationGain: strava.total_elevation_gain,
