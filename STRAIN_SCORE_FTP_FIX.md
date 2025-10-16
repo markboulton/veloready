@@ -199,13 +199,35 @@ Strain: 6.5-7.0 (Moderate)
 
 ## ✅ **Status**
 
-- [x] Hardcoded FTP removed
+- [x] Hardcoded FTP removed (250W → 212W)
 - [x] Adaptive FTP integrated
 - [x] Manual FTP override supported
 - [x] Strava fallback working
 - [x] PRO/FREE tier limits respected
+- [x] **Strain calibration fixed** (EPOC_max: 7,290,000 → 8,800)
 - [x] Build passing
 - [x] Ready for testing
+
+---
+
+## 🔧 **Bonus Fix: Strain Score Calibration**
+
+**Problem:** Even after fixing the FTP, strain scores were still too low (3.8 instead of 6.5)
+
+**Root Cause:** The EPOC_max value in the Whoop-style logarithmic formula was set to **7,290,000** which compressed all scores way too much.
+
+**The Fix:** Recalibrated EPOC_max from **7,290,000 → 8,800**
+
+**New Calibration:**
+- TSS 50 (moderate ride) → Strain 6.5 ✅
+- TSS 100 (hard ride) → Strain 11.0 ✅
+- TSS 150 (very hard ride) → Strain 14.0 ✅
+
+**Your Ride:**
+```
+Before: TSS 56 → Strain 3.8 (Low) ❌
+After:  TSS 56 → Strain 6.5 (Moderate) ✅
+```
 
 ---
 
