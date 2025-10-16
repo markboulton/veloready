@@ -16,6 +16,7 @@ class StrainScoreService: ObservableObject {
     private let intervalsCache = IntervalsCache.shared
     private let userSettings = UserSettings.shared
     private let sleepScoreService = SleepScoreService.shared
+    private let athleteZoneService = AthleteZoneService.shared
     
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
@@ -527,18 +528,36 @@ class StrainScoreService: ObservableObject {
     // MARK: - User Settings Helpers
     
     private func getUserFTP() -> Double? {
-        // Default FTP for testing - should be configurable
-        return 250.0
+        // Use adaptive FTP from athlete profile (computed zones, not Intervals.icu hardcoded)
+        // The adaptive FTP is stored in UserDefaults by AthleteZoneService
+        if let data = UserDefaults.standard.data(forKey: "athlete_profile_cache"),
+           let profile = try? JSONDecoder().decode(IntervalsAthlete.self, from: data) {
+            // Check for adaptive FTP first (our computed value)
+            if let adaptiveFTP = UserDefaults.standard.object(forKey: "adaptive_ftp") as? Double {
+                return adaptiveFTP
+            }
+            // Fallback to Intervals.icu FTP (but this is often outdated)
+            return profile.powerZones?.ftp
+        }
+        return nil
     }
     
     private func getUserMaxHR() -> Double? {
-        // Default max HR for testing - should be configurable
-        return 180.0
+        // Use adaptive max HR from athlete profile
+        if let adaptiveMaxHR = UserDefaults.standard.object(forKey: "adaptive_max_hr") as? Double {
+            return adaptiveMaxHR
+        }
+        // Fallback to Intervals.icu max HR
+        if let data = UserDefaults.standard.data(forKey: "athlete_profile_cache"),
+           let profile = try? JSONDecoder().decode(IntervalsAthlete.self, from: data) {
+            return profile.heartRateZones?.maxHr
+        }
+        return nil
     }
     
     private func getUserRestingHR() -> Double? {
-        // Default resting HR for testing - should be configurable
-        return 55.0
+        // Use resting HR from athlete profile
+        return UserDefaults.standard.object(forKey: "resting_hr") as? Double
     }
     
     private func getUserBodyMass() -> Double? {
