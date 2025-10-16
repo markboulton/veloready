@@ -117,10 +117,14 @@ struct ActivitiesView: View {
             ForEach(viewModel.sortedMonthKeys, id: \.self) { monthKey in
                 Section {
                     ForEach(viewModel.groupedActivities[monthKey] ?? []) { activity in
-                        NavigationLink(destination: activityDestination(for: activity)) {
+                        ZStack {
+                            NavigationLink(destination: activityDestination(for: activity)) {
+                                EmptyView()
+                            }
+                            .opacity(0)
+                            
                             SharedActivityRowView(activity: activity)
                         }
-                        .buttonStyle(PlainButtonStyle()) // Remove default NavigationLink styling
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         .listRowBackground(
                             Color(.systemBackground).opacity(0.6)
