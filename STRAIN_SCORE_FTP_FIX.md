@@ -47,7 +47,7 @@ private func getUserFTP() -> Double? {
 
 ## 📊 **How FTP Works in VeloReady**
 
-### **1. Adaptive FTP (Automatic)**
+### **1. Adaptive FTP (Automatic) - PRO ONLY ⭐**
 
 **PRO Users:**
 - Uses **120 days** of power data
@@ -56,9 +56,9 @@ private func getUserFTP() -> Double? {
 - **Your current FTP:** 212W (computed)
 
 **FREE Users:**
-- Uses **90 days** of power data
-- Same computation algorithm
-- Research-backed window (Stryd standard)
+- ❌ NO adaptive FTP computation
+- ✅ Must use manual FTP or Strava/Intervals.icu FTP
+- ✅ Get Coggan default zones based on their FTP
 
 ### **2. Manual FTP Override**
 
