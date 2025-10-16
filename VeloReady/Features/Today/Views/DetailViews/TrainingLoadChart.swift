@@ -300,8 +300,11 @@ struct TrainingLoadChart: View {
             let progressiveLoad = calculator.calculateProgressiveTrainingLoad(enrichedActivities)
             
             // Date formatter for matching activity dates (must match calculator's parser!)
+            // NOTE: Intervals.icu returns dates WITHOUT timezone suffix (e.g., "2025-10-16T06:33:05")
+            // Strava returns dates WITH timezone suffix (e.g., "2025-10-16T06:33:05Z")
             let iso8601Formatter = ISO8601DateFormatter()
-            iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
+            iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+            iso8601Formatter.timeZone = TimeZone.current
             
             // Add CTL/ATL to activities that have TSS
             let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity -> IntervalsActivity in
@@ -381,9 +384,11 @@ struct TrainingLoadChart: View {
         var data: [LoadDataPoint] = []
         let calendar = Calendar.current
         
-        // Use ISO8601 formatter to match calculator (handles timezone 'Z')
+        // Use ISO8601 formatter to match calculator
+        // NOTE: Must handle both Intervals.icu (no timezone) and Strava (with 'Z')
         let iso8601Formatter = ISO8601DateFormatter()
-        iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
+        iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+        iso8601Formatter.timeZone = TimeZone.current
         
         // Parse all activity dates and create a sorted array
         var activitiesWithDates: [(date: Date, ctl: Double, atl: Double)] = []

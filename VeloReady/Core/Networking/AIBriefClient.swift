@@ -329,13 +329,16 @@ class AIBriefClient: AIBriefClientProtocol {
 // MARK: - Cache
 
 class AIBriefCache {
-    struct CachedBrief {
+    struct CachedBrief: Codable {
         let text: String
         let timestamp: Date
         let date: String // UTC calendar date (YYYY-MM-DD)
+        let localDate: String // Local calendar date (YYYY-MM-DD) for 6am refresh
     }
     
-    private var cache: [String: CachedBrief] = [:]
+    private let cacheKey = "ai_brief_cache"
+    private var memoryCache: [String: CachedBrief] = [:]
+    private let refreshHour = 6 // 6am local time
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -343,52 +346,114 @@ class AIBriefCache {
         return formatter
     }()
     
+    private let localDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+        return formatter
+    }()
+    
+    init() {
+        // Load from persistent storage on init
+        loadFromDisk()
+    }
+    
     func get(userId: String) -> CachedBrief? {
         let today = dateFormatter.string(from: Date())
-        let key = cacheKey(userId: userId, date: today)
+        let todayLocal = getLocalDateForRefresh()
+        let key = userCacheKey(userId: userId, date: today)
         
-        guard let cached = cache[key] else {
+        guard let cached = memoryCache[key] else {
             return nil
         }
         
-        // Check if still valid (same UTC day)
-        if cached.date == today {
+        // Check if still valid:
+        // 1. Same UTC day
+        // 2. Same local date (for 6am refresh)
+        if cached.date == today && cached.localDate == todayLocal {
             return cached
         }
         
-        // Expired - remove
-        cache.removeValue(forKey: key)
+        // Expired - remove and trigger refresh
+        memoryCache.removeValue(forKey: key)
+        saveToDisk()
+        Logger.debug("🔄 AI brief cache expired (was: \(cached.localDate), now: \(todayLocal)) - will refresh")
         return nil
     }
     
     func set(userId: String, text: String) {
         let today = dateFormatter.string(from: Date())
-        let key = cacheKey(userId: userId, date: today)
+        let todayLocal = getLocalDateForRefresh()
+        let key = userCacheKey(userId: userId, date: today)
         
-        cache[key] = CachedBrief(
+        memoryCache[key] = CachedBrief(
             text: text,
             timestamp: Date(),
-            date: today
+            date: today,
+            localDate: todayLocal
         )
         
-        Logger.debug("💾 Cached AI brief for user \(userId.prefix(8))... (date: \(today))")
+        // Persist to disk
+        saveToDisk()
+        
+        Logger.debug("💾 Cached AI brief for user \(userId.prefix(8))... (UTC: \(today), local: \(todayLocal), persisted)")
     }
     
     func clear() {
-        cache.removeAll()
+        memoryCache.removeAll()
+        UserDefaults.standard.removeObject(forKey: cacheKey)
+        Logger.debug("🗑️ Cleared AI brief cache")
     }
     
-    private func cacheKey(userId: String, date: String) -> String {
+    private func userCacheKey(userId: String, date: String) -> String {
         return "\(userId)_\(date)"
+    }
+    
+    /// Get local date for refresh logic
+    /// Returns today's date if current time >= 6am, yesterday's date if < 6am
+    /// This ensures cache refreshes at 6am local time
+    private func getLocalDateForRefresh() -> String {
+        let now = Date()
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: now)
+        
+        // If before 6am, use yesterday's date (so cache is still valid)
+        // At 6am or after, use today's date (triggers refresh)
+        let dateToUse = hour < refreshHour
+            ? calendar.date(byAdding: .day, value: -1, to: now) ?? now
+            : now
+        
+        return localDateFormatter.string(from: dateToUse)
+    }
+    
+    // MARK: - Persistence
+    
+    private func saveToDisk() {
+        guard let data = try? JSONEncoder().encode(memoryCache) else {
+            Logger.warning("⚠️ Failed to encode AI brief cache")
+            return
+        }
+        UserDefaults.standard.set(data, forKey: cacheKey)
+    }
+    
+    private func loadFromDisk() {
+        guard let data = UserDefaults.standard.data(forKey: cacheKey),
+              let cache = try? JSONDecoder().decode([String: CachedBrief].self, from: data) else {
+            return
+        }
+        memoryCache = cache
+        Logger.debug("📦 Loaded \(cache.count) AI briefs from cache")
     }
     
     // Debug helper
     func getCacheInfo() -> String {
         var info = "AI Brief Cache:\n"
-        info += "  Entries: \(cache.count)\n"
-        for (key, cached) in cache {
+        info += "  Entries: \(memoryCache.count)\n"
+        info += "  Refresh hour: \(refreshHour):00 local time\n"
+        info += "  Current local date: \(getLocalDateForRefresh())\n"
+        for (key, cached) in memoryCache {
             let age = Date().timeIntervalSince(cached.timestamp)
-            info += "  - \(key): \(cached.date) (age: \(String(format: "%.1f", age / 60))m)\n"
+            info += "  - \(key): UTC=\(cached.date), Local=\(cached.localDate) (age: \(String(format: "%.1f", age / 60))m)\n"
         }
         return info
     }

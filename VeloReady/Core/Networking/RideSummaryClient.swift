@@ -387,37 +387,67 @@ class RideSummaryClient: RideSummaryClientProtocol {
 // MARK: - Cache
 
 class RideSummaryCache {
-    struct CachedSummary {
+    struct CachedSummary: Codable {
         let summary: RideSummaryResponse
         let timestamp: Date
     }
     
-    private var cache: [String: CachedSummary] = [:]
+    private let cacheKey = "ride_summary_cache"
+    private var memoryCache: [String: CachedSummary] = [:]
     var lastResponseJSON: String? // For debug copying
     
+    init() {
+        // Load from persistent storage on init
+        loadFromDisk()
+    }
+    
     func get(rideId: String) -> CachedSummary? {
-        return cache[rideId]
+        return memoryCache[rideId]
     }
     
     func set(rideId: String, summary: RideSummaryResponse) {
-        cache[rideId] = CachedSummary(
+        memoryCache[rideId] = CachedSummary(
             summary: summary,
             timestamp: Date()
         )
         
-        Logger.debug("💾 Cached ride summary for ride \(rideId)")
+        // Persist to disk
+        saveToDisk()
+        
+        Logger.debug("💾 Cached ride summary for ride \(rideId) (persisted)")
     }
     
     func clear() {
-        cache.removeAll()
+        memoryCache.removeAll()
         lastResponseJSON = nil
+        UserDefaults.standard.removeObject(forKey: cacheKey)
+        Logger.debug("🗑️ Cleared ride summary cache")
+    }
+    
+    // MARK: - Persistence
+    
+    private func saveToDisk() {
+        guard let data = try? JSONEncoder().encode(memoryCache) else {
+            Logger.warning("⚠️ Failed to encode ride summary cache")
+            return
+        }
+        UserDefaults.standard.set(data, forKey: cacheKey)
+    }
+    
+    private func loadFromDisk() {
+        guard let data = UserDefaults.standard.data(forKey: cacheKey),
+              let cache = try? JSONDecoder().decode([String: CachedSummary].self, from: data) else {
+            return
+        }
+        memoryCache = cache
+        Logger.debug("📦 Loaded \(cache.count) ride summaries from cache")
     }
     
     // Debug helper
     func getCacheInfo() -> String {
         var info = "Ride Summary Cache:\n"
-        info += "  Entries: \(cache.count)\n"
-        for (key, cached) in cache {
+        info += "  Entries: \(memoryCache.count)\n"
+        for (key, cached) in memoryCache {
             let age = Date().timeIntervalSince(cached.timestamp)
             info += "  - \(key): (age: \(String(format: "%.1f", age / 60))m)\n"
         }

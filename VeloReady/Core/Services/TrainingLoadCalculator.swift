@@ -150,9 +150,11 @@ class TrainingLoadCalculator {
     }
     
     /// Parse activity date string
+    /// Handles both Intervals.icu format (no timezone) and Strava format (with 'Z')
     private func parseActivityDate(_ dateString: String) -> Date? {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
+        formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+        formatter.timeZone = TimeZone.current
         return formatter.date(from: dateString)
     }
     

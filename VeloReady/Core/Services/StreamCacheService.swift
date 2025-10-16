@@ -1,7 +1,7 @@
 import Foundation
 
 /// Service for caching Strava/Intervals stream data to avoid repeated API calls
-/// Uses UserDefaults for immediate implementation - can be migrated to Core Data later for better performance
+/// Uses file-based storage for large activities (>4MB) and UserDefaults for smaller ones
 @MainActor
 class StreamCacheService {
     static let shared = StreamCacheService()
@@ -10,6 +10,7 @@ class StreamCacheService {
     
     private let cacheValidityDuration: TimeInterval = 7 * 24 * 3600  // 7 days
     private let maxCacheSize: Int = 100  // Limit to 100 most recent rides
+    private let userDefaultsSizeLimit: Int = 3_500_000  // 3.5MB limit for UserDefaults (iOS limit is 4MB)
     
     // Cache metadata stored in UserDefaults
     private let cacheMetadataKey = "stream_cache_metadata"
@@ -18,9 +19,19 @@ class StreamCacheService {
     private var cacheHits = 0
     private var cacheMisses = 0
     
+    // File-based cache directory
+    private var cacheDirectory: URL? {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("StreamCache")
+    }
+    
     // MARK: - Initialization
     
     private init() {
+        // Create cache directory if needed
+        if let cacheDir = cacheDirectory {
+            try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+        }
+        
         // Cleanup expired caches on init
         Task {
             cleanupExpiredCaches()
@@ -43,7 +54,14 @@ class StreamCacheService {
             return nil
         }
         
-        // Try to load from UserDefaults
+        // Try file-based cache first (for large activities)
+        if cacheInfo.isFileBased, let samples = loadFromFile(activityId: activityId) {
+            cacheHits += 1
+            Logger.data("⚡ Stream cache HIT (file): \(activityId) (\(samples.count) samples, age: \(Int(Date().timeIntervalSince(cacheInfo.cachedAt)/60))m)")
+            return samples
+        }
+        
+        // Fallback to UserDefaults (for smaller activities)
         guard let data = UserDefaults.standard.data(forKey: cacheKey),
               let samples = try? JSONDecoder().decode([WorkoutSample].self, from: data) else {
             cacheMisses += 1
@@ -71,8 +89,18 @@ class StreamCacheService {
             return
         }
         
-        // Store in UserDefaults
-        UserDefaults.standard.set(data, forKey: cacheKey)
+        // Determine storage method based on size
+        let isFileBased = data.count > userDefaultsSizeLimit
+        
+        if isFileBased {
+            // Store in file system for large activities
+            saveToFile(data: data, activityId: activityId)
+            Logger.data("💾 Cached \(samples.count) stream samples for \(activityId) (source: \(source), file-based: \(String(format: "%.1f", Double(data.count)/1_000_000))MB)")
+        } else {
+            // Store in UserDefaults for smaller activities
+            UserDefaults.standard.set(data, forKey: cacheKey)
+            Logger.data("💾 Cached \(samples.count) stream samples for \(activityId) (source: \(source))")
+        }
         
         // Update metadata
         var metadata = getCacheMetadata()
@@ -81,7 +109,8 @@ class StreamCacheService {
             source: source,
             sampleCount: samples.count,
             cachedAt: Date(),
-            expiresAt: Date().addingTimeInterval(cacheValidityDuration)
+            expiresAt: Date().addingTimeInterval(cacheValidityDuration),
+            isFileBased: isFileBased
         )
         
         // Enforce cache size limit
@@ -90,15 +119,18 @@ class StreamCacheService {
         }
         
         saveCacheMetadata(metadata)
-        
-        Logger.data("💾 Cached \(samples.count) stream samples for \(activityId) (source: \(source))")
     }
     
     /// Invalidate cache for a specific activity
     /// - Parameter activityId: The activity ID to invalidate
     func invalidateCache(activityId: String) {
         let cacheKey = "stream_\(activityId)"
+        
+        // Remove from UserDefaults
         UserDefaults.standard.removeObject(forKey: cacheKey)
+        
+        // Remove from file system
+        deleteFile(activityId: activityId)
         
         var metadata = getCacheMetadata()
         metadata.removeValue(forKey: activityId)
@@ -114,6 +146,7 @@ class StreamCacheService {
         for activityId in metadata.keys {
             let cacheKey = "stream_\(activityId)"
             UserDefaults.standard.removeObject(forKey: cacheKey)
+            deleteFile(activityId: activityId)
         }
         
         UserDefaults.standard.removeObject(forKey: cacheMetadataKey)
@@ -176,6 +209,7 @@ class StreamCacheService {
             if cacheInfo.expiresAt < now {
                 let cacheKey = "stream_\(activityId)"
                 UserDefaults.standard.removeObject(forKey: cacheKey)
+                deleteFile(activityId: activityId)
                 metadata.removeValue(forKey: activityId)
                 removedCount += 1
             }
@@ -195,10 +229,46 @@ class StreamCacheService {
         for (activityId, _) in toRemove {
             let cacheKey = "stream_\(activityId)"
             UserDefaults.standard.removeObject(forKey: cacheKey)
+            deleteFile(activityId: activityId)
             metadata.removeValue(forKey: activityId)
         }
         
         Logger.data("🧹 Pruned \(toRemove.count) oldest stream caches (limit: \(maxCacheSize))")
+    }
+    
+    // MARK: - File-Based Storage
+    
+    private func saveToFile(data: Data, activityId: String) {
+        guard let cacheDir = cacheDirectory else { return }
+        let fileURL = cacheDir.appendingPathComponent("\(activityId).json")
+        
+        do {
+            try data.write(to: fileURL)
+        } catch {
+            Logger.error("Failed to save stream cache to file: \(error)")
+        }
+    }
+    
+    private func loadFromFile(activityId: String) -> [WorkoutSample]? {
+        guard let cacheDir = cacheDirectory else { return nil }
+        let fileURL = cacheDir.appendingPathComponent("\(activityId).json")
+        
+        guard FileManager.default.fileExists(atPath: fileURL.path) else { return nil }
+        
+        do {
+            let data = try Data(contentsOf: fileURL)
+            return try JSONDecoder().decode([WorkoutSample].self, from: data)
+        } catch {
+            Logger.error("Failed to load stream cache from file: \(error)")
+            return nil
+        }
+    }
+    
+    private func deleteFile(activityId: String) {
+        guard let cacheDir = cacheDirectory else { return }
+        let fileURL = cacheDir.appendingPathComponent("\(activityId).json")
+        
+        try? FileManager.default.removeItem(at: fileURL)
     }
 }
 
@@ -210,6 +280,27 @@ private struct StreamCacheMetadata: Codable {
     let sampleCount: Int
     let cachedAt: Date
     let expiresAt: Date
+    let isFileBased: Bool
+    
+    // For backward compatibility with existing caches
+    init(activityId: String, source: String, sampleCount: Int, cachedAt: Date, expiresAt: Date, isFileBased: Bool = false) {
+        self.activityId = activityId
+        self.source = source
+        self.sampleCount = sampleCount
+        self.cachedAt = cachedAt
+        self.expiresAt = expiresAt
+        self.isFileBased = isFileBased
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        activityId = try container.decode(String.self, forKey: .activityId)
+        source = try container.decode(String.self, forKey: .source)
+        sampleCount = try container.decode(Int.self, forKey: .sampleCount)
+        cachedAt = try container.decode(Date.self, forKey: .cachedAt)
+        expiresAt = try container.decode(Date.self, forKey: .expiresAt)
+        isFileBased = try container.decodeIfPresent(Bool.self, forKey: .isFileBased) ?? false
+    }
 }
 
 struct StreamCacheStats {
