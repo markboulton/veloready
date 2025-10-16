@@ -130,9 +130,9 @@ struct AthleteZonesSettingsView: View {
                                 handlePowerSourceChange(newSource)
                             }
                         )) {
-                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
-                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
                             Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
+                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
+                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
                         }
                         .pickerStyle(.segmented)
                     }
@@ -177,9 +177,9 @@ struct AthleteZonesSettingsView: View {
                                 handleHRSourceChange(newSource)
                             }
                         )) {
-                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
-                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
                             Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
+                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
+                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
                         }
                         .pickerStyle(.segmented)
                     }
@@ -360,31 +360,29 @@ struct AthleteZonesSettingsView: View {
         case .coggan:
             return ("Coggan", .green)
         case .intervals:
-            return ("Intervals.icu", .purple)
+            return ("Intervals", .purple) // Deprecated but kept for compatibility
         }
     }
     
     // MARK: - Computed Properties
     
     private var canEditFTP: Bool {
-        if !proConfig.hasProAccess {
-            return true // FREE users can always edit (Coggan mode)
-        }
-        return profileManager.profile.ftpSource == .coggan || profileManager.profile.ftpSource == .manual
+        // All modes except Adaptive allow FTP editing
+        return profileManager.profile.ftpSource != .computed
     }
     
     private var canEditMaxHR: Bool {
-        if !proConfig.hasProAccess {
-            return true // FREE users can always edit (Coggan mode)
-        }
-        return profileManager.profile.hrZonesSource == .coggan || profileManager.profile.hrZonesSource == .manual
+        // All modes except Adaptive allow Max HR editing
+        return profileManager.profile.hrZonesSource != .computed
     }
     
     private var canEditPowerZones: Bool {
+        // Only Manual mode allows editing individual zones
         return profileManager.profile.ftpSource == .manual
     }
     
     private var canEditHRZones: Bool {
+        // Only Manual mode allows editing individual zones
         return profileManager.profile.hrZonesSource == .manual
     }
     
@@ -398,7 +396,7 @@ struct AthleteZonesSettingsView: View {
     
     private var profileFooterText: Text {
         if !proConfig.hasProAccess {
-            return Text("FREE tier: Zones use Coggan standard formula. Upgrade to PRO for adaptive zones computed from your performance data.")
+            return Text("FREE tier: Edit FTP and Max HR to adjust your Coggan zones. Upgrade to PRO for adaptive zones computed from your performance data.")
         }
         
         switch profileManager.profile.ftpSource {
@@ -407,9 +405,9 @@ struct AthleteZonesSettingsView: View {
         case .coggan:
             return Text("Coggan zones use the standard 7-zone model. Edit FTP or Max HR above to adjust all zones proportionally.")
         case .manual:
-            return Text("Manual mode allows full control. Edit individual zone boundaries in the sections below.")
+            return Text("Manual mode allows full control. Edit FTP, Max HR, and individual zone boundaries.")
         case .intervals:
-            return Text("Zones synced from Intervals.icu profile.")
+            return Text("Legacy mode - switch to Coggan or Manual for better control.")
         }
     }
     
@@ -422,7 +420,7 @@ struct AthleteZonesSettingsView: View {
         case .manual:
             return Text("Tap any zone boundary to edit. Changes are saved automatically.")
         case .intervals:
-            return Text("Synced from Intervals.icu. Switch to Adaptive or Manual to customize.")
+            return Text("Legacy mode - switch to Coggan or Manual to customize zones.")
         }
     }
     
@@ -438,7 +436,7 @@ struct AthleteZonesSettingsView: View {
         case .manual:
             return Text("Tap any zone boundary to edit. Changes are saved automatically.")
         case .intervals:
-            return Text("Synced from Intervals.icu. Switch to Adaptive or Manual to customize.")
+            return Text("Legacy mode - switch to Coggan or Manual to customize zones.")
         }
     }
     
