@@ -136,24 +136,21 @@ class AthleteProfileManager: ObservableObject {
         }
     }
     
-    /// Compute zones from recent activities using sports science algorithms (last 120 days)
+    /// Compute zones from recent activities using sports science algorithms
     /// Uses Critical Power model, power curve analysis, and HR lactate threshold detection
+    /// Activities are pre-filtered by the caller (90 days for Free, 365 days for Pro)
     func computeFromActivities(_ activities: [IntervalsActivity]) async {
         Logger.data("========== COMPUTING ADAPTIVE ZONES FROM PERFORMANCE DATA ==========")
         Logger.data("Using modern sports science algorithms (CP model, power distribution, HR analysis)")
+        Logger.data("Input: \(activities.count) activities (pre-filtered by subscription tier)")
         
         // NEW: Try to get Strava FTP as fallback before computing
         await useStravaFTPIfAvailable()
         
-        let oneTwentyDaysAgo = Calendar.current.date(byAdding: .day, value: -120, to: Date())!
+        // Use all activities passed in (already filtered by caller based on subscription tier)
+        let recentActivities = activities
         
-        // Filter to last 120 days
-        let recentActivities = activities.filter { activity in
-            guard let date = parseDate(from: activity.startDateLocal) else { return false }
-            return date >= oneTwentyDaysAgo
-        }
-        
-        Logger.data("Found \(recentActivities.count) activities in last 120 days")
+        Logger.data("Processing \(recentActivities.count) activities for zone computation")
         Logger.data("Ignoring hardcoded Intervals.icu zones - computing from actual performance data")
         
         // Only update if source is NOT manual (don't override user settings)

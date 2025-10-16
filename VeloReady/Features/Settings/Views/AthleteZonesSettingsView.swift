@@ -37,6 +37,21 @@ struct AthleteZonesSettingsView: View {
         }
         .navigationTitle(AthleteZonesContent.title)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            Logger.data("🎯 [Zones] Settings View Appeared")
+            Logger.data("   FTP: \(profileManager.profile.ftp ?? 0)W")
+            Logger.data("   FTP Source: \(profileManager.profile.ftpSource)")
+            Logger.data("   Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
+            if let zones = profileManager.profile.powerZones {
+                Logger.data("   Power Zone Values: \(zones.map { Int($0) })")
+            }
+            Logger.data("   Max HR: \(profileManager.profile.maxHR ?? 0)bpm")
+            Logger.data("   HR Source: \(profileManager.profile.hrZonesSource)")
+            Logger.data("   HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
+            if let zones = profileManager.profile.hrZones {
+                Logger.data("   HR Zone Values: \(zones.map { Int($0) })")
+            }
+        }
         .alert(AthleteZonesContent.recompute, isPresented: $showRecomputeConfirmation) {
             Button(AthleteZonesContent.cancel, role: .cancel) { }
             Button(AthleteZonesContent.recompute) {
@@ -688,34 +703,20 @@ struct AthleteZonesSettingsView: View {
     
     private func fetchAndRecompute() async {
         do {
-            Logger.data("Starting manual recomputation...")
+            Logger.data("🎯 [Zones] Starting manual recomputation...")
             
-            var activities: [IntervalsActivity] = []
+            // Use unified service - automatically handles Intervals/Strava and Pro tier limits
+            let activities = try await UnifiedActivityService.shared.fetchActivitiesForFTP()
             
-            // Try Intervals.icu first if authenticated
-            if IntervalsOAuthManager.shared.isAuthenticated {
-                activities = try await intervalsAPIClient.fetchRecentActivities(limit: 300, daysBack: 120)
-                Logger.data("Fetched \(activities.count) activities from Intervals.icu for recomputation")
-            } else {
-                // Fallback to Strava activities
-                Logger.data("Intervals.icu not authenticated - fetching from Strava")
-                let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
-                Logger.data("Fetched \(stravaActivities.count) activities from Strava")
-                
-                // Convert Strava activities to IntervalsActivity format using unified converter
-                activities = ActivityConverter.stravaToIntervals(stravaActivities)
-                Logger.data("Converted \(activities.count) Strava activities for recomputation")
-            }
-            
-            Logger.data("Total activities for recomputation: \(activities.count)")
+            Logger.data("🎯 [Zones] Fetched \(activities.count) activities for recomputation")
             
             // Recompute zones (already on main actor in SwiftUI view)
             await profileManager.computeFromActivities(activities)
             
-            Logger.data("✅ Recomputation complete")
+            Logger.data("✅ [Zones] Manual recomputation complete")
             
         } catch {
-            Logger.error("Failed to fetch activities for recomputation: \(error)")
+            Logger.error("❌ [Zones] Failed to fetch activities for recomputation: \(error)")
         }
     }
     

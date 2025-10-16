@@ -215,32 +215,31 @@ final class CacheManager: ObservableObject {
                 let targetDateString = dateFormatter.string(from: date)
                 let dateWellness = wellnessArray.first { $0.id == targetDateString }
                 
-                // Fetch recent activities (last 120 days for accurate zone computation)
-                activities = try await intervalsAPI.fetchRecentActivities(limit: 300, daysBack: 120)
-                Logger.debug("📊 Fetched \(activities.count) activities from Intervals.icu for adaptive FTP")
+                // Fetch recent activities using unified service (respects Pro tier limits)
+                activities = try await UnifiedActivityService.shared.fetchActivitiesForFTP()
+                Logger.debug("📊 [Zones] Fetched \(activities.count) activities for zone computation")
             } catch {
                 Logger.warning("⚠️ Failed to fetch Intervals data: \(error)")
             }
         } else {
-            Logger.debug("📊 Intervals.icu not authenticated - fetching Strava activities for adaptive FTP")
+            Logger.debug("📊 [Zones] Intervals.icu not authenticated - using unified service for Strava")
             
-            // Fallback to Strava activities for adaptive FTP calculation
+            // Use unified service (will fallback to Strava automatically)
             do {
-                let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
-                Logger.debug("📊 Fetched \(stravaActivities.count) activities from Strava")
-                
-                // Convert Strava activities to IntervalsActivity format using unified converter
-                activities = ActivityConverter.stravaToIntervals(stravaActivities)
-                Logger.debug("📊 Converted \(activities.count) Strava activities for adaptive FTP calculation")
+                activities = try await UnifiedActivityService.shared.fetchActivitiesForFTP()
+                Logger.debug("📊 [Zones] Fetched \(activities.count) activities for zone computation")
             } catch {
-                Logger.warning("⚠️ Failed to fetch Strava activities: \(error)")
+                Logger.warning("⚠️ Failed to fetch activities: \(error)")
             }
         }
         
         // Compute athlete zones from activities (async) - works with both Intervals and Strava
+        // Run in background to avoid blocking UI
         if !activities.isEmpty {
-            Task { @MainActor in
+            Task.detached(priority: .background) { @MainActor in
+                Logger.data("🎯 [Zones] Starting background zone computation with \(activities.count) activities")
                 await AthleteProfileManager.shared.computeFromActivities(activities)
+                Logger.data("✅ [Zones] Background zone computation complete")
             }
         }
         

@@ -11,39 +11,54 @@ class UnifiedActivityService: ObservableObject {
     private let stravaAPI = StravaAPIClient.shared
     private let intervalsOAuth = IntervalsOAuthManager.shared
     private let stravaAuth = StravaAuthService.shared
+    private let proConfig = ProFeatureConfig.shared
+    
+    // Data fetch limits based on subscription tier
+    // Research-backed windows for >90% accuracy:
+    // - Free: 90 days (Stryd industry standard)
+    // - Pro: 120 days (extended window, no evidence >120 improves accuracy)
+    // Source: https://help.stryd.com/en/articles/6879345-critical-power-definition
+    private var maxDaysForFree: Int { 90 }
+    private var maxDaysForPro: Int { 120 }
     
     /// Fetch recent activities from available sources
     /// Automatically uses Intervals.icu if authenticated, falls back to Strava
     /// - Parameters:
     ///   - limit: Maximum number of activities to fetch
-    ///   - daysBack: Number of days of history to fetch
+    ///   - daysBack: Number of days of history to fetch (capped by subscription tier)
     /// - Returns: Unified array of IntervalsActivity regardless of source
     func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [IntervalsActivity] {
+        // Apply subscription-based limits
+        let maxDays = proConfig.hasProAccess ? maxDaysForPro : maxDaysForFree
+        let actualDays = min(daysBack, maxDays)
+        
+        Logger.data("📊 [Activities] Fetch request: \(daysBack) days (capped to \(actualDays) for \(proConfig.hasProAccess ? "PRO" : "FREE") tier)")
+        
         // Try Intervals.icu first if authenticated
         if intervalsOAuth.isAuthenticated {
-            Logger.data("📊 Fetching activities from Intervals.icu (limit: \(limit), days: \(daysBack))")
+            Logger.data("📊 [Activities] Fetching from Intervals.icu (limit: \(limit), days: \(actualDays))")
             do {
-                let activities = try await intervalsAPI.fetchRecentActivities(limit: limit, daysBack: daysBack)
-                Logger.data("✅ Fetched \(activities.count) activities from Intervals.icu")
+                let activities = try await intervalsAPI.fetchRecentActivities(limit: limit, daysBack: actualDays)
+                Logger.data("✅ [Activities] Fetched \(activities.count) activities from Intervals.icu")
                 return activities
             } catch {
-                Logger.warning("⚠️ Failed to fetch from Intervals.icu, falling back to Strava: \(error)")
+                Logger.warning("⚠️ [Activities] Failed to fetch from Intervals.icu, falling back to Strava: \(error)")
             }
         }
         
         // Fallback to Strava
-        Logger.data("📊 Fetching activities from Strava (limit: \(limit))")
+        Logger.data("📊 [Activities] Fetching from Strava (limit: \(limit))")
         let stravaActivities = try await stravaAPI.fetchActivities(perPage: limit)
         let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
         
-        // Filter by date range
-        let cutoffDate = Calendar.current.date(byAdding: .day, value: -daysBack, to: Date())!
+        // Filter by date range (using capped days)
+        let cutoffDate = Calendar.current.date(byAdding: .day, value: -actualDays, to: Date())!
         let filteredActivities = convertedActivities.filter { activity in
             guard let date = parseDate(from: activity.startDateLocal) else { return false }
             return date >= cutoffDate
         }
         
-        Logger.data("✅ Fetched \(filteredActivities.count) activities from Strava (filtered to \(daysBack) days)")
+        Logger.data("✅ [Activities] Fetched \(filteredActivities.count) activities from Strava (filtered to \(actualDays) days)")
         return filteredActivities
     }
     
@@ -65,14 +80,23 @@ class UnifiedActivityService: ObservableObject {
     }
     
     /// Fetch activities for adaptive FTP calculation
-    /// - Returns: Activities from last 120 days with power data
+    /// - Returns: Activities from last 90-120 days (based on tier) with power data
+    /// Research shows 90 days is optimal for >90% accuracy (Stryd standard)
+    /// Pro users get 120 days (no evidence >120 days improves accuracy)
     func fetchActivitiesForFTP() async throws -> [IntervalsActivity] {
-        let activities = try await fetchRecentActivities(limit: 300, daysBack: 120)
+        // Request max days for user's tier (will be capped automatically)
+        let requestedDays = proConfig.hasProAccess ? 120 : 90
+        Logger.data("📊 [FTP] Fetching activities for FTP computation (\(requestedDays) days, research-backed window)")
+        
+        let activities = try await fetchRecentActivities(limit: 500, daysBack: requestedDays)
         
         // Filter to activities with power data
-        return activities.filter { activity in
+        let powerActivities = activities.filter { activity in
             activity.averagePower != nil || activity.normalizedPower != nil
         }
+        
+        Logger.data("✅ [FTP] Found \(powerActivities.count) activities with power data")
+        return powerActivities
     }
     
     /// Fetch activities for training load calculation (CTL/ATL)
