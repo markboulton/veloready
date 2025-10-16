@@ -238,83 +238,26 @@ struct TrainingLoadChart: View {
         Logger.data("TrainingLoadChart: loadHistoricalActivities called for date: \(rideDate)")
         
         do {
-            // Try Intervals.icu first if authenticated
-            if IntervalsOAuthManager.shared.isAuthenticated {
-                Logger.data("TrainingLoadChart: Fetching from Intervals.icu")
-                let apiClient = IntervalsAPIClient.shared
-                let activities = try await apiClient.fetchRecentActivities(limit: 300, daysBack: 60)
-                Logger.data("TrainingLoadChart: Fetched \(activities.count) activities from Intervals")
-                
-                let activitiesWithData = activities.filter { $0.ctl != nil && $0.atl != nil }
-                await MainActor.run {
-                    self.historicalActivities = activitiesWithData
-                }
-                Logger.data("TrainingLoadChart: Set \(activitiesWithData.count) Intervals activities")
-                return
-            }
+            // Use UnifiedActivityService to fetch from best available source
+            Logger.data("TrainingLoadChart: Fetching activities from available source")
+            let activities = try await UnifiedActivityService.shared.fetchActivitiesForTrainingLoad()
+            Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
             
-            // Fallback to Strava with CTL/ATL calculation
-            Logger.data("TrainingLoadChart: Fetching from Strava (not authenticated with Intervals)")
-            let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
-            Logger.data("TrainingLoadChart: Fetched \(stravaActivities.count) activities from Strava")
-            
-            // Get FTP for TSS calculation
+            // Get FTP for TSS enrichment
             let profileManager = await MainActor.run { AthleteProfileManager.shared }
-            guard let ftp = profileManager.profile.ftp, ftp > 0 else {
-                Logger.warning("TrainingLoadChart: No FTP available for TSS calculation")
-                return
+            let ftp = profileManager.profile.ftp
+            
+            // Enrich activities with TSS using unified converter
+            let enrichedActivities = activities.map { activity in
+                ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
             }
             
-            // Convert Strava activities and calculate TSS/CTL/ATL
-            var enrichedActivities: [IntervalsActivity] = []
-            
-            for stravaActivity in stravaActivities {
-                var activity = ActivityConverter.stravaToIntervals(stravaActivity)
-                
-                // Calculate TSS if activity has power data
-                if let np = activity.normalizedPower ?? (activity.averagePower.map { $0 * 1.05 }),
-                   np > 50 {
-                    let duration = activity.duration ?? 0
-                    let if_value = np / ftp
-                    let tss = (duration * np * if_value) / (ftp * 36.0)
-                    
-                    activity = IntervalsActivity(
-                        id: activity.id,
-                        name: activity.name,
-                        description: activity.description,
-                        startDateLocal: activity.startDateLocal,
-                        type: activity.type,
-                        duration: activity.duration,
-                        distance: activity.distance,
-                        elevationGain: activity.elevationGain,
-                        averagePower: activity.averagePower,
-                        normalizedPower: np,
-                        averageHeartRate: activity.averageHeartRate,
-                        maxHeartRate: activity.maxHeartRate,
-                        averageCadence: activity.averageCadence,
-                        averageSpeed: activity.averageSpeed,
-                        maxSpeed: activity.maxSpeed,
-                        calories: activity.calories,
-                        fileType: activity.fileType,
-                        tss: tss,
-                        intensityFactor: if_value,
-                        atl: nil,
-                        ctl: nil,
-                        icuZoneTimes: nil,
-                        icuHrZoneTimes: nil
-                    )
-                }
-                
-                enrichedActivities.append(activity)
-            }
-            
-            // Calculate CTL/ATL for all activities
+            // Calculate CTL/ATL using TrainingLoadCalculator
             let calculator = TrainingLoadCalculator()
             let (ctl, atl) = calculator.calculateTrainingLoadFromActivities(enrichedActivities)
             
-            // Add CTL/ATL to each activity (simplified - just use final values)
-            // For proper chart, we'd need to calculate CTL/ATL at each point in time
-            let activitiesWithLoad = enrichedActivities.map { activity in
+            // Add CTL/ATL to activities that have TSS
+            let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity in
                 IntervalsActivity(
                     id: activity.id,
                     name: activity.name,
@@ -343,7 +286,7 @@ struct TrainingLoadChart: View {
             }
             
             await MainActor.run {
-                self.historicalActivities = activitiesWithLoad.filter { $0.tss != nil }
+                self.historicalActivities = activitiesWithLoad
             }
             
             Logger.data("TrainingLoadChart: Processed \(self.historicalActivities.count) activities with TSS")

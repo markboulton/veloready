@@ -668,62 +668,22 @@ class RideDetailViewModel: ObservableObject {
         return samples
     }
     
-    /// Calculate CTL and ATL from recent activity history
+    /// Calculate CTL and ATL from recent activity history using unified service
     /// - Parameters:
     ///   - currentActivity: The current activity being viewed
     ///   - ftp: The FTP value used for TSS calculation
     /// - Returns: Tuple of (ctl, atl)
     private func calculateCTLATL(currentActivity: IntervalsActivity, ftp: Double) async -> (ctl: Double, atl: Double) {
         do {
-            // Fetch recent activities (42 days for CTL calculation)
+            // Use UnifiedActivityService to fetch from best available source
             Logger.debug("🟠 Fetching recent activities for CTL/ATL calculation...")
-            let activities = try await StravaAPIClient.shared.fetchActivities(perPage: 200)
+            let activities = try await UnifiedActivityService.shared.fetchActivitiesForTrainingLoad()
             
-            Logger.debug("🟠 Fetched \(activities.count) activities from Strava")
+            Logger.debug("🟠 Fetched \(activities.count) activities for CTL/ATL")
             
-            // Convert to IntervalsActivity and calculate TSS for each
-            var enrichedActivities: [IntervalsActivity] = []
-            
-            for stravaActivity in activities {
-                // Convert to IntervalsActivity
-                var activity = ActivityConverter.stravaToIntervals(stravaActivity)
-                
-                // Calculate TSS if activity has power data
-                if let np = activity.normalizedPower ?? (activity.averagePower.map { $0 * 1.05 }),
-                   np > 50 {
-                    let duration = activity.duration ?? 0
-                    let if_value = np / ftp
-                    let tss = (duration * np * if_value) / (ftp * 36.0)
-                    
-                    // Update activity with TSS
-                    activity = IntervalsActivity(
-                        id: activity.id,
-                        name: activity.name,
-                        description: activity.description,
-                        startDateLocal: activity.startDateLocal,
-                        type: activity.type,
-                        duration: activity.duration,
-                        distance: activity.distance,
-                        elevationGain: activity.elevationGain,
-                        averagePower: activity.averagePower,
-                        normalizedPower: np,
-                        averageHeartRate: activity.averageHeartRate,
-                        maxHeartRate: activity.maxHeartRate,
-                        averageCadence: activity.averageCadence,
-                        averageSpeed: activity.averageSpeed,
-                        maxSpeed: activity.maxSpeed,
-                        calories: activity.calories,
-                        fileType: activity.fileType,
-                        tss: tss,
-                        intensityFactor: if_value,
-                        atl: nil,
-                        ctl: nil,
-                        icuZoneTimes: nil,
-                        icuHrZoneTimes: nil
-                    )
-                }
-                
-                enrichedActivities.append(activity)
+            // Enrich activities with TSS using unified converter
+            let enrichedActivities = activities.map { activity in
+                ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
             }
             
             // Calculate CTL/ATL using TrainingLoadCalculator
