@@ -53,6 +53,7 @@ struct WalkingDetailView: View {
                         coordinates: viewModel.routeCoordinates ?? [],
                         isLoading: viewModel.isLoadingMap
                     )
+                    .padding(.top, 24)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 20)
                 }

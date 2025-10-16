@@ -107,7 +107,7 @@ struct ActivitiesView: View {
                     alignment: .leading,
                     height: 32
                 )
-                .listRowInsets(EdgeInsets(top: 24, leading: 16, bottom: 16, trailing: 16))
+                .listRowInsets(EdgeInsets(top: 24, leading: 0, bottom: 16, trailing: 16))
                 .listRowBackground(Color.clear)
             } header: {
                 EmptyView()
@@ -120,6 +120,7 @@ struct ActivitiesView: View {
                         NavigationLink(destination: activityDestination(for: activity)) {
                             SharedActivityRowView(activity: activity)
                         }
+                        .buttonStyle(PlainButtonStyle()) // Remove default NavigationLink styling
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         .listRowBackground(
                             Color(.systemBackground).opacity(0.6)

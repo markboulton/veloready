@@ -37,6 +37,12 @@ struct SharedActivityRowView: View {
                     showingRPESheet = true
                 }
             }
+            
+            // Chevron indicator
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary.opacity(0.5))
         }
         .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
