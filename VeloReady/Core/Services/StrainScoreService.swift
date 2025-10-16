@@ -528,36 +528,22 @@ class StrainScoreService: ObservableObject {
     // MARK: - User Settings Helpers
     
     private func getUserFTP() -> Double? {
-        // Use adaptive FTP from athlete profile (computed zones, not Intervals.icu hardcoded)
-        // The adaptive FTP is stored in UserDefaults by AthleteZoneService
-        if let data = UserDefaults.standard.data(forKey: "athlete_profile_cache"),
-           let profile = try? JSONDecoder().decode(IntervalsAthlete.self, from: data) {
-            // Check for adaptive FTP first (our computed value)
-            if let adaptiveFTP = UserDefaults.standard.object(forKey: "adaptive_ftp") as? Double {
-                return adaptiveFTP
-            }
-            // Fallback to Intervals.icu FTP (but this is often outdated)
-            return profile.powerZones?.ftp
-        }
-        return nil
+        // Use adaptive FTP from AthleteProfileManager
+        // This includes:
+        // - Computed FTP from performance data (PRO: 120 days, FREE: 90 days)
+        // - Manual FTP override (if user set it in Settings)
+        // - Strava FTP fallback (for Strava-only users)
+        return AthleteProfileManager.shared.profile.ftp
     }
     
     private func getUserMaxHR() -> Double? {
-        // Use adaptive max HR from athlete profile
-        if let adaptiveMaxHR = UserDefaults.standard.object(forKey: "adaptive_max_hr") as? Double {
-            return adaptiveMaxHR
-        }
-        // Fallback to Intervals.icu max HR
-        if let data = UserDefaults.standard.data(forKey: "athlete_profile_cache"),
-           let profile = try? JSONDecoder().decode(IntervalsAthlete.self, from: data) {
-            return profile.heartRateZones?.maxHr
-        }
-        return nil
+        // Use adaptive max HR from AthleteProfileManager
+        return AthleteProfileManager.shared.profile.maxHR
     }
     
     private func getUserRestingHR() -> Double? {
-        // Use resting HR from athlete profile
-        return UserDefaults.standard.object(forKey: "resting_hr") as? Double
+        // Use resting HR from AthleteProfileManager
+        return AthleteProfileManager.shared.profile.restingHR
     }
     
     private func getUserBodyMass() -> Double? {
