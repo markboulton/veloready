@@ -42,6 +42,14 @@ struct AthleteZonesSettingsView: View {
         .onAppear {
             initializeEditingStates()
             ensureCorrectDefaultsForTier()
+            
+            // Debug logging
+            Logger.data("🎯 Athlete Zones Settings:")
+            Logger.data("   FTP Source: \(profileManager.profile.ftpSource.rawValue)")
+            Logger.data("   HR Source: \(profileManager.profile.hrZonesSource.rawValue)")
+            Logger.data("   canEditFTP: \(canEditFTP)")
+            Logger.data("   canEditMaxHR: \(canEditMaxHR)")
+            Logger.data("   PRO Access: \(proConfig.hasProAccess)")
         }
     }
     
