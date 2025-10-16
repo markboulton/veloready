@@ -10,6 +10,7 @@ struct TrainingLoadChart: View {
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var historicalActivities: [IntervalsActivity] = []
     @State private var isLoading = false
+    @State private var loadedActivityId: String? = nil // Track which activity we've loaded data for
     
     var body: some View {
         // Use Group to avoid AnyView type erasure issues
@@ -222,10 +223,17 @@ struct TrainingLoadChart: View {
                         .foregroundColor(Color.text.secondary)
                 }
             }
-        .task {
+        .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
+            // Only fetch if we haven't already loaded data for this activity
+            guard loadedActivityId != activity.id else {
+                Logger.data("TrainingLoadChart: Data already loaded for activity \(activity.id)")
+                return
+            }
+            
             // Fetch historical activities for chart
-            Logger.data("TrainingLoadChart: .task triggered, fetching historical data for date: \(rideDate)")
+            Logger.data("TrainingLoadChart: .task triggered for NEW activity: \(activity.id)")
             await loadHistoricalActivities(rideDate: rideDate)
+            loadedActivityId = activity.id
         }
         .onAppear {
             Logger.data("TrainingLoadChart: onAppear triggered")

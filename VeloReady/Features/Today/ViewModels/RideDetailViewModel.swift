@@ -543,36 +543,8 @@ class RideDetailViewModel: ObservableObject {
                         icuHrZoneTimes: enriched.icuHrZoneTimes
                     )
                     
-                    // Calculate CTL/ATL from recent activity history
-                    Logger.debug("🟠 Calculating CTL/ATL from activity history...")
-                    let (ctl, atl) = await calculateCTLATL(currentActivity: enriched, ftp: ftpValue)
-                    
-                    // Update enriched activity with CTL/ATL
-                    enriched = IntervalsActivity(
-                        id: enriched.id,
-                        name: enriched.name,
-                        description: enriched.description,
-                        startDateLocal: enriched.startDateLocal,
-                        type: enriched.type,
-                        duration: enriched.duration,
-                        distance: enriched.distance,
-                        elevationGain: enriched.elevationGain,
-                        averagePower: enriched.averagePower,
-                        normalizedPower: enriched.normalizedPower,
-                        averageHeartRate: enriched.averageHeartRate,
-                        maxHeartRate: enriched.maxHeartRate,
-                        averageCadence: enriched.averageCadence,
-                        averageSpeed: enriched.averageSpeed,
-                        maxSpeed: enriched.maxSpeed,
-                        calories: enriched.calories,
-                        fileType: enriched.fileType,
-                        tss: enriched.tss,
-                        intensityFactor: enriched.intensityFactor,
-                        atl: atl,
-                        ctl: ctl,
-                        icuZoneTimes: enriched.icuZoneTimes,
-                        icuHrZoneTimes: enriched.icuHrZoneTimes
-                    )
+                    // Note: CTL/ATL calculation removed from here to prevent task cancellation
+                    // TrainingLoadChart will calculate CTL/ATL independently with a stable task ID
                     
                     Logger.debug("🟠 ========== ENRICHED ACTIVITY CREATED ==========")
                     Logger.debug("🟠 Enriched TSS: \(enriched.tss?.description ?? "nil")")
@@ -668,36 +640,7 @@ class RideDetailViewModel: ObservableObject {
         return samples
     }
     
-    /// Calculate CTL and ATL from recent activity history using unified service
-    /// - Parameters:
-    ///   - currentActivity: The current activity being viewed
-    ///   - ftp: The FTP value used for TSS calculation
-    /// - Returns: Tuple of (ctl, atl)
-    private func calculateCTLATL(currentActivity: IntervalsActivity, ftp: Double) async -> (ctl: Double, atl: Double) {
-        do {
-            // Use UnifiedActivityService to fetch from best available source
-            Logger.debug("🟠 Fetching recent activities for CTL/ATL calculation...")
-            let activities = try await UnifiedActivityService.shared.fetchActivitiesForTrainingLoad()
-            
-            Logger.debug("🟠 Fetched \(activities.count) activities for CTL/ATL")
-            
-            // Enrich activities with TSS using unified converter
-            let enrichedActivities = activities.map { activity in
-                ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
-            }
-            
-            // Calculate CTL/ATL using TrainingLoadCalculator
-            let calculator = TrainingLoadCalculator()
-            let (ctl, atl) = calculator.calculateTrainingLoadFromActivities(enrichedActivities)
-            
-            Logger.debug("🟠 ✅ CTL: \(String(format: "%.1f", ctl)), ATL: \(String(format: "%.1f", atl))")
-            
-            return (ctl, atl)
-        } catch {
-            Logger.warning("🟠 ❌ Failed to calculate CTL/ATL: \(error)")
-            return (0, 0)
-        }
-    }
+    // CTL/ATL calculation removed - now handled by TrainingLoadChart to prevent task cancellation
     
     // Conversion now handled by unified ActivityConverter utility
     
