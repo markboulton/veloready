@@ -118,9 +118,14 @@
 | 300 | 300 | 105.9 | 11.9 | **High** | Ironman bike leg |
 | 350 | 350 | 126.1 | 12.6 | **High** | Ultra-race |
 | 400 | 400 | 146.9 | 13.1 | **High** | Extreme event |
+| 450 | 450 | 168.5 | 13.6 | **High** | Ultra-epic |
+| **490** | **490** | **185.9** | **13.9** | **High** | **Your Pedal Wye** |
+| 500 | 500 | 190.6 | 14.0 | **High** | Multi-day ultra |
 
 **Your rides:**
-- **Pedal Wye (200 TSS, 340 min):** Strain = **10.1** (Moderate/High border) ✅
+- **Pedal Wye (490 TSS, 340 min, IF 0.93):** Strain = **13.9** (High, approaching Extreme) ✅
+  - 5.67 hours at 197W NP (93% FTP!)
+  - This is an EPIC ultra-endurance ride
 
 ---
 

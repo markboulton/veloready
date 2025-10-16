@@ -681,13 +681,13 @@ class StrainScoreCalculator {
     // MARK: - Helper Functions
     
     private static func determineBand(score: Double) -> StrainScore.StrainBand {
-        // Logarithmic distribution for 0-18 scale
-        // Most days cluster in low/moderate, extreme days are rare
+        // Data-driven thresholds based on 120 days of actual ride data (36 activities)
+        // Calibrated to user's TSS distribution: median=52, Q3=106, 90th=181, 99th=490
         switch score {
-        case 0..<6.0: return .low         // 0-5.9 (33% - easy/recovery days)
-        case 6.0..<10.5: return .moderate // 6.0-10.4 (29% - normal training)
-        case 10.5..<14.5: return .high    // 10.5-14.4 (22% - hard training)
-        default: return .extreme          // 14.5-18.0 (16% - very hard/race)
+        case 0..<5.5: return .low         // TSS 0-40 (recovery/easy - 36% of rides)
+        case 5.5..<9.0: return .moderate  // TSS 40-85 (normal training - 39% of rides)
+        case 9.0..<14.0: return .high     // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
+        default: return .extreme          // TSS 250+ (ultra-endurance rides - 3% of rides)
         }
     }
     
