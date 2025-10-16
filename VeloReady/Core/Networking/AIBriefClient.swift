@@ -12,6 +12,14 @@ struct AIBriefRequest: Codable {
     let tssLow: Int
     let tssHigh: Int
     let plan: String?
+    let completedActivities: [CompletedActivity]?
+    let todayTSS: Double?
+    
+    struct CompletedActivity: Codable {
+        let name: String
+        let duration: Int // minutes
+        let tss: Double?
+    }
 }
 
 struct AIBriefResponse: Codable {

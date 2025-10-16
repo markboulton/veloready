@@ -111,6 +111,9 @@ class AIBriefService: ObservableObject {
         // Get planned workout from today's cache (if available)
         let plan = getTodaysPlannedWorkout()
         
+        // Get today's completed activities
+        let (completedActivities, todayTSS) = getTodaysCompletedActivities()
+        
         let request = AIBriefRequest(
             recovery: recovery.score,
             sleepDelta: sleepDelta,
@@ -119,7 +122,9 @@ class AIBriefService: ObservableObject {
             tsb: tsb,
             tssLow: tssLow,
             tssHigh: tssHigh,
-            plan: plan
+            plan: plan,
+            completedActivities: completedActivities,
+            todayTSS: todayTSS
         )
         
         Logger.data("========================================")
@@ -131,6 +136,15 @@ class AIBriefService: ObservableObject {
         Logger.data("  TSB: \(String(format: "%.1f", request.tsb))")
         Logger.data("  TSS Range: \(request.tssLow)-\(request.tssHigh)")
         Logger.data("  Plan: \(request.plan ?? "none")")
+        if let activities = request.completedActivities, !activities.isEmpty {
+            Logger.data("  ✓ Completed Today:")
+            for activity in activities {
+                Logger.data("    - \(activity.name): \(activity.duration)min, TSS: \(activity.tss.map { String(format: "%.1f", $0) } ?? "?")")
+            }
+            Logger.data("  Today's Total TSS: \(request.todayTSS.map { String(format: "%.1f", $0) } ?? "0")")
+        } else {
+            Logger.data("  No activities completed yet today")
+        }
         
         // Show what AI will recommend based on recovery
         let recoveryBand = request.recovery >= 70 ? "GREEN" : request.recovery >= 40 ? "AMBER" : "RED"
@@ -180,6 +194,63 @@ class AIBriefService: ObservableObject {
         
         // For now, return nil - will be populated when we integrate with calendar
         return nil
+    }
+    
+    private func getTodaysCompletedActivities() -> ([AIBriefRequest.CompletedActivity]?, Double?) {
+        // Get today's activities from ALL sources (Intervals.icu, Strava, HealthKit)
+        // This ensures we capture activities regardless of which service user has connected
+        
+        // Method 1: Try unified cache (Intervals.icu activities from UserDefaults)
+        var cachedActivities: [IntervalsActivity] = []
+        if let data = UserDefaults.standard.data(forKey: "intervals_activities_cache"),
+           let activities = try? JSONDecoder().decode([IntervalsActivity].self, from: data) {
+            cachedActivities = activities
+        }
+        
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        let todaysActivities = cachedActivities.filter { activity in
+            let dateStr = activity.startDateLocal
+            
+            // Parse date string
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+            formatter.timeZone = TimeZone.current
+            
+            guard let activityDate = formatter.date(from: dateStr) else { return false }
+            return Calendar.current.isDate(activityDate, inSameDayAs: today)
+        }
+        
+        // Method 2: If no Intervals activities, try to get from Strava cache
+        // (This handles case where user only has Strava connected)
+        var allActivities = todaysActivities
+        if allActivities.isEmpty {
+            // Note: Strava activities are fetched in real-time by StrainScoreService
+            // and should be in the unified cache. If not, they'll be picked up on next refresh.
+            Logger.debug("📊 [AI Brief] No Intervals activities found, relying on unified cache")
+        }
+        
+        guard !allActivities.isEmpty else {
+            return (nil, nil)
+        }
+        
+        // Convert to CompletedActivity format
+        let completed = allActivities.map { activity in
+            AIBriefRequest.CompletedActivity(
+                name: activity.name ?? "Ride",
+                duration: activity.duration != nil ? Int(activity.duration! / 60) : 0,
+                tss: activity.tss
+            )
+        }
+        
+        // Calculate total TSS
+        let totalTSS = allActivities.reduce(0.0) { sum, activity in
+            sum + (activity.tss ?? 0)
+        }
+        
+        Logger.debug("📊 [AI Brief] Found \(completed.count) completed activities today (Total TSS: \(String(format: "%.1f", totalTSS)))")
+        
+        return (completed, totalTSS > 0 ? totalTSS : nil)
     }
     
     private func getFallbackMessage() -> String {

@@ -133,22 +133,31 @@ class StrainScoreService: ObservableObject {
         // Get training loads (from Intervals or HealthKit)
         async let trainingLoadData = fetchTrainingLoads()
         
-        // Get today's workouts (from HealthKit AND Strava)
+        // Get today's workouts from ALL sources (HealthKit, Intervals.icu, Strava)
         async let todaysWorkouts = fetchTodaysWorkouts()
-        async let todaysStravaActivities = fetchTodaysStravaActivities()
+        async let todaysActivities = fetchTodaysUnifiedActivities()
         
         let (hrvValue, rhrValue) = await (hrv, rhr)
         let (stepsValue, activeCaloriesValue) = await (steps, activeCalories)
         let (hrvBaseline, rhrBaseline, _, _) = await baselines
         let trainingLoads = await trainingLoadData
         let workouts = await todaysWorkouts
-        let stravaActivities = await todaysStravaActivities
+        let unifiedActivities = await todaysActivities
         
-        // Calculate TRIMP from today's HealthKit workouts + Strava activities
+        // Calculate TRIMP from today's HealthKit workouts + unified activities (Intervals/Strava)
         let healthKitTRIMP = await calculateTRIMPFromWorkouts(workouts: workouts)
-        let stravaTRIMP = calculateTRIMPFromStravaActivities(activities: stravaActivities)
-        let cardioTRIMP = healthKitTRIMP + stravaTRIMP
-        let cardioDuration = workouts.reduce(0.0) { $0 + $1.duration }
+        let unifiedTRIMP = calculateTRIMPFromStravaActivities(activities: unifiedActivities)
+        let cardioTRIMP = healthKitTRIMP + unifiedTRIMP
+        
+        // BUG FIX: Include HealthKit AND unified activities (Intervals.icu + Strava)
+        let healthKitDuration = workouts.reduce(0.0) { $0 + $1.duration }
+        let unifiedDuration = unifiedActivities.reduce(0.0) { $0 + ($1.duration ?? 0) }
+        let cardioDuration = healthKitDuration + unifiedDuration
+        
+        Logger.debug("   HealthKit Duration: \(Int(healthKitDuration/60))min")
+        Logger.debug("   Intervals/Strava Duration: \(Int(unifiedDuration/60))min")
+        Logger.debug("   Total Cardio Duration: \(Int(cardioDuration/60))min")
+        
         let averageIF: Double? = nil // Not available from HealthKit alone
         
         // Collect workout types for activity differentiation
@@ -336,33 +345,16 @@ class StrainScoreService: ObservableObject {
         return workouts
     }
     
-    /// Fetch today's Strava activities
-    private func fetchTodaysStravaActivities() async -> [IntervalsActivity] {
+    /// Fetch today's activities from unified service (Intervals.icu OR Strava)
+    /// This ensures we get activities regardless of which service the user has connected
+    private func fetchTodaysUnifiedActivities() async -> [IntervalsActivity] {
         do {
-            let calendar = Calendar.current
-            let today = calendar.startOfDay(for: Date())
-            let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-            
-            // Fetch from Strava API
-            let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 30)
-            
-            // Filter to today only
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-            dateFormatter.timeZone = TimeZone(identifier: "UTC")
-            
-            let todaysStrava = stravaActivities.filter { strava in
-                guard let activityDate = dateFormatter.date(from: strava.start_date) else { return false }
-                return calendar.isDate(activityDate, inSameDayAs: today)
-            }
-            
-            // Convert to IntervalsActivity format using unified converter
-            let activities = ActivityConverter.stravaToIntervals(todaysStrava)
-            
-            Logger.debug("🔍 Found \(activities.count) Strava activities for today")
+            // Use UnifiedActivityService to get today's activities from any source
+            let activities = try await UnifiedActivityService.shared.fetchTodaysActivities()
+            Logger.debug("🔍 Found \(activities.count) unified activities for today (Intervals.icu or Strava)")
             return activities
         } catch {
-            Logger.warning("⚠️ Failed to fetch Strava activities: \(error)")
+            Logger.warning("⚠️ Failed to fetch unified activities: \(error)")
             return []
         }
     }
