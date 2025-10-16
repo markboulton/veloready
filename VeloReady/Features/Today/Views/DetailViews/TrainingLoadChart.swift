@@ -12,47 +12,44 @@ struct TrainingLoadChart: View {
     @State private var isLoading = false
     @State private var loadedActivityId: String? = nil // Track which activity we've loaded data for
     
-    var body: some View {
-        // Use Group to avoid AnyView type erasure issues
-        Group {
-            if !proConfig.hasProAccess {
-                EmptyView()
-            } else if let tss = activity.tss {
-                chartContent(tss: tss)
-            } else {
-                EmptyView()
-            }
+    // Computed property to parse date once
+    private var parsedRideDate: Date? {
+        // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37" or "2025-09-21T07:29:37Z")
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime] // NO .withFractionalSeconds - dates don't have them!
+        dateFormatter.timeZone = TimeZone.current
+        
+        // Try parsing with ISO8601DateFormatter first (handles Z)
+        if let date = dateFormatter.date(from: activity.startDateLocal) {
+            return date
         }
+        
+        // Fallback to manual parsing without Z
+        let fallbackFormatter = DateFormatter()
+        fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
+        fallbackFormatter.timeZone = TimeZone.current
+        
+        if let date = fallbackFormatter.date(from: activity.startDateLocal) {
+            return date
+        }
+        
+        Logger.warning("TrainingLoadChart: Failed to parse date: \(activity.startDateLocal)")
+        return nil
     }
     
-    @ViewBuilder
-    private func chartContent(tss: Double) -> some View {
+    var body: some View {
+        // Only show if user has Pro access AND activity has TSS AND date parses
+        guard proConfig.hasProAccess,
+              let tss = activity.tss,
+              let rideDate = parsedRideDate else {
+            return AnyView(EmptyView())
+        }
+        
         Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
         
         let ctlAfter = activity.ctl ?? 0
         let atlAfter = activity.atl ?? 0
-        
-        // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37" or "2025-09-21T07:29:37Z")
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        dateFormatter.timeZone = TimeZone.current
-        
-        // Try parsing with ISO8601DateFormatter first (handles Z)
-        var rideDate = dateFormatter.date(from: activity.startDateLocal)
-        
-        // Fallback to manual parsing without Z
-        if rideDate == nil {
-            let fallbackFormatter = DateFormatter()
-            fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-            fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
-            fallbackFormatter.timeZone = TimeZone.current
-            rideDate = fallbackFormatter.date(from: activity.startDateLocal)
-        }
-        
-        guard let rideDate = rideDate else {
-            Logger.warning("TrainingLoadChart: Failed to parse date: \(activity.startDateLocal)")
-            return EmptyView()
-        }
         
         let tsbAfter = ctlAfter - atlAfter
         
@@ -65,7 +62,8 @@ struct TrainingLoadChart: View {
             activities: historicalActivities
         )
         
-        return VStack(alignment: .leading, spacing: 16) {
+        return AnyView(
+            VStack(alignment: .leading, spacing: 16) {
                 // Header
                 HStack(spacing: 8) {
                     Text(TrainingLoadContent.title)
@@ -235,21 +233,22 @@ struct TrainingLoadChart: View {
                         .foregroundColor(Color.text.secondary)
                 }
             }
-        .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
-            // Only fetch if we haven't already loaded data for this activity
-            guard loadedActivityId != activity.id else {
-                Logger.data("TrainingLoadChart: Data already loaded for activity \(activity.id)")
-                return
+            .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
+                // Only fetch if we haven't already loaded data for this activity
+                guard loadedActivityId != activity.id else {
+                    Logger.data("TrainingLoadChart: Data already loaded for activity \(activity.id)")
+                    return
+                }
+                
+                // Fetch historical activities for chart
+                Logger.data("TrainingLoadChart: .task triggered for NEW activity: \(activity.id)")
+                await loadHistoricalActivities(rideDate: rideDate)
+                loadedActivityId = activity.id
             }
-            
-            // Fetch historical activities for chart
-            Logger.data("TrainingLoadChart: .task triggered for NEW activity: \(activity.id)")
-            await loadHistoricalActivities(rideDate: rideDate)
-            loadedActivityId = activity.id
-        }
-        .onAppear {
-            Logger.data("TrainingLoadChart: onAppear triggered")
-        }
+            .onAppear {
+                Logger.data("TrainingLoadChart: onAppear triggered")
+            }
+        )
     }
     
     // MARK: - Helper Functions
