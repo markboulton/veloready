@@ -120,18 +120,24 @@ struct WorkoutDetailView: View {
                         
                         // Training Load Chart - PRO feature (has its own margins)
                         // Shows CTL/ATL/TSB trend over time with 3 intersecting lines
-                        TrainingLoadChart(activity: displayActivity)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 20)
-                        
-                        SectionDivider()
+                        // Only show divider if chart has TSS data
+                        if displayActivity.tss != nil {
+                            TrainingLoadChart(activity: displayActivity)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 20)
+                            
+                            SectionDivider()
+                        }
                         
                         // Intensity Chart - PRO feature (has its own margins)
-                        IntensityChart(activity: displayActivity)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 20)
-                        
-                        SectionDivider()
+                        // Only show divider if chart has TSS/IF data
+                        if displayActivity.tss != nil && displayActivity.intensityFactor != nil {
+                            IntensityChart(activity: displayActivity)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 20)
+                            
+                            SectionDivider()
+                        }
                     } else {
                         // Single combined Pro upgrade card for free users
                         ProUpgradeCard(

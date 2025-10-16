@@ -32,13 +32,25 @@ struct TrainingLoadChart: View {
         let ctlAfter = activity.ctl ?? 0
         let atlAfter = activity.atl ?? 0
         
-        // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37" or "2025-09-21T07:29:37Z")
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         dateFormatter.timeZone = TimeZone.current
         
-        guard let rideDate = dateFormatter.date(from: activity.startDateLocal) else {
+        // Try parsing with ISO8601DateFormatter first (handles Z)
+        var rideDate = dateFormatter.date(from: activity.startDateLocal)
+        
+        // Fallback to manual parsing without Z
+        if rideDate == nil {
+            let fallbackFormatter = DateFormatter()
+            fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
+            fallbackFormatter.timeZone = TimeZone.current
+            rideDate = fallbackFormatter.date(from: activity.startDateLocal)
+        }
+        
+        guard let rideDate = rideDate else {
+            Logger.warning("TrainingLoadChart: Failed to parse date: \(activity.startDateLocal)")
             return EmptyView()
         }
         
