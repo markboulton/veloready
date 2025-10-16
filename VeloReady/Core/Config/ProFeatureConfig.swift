@@ -106,6 +106,20 @@ class ProFeatureConfig: ObservableObject {
     
     var canUseTrainingFocus: Bool { hasProAccess }
     
+    // MARK: - Adaptive Zone Features (PRO Only)
+    
+    /// Can compute FTP from performance data (PRO feature)
+    /// FREE users must use manual FTP or Strava/Intervals.icu FTP
+    var canUseAdaptiveFTP: Bool { hasProAccess }
+    
+    /// Can compute power zones from performance data (PRO feature)
+    /// FREE users get Coggan default zones based on FTP
+    var canUseAdaptivePowerZones: Bool { hasProAccess }
+    
+    /// Can compute HR zones from performance data (PRO feature)
+    /// FREE users get Coggan default zones based on Max HR
+    var canUseAdaptiveHRZones: Bool { hasProAccess }
+    
     // MARK: - Map Features
     
     var canUseMapOverlays: Bool { hasProAccess }

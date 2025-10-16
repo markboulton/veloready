@@ -153,15 +153,26 @@ class AthleteProfileManager: ObservableObject {
         Logger.data("Processing \(recentActivities.count) activities for zone computation")
         Logger.data("Ignoring hardcoded Intervals.icu zones - computing from actual performance data")
         
+        // Check PRO access for adaptive zone computation
+        let proConfig = await MainActor.run { ProFeatureConfig.shared }
+        
         // Only update if source is NOT manual (don't override user settings)
         if profile.ftpSource != .manual {
-            await computeFTPFromPerformanceData(recentActivities)
+            if await proConfig.canUseAdaptiveFTP {
+                await computeFTPFromPerformanceData(recentActivities)
+            } else {
+                Logger.data("🔒 Adaptive FTP computation requires PRO - FREE users use manual/Strava/Intervals.icu FTP")
+            }
         } else {
             Logger.data("Skipping FTP computation - user has manual override (FTP: \(profile.ftp ?? 0)W)")
         }
         
         if profile.hrZonesSource != .manual {
-            await computeHRZonesFromPerformanceData(recentActivities)
+            if await proConfig.canUseAdaptiveHRZones {
+                await computeHRZonesFromPerformanceData(recentActivities)
+            } else {
+                Logger.data("🔒 Adaptive HR zones computation requires PRO - FREE users use manual/Strava/Intervals.icu zones")
+            }
         } else {
             Logger.data("Skipping HR zones computation - user has manual override (Max HR: \(profile.maxHR ?? 0)bpm)")
         }
@@ -169,16 +180,21 @@ class AthleteProfileManager: ObservableObject {
         // Always update weight, resting HR, LTHR from most recent
         await updateAuxiliaryMetrics(recentActivities)
         
-        // Ensure zones are generated even if FTP/HR computation had limited data
+        // Ensure zones are generated (Coggan defaults for FREE, adaptive for PRO)
+        let canUseAdaptivePower = await proConfig.canUseAdaptivePowerZones
+        let canUseAdaptiveHR = await proConfig.canUseAdaptiveHRZones
+        
         await MainActor.run {
             if (profile.powerZones == nil || profile.powerZones!.isEmpty), let ftp = profile.ftp, ftp > 0 {
                 profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
-                Logger.data("✅ Generated default power zones from FTP: \(Int(ftp))W")
+                let zoneType = canUseAdaptivePower ? "adaptive" : "Coggan default"
+                Logger.data("✅ Generated \(zoneType) power zones from FTP: \(Int(ftp))W")
             }
             
             if (profile.hrZones == nil || profile.hrZones!.isEmpty), let maxHR = profile.maxHR, maxHR > 0 {
                 profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
-                Logger.data("✅ Generated default HR zones from max HR: \(Int(maxHR))bpm")
+                let zoneType = canUseAdaptiveHR ? "adaptive" : "Coggan default"
+                Logger.data("✅ Generated \(zoneType) HR zones from max HR: \(Int(maxHR))bpm")
             }
             
             profile.lastComputedFromActivities = Date()
