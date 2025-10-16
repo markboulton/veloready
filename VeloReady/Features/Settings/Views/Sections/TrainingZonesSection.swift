@@ -39,9 +39,9 @@ struct TrainingZonesSection: View {
                 }
             }
             
-            // FREE: HR and Power Zones (from Intervals.icu)
+            // FREE: HR and Power Zones (Coggan)
             if !proConfig.hasProAccess {
-                NavigationLink(destination: TrainingZoneSettingsView()) {
+                NavigationLink(destination: AthleteZonesSettingsView()) {
                     HStack {
                         Image(systemName: "heart.fill")
                             .foregroundColor(Color.health.heartRate)
@@ -51,7 +51,7 @@ struct TrainingZonesSection: View {
                             Text("HR and Power Zones")
                                 .font(.body)
                             
-                            Text("Sync zones from Intervals.icu")
+                            Text("Coggan zones based on FTP and Max HR")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -66,7 +66,7 @@ struct TrainingZonesSection: View {
             if proConfig.hasProAccess {
                 Text("Adaptive Zones uses sports science to compute your FTP, W', and training zones from your performance data.")
             } else {
-                Text("Sync your heart rate and power zones from Intervals.icu. Upgrade to PRO for adaptive zones computed from your performance data.")
+                Text("Set your FTP and Max HR to generate Coggan training zones. Upgrade to PRO for adaptive zones computed from your performance data.")
             }
         }
     }
