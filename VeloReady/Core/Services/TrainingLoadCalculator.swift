@@ -51,6 +51,104 @@ class TrainingLoadCalculator {
         return (ctl, atl)
     }
     
+    /// Calculate progressive CTL/ATL values for each activity date
+    /// - Parameter activities: Array of activities with TSS values
+    /// - Returns: Dictionary mapping activity dates to (ctl, atl) tuples
+    func calculateProgressiveTrainingLoad(_ activities: [IntervalsActivity]) -> [Date: (ctl: Double, atl: Double)] {
+        Logger.data("📊 Calculating progressive CTL/ATL from \(activities.count) activities...")
+        
+        var result: [Date: (ctl: Double, atl: Double)] = [:]
+        let calendar = Calendar.current
+        
+        // Group activities by date and sum TSS
+        var dailyTSS: [Date: Double] = [:]
+        for activity in activities {
+            guard let tss = activity.tss, tss > 0 else { continue }
+            guard let activityDate = parseActivityDate(activity.startDateLocal) else { continue }
+            
+            let day = calendar.startOfDay(for: activityDate)
+            dailyTSS[day, default: 0] += tss
+        }
+        
+        Logger.data("📊 Found \(dailyTSS.count) days with TSS data for progressive calculation")
+        
+        // Get sorted dates
+        let sortedDates = dailyTSS.keys.sorted()
+        guard !sortedDates.isEmpty else {
+            Logger.data("📊 No TSS data found - returning empty progressive load")
+            return result
+        }
+        
+        Logger.data("📊 Date range with TSS: \(sortedDates.first!.description) to \(sortedDates.last!.description)")
+        Logger.data("📊 Daily TSS values: \(dailyTSS.map { "\(calendar.startOfDay(for: $0.key)): \(String(format: "%.0f", $0.value))" }.sorted().joined(separator: ", "))")
+        
+        // Calculate CTL/ATL progressively using incremental EMA formula
+        // EMA_today = (value_today × alpha) + (EMA_yesterday × (1 - alpha))
+        // where alpha = 2 / (N + 1)
+        
+        let ctlAlpha = 2.0 / 43.0  // 42-day time constant
+        let atlAlpha = 2.0 / 8.0   // 7-day time constant
+        
+        // Estimate starting CTL/ATL based on early training pattern
+        // This prevents "cold start" problem where we reset fitness to zero
+        
+        // Look at first 2 weeks of activity to establish baseline
+        let firstTwoWeeks = sortedDates.prefix(min(14, sortedDates.count))
+        let totalTSS = firstTwoWeeks.compactMap { dailyTSS[$0] }.reduce(0.0, +)
+        let activityCount = firstTwoWeeks.count
+        
+        // Calculate average TSS per activity day
+        let avgTSSPerActivity = totalTSS / Double(max(1, activityCount))
+        
+        // Estimate CTL: assume training at this level for ~42 days
+        // CTL represents accumulated fitness, so use a multiplier
+        // At steady state with 3-4 activities/week: CTL ≈ avgTSS * ~0.7
+        var currentCTL = avgTSSPerActivity * 0.7
+        
+        // ATL represents recent fatigue (7-day window)
+        // Start lower than CTL since it's a shorter window
+        var currentATL = avgTSSPerActivity * 0.4
+        
+        Logger.data("📊 Baseline estimate from \(activityCount) early activities (avg TSS=\(String(format: "%.1f", avgTSSPerActivity))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
+        
+        // Start from earliest date in data
+        let startDate = sortedDates.first!
+        let today = calendar.startOfDay(for: Date())
+        
+        Logger.data("📊 Calculating from \(startDate) to \(today) (\(calendar.dateComponents([.day], from: startDate, to: today).day ?? 0) days)")
+        
+        // Build progressive history using incremental EMA
+        var currentDate = startDate
+        
+        while currentDate <= today {
+            let tss = dailyTSS[currentDate] ?? 0
+            
+            // Incremental EMA update
+            currentCTL = (tss * ctlAlpha) + (currentCTL * (1 - ctlAlpha))
+            currentATL = (tss * atlAlpha) + (currentATL * (1 - atlAlpha))
+            
+            // Store for this date
+            result[currentDate] = (currentCTL, currentATL)
+            
+            // Move to next day
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        }
+        
+        Logger.data("📊 Progressive calculation complete: \(result.count) dates with CTL/ATL")
+        
+        // Log last 5 dates for verification
+        let lastDates = result.keys.sorted().suffix(5)
+        for date in lastDates {
+            if let load = result[date] {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMM d"
+                Logger.data("  \(dateFormatter.string(from: date)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
+            }
+        }
+        
+        return result
+    }
+    
     /// Parse activity date string
     private func parseActivityDate(_ dateString: String) -> Date? {
         let formatter = ISO8601DateFormatter()

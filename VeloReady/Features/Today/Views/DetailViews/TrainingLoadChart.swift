@@ -48,8 +48,12 @@ struct TrainingLoadChart: View {
         
         Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
         
-        let ctlAfter = activity.ctl ?? 0
-        let atlAfter = activity.atl ?? 0
+        // Find this activity in historicalActivities to get its actual CTL/ATL
+        let matchedActivity = historicalActivities.first(where: { $0.id == activity.id })
+        let ctlAfter = matchedActivity?.ctl ?? activity.ctl ?? 0
+        let atlAfter = matchedActivity?.atl ?? activity.atl ?? 0
+        
+        Logger.data("TrainingLoadChart: Using CTL=\(String(format: "%.1f", ctlAfter)), ATL=\(String(format: "%.1f", atlAfter)) for legend")
         
         let tsbAfter = ctlAfter - atlAfter
         
@@ -257,9 +261,13 @@ struct TrainingLoadChart: View {
         Logger.data("TrainingLoadChart: loadHistoricalActivities called for date: \(rideDate)")
         
         do {
-            // Use UnifiedActivityService to fetch from best available source
-            Logger.data("TrainingLoadChart: Fetching activities from available source")
-            let activities = try await UnifiedActivityService.shared.fetchActivitiesForTrainingLoad()
+            // Fetch activities going back 42 days BEFORE the activity date
+            // This ensures we have proper historical context for CTL calculation
+            let calendar = Calendar.current
+            let earliestDate = calendar.date(byAdding: .day, value: -42, to: rideDate) ?? rideDate
+            
+            Logger.data("TrainingLoadChart: Fetching activities from \(earliestDate) to today")
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: calendar.dateComponents([.day], from: earliestDate, to: Date()).day ?? 42)
             Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
             
             // Get FTP for TSS enrichment
@@ -271,13 +279,34 @@ struct TrainingLoadChart: View {
                 ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
             }
             
-            // Calculate CTL/ATL using TrainingLoadCalculator
+            // Calculate progressive CTL/ATL using TrainingLoadCalculator
             let calculator = TrainingLoadCalculator()
-            let (ctl, atl) = calculator.calculateTrainingLoadFromActivities(enrichedActivities)
+            let progressiveLoad = calculator.calculateProgressiveTrainingLoad(enrichedActivities)
+            
+            // Date formatter for matching activity dates (must match calculator's parser!)
+            let iso8601Formatter = ISO8601DateFormatter()
+            iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
             
             // Add CTL/ATL to activities that have TSS
-            let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity in
-                IntervalsActivity(
+            let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity -> IntervalsActivity in
+                // Get CTL/ATL for this activity's date
+                var activityCTL: Double = 0
+                var activityATL: Double = 0
+                
+                if let activityDate = iso8601Formatter.date(from: activity.startDateLocal) {
+                    let day = Calendar.current.startOfDay(for: activityDate)
+                    if let load = progressiveLoad[day] {
+                        activityCTL = load.ctl
+                        activityATL = load.atl
+                        Logger.data("  📅 Matched activity \(activity.name ?? "Unknown") (\(activity.startDateLocal)) to CTL=\(String(format: "%.1f", activityCTL)), ATL=\(String(format: "%.1f", activityATL))")
+                    } else {
+                        Logger.warning("  ⚠️ No CTL/ATL found for date \(day) (activity: \(activity.name ?? "Unknown"))")
+                    }
+                } else {
+                    Logger.error("  ❌ Failed to parse date: \(activity.startDateLocal) for activity: \(activity.name ?? "Unknown")")
+                }
+                
+                return IntervalsActivity(
                     id: activity.id,
                     name: activity.name,
                     description: activity.description,
@@ -297,8 +326,8 @@ struct TrainingLoadChart: View {
                     fileType: activity.fileType,
                     tss: activity.tss,
                     intensityFactor: activity.intensityFactor,
-                    atl: atl,
-                    ctl: ctl,
+                    atl: activityATL,
+                    ctl: activityCTL,
                     icuZoneTimes: activity.icuZoneTimes,
                     icuHrZoneTimes: activity.icuHrZoneTimes
                 )
@@ -309,6 +338,11 @@ struct TrainingLoadChart: View {
             }
             
             Logger.data("TrainingLoadChart: Processed \(self.historicalActivities.count) activities with TSS")
+            
+            // Debug: Log first few activities with their CTL/ATL values
+            for (index, activity) in activitiesWithLoad.prefix(5).enumerated() {
+                Logger.data("  Activity \(index + 1): \(activity.name) - CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
+            }
         } catch {
             Logger.error("TrainingLoadChart: Failed to fetch activities: \(error)")
         }
@@ -325,15 +359,15 @@ struct TrainingLoadChart: View {
     ) -> [LoadDataPoint] {
         var data: [LoadDataPoint] = []
         let calendar = Calendar.current
-        let simpleDateFormatter = DateFormatter()
-        simpleDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        simpleDateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        simpleDateFormatter.timeZone = TimeZone.current
+        
+        // Use ISO8601 formatter to match calculator (handles timezone 'Z')
+        let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withTimeZone]
         
         // Parse all activity dates and create a sorted array
         var activitiesWithDates: [(date: Date, ctl: Double, atl: Double)] = []
         for activity in activities {
-            guard let activityDate = simpleDateFormatter.date(from: activity.startDateLocal),
+            guard let activityDate = iso8601Formatter.date(from: activity.startDateLocal),
                   let ctl = activity.ctl,
                   let atl = activity.atl else { continue }
             activitiesWithDates.append((activityDate, ctl, atl))
@@ -353,25 +387,16 @@ struct TrainingLoadChart: View {
             let ctlValue: Double
             let atlValue: Double
             
-            if isRide {
-                // This is the ride we're viewing - use "after" values
-                ctlValue = ctlAfter
-                atlValue = atlAfter
-                // This is the ride day
+            // Find the most recent activity on or before this date
+            let dayEnd = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: date)!)
+            
+            if let mostRecent = activitiesWithDates.last(where: { $0.date < dayEnd }) {
+                ctlValue = mostRecent.ctl
+                atlValue = mostRecent.atl
             } else {
-                // Find the most recent activity on or before this date
-                let dayEnd = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: date)!)
-                
-                if let mostRecent = activitiesWithDates.last(where: { $0.date < dayEnd }) {
-                    ctlValue = mostRecent.ctl
-                    atlValue = mostRecent.atl
-                    // Historical data point
-                } else {
-                    // No activity data before this date - use current values as baseline
-                    // This ensures chart shows even with no historical data
-                    ctlValue = ctlAfter
-                    atlValue = atlAfter
-                }
+                // No historical data yet - start from zero (CTL/ATL build from first activity)
+                ctlValue = 0
+                atlValue = 0
             }
             
             let tsbValue = ctlValue - atlValue
@@ -412,7 +437,11 @@ struct TrainingLoadChart: View {
         }
         
         Logger.data("TrainingLoadChart: Total data points = \(data.count) (30 past + 7 future)")
-        Logger.data("TrainingLoadChart: Date range = \(simpleDateFormatter.string(from: data.first?.date ?? Date())) to \(simpleDateFormatter.string(from: data.last?.date ?? Date()))")
+        
+        // Format dates for logging
+        let logFormatter = DateFormatter()
+        logFormatter.dateFormat = "MMM d, yyyy"
+        Logger.data("TrainingLoadChart: Date range = \(logFormatter.string(from: data.first?.date ?? Date())) to \(logFormatter.string(from: data.last?.date ?? Date()))")
         
         return data
     }
