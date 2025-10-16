@@ -18,6 +18,8 @@ struct AthleteZonesSettingsView: View {
     @State private var editingPowerZones: [String] = []
     @State private var editingHRZones: [String] = []
     @State private var showRecomputeConfirmation = false
+    @State private var isEditingFTP = false
+    @State private var isEditingMaxHR = false
     
     var body: some View {
         List {
@@ -49,59 +51,133 @@ struct AthleteZonesSettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 16) {
                 // FTP Display/Edit
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
                         Text("FTP")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
                         
-                        if canEditFTP {
-                            TextField("Enter FTP", text: $editingFTP)
-                                .keyboardType(.numberPad)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .onSubmit {
-                                    saveFTP()
-                                }
-                        } else {
-                            Text("\(Int(profileManager.profile.ftp ?? 0)) W")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                        }
+                        Spacer()
+                        
+                        sourceIndicator(profileManager.profile.ftpSource)
                     }
                     
-                    Spacer()
-                    
-                    sourceIndicator(profileManager.profile.ftpSource)
+                    if canEditFTP {
+                        if isEditingFTP {
+                            HStack {
+                                TextField("FTP", text: $editingFTP)
+                                    .keyboardType(.numberPad)
+                                    .textFieldStyle(.roundedBorder)
+                                    .font(.body)
+                                
+                                Text("watts")
+                                    .foregroundColor(.secondary)
+                                
+                                Button("Save") {
+                                    saveFTP()
+                                    isEditingFTP = false
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(editingFTP.isEmpty || Int(editingFTP) == nil)
+                                
+                                Button("Cancel") {
+                                    editingFTP = "\(Int(profileManager.profile.ftp ?? 0))"
+                                    isEditingFTP = false
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        } else {
+                            HStack {
+                                Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    editingFTP = "\(Int(profileManager.profile.ftp ?? 0))"
+                                    isEditingFTP = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "pencil")
+                                        Text("Edit")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                    } else {
+                        Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
                 }
                 
                 Divider()
                 
                 // Max HR Display/Edit
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
                         Text("Max HR")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
                         
-                        if canEditMaxHR {
-                            TextField("Enter Max HR", text: $editingMaxHR)
-                                .keyboardType(.numberPad)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .onSubmit {
-                                    saveMaxHR()
-                                }
-                        } else {
-                            Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                        }
+                        Spacer()
+                        
+                        sourceIndicator(profileManager.profile.hrZonesSource)
                     }
                     
-                    Spacer()
-                    
-                    sourceIndicator(profileManager.profile.hrZonesSource)
+                    if canEditMaxHR {
+                        if isEditingMaxHR {
+                            HStack {
+                                TextField("Max HR", text: $editingMaxHR)
+                                    .keyboardType(.numberPad)
+                                    .textFieldStyle(.roundedBorder)
+                                    .font(.body)
+                                
+                                Text("bpm")
+                                    .foregroundColor(.secondary)
+                                
+                                Button("Save") {
+                                    saveMaxHR()
+                                    isEditingMaxHR = false
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(editingMaxHR.isEmpty || Int(editingMaxHR) == nil)
+                                
+                                Button("Cancel") {
+                                    editingMaxHR = "\(Int(profileManager.profile.maxHR ?? 0))"
+                                    isEditingMaxHR = false
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        } else {
+                            HStack {
+                                Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    editingMaxHR = "\(Int(profileManager.profile.maxHR ?? 0))"
+                                    isEditingMaxHR = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "pencil")
+                                        Text("Edit")
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                    } else {
+                        Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
                 }
             }
             .padding(.vertical, 8)
@@ -473,6 +549,8 @@ struct AthleteZonesSettingsView: View {
     private func initializeEditingStates() {
         editingFTP = "\(Int(profileManager.profile.ftp ?? 0))"
         editingMaxHR = "\(Int(profileManager.profile.maxHR ?? 0))"
+        isEditingFTP = false
+        isEditingMaxHR = false
         
         if let zones = profileManager.profile.powerZones {
             editingPowerZones = zones.map { "\(Int($0))" }
