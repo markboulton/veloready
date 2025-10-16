@@ -100,6 +100,16 @@ class UnifiedActivityService: ObservableObject {
     // MARK: - Helper Methods
     
     private func parseDate(from dateString: String) -> Date? {
+        // Try ISO8601 first (handles 'Z' suffix)
+        let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withInternetDateTime]
+        iso8601Formatter.timeZone = TimeZone.current
+        
+        if let date = iso8601Formatter.date(from: dateString) {
+            return date
+        }
+        
+        // Fallback to manual parsing without 'Z'
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         formatter.locale = Locale(identifier: "en_US_POSIX")
