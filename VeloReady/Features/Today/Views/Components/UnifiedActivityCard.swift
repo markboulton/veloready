@@ -11,7 +11,7 @@ struct UnifiedActivityCard: View {
             }
         } else if let stravaActivity = activity.stravaActivity {
             // Strava activity - convert to Intervals format for now
-            NavigationLink(destination: RideDetailSheet(activity: convertStravaToIntervals(stravaActivity))) {
+            NavigationLink(destination: RideDetailSheet(activity: ActivityConverter.stravaToIntervals(stravaActivity))) {
                 SharedActivityRowView(activity: activity)
             }
         } else if let healthWorkout = activity.healthKitWorkout {
@@ -24,32 +24,5 @@ struct UnifiedActivityCard: View {
         }
     }
     
-    // Temporary converter until we create a dedicated Strava detail view
-    private func convertStravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
-        IntervalsActivity(
-            id: "strava_\(strava.id)",
-            name: strava.name,
-            description: nil,
-            startDateLocal: strava.start_date_local,
-            type: strava.type, // Use type (VirtualRide, Ride) not sport_type for proper virtual detection
-            duration: TimeInterval(strava.moving_time),
-            distance: strava.distance,
-            elevationGain: strava.total_elevation_gain,
-            averagePower: strava.average_watts,
-            normalizedPower: strava.weighted_average_watts.map { Double($0) },
-            averageHeartRate: strava.average_heartrate,
-            maxHeartRate: strava.max_heartrate.map { Double($0) },
-            averageCadence: strava.average_cadence,
-            averageSpeed: strava.average_speed,
-            maxSpeed: strava.max_speed,
-            calories: strava.calories.map { Int($0) },
-            fileType: nil,
-            tss: nil,
-            intensityFactor: nil,
-            atl: nil,
-            ctl: nil,
-            icuZoneTimes: nil,
-            icuHrZoneTimes: nil
-        )
-    }
+    // Conversion now handled by unified ActivityConverter utility
 }

@@ -686,7 +686,7 @@ class RideDetailViewModel: ObservableObject {
             
             for stravaActivity in activities {
                 // Convert to IntervalsActivity
-                var activity = convertStravaToIntervals(stravaActivity)
+                var activity = ActivityConverter.stravaToIntervals(stravaActivity)
                 
                 // Calculate TSS if activity has power data
                 if let np = activity.normalizedPower ?? (activity.averagePower.map { $0 * 1.05 }),
@@ -739,34 +739,7 @@ class RideDetailViewModel: ObservableObject {
         }
     }
     
-    /// Convert Strava activity to Intervals activity format
-    private func convertStravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
-        IntervalsActivity(
-            id: "strava_\(strava.id)",
-            name: strava.name,
-            description: nil,
-            startDateLocal: strava.start_date_local,
-            type: strava.type, // Use type (VirtualRide, Ride) not sport_type for proper virtual detection
-            duration: TimeInterval(strava.moving_time),
-            distance: strava.distance,
-            elevationGain: strava.total_elevation_gain,
-            averagePower: strava.average_watts,
-            normalizedPower: strava.weighted_average_watts.map { Double($0) },
-            averageHeartRate: strava.average_heartrate,
-            maxHeartRate: strava.max_heartrate.map { Double($0) },
-            averageCadence: strava.average_cadence,
-            averageSpeed: strava.average_speed,
-            maxSpeed: strava.max_speed,
-            calories: strava.calories.map { Int($0) },
-            fileType: nil,
-            tss: nil,
-            intensityFactor: nil,
-            atl: nil,
-            ctl: nil,
-            icuZoneTimes: nil,
-            icuHrZoneTimes: nil
-        )
-    }
+    // Conversion now handled by unified ActivityConverter utility
     
     /// Ensure zones are available before enriching activities
     /// Generates default zones from FTP/maxHR if not already computed
