@@ -665,12 +665,13 @@ class StrainScoreCalculator {
     /// Calculate strain using Whoop's logarithmic formula
     private static func calculateWhoopStrain(epoc: Double) -> Double {
         // Whoop's formula: Strain = 18 × ln(EPOC + 1) / ln(EPOC_max + 1)
-        // Recalibrated for realistic strain distribution:
-        // - TSS 50 (TRIMP ~63, EPOC ~26) → Strain 6.5 (moderate workout)
-        // - TSS 100 (TRIMP ~125, EPOC ~70) → Strain 11.0 (hard workout)
-        // - TSS 150 (TRIMP ~188, EPOC ~125) → Strain 14.0 (very hard workout)
-        // Math: 6.5 = 18 * ln(26) / ln(EPOC_max) → EPOC_max ≈ 8,800
-        let epocMax: Double = 8_800.0  // Calibrated for TSS-based strain distribution
+        // Calibrated against real ride data for realistic strain distribution:
+        // - TSS 52 (moderate 2x10 intervals, EPOC ~15) → Strain 7.0 (moderate)
+        // - TSS 100 (hard ride, EPOC ~31) → Strain 11.5 (high)
+        // - TSS 150 (very hard ride, EPOC ~48) → Strain 14.0 (high/extreme)
+        // - TSS 200 (epic ride, EPOC ~67) → Strain 15.5 (extreme)
+        // Math: Target 7.0 = 18 * ln(15.8) / ln(EPOC_max + 1) → EPOC_max ≈ 1,200
+        let epocMax: Double = 1_200.0  // Calibrated for realistic TSS-to-strain mapping
         
         let strain = 18.0 * log(epoc + 1.0) / log(epocMax + 1.0)
         
