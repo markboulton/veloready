@@ -121,10 +121,12 @@ class AthleteProfileManager: ObservableObject {
             
             if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                 Logger.data("✅ Using Strava FTP as fallback: \(stravaFTP)W")
-                profile.ftp = Double(stravaFTP)
-                profile.ftpSource = .intervals // Mark as from external source
-                profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: Double(stravaFTP))
-                profile.lastUpdated = Date()
+                await MainActor.run {
+                    profile.ftp = Double(stravaFTP)
+                    profile.ftpSource = .intervals // Mark as from external source
+                    profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: Double(stravaFTP))
+                    profile.lastUpdated = Date()
+                }
                 save()
             } else {
                 Logger.data("⚠️ Strava athlete has no FTP set")
@@ -156,33 +158,35 @@ class AthleteProfileManager: ObservableObject {
         
         // Only update if source is NOT manual (don't override user settings)
         if profile.ftpSource != .manual {
-            computeFTPFromPerformanceData(recentActivities)
+            await computeFTPFromPerformanceData(recentActivities)
         } else {
             Logger.data("Skipping FTP computation - user has manual override (FTP: \(profile.ftp ?? 0)W)")
         }
         
         if profile.hrZonesSource != .manual {
-            computeHRZonesFromPerformanceData(recentActivities)
+            await computeHRZonesFromPerformanceData(recentActivities)
         } else {
             Logger.data("Skipping HR zones computation - user has manual override (Max HR: \(profile.maxHR ?? 0)bpm)")
         }
         
         // Always update weight, resting HR, LTHR from most recent
-        updateAuxiliaryMetrics(recentActivities)
+        await updateAuxiliaryMetrics(recentActivities)
         
         // Ensure zones are generated even if FTP/HR computation had limited data
-        if (profile.powerZones == nil || profile.powerZones!.isEmpty), let ftp = profile.ftp, ftp > 0 {
-            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
-            Logger.data("✅ Generated default power zones from FTP: \(Int(ftp))W")
+        await MainActor.run {
+            if (profile.powerZones == nil || profile.powerZones!.isEmpty), let ftp = profile.ftp, ftp > 0 {
+                profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+                Logger.data("✅ Generated default power zones from FTP: \(Int(ftp))W")
+            }
+            
+            if (profile.hrZones == nil || profile.hrZones!.isEmpty), let maxHR = profile.maxHR, maxHR > 0 {
+                profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+                Logger.data("✅ Generated default HR zones from max HR: \(Int(maxHR))bpm")
+            }
+            
+            profile.lastComputedFromActivities = Date()
+            profile.lastUpdated = Date()
         }
-        
-        if (profile.hrZones == nil || profile.hrZones!.isEmpty), let maxHR = profile.maxHR, maxHR > 0 {
-            profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
-            Logger.data("✅ Generated default HR zones from max HR: \(Int(maxHR))bpm")
-        }
-        
-        profile.lastComputedFromActivities = Date()
-        profile.lastUpdated = Date()
         save()
         
         Logger.data("================================================")
@@ -191,7 +195,7 @@ class AthleteProfileManager: ObservableObject {
     /// Compute FTP using Enhanced Critical Power model with confidence scoring
     /// Based on Leo et al. (2022), Burnley & Jones (2018), Decroix et al. (2016)
     /// Target accuracy: ±2-5% with proper data
-    private func computeFTPFromPerformanceData(_ activities: [IntervalsActivity]) {
+    private func computeFTPFromPerformanceData(_ activities: [IntervalsActivity]) async {
         Logger.data("========== FTP COMPUTATION (ENHANCED v2) ==========")
         Logger.data("Target: ±2-5% accuracy with confidence-based buffer")
         
@@ -403,16 +407,18 @@ class AthleteProfileManager: ObservableObject {
             computedFTP = smoothedFTP
         }
         
-        profile.ftp = computedFTP
-        profile.ftpSource = .computed
-        
-        // Generate adaptive power zones from computed FTP
-        profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: computedFTP)
-        
-        // Assess and store data quality
-        let hasNP = !activities.compactMap({ $0.normalizedPower }).isEmpty
-        let hasLongRides = !activities.filter({ ($0.duration ?? 0) >= 2700 }).isEmpty
-        profile.dataQuality = assessDataQuality(activities: activities, hasNP: hasNP, hasLongRides: hasLongRides)
+        await MainActor.run {
+            profile.ftp = computedFTP
+            profile.ftpSource = .computed
+            
+            // Generate adaptive power zones from computed FTP
+            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: computedFTP)
+            
+            // Assess and store data quality
+            let hasNP = !activities.compactMap({ $0.normalizedPower }).isEmpty
+            let hasLongRides = !activities.filter({ ($0.duration ?? 0) >= 2700 }).isEmpty
+            profile.dataQuality = assessDataQuality(activities: activities, hasNP: hasNP, hasLongRides: hasLongRides)
+        }
         
         Logger.data("✅ Adaptive FTP: \(Int(computedFTP))W")
         Logger.data("Adaptive Power Zones: \(profile.powerZones!.map { Int($0) })")
@@ -550,7 +556,7 @@ class AthleteProfileManager: ObservableObject {
     
     /// Compute HR zones using lactate threshold detection and Max HR analysis
     /// Based on Karvonen method and modern HR training zone research
-    private func computeHRZonesFromPerformanceData(_ activities: [IntervalsActivity]) {
+    private func computeHRZonesFromPerformanceData(_ activities: [IntervalsActivity]) async {
         Logger.data("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
         
         // Get max HR from activities (highest recorded)
@@ -624,7 +630,9 @@ class AthleteProfileManager: ObservableObject {
         
         // Store LTHR
         if let lthr = lthrEstimate {
-            profile.lthr = lthr
+            await MainActor.run {
+                profile.lthr = lthr
+            }
         }
         
         // Step 3: Apply adaptive smoothing
@@ -640,28 +648,30 @@ class AthleteProfileManager: ObservableObject {
             computedMaxHR = smoothedMaxHR
         }
         
-        profile.maxHR = computedMaxHR
-        profile.hrZonesSource = .computed
-        
-        // Step 4: Generate HR zones - adaptive if LTHR is valid, otherwise percentage-based
-        if let lthr = lthrEstimate {
-            let lthrPercentage = lthr / computedMaxHR
-            // Only use LTHR if it's in a physiologically reasonable range (82-93% of max)
-            // Below 82% = likely detecting endurance pace, not threshold
-            // Above 93% = too close to max, not enough room for higher zones
-            if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
-                profile.hrZones = generateAdaptiveHRZones(maxHR: computedMaxHR, lthr: lthr)
-                Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
-                Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
+        await MainActor.run {
+            profile.maxHR = computedMaxHR
+            profile.hrZonesSource = .computed
+            
+            // Step 4: Generate HR zones - adaptive if LTHR is valid, otherwise percentage-based
+            if let lthr = lthrEstimate {
+                let lthrPercentage = lthr / computedMaxHR
+                // Only use LTHR if it's in a physiologically reasonable range (82-93% of max)
+                // Below 82% = likely detecting endurance pace, not threshold
+                // Above 93% = too close to max, not enough room for higher zones
+                if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
+                    profile.hrZones = generateAdaptiveHRZones(maxHR: computedMaxHR, lthr: lthr)
+                    Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
+                    Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
+                } else {
+                    profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
+                    Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
+                    Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
+                }
             } else {
                 profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
                 Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-                Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
+                Logger.data("⚠️ No LTHR detected - using Coggan zones")
             }
-        } else {
-            profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
-            Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-            Logger.data("⚠️ No LTHR detected - using Coggan zones")
         }
         
         Logger.data("Max HR: \(Int(computedMaxHR))bpm")
@@ -728,17 +738,21 @@ class AthleteProfileManager: ObservableObject {
         }
     }
     
-    private func updateAuxiliaryMetrics(_ activities: [IntervalsActivity]) {
+    private func updateAuxiliaryMetrics(_ activities: [IntervalsActivity]) async {
         // Update resting HR and weight from most recent values
         // Note: LTHR is computed from performance data, not copied from Intervals.icu
         
         if let restingHR = activities.compactMap({ $0.icuRestingHr }).first {
-            profile.restingHR = restingHR
+            await MainActor.run {
+                profile.restingHR = restingHR
+            }
             Logger.data("Updated Resting HR: \(Int(restingHR))bpm")
         }
         
         if let weight = activities.compactMap({ $0.icuWeight }).first {
-            profile.weight = weight
+            await MainActor.run {
+                profile.weight = weight
+            }
             Logger.data("Updated Weight: \(weight)kg")
         }
     }

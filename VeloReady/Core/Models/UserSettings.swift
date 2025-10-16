@@ -6,6 +6,9 @@ import SwiftUI
 class UserSettings: ObservableObject {
     static let shared = UserSettings()
     
+    /// Flag to prevent saving during initialization
+    private var isLoading = false
+    
     // MARK: - Sleep Settings
     @Published var sleepTargetHours: Double = 8.0 {
         didSet {
@@ -271,6 +274,7 @@ class UserSettings: ObservableObject {
     }
     
     @objc private func handleCloudRestore() {
+        // loadSettings() already has isLoading protection
         loadSettings()
         Logger.debug("☁️ User settings restored from iCloud")
     }
@@ -278,6 +282,9 @@ class UserSettings: ObservableObject {
     // MARK: - Settings Management
     
     private func saveSettings() {
+        // Skip saves during initialization to avoid excessive disk I/O
+        guard !isLoading else { return }
+        
         let settings = UserSettingsData(
             sleepTargetHours: sleepTargetHours,
             sleepTargetMinutes: sleepTargetMinutes,
@@ -320,6 +327,10 @@ class UserSettings: ObservableObject {
             return
         }
         
+        // Prevent saves during bulk property updates
+        isLoading = true
+        defer { isLoading = false }
+        
         sleepTargetHours = settings.sleepTargetHours
         sleepTargetMinutes = settings.sleepTargetMinutes
         sportPreferences = settings.sportPreferences
@@ -352,6 +363,9 @@ class UserSettings: ObservableObject {
     
     /// Reset all settings to defaults
     func resetToDefaults() {
+        // Prevent saves during bulk property updates
+        isLoading = true
+        
         sleepTargetHours = 8.0
         sleepTargetMinutes = 0
         sportPreferences = .default
@@ -379,6 +393,8 @@ class UserSettings: ObservableObject {
         sleepReminderTime = Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()
         recoveryAlerts = true
         
+        // Re-enable saves and perform final save
+        isLoading = false
         saveSettings()
         Logger.debug("🔄 Settings reset to defaults")
     }

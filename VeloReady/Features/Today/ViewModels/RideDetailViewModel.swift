@@ -18,6 +18,27 @@ class RideDetailViewModel: ObservableObject {
         isLoading = true
         error = nil
         
+        // Check cache first for all activities
+        if let cachedSamples = StreamCacheService.shared.getCachedStreams(activityId: activity.id) {
+            Logger.debug("⚡ Using cached stream data (\(cachedSamples.count) samples)")
+            samples = cachedSamples
+            
+            // Enrich with stream data
+            var enriched = enrichActivityWithStreamData(activity: activity, samples: cachedSamples, profileManager: profileManager)
+            
+            // Calculate TSS/IF for Strava activities
+            if activity.id.hasPrefix("strava_") {
+                enriched = await calculateTSSAndIF(for: enriched, profileManager: profileManager)
+            }
+            
+            enrichedActivity = enriched
+            isLoading = false
+            Logger.debug("🚴 ================================================================")
+            return
+        }
+        
+        Logger.debug("📡 Cache miss - fetching from API")
+        
         // Check if this is a Strava activity (ID starts with "strava_")
         if activity.id.hasPrefix("strava_") {
             Logger.debug("🚴 Detected Strava activity, fetching from Strava API...")
@@ -76,6 +97,9 @@ class RideDetailViewModel: ObservableObject {
                 }
                 
                 samples = streamData
+                
+                // Cache for future use
+                StreamCacheService.shared.cacheStreams(streamData, activityId: activity.id, source: "intervals")
                 
                 // Enrich activity with calculated data if summary is missing values
                 enrichedActivity = enrichActivityWithStreamData(activity: activity, samples: streamData, profileManager: profileManager)
@@ -435,6 +459,9 @@ class RideDetailViewModel: ObservableObject {
             if !workoutSamples.isEmpty {
                 samples = workoutSamples
                 
+                // Cache for future use
+                StreamCacheService.shared.cacheStreams(workoutSamples, activityId: activity.id, source: "strava")
+                
                 // Enrich activity with stream data
                 var enriched = enrichActivityWithStreamData(activity: activity, samples: workoutSamples, profileManager: profileManager)
                 
@@ -714,5 +741,127 @@ class RideDetailViewModel: ObservableObject {
         Logger.debug("🟠   - Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
         Logger.debug("🟠   - HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
         Logger.debug("🟠 ================================================")
+    }
+    
+    /// Calculate TSS and IF for an activity
+    /// This is extracted so it can be called for both cached and fresh data
+    private func calculateTSSAndIF(for activity: IntervalsActivity, profileManager: AthleteProfileManager) async -> IntervalsActivity {
+        Logger.debug("🟠 ========== TSS CALCULATION START ==========")
+        Logger.debug("🟠 Activity Average Power: \(activity.averagePower?.description ?? "nil")")
+        Logger.debug("🟠 Activity Normalized Power: \(activity.normalizedPower?.description ?? "nil")")
+        Logger.debug("🟠 Profile FTP: \(profileManager.profile.ftp?.description ?? "nil")")
+        
+        var normalizedPower = activity.normalizedPower
+        var ftp = profileManager.profile.ftp
+        
+        // Fallback 1: Estimate NP from average power if missing
+        if normalizedPower == nil, let avgPower = activity.averagePower, avgPower > 0 {
+            normalizedPower = avgPower * 1.05 // Conservative NP estimate
+            Logger.debug("🟠 ✅ Estimated NP from average power: \(Int(normalizedPower!))W (avg power: \(Int(avgPower))W)")
+        } else if normalizedPower != nil {
+            Logger.debug("🟠 ✅ Using activity normalized power: \(Int(normalizedPower!))W")
+        } else {
+            Logger.warning("🟠 ❌ No power data available (avg or normalized)")
+        }
+        
+        // Fallback 2: Try to get FTP from Strava athlete if not computed
+        if ftp == nil || ftp == 0 {
+            Logger.debug("🟠 No FTP in profile, fetching from Strava...")
+            do {
+                // Use cache to avoid repeated API calls
+                let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+                if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
+                    ftp = Double(stravaFTP)
+                    Logger.debug("🟠 ✅ Using Strava FTP: \(Int(ftp!))W")
+                } else {
+                    Logger.warning("🟠 ❌ Strava athlete has no FTP set")
+                }
+            } catch {
+                Logger.warning("🟠 ❌ Could not fetch Strava FTP: \(error)")
+            }
+            
+            // Fallback 3: Estimate FTP from this ride's power data
+            if (ftp == nil || ftp == 0), let np = normalizedPower, np > 50 {
+                let duration = activity.duration ?? 0
+                var multiplier = 1.15
+                
+                // Adjust multiplier based on ride duration
+                if duration >= 3600 { // 1+ hour
+                    multiplier = 1.10 // Closer to FTP for long rides
+                } else if duration < 1800 { // < 30 min
+                    multiplier = 1.25 // Likely well above FTP for short rides
+                }
+                
+                ftp = np * multiplier
+                Logger.warning("🟠 ⚠️ ESTIMATED FTP from ride data: \(Int(ftp!))W (NP: \(Int(np))W × \(String(format: "%.2f", multiplier)))")
+                Logger.warning("🟠 ⚠️ User should set actual FTP in Settings for accurate calculations")
+                
+                // Save estimated FTP to profile for zone generation
+                profileManager.profile.ftp = ftp
+                profileManager.profile.ftpSource = .intervals // Mark as estimated
+                profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp!)
+                profileManager.save()
+                Logger.warning("🟠 💾 Saved estimated FTP to profile for zone generation")
+            }
+        } else {
+            Logger.debug("🟠 ✅ Using profile FTP: \(Int(ftp!))W")
+        }
+        
+        // Calculate TSS if we have both NP and FTP
+        Logger.debug("🟠 Checking TSS calculation requirements:")
+        Logger.debug("🟠   - NP available: \(normalizedPower != nil)")
+        Logger.debug("🟠   - FTP available: \(ftp != nil && ftp! > 0)")
+        Logger.debug("🟠   - NP > 0: \((normalizedPower ?? 0) > 0)")
+        
+        if let np = normalizedPower, let ftpValue = ftp, ftpValue > 0, np > 0 {
+            let intensityFactor = np / ftpValue
+            let duration = activity.duration ?? 0
+            let tss = (duration * np * intensityFactor) / (ftpValue * 36.0)
+            
+            Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftpValue))W)")
+            
+            // Create enriched activity with TSS and IF
+            let enriched = IntervalsActivity(
+                id: activity.id,
+                name: activity.name,
+                description: activity.description,
+                startDateLocal: activity.startDateLocal,
+                type: activity.type,
+                source: activity.source,
+                duration: activity.duration,
+                distance: activity.distance,
+                elevationGain: activity.elevationGain,
+                averagePower: activity.averagePower,
+                normalizedPower: activity.normalizedPower,
+                averageHeartRate: activity.averageHeartRate,
+                maxHeartRate: activity.maxHeartRate,
+                averageCadence: activity.averageCadence,
+                averageSpeed: activity.averageSpeed,
+                maxSpeed: activity.maxSpeed,
+                calories: activity.calories,
+                fileType: activity.fileType,
+                tss: tss,
+                intensityFactor: intensityFactor,
+                atl: nil, // Will be set by TrainingLoadChart
+                ctl: nil, // Will be set by TrainingLoadChart
+                icuZoneTimes: activity.icuZoneTimes,
+                icuHrZoneTimes: activity.icuHrZoneTimes
+            )
+            
+            Logger.debug("🟠 ========== ENRICHED ACTIVITY CREATED ==========")
+            Logger.debug("🟠 Enriched TSS: \(enriched.tss?.description ?? "nil")")
+            Logger.debug("🟠 Enriched IF: \(enriched.intensityFactor?.description ?? "nil")")
+            Logger.debug("🟠 ================================================")
+            
+            return enriched
+        } else {
+            Logger.warning("🟠 ❌ ========== TSS CALCULATION FAILED ==========")
+            Logger.warning("🟠 Cannot calculate TSS - missing data:")
+            Logger.warning("🟠   - NP: \(normalizedPower?.description ?? "nil")")
+            Logger.warning("🟠   - FTP: \(ftp?.description ?? "nil")")
+            Logger.warning("🟠   - FTP > 0: \(ftp != nil && ftp! > 0)")
+            Logger.warning("🟠 ================================================")
+            return activity
+        }
     }
 }

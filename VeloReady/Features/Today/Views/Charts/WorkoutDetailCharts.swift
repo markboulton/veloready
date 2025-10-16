@@ -3,7 +3,7 @@ import Charts
 
 // MARK: - Data Models
 
-struct WorkoutSample: Identifiable, Equatable {
+struct WorkoutSample: Identifiable, Equatable, Codable {
     let id = UUID()
     let time: TimeInterval // seconds since ride start
     let power: Double

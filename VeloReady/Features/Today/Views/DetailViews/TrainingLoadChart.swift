@@ -12,6 +12,11 @@ struct TrainingLoadChart: View {
     @State private var isLoading = false
     @State private var loadedActivityId: String? = nil // Track which activity we've loaded data for
     
+    // Cache metadata (persists across app restarts)
+    @AppStorage("trainingLoadLastFetch") private var lastFetchTimestamp: Double = 0
+    @AppStorage("trainingLoadActivityCount") private var cachedActivityCount: Int = 0
+    private let cacheValidityDuration: TimeInterval = 3600  // 1 hour
+    
     // Computed property to parse date once
     private var parsedRideDate: Date? {
         // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37" or "2025-09-21T07:29:37Z")
@@ -260,6 +265,17 @@ struct TrainingLoadChart: View {
     private func loadHistoricalActivities(rideDate: Date) async {
         Logger.data("TrainingLoadChart: loadHistoricalActivities called for date: \(rideDate)")
         
+        // Check cache age
+        let lastFetch = Date(timeIntervalSince1970: lastFetchTimestamp)
+        let cacheAge = Date().timeIntervalSince(lastFetch)
+        
+        if cacheAge < cacheValidityDuration && !historicalActivities.isEmpty {
+            Logger.data("⚡ Training Load: Using cached data (age: \(Int(cacheAge/60))m, \(historicalActivities.count) activities)")
+            return
+        }
+        
+        Logger.data("📡 Training Load: Cache expired or empty - fetching fresh data (age: \(Int(cacheAge/60))m)")
+        
         do {
             // Fetch activities going back 42 days BEFORE the activity date
             // This ensures we have proper historical context for CTL calculation
@@ -335,9 +351,14 @@ struct TrainingLoadChart: View {
             
             await MainActor.run {
                 self.historicalActivities = activitiesWithLoad
+                
+                // Update cache metadata
+                self.lastFetchTimestamp = Date().timeIntervalSince1970
+                self.cachedActivityCount = activitiesWithLoad.count
             }
             
             Logger.data("TrainingLoadChart: Processed \(self.historicalActivities.count) activities with TSS")
+            Logger.data("💾 Training Load: Cached \(activitiesWithLoad.count) activities (expires in \(Int(self.cacheValidityDuration/60))m)")
             
             // Debug: Log first few activities with their CTL/ATL values
             for (index, activity) in activitiesWithLoad.prefix(5).enumerated() {
