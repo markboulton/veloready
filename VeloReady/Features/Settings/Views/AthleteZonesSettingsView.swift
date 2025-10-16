@@ -1,8 +1,10 @@
 //
 //  AthleteZonesSettingsView.swift
-//  Rideready
+//  VeloReady
 //
-//  Settings view for viewing and overriding athlete zones
+//  Redesigned settings view for athlete zones
+//  PRO: Adaptive, Manual, or Coggan zones
+//  FREE: Coggan zones only with editable FTP/Max HR
 //
 
 import SwiftUI
@@ -10,764 +12,603 @@ import SwiftUI
 struct AthleteZonesSettingsView: View {
     @ObservedObject private var profileManager = AthleteProfileManager.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
-    @EnvironmentObject var intervalsAPIClient: IntervalsAPIClient
     
-    @State private var isEditingFTP = false
-    @State private var isEditingMaxHR = false
-    @State private var editedFTP: String = ""
-    @State private var editedMaxHR: String = ""
+    @State private var editingFTP: String = ""
+    @State private var editingMaxHR: String = ""
+    @State private var editingPowerZones: [String] = []
+    @State private var editingHRZones: [String] = []
     @State private var showRecomputeConfirmation = false
     
     var body: some View {
         List {
-            // Summary Section
-            summarySection
+            // Athlete Profile Summary
+            profileSummarySection
             
-            // Power Zones Section
+            // Power Zones
             powerZonesSection
             
-            // Heart Rate Zones Section
+            // Heart Rate Zones
             hrZonesSection
             
-            // Additional Metrics Section
-            additionalMetricsSection
-            
-            // Actions Section
-            actionsSection
+            // Actions (if needed)
+            if proConfig.hasProAccess {
+                proActionsSection
+            }
         }
-        .navigationTitle(AthleteZonesContent.title)
+        .navigationTitle("Athlete Zones")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            Logger.data("🎯 [Zones] Settings View Appeared")
-            Logger.data("   FTP: \(profileManager.profile.ftp ?? 0)W")
-            Logger.data("   FTP Source: \(profileManager.profile.ftpSource)")
-            Logger.data("   Power Zones: \(profileManager.profile.powerZones?.count ?? 0) zones")
-            if let zones = profileManager.profile.powerZones {
-                Logger.data("   Power Zone Values: \(zones.map { Int($0) })")
-            }
-            Logger.data("   Max HR: \(profileManager.profile.maxHR ?? 0)bpm")
-            Logger.data("   HR Source: \(profileManager.profile.hrZonesSource)")
-            Logger.data("   HR Zones: \(profileManager.profile.hrZones?.count ?? 0) zones")
-            if let zones = profileManager.profile.hrZones {
-                Logger.data("   HR Zone Values: \(zones.map { Int($0) })")
-            }
-        }
-        .alert(AthleteZonesContent.recompute, isPresented: $showRecomputeConfirmation) {
-            Button(AthleteZonesContent.cancel, role: .cancel) { }
-            Button(AthleteZonesContent.recompute) {
-                recomputeZones()
-            }
-        } message: {
-            Text(AthleteZonesContent.recomputeMessage)
-        }
-        .task {
-            // Trigger recompute on first load if no data
-            if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
-                Logger.data("No FTP data found, triggering initial recompute...")
-                recomputeZones()
-            }
+            initializeEditingStates()
+            ensureCorrectDefaultsForTier()
         }
     }
     
-    // MARK: - Sections
+    // MARK: - Profile Summary
     
-    private var summarySection: some View {
+    private var profileSummarySection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                // FTP Input - Always Accessible
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("FTP (Functional Threshold Power)")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    if isEditingFTP {
-                        HStack {
-                            TextField("Enter FTP", text: $editedFTP)
-                                .keyboardType(.numberPad)
-                                .textFieldStyle(.roundedBorder)
-                            Text("watts")
-                                .foregroundColor(.secondary)
-                            
-                            Button("Save") {
-                                saveFTPManual()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(editedFTP.isEmpty || Int(editedFTP) == nil)
-                            
-                            Button("Cancel") {
-                                isEditingFTP = false
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    } else {
-                        HStack {
-                            if let ftp = profileManager.profile.ftp, ftp > 0 {
-                                Text("\(Int(ftp)) W")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(ColorScale.purpleAccent)
-                                
-                                if profileManager.profile.ftpSource == .intervals && ftp < 100 {
-                                    Text("• Estimated")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
-                            } else {
-                                Text("Not Set")
-                                    .font(.title3)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Button(profileManager.profile.ftp != nil ? "Edit" : "Set FTP") {
-                                startEditingFTP()
-                            }
-                            .buttonStyle(.bordered)
-                        }
+            VStack(alignment: .leading, spacing: 16) {
+                // FTP Display/Edit
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("FTP")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                         
-                        if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
-                            Text("⚠️ FTP required for TSS and Intensity calculations")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        } else if profileManager.profile.ftpSource == .intervals {
-                            Text("From Strava profile")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        if canEditFTP {
+                            TextField("Enter FTP", text: $editingFTP)
+                                .keyboardType(.numberPad)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .onSubmit {
+                                    saveFTP()
+                                }
+                        } else {
+                            Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                                .font(.title2)
+                                .fontWeight(.bold)
                         }
                     }
+                    
+                    Spacer()
+                    
+                    sourceIndicator(profileManager.profile.ftpSource)
                 }
                 
                 Divider()
                 
-                // Max HR
+                // Max HR Display/Edit
                 HStack {
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(ColorScale.pinkAccent)
-                    VStack(alignment: .leading) {
-                        Text(AthleteZonesContent.Summary.maxHR)
-                            .font(.caption)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Max HR")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
-                        Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                        
+                        if canEditMaxHR {
+                            TextField("Enter Max HR", text: $editingMaxHR)
+                                .keyboardType(.numberPad)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .onSubmit {
+                                    saveMaxHR()
+                                }
+                        } else {
+                            Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                        }
                     }
+                    
                     Spacer()
-                    sourceLabel(profileManager.profile.hrZonesSource)
-                }
-                
-                // Advanced Metrics Row 1
-                if let wPrime = profileManager.profile.wPrime, let vo2max = profileManager.profile.vo2maxEstimate {
-                    Divider()
-                    HStack(spacing: 20) {
-                        VStack(alignment: .leading) {
-                            Text("W' (Anaerobic)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            Text("\(Int(wPrime / 1000))kJ")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                        }
-                        Spacer()
-                        VStack(alignment: .leading) {
-                            Text("VO2max Est.")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            Text("\(Int(vo2max)) ml/kg/min")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                        }
-                    }
-                }
-                
-                // Data Quality
-                if let quality = profileManager.profile.dataQuality {
-                    Divider()
-                    HStack {
-                        Image(systemName: "chart.bar.fill")
-                            .foregroundColor(qualityColor(quality.confidenceScore))
-                        VStack(alignment: .leading) {
-                            Text("Data Quality")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            Text("\(Int(quality.confidenceScore * 100))% confidence")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                        }
-                        Spacer()
-                        Text("\(quality.sampleSize) activities")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                // Last Computed
-                if let lastComputed = profileManager.profile.lastComputedFromActivities {
-                    Divider()
-                    HStack {
-                        Image(systemName: "clock")
-                            .foregroundColor(.gray)
-                        Text("Last computed:")
-                        Spacer()
-                        Text(lastComputed, style: .relative)
-                            .foregroundColor(.secondary)
-                        Text("ago")
-                            .foregroundColor(.secondary)
-                    }
-                    .font(.caption)
+                    
+                    sourceIndicator(profileManager.profile.hrZonesSource)
                 }
             }
             .padding(.vertical, 8)
         } header: {
             Text("Athlete Profile")
         } footer: {
-            if profileManager.profile.ftpSource == .computed {
-                Text("Adaptive FTP uses modern sports science (Leo et al. 2022) to compute your threshold from actual performance data.")
-            }
+            profileFooterText
         }
     }
     
-    private func qualityColor(_ score: Double) -> Color {
-        if score >= 0.7 { return .green }
-        if score >= 0.5 { return .orange }
-        return .red
-    }
+    // MARK: - Power Zones
     
     private var powerZonesSection: some View {
         Section {
-            // Zone Source Picker - PRO feature
-            if proConfig.hasProAccess {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Zone Source")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Picker("Power Zone Source", selection: $profileManager.profile.ftpSource) {
-                        Text("Adaptive (Recommended)").tag(AthleteProfile.ZoneSource.computed)
-                        Text("Manual").tag(AthleteProfile.ZoneSource.manual)
-                        Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
-                        Text("Intervals.icu").tag(AthleteProfile.ZoneSource.intervals)
+            VStack(alignment: .leading, spacing: 16) {
+                // Zone Source Picker (PRO only)
+                if proConfig.hasProAccess {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Zone Source")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Picker("Power Zone Source", selection: Binding(
+                            get: { profileManager.profile.ftpSource },
+                            set: { newSource in
+                                handlePowerSourceChange(newSource)
+                            }
+                        )) {
+                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
+                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
+                            Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
+                        }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                    .onChange(of: profileManager.profile.ftpSource) { _, newSource in
-                        handlePowerSourceChange(newSource)
-                    }
                     
-                    // Description based on source
-                    Text(powerSourceDescription)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Divider()
                 }
                 
-                // Show FTP input when override is enabled
-                if profileManager.profile.ftpSource == .manual {
-                    if isEditingFTP {
-                        HStack {
-                            Text("FTP")
-                            Spacer()
-                            TextField("Watts", text: $editedFTP)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 100)
-                                .textFieldStyle(.roundedBorder)
-                            Text("W")
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Button(AthleteZonesContent.cancel) {
-                                isEditingFTP = false
-                                // Reset toggle
-                                profileManager.resetFTPToComputed()
-                            }
-                            Spacer()
-                            Button(AthleteZonesContent.save) {
-                                saveFTP()
-                            }
-                            .fontWeight(.semibold)
-                            .disabled(editedFTP.isEmpty)
-                        }
-                    } else {
-                        HStack {
-                            Text("FTP")
-                            Spacer()
-                            Text("\(Int(profileManager.profile.ftp ?? 0)) W")
-                                .foregroundColor(ColorScale.purpleAccent)
-                                .fontWeight(.medium)
-                            Button(AthleteZonesContent.edit) {
-                                startEditingFTP()
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        }
+                // Zone List
+                if let zones = currentPowerZones, zones.count > 1 {
+                    ForEach(0..<zones.count-1, id: \.self) { index in
+                        powerZoneRow(index: index, zones: zones)
                     }
+                } else {
+                    Text("No power zones available")
+                        .foregroundColor(.secondary)
+                        .italic()
                 }
             }
-            
-            Divider()
-            
-            // Computed Zones (Read-only)
-            Text("Coggan Power Zones")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
-            
-            if let zones = profileManager.profile.powerZones {
-                ForEach(Array(zones.enumerated()), id: \.offset) { index, boundary in
-                    if index < zones.count - 1 {
-                        let nextBoundary = zones[index + 1]
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Zone \(index + 1)")
-                                    .font(.subheadline)
-                                Text(powerZoneName(index))
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text("\(Int(boundary)) - \(Int(nextBoundary)) W")
-                                .foregroundColor(.secondary)
-                                .font(.subheadline)
-                                .monospacedDigit()
-                        }
-                    }
-                }
-            } else {
-                Text("No power zones configured")
-                    .foregroundColor(.secondary)
-                    .font(.subheadline)
-            }
+            .padding(.vertical, 8)
         } header: {
             Text("Power Training Zones")
         } footer: {
-            if profileManager.profile.ftpSource == .manual {
-                Text("⚠️ Manual override active. Zones computed from your override value.")
-            } else {
-                Text("Zones automatically computed using Coggan 7-zone model from Adaptive FTP.")
-            }
+            powerZonesFooterText
         }
     }
+    
+    // MARK: - Heart Rate Zones
     
     private var hrZonesSection: some View {
         Section {
-            // Zone Source Picker - PRO feature
-            if proConfig.hasProAccess {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Zone Source")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Picker("HR Zone Source", selection: $profileManager.profile.hrZonesSource) {
-                        Text("Adaptive (Recommended)").tag(AthleteProfile.ZoneSource.computed)
-                        Text("Manual").tag(AthleteProfile.ZoneSource.manual)
-                        Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
-                        Text("Intervals.icu").tag(AthleteProfile.ZoneSource.intervals)
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: profileManager.profile.hrZonesSource) { _, newSource in
-                        handleHRSourceChange(newSource)
-                    }
-                    
-                    // Description based on source
-                    Text(hrSourceDescription)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Show Max HR input when override is enabled
-                if profileManager.profile.hrZonesSource == .manual {
-                    if isEditingMaxHR {
-                        HStack {
-                            Text("Max HR")
-                            Spacer()
-                            TextField("BPM", text: $editedMaxHR)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 100)
-                                .textFieldStyle(.roundedBorder)
-                            Text("bpm")
-                                .foregroundColor(.secondary)
-                        }
+            VStack(alignment: .leading, spacing: 16) {
+                // Zone Source Picker (PRO only)
+                if proConfig.hasProAccess {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Zone Source")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                         
-                        HStack {
-                            Button(AthleteZonesContent.cancel) {
-                                isEditingMaxHR = false
-                                // Reset toggle
-                                profileManager.resetMaxHRToComputed()
+                        Picker("HR Zone Source", selection: Binding(
+                            get: { profileManager.profile.hrZonesSource },
+                            set: { newSource in
+                                handleHRSourceChange(newSource)
                             }
-                            Spacer()
-                            Button(AthleteZonesContent.save) {
-                                saveMaxHR()
-                            }
-                            .fontWeight(.semibold)
-                            .disabled(editedMaxHR.isEmpty)
+                        )) {
+                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
+                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
+                            Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
                         }
-                    } else {
-                        HStack {
-                            Text("Max HR")
-                            Spacer()
-                            Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
-                                .foregroundColor(ColorScale.pinkAccent)
-                                .fontWeight(.medium)
-                            Button(AthleteZonesContent.edit) {
-                                startEditingMaxHR()
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        }
+                        .pickerStyle(.segmented)
                     }
-                }
-            }
-            
-            Divider()
-            
-            // LTHR Display (if available)
-            if let lthr = profileManager.profile.lthr {
-                HStack {
-                    Text("LTHR (Detected)")
-                        .font(.subheadline)
-                    Spacer()
-                    Text("\(Int(lthr)) bpm")
-                        .foregroundColor(.secondary)
-                        .font(.subheadline)
-                        .monospacedDigit()
-                }
-                Divider()
-            }
-            
-            // Computed Zones (Read-only)
-            Text("Heart Rate Training Zones")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
-            
-            if let zones = profileManager.profile.hrZones {
-                ForEach(Array(zones.enumerated()), id: \.offset) { index, boundary in
-                    if index < zones.count - 1 {
-                        let nextBoundary = zones[index + 1]
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Zone \(index + 1)")
-                                    .font(.subheadline)
-                                Text(hrZoneName(index))
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text("\(Int(boundary)) - \(Int(nextBoundary)) bpm")
-                                .foregroundColor(.secondary)
-                                .font(.subheadline)
-                                .monospacedDigit()
-                        }
-                    }
-                }
-            } else {
-                Text("No heart rate zones configured")
-                    .foregroundColor(.secondary)
-                    .font(.subheadline)
-            }
-        } header: {
-            Text("Heart Rate Training Zones")
-        } footer: {
-            if profileManager.profile.hrZonesSource == .manual {
-                Text("⚠️ Manual Max HR override active. Zones are computed from your override value. Tap 'Reset to Computed' to use adaptive detection.")
-            } else if profileManager.profile.lthr != nil {
-                Text("Zones are LTHR-anchored using lactate threshold detected from your sustained efforts. These zones are read-only and update as your fitness changes.")
-            } else {
-                Text("Zones are computed from your observed max HR with 2% buffer. These zones are read-only and update as your fitness changes.")
-            }
-        }
-    }
-    
-    private var additionalMetricsSection: some View {
-        Section {
-            // Power Profile
-            if let powerProfile = profileManager.profile.powerProfile {
-                if let power5min = powerProfile.power5min {
-                    HStack {
-                        Text("5-min Power")
-                        Spacer()
-                        Text("\(Int(power5min)) W")
-                            .foregroundColor(.secondary)
-                            .monospacedDigit()
-                    }
+                    
+                    Divider()
                 }
                 
-                if let power20min = powerProfile.power20min {
-                    HStack {
-                        Text("20-min Power")
-                        Spacer()
-                        Text("\(Int(power20min)) W")
-                            .foregroundColor(.secondary)
-                            .monospacedDigit()
+                // Zone List
+                if let zones = currentHRZones, zones.count > 1 {
+                    ForEach(0..<zones.count-1, id: \.self) { index in
+                        hrZoneRow(index: index, zones: zones)
                     }
-                }
-            }
-            
-            // Physiological Metrics
-            if let restingHR = profileManager.profile.restingHR {
-                HStack {
-                    Text("Resting HR")
-                    Spacer()
-                    Text("\(Int(restingHR)) bpm")
+                } else {
+                    Text("No HR zones available")
                         .foregroundColor(.secondary)
-                        .monospacedDigit()
+                        .italic()
                 }
             }
-            
-            if let weight = profileManager.profile.weight {
-                HStack {
-                    Text("Weight")
-                    Spacer()
-                    Text(String(format: "%.1f kg", weight))
-                        .foregroundColor(.secondary)
-                        .monospacedDigit()
-                }
-            }
-            
-            // FTP per kg (if weight available)
-            if let ftp = profileManager.profile.ftp, let weight = profileManager.profile.weight, weight > 0 {
-                HStack {
-                    Text("FTP/kg")
-                    Spacer()
-                    Text(String(format: "%.2f W/kg", ftp / weight))
-                        .foregroundColor(.secondary)
-                        .monospacedDigit()
-                }
-            }
+            .padding(.vertical, 8)
         } header: {
-            Text("Performance Metrics")
+            Text("Heart Rate Training Zones")
         } footer: {
-            Text("Automatically computed from your performance data and updated from recent activities.")
+            hrZonesFooterText
         }
     }
     
-    private var actionsSection: some View {
+    // MARK: - PRO Actions
+    
+    private var proActionsSection: some View {
         Section {
-            if profileManager.profile.ftpSource == .manual || profileManager.profile.hrZonesSource == .manual {
-                Button(action: {
-                    profileManager.resetToComputed()
-                    // Trigger recompute
-                    Task {
-                        await fetchAndRecompute()
-                    }
-                }) {
+            if profileManager.profile.ftpSource != .computed || profileManager.profile.hrZonesSource != .computed {
+                Button {
+                    showRecomputeConfirmation = true
+                } label: {
                     HStack {
                         Image(systemName: "arrow.clockwise")
-                        Text("Reset to Computed Values")
+                        Text("Reset to Adaptive Zones")
                     }
                 }
-            }
-            
-            Button(action: {
-                showRecomputeConfirmation = true
-            }) {
-                HStack {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                    Text("Recompute from Activities")
+                .alert("Reset to Adaptive Zones?", isPresented: $showRecomputeConfirmation) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Reset") {
+                        resetToAdaptive()
+                    }
+                } message: {
+                    Text("This will reset your zones to adaptive computation based on your performance data.")
                 }
             }
-        } footer: {
-            Text("Zones are automatically recomputed when new activities sync from Intervals.icu.")
         }
+    }
+    
+    // MARK: - Zone Row Views
+    
+    private func powerZoneRow(index: Int, zones: [Double]) -> some View {
+        let lowerBound = Int(zones[index])
+        let upperBound = index < zones.count - 1 ? Int(zones[index + 1]) : 999
+        let zoneName = powerZoneName(index: index)
+        
+        return HStack {
+            // Zone number and name
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Zone \(index + 1)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                Text(zoneName)
+                    .font(.subheadline)
+            }
+            
+            Spacer()
+            
+            // Zone range
+            if canEditPowerZones && index > 0 { // Don't allow editing Zone 1 lower bound (always 0)
+                TextField("", text: Binding(
+                    get: { editingPowerZones.indices.contains(index) ? editingPowerZones[index] : "\(lowerBound)" },
+                    set: { newValue in
+                        if editingPowerZones.indices.contains(index) {
+                            editingPowerZones[index] = newValue
+                        }
+                    }
+                ))
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 60)
+                .onSubmit {
+                    savePowerZones()
+                }
+            } else {
+                Text("\(lowerBound)")
+                    .fontWeight(.medium)
+            }
+            
+            Text("-")
+                .foregroundColor(.secondary)
+            
+            Text(index == zones.count - 2 ? "Max" : "\(upperBound)")
+                .fontWeight(.medium)
+            
+            Text("W")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func hrZoneRow(index: Int, zones: [Double]) -> some View {
+        let lowerBound = Int(zones[index])
+        let upperBound = index < zones.count - 1 ? Int(zones[index + 1]) : 999
+        let zoneName = hrZoneName(index: index)
+        
+        return HStack {
+            // Zone number and name
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Zone \(index + 1)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                Text(zoneName)
+                    .font(.subheadline)
+            }
+            
+            Spacer()
+            
+            // Zone range
+            if canEditHRZones && index > 0 { // Don't allow editing Zone 1 lower bound (always 0)
+                TextField("", text: Binding(
+                    get: { editingHRZones.indices.contains(index) ? editingHRZones[index] : "\(lowerBound)" },
+                    set: { newValue in
+                        if editingHRZones.indices.contains(index) {
+                            editingHRZones[index] = newValue
+                        }
+                    }
+                ))
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 60)
+                .onSubmit {
+                    saveHRZones()
+                }
+            } else {
+                Text("\(lowerBound)")
+                    .fontWeight(.medium)
+            }
+            
+            Text("-")
+                .foregroundColor(.secondary)
+            
+            Text(index == zones.count - 2 ? "Max" : "\(upperBound)")
+                .fontWeight(.medium)
+            
+            Text("bpm")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
     }
     
     // MARK: - Helper Views
     
-    private func sourceLabel(_ source: AthleteProfile.ZoneSource) -> some View {
-        let (text, color) = sourceLabelInfo(source)
+    private func sourceIndicator(_ source: AthleteProfile.ZoneSource) -> some View {
+        let (text, color) = sourceInfo(source)
         return Text(text)
             .font(.caption2)
             .fontWeight(.semibold)
-            .foregroundColor(color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(color.opacity(0.15))
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color)
             .cornerRadius(4)
     }
     
-    private func sourceLabelInfo(_ source: AthleteProfile.ZoneSource) -> (String, Color) {
+    private func sourceInfo(_ source: AthleteProfile.ZoneSource) -> (String, Color) {
         switch source {
         case .computed:
-            return ("Computed", .blue)
+            return ("Adaptive", .blue)
         case .manual:
             return ("Manual", .orange)
-        case .intervals:
-            return ("Intervals.icu", .green)
         case .coggan:
-            return ("Coggan", .purple)
+            return ("Coggan", .green)
+        case .intervals:
+            return ("Intervals.icu", .purple)
         }
     }
     
     // MARK: - Computed Properties
     
-    private var powerSourceDescription: String {
+    private var canEditFTP: Bool {
+        if !proConfig.hasProAccess {
+            return true // FREE users can always edit (Coggan mode)
+        }
+        return profileManager.profile.ftpSource == .coggan || profileManager.profile.ftpSource == .manual
+    }
+    
+    private var canEditMaxHR: Bool {
+        if !proConfig.hasProAccess {
+            return true // FREE users can always edit (Coggan mode)
+        }
+        return profileManager.profile.hrZonesSource == .coggan || profileManager.profile.hrZonesSource == .manual
+    }
+    
+    private var canEditPowerZones: Bool {
+        return profileManager.profile.ftpSource == .manual
+    }
+    
+    private var canEditHRZones: Bool {
+        return profileManager.profile.hrZonesSource == .manual
+    }
+    
+    private var currentPowerZones: [Double]? {
+        profileManager.profile.powerZones
+    }
+    
+    private var currentHRZones: [Double]? {
+        profileManager.profile.hrZones
+    }
+    
+    private var profileFooterText: Text {
+        if !proConfig.hasProAccess {
+            return Text("FREE tier: Zones use Coggan standard formula. Upgrade to PRO for adaptive zones computed from your performance data.")
+        }
+        
         switch profileManager.profile.ftpSource {
         case .computed:
-            return "Zones computed from your performance data using modern sports science."
-        case .manual:
-            return "Enter your FTP manually. Zones will be calculated from your input."
+            return Text("Adaptive zones are computed from your performance data using modern sports science algorithms. Values update automatically as your fitness changes.")
         case .coggan:
-            return "Standard Coggan zones based on your FTP."
+            return Text("Coggan zones use the standard 7-zone model. Edit FTP or Max HR above to adjust all zones proportionally.")
+        case .manual:
+            return Text("Manual mode allows full control. Edit individual zone boundaries in the sections below.")
         case .intervals:
-            return "Sync zones from your Intervals.icu profile."
+            return Text("Zones synced from Intervals.icu profile.")
         }
     }
     
-    private var hrSourceDescription: String {
+    private var powerZonesFooterText: Text {
+        switch profileManager.profile.ftpSource {
+        case .computed:
+            return Text("Zones automatically computed from your power-duration curve and performance distribution.")
+        case .coggan:
+            return Text("Standard Coggan 7-zone model based on FTP. Zones update automatically when you change FTP.")
+        case .manual:
+            return Text("Tap any zone boundary to edit. Changes are saved automatically.")
+        case .intervals:
+            return Text("Synced from Intervals.icu. Switch to Adaptive or Manual to customize.")
+        }
+    }
+    
+    private var hrZonesFooterText: Text {
         switch profileManager.profile.hrZonesSource {
         case .computed:
-            return "Zones computed from your performance data with LTHR detection."
-        case .manual:
-            return "Enter your Max HR manually. Zones will be calculated from your input."
+            if let lthr = profileManager.profile.lthr {
+                return Text("Zones anchored to lactate threshold (\(Int(lthr)) bpm) detected from sustained efforts.")
+            }
+            return Text("Zones computed from max HR with adaptive threshold detection.")
         case .coggan:
-            return "Standard Coggan HR zones based on your Max HR."
+            return Text("Standard Coggan 7-zone model based on Max HR. Zones update automatically when you change Max HR.")
+        case .manual:
+            return Text("Tap any zone boundary to edit. Changes are saved automatically.")
         case .intervals:
-            return "Sync zones from your Intervals.icu profile."
+            return Text("Synced from Intervals.icu. Switch to Adaptive or Manual to customize.")
         }
     }
     
     // MARK: - Zone Names
     
-    private func hrZoneName(_ index: Int) -> String {
-        let names = ["Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic", "Max"]
-        return names[index % names.count]
+    private func powerZoneName(index: Int) -> String {
+        switch index {
+        case 0: return "Active Recovery"
+        case 1: return "Endurance"
+        case 2: return "Tempo"
+        case 3: return "Lactate Threshold"
+        case 4: return "VO2 Max"
+        case 5: return "Anaerobic"
+        case 6: return "Neuromuscular"
+        default: return "Zone \(index + 1)"
+        }
     }
     
-    private func powerZoneName(_ index: Int) -> String {
-        let names = ["Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic", "Neuromuscular"]
-        return names[index % names.count]
+    private func hrZoneName(index: Int) -> String {
+        switch index {
+        case 0: return "Recovery"
+        case 1: return "Aerobic"
+        case 2: return "Tempo"
+        case 3: return "Lactate Threshold"
+        case 4: return "VO2 Max"
+        case 5: return "Anaerobic"
+        case 6: return "Max"
+        default: return "Zone \(index + 1)"
+        }
     }
     
     // MARK: - Actions
     
-    private func startEditingFTP() {
-        editedFTP = String(Int(profileManager.profile.ftp ?? 0))
-        isEditingFTP = true
+    private func initializeEditingStates() {
+        editingFTP = "\(Int(profileManager.profile.ftp ?? 0))"
+        editingMaxHR = "\(Int(profileManager.profile.maxHR ?? 0))"
+        
+        if let zones = profileManager.profile.powerZones {
+            editingPowerZones = zones.map { "\(Int($0))" }
+        }
+        
+        if let zones = profileManager.profile.hrZones {
+            editingHRZones = zones.map { "\(Int($0))" }
+        }
+    }
+    
+    private func ensureCorrectDefaultsForTier() {
+        // FREE users should always use Coggan zones
+        if !proConfig.hasProAccess {
+            if profileManager.profile.ftpSource == .computed {
+                profileManager.profile.ftpSource = .coggan
+                // Generate Coggan zones if we have FTP
+                if let ftp = profileManager.profile.ftp, ftp > 0 {
+                    profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+                }
+                profileManager.save()
+            }
+            
+            if profileManager.profile.hrZonesSource == .computed {
+                profileManager.profile.hrZonesSource = .coggan
+                // Generate Coggan zones if we have Max HR
+                if let maxHR = profileManager.profile.maxHR, maxHR > 0 {
+                    profileManager.profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+                }
+                profileManager.save()
+            }
+        }
     }
     
     private func saveFTP() {
-        guard let ftp = Double(editedFTP), ftp > 0 else { return }
+        guard let ftp = Double(editingFTP), ftp > 0 else { return }
         
-        // Generate default zones from FTP
-        let zones = AthleteProfileManager.generatePowerZones(ftp: ftp)
-        profileManager.setManualFTP(ftp, zones: zones)
-        
-        isEditingFTP = false
-    }
-    
-    private func saveFTPManual() {
-        guard let ftp = Double(editedFTP), ftp > 0 else { return }
-        
-        Logger.data("💾 User manually set FTP to \(Int(ftp))W")
-        
-        // Generate zones from FTP
-        let zones = AthleteProfileManager.generatePowerZones(ftp: ftp)
-        
-        // Set as manual FTP
         profileManager.profile.ftp = ftp
-        profileManager.profile.ftpSource = .manual
-        profileManager.profile.powerZones = zones
-        profileManager.profile.lastUpdated = Date()
-        profileManager.save()
         
-        // Clear Strava cache to fetch fresh data next time
-        Task { @MainActor in
-            StravaAthleteCache.shared.clearCache()
+        // Regenerate zones if in Coggan mode
+        if profileManager.profile.ftpSource == .coggan {
+            profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
         }
         
-        isEditingFTP = false
-        Logger.data("✅ FTP saved: \(Int(ftp))W with generated zones")
-    }
-    
-    private func startEditingMaxHR() {
-        editedMaxHR = String(Int(profileManager.profile.maxHR ?? 0))
-        isEditingMaxHR = true
+        profileManager.save()
+        Logger.data("💾 Saved FTP: \(Int(ftp))W")
     }
     
     private func saveMaxHR() {
-        guard let maxHR = Double(editedMaxHR), maxHR > 0 else { return }
+        guard let maxHR = Double(editingMaxHR), maxHR > 0 else { return }
         
-        // Generate default zones from Max HR
-        let zones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
-        profileManager.setManualMaxHR(maxHR, zones: zones)
+        profileManager.profile.maxHR = maxHR
         
-        isEditingMaxHR = false
-    }
-    
-    private func recomputeZones() {
-        Task {
-            await fetchAndRecompute()
+        // Regenerate zones if in Coggan mode
+        if profileManager.profile.hrZonesSource == .coggan {
+            profileManager.profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
         }
+        
+        profileManager.save()
+        Logger.data("💾 Saved Max HR: \(Int(maxHR)) bpm")
     }
     
-    private func fetchAndRecompute() async {
-        do {
-            Logger.data("🎯 [Zones] Starting manual recomputation...")
-            
-            // Use unified service - automatically handles Intervals/Strava and Pro tier limits
-            let activities = try await UnifiedActivityService.shared.fetchActivitiesForFTP()
-            
-            Logger.data("🎯 [Zones] Fetched \(activities.count) activities for recomputation")
-            
-            // Recompute zones (already on main actor in SwiftUI view)
-            await profileManager.computeFromActivities(activities)
-            
-            Logger.data("✅ [Zones] Manual recomputation complete")
-            
-        } catch {
-            Logger.error("❌ [Zones] Failed to fetch activities for recomputation: \(error)")
-        }
+    private func savePowerZones() {
+        let zones = editingPowerZones.compactMap { Double($0) }
+        guard zones.count >= 7 else { return }
+        
+        profileManager.profile.powerZones = zones
+        profileManager.save()
+        Logger.data("💾 Saved custom power zones")
     }
     
-    private func handlePowerSourceChange(_ source: AthleteProfile.ZoneSource) {
-        switch source {
-        case .manual:
-            // Show manual input UI
-            startEditingFTP()
-        case .coggan:
-            // Coggan zones are applied automatically via computed property
-            // No immediate action needed
-            profileManager.save()
-        case .intervals:
-            // Trigger Intervals.icu sync
-            Task {
-                // TODO: Implement Intervals.icu zone sync
-                Logger.data("Intervals.icu zone sync not yet implemented")
-            }
+    private func saveHRZones() {
+        let zones = editingHRZones.compactMap { Double($0) }
+        guard zones.count >= 7 else { return }
+        
+        profileManager.profile.hrZones = zones
+        profileManager.save()
+        Logger.data("💾 Saved custom HR zones")
+    }
+    
+    private func handlePowerSourceChange(_ newSource: AthleteProfile.ZoneSource) {
+        profileManager.profile.ftpSource = newSource
+        
+        switch newSource {
         case .computed:
-            // Zones will recompute on next activity sync
-            // No immediate action needed
-            profileManager.save()
+            // Trigger adaptive computation
+            Logger.data("🔄 Switching to adaptive power zones - fetching activities...")
+            // Note: Computation happens in background via CacheManager
+        case .coggan:
+            // Generate Coggan zones from current FTP
+            if let ftp = profileManager.profile.ftp, ftp > 0 {
+                profileManager.profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: ftp)
+            }
+        case .manual:
+            // Keep current zones, allow editing
+            break
+        case .intervals:
+            // Sync from Intervals.icu
+            break
         }
+        
+        profileManager.save()
+        initializeEditingStates()
     }
     
-    private func handleHRSourceChange(_ source: AthleteProfile.ZoneSource) {
-        switch source {
-        case .manual:
-            // Show manual input UI
-            startEditingMaxHR()
-        case .coggan:
-            // Coggan zones are applied automatically via computed property
-            // No immediate action needed
-            profileManager.save()
-        case .intervals:
-            // Trigger Intervals.icu sync
-            Task {
-                // TODO: Implement Intervals.icu zone sync
-                Logger.data("Intervals.icu zone sync not yet implemented")
-            }
+    private func handleHRSourceChange(_ newSource: AthleteProfile.ZoneSource) {
+        profileManager.profile.hrZonesSource = newSource
+        
+        switch newSource {
         case .computed:
-            // Zones will recompute on next activity sync
-            // No immediate action needed
-            profileManager.save()
+            // Trigger adaptive computation
+            Logger.data("🔄 Switching to adaptive HR zones - fetching activities...")
+            // Note: Computation happens in background via CacheManager
+        case .coggan:
+            // Generate Coggan zones from current Max HR
+            if let maxHR = profileManager.profile.maxHR, maxHR > 0 {
+                profileManager.profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: maxHR)
+            }
+        case .manual:
+            // Keep current zones, allow editing
+            break
+        case .intervals:
+            // Sync from Intervals.icu
+            break
         }
+        
+        profileManager.save()
+        initializeEditingStates()
     }
-}
-
-#Preview {
-    NavigationStack {
-        AthleteZonesSettingsView()
-            .environmentObject(IntervalsAPIClient.shared)
+    
+    private func resetToAdaptive() {
+        profileManager.profile.ftpSource = .computed
+        profileManager.profile.hrZonesSource = .computed
+        profileManager.save()
+        
+        Logger.data("🔄 Reset to adaptive zones - computation will occur on next data refresh")
     }
 }
