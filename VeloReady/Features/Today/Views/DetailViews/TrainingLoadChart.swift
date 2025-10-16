@@ -12,22 +12,24 @@ struct TrainingLoadChart: View {
     @State private var isLoading = false
     
     var body: some View {
-        Logger.data("TrainingLoadChart: Rendering - TSS: \(activity.tss?.description ?? "nil"), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
-        
-        guard proConfig.hasProAccess else {
-            Logger.data("TrainingLoadChart: No PRO access - hiding chart")
-            return AnyView(EmptyView())
+        // Use Group to avoid AnyView type erasure issues
+        Group {
+            if !proConfig.hasProAccess {
+                EmptyView()
+            } else if let tss = activity.tss {
+                chartContent(tss: tss)
+            } else {
+                EmptyView()
+            }
         }
+    }
+    
+    @ViewBuilder
+    private func chartContent(tss: Double) -> some View {
+        Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
         
-        // Show chart even if CTL/ATL not yet calculated - will load async
         let ctlAfter = activity.ctl ?? 0
         let atlAfter = activity.atl ?? 0
-        guard let tss = activity.tss else {
-            Logger.data("TrainingLoadChart: No TSS - hiding chart")
-            return AnyView(EmptyView())
-        }
-        
-        Logger.data("TrainingLoadChart: Showing chart with TSS: \(tss), CTL: \(ctlAfter), ATL: \(atlAfter)")
         
         // Parse ride date from startDateLocal string (format: "2025-09-21T07:29:37")
         let dateFormatter = DateFormatter()
@@ -36,8 +38,7 @@ struct TrainingLoadChart: View {
         dateFormatter.timeZone = TimeZone.current
         
         guard let rideDate = dateFormatter.date(from: activity.startDateLocal) else {
-            // Cannot log during view body computation
-            return AnyView(EmptyView())
+            return EmptyView()
         }
         
         let tsbAfter = ctlAfter - atlAfter
@@ -51,8 +52,7 @@ struct TrainingLoadChart: View {
             activities: historicalActivities
         )
         
-        return AnyView(
-            VStack(alignment: .leading, spacing: 16) {
+        return VStack(alignment: .leading, spacing: 16) {
                 // Header
                 HStack(spacing: 8) {
                     Text(TrainingLoadContent.title)
@@ -222,7 +222,6 @@ struct TrainingLoadChart: View {
                         .foregroundColor(Color.text.secondary)
                 }
             }
-        )
         .task {
             // Fetch historical activities for chart
             Logger.data("TrainingLoadChart: .task triggered, fetching historical data for date: \(rideDate)")

@@ -133,17 +133,21 @@ class StrainScoreService: ObservableObject {
         // Get training loads (from Intervals or HealthKit)
         async let trainingLoadData = fetchTrainingLoads()
         
-        // Get today's workouts (from HealthKit as primary source)
+        // Get today's workouts (from HealthKit AND Strava)
         async let todaysWorkouts = fetchTodaysWorkouts()
+        async let todaysStravaActivities = fetchTodaysStravaActivities()
         
         let (hrvValue, rhrValue) = await (hrv, rhr)
         let (stepsValue, activeCaloriesValue) = await (steps, activeCalories)
         let (hrvBaseline, rhrBaseline, _, _) = await baselines
         let trainingLoads = await trainingLoadData
         let workouts = await todaysWorkouts
+        let stravaActivities = await todaysStravaActivities
         
-        // Calculate TRIMP from today's HealthKit workouts
-        let cardioTRIMP = await calculateTRIMPFromWorkouts(workouts: workouts)
+        // Calculate TRIMP from today's HealthKit workouts + Strava activities
+        let healthKitTRIMP = await calculateTRIMPFromWorkouts(workouts: workouts)
+        let stravaTRIMP = calculateTRIMPFromStravaActivities(activities: stravaActivities)
+        let cardioTRIMP = healthKitTRIMP + stravaTRIMP
         let cardioDuration = workouts.reduce(0.0) { $0 + $1.duration }
         let averageIF: Double? = nil // Not available from HealthKit alone
         
@@ -330,6 +334,104 @@ class StrainScoreService: ObservableObject {
         
         Logger.debug("🔍 Found \(workouts.count) HealthKit workouts for today")
         return workouts
+    }
+    
+    /// Fetch today's Strava activities
+    private func fetchTodaysStravaActivities() async -> [IntervalsActivity] {
+        do {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+            
+            // Fetch from Strava API
+            let stravaActivities = try await StravaAPIClient.shared.fetchActivities(perPage: 30)
+            
+            // Filter to today only
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            dateFormatter.timeZone = TimeZone(identifier: "UTC")
+            
+            let todaysStrava = stravaActivities.filter { strava in
+                guard let activityDate = dateFormatter.date(from: strava.start_date) else { return false }
+                return calendar.isDate(activityDate, inSameDayAs: today)
+            }
+            
+            // Convert to IntervalsActivity format
+            let activities = todaysStrava.map { strava in
+                IntervalsActivity(
+                    id: "strava_\(strava.id)",
+                    name: strava.name,
+                    description: nil,
+                    startDateLocal: strava.start_date_local,
+                    type: strava.type,
+                    duration: TimeInterval(strava.moving_time),
+                    distance: strava.distance,
+                    elevationGain: strava.total_elevation_gain,
+                    averagePower: strava.average_watts,
+                    normalizedPower: strava.weighted_average_watts.map { Double($0) },
+                    averageHeartRate: strava.average_heartrate,
+                    maxHeartRate: strava.max_heartrate.map { Double($0) },
+                    averageCadence: strava.average_cadence,
+                    averageSpeed: strava.average_speed,
+                    maxSpeed: strava.max_speed,
+                    calories: strava.calories.map { Int($0) },
+                    fileType: nil,
+                    tss: nil,
+                    intensityFactor: nil,
+                    atl: nil,
+                    ctl: nil,
+                    icuZoneTimes: nil,
+                    icuHrZoneTimes: nil
+                )
+            }
+            
+            Logger.debug("🔍 Found \(activities.count) Strava activities for today")
+            return activities
+        } catch {
+            Logger.warning("⚠️ Failed to fetch Strava activities: \(error)")
+            return []
+        }
+    }
+    
+    /// Calculate TRIMP from Strava activities
+    private func calculateTRIMPFromStravaActivities(activities: [IntervalsActivity]) -> Double {
+        var totalTRIMP: Double = 0
+        
+        for activity in activities {
+            // Use TSS if available (best for cycling)
+            if let tss = activity.tss {
+                totalTRIMP += tss
+                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - TSS: \(String(format: "%.1f", tss))")
+                continue
+            }
+            
+            // Fallback: Estimate from power/HR
+            if let avgPower = activity.averagePower,
+               let duration = activity.duration,
+               let ftp = getUserFTP() {
+                let intensityFactor = avgPower / ftp
+                let estimatedTSS = (duration / 3600) * intensityFactor * intensityFactor * 100
+                totalTRIMP += estimatedTSS
+                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - Estimated TSS: \(String(format: "%.1f", estimatedTSS))")
+                continue
+            }
+            
+            // Last resort: Estimate from HR if available
+            if let avgHR = activity.averageHeartRate,
+               let duration = activity.duration,
+               let maxHR = getUserMaxHR(),
+               let restingHR = getUserRestingHR() {
+                let hrReserve = maxHR - restingHR
+                let workingHR = avgHR - restingHR
+                let percentHRR = workingHR / hrReserve
+                let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
+                totalTRIMP += trimp
+                Logger.debug("   Strava Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
+            }
+        }
+        
+        Logger.debug("🔍 Total TRIMP from \(activities.count) Strava activities: \(String(format: "%.1f", totalTRIMP))")
+        return totalTRIMP
     }
     
     /// Calculate training loads from HealthKit (fallback)
