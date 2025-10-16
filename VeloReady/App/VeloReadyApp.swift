@@ -6,6 +6,9 @@ struct VeloReadyApp: App {
     let persistenceController = PersistenceController.shared
     
     init() {
+        // Log version information at startup
+        AppVersion.logVersionInfo()
+        
         // Initialize service container early for optimal performance
         Task { @MainActor in
             ServiceContainer.shared.initialize()
