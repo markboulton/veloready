@@ -640,6 +640,26 @@ struct SleepDetailView: View {
         let availableDays = (try? context.count(for: fetchRequest)) ?? 0
         let daysRemaining = max(0, requiredDays - availableDays)
         
+        // If we have enough data, show a refresh message instead
+        if availableDays >= requiredDays {
+            return AnyView(
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundColor(.secondary)
+                        
+                        Text("Pull to refresh")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    
+                    Text("You have \(availableDays) days of data. \(description)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            )
+        }
+        
         return AnyView(
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
@@ -669,7 +689,7 @@ struct SleepDetailView: View {
                             
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(ColorScale.purpleAccent)
-                                .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(requiredDays), height: 4)
+                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 4)
                         }
                     }
                     .frame(height: 4)

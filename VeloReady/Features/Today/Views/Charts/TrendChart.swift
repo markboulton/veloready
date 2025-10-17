@@ -299,6 +299,26 @@ struct TrendChart: View {
         let availableDays = (try? context.count(for: fetchRequest)) ?? 0
         let daysRemaining = max(0, selectedPeriod.days - availableDays)
         
+        // If we have enough data but getData returns empty, show a different message
+        if availableDays >= selectedPeriod.days {
+            return AnyView(
+                VStack(spacing: Spacing.md) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: TypeScale.lg))
+                        .foregroundColor(Color.text.secondary)
+                    
+                    Text("Data available but chart is empty")
+                        .font(.system(size: TypeScale.sm, weight: .medium))
+                    
+                    Text("Pull to refresh to load \(selectedPeriod.days)-day trend")
+                        .font(.system(size: TypeScale.xs))
+                        .foregroundColor(Color.text.secondary)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+            )
+        }
+        
         return AnyView(
             VStack(spacing: Spacing.md) {
                 HStack(spacing: 8) {
@@ -326,7 +346,7 @@ struct TrendChart: View {
                             
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(ColorScale.blueAccent)
-                                .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(selectedPeriod.days), height: 4)
+                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(selectedPeriod.days), 1.0), height: 4)
                         }
                     }
                     .frame(height: 4)
