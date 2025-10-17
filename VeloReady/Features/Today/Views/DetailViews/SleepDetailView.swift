@@ -358,12 +358,12 @@ struct SleepDetailView: View {
     
     @ViewBuilder
     private var sleepDebtSection: some View {
-        if let debt = SleepScoreService.shared.currentSleepDebt {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(SleepContent.NewMetrics.sleepDebt)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
+        VStack(alignment: .leading, spacing: 16) {
+            Text(SleepContent.NewMetrics.sleepDebt)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let debt = SleepScoreService.shared.currentSleepDebt {
                 HStack(spacing: 12) {
                     Image(systemName: "moon.zzz.fill")
                         .font(.title2)
@@ -401,18 +401,22 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.primary)
                     .padding(.top, 4)
+            } else {
+                Text("Calculating from 7-day history...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }
     
     @ViewBuilder
     private var sleepConsistencySection: some View {
-        if let consistency = SleepScoreService.shared.currentSleepConsistency {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(SleepContent.NewMetrics.consistency)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
+        VStack(alignment: .leading, spacing: 16) {
+            Text(SleepContent.NewMetrics.consistency)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let consistency = SleepScoreService.shared.currentSleepConsistency {
                 HStack(spacing: 12) {
                     Image(systemName: "clock.fill")
                         .font(.title2)
@@ -450,6 +454,10 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.primary)
                     .padding(.top, 4)
+            } else {
+                Text("Calculating from 7-day history...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }

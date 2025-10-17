@@ -413,6 +413,17 @@ struct RecoveryDetailView: View {
                     .foregroundColor(.primary)
                     .padding(.top, 4)
             }
+        } else {
+            // Debug: Show when data is not available
+            VStack(alignment: .leading, spacing: 8) {
+                Text(RecoveryContent.NewMetrics.recoveryDebt)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Text("Calculating... Pull to refresh to update")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
     
