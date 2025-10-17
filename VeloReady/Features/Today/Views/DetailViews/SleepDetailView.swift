@@ -468,7 +468,7 @@ struct SleepDetailView_Previews: PreviewProvider {
     static var previews: some View {
         let mockSleepScore = SleepScore(
             score: 85,
-            band: .excellent,
+            band: .optimal,
             subScores: SleepScore.SubScores(
                 performance: 90,
                 efficiency: 85,

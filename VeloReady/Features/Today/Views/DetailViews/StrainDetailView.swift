@@ -276,14 +276,14 @@ struct StrainDetailView: View {
         
         // Load level recommendations
         switch strainScore.band {
-        case .low:
-            recommendations.append("Low load day - consider adding some training.")
-        case .moderate:
-            recommendations.append("Good balance of training and recovery.")
-        case .high:
-            recommendations.append("High load day - prioritize recovery tomorrow.")
-        case .extreme:
-            recommendations.append("Extreme load - take extra recovery time.")
+        case .optimal:
+            recommendations.append("Optimal training load - good balance for recovery.")
+        case .good:
+            recommendations.append("Good training load - balanced approach.")
+        case .fair:
+            recommendations.append("Fair training load - prioritize recovery tomorrow.")
+        case .payAttention:
+            recommendations.append("High training load needs attention - take extra recovery time.")
         }
         
         // Component-specific recommendations
@@ -477,7 +477,7 @@ struct StrainDetailView_Previews: PreviewProvider {
     static var previews: some View {
         let mockStrainScore = StrainScore(
             score: 68,
-            band: .high,
+            band: .fair,
             subScores: StrainScore.SubScores(
                 cardioLoad: 75,
                 strengthLoad: 45,

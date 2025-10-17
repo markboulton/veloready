@@ -129,9 +129,9 @@ struct CompactRingView: View {
 struct CompactRingView_Previews: PreviewProvider {
     static var previews: some View {
         HStack(spacing: 20) {
-            CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.excellent, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID())
+            CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.optimal, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID())
             CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil, animationTrigger: UUID())
-            CompactRingView(score: 70, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: "12.5", animationTrigger: UUID())
+            CompactRingView(score: 70, title: "Good", band: StrainScore.StrainBand.good, animationDelay: 0.2, action: {}, centerText: "12.5", animationTrigger: UUID())
         }
         .padding()
     }

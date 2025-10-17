@@ -85,36 +85,36 @@ struct StrainScore: Codable {
     let calculatedAt: Date
     
     enum StrainBand: String, CaseIterable, Codable {
-        case low = "Low"
-        case moderate = "Moderate"
-        case high = "High"
-        case extreme = "Extreme"
+        case optimal = "Optimal"
+        case good = "Good"
+        case fair = "Fair"
+        case payAttention = "Pay Attention"
         
         var color: String {
             switch self {
-            case .low: return "green"
-            case .moderate: return "yellow"
-            case .high: return "orange"
-            case .extreme: return "red"
+            case .optimal: return "green"
+            case .good: return "yellow"
+            case .fair: return "orange"
+            case .payAttention: return "red"
             }
         }
         
         /// Get the SwiftUI Color token for this strain band
         var colorToken: Color {
             switch self {
-            case .low: return ColorScale.greenAccent
-            case .moderate: return ColorScale.yellowAccent
-            case .high: return ColorScale.amberAccent
-            case .extreme: return ColorScale.redAccent
+            case .optimal: return ColorScale.greenAccent
+            case .good: return ColorScale.yellowAccent
+            case .fair: return ColorScale.amberAccent
+            case .payAttention: return ColorScale.redAccent
             }
         }
         
         var description: String {
             switch self {
-            case .low: return "Low"
-            case .moderate: return "Moderate"
-            case .high: return "High"
-            case .extreme: return "Extreme"
+            case .optimal: return LoadContent.Bands.optimal
+            case .good: return LoadContent.Bands.good
+            case .fair: return LoadContent.Bands.fair
+            case .payAttention: return LoadContent.Bands.payAttention
             }
         }
     }
@@ -684,10 +684,10 @@ class StrainScoreCalculator {
         // Data-driven thresholds based on 120 days of actual ride data (36 activities)
         // Calibrated to user's TSS distribution: median=52, Q3=106, 90th=181, 99th=490
         switch score {
-        case 0..<5.5: return .low         // TSS 0-40 (recovery/easy - 36% of rides)
-        case 5.5..<9.0: return .moderate  // TSS 40-85 (normal training - 39% of rides)
-        case 9.0..<14.0: return .high     // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
-        default: return .extreme          // TSS 250+ (ultra-endurance rides - 3% of rides)
+        case 0..<5.5: return .optimal        // TSS 0-40 (recovery/easy - 36% of rides)
+        case 5.5..<9.0: return .good         // TSS 40-85 (normal training - 39% of rides)
+        case 9.0..<14.0: return .fair        // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
+        default: return .payAttention        // TSS 250+ (ultra-endurance rides - 3% of rides)
         }
     }
     
@@ -768,19 +768,19 @@ extension StrainScore {
     /// Generate AI daily brief based on strain score and inputs
     var dailyBrief: String {
         switch band {
-        case .low:
-            return generateLowBrief()
-        case .moderate:
-            return generateModerateBrief()
-        case .high:
-            return generateHighBrief()
-        case .extreme:
-            return generateExtremeBrief()
+        case .optimal:
+            return generateOptimalBrief()
+        case .good:
+            return generateGoodBrief()
+        case .fair:
+            return generateFairBrief()
+        case .payAttention:
+            return generatePayAttentionBrief()
         }
     }
     
-    private func generateLowBrief() -> String {
-        var brief = "Low strain day"
+    private func generateOptimalBrief() -> String {
+        var brief = "Optimal training load"
         
         if let cardio = inputs.cardioDurationMinutes, cardio > 0 {
             brief += " — \(Int(cardio)) min cardio"
@@ -794,12 +794,12 @@ extension StrainScore {
         return brief
     }
     
-    private func generateModerateBrief() -> String {
-        return "Moderate strain — good balance of training and recovery."
+    private func generateGoodBrief() -> String {
+        return "Good training load — balanced approach to training and recovery."
     }
     
-    private func generateHighBrief() -> String {
-        var brief = "High strain day"
+    private func generateFairBrief() -> String {
+        var brief = "Fair training load"
         
         if let cardio = inputs.cardioDurationMinutes, cardio > 120 {
             brief += " — long endurance session"
@@ -813,8 +813,8 @@ extension StrainScore {
         return brief
     }
     
-    private func generateExtremeBrief() -> String {
-        return "Extreme strain — consider additional recovery time. Monitor fatigue levels."
+    private func generatePayAttentionBrief() -> String {
+        return "High training load needs attention — consider additional recovery time. Monitor fatigue levels."
     }
     
     /// Formatted score for display (0-18 scale with 1 decimal)

@@ -23,10 +23,10 @@ struct RecoveryHeaderSection: View {
     
     private func colorForBand(_ band: RecoveryScore.RecoveryBand) -> Color {
         switch band {
-        case .excellent: return ColorScale.greenAccent
+        case .optimal: return ColorScale.greenAccent
         case .good: return ColorScale.yellowAccent
         case .fair: return ColorScale.amberAccent
-        case .poor: return ColorScale.redAccent
+        case .payAttention: return ColorScale.redAccent
         }
     }
 }

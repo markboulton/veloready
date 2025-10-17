@@ -60,10 +60,10 @@ struct RecoveryRingView: View {
 struct RecoveryRingView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 30) {
-            RecoveryRingView(score: 90, band: .excellent)
+            RecoveryRingView(score: 90, band: .optimal)
             RecoveryRingView(score: 75, band: .good)
             RecoveryRingView(score: 55, band: .fair)
-            RecoveryRingView(score: 25, band: .poor)
+            RecoveryRingView(score: 25, band: .payAttention)
         }
         .padding()
     }

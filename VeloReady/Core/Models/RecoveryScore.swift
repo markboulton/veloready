@@ -11,36 +11,36 @@ struct RecoveryScore: Codable {
     let calculatedAt: Date
     
     enum RecoveryBand: String, CaseIterable, Codable {
-        case excellent = "Excellent"
+        case optimal = "Optimal"
         case good = "Good"
         case fair = "Fair"
-        case poor = "Poor"
+        case payAttention = "Pay Attention"
         
         var color: String {
             switch self {
-            case .excellent: return "green"
+            case .optimal: return "green"
             case .good: return "yellow"
             case .fair: return "orange"
-            case .poor: return "red"
+            case .payAttention: return "red"
             }
         }
         
         /// Get the SwiftUI Color token for this recovery band
         var colorToken: Color {
             switch self {
-            case .excellent: return ColorScale.greenAccent
+            case .optimal: return ColorScale.greenAccent
             case .good: return ColorScale.yellowAccent
             case .fair: return ColorScale.amberAccent
-            case .poor: return ColorScale.redAccent
+            case .payAttention: return ColorScale.redAccent
             }
         }
         
         var description: String {
             switch self {
-            case .excellent: return "Excellent"
-            case .good: return "Good"
-            case .fair: return "Fair"
-            case .poor: return "Poor"
+            case .optimal: return RecoveryContent.Bands.optimal
+            case .good: return RecoveryContent.Bands.good
+            case .fair: return RecoveryContent.Bands.fair
+            case .payAttention: return RecoveryContent.Bands.payAttention
             }
         }
     }
@@ -431,10 +431,10 @@ class RecoveryScoreCalculator {
     
     private static func determineBand(score: Double) -> RecoveryScore.RecoveryBand {
         switch score {
-        case 85...100: return .excellent  // Top 15% - fully recovered
-        case 70..<85: return .good        // Good recovery, ready to train
-        case 50..<70: return .fair        // Mixed signals, moderate training
-        default: return .poor             // Low recovery, rest/easy day
+        case 80...100: return .optimal      // Optimal recovery - fully recovered
+        case 60..<80: return .good          // Good recovery, ready to train
+        case 40..<60: return .fair          // Fair recovery, moderate training
+        default: return .payAttention       // Pay attention - low recovery, rest/easy day
         }
     }
 }
@@ -445,19 +445,19 @@ extension RecoveryScore {
     /// Generate AI daily brief based on recovery score and inputs
     var dailyBrief: String {
         switch band {
-        case .excellent:
-            return generateExcellentBrief()
+        case .optimal:
+            return generateOptimalBrief()
         case .good:
             return generateGoodBrief()
         case .fair:
             return generateFairBrief()
-        case .poor:
-            return generatePoorBrief()
+        case .payAttention:
+            return generatePayAttentionBrief()
         }
     }
     
-    private func generateExcellentBrief() -> String {
-        var brief = "Recovery is strong"
+    private func generateOptimalBrief() -> String {
+        var brief = "Recovery is optimal"
         
         // Add specific improvements
         if let hrv = inputs.hrv, let baseline = inputs.hrvBaseline, baseline > 0 {
@@ -516,8 +516,8 @@ extension RecoveryScore {
         return brief
     }
     
-    private func generatePoorBrief() -> String {
-        var brief = "Low recovery"
+    private func generatePayAttentionBrief() -> String {
+        var brief = "Recovery needs attention"
         
         // Add sleep score information if available
         if let sleepScore = inputs.sleepScore {

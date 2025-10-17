@@ -12,36 +12,36 @@ struct SleepScore: Codable {
     let calculatedAt: Date
     
     enum SleepBand: String, CaseIterable, Codable {
-        case excellent = "Excellent"
+        case optimal = "Optimal"
         case good = "Good"
         case fair = "Fair"
-        case poor = "Poor"
+        case payAttention = "Pay Attention"
         
         var color: String {
             switch self {
-            case .excellent: return "green"
+            case .optimal: return "green"
             case .good: return "yellow"
             case .fair: return "orange"
-            case .poor: return "red"
+            case .payAttention: return "red"
             }
         }
         
         /// Get the SwiftUI Color token for this sleep band
         var colorToken: Color {
             switch self {
-            case .excellent: return ColorScale.greenAccent
+            case .optimal: return ColorScale.greenAccent
             case .good: return ColorScale.yellowAccent
             case .fair: return ColorScale.amberAccent
-            case .poor: return ColorScale.redAccent
+            case .payAttention: return ColorScale.redAccent
             }
         }
         
         var description: String {
             switch self {
-            case .excellent: return "Excellent"
-            case .good: return "Good"
-            case .fair: return "Fair"
-            case .poor: return "Poor"
+            case .optimal: return SleepContent.Bands.optimal
+            case .good: return SleepContent.Bands.good
+            case .fair: return SleepContent.Bands.fair
+            case .payAttention: return SleepContent.Bands.payAttention
             }
         }
     }
@@ -217,10 +217,10 @@ class SleepScoreCalculator {
     
     private static func determineBand(score: Double) -> SleepScore.SleepBand {
         switch score {
-        case 80...100: return .excellent
+        case 80...100: return .optimal
         case 60..<80: return .good
         case 40..<60: return .fair
-        default: return .poor
+        default: return .payAttention
         }
     }
 }
@@ -231,19 +231,19 @@ extension SleepScore {
     /// Generate AI daily brief based on sleep score and inputs
     var dailyBrief: String {
         switch band {
-        case .excellent:
-            return generateExcellentBrief()
+        case .optimal:
+            return generateOptimalBrief()
         case .good:
             return generateGoodBrief()
         case .fair:
             return generateFairBrief()
-        case .poor:
-            return generatePoorBrief()
+        case .payAttention:
+            return generatePayAttentionBrief()
         }
     }
     
-    private func generateExcellentBrief() -> String {
-        var brief = "Excellent sleep quality"
+    private func generateOptimalBrief() -> String {
+        var brief = "Optimal sleep quality"
         
         if let sleepDuration = inputs.sleepDuration {
             let hours = sleepDuration / 3600
@@ -266,8 +266,8 @@ extension SleepScore {
         return "Fair sleep quality. Consider lighter training or focus on recovery."
     }
     
-    private func generatePoorBrief() -> String {
-        return "Poor sleep quality. Rest day recommended or very light activity only."
+    private func generatePayAttentionBrief() -> String {
+        return "Sleep needs attention. Rest day recommended or very light activity only."
     }
     
     /// Formatted score for display

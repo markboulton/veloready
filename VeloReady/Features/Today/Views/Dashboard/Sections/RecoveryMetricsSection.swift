@@ -135,7 +135,7 @@ struct RecoveryMetricsSection: View {
                             CompactRingView(
                                 score: nil,
                                 title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
-                                band: SleepScore.SleepBand.poor,
+                                band: SleepScore.SleepBand.payAttention,
                                 animationDelay: 0.1,
                                 action: {
                                     // Action handled by button wrapper
@@ -199,7 +199,7 @@ struct RecoveryMetricsSection: View {
                         CompactRingView(
                             score: nil,
                             title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
-                            band: SleepScore.SleepBand.poor,
+                            band: SleepScore.SleepBand.payAttention,
                             animationDelay: 0.1,
                             action: {
                                 // Action handled by button wrapper

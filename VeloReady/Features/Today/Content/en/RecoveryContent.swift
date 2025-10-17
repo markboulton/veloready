@@ -27,19 +27,21 @@ enum RecoveryContent {
     }
     
     // MARK: - Bands
+    /// Use centralized scoring terminology from ScoringContent
     enum Bands {
-        static let excellent = "Excellent"  /// Excellent band (80-100)
-        static let good = "Good"  /// Good band (60-79)
-        static let fair = "Fair"  /// Fair band (40-59)
-        static let poor = "Poor"  /// Poor band (0-39)
+        static let optimal = ScoringContent.Bands.optimal  /// Optimal band (80-100)
+        static let good = ScoringContent.Bands.good  /// Good band (60-79)
+        static let fair = ScoringContent.Bands.fair  /// Fair band (40-59)
+        static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention band (0-39)
     }
     
     // MARK: - Band Descriptions
+    /// Use centralized recovery descriptions from ScoringContent
     enum BandDescriptions {
-        static let excellent = "Fully Recovered"  /// Excellent description
-        static let good = "Well Recovered"  /// Good description
-        static let fair = "Partially Recovered"  /// Fair description
-        static let poor = "Low Recovery"  /// Poor description
+        static let optimal = ScoringContent.RecoveryDescriptions.optimal  /// Optimal description
+        static let good = ScoringContent.RecoveryDescriptions.good  /// Good description
+        static let fair = ScoringContent.RecoveryDescriptions.fair  /// Fair description
+        static let payAttention = ScoringContent.RecoveryDescriptions.payAttention  /// Pay attention description
     }
     
     // MARK: - Messages

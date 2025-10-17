@@ -13,11 +13,21 @@ enum SleepContent {
     static let trendTitle = "Sleep Trend"  /// Trend chart title (period shown in selector)
     
     // MARK: - Bands
+    /// Use centralized scoring terminology from ScoringContent
     enum Bands {
-        static let excellent = "Excellent"  /// Excellent sleep (80-100)
-        static let good = "Good"  /// Good sleep (60-79)
-        static let fair = "Fair"  /// Fair sleep (40-59)
-        static let poor = "Poor"  /// Poor sleep (0-39)
+        static let optimal = ScoringContent.Bands.optimal  /// Optimal sleep (80-100)
+        static let good = ScoringContent.Bands.good  /// Good sleep (60-79)
+        static let fair = ScoringContent.Bands.fair  /// Fair sleep (40-59)
+        static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention sleep (0-39)
+    }
+    
+    // MARK: - Band Descriptions
+    /// Use centralized sleep descriptions from ScoringContent
+    enum BandDescriptions {
+        static let optimal = ScoringContent.SleepDescriptions.optimal  /// Optimal description
+        static let good = ScoringContent.SleepDescriptions.good  /// Good description
+        static let fair = ScoringContent.SleepDescriptions.fair  /// Fair description
+        static let payAttention = ScoringContent.SleepDescriptions.payAttention  /// Pay attention description
     }
     
     // MARK: - Components

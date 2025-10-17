@@ -14,19 +14,22 @@ enum LoadContent {
     static let trendTitle = "Load Trend"  /// Trend chart title (period shown in selector)
     
     // MARK: - Bands
+    /// Use centralized scoring terminology from ScoringContent
+    /// Note: Load bands are inverted (low load = optimal, high load = pay attention)
     enum Bands {
-        static let low = "Low"  /// Low load (0-39)
-        static let moderate = "Moderate"  /// Moderate load (40-59)
-        static let high = "High"  /// High load (60-79)
-        static let extreme = "Extreme"  /// Extreme load (80-100)
+        static let optimal = ScoringContent.Bands.optimal  /// Optimal (low) load (0-39)
+        static let good = ScoringContent.Bands.good  /// Good (moderate) load (40-59)
+        static let fair = ScoringContent.Bands.fair  /// Fair (high) load (60-79)
+        static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention (extreme) load (80-100)
     }
     
     // MARK: - Band Descriptions
+    /// Use centralized load descriptions from ScoringContent
     enum BandDescriptions {
-        static let low = "Light Day"  /// Low description
-        static let moderate = "Moderate Training"  /// Moderate description
-        static let high = "Hard Training"  /// High description
-        static let extreme = "Very Hard Training"  /// Extreme description
+        static let optimal = ScoringContent.LoadDescriptions.optimal  /// Optimal description
+        static let good = ScoringContent.LoadDescriptions.good  /// Good description
+        static let fair = ScoringContent.LoadDescriptions.fair  /// Fair description
+        static let payAttention = ScoringContent.LoadDescriptions.payAttention  /// Pay attention description
     }
     
     // MARK: - Components
