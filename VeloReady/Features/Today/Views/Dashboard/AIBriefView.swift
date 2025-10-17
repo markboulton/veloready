@@ -103,9 +103,10 @@ private struct TrainingMetricsView: View {
             Divider()
             
             // TSB (Training Stress Balance)
-            if let recovery = recoveryService.currentRecoveryScore,
-               let ctl = recovery.inputs.ctl,
-               let atl = recovery.inputs.atl {
+            if let recovery = recoveryService.currentRecoveryScore {
+                // Use actual CTL/ATL if available, otherwise use defaults
+                let ctl = recovery.inputs.ctl ?? 50.0
+                let atl = recovery.inputs.atl ?? 45.0
                 let tsb = ctl - atl
                 
                 HStack(alignment: .top, spacing: 8) {
@@ -135,8 +136,9 @@ private struct TrainingMetricsView: View {
             }
             
             // Target TSS Range
-            if let recovery = recoveryService.currentRecoveryScore,
-               let ctl = recovery.inputs.ctl {
+            if let recovery = recoveryService.currentRecoveryScore {
+                // Use actual CTL if available, otherwise use default
+                let ctl = recovery.inputs.ctl ?? 50.0
                 let tssLow = Int(ctl * 0.8)
                 let tssHigh = Int(ctl * 1.5)
                 

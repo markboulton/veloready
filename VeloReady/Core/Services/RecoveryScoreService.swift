@@ -292,26 +292,23 @@ class RecoveryScoreService: ObservableObject {
         let today = calendar.startOfDay(for: Date())
         let fortyTwoDaysAgo = calendar.date(byAdding: .day, value: -42, to: today)!
         
-        // Get activities from multiple sources
+        // Get activities from unified service (handles Intervals.icu + Strava fallback)
         var allActivities: [UnifiedActivity] = []
         
-        // 1. Try Intervals.icu activities
         do {
-            let intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
-            Logger.data("Got \(intervalsActivities.count) Intervals.icu activities")
+            // Use UnifiedActivityService which properly handles Strava fallback
+            let activities = try await UnifiedActivityService.shared.fetchActivitiesForTrainingLoad()
+            Logger.data("Got \(activities.count) activities from unified service")
             
             // Convert to UnifiedActivity using proper initializer
-            for activity in intervalsActivities {
+            for activity in activities {
                 allActivities.append(UnifiedActivity(from: activity))
             }
         } catch {
-            Logger.warning("️ Could not fetch Intervals activities: \(error)")
+            Logger.warning("️ Could not fetch activities from unified service: \(error)")
         }
         
-        // Note: Strava activities are already included via Intervals.icu if synced
-        // No need to fetch separately to avoid duplicates
-        
-        // Filter to last 42 days
+        // Filter to last 42 days (should already be filtered, but double-check)
         let recentActivities = allActivities.filter { activity in
             activity.startDate >= fortyTwoDaysAgo
         }
