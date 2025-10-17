@@ -492,6 +492,7 @@ class HealthKitManager: ObservableObject {
                 
                 var earliestBedtime: Date?
                 var latestWakeTime: Date?
+                var firstSleepTime: Date? // Track first actual sleep stage for latency
                 
                 for sample in mostRecentSession {
                     let duration = sample.endDate.timeIntervalSince(sample.startDate)
@@ -507,10 +508,19 @@ class HealthKitManager: ObservableObject {
                     switch sample.value {
                     case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
                         deepSleep += duration
+                        if firstSleepTime == nil {
+                            firstSleepTime = sample.startDate
+                        }
                     case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
                         remSleep += duration
+                        if firstSleepTime == nil {
+                            firstSleepTime = sample.startDate
+                        }
                     case HKCategoryValueSleepAnalysis.asleepCore.rawValue:
                         coreSleep += duration
+                        if firstSleepTime == nil {
+                            firstSleepTime = sample.startDate
+                        }
                     case HKCategoryValueSleepAnalysis.awake.rawValue:
                         awake += duration
                         wakeCount += 1
@@ -518,6 +528,9 @@ class HealthKitManager: ObservableObject {
                         inBed += duration
                     case HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
                         coreSleep += duration // Treat unspecified as core
+                        if firstSleepTime == nil {
+                            firstSleepTime = sample.startDate
+                        }
                     default:
                         break
                     }
@@ -556,6 +569,7 @@ class HealthKitManager: ObservableObject {
                     wakeEvents: max(0, wakeCount - 1), // Don't count initial wake
                     bedtime: earliestBedtime,
                     wakeTime: latestWakeTime,
+                    firstSleepTime: firstSleepTime,
                     sample: mostRecentSession.first
                 )
                 
@@ -1350,5 +1364,6 @@ struct HealthKitSleepData {
     let wakeEvents: Int
     let bedtime: Date?
     let wakeTime: Date?
+    let firstSleepTime: Date? // Time of first sleep stage (for latency calculation)
     let sample: HKCategorySample?
 }

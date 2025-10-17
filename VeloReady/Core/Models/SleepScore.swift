@@ -92,6 +92,7 @@ struct SleepScore: Codable {
         let baselineWakeTime: Date? // 7-day average wake time
         let hrvOvernight: Double? // average HRV during sleep
         let hrvBaseline: Double? // 7-day average HRV
+        let sleepLatency: Double? // seconds (time from in bed to first sleep)
     }
 }
 

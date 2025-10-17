@@ -199,6 +199,15 @@ class SleepScoreService: ObservableObject {
         async let historicalSleepData = healthKitManager.fetchHistoricalSleepData(days: 7)
         let sleepTimes = await historicalSleepData
         
+        // Calculate sleep latency (time from in bed to first sleep)
+        let sleepLatency: Double? = {
+            guard let bedtime = sleepInfo.bedtime,
+                  let firstSleep = sleepInfo.firstSleepTime else {
+                return nil
+            }
+            return firstSleep.timeIntervalSince(bedtime)
+        }()
+        
         // Build sleep score inputs
         let inputs = SleepScore.SleepInputs(
             sleepDuration: sleepInfo.sleepDuration,
@@ -214,7 +223,8 @@ class SleepScoreService: ObservableObject {
             baselineBedtime: calculateRealBaselineBedtime(from: sleepTimes),
             baselineWakeTime: calculateRealBaselineWakeTime(from: sleepTimes),
             hrvOvernight: hrv.value,
-            hrvBaseline: hrvBaseline
+            hrvBaseline: hrvBaseline,
+            sleepLatency: sleepLatency
         )
         
         Logger.debug("🔍 Sleep Score Inputs:")

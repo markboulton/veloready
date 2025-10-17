@@ -490,7 +490,8 @@ struct SleepDetailView_Previews: PreviewProvider {
                 baselineBedtime: Date(),
                 baselineWakeTime: Date(),
                 hrvOvernight: 45.0,
-                hrvBaseline: 42.0
+                hrvBaseline: 42.0,
+                sleepLatency: 900 // 15 minutes
             ),
             calculatedAt: Date()
         )
