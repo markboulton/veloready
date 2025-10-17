@@ -374,12 +374,12 @@ struct RecoveryDetailView: View {
     
     @ViewBuilder
     private var recoveryDebtSection: some View {
-        if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(RecoveryContent.NewMetrics.recoveryDebt)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
+        VStack(alignment: .leading, spacing: 16) {
+            Text(RecoveryContent.NewMetrics.recoveryDebt)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
                 HStack(spacing: 12) {
                     Image(systemName: "bolt.heart.fill")
                         .font(.title2)
@@ -412,28 +412,25 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.primary)
                     .padding(.top, 4)
-            }
-        } else {
-            // Debug: Show when data is not available
-            VStack(alignment: .leading, spacing: 8) {
-                Text(RecoveryContent.NewMetrics.recoveryDebt)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Text("Calculating... Pull to refresh to update")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            } else {
+                // Check data availability
+                dataAvailabilityMessage(
+                    requiredDays: 7,
+                    metricName: "Recovery Debt",
+                    description: "Tracks consecutive days of suboptimal recovery to prevent overtraining"
+                )
             }
         }
     }
     
     @ViewBuilder
     private var readinessSection: some View {
-        if let readiness = RecoveryScoreService.shared.currentReadinessScore {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(ReadinessContent.title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
+        VStack(alignment: .leading, spacing: 16) {
+            Text(ReadinessContent.title)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let readiness = RecoveryScoreService.shared.currentReadinessScore {
                 
                 HStack(spacing: 12) {
                     Image(systemName: "figure.run")
@@ -467,17 +464,24 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
+            } else {
+                dataAvailabilityMessage(
+                    requiredDays: 1,
+                    metricName: "Readiness",
+                    description: "Combines recovery, sleep, and training load for actionable training guidance"
+                )
             }
         }
     }
     
     @ViewBuilder
     private var resilienceSection: some View {
-        if let resilience = RecoveryScoreService.shared.currentResilienceScore {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(RecoveryContent.NewMetrics.resilience)
-                    .font(.headline)
-                    .fontWeight(.semibold)
+        VStack(alignment: .leading, spacing: 16) {
+            Text(RecoveryContent.NewMetrics.resilience)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let resilience = RecoveryScoreService.shared.currentResilienceScore {
                 
                 HStack(spacing: 12) {
                     Image(systemName: "figure.strengthtraining.traditional")
@@ -516,8 +520,80 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.primary)
                     .padding(.top, 4)
+            } else {
+                dataAvailabilityMessage(
+                    requiredDays: 30,
+                    metricName: "Resilience",
+                    description: "Analyzes your recovery capacity relative to training load over 30 days"
+                )
             }
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    @ViewBuilder
+    private func dataAvailabilityMessage(requiredDays: Int, metricName: String, description: String) -> some View {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) else {
+            return AnyView(EmptyView())
+        }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+        
+        let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+        let daysRemaining = max(0, requiredDays - availableDays)
+        
+        return AnyView(
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.fill")
+                        .foregroundColor(.secondary)
+                    
+                    if daysRemaining > 0 {
+                        Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    } else {
+                        Text("Calculating...")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if daysRemaining > 0 {
+                    HStack(spacing: 4) {
+                        Text("\(availableDays) of \(requiredDays) days")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                        
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color(.systemGray5))
+                                    .frame(height: 4)
+                                
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorScale.blueAccent)
+                                    .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(requiredDays), height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+                    }
+                    .padding(.top, 4)
+                }
+            }
+        )
     }
 }
 

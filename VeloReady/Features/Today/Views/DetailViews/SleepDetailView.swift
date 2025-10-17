@@ -402,9 +402,11 @@ struct SleepDetailView: View {
                     .foregroundColor(.primary)
                     .padding(.top, 4)
             } else {
-                Text("Calculating from 7-day history...")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                sleepDataAvailabilityMessage(
+                    requiredDays: 7,
+                    metricName: "Sleep Debt",
+                    description: "Tracks cumulative sleep deficit to identify recovery needs"
+                )
             }
         }
     }
@@ -455,11 +457,79 @@ struct SleepDetailView: View {
                     .foregroundColor(.primary)
                     .padding(.top, 4)
             } else {
-                Text("Calculating from 7-day history...")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                sleepDataAvailabilityMessage(
+                    requiredDays: 7,
+                    metricName: "Sleep Consistency",
+                    description: "Measures circadian rhythm health via sleep schedule variability"
+                )
             }
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    @ViewBuilder
+    private func sleepDataAvailabilityMessage(requiredDays: Int, metricName: String, description: String) -> some View {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) else {
+            return AnyView(EmptyView())
+        }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+        
+        let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+        let daysRemaining = max(0, requiredDays - availableDays)
+        
+        return AnyView(
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.fill")
+                        .foregroundColor(.secondary)
+                    
+                    if daysRemaining > 0 {
+                        Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    } else {
+                        Text("Calculating...")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if daysRemaining > 0 {
+                    HStack(spacing: 4) {
+                        Text("\(availableDays) of \(requiredDays) days")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                        
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color(.systemGray5))
+                                    .frame(height: 4)
+                                
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorScale.purpleAccent)
+                                    .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(requiredDays), height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+                    }
+                    .padding(.top, 4)
+                }
+            }
+        )
     }
 }
 
