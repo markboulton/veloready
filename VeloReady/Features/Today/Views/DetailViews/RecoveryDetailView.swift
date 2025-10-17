@@ -555,43 +555,35 @@ struct RecoveryDetailView: View {
                     Image(systemName: "clock.fill")
                         .foregroundColor(.secondary)
                     
-                    if daysRemaining > 0 {
-                        Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                    } else {
-                        Text("Calculating...")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                    }
+                    Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                 }
                 
                 Text(description)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                if daysRemaining > 0 {
-                    HStack(spacing: 4) {
-                        Text("\(availableDays) of \(requiredDays) days")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                        
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(Color(.systemGray5))
-                                    .frame(height: 4)
-                                
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(ColorScale.blueAccent)
-                                    .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(requiredDays), height: 4)
-                            }
+                HStack(spacing: 4) {
+                    Text("\(availableDays) of \(requiredDays) days")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(.systemGray5))
+                                .frame(height: 4)
+                            
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(ColorScale.blueAccent)
+                                .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(requiredDays), height: 4)
                         }
-                        .frame(height: 4)
                     }
-                    .padding(.top, 4)
+                    .frame(height: 4)
                 }
+                .padding(.top, 4)
             }
         )
     }
