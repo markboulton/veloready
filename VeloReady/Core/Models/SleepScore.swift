@@ -80,13 +80,14 @@ class SleepScoreCalculator {
     static func calculate(inputs: SleepScore.SleepInputs) -> SleepScore {
         let subScores = calculateSubScores(inputs: inputs)
         
-        // Reweighted formula to prioritize quality over duration (better for alcohol detection):
-        // Performance 30%, Stage Quality 30%, Efficiency 20%, Disturbances 15%, Timing 5%
+        // Reweighted formula to prioritize quality over duration and timing:
+        // Performance 30%, Stage Quality 32%, Efficiency 22%, Disturbances 14%, Timing 2%
+        // Timing reduced to 2% as it's less critical than sleep quality metrics
         let performanceFactor = Double(subScores.performance) * 0.30
-        let efficiencyFactor = Double(subScores.efficiency) * 0.20
-        let stageQualityFactor = Double(subScores.stageQuality) * 0.30
-        let disturbancesFactor = Double(subScores.disturbances) * 0.15
-        let timingFactor = Double(subScores.timing) * 0.05
+        let efficiencyFactor = Double(subScores.efficiency) * 0.22
+        let stageQualityFactor = Double(subScores.stageQuality) * 0.32
+        let disturbancesFactor = Double(subScores.disturbances) * 0.14
+        let timingFactor = Double(subScores.timing) * 0.02
         
         let finalScore = max(0, min(100, performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor))
         let band = determineBand(score: finalScore)
@@ -94,7 +95,7 @@ class SleepScoreCalculator {
         // Log calculation with new weights
         Logger.debug("💤 SLEEP SCORE CALCULATION (NEW WEIGHTS):")
         Logger.debug("   Sub-scores: Perf=\(subScores.performance), Quality=\(subScores.stageQuality), Eff=\(subScores.efficiency), Disturb=\(subScores.disturbances), Timing=\(subScores.timing)")
-        Logger.debug("   Weighted:   Perf=\(String(format: "%.1f", performanceFactor)) (30%), Quality=\(String(format: "%.1f", stageQualityFactor)) (30%), Eff=\(String(format: "%.1f", efficiencyFactor)) (20%), Disturb=\(String(format: "%.1f", disturbancesFactor)) (15%), Timing=\(String(format: "%.1f", timingFactor)) (5%)")
+        Logger.debug("   Weighted:   Perf=\(String(format: "%.1f", performanceFactor)) (30%), Quality=\(String(format: "%.1f", stageQualityFactor)) (32%), Eff=\(String(format: "%.1f", efficiencyFactor)) (22%), Disturb=\(String(format: "%.1f", disturbancesFactor)) (14%), Timing=\(String(format: "%.1f", timingFactor)) (2%)")
         Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue) - \(band.color.uppercased()))")
         
         if subScores.stageQuality < 60 || subScores.disturbances < 75 {

@@ -6,6 +6,7 @@ import CryptoKit
 struct AIBriefRequest: Codable {
     let recovery: Int
     let sleepDelta: Double?
+    let sleepScore: Int? // Comprehensive sleep score (0-100)
     let hrvDelta: Double?
     let rhrDelta: Double?
     let tsb: Double

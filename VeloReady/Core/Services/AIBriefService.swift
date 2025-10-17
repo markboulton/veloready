@@ -93,6 +93,7 @@ class AIBriefService: ObservableObject {
         
         // Calculate deltas from baselines
         let sleepDelta = calculateSleepDelta(recovery: recovery)
+        let sleepScore = recovery.inputs.sleepScore?.score
         let hrvDelta = calculateHRVDelta(recovery: recovery)
         let rhrDelta = calculateRHRDelta(recovery: recovery)
         
@@ -117,6 +118,7 @@ class AIBriefService: ObservableObject {
         let request = AIBriefRequest(
             recovery: recovery.score,
             sleepDelta: sleepDelta,
+            sleepScore: sleepScore,
             hrvDelta: hrvDelta,
             rhrDelta: rhrDelta,
             tsb: tsb,
@@ -130,6 +132,7 @@ class AIBriefService: ObservableObject {
         Logger.data("========================================")
         Logger.data("AI BRIEF REQUEST DATA:")
         Logger.data("  Recovery: \(request.recovery)")
+        Logger.data("  Sleep Score: \(request.sleepScore.map { "\($0)/100" } ?? "nil")")
         Logger.data("  Sleep Delta: \(request.sleepDelta.map { String(format: "%.1f", $0) + "h" } ?? "nil")")
         Logger.data("  HRV Delta: \(request.hrvDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
         Logger.data("  RHR Delta: \(request.rhrDelta.map { String(format: "%.1f", $0) + "%" } ?? "nil")")
