@@ -28,6 +28,24 @@ struct RecoveryDetailView: View {
                     
                     SectionDivider()
                     
+                    // Recovery Debt
+                    recoveryDebtSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
+                    // Readiness Score
+                    readinessSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
+                    // Resilience Score
+                    resilienceSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
                     // Apple Health metrics
                     healthMetricsSection
                         .padding()
@@ -349,6 +367,145 @@ struct RecoveryDetailView: View {
                 date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
                 value: Double.random(in: 60...85)
             )
+        }
+    }
+    
+    // MARK: - New Metrics Sections
+    
+    @ViewBuilder
+    private var recoveryDebtSection: some View {
+        if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(RecoveryContent.NewMetrics.recoveryDebt)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "bolt.heart.fill")
+                        .font(.title2)
+                        .foregroundColor(debt.band.colorToken)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(debt.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(debt.band.colorToken)
+                        
+                        Text("\(debt.consecutiveDays) consecutive days below 60")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(debt.consecutiveDays)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(debt.band.colorToken)
+                }
+                
+                Text(debt.band.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text(debt.band.recommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var readinessSection: some View {
+        if let readiness = RecoveryScoreService.shared.currentReadinessScore {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(ReadinessContent.title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "figure.run")
+                        .font(.title2)
+                        .foregroundColor(readiness.band.colorToken)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(readiness.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(readiness.band.colorToken)
+                        
+                        Text("Recovery \(readiness.components.recoveryScore) • Sleep \(readiness.components.sleepScore) • Load \(readiness.components.loadReadiness)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(readiness.score)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(readiness.band.colorToken)
+                }
+                
+                Text(readiness.band.trainingRecommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                
+                Text(readiness.band.intensityGuidance)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var resilienceSection: some View {
+        if let resilience = RecoveryScoreService.shared.currentResilienceScore {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(RecoveryContent.NewMetrics.resilience)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "figure.strengthtraining.traditional")
+                        .font(.title2)
+                        .foregroundColor(resilience.band.colorToken)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(resilience.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(resilience.band.colorToken)
+                        
+                        Text("30-day recovery capacity")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(resilience.score)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(resilience.band.colorToken)
+                }
+                
+                Text(resilience.band.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("Avg Recovery: \(String(format: "%.0f", resilience.averageRecovery)) • Avg Load: \(String(format: "%.1f", resilience.averageLoad))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+                
+                Text(resilience.band.recommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(.top, 4)
+            }
         }
     }
 }

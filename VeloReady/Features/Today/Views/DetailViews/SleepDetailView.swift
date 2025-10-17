@@ -45,6 +45,18 @@ struct SleepDetailView: View {
                     
                     SectionDivider()
                     
+                    // Sleep Debt
+                    sleepDebtSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
+                    // Sleep Consistency
+                    sleepConsistencySection
+                        .padding()
+                    
+                    SectionDivider()
+                    
                     // Recommendations
                     recommendationsSection
                         .padding()
@@ -339,6 +351,106 @@ struct SleepDetailView: View {
                 date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
                 value: Double.random(in: 70...95)
             )
+        }
+    }
+    
+    // MARK: - New Metrics Sections
+    
+    @ViewBuilder
+    private var sleepDebtSection: some View {
+        if let debt = SleepScoreService.shared.currentSleepDebt {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(SleepContent.NewMetrics.sleepDebt)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.title2)
+                        .foregroundColor(debt.band.colorToken)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(debt.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(debt.band.colorToken)
+                        
+                        Text("7-day cumulative deficit")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text(String(format: "%.1fh", debt.totalDebtHours))
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(debt.band.colorToken)
+                }
+                
+                Text(debt.band.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("Avg sleep: \(String(format: "%.1fh", debt.averageSleepDuration)) • Need: \(String(format: "%.1fh", debt.sleepNeed))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+                
+                Text(debt.band.recommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(.top, 4)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var sleepConsistencySection: some View {
+        if let consistency = SleepScoreService.shared.currentSleepConsistency {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(SleepContent.NewMetrics.consistency)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "clock.fill")
+                        .font(.title2)
+                        .foregroundColor(consistency.band.colorToken)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(consistency.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(consistency.band.colorToken)
+                        
+                        Text("Circadian rhythm health")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(consistency.score)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(consistency.band.colorToken)
+                }
+                
+                Text(consistency.band.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("Bedtime: ±\(Int(consistency.bedtimeVariability))min • Wake: ±\(Int(consistency.wakeTimeVariability))min")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+                
+                Text(consistency.band.recommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(.top, 4)
+            }
         }
     }
 }
