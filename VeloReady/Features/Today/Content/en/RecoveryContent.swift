@@ -35,13 +35,20 @@ enum RecoveryContent {
         static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention band (0-39)
     }
     
-    // MARK: - Band Descriptions
+    // MARK: - Band Descriptions (Enhanced with actionable guidance)
     /// Use centralized recovery descriptions from ScoringContent
     enum BandDescriptions {
-        static let optimal = ScoringContent.RecoveryDescriptions.optimal  /// Optimal description
-        static let good = ScoringContent.RecoveryDescriptions.good  /// Good description
-        static let fair = ScoringContent.RecoveryDescriptions.fair  /// Fair description
-        static let payAttention = ScoringContent.RecoveryDescriptions.payAttention  /// Pay attention description
+        static let optimal = "Fully Recovered - Ready for High Intensity"
+        static let good = "Well Recovered - Moderate to High Intensity Safe"
+        static let fair = "Partially Recovered - Easy to Moderate Only"
+        static let payAttention = "Low Recovery - Rest or Very Light Activity"
+    }
+    
+    // MARK: - New Metrics
+    enum NewMetrics {
+        static let recoveryDebt = "Recovery Debt"
+        static let readiness = "Readiness"
+        static let resilience = "Resilience"
     }
     
     // MARK: - Messages

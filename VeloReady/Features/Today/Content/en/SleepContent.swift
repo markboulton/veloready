@@ -21,13 +21,20 @@ enum SleepContent {
         static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention sleep (0-39)
     }
     
-    // MARK: - Band Descriptions
+    // MARK: - Band Descriptions (Enhanced with recovery context)
     /// Use centralized sleep descriptions from ScoringContent
     enum BandDescriptions {
-        static let optimal = ScoringContent.SleepDescriptions.optimal  /// Optimal description
-        static let good = ScoringContent.SleepDescriptions.good  /// Good description
-        static let fair = ScoringContent.SleepDescriptions.fair  /// Fair description
-        static let payAttention = ScoringContent.SleepDescriptions.payAttention  /// Pay attention description
+        static let optimal = "Restorative Sleep - Full Physical & Mental Recovery"
+        static let good = "Quality Sleep - Good Recovery Achieved"
+        static let fair = "Adequate Sleep - Partial Recovery"
+        static let payAttention = "Poor Sleep - Recovery Compromised"
+    }
+    
+    // MARK: - New Metrics
+    enum NewMetrics {
+        static let sleepDebt = "Sleep Debt"
+        static let consistency = "Sleep Consistency"
+        static let latency = "Sleep Latency"
     }
     
     // MARK: - Components
