@@ -7,6 +7,8 @@ class SleepScoreService: ObservableObject {
     static let shared = SleepScoreService()
     
     @Published var currentSleepScore: SleepScore?
+    @Published var currentSleepDebt: SleepDebt?
+    @Published var currentSleepConsistency: SleepConsistency?
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -140,6 +142,10 @@ class SleepScoreService: ObservableObject {
         // Use real data
         let realScore = await calculateRealSleepScore()
         currentSleepScore = realScore
+        
+        // Calculate additional sleep metrics
+        await calculateSleepDebt()
+        await calculateSleepConsistency()
         
         // Save to persistent cache for instant loading next time
         if let score = currentSleepScore {
@@ -447,5 +453,56 @@ extension SleepScoreService {
     private func clearSleepScoreCache() {
         userDefaults.removeObject(forKey: cachedSleepScoreKey)
         userDefaults.removeObject(forKey: cachedSleepScoreDateKey)
+    }
+    
+    // MARK: - Additional Sleep Metrics
+    
+    /// Calculate sleep debt from last 7 days
+    private func calculateSleepDebt() async {
+        let sleepNeed = calculateSleepNeed()
+        
+        // Fetch last 7 days of sleep data
+        let sleepData = await healthKitManager.fetchHistoricalSleepData(days: 7)
+        
+        // Extract durations
+        var sleepDurations: [(date: Date, duration: Double)] = []
+        for (bedtime, wakeTime) in sleepData {
+            if let bedtime = bedtime, let wakeTime = wakeTime {
+                let duration = wakeTime.timeIntervalSince(bedtime)
+                sleepDurations.append((date: bedtime, duration: duration))
+            }
+        }
+        
+        // Calculate sleep debt
+        let debt = SleepDebt.calculate(sleepDurations: sleepDurations, sleepNeed: sleepNeed)
+        
+        await MainActor.run {
+            currentSleepDebt = debt
+            Logger.debug("💤 Sleep Debt: \(String(format: "%.1f", debt.totalDebtHours))h (\(debt.band.rawValue))")
+        }
+    }
+    
+    /// Calculate sleep consistency from last 7 days
+    private func calculateSleepConsistency() async {
+        // Fetch last 7 days of sleep data
+        let sleepData = await healthKitManager.fetchHistoricalSleepData(days: 7)
+        
+        // Convert to sleep sessions
+        var sleepSessions: [(bedtime: Date, wakeTime: Date)] = []
+        for (bedtime, wakeTime) in sleepData {
+            if let bedtime = bedtime, let wakeTime = wakeTime {
+                sleepSessions.append((bedtime: bedtime, wakeTime: wakeTime))
+            }
+        }
+        
+        // Calculate consistency
+        let consistency = SleepConsistency.calculate(sleepSessions: sleepSessions)
+        
+        await MainActor.run {
+            currentSleepConsistency = consistency
+            Logger.debug("📊 Sleep Consistency: \(consistency.score) (\(consistency.band.rawValue))")
+            Logger.debug("   Bedtime variability: \(String(format: "%.1f", consistency.bedtimeVariability)) min")
+            Logger.debug("   Wake time variability: \(String(format: "%.1f", consistency.wakeTimeVariability)) min")
+        }
     }
 }

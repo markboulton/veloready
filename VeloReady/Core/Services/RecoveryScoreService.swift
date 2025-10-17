@@ -7,6 +7,9 @@ class RecoveryScoreService: ObservableObject {
     static let shared = RecoveryScoreService()
     
     @Published var currentRecoveryScore: RecoveryScore?
+    @Published var currentRecoveryDebt: RecoveryDebt?
+    @Published var currentReadinessScore: ReadinessScore?
+    @Published var currentResilienceScore: ResilienceScore?
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -141,6 +144,12 @@ class RecoveryScoreService: ObservableObject {
         // Use real data
         let realScore = await calculateRealRecoveryScore(forceRefresh: forceRefresh)
         currentRecoveryScore = realScore
+        
+        // Calculate additional recovery metrics
+        await calculateRecoveryDebt()
+        await calculateReadinessScore()
+        await calculateResilienceScore()
+        
         // Mark that we've calculated today's recovery score and save to cache
         if let score = currentRecoveryScore {
             // Check if recovery score actually changed
@@ -667,5 +676,104 @@ extension RecoveryScoreService {
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() {
         baselineCalculator.clearCache()
+    }
+    
+    // MARK: - Additional Recovery Metrics
+    
+    /// Calculate recovery debt from Core Data history
+    private func calculateRecoveryDebt() async {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        // Fetch last 14 days of recovery scores from Core Data
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: endDate) else { return }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            let recoveryScores = results.compactMap { dailyScore -> (date: Date, score: Int)? in
+                guard let date = dailyScore.date else { return nil }
+                return (date: date, score: Int(dailyScore.recoveryScore))
+            }
+            
+            let debt = RecoveryDebt.calculate(recoveryScores: recoveryScores)
+            
+            await MainActor.run {
+                currentRecoveryDebt = debt
+                Logger.debug("🔋 Recovery Debt: \(debt.consecutiveDays) days (\(debt.band.rawValue))")
+            }
+        } catch {
+            Logger.error("Failed to fetch recovery history: \(error)")
+        }
+    }
+    
+    /// Calculate readiness score from recovery, sleep, and strain
+    private func calculateReadinessScore() async {
+        guard let recovery = currentRecoveryScore else { return }
+        
+        // Get sleep score
+        let sleepScore = sleepScoreService.currentSleepScore?.score ?? 50
+        
+        // Get strain score from StrainScoreService
+        let strainScore = StrainScoreService.shared.currentStrainScore?.score ?? 0
+        
+        let readiness = ReadinessScore.calculate(
+            recoveryScore: recovery.score,
+            sleepScore: sleepScore,
+            strainScore: strainScore
+        )
+        
+        await MainActor.run {
+            currentReadinessScore = readiness
+            Logger.debug("🎯 Readiness: \(readiness.score) (\(readiness.band.rawValue))")
+            Logger.debug("   Recovery: \(recovery.score), Sleep: \(sleepScore), Load: \(Int(strainScore))")
+        }
+    }
+    
+    /// Calculate resilience score from 30-day history
+    private func calculateResilienceScore() async {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        // Fetch last 30 days of recovery and strain scores from Core Data
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -30, to: endDate) else { return }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            
+            let recoveryScores = results.compactMap { dailyScore -> (date: Date, score: Int)? in
+                guard let date = dailyScore.date else { return nil }
+                return (date: date, score: Int(dailyScore.recoveryScore))
+            }
+            
+            let strainScores = results.compactMap { dailyScore -> (date: Date, score: Double)? in
+                guard let date = dailyScore.date else { return nil }
+                return (date: date, score: dailyScore.strainScore)
+            }
+            
+            let resilience = ResilienceScore.calculate(
+                recoveryScores: recoveryScores,
+                strainScores: strainScores
+            )
+            
+            await MainActor.run {
+                currentResilienceScore = resilience
+                Logger.debug("💪 Resilience: \(resilience.score) (\(resilience.band.rawValue))")
+                Logger.debug("   Avg Recovery: \(String(format: "%.1f", resilience.averageRecovery)), Avg Load: \(String(format: "%.1f", resilience.averageLoad))")
+            }
+        } catch {
+            Logger.error("Failed to fetch resilience history: \(error)")
+        }
     }
 }
