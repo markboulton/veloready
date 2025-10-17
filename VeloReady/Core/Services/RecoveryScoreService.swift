@@ -762,15 +762,20 @@ extension RecoveryScoreService {
                 return (date: date, score: dailyScore.strainScore)
             }
             
-            let resilience = ResilienceScore.calculate(
+            if let resilience = ResilienceScore.calculate(
                 recoveryScores: recoveryScores,
                 strainScores: strainScores
-            )
-            
-            await MainActor.run {
-                currentResilienceScore = resilience
-                Logger.debug("💪 Resilience: \(resilience.score) (\(resilience.band.rawValue))")
-                Logger.debug("   Avg Recovery: \(String(format: "%.1f", resilience.averageRecovery)), Avg Load: \(String(format: "%.1f", resilience.averageLoad))")
+            ) {
+                await MainActor.run {
+                    currentResilienceScore = resilience
+                    Logger.debug("💪 Resilience: \(resilience.score) (\(resilience.band.rawValue))")
+                    Logger.debug("   Avg Recovery: \(String(format: "%.1f", resilience.averageRecovery)), Avg Load: \(String(format: "%.1f", resilience.averageLoad))")
+                }
+            } else {
+                await MainActor.run {
+                    currentResilienceScore = nil
+                    Logger.debug("💪 Resilience: Insufficient valid data (need 14+ days with scores > 0)")
+                }
             }
         } catch {
             Logger.error("Failed to fetch resilience history: \(error)")

@@ -51,6 +51,9 @@ struct RecoveryDetailView: View {
                         .padding()
                 }
             }
+        .refreshable {
+            await RecoveryScoreService.shared.calculateRecoveryScore()
+        }
         .navigationTitle(RecoveryContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }

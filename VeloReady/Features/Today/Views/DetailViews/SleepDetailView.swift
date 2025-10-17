@@ -62,6 +62,9 @@ struct SleepDetailView: View {
                         .padding()
                 }
             }
+        .refreshable {
+            await SleepScoreService.shared.calculateSleepScore()
+        }
         .navigationTitle(SleepContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }

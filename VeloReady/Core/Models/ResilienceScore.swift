@@ -58,22 +58,24 @@ struct ResilienceScore: Codable {
     /// - Parameters:
     ///   - recoveryScores: Array of (date, recovery score) for last 30 days
     ///   - strainScores: Array of (date, strain score) for last 30 days
-    static func calculate(recoveryScores: [(date: Date, score: Int)], strainScores: [(date: Date, score: Double)]) -> ResilienceScore {
+    /// - Returns: ResilienceScore if sufficient data, nil otherwise
+    static func calculate(recoveryScores: [(date: Date, score: Int)], strainScores: [(date: Date, score: Double)]) -> ResilienceScore? {
+        // Need at least 14 days of data
         guard recoveryScores.count >= 14, strainScores.count >= 14 else {
-            // Not enough data - return moderate
-            return ResilienceScore(
-                score: 50,
-                band: .moderate,
-                averageRecovery: 0,
-                averageLoad: 0,
-                recoveryEfficiency: 0,
-                calculatedAt: Date()
-            )
+            return nil
         }
         
-        // Calculate averages
-        let avgRecovery = recoveryScores.map { Double($0.score) }.reduce(0, +) / Double(recoveryScores.count)
-        let avgLoad = strainScores.map { $0.score }.reduce(0, +) / Double(strainScores.count)
+        // Filter out invalid scores (0 or placeholder values)
+        let validRecoveryScores = recoveryScores.filter { $0.score > 0 }
+        let validStrainScores = strainScores.filter { $0.score > 0 }
+        
+        guard validRecoveryScores.count >= 14 else {
+            return nil
+        }
+        
+        // Calculate averages using valid scores only
+        let avgRecovery = validRecoveryScores.map { Double($0.score) }.reduce(0, +) / Double(validRecoveryScores.count)
+        let avgLoad = validStrainScores.isEmpty ? 0 : validStrainScores.map { $0.score }.reduce(0, +) / Double(validStrainScores.count)
         
         // Calculate recovery efficiency: how well recovery holds up relative to load
         // High resilience = high recovery despite high load
@@ -92,7 +94,7 @@ struct ResilienceScore: Codable {
         // 2. Recovery efficiency (40%)
         // 3. Consistency (20%) - lower std dev is better
         
-        let recoveryStdDev = standardDeviation(recoveryScores.map { Double($0.score) })
+        let recoveryStdDev = standardDeviation(validRecoveryScores.map { Double($0.score) })
         let consistencyScore = max(0, 100 - (recoveryStdDev * 2)) // Lower SD = higher score
         
         // Efficiency score: scale 0.5-2.0 efficiency to 0-100
