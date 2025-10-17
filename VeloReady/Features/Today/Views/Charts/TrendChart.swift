@@ -8,6 +8,12 @@ struct TrendChart: View {
     let chartType: ChartType
     let unit: String
     let showProBadge: Bool
+    var dataType: DataType = .recovery // Default to recovery for backward compatibility
+    
+    enum DataType {
+        case recovery
+        case sleep
+    }
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var animateChart: Bool = false
@@ -260,19 +266,76 @@ struct TrendChart: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: Spacing.sm) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: TypeScale.lg))
-                .foregroundColor(Color.text.secondary)
-            Text(ChartContent.EmptyState.noData)
-                .font(.system(size: TypeScale.sm))
-                .foregroundColor(Color.text.secondary)
-            Text(ChartContent.EmptyState.checkBack)
-                .font(.system(size: TypeScale.xs))
-                .foregroundColor(Color.text.tertiary)
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -selectedPeriod.days, to: endDate) else {
+            return AnyView(
+                VStack(spacing: Spacing.sm) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: TypeScale.lg))
+                        .foregroundColor(Color.text.secondary)
+                    Text(ChartContent.EmptyState.noData)
+                        .font(.system(size: TypeScale.sm))
+                        .foregroundColor(Color.text.secondary)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+            )
         }
-        .frame(height: 225)
-        .frame(maxWidth: .infinity)
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        let predicateFormat = dataType == .recovery ?
+            "date >= %@ AND date <= %@ AND recoveryScore > 0" :
+            "date >= %@ AND date <= %@ AND sleepScore > 0"
+        fetchRequest.predicate = NSPredicate(
+            format: predicateFormat,
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        
+        let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+        let daysRemaining = max(0, selectedPeriod.days - availableDays)
+        
+        return AnyView(
+            VStack(spacing: Spacing.md) {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.fill")
+                        .foregroundColor(Color.text.secondary)
+                    
+                    Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                        .font(.system(size: TypeScale.sm, weight: .medium))
+                }
+                
+                Text("Collecting data to show \(selectedPeriod.days)-day trend")
+                    .font(.system(size: TypeScale.xs))
+                    .foregroundColor(Color.text.secondary)
+                
+                HStack(spacing: 4) {
+                    Text("\(availableDays) of \(selectedPeriod.days) days")
+                        .font(.system(size: TypeScale.xxs, weight: .medium))
+                        .foregroundColor(Color.text.secondary)
+                    
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(.systemGray5))
+                                .frame(height: 4)
+                            
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(ColorScale.blueAccent)
+                                .frame(width: geometry.size.width * CGFloat(availableDays) / CGFloat(selectedPeriod.days), height: 4)
+                        }
+                    }
+                    .frame(height: 4)
+                }
+                .padding(.top, 4)
+            }
+            .frame(height: 200)
+            .frame(maxWidth: .infinity)
+        )
     }
     
     // MARK: - Computed Properties
