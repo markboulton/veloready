@@ -85,10 +85,10 @@ struct StrainScore: Codable {
     let calculatedAt: Date
     
     enum StrainBand: String, CaseIterable, Codable {
-        case optimal = "Optimal"
-        case good = "Good"
-        case fair = "Fair"
-        case payAttention = "Pay Attention"
+        case light = "Light"
+        case moderate = "Moderate"
+        case hard = "Hard"
+        case veryHard = "Very Hard"
         
         // Custom decoder to handle legacy cached values
         init(from decoder: Decoder) throws {
@@ -97,14 +97,16 @@ struct StrainScore: Codable {
             
             // Map old values to new cases
             switch rawValue {
-            case "Low": self = .optimal
-            case "Moderate": self = .good
-            case "High": self = .fair
-            case "Extreme": self = .payAttention
-            case "Optimal": self = .optimal
-            case "Good": self = .good
-            case "Fair": self = .fair
-            case "Pay Attention": self = .payAttention
+            case "Low": self = .light
+            case "Moderate": self = .moderate
+            case "High": self = .hard
+            case "Extreme": self = .veryHard
+            case "Optimal": self = .light
+            case "Good": self = .moderate
+            case "Fair": self = .hard
+            case "Pay Attention": self = .veryHard
+            case "Light": self = .light
+            case "Very Hard": self = .veryHard
             default:
                 throw DecodingError.dataCorrupted(
                     DecodingError.Context(
@@ -117,29 +119,29 @@ struct StrainScore: Codable {
         
         var color: String {
             switch self {
-            case .optimal: return "green"
-            case .good: return "yellow"
-            case .fair: return "orange"
-            case .payAttention: return "red"
+            case .light: return "green"
+            case .moderate: return "yellow"
+            case .hard: return "orange"
+            case .veryHard: return "red"
             }
         }
         
         /// Get the SwiftUI Color token for this strain band
         var colorToken: Color {
             switch self {
-            case .optimal: return ColorScale.greenAccent
-            case .good: return ColorScale.yellowAccent
-            case .fair: return ColorScale.amberAccent
-            case .payAttention: return ColorScale.redAccent
+            case .light: return ColorScale.greenAccent
+            case .moderate: return ColorScale.yellowAccent
+            case .hard: return ColorScale.amberAccent
+            case .veryHard: return ColorScale.redAccent
             }
         }
         
         var description: String {
             switch self {
-            case .optimal: return LoadContent.Bands.optimal
-            case .good: return LoadContent.Bands.good
-            case .fair: return LoadContent.Bands.fair
-            case .payAttention: return LoadContent.Bands.payAttention
+            case .light: return LoadContent.Bands.light
+            case .moderate: return LoadContent.Bands.moderate
+            case .hard: return LoadContent.Bands.hard
+            case .veryHard: return LoadContent.Bands.veryHard
             }
         }
     }
@@ -709,10 +711,10 @@ class StrainScoreCalculator {
         // Data-driven thresholds based on 120 days of actual ride data (36 activities)
         // Calibrated to user's TSS distribution: median=52, Q3=106, 90th=181, 99th=490
         switch score {
-        case 0..<5.5: return .optimal        // TSS 0-40 (recovery/easy - 36% of rides)
-        case 5.5..<9.0: return .good         // TSS 40-85 (normal training - 39% of rides)
-        case 9.0..<14.0: return .fair        // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
-        default: return .payAttention        // TSS 250+ (ultra-endurance rides - 3% of rides)
+        case 0..<5.5: return .light          // TSS 0-40 (recovery/easy - 36% of rides)
+        case 5.5..<9.0: return .moderate     // TSS 40-85 (normal training - 39% of rides)
+        case 9.0..<14.0: return .hard        // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
+        default: return .veryHard            // TSS 250+ (ultra-endurance rides - 3% of rides)
         }
     }
     
@@ -793,19 +795,19 @@ extension StrainScore {
     /// Generate AI daily brief based on strain score and inputs
     var dailyBrief: String {
         switch band {
-        case .optimal:
-            return generateOptimalBrief()
-        case .good:
-            return generateGoodBrief()
-        case .fair:
-            return generateFairBrief()
-        case .payAttention:
-            return generatePayAttentionBrief()
+        case .light:
+            return generateLightBrief()
+        case .moderate:
+            return generateModerateBrief()
+        case .hard:
+            return generateHardBrief()
+        case .veryHard:
+            return generateVeryHardBrief()
         }
     }
     
-    private func generateOptimalBrief() -> String {
-        var brief = "Optimal training load"
+    private func generateLightBrief() -> String {
+        var brief = "Light training day"
         
         if let cardio = inputs.cardioDurationMinutes, cardio > 0 {
             brief += " — \(Int(cardio)) min cardio"
@@ -819,12 +821,12 @@ extension StrainScore {
         return brief
     }
     
-    private func generateGoodBrief() -> String {
-        return "Good training load — balanced approach to training and recovery."
+    private func generateModerateBrief() -> String {
+        return "Moderate training load — balanced approach to training and recovery."
     }
     
-    private func generateFairBrief() -> String {
-        var brief = "Fair training load"
+    private func generateHardBrief() -> String {
+        var brief = "Hard training day"
         
         if let cardio = inputs.cardioDurationMinutes, cardio > 120 {
             brief += " — long endurance session"
@@ -838,8 +840,8 @@ extension StrainScore {
         return brief
     }
     
-    private func generatePayAttentionBrief() -> String {
-        return "High training load needs attention — consider additional recovery time. Monitor fatigue levels."
+    private func generateVeryHardBrief() -> String {
+        return "Very hard training load — consider additional recovery time. Monitor fatigue levels closely."
     }
     
     /// Formatted score for display (0-18 scale with 1 decimal)

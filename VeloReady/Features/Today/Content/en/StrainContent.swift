@@ -14,22 +14,21 @@ enum LoadContent {
     static let trendTitle = "Load Trend"  /// Trend chart title (period shown in selector)
     
     // MARK: - Bands
-    /// Use centralized scoring terminology from ScoringContent
-    /// Note: Load bands are inverted (low load = optimal, high load = pay attention)
+    /// Use intensity-based terminology from ScoringContent for load scoring
     enum Bands {
-        static let optimal = ScoringContent.Bands.optimal  /// Optimal (low) load (0-39)
-        static let good = ScoringContent.Bands.good  /// Good (moderate) load (40-59)
-        static let fair = ScoringContent.Bands.fair  /// Fair (high) load (60-79)
-        static let payAttention = ScoringContent.Bands.payAttention  /// Pay attention (extreme) load (80-100)
+        static let light = ScoringContent.LoadBands.light  /// Light (low) load (0-39)
+        static let moderate = ScoringContent.LoadBands.moderate  /// Moderate load (40-59)
+        static let hard = ScoringContent.LoadBands.hard  /// Hard (high) load (60-79)
+        static let veryHard = ScoringContent.LoadBands.veryHard  /// Very hard (extreme) load (80-100)
     }
     
     // MARK: - Band Descriptions
     /// Use centralized load descriptions from ScoringContent
     enum BandDescriptions {
-        static let optimal = ScoringContent.LoadDescriptions.optimal  /// Optimal description
-        static let good = ScoringContent.LoadDescriptions.good  /// Good description
-        static let fair = ScoringContent.LoadDescriptions.fair  /// Fair description
-        static let payAttention = ScoringContent.LoadDescriptions.payAttention  /// Pay attention description
+        static let light = ScoringContent.LoadDescriptions.light  /// Light description
+        static let moderate = ScoringContent.LoadDescriptions.moderate  /// Moderate description
+        static let hard = ScoringContent.LoadDescriptions.hard  /// Hard description
+        static let veryHard = ScoringContent.LoadDescriptions.veryHard  /// Very hard description
     }
     
     // MARK: - Components

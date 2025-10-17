@@ -30,13 +30,22 @@ enum ScoringContent {
         static let payAttention = "Poor Sleep"        /// Pay attention sleep description
     }
     
+    // MARK: - Load Band Labels
+    /// Labels specific to Training Load scoring (intensity-based)
+    enum LoadBands {
+        static let light = "Light"                    /// Light (low) load
+        static let moderate = "Moderate"              /// Moderate load
+        static let hard = "Hard"                      /// Hard (high) load
+        static let veryHard = "Very Hard"             /// Very hard (extreme) load
+    }
+    
     // MARK: - Load Band Descriptions
     /// Descriptions specific to Training Load scoring
     enum LoadDescriptions {
-        static let optimal = "Light Day"              /// Optimal (low) load description
-        static let good = "Moderate Training"         /// Good (moderate) load description
-        static let fair = "Hard Training"             /// Fair (high) load description
-        static let payAttention = "Very Hard Training"  /// Pay attention (extreme) load description
+        static let light = "Easy Day"                 /// Light load description
+        static let moderate = "Standard Training"     /// Moderate load description
+        static let hard = "Challenging Session"       /// Hard load description
+        static let veryHard = "Extreme Training Load" /// Very hard load description
     }
     
     // MARK: - Helper Functions
@@ -71,14 +80,23 @@ enum ScoringContent {
         }
     }
     
+    /// Get load-specific band label for a score
+    static func loadBandForScore(_ score: Int) -> String {
+        switch score {
+        case 0..<40: return LoadBands.light
+        case 40..<60: return LoadBands.moderate
+        case 60..<80: return LoadBands.hard
+        default: return LoadBands.veryHard
+        }
+    }
+    
     /// Get load-specific description for a score
-    /// Note: Load scoring is inverted (low is good, high needs attention)
     static func loadDescriptionForScore(_ score: Int) -> String {
         switch score {
-        case 0..<40: return LoadDescriptions.optimal
-        case 40..<60: return LoadDescriptions.good
-        case 60..<80: return LoadDescriptions.fair
-        default: return LoadDescriptions.payAttention
+        case 0..<40: return LoadDescriptions.light
+        case 40..<60: return LoadDescriptions.moderate
+        case 60..<80: return LoadDescriptions.hard
+        default: return LoadDescriptions.veryHard
         }
     }
 }
