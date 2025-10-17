@@ -353,13 +353,31 @@ struct RecoveryDetailView: View {
         }
         #endif
         
-        // TODO: Implement real historical data tracking
-        // For now, return empty to show "Not enough data" message
-        // Historical tracking will be added in a future update
-        return []
+        // Fetch real data from Core Data
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
         
-        // When historical tracking is implemented, this will fetch from UserDefaults/CoreData:
-        // return RecoveryScoreService.shared.getLastNDays(period.days)
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+            return []
+        }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        guard let results = try? context.fetch(fetchRequest) else {
+            return []
+        }
+        
+        return results.compactMap { dailyScore in
+            guard let date = dailyScore.date else { return nil }
+            return TrendDataPoint(
+                date: date,
+                value: dailyScore.recoveryScore
+            )
+        }
     }
     
     private func generateMockRecoveryData(for period: TrendPeriod) -> [TrendDataPoint] {
