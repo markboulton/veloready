@@ -90,6 +90,31 @@ struct StrainScore: Codable {
         case fair = "Fair"
         case payAttention = "Pay Attention"
         
+        // Custom decoder to handle legacy cached values
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            
+            // Map old values to new cases
+            switch rawValue {
+            case "Low": self = .optimal
+            case "Moderate": self = .good
+            case "High": self = .fair
+            case "Extreme": self = .payAttention
+            case "Optimal": self = .optimal
+            case "Good": self = .good
+            case "Fair": self = .fair
+            case "Pay Attention": self = .payAttention
+            default:
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Cannot initialize StrainBand from invalid String value \(rawValue)"
+                    )
+                )
+            }
+        }
+        
         var color: String {
             switch self {
             case .optimal: return "green"

@@ -16,6 +16,29 @@ struct RecoveryScore: Codable {
         case fair = "Fair"
         case payAttention = "Pay Attention"
         
+        // Custom decoder to handle legacy cached values
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            
+            // Map old values to new cases
+            switch rawValue {
+            case "Excellent": self = .optimal
+            case "Good": self = .good
+            case "Fair": self = .fair
+            case "Poor": self = .payAttention
+            case "Optimal": self = .optimal
+            case "Pay Attention": self = .payAttention
+            default:
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Cannot initialize RecoveryBand from invalid String value \(rawValue)"
+                    )
+                )
+            }
+        }
+        
         var color: String {
             switch self {
             case .optimal: return "green"
