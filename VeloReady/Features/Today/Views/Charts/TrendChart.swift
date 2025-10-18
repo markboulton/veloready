@@ -57,6 +57,11 @@ struct TrendChart: View {
             } else {
                 chartView
                 summaryStats
+                
+                // Show progress indicator if we have partial data
+                if data.count < selectedPeriod.days {
+                    partialDataIndicator
+                }
             }
         }
         .background(Color(.systemBackground))
@@ -345,6 +350,66 @@ struct TrendChart: View {
             }
             .frame(height: 200)
             .frame(maxWidth: .infinity)
+        )
+    }
+    
+    private var partialDataIndicator: some View {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -selectedPeriod.days, to: endDate) else {
+            return AnyView(EmptyView())
+        }
+        
+        let fetchRequest = DailyScores.fetchRequest()
+        let predicateFormat = dataType == .recovery ?
+            "date >= %@ AND date <= %@ AND recoveryScore > 0" :
+            "date >= %@ AND date <= %@ AND sleepScore > 0"
+        fetchRequest.predicate = NSPredicate(
+            format: predicateFormat,
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        
+        let availableDays = (try? context.count(for: fetchRequest)) ?? data.count
+        let daysRemaining = max(0, selectedPeriod.days - availableDays)
+        
+        return AnyView(
+            VStack(spacing: Spacing.sm) {
+                HStack(spacing: 4) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: TypeScale.xxs))
+                        .foregroundColor(Color.text.tertiary)
+                    
+                    Text("\(availableDays) of \(selectedPeriod.days) days")
+                        .font(.system(size: TypeScale.xxs, weight: .medium))
+                        .foregroundColor(Color.text.secondary)
+                    
+                    Spacer()
+                    
+                    if daysRemaining > 0 {
+                        Text("\(daysRemaining) \(daysRemaining == 1 ? "day" : "days") remaining")
+                            .font(.system(size: TypeScale.xxs))
+                            .foregroundColor(Color.text.tertiary)
+                    }
+                }
+                
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color(.systemGray5))
+                            .frame(height: 4)
+                        
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(ColorScale.blueAccent)
+                            .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(selectedPeriod.days), 1.0), height: 4)
+                    }
+                }
+                .frame(height: 4)
+            }
+            .padding(.top, Spacing.sm)
         )
     }
     
