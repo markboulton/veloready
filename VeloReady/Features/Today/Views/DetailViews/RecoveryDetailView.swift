@@ -96,8 +96,8 @@ struct RecoveryDetailView: View {
             isEnabled: proConfig.canViewWeeklyTrends,
             showBenefits: true
         ) {
-            HRVLineChart(
-                getData: { period in getHistoricalHRVData(for: period) }
+            HRVCandlestickChart(
+                getData: { period in getHistoricalHRVCandlestickData(for: period) }
             )
         }
     }
@@ -445,7 +445,7 @@ struct RecoveryDetailView: View {
     
     // MARK: - HRV Data
     
-    private func getHistoricalHRVData(for period: TrendPeriod) -> [TrendDataPoint] {
+    private func getHistoricalHRVCandlestickData(for period: TrendPeriod) -> [HRVDataPoint] {
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
         
@@ -465,11 +465,19 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        let dataPoints = results.compactMap { physio -> TrendDataPoint? in
-            guard let date = physio.date else { return nil }
-            return TrendDataPoint(
+        // Convert to HRVDataPoint (use HRV as all values since we only have daily HRV, not intraday)
+        let dataPoints = results.compactMap { record -> HRVDataPoint? in
+            guard let date = record.date, record.hrv > 0 else { return nil }
+            
+            // For HRV, we only have one value per day
+            // Add small visual variation for candlestick effect
+            return HRVDataPoint(
                 date: date,
-                value: physio.hrv
+                open: record.hrv,
+                close: record.hrv,
+                high: record.hrv + 3, // Add small visual variation
+                low: record.hrv - 3,
+                average: record.hrv
             )
         }
         

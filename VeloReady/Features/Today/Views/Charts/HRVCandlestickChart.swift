@@ -1,13 +1,13 @@
 import SwiftUI
 import Charts
 
-/// RHR candlestick chart with 7/30/60 day segmented control
-struct RHRCandlestickChart: View {
-    let getData: (TrendPeriod) -> [RHRDataPoint]
+/// HRV candlestick chart with 7/30/60 day segmented control
+struct HRVCandlestickChart: View {
+    let getData: (TrendPeriod) -> [HRVDataPoint]
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var animateChart: Bool = false
-    @State private var data: [RHRDataPoint] = []
+    @State private var data: [HRVDataPoint] = []
     @State private var isLoading: Bool = false
     @Environment(\.accessibilityReduceMotion) var reduceMotion
     
@@ -15,11 +15,11 @@ struct RHRCandlestickChart: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             HStack {
-                Image(systemName: "heart.circle.fill")
+                Image(systemName: "waveform.path.ecg")
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
-                Text("RHR Trend")
+                Text("HRV Trend")
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Spacer()
@@ -53,9 +53,9 @@ struct RHRCandlestickChart: View {
     }
     
     private func loadData() {
-        Logger.debug("💔 [RHR CHART] Loading data for \(selectedPeriod.days)d period")
+        Logger.debug("❤️ [HRV CHART] Loading data for \(selectedPeriod.days)d period")
         data = getData(selectedPeriod)
-        Logger.debug("💔 [RHR CHART] Loaded \(data.count) data points")
+        Logger.debug("❤️ [HRV CHART] Loaded \(data.count) data points")
     }
     
     private var chartView: some View {
@@ -142,7 +142,7 @@ struct RHRCandlestickChart: View {
                     .foregroundStyle(Color(.systemGray4))
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)bpm")
+                        Text("\(intValue)ms")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(ColorPalette.chartAxisLabel)
                     }
@@ -184,8 +184,8 @@ struct RHRCandlestickChart: View {
         }
     }
     
-    private func candlestickColor(_ point: RHRDataPoint) -> Color {
-        // All red - lower is better, higher is worse, but keep consistent red
+    private func candlestickColor(_ point: HRVDataPoint) -> Color {
+        // All red - consistent color for HRV
         return .red
     }
     
@@ -193,20 +193,20 @@ struct RHRCandlestickChart: View {
         HStack(spacing: Spacing.xl) {
             StatItem(
                 label: "Average",
-                value: String(format: "%.0f", averageRHR),
-                unit: "bpm"
+                value: String(format: "%.0f", averageHRV),
+                unit: "ms"
             )
             
             StatItem(
                 label: "Lowest",
-                value: String(format: "%.0f", lowestRHR),
-                unit: "bpm"
+                value: String(format: "%.0f", lowestHRV),
+                unit: "ms"
             )
             
             StatItem(
                 label: "Highest",
-                value: String(format: "%.0f", highestRHR),
-                unit: "bpm"
+                value: String(format: "%.0f", highestHRV),
+                unit: "ms"
             )
             
             Spacer()
@@ -216,14 +216,14 @@ struct RHRCandlestickChart: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "heart.circle.fill")
+            Image(systemName: "waveform.path.ecg")
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             
-            Text("No RHR data for this period")
+            Text("No HRV data for this period")
                 .font(.system(size: TypeScale.sm, weight: .medium))
             
-            Text("RHR data will appear as it's collected")
+            Text("HRV data will appear as it's collected")
                 .font(.system(size: TypeScale.xs))
                 .foregroundColor(Color.text.secondary)
         }
@@ -231,24 +231,24 @@ struct RHRCandlestickChart: View {
         .frame(maxWidth: .infinity)
     }
     
-    private var averageRHR: Double {
+    private var averageHRV: Double {
         guard !data.isEmpty else { return 0 }
         return data.map(\.average).reduce(0, +) / Double(data.count)
     }
     
-    private var lowestRHR: Double {
+    private var lowestHRV: Double {
         data.map(\.low).min() ?? 0
     }
     
-    private var highestRHR: Double {
+    private var highestHRV: Double {
         data.map(\.high).max() ?? 0
     }
     
     private var yAxisDomain: ClosedRange<Double> {
         guard !data.isEmpty else { return 0...100 }
-        let minValue = lowestRHR
-        let maxValue = highestRHR
-        // Start at 10% below lowest value (no one has 0 heart rate)
+        let minValue = lowestHRV
+        let maxValue = highestHRV
+        // Start at 10% below lowest value
         let yMin = max(0, minValue * 0.9)
         let yMax = maxValue * 1.05  // Add 5% padding at top
         return yMin...yMax
@@ -257,12 +257,12 @@ struct RHRCandlestickChart: View {
 
 // MARK: - Data Model
 
-struct RHRDataPoint: Identifiable {
+struct HRVDataPoint: Identifiable {
     let id = UUID()
     let date: Date
-    let open: Double   // Day start RHR
-    let close: Double  // Day end RHR
-    let high: Double   // Highest RHR
-    let low: Double    // Lowest RHR
+    let open: Double   // Day start HRV
+    let close: Double  // Day end HRV
+    let high: Double   // Highest HRV
+    let low: Double    // Lowest HRV
     let average: Double // Average for animation baseline
 }
