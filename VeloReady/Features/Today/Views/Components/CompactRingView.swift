@@ -53,12 +53,13 @@ struct CompactRingView: View {
                 }
             }
             
-            // Title
+            // Title - lowercase + white for better readability
             Text(title)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(ColorPalette.labelSecondary)
+                .font(.caption) // Increased from size 11
+                .fontWeight(.medium)
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .textCase(.uppercase)
+                .textCase(.lowercase)
                 .padding(.top, 8)
         }
         .onAppear {
