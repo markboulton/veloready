@@ -150,6 +150,11 @@ class RecoveryScoreService: ObservableObject {
         await calculateReadinessScore()
         await calculateResilienceScore()
         
+        // Send recovery alert if score is low
+        if let score = realScore {
+            await NotificationManager.shared.sendRecoveryAlert(score: Double(score.score), band: score.band.rawValue)
+        }
+        
         // Mark that we've calculated today's recovery score and save to cache
         if let score = currentRecoveryScore {
             // Check if recovery score actually changed

@@ -176,18 +176,25 @@ class UserSettings: ObservableObject {
     @Published var sleepReminders: Bool = true {
         didSet {
             saveSettings()
+            Task { @MainActor in
+                await NotificationManager.shared.updateScheduledNotifications()
+            }
         }
     }
     
     @Published var sleepReminderTime: Date = Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date() {
         didSet {
             saveSettings()
+            Task { @MainActor in
+                await NotificationManager.shared.updateScheduledNotifications()
+            }
         }
     }
     
     @Published var recoveryAlerts: Bool = true {
         didSet {
             saveSettings()
+            // Recovery alerts are sent on-demand, not scheduled
         }
     }
     

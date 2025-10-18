@@ -687,29 +687,69 @@ struct DisplaySettingsView: View {
 
 struct NotificationSettingsView: View {
     @StateObject private var userSettings = UserSettings.shared
+    @StateObject private var notificationManager = NotificationManager.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var showingPermissionAlert = false
     
     var body: some View {
         NavigationView {
             Form {
+                // Authorization Status
+                Section {
+                    HStack {
+                        Image(systemName: notificationManager.isAuthorized ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(notificationManager.isAuthorized ? .green : .orange)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Notification Permission")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text(notificationManager.authorizationStatus.description)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        if !notificationManager.isAuthorized {
+                            Button("Enable") {
+                                Task {
+                                    let granted = await notificationManager.requestAuthorization()
+                                    if !granted {
+                                        showingPermissionAlert = true
+                                    }
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                } footer: {
+                    if !notificationManager.isAuthorized {
+                        Text("VeloReady needs notification permission to send reminders and alerts. Tap Enable to grant permission.")
+                    }
+                }
+                
                 Section {
                     Toggle("Sleep Reminders", isOn: $userSettings.sleepReminders)
+                        .disabled(!notificationManager.isAuthorized)
                     
                     if userSettings.sleepReminders {
                         DatePicker("Reminder Time", selection: $userSettings.sleepReminderTime, displayedComponents: .hourAndMinute)
+                            .disabled(!notificationManager.isAuthorized)
                     }
                 } header: {
                     Text("Sleep Reminders")
                 } footer: {
-                    Text("Get reminded when it's time to wind down for bed.")
+                    Text("Get reminded when it's time to wind down for bed. Notification will repeat daily at the selected time.")
                 }
                 
                 Section {
                     Toggle("Recovery Alerts", isOn: $userSettings.recoveryAlerts)
+                        .disabled(!notificationManager.isAuthorized)
                 } header: {
                     Text("Recovery Alerts")
                 } footer: {
-                    Text("Get notified when your recovery score indicates you should rest.")
+                    Text("Get notified when your recovery score is low (< 60). Maximum one alert per day.")
                 }
             }
             .navigationTitle(SettingsContent.Notifications.title)
@@ -720,6 +760,19 @@ struct NotificationSettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Permission Denied", isPresented: $showingPermissionAlert) {
+                Button("OK", role: .cancel) { }
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } message: {
+                Text("Notification permission was denied. You can enable it in Settings > VeloReady > Notifications.")
+            }
+            .task {
+                await notificationManager.checkAuthorizationStatus()
             }
         }
     }
