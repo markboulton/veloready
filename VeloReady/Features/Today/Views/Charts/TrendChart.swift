@@ -60,6 +60,12 @@ struct TrendChart: View {
             }
         }
         .background(Color(.systemBackground))
+        .onAppear {
+            loadData()
+        }
+        .onChange(of: selectedPeriod) { _, _ in
+            loadData()
+        }
     }
     
     private var periodSelector: some View {
@@ -184,43 +190,6 @@ struct TrendChart: View {
         .chartYScale(domain: 0...100)
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
-        }
-        .onAppear {
-            loadData()
-            if !reduceMotion {
-                // Bar charts use simple animation
-                if chartType == .bar {
-                    animateChart = false
-                    withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: 0.28)) {
-                        animateChart = true
-                    }
-                } else {
-                    // Line/Area charts use sweep animation - reset to 0 then animate
-                    sweepProgress = 0
-                    withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
-                        sweepProgress = 1.0
-                    }
-                }
-            }
-        }
-        .onChange(of: selectedPeriod) { _, _ in
-            loadData()
-            if reduceMotion {
-                animateChart = true
-                sweepProgress = 1.0
-            } else {
-                if chartType == .bar {
-                    animateChart = false
-                    withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: 0.28)) {
-                        animateChart = true
-                    }
-                } else {
-                    sweepProgress = 0
-                    withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
-                        sweepProgress = 1.0
-                    }
-                }
-            }
         }
     }
     

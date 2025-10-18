@@ -51,6 +51,12 @@ struct HRVLineChart: View {
             }
         }
         .background(Color(.systemBackground))
+        .onAppear {
+            loadData()
+        }
+        .onChange(of: selectedPeriod) { _, _ in
+            loadData()
+        }
     }
     
     private var chartView: some View {
@@ -124,26 +130,9 @@ struct HRVLineChart: View {
                 }
             }
         }
+        .chartYScale(domain: 0...100)
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
-        }
-        .onAppear {
-            loadData()
-            if !reduceMotion {
-                sweepProgress = 0
-                withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
-                    sweepProgress = 1.0
-                }
-            }
-        }
-        .onChange(of: selectedPeriod) { _, _ in
-            loadData()
-            if !reduceMotion {
-                sweepProgress = 0
-                withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
-                    sweepProgress = 1.0
-                }
-            }
         }
     }
     
