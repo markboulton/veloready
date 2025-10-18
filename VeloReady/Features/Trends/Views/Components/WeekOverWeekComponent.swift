@@ -35,28 +35,37 @@ struct WeekOverWeekComponent: View {
     }
     
     private func changeRow(label: String, value: String, change: Double?) -> some View {
-        HStack {
+        HStack(spacing: 12) {
+            // Label column - flexible
             Text(label)
                 .font(.body)
                 .foregroundColor(.text.secondary)
-                .frame(width: 100, alignment: .leading)
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Value column - fixed width for alignment
             Text(value)
                 .font(.body)
                 .fontWeight(.medium)
-            if let change = change {
-                HStack(spacing: 2) {
-                    Image(systemName: change >= 0 ? "arrow.up" : "arrow.down")
+                .frame(width: 80, alignment: .trailing)
+            
+            // Change column - fixed width for alignment
+            Group {
+                if let change = change {
+                    HStack(spacing: 4) {
+                        Image(systemName: change >= 0 ? "arrow.up" : "arrow.down")
+                            .font(.caption2)
+                        Text("\(Int(abs(change)))")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent)
+                } else {
+                    Text("—")
                         .font(.caption)
-                    Text("\(Int(abs(change)))")
-                        .font(.caption)
+                        .foregroundColor(.text.tertiary)
                 }
-                .foregroundColor(change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent)
-                .frame(width: 50, alignment: .trailing)
-            } else {
-                Text("")
-                    .frame(width: 50)
             }
+            .frame(width: 60, alignment: .trailing)
         }
     }
     
