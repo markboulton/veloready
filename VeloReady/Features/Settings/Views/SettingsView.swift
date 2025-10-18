@@ -10,42 +10,44 @@ struct SettingsView: View {
     @State private var showingNotificationSettings = false
     
     var body: some View {
-        List {
-            // Profile Section
-            ProfileSection()
-            
-            // Sleep Settings
-            SleepSettingsSection(userSettings: userSettings)
-            
-            // Data Sources
-            DataSourcesSection()
-            
-            // Training Zones
-            TrainingZonesSection(proConfig: proConfig)
-            
-            // Display Settings
-            DisplaySettingsSection()
-            
-            // Notifications
-            NotificationSettingsSection()
-            
-            // iCloud Sync
-            iCloudSection()
-            
-            // Account Section
-            AccountSection(showingDeleteDataAlert: $showingDeleteDataAlert)
-            
-            // About Section
-            AboutSection()
-            
-            // Help & Feedback Section (always visible)
-            FeedbackSection()
-            
-            // Debug/Testing Section (developers only - controlled by DebugFlags)
-            DebugSection()
+        NavigationView {
+            List {
+                // Profile Section
+                ProfileSection()
+                
+                // Sleep Settings
+                SleepSettingsSection(userSettings: userSettings)
+                
+                // Data Sources
+                DataSourcesSection()
+                
+                // Training Zones
+                TrainingZonesSection(proConfig: proConfig)
+                
+                // Display Settings
+                DisplaySettingsSection()
+                
+                // Notifications
+                NotificationSettingsSection()
+                
+                // iCloud Sync
+                iCloudSection()
+                
+                // Account Section
+                AccountSection(showingDeleteDataAlert: $showingDeleteDataAlert)
+                
+                // About Section
+                AboutSection()
+                
+                // Help & Feedback Section (always visible)
+                FeedbackSection()
+                
+                // Debug/Testing Section (developers only - controlled by DebugFlags)
+                DebugSection()
+            }
+            .navigationTitle(SettingsContent.title)
+            .navigationBarTitleDisplayMode(.large)
         }
-        .navigationTitle(SettingsContent.title)
-        .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingSleepSettings) {
             SleepSettingsView()
         }

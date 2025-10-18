@@ -632,7 +632,10 @@ class WeeklyReportViewModel: ObservableObject {
         
         var dataPoints: [FitnessTrajectoryChart.DataPoint] = []
         var daysWithoutLoad = 0
+        var lastCTL: Double = 0
+        var lastATL: Double = 0
         
+        // Load 7 days of historical data
         for day in thisWeek {
             if let date = day.date {
                 let dateFormatter = DateFormatter()
@@ -654,13 +657,40 @@ class WeeklyReportViewModel: ObservableObject {
             }
             
             let tsb = ctl - atl
+            lastCTL = ctl
+            lastATL = atl
             
             dataPoints.append(FitnessTrajectoryChart.DataPoint(
                 date: date,
                 ctl: ctl,
                 atl: atl,
-                tsb: tsb
+                tsb: tsb,
+                isFuture: false
             ))
+        }
+        
+        // Add 7 days of projection (assuming current training continues)
+        if !dataPoints.isEmpty {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let avgDailyTSS = lastATL * 7.0 / 7.0 // Approximate from ATL
+            
+            for dayOffset in 1...7 {
+                guard let futureDate = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+                
+                // Project CTL/ATL assuming consistent training
+                let projectedCTL = lastCTL + (avgDailyTSS - lastCTL) * (1.0 / 42.0) * Double(dayOffset)
+                let projectedATL = lastATL + (avgDailyTSS - lastATL) * (1.0 / 7.0) * Double(dayOffset)
+                let projectedTSB = projectedCTL - projectedATL
+                
+                dataPoints.append(FitnessTrajectoryChart.DataPoint(
+                    date: futureDate,
+                    ctl: projectedCTL,
+                    atl: projectedATL,
+                    tsb: projectedTSB,
+                    isFuture: true
+                ))
+            }
         }
         
         // Check if we have meaningful data (not all zeros)
@@ -679,6 +709,8 @@ class WeeklyReportViewModel: ObservableObject {
             // Reload data after calculation
             let reloadedWeek = getLast7Days()
             var reloadedPoints: [FitnessTrajectoryChart.DataPoint] = []
+            var reloadedLastCTL: Double = 0
+            var reloadedLastATL: Double = 0
             
             for day in reloadedWeek {
                 guard let date = day.date,
@@ -689,12 +721,38 @@ class WeeklyReportViewModel: ObservableObject {
                 }
                 
                 let tsb = ctl - atl
+                reloadedLastCTL = ctl
+                reloadedLastATL = atl
                 reloadedPoints.append(FitnessTrajectoryChart.DataPoint(
                     date: date,
                     ctl: ctl,
                     atl: atl,
-                    tsb: tsb
+                    tsb: tsb,
+                    isFuture: false
                 ))
+            }
+            
+            // Add projection for reloaded data
+            if !reloadedPoints.isEmpty {
+                let calendar = Calendar.current
+                let today = calendar.startOfDay(for: Date())
+                let avgDailyTSS = reloadedLastATL * 7.0 / 7.0
+                
+                for dayOffset in 1...7 {
+                    guard let futureDate = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+                    
+                    let projectedCTL = reloadedLastCTL + (avgDailyTSS - reloadedLastCTL) * (1.0 / 42.0) * Double(dayOffset)
+                    let projectedATL = reloadedLastATL + (avgDailyTSS - reloadedLastATL) * (1.0 / 7.0) * Double(dayOffset)
+                    let projectedTSB = projectedCTL - projectedATL
+                    
+                    reloadedPoints.append(FitnessTrajectoryChart.DataPoint(
+                        date: futureDate,
+                        ctl: projectedCTL,
+                        atl: projectedATL,
+                        tsb: projectedTSB,
+                        isFuture: true
+                    ))
+                }
             }
             
             if !reloadedPoints.isEmpty {

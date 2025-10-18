@@ -1,8 +1,8 @@
 import SwiftUI
 import Charts
 
-/// Chart showing CTL, ATL, and TSB progression over time
-/// Same style as ride detail chart
+/// Chart showing 7-day historical CTL/ATL/TSB + 7-day projection
+/// Based on Training Load chart structure
 struct FitnessTrajectoryChart: View {
     let data: [DataPoint]
     
@@ -12,102 +12,110 @@ struct FitnessTrajectoryChart: View {
         let ctl: Double
         let atl: Double
         let tsb: Double
+        let isFuture: Bool // For projection styling
     }
     
     var body: some View {
+        let todayIndex = data.firstIndex(where: { !$0.isFuture && Calendar.current.isDateInToday($0.date) }) ?? 6
+        
         Chart {
-            // CTL (Fitness) - Soft blue line with point markers
-            ForEach(data) { point in
-                LineMark(
-                    x: .value("Date", point.date, unit: .day),
-                    y: .value("CTL", point.ctl)
-                )
-                .foregroundStyle(ColorPalette.powerMetric.opacity(0.5))
-                .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.catmullRom)
-                
-                PointMark(
-                    x: .value("Date", point.date, unit: .day),
-                    y: .value("CTL", point.ctl)
-                )
-                .foregroundStyle(ColorPalette.powerMetric)
-                .symbolSize(60)
+            // Today marker
+            if todayIndex < data.count {
+                RuleMark(x: .value("Today", data[todayIndex].date))
+                    .foregroundStyle(Color.text.tertiary)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
             
-            // ATL (Fatigue) - Amber line with point markers
+            // CTL (Fitness) line
             ForEach(data) { point in
                 LineMark(
-                    x: .value("Date", point.date, unit: .day),
-                    y: .value("ATL", point.atl)
+                    x: .value("Date", point.date),
+                    y: .value("Value", point.ctl),
+                    series: .value("Metric", "CTL")
                 )
-                .foregroundStyle(ColorPalette.tssMetric.opacity(0.5))
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.button.primary.opacity(0.5))
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
                 
-                PointMark(
-                    x: .value("Date", point.date, unit: .day),
-                    y: .value("ATL", point.atl)
-                )
-                .foregroundStyle(ColorPalette.tssMetric)
-                .symbolSize(60)
+                // Point markers (only for historical data)
+                if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.ctl)
+                    )
+                    .foregroundStyle(Color.button.primary)
+                    .symbolSize(40)
+                }
             }
             
-            // TSB (Form) - Very subtle area fill
+            // ATL (Fatigue) line
             ForEach(data) { point in
-                AreaMark(
-                    x: .value("Date", point.date, unit: .day),
-                    yStart: .value("Zero", 0),
-                    yEnd: .value("TSB", point.tsb)
+                LineMark(
+                    x: .value("Date", point.date),
+                    y: .value("Value", point.atl),
+                    series: .value("Metric", "ATL")
                 )
-                .foregroundStyle(
-                    point.tsb > 0 ?
-                    ColorPalette.recoveryExcellent.opacity(0.08) :
-                    ColorPalette.recoveryPoor.opacity(0.08)
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.semantic.warning.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                .interpolationMethod(.linear)
+                
+                // Point markers (only for historical data)
+                if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.atl)
+                    )
+                    .foregroundStyle(Color.semantic.warning)
+                    .symbolSize(40)
+                }
+            }
+            
+            // TSB (Form) line
+            ForEach(data) { point in
+                LineMark(
+                    x: .value("Date", point.date),
+                    y: .value("Value", point.tsb),
+                    series: .value("Metric", "TSB")
                 )
-                .interpolationMethod(.catmullRom)
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : ColorScale.greenAccent.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                .interpolationMethod(.linear)
+                
+                // Point markers (only for historical data)
+                if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.tsb)
+                    )
+                    .foregroundStyle(ColorScale.greenAccent)
+                    .symbolSize(40)
+                }
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .day, count: 1)) { _ in
+            AxisMarks(values: .stride(by: .day, count: 2)) { value in
+                if let date = value.as(Date.self) {
+                    AxisValueLabel {
+                        Text(date, format: .dateTime.month(.abbreviated).day())
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(Color.text.secondary)
+                }
                 AxisGridLine()
                     .foregroundStyle(Color(.systemGray4))
-                AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(ColorPalette.chartAxisLabel)
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
                     .foregroundStyle(Color(.systemGray4))
-                AxisValueLabel {
-                    if let val = value.as(Double.self) {
-                        Text("\(Int(val))")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(ColorPalette.chartAxisLabel)
-                    }
-                }
+                AxisValueLabel()
+                    .font(.caption2)
             }
         }
-        .chartLegend(position: .bottom, spacing: 8) {
-            HStack(spacing: Spacing.md) {
-                legendItem(color: ColorPalette.powerMetric, label: "CTL (Fitness)")
-                legendItem(color: ColorPalette.tssMetric, label: "ATL (Fatigue)")
-                legendItem(color: ColorPalette.recoveryExcellent, label: "TSB (Form)")
-            }
-        }
+        .frame(height: 200)
     }
     
-    private func legendItem(color: Color, label: String) -> some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text(label)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(ColorPalette.labelSecondary)
-        }
-    }
 }
 
 // MARK: - Preview
@@ -129,18 +137,39 @@ struct FitnessTrajectoryChart: View {
 func generateMockCTLData() -> [FitnessTrajectoryChart.DataPoint] {
     let calendar = Calendar.current
     let now = Date()
+    var points: [FitnessTrajectoryChart.DataPoint] = []
     
-    return (0..<7).map { dayOffset in
-        let date = calendar.date(byAdding: .day, value: -6 + dayOffset, to: now)!
-        let ctl = 70.0 + Double(dayOffset) * 0.5
-        let atl = 65.0 + Double(dayOffset) * 0.3
+    // 7 days historical
+    for dayOffset in -6...0 {
+        let date = calendar.date(byAdding: .day, value: dayOffset, to: now)!
+        let ctl = 70.0 + Double(dayOffset + 6) * 0.5
+        let atl = 65.0 + Double(dayOffset + 6) * 0.3
         let tsb = ctl - atl
         
-        return FitnessTrajectoryChart.DataPoint(
+        points.append(FitnessTrajectoryChart.DataPoint(
             date: date,
             ctl: ctl,
             atl: atl,
-            tsb: tsb
-        )
+            tsb: tsb,
+            isFuture: false
+        ))
     }
+    
+    // 7 days projection
+    for dayOffset in 1...7 {
+        let date = calendar.date(byAdding: .day, value: dayOffset, to: now)!
+        let ctl = 73.5 + Double(dayOffset) * 0.5
+        let atl = 66.8 + Double(dayOffset) * 0.3
+        let tsb = ctl - atl
+        
+        points.append(FitnessTrajectoryChart.DataPoint(
+            date: date,
+            ctl: ctl,
+            atl: atl,
+            tsb: tsb,
+            isFuture: true
+        ))
+    }
+    
+    return points
 }
