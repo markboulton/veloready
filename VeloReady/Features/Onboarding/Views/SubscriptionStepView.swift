@@ -109,10 +109,10 @@ struct SubscriptionStepView: View {
                                     Text(savings)
                                         .font(.caption)
                                         .fontWeight(.semibold)
-                                        .foregroundColor(.green)
+                                        .foregroundColor(ColorScale.greenAccent)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 2)
-                                        .background(Color.green.opacity(0.2))
+                                        .background(ColorScale.greenAccent.opacity(0.2))
                                         .cornerRadius(4)
                                 }
                             }

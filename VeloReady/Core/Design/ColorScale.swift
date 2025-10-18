@@ -48,7 +48,7 @@ enum ColorScale {
     // These are the base tokens used throughout the app for status/bands
     
     static let greenAccent  = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3 - Mint (was bright green)
-    static let yellowAccent = Color(.sRGB, red: 0.722, green: 0.851, blue: 0.275, opacity: 1.0) /// #B8D946 - Yellow-green (was bright yellow)
+    static let yellowAccent = Color(.sRGB, red: 0.929, green: 0.796, blue: 0.341, opacity: 1.0) /// #EDCB57 - Warm gold (was bright yellow)
     static let amberAccent  = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800 - Warm amber (was bright orange)
     static let redAccent    = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444 - Coral red (was bright pink-red)
     
@@ -58,7 +58,7 @@ enum ColorScale {
     static let recoveryPoor      = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444
     static let recoveryLow       = Color(.sRGB, red: 1.000, green: 0.533, blue: 0.267, opacity: 1.0) /// #FF8844
     static let recoveryMedium    = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800
-    static let recoveryGood      = Color(.sRGB, red: 0.722, green: 0.851, blue: 0.275, opacity: 1.0) /// #B8D946
+    static let recoveryGood      = Color(.sRGB, red: 0.929, green: 0.796, blue: 0.341, opacity: 1.0) /// #EDCB57 - Warm gold
     static let recoveryExcellent = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3
     
     /// Metric signature colors (one per metric type)

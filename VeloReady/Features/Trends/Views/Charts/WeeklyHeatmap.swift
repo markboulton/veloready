@@ -26,9 +26,9 @@ struct WeeklyHeatmap: View {
             var color: Color {
                 switch self {
                 case .rest: return Color.text.tertiary.opacity(0.3)
-                case .easy: return Color.green
-                case .moderate: return Color.yellow
-                case .hard: return Color.red
+                case .easy: return ColorScale.greenAccent
+                case .moderate: return ColorScale.yellowAccent
+                case .hard: return ColorScale.redAccent
                 }
             }
             

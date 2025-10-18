@@ -11,12 +11,12 @@ struct CompleteStepView: View {
             // Success animation
             ZStack {
                 Circle()
-                    .fill(Color.green.opacity(0.1))
+                    .fill(ColorScale.greenAccent.opacity(0.1))
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 80))
-                    .foregroundColor(.green)
+                    .foregroundColor(ColorScale.greenAccent)
             }
             
             VStack(spacing: 16) {

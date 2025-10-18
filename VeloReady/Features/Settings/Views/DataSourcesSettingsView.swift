@@ -11,7 +11,7 @@ struct DataSourcesSettingsView: View {
     @State private var showingToast = false
     @State private var toastMessage = ""
     @State private var toastIcon = "checkmark.circle.fill"
-    @State private var toastColor = Color.green
+    @State private var toastColor = ColorScale.greenAccent
     
     var body: some View {
         List {
