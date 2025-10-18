@@ -97,7 +97,8 @@ struct RecoveryDetailView: View {
             showBenefits: true
         ) {
             HRVCandlestickChart(
-                getData: { period in getHistoricalHRVCandlestickData(for: period) }
+                getData: { period in getHistoricalHRVCandlestickData(for: period) },
+                baseline: recoveryScore.inputs.hrvBaseline
             )
         }
     }
@@ -111,7 +112,8 @@ struct RecoveryDetailView: View {
             showBenefits: true
         ) {
             RHRCandlestickChart(
-                getData: { period in getHistoricalRHRData(for: period) }
+                getData: { period in getHistoricalRHRData(for: period) },
+                baseline: recoveryScore.inputs.rhrBaseline
             )
         }
     }

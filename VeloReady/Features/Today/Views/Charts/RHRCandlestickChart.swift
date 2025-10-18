@@ -4,6 +4,7 @@ import Charts
 /// RHR candlestick chart with 7/30/60 day segmented control
 struct RHRCandlestickChart: View {
     let getData: (TrendPeriod) -> [RHRDataPoint]
+    let baseline: Double? // RHR baseline for zone display
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var animateChart: Bool = false
@@ -40,6 +41,7 @@ struct RHRCandlestickChart: View {
                 emptyState
             } else {
                 chartView
+                legendView
                 summaryStats
             }
         }
@@ -79,7 +81,7 @@ struct RHRCandlestickChart: View {
                 .lineStyle(StrokeStyle(lineWidth: 3))
                 .foregroundStyle(candlestickColor(point).opacity(0.6))
                 
-                // For 7-day view: Annotate high and low values in red circles
+                // For 7-day view: Annotate high and low values with color coding
                 if selectedPeriod == .sevenDays && animateChart {
                     // High value annotation
                     PointMark(
@@ -87,17 +89,10 @@ struct RHRCandlestickChart: View {
                         y: .value("High", point.high)
                     )
                     .opacity(0)
-                    .annotation(position: .top, spacing: -8) {
-                        ZStack {
-                            Circle()
-                                .strokeBorder(Color.red, lineWidth: 1.5)
-                                .background(Circle().fill(Color.clear))
-                                .frame(width: 24, height: 24)
-                            
-                            Text("\(Int(point.high))")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color(white: 0.9))
-                        }
+                    .annotation(position: .top, spacing: 2) {
+                        Text("\(Int(point.high))")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(colorForRHRValue(point.high))
                     }
                     
                     // Low value annotation
@@ -106,19 +101,21 @@ struct RHRCandlestickChart: View {
                         y: .value("Low", point.low)
                     )
                     .opacity(0)
-                    .annotation(position: .bottom, spacing: -8) {
-                        ZStack {
-                            Circle()
-                                .strokeBorder(Color.red, lineWidth: 1.5)
-                                .background(Circle().fill(Color.clear))
-                                .frame(width: 24, height: 24)
-                            
-                            Text("\(Int(point.low))")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color(white: 0.9))
-                        }
+                    .annotation(position: .bottom, spacing: 2) {
+                        Text("\(Int(point.low))")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(colorForRHRValue(point.low))
                     }
                 }
+            }
+            
+            // Baseline zone (if available)
+            if let baseline = baseline, animateChart {
+                RectangleMark(
+                    yStart: .value("Baseline Low", baseline - 3),
+                    yEnd: .value("Baseline High", baseline + 3)
+                )
+                .foregroundStyle(Color(white: 0.5).opacity(0.15))
             }
         }
         .frame(height: 225)
@@ -266,6 +263,52 @@ struct RHRCandlestickChart: View {
         let yMin = max(0, minValue * 0.9)
         let yMax = maxValue * 1.05  // Add 5% padding at top
         return yMin...yMax
+    }
+    
+    // Color coding for RHR values based on baseline
+    private func colorForRHRValue(_ value: Double) -> Color {
+        guard let baseline = baseline else {
+            return Color(white: 0.6) // Grey if no baseline
+        }
+        
+        let percentDiff = ((value - baseline) / baseline) * 100
+        
+        // For RHR: lower is better
+        if abs(percentDiff) <= 5 {
+            // Within 5% of baseline = Balanced (Green)
+            return ColorScale.greenAccent
+        } else if percentDiff > 5 && percentDiff <= 10 {
+            // 5-10% above baseline = Unbalanced (Amber)
+            return ColorScale.amberAccent
+        } else if percentDiff > 10 {
+            // >10% above baseline = Low/Out of ordinary (Red)
+            return ColorScale.redAccent
+        } else {
+            // Below baseline is good for RHR, but unusual = Amber
+            return ColorScale.amberAccent
+        }
+    }
+    
+    private var legendView: some View {
+        HStack(spacing: Spacing.md) {
+            legendItem(color: ColorScale.greenAccent, label: "Balanced")
+            legendItem(color: ColorScale.amberAccent, label: "Unbalanced")
+            legendItem(color: ColorScale.redAccent, label: "Low")
+            legendItem(color: Color(white: 0.5), label: "Baseline")
+            Spacer()
+        }
+        .font(.system(size: 10))
+        .padding(.vertical, Spacing.xs)
+    }
+    
+    private func legendItem(color: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .foregroundColor(Color.text.secondary)
+        }
     }
 }
 
