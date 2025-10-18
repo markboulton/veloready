@@ -477,63 +477,95 @@ final class CacheManager: ObservableObject {
     
     /// Calculate missing CTL/ATL values from activities
     /// Called when Intervals.icu doesn't provide CTL/ATL data
+    /// Optimized to backfill last 42 days and save TSS values
     func calculateMissingCTLATL() async {
-        Logger.data("📊 Calculating missing CTL/ATL values...")
-        
-        // Try Intervals.icu first
-        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 100, daysBack: 60)) ?? []
+        Logger.data("📊 Calculating missing CTL/ATL values for last 42 days...")
         
         let calculator = TrainingLoadCalculator()
-        var progressiveLoad: [Date: (ctl: Double, atl: Double)] = [:]
+        var progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
+        
+        // Try Intervals.icu first
+        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 200, daysBack: 60)) ?? []
         
         if !intervalsActivities.isEmpty {
-            // Use Intervals activities if available
             let activitiesWithTSS = intervalsActivities.filter { ($0.tss ?? 0) > 0 }
             Logger.data("📊 Found \(activitiesWithTSS.count) Intervals activities with TSS")
             
             if !activitiesWithTSS.isEmpty {
-                progressiveLoad = calculator.calculateProgressiveTrainingLoad(intervalsActivities)
+                // Get progressive CTL/ATL with TSS per day
+                let ctlAtlData = calculator.calculateProgressiveTrainingLoad(intervalsActivities)
+                let dailyTSS = calculator.getDailyTSSFromActivities(intervalsActivities)
+                
+                // Combine CTL/ATL with TSS
+                for (date, load) in ctlAtlData {
+                    let tss = dailyTSS[date] ?? 0
+                    progressiveLoad[date] = (ctl: load.ctl, atl: load.atl, tss: tss)
+                }
             }
         }
         
         // If no Intervals data, calculate from HealthKit using TRIMP
         if progressiveLoad.isEmpty {
             Logger.data("📊 No Intervals data, calculating from HealthKit workouts...")
-            let (ctl, atl) = await calculator.calculateTrainingLoad()
-            
-            // Store today's values
-            let today = Calendar.current.startOfDay(for: Date())
-            progressiveLoad[today] = (ctl: ctl, atl: atl)
-            Logger.data("📊 Calculated from HealthKit: CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
+            progressiveLoad = await calculator.calculateProgressiveTrainingLoadFromHealthKit()
+            Logger.data("📊 Calculated \(progressiveLoad.count) days from HealthKit")
         }
         
         Logger.data("📊 Calculated progressive load for \(progressiveLoad.count) days")
         
-        // Update DailyLoad entities
-        let context = persistence.container.viewContext
+        // Batch update DailyLoad entities for performance
+        await updateDailyLoadBatch(progressiveLoad)
+        
+        Logger.data("✅ CTL/ATL calculation complete")
+    }
+    
+    /// Batch update DailyLoad entities for performance
+    private func updateDailyLoadBatch(_ progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)]) async {
+        let context = persistence.newBackgroundContext()
         let calendar = Calendar.current
         
-        for (date, load) in progressiveLoad {
-            let startOfDay = calendar.startOfDay(for: date)
+        await context.perform {
+            var updatedCount = 0
             
-            let loadRequest = DailyLoad.fetchRequest()
-            loadRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
-            loadRequest.fetchLimit = 1
-            
-            if let existingLoad = try? context.fetch(loadRequest).first {
-                // Only update if CTL/ATL are 0 (not provided by Intervals)
-                if existingLoad.ctl == 0 && existingLoad.atl == 0 {
+            for (date, load) in progressiveLoad {
+                let startOfDay = calendar.startOfDay(for: date)
+                
+                let loadRequest = DailyLoad.fetchRequest()
+                loadRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
+                loadRequest.fetchLimit = 1
+                
+                let existingLoad: DailyLoad
+                if let fetched = try? context.fetch(loadRequest).first {
+                    existingLoad = fetched
+                } else {
+                    // Create new DailyLoad if doesn't exist
+                    existingLoad = DailyLoad(context: context)
+                    existingLoad.date = startOfDay
+                }
+                
+                // Only update if CTL/ATL are 0 or very small (not provided by Intervals)
+                if existingLoad.ctl < 1.0 && existingLoad.atl < 1.0 {
                     existingLoad.ctl = load.ctl
                     existingLoad.atl = load.atl
                     existingLoad.tsb = load.ctl - load.atl
-                    Logger.data("  Updated \(startOfDay): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
+                    existingLoad.tss = load.tss
+                    existingLoad.lastUpdated = Date()
+                    updatedCount += 1
+                    
+                    Logger.data("  Updated \(startOfDay): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss))")
+                }
+            }
+            
+            // Batch save for performance
+            if context.hasChanges {
+                do {
+                    try context.save()
+                    Logger.data("✅ Batch saved \(updatedCount) DailyLoad updates")
+                } catch {
+                    Logger.error("Failed to save DailyLoad batch: \(error)")
                 }
             }
         }
-        
-        // Save changes
-        try? context.save()
-        Logger.data("✅ CTL/ATL calculation complete")
     }
 }
 

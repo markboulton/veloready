@@ -149,6 +149,97 @@ class TrainingLoadCalculator {
         return result
     }
     
+    /// Get daily TSS values from activities
+    /// - Parameter activities: Array of activities with TSS values
+    /// - Returns: Dictionary mapping dates to total TSS for that day
+    func getDailyTSSFromActivities(_ activities: [IntervalsActivity]) -> [Date: Double] {
+        var dailyTSS: [Date: Double] = [:]
+        let calendar = Calendar.current
+        
+        for activity in activities {
+            guard let tss = activity.tss, tss > 0 else { continue }
+            guard let activityDate = parseActivityDate(activity.startDateLocal) else { continue }
+            
+            let day = calendar.startOfDay(for: activityDate)
+            dailyTSS[day, default: 0] += tss
+        }
+        
+        return dailyTSS
+    }
+    
+    /// Calculate progressive training load from HealthKit workouts
+    /// Uses TRIMP as TSS equivalent for non-power activities
+    /// - Returns: Dictionary mapping dates to (ctl, atl, tss) tuples
+    func calculateProgressiveTrainingLoadFromHealthKit() async -> [Date: (ctl: Double, atl: Double, tss: Double)] {
+        Logger.data("📊 Calculating progressive load from HealthKit workouts...")
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let startDate = calendar.date(byAdding: .day, value: -60, to: today)!
+        
+        // Fetch all workouts in range
+        let workouts = await healthKitManager.fetchWorkouts(
+            from: startDate,
+            to: Date(),
+            activityTypes: [.cycling, .running, .swimming, .walking, .functionalStrengthTraining, .traditionalStrengthTraining, .hiking, .rowing, .other]
+        )
+        
+        Logger.data("📊 Found \(workouts.count) HealthKit workouts to analyze")
+        
+        // Calculate daily TRIMP (use as TSS equivalent)
+        var dailyTRIMP: [Date: Double] = [:]
+        
+        for workout in workouts {
+            let day = calendar.startOfDay(for: workout.startDate)
+            let trimp = await trimpCalculator.calculateTRIMP(for: workout)
+            dailyTRIMP[day, default: 0] += trimp
+        }
+        
+        Logger.data("📊 Found \(dailyTRIMP.count) days with TRIMP data")
+        
+        // Get sorted dates
+        let sortedDates = dailyTRIMP.keys.sorted()
+        guard !sortedDates.isEmpty else {
+            Logger.data("📊 No TRIMP data found - returning empty progressive load")
+            return [:]
+        }
+        
+        // Calculate baseline from early activities
+        let firstTwoWeeks = sortedDates.prefix(min(14, sortedDates.count))
+        let totalTRIMP = firstTwoWeeks.compactMap { dailyTRIMP[$0] }.reduce(0.0, +)
+        let activityCount = firstTwoWeeks.count
+        let avgTRIMPPerActivity = totalTRIMP / Double(max(1, activityCount))
+        
+        var currentCTL = avgTRIMPPerActivity * 0.7
+        var currentATL = avgTRIMPPerActivity * 0.4
+        
+        Logger.data("📊 Baseline from \(activityCount) activities (avg TRIMP=\(String(format: "%.1f", avgTRIMPPerActivity))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
+        
+        // Progressive calculation
+        let ctlAlpha = 2.0 / 43.0
+        let atlAlpha = 2.0 / 8.0
+        
+        var result: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
+        var currentDate = sortedDates.first!
+        
+        while currentDate <= today {
+            let trimp = dailyTRIMP[currentDate] ?? 0
+            
+            // Incremental EMA update
+            currentCTL = (trimp * ctlAlpha) + (currentCTL * (1 - ctlAlpha))
+            currentATL = (trimp * atlAlpha) + (currentATL * (1 - atlAlpha))
+            
+            // Store with TRIMP as TSS equivalent
+            result[currentDate] = (ctl: currentCTL, atl: currentATL, tss: trimp)
+            
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        }
+        
+        Logger.data("📊 Progressive HealthKit calculation complete: \(result.count) dates")
+        
+        return result
+    }
+    
     /// Parse activity date string
     /// Handles both Intervals.icu format (no timezone) and Strava format (with 'Z')
     private func parseActivityDate(_ dateString: String) -> Date? {

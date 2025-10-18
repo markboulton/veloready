@@ -588,10 +588,15 @@ class WeeklyReportViewModel: ObservableObject {
         let avgBedtime = avgBedtimeRaw >= 24 ? avgBedtimeRaw - 24 : avgBedtimeRaw
         Logger.debug("   Average bedtime: \(avgBedtime)h (raw: \(avgBedtimeRaw))")
         
-        // Calculate average wake time (simpler - always morning)
+        // Calculate average wake time (handle early morning times)
         let wakeTimeHours = wakeTimes.map { date -> Double in
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            let fractionalHour = Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+            var hour = Double(components.hour ?? 0)
+            let minute = Double(components.minute ?? 0) / 60.0
+            
+            // If wake time is very early (before 6am), it's likely from previous night's sleep
+            // Keep it in 0-6 range for proper averaging
+            let fractionalHour = hour + minute
             let timeStr = String(format: "%02d:%02d", components.hour ?? 0, components.minute ?? 0)
             Logger.debug("      Wake: \(timeStr) = \(fractionalHour)h")
             return fractionalHour
@@ -600,8 +605,10 @@ class WeeklyReportViewModel: ObservableObject {
         Logger.debug("   Average wake time: \(avgWakeTime)h")
         
         // Calculate bedtime variance (standard deviation in minutes)
+        // Use normalized bedtime values to avoid issues with 24+ hour values
+        let normalizedBedtimes = bedtimeHours.map { $0 >= 24 ? $0 - 24 : $0 }
         let avgBedtimeMinutes = avgBedtime * 60
-        let bedtimeMinutes = bedtimeHours.map { $0 * 60 }
+        let bedtimeMinutes = normalizedBedtimes.map { $0 * 60 }
         let varianceSum = bedtimeMinutes.map { pow($0 - avgBedtimeMinutes, 2) }.reduce(0, +)
         let variance = varianceSum / Double(bedtimeMinutes.count)
         let bedtimeVariance = sqrt(variance)
