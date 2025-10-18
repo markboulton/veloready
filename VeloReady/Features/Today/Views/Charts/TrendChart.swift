@@ -92,16 +92,25 @@ struct TrendChart: View {
                 
                 switch chartType {
                 case .bar:
+                    // Very dark grey bar
                     BarMark(
                         x: .value("Day", point.date, unit: .day),
                         y: .value("Value", animateChart ? point.value : 0)
                     )
+                    .foregroundStyle(Color(.systemGray5))
+                    
+                    // Top 2px colored indicator
+                    BarMark(
+                        x: .value("Day", point.date, unit: .day),
+                        yStart: .value("Start", max(0, point.value - 2)),
+                        yEnd: .value("End", point.value)
+                    )
                     .foregroundStyle(colorForValue(point.value))
                     .annotation(position: .top, alignment: .center) {
                         if selectedPeriod == .sevenDays {
-                            Text("\(Int(point.value))\(unit)")
+                            Text("\(Int(point.value))")
                                 .font(.system(size: TypeScale.xxs, weight: .semibold))
-                                .foregroundColor(Color.text.primary)
+                                .foregroundColor(colorForValue(point.value))
                                 .opacity(animateChart ? 1.0 : 0)
                         }
                     }
@@ -136,9 +145,9 @@ struct TrendChart: View {
         .chartXAxis {
             if selectedPeriod == .sevenDays {
                 // 7 days: Show all weekday abbreviations, aligned to center of bars
-                AxisMarks(preset: .aligned) { value in
+                AxisMarks { value in
                     AxisGridLine()
-                        .foregroundStyle(ColorPalette.chartGridLine)
+                        .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -147,7 +156,7 @@ struct TrendChart: View {
                 // 30 days: Show ~5 date labels (every 6 days)
                 AxisMarks(values: .stride(by: .day, count: 6)) { value in
                     AxisGridLine()
-                        .foregroundStyle(ColorPalette.chartGridLine)
+                        .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -156,7 +165,7 @@ struct TrendChart: View {
                 // 60 days: Show ~5 date labels (every 12 days)
                 AxisMarks(values: .stride(by: .day, count: 12)) { value in
                     AxisGridLine()
-                        .foregroundStyle(ColorPalette.chartGridLine)
+                        .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -166,10 +175,14 @@ struct TrendChart: View {
         .chartYAxis {
             AxisMarks(position: .leading, values: [0, 25, 50, 75, 100]) { value in
                 AxisGridLine()
-                    .foregroundStyle(ColorPalette.chartGridLine)
-                AxisValueLabel()
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(ColorPalette.chartAxisLabel)
+                    .foregroundStyle(Color(.systemGray4))
+                AxisValueLabel {
+                    if let intValue = value.as(Int.self) {
+                        Text("\(intValue)%")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(ColorPalette.chartAxisLabel)
+                    }
+                }
             }
         }
         .chartYScale(domain: 0...100)

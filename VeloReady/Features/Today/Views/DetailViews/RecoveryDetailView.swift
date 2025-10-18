@@ -326,9 +326,10 @@ struct RecoveryDetailView: View {
     
     private func colorForScore(_ score: Int) -> Color {
         switch score {
-        case 70...100: return .green
-        case 40..<70: return .orange
-        default: return .red
+        case 80...100: return ColorScale.greenAccent
+        case 60..<80: return ColorScale.blueAccent
+        case 40..<60: return ColorScale.amberAccent
+        default: return ColorScale.redAccent
         }
     }
     
