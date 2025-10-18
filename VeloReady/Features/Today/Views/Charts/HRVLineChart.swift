@@ -52,14 +52,14 @@ struct HRVLineChart: View {
     private var chartView: some View {
         Chart {
             ForEach(data) { point in
-                // Line - RED, 1px, no gradient, no animation
+                // Line - RED, 1px, no gradient, no animation, no smoothing
                 LineMark(
                     x: .value("Day", point.date, unit: .day),
                     y: .value("Value", point.value)
                 )
                 .foregroundStyle(Color.red)
                 .lineStyle(StrokeStyle(lineWidth: 1))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.linear)
             }
             
             // Average line - 1px dashed

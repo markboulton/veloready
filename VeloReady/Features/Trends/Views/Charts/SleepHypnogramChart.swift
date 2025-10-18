@@ -74,35 +74,36 @@ struct SleepHypnogramChart: View {
             // Hypnogram
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background grid lines
-                    ForEach([0.2, 0.5, 0.75, 1.0], id: \.self) { yPos in
+                    // Background grid lines - only for visible stages (no inBed line)
+                    ForEach([0.0, 0.5, 0.75, 1.0], id: \.self) { yPos in
                         Path { path in
                             let y = geometry.size.height * (1 - yPos)
-                            path.move(to: CGPoint(x: 0, y: y))
+                            path.move(to: CGPoint(x: 60, y: y))  // Start after labels
                             path.addLine(to: CGPoint(x: geometry.size.width, y: y))
                         }
                         .stroke(Color(.systemGray4), lineWidth: 1)
                     }
                     
-                    // Sleep stage segments
+                    // Sleep stage segments - offset to start after labels
                     ForEach(sleepSamples) { sample in
                         sleepSegment(
                             sample: sample,
                             geometry: geometry,
-                            totalDuration: nightEnd.timeIntervalSince(nightStart)
+                            totalDuration: nightEnd.timeIntervalSince(nightStart),
+                            leftPadding: 60
                         )
                     }
                     
-                    // Stage labels on left (top to bottom: Awake → Deep) - positioned exactly at stage y-positions
+                    // Stage labels on left - always visible with fixed positioning
                     ZStack(alignment: .leading) {
                         stageLabel("Awake", color: SleepStage.awake.color)
-                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.awake.yPosition))
+                            .position(x: 25, y: geometry.size.height * (1 - SleepStage.awake.yPosition))
                         stageLabel("REM", color: SleepStage.rem.color)
-                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.rem.yPosition))
+                            .position(x: 25, y: geometry.size.height * (1 - SleepStage.rem.yPosition))
                         stageLabel("Core", color: SleepStage.core.color)
-                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.core.yPosition))
+                            .position(x: 25, y: geometry.size.height * (1 - SleepStage.core.yPosition))
                         stageLabel("Deep", color: SleepStage.deep.color)
-                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.deep.yPosition))
+                            .position(x: 25, y: geometry.size.height * (1 - SleepStage.deep.yPosition))
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
                 }
@@ -123,11 +124,13 @@ struct SleepHypnogramChart: View {
     private func sleepSegment(
         sample: SleepStageSample,
         geometry: GeometryProxy,
-        totalDuration: TimeInterval
+        totalDuration: TimeInterval,
+        leftPadding: CGFloat = 0
     ) -> some View {
         let startOffset = sample.startDate.timeIntervalSince(nightStart)
-        let xStart = (startOffset / totalDuration) * geometry.size.width
-        let width = (sample.duration / totalDuration) * geometry.size.width
+        let availableWidth = geometry.size.width - leftPadding
+        let xStart = leftPadding + (startOffset / totalDuration) * availableWidth
+        let width = (sample.duration / totalDuration) * availableWidth
         let yPos = sample.stage.yPosition
         let y = geometry.size.height * (1 - yPos)
         

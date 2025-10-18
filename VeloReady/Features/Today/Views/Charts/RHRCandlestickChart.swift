@@ -121,6 +121,7 @@ struct RHRCandlestickChart: View {
                 }
             }
         }
+        .chartYScale(domain: .automatic)
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
         }
