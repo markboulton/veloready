@@ -245,7 +245,7 @@ struct WeeklyReportView: View {
             Text("Wellness Foundation")
                 .font(.heading)
             
-            // Use single color - health purple
+            // Use single color - health purple with minimal fill
             RadarChart(
                 dataPoints: [
                     .init(label: "Sleep", value: wellness.sleepQuality, icon: "moon.fill"),
@@ -256,7 +256,7 @@ struct WeeklyReportView: View {
                     .init(label: "Fueling", value: wellness.nutrition, icon: "fork.knife")
                 ],
                 maxValue: 100,
-                fillColor: Color.health.hrv.opacity(0.2),
+                fillColor: Color.health.hrv.opacity(0.08),
                 strokeColor: Color.health.hrv
             )
             .frame(height: 280)
@@ -509,7 +509,7 @@ struct WeeklyReportView: View {
     
     private var sleepHypnogramSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Sleep Hypnograms")
+            Text("Weekly Sleep")
                 .font(.heading)
             
             // Segmented control for days

@@ -248,8 +248,12 @@ class WeeklyReportViewModel: ObservableObject {
         let thisWeek = getLast7Days()
         let lastWeek = getPrevious7Days()
         
+        Logger.debug("📊 [WEEKLY METRICS DEBUG]")
+        Logger.debug("   This week: \(thisWeek.count) days")
+        Logger.debug("   Last week: \(lastWeek.count) days")
+        
         guard !thisWeek.isEmpty else {
-            Logger.warning("️ No data for weekly metrics")
+            Logger.warning("⚠️ No data for weekly metrics")
             return
         }
         
@@ -268,6 +272,34 @@ class WeeklyReportViewModel: ObservableObject {
         let avgSleep = sleepDurations.isEmpty ? 0 : sleepDurations.reduce(0, +) / Double(sleepDurations.count)
         let sleepConsistency = calculateSleepConsistency(days: thisWeek)
         
+        Logger.debug("   📊 Checking TSS data...")
+        for (index, day) in thisWeek.enumerated() {
+            let tss = day.load?.tss ?? 0
+            let ctl = day.load?.ctl ?? 0
+            let atl = day.load?.atl ?? 0
+            Logger.debug("      Day \(index): TSS=\(tss), CTL=\(ctl), ATL=\(atl)")
+        }
+        
+        let tssValues = thisWeek.compactMap { day -> Double? in
+            guard let tss = day.load?.tss, tss > 0 else { return nil }
+            return tss
+        }
+        let weeklyTSS = tssValues.reduce(0, +)
+        Logger.debug("   📊 Weekly TSS: \(weeklyTSS) from \(tssValues.count) days")
+        
+        // Calculate duration from TSS (rough estimate: TSS ≈ intensity × duration in hours)
+        // For now, use TSS as proxy for training time (1 TSS ≈ 1 minute of moderate effort)
+        let weeklyDuration = weeklyTSS * 60 // Convert TSS to seconds as rough estimate
+        Logger.debug("   ⏱️ Weekly Duration: ~\(Int(weeklyDuration/60))min (estimated from TSS)")
+        
+        // CTL/ATL (from last day of week)
+        let lastDay = thisWeek.last
+        let ctlStart = thisWeek.first?.load?.ctl ?? 0
+        let ctlEnd = lastDay?.load?.ctl ?? 0
+        let atl = lastDay?.load?.atl ?? 0
+        let tsb = ctlEnd - atl
+        Logger.debug("   📈 CTL: \(ctlStart) → \(ctlEnd), ATL: \(atl), TSB: \(tsb)")
+        
         // HRV
         let hrvValues = thisWeek.compactMap { day -> Double? in
             guard let hrv = day.physio?.hrv, hrv > 0 else { return nil }
@@ -276,15 +308,7 @@ class WeeklyReportViewModel: ObservableObject {
         let hrvTrend = determineHRVTrend(values: hrvValues)
         
         // Training Load
-        let weeklyTSS = thisWeek.compactMap { $0.load?.tss ?? 0 }.reduce(0, +)
-        let weeklyDuration: TimeInterval = weeklyTSS * 3600 / 65 // Estimate from TSS
         let workoutCount = thisWeek.filter { ($0.load?.tss ?? 0) > 0 }.count
-        
-        // CTL/ATL
-        let ctlStart = lastWeek.first?.load?.ctl ?? 50
-        let ctlEnd = thisWeek.last?.load?.ctl ?? ctlStart
-        let atl = thisWeek.last?.load?.atl ?? 50
-        let tsb = ctlEnd - atl
         
         weeklyMetrics = WeeklyMetrics(
             avgRecovery: avgRecovery,
@@ -301,7 +325,7 @@ class WeeklyReportViewModel: ObservableObject {
             tsb: tsb
         )
         
-        Logger.debug("📊 Weekly Metrics: Recovery \(Int(avgRecovery))%, TSS \(Int(weeklyTSS))")
+        Logger.debug("✅ Weekly Metrics Complete: Recovery \(Int(avgRecovery))%, TSS \(Int(weeklyTSS)), Duration \(Int(weeklyDuration))s, CTL \(Int(ctlEnd))")
     }
     
     private func determineHRVTrend(values: [Double]) -> String {
@@ -450,9 +474,14 @@ class WeeklyReportViewModel: ObservableObject {
             }
         }
         
+        // Filter out future sleep sessions (shouldn't happen, but just in case)
+        let now = Date()
+        let pastHypnograms = hypnogramArray.filter { $0.wakeTime < now }
+        
         sleepArchitecture = sleepDataArray
-        sleepHypnograms = hypnogramArray
-        Logger.debug("😴 Sleep Architecture: \(sleepArchitecture.count) days, \(sleepHypnograms.count) hypnograms from HealthKit")
+        sleepHypnograms = pastHypnograms
+        
+        Logger.debug("😴 Sleep Architecture: \(sleepDataArray.count) days, \(hypnogramArray.count) total hypnograms (\(pastHypnograms.count) past) from HealthKit")
     }
     
     // MARK: - Heatmap
@@ -511,26 +540,62 @@ class WeeklyReportViewModel: ObservableObject {
     
     private func calculateCircadianRhythm() async {
         // Use actual bedtime/wake time from sleep architecture
-        guard !sleepArchitecture.isEmpty else { return }
+        Logger.debug("🕐 [SLEEP SCHEDULE DEBUG]")
+        Logger.debug("   Sleep architecture entries: \(sleepArchitecture.count)")
         
-        let bedtimes = sleepArchitecture.compactMap { $0.bedtime }
-        let wakeTimes = sleepArchitecture.compactMap { $0.wakeTime }
+        guard !sleepArchitecture.isEmpty else {
+            Logger.warning("   ⚠️ No sleep architecture data")
+            return
+        }
         
-        guard !bedtimes.isEmpty && !wakeTimes.isEmpty else { return }
+        // Only use PAST sleep (not future)
+        let now = Date()
+        let pastSleep = sleepArchitecture.filter { sleep in
+            guard let wakeTime = sleep.wakeTime else { return false }
+            return wakeTime < now
+        }
+        Logger.debug("   Past sleep sessions: \(pastSleep.count)")
         
-        // Calculate average bedtime (in fractional hours)
+        let bedtimes = pastSleep.compactMap { $0.bedtime }.compactMap { $0 }
+        let wakeTimes = pastSleep.compactMap { $0.wakeTime }.compactMap { $0 }
+        
+        guard !bedtimes.isEmpty && !wakeTimes.isEmpty else {
+            Logger.warning("   ⚠️ No valid bedtime/wake time data")
+            return
+        }
+        
+        // Calculate average bedtime (in fractional hours from midnight)
+        // Need to handle times after midnight (e.g., 23:00 = 23.0, 00:30 = 24.5 to avoid averaging issues)
         let bedtimeHours = bedtimes.map { date -> Double in
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            return Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+            var hour = Double(components.hour ?? 0)
+            let minute = Double(components.minute ?? 0) / 60.0
+            
+            // If bedtime is before 6am, treat as next day (e.g., 1am = 25.0)
+            if hour < 6 {
+                hour += 24
+            }
+            
+            let fractionalHour = hour + minute
+            let timeStr = String(format: "%02d:%02d", components.hour ?? 0, components.minute ?? 0)
+            Logger.debug("      Bedtime: \(timeStr) = \(fractionalHour)h")
+            return fractionalHour
         }
-        let avgBedtime = bedtimeHours.reduce(0, +) / Double(bedtimeHours.count)
+        let avgBedtimeRaw = bedtimeHours.reduce(0, +) / Double(bedtimeHours.count)
+        // Normalize back to 0-24 range
+        let avgBedtime = avgBedtimeRaw >= 24 ? avgBedtimeRaw - 24 : avgBedtimeRaw
+        Logger.debug("   Average bedtime: \(avgBedtime)h (raw: \(avgBedtimeRaw))")
         
-        // Calculate average wake time
+        // Calculate average wake time (simpler - always morning)
         let wakeTimeHours = wakeTimes.map { date -> Double in
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            return Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+            let fractionalHour = Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+            let timeStr = String(format: "%02d:%02d", components.hour ?? 0, components.minute ?? 0)
+            Logger.debug("      Wake: \(timeStr) = \(fractionalHour)h")
+            return fractionalHour
         }
         let avgWakeTime = wakeTimeHours.reduce(0, +) / Double(wakeTimeHours.count)
+        Logger.debug("   Average wake time: \(avgWakeTime)h")
         
         // Calculate bedtime variance (standard deviation in minutes)
         let avgBedtimeMinutes = avgBedtime * 60
@@ -589,9 +654,13 @@ class WeeklyReportViewModel: ObservableObject {
     // MARK: - AI Summary
     
     private func fetchAISummary() async {
+        Logger.debug("🤖 [AI SUMMARY] Starting fetch...")
+        
         guard let metrics = weeklyMetrics,
               let zones = trainingZoneDistribution else {
-            Logger.warning("️ Missing data for AI summary")
+            Logger.warning("⚠️ Missing data for AI summary")
+            Logger.debug("   weeklyMetrics: \(weeklyMetrics == nil ? "nil" : "present")")
+            Logger.debug("   trainingZoneDistribution: \(trainingZoneDistribution == nil ? "nil" : "present")")
             return
         }
         
@@ -602,6 +671,11 @@ class WeeklyReportViewModel: ObservableObject {
         
         // Build request payload
         let weekSummary = determineWeekSummary()
+        Logger.debug("   Week summary: \(weekSummary)")
+        Logger.debug("   Recovery: \(Int(metrics.avgRecovery))% (change: \(Int(metrics.recoveryChange))%)")
+        Logger.debug("   TSS: \(Int(metrics.weeklyTSS))")
+        Logger.debug("   CTL: \(Int(metrics.ctlStart)) → \(Int(metrics.ctlEnd))")
+        
         let payload: [String: Any] = [
             "weekSummary": weekSummary,
             "avgRecovery": Int(metrics.avgRecovery),
