@@ -22,7 +22,7 @@ struct FitnessTrajectoryChart: View {
                     x: .value("Date", point.date, unit: .day),
                     y: .value("CTL", point.ctl)
                 )
-                .foregroundStyle(ColorPalette.powerMetric)
+                .foregroundStyle(ColorPalette.powerMetric.opacity(0.7))
                 .lineStyle(RefinedChartMarks.lineStyle())
                 .interpolationMethod(.catmullRom)
             }
@@ -33,7 +33,7 @@ struct FitnessTrajectoryChart: View {
                     x: .value("Date", point.date, unit: .day),
                     y: .value("ATL", point.atl)
                 )
-                .foregroundStyle(ColorPalette.tssMetric)
+                .foregroundStyle(ColorPalette.tssMetric.opacity(0.7))
                 .lineStyle(RefinedChartMarks.lineStyle())
                 .interpolationMethod(.catmullRom)
             }
@@ -56,7 +56,7 @@ struct FitnessTrajectoryChart: View {
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 1)) { _ in
                 AxisGridLine()
-                    .foregroundStyle(ColorPalette.chartGridLine)
+                    .foregroundStyle(Color(.systemGray4))
                 AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -65,7 +65,7 @@ struct FitnessTrajectoryChart: View {
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
-                    .foregroundStyle(ColorPalette.chartGridLine)
+                    .foregroundStyle(Color(.systemGray4))
                 AxisValueLabel {
                     if let val = value.as(Double.self) {
                         Text("\(Int(val))")
