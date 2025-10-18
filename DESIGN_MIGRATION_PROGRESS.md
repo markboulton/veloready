@@ -126,7 +126,7 @@
 Poor:      #FF4444  // Coral red
 Low:       #FF8844  // Soft orange
 Medium:    #FFB800  // Warm amber
-Good:      #B8D946  // Yellow-green
+Good:      #EDCB57  // Warm gold (updated for better light mode contrast)
 Excellent: #00D9A3  // Mint green
 
 // Usage:
