@@ -1,35 +1,56 @@
 import SwiftUI
 
-/// Profile section showing user info
+/// Profile section showing user info with edit capability
 struct ProfileSection: View {
+    @StateObject private var viewModel = ProfileViewModel()
+    
     var body: some View {
         Section {
-            HStack {
-                // Profile avatar placeholder
-                Circle()
-                    .fill(ColorScale.purpleAccent)
-                    .frame(width: 60, height: 60)
-                    .overlay {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.white)
-                            .font(.title2)
+            NavigationLink(destination: ProfileView()) {
+                HStack {
+                    // Profile avatar
+                    if let image = viewModel.avatarImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(ColorScale.purpleAccent)
+                            .frame(width: 60, height: 60)
+                            .overlay {
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                            }
                     }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("VeloReady User")
-                        .font(.headline)
-                        .fontWeight(.semibold)
                     
-                    Text("Cycling Performance Tracker")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(viewModel.name.isEmpty ? "VeloReady User" : viewModel.name)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        if !viewModel.email.isEmpty {
+                            Text(viewModel.email)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Tap to edit profile")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+                .padding(.vertical, 8)
             }
-            .padding(.vertical, 8)
         } header: {
             Text("Profile")
+        }
+        .onAppear {
+            viewModel.loadProfile()
         }
     }
 }
