@@ -288,8 +288,7 @@ private struct StatPill: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label)
-                .font(.caption)
-                .foregroundColor(.text.secondary)
+                .metricLabel()
             
             Text(value)
                 .font(.heading)

@@ -12,8 +12,7 @@ struct RecoveryCapacityComponent: View {
             HStack(alignment: .top, spacing: Spacing.xl) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.avgRecovery)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     HStack(spacing: 4) {
                         Text("\(Int(metrics.avgRecovery))%")
                             .font(.title)
@@ -31,8 +30,7 @@ struct RecoveryCapacityComponent: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.hrvTrend)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     Text(metrics.hrvTrend)
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -40,8 +38,7 @@ struct RecoveryCapacityComponent: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.sleepLabel)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     Text(String(format: "%.1fh", metrics.avgSleep))
                         .font(.subheadline)
                         .fontWeight(.medium)
