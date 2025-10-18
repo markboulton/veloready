@@ -16,31 +16,29 @@ struct FitnessTrajectoryChart: View {
     
     var body: some View {
         Chart {
-            // CTL (Fitness) - Blue line
+            // CTL (Fitness) - Soft blue line
             ForEach(data) { point in
                 LineMark(
                     x: .value("Date", point.date, unit: .day),
                     y: .value("CTL", point.ctl)
                 )
-                .foregroundStyle(Color.workout.power)
-                .symbol(Circle().strokeBorder(lineWidth: 2))
-                .symbolSize(30)
+                .foregroundStyle(ColorPalette.powerMetric)
+                .lineStyle(RefinedChartMarks.lineStyle())
                 .interpolationMethod(.catmullRom)
             }
             
-            // ATL (Fatigue) - Orange line
+            // ATL (Fatigue) - Amber line
             ForEach(data) { point in
                 LineMark(
                     x: .value("Date", point.date, unit: .day),
                     y: .value("ATL", point.atl)
                 )
-                .foregroundStyle(Color.workout.tss)
-                .symbol(Circle().strokeBorder(lineWidth: 2))
-                .symbolSize(30)
+                .foregroundStyle(ColorPalette.tssMetric)
+                .lineStyle(RefinedChartMarks.lineStyle())
                 .interpolationMethod(.catmullRom)
             }
             
-            // TSB (Form) - Area fill showing fresh vs fatigued
+            // TSB (Form) - Very subtle area fill
             ForEach(data) { point in
                 AreaMark(
                     x: .value("Date", point.date, unit: .day),
@@ -49,8 +47,8 @@ struct FitnessTrajectoryChart: View {
                 )
                 .foregroundStyle(
                     point.tsb > 0 ?
-                    Color.green.opacity(0.2).gradient :
-                    Color.red.opacity(0.2).gradient
+                    ColorPalette.recoveryExcellent.opacity(0.08) :
+                    ColorPalette.recoveryPoor.opacity(0.08)
                 )
                 .interpolationMethod(.catmullRom)
             }
@@ -58,30 +56,30 @@ struct FitnessTrajectoryChart: View {
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 1)) { _ in
                 AxisGridLine()
-                    .foregroundStyle(Color.text.tertiary.opacity(0.2))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                    .font(.system(size: TypeScale.xxs))
-                    .foregroundStyle(Color.text.secondary)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(ColorPalette.chartAxisLabel)
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
-                    .foregroundStyle(Color.text.tertiary.opacity(0.2))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisValueLabel {
                     if let val = value.as(Double.self) {
                         Text("\(Int(val))")
-                            .font(.system(size: TypeScale.xxs))
-                            .foregroundStyle(Color.text.secondary)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(ColorPalette.chartAxisLabel)
                     }
                 }
             }
         }
         .chartLegend(position: .bottom, spacing: 8) {
             HStack(spacing: Spacing.md) {
-                legendItem(color: .workout.power, label: "CTL (Fitness)")
-                legendItem(color: .workout.tss, label: "ATL (Fatigue)")
-                legendItem(color: .green, label: "TSB (Form)")
+                legendItem(color: ColorPalette.powerMetric, label: "CTL (Fitness)")
+                legendItem(color: ColorPalette.tssMetric, label: "ATL (Fatigue)")
+                legendItem(color: ColorPalette.recoveryExcellent, label: "TSB (Form)")
             }
         }
     }
@@ -92,8 +90,8 @@ struct FitnessTrajectoryChart: View {
                 .fill(color)
                 .frame(width: 8, height: 8)
             Text(label)
-                .font(.system(size: TypeScale.xxs))
-                .foregroundColor(.text.secondary)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(ColorPalette.labelSecondary)
         }
     }
 }
