@@ -4,7 +4,7 @@ import SwiftUI
 struct MetricLabelModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.caption)
+            .font(.system(size: 9, weight: .medium))
             .foregroundColor(.text.secondary)
             .textCase(.uppercase)
             .tracking(0.5) // Slight letter spacing for caps

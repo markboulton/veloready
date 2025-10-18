@@ -49,7 +49,7 @@ struct StackedAreaChart: View {
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day, count: 2)) { _ in
                     AxisGridLine()
-                        .foregroundStyle(ColorPalette.chartGridLine)
+                        .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -58,7 +58,7 @@ struct StackedAreaChart: View {
             .chartYAxis {
                 AxisMarks(position: .leading) { value in
                     AxisGridLine()
-                        .foregroundStyle(ColorPalette.chartGridLine)
+                        .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel {
                         if let hours = value.as(Double.self) {
                             Text("\(Int(hours))h")

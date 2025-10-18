@@ -109,8 +109,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.ctl),
                             series: .value("Metric", "CTL")
                         )
-                        .foregroundStyle(Color.button.primary)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.button.primary.opacity(0.5))
+                        .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -129,8 +129,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.atl),
                             series: .value("Metric", "ATL")
                         )
-                        .foregroundStyle(Color.semantic.warning)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.semantic.warning.opacity(0.5))
+                        .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -149,8 +149,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.tsb),
                             series: .value("Metric", "TSB")
                         )
-                        .foregroundStyle(ColorScale.greenAccent)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(ColorScale.greenAccent.opacity(0.5))
+                        .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -172,11 +172,13 @@ struct TrainingLoadChart: View {
                             .foregroundStyle(Color.text.secondary)
                         }
                         AxisGridLine()
-                            .foregroundStyle(ColorPalette.chartGridLine)
+                            .foregroundStyle(Color(.systemGray4))
                     }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading) { value in
+                        AxisGridLine()
+                            .foregroundStyle(Color(.systemGray4))
                         AxisValueLabel()
                             .font(.caption2)
                     }

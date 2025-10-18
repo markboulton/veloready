@@ -36,7 +36,7 @@ struct RadarChart: View {
                 // Background grid circles - very subtle
                 ForEach([0.25, 0.5, 0.75, 1.0], id: \.self) { scale in
                     Circle()
-                        .stroke(ColorPalette.chartGridLine, lineWidth: 1)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
                         .frame(width: radius * 2 * scale, height: radius * 2 * scale)
                 }
                 

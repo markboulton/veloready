@@ -16,26 +16,40 @@ struct FitnessTrajectoryChart: View {
     
     var body: some View {
         Chart {
-            // CTL (Fitness) - Soft blue line
+            // CTL (Fitness) - Soft blue line with point markers
             ForEach(data) { point in
                 LineMark(
                     x: .value("Date", point.date, unit: .day),
                     y: .value("CTL", point.ctl)
                 )
-                .foregroundStyle(ColorPalette.powerMetric.opacity(0.7))
-                .lineStyle(RefinedChartMarks.lineStyle())
+                .foregroundStyle(ColorPalette.powerMetric.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.catmullRom)
+                
+                PointMark(
+                    x: .value("Date", point.date, unit: .day),
+                    y: .value("CTL", point.ctl)
+                )
+                .foregroundStyle(ColorPalette.powerMetric)
+                .symbolSize(60)
             }
             
-            // ATL (Fatigue) - Amber line
+            // ATL (Fatigue) - Amber line with point markers
             ForEach(data) { point in
                 LineMark(
                     x: .value("Date", point.date, unit: .day),
                     y: .value("ATL", point.atl)
                 )
-                .foregroundStyle(ColorPalette.tssMetric.opacity(0.7))
-                .lineStyle(RefinedChartMarks.lineStyle())
+                .foregroundStyle(ColorPalette.tssMetric.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.catmullRom)
+                
+                PointMark(
+                    x: .value("Date", point.date, unit: .day),
+                    y: .value("ATL", point.atl)
+                )
+                .foregroundStyle(ColorPalette.tssMetric)
+                .symbolSize(60)
             }
             
             // TSB (Form) - Very subtle area fill
