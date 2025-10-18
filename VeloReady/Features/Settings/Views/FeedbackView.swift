@@ -88,6 +88,7 @@ struct FeedbackView: View {
                     subject: "VeloReady Feedback",
                     recipients: ["support@veloready.app"],
                     body: buildEmailBody(),
+                    attachLogs: includeLogs,
                     isPresented: $showMailComposer,
                     result: $mailResult
                 )
@@ -130,21 +131,10 @@ struct FeedbackView: View {
         }
         
         if includeLogs {
-            body += "\nRecent Logs:\n"
-            body += collectRecentLogs()
+            body += "\nNote: Diagnostic logs attached as veloready-logs.txt\n"
         }
         
         return body
-    }
-    
-    private func collectRecentLogs() -> String {
-        // Collect logs from Logger
-        // This is a simplified version - you may want to implement
-        // a proper log collection system if needed
-        var logs = "Log collection placeholder\n"
-        logs += "Timestamp: \(Date())\n"
-        logs += "Note: Implement Logger.getRecentLogs() for detailed logs\n"
-        return logs
     }
     
     // MARK: - Helpers
@@ -179,6 +169,7 @@ struct MailComposeView: UIViewControllerRepresentable {
     let subject: String
     let recipients: [String]
     let body: String
+    let attachLogs: Bool
     @Binding var isPresented: Bool
     @Binding var result: Result<MFMailComposeResult, Error>?
     
@@ -188,7 +179,20 @@ struct MailComposeView: UIViewControllerRepresentable {
         vc.setSubject(subject)
         vc.setToRecipients(recipients)
         vc.setMessageBody(body, isHTML: false)
+        
+        // Attach logs as file if requested
+        if attachLogs {
+            if let logData = createLogFile() {
+                vc.addAttachmentData(logData, mimeType: "text/plain", fileName: "veloready-logs.txt")
+            }
+        }
+        
         return vc
+    }
+    
+    private func createLogFile() -> Data? {
+        let logs = Logger.exportLogs()
+        return logs.data(using: .utf8)
     }
     
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {

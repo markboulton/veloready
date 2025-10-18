@@ -1,5 +1,7 @@
 import Foundation
 import os.log
+import OSLog
+import UIKit
 
 /// Centralized logging utility with DEBUG-conditional output
 /// Uses os_log for production builds (efficient, privacy-aware)
@@ -134,6 +136,77 @@ enum Logger {
         print("💾 [Cache] \(message)")
         #endif
     }
+    
+    // MARK: - Log Export
+    
+    /// Export recent logs for feedback/debugging
+    /// Returns formatted log string with timestamp and device info
+    static func exportLogs() -> String {
+        var output = "VeloReady Diagnostic Logs\n"
+        output += "Generated: \(Date())\n"
+        output += "=========================\n\n"
+        
+        // Device info
+        output += "Device Information:\n"
+        output += "  Model: \(UIDevice.current.model)\n"
+        output += "  iOS: \(UIDevice.current.systemVersion)\n"
+        output += "  App Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")\n"
+        output += "  Build: \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")\n"
+        output += "  Environment: \(DebugFlags.buildEnvironment)\n"
+        output += "\n"
+        
+        #if DEBUG
+        output += "Note: Debug build - logs are printed to console, not stored\n"
+        output += "Enable debug logging in Settings → Advanced to see detailed logs\n"
+        output += "Debug logging enabled: \(isDebugLoggingEnabled)\n"
+        #else
+        // In production, try to fetch recent logs from OSLog
+        output += "Recent System Logs:\n"
+        output += fetchRecentOSLogs()
+        #endif
+        
+        output += "\n=========================\n"
+        output += "End of logs\n"
+        
+        return output
+    }
+    
+    #if !DEBUG
+    /// Fetch recent logs from OSLog (production only)
+    private static func fetchRecentOSLogs() -> String {
+        do {
+            let logStore = try OSLogStore(scope: .currentProcessIdentifier)
+            let oneHourAgo = Date().addingTimeInterval(-3600)
+            let position = logStore.position(date: oneHourAgo)
+            
+            var logs = ""
+            var count = 0
+            let maxLogs = 500 // Limit to prevent huge files
+            
+            let entries = try logStore.getEntries(at: position)
+            for entry in entries {
+                guard count < maxLogs else { break }
+                
+                if let logEntry = entry as? OSLogEntryLog,
+                   logEntry.subsystem == subsystem {
+                    let timestamp = logEntry.date.formatted(date: .omitted, time: .standard)
+                    logs += "[\(timestamp)] [\(logEntry.category)] \(logEntry.composedMessage)\n"
+                    count += 1
+                }
+            }
+            
+            if count == 0 {
+                logs = "No recent logs found (last hour)\n"
+            } else {
+                logs = "Found \(count) log entries (last hour):\n\n" + logs
+            }
+            
+            return logs
+        } catch {
+            return "Failed to fetch logs: \(error.localizedDescription)\n"
+        }
+    }
+    #endif
 }
 
 // MARK: - Convenience Extensions
