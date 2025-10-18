@@ -424,7 +424,9 @@ struct RecoveryDetailView: View {
         
         Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
         if dataPoints.isEmpty {
-            Logger.warning("📊 [RECOVERY CHART] No data available")
+            Logger.warning("📊 [RECOVERY CHART] No data available for \(period.days)d period")
+        } else if dataPoints.count < period.days {
+            Logger.data("📊 [RECOVERY CHART] Showing \(dataPoints.count)/\(period.days) days - recovery scores accumulate daily (not backfilled)")
         }
         
         return dataPoints
