@@ -570,7 +570,7 @@ struct RecoveryDetailView: View {
                     Logger.debug("💔 [RHR CHART] Date: \(dayStart), Min: \(Int(minHR)), Max: \(Int(maxHR)), Avg: \(Int(avgHR))")
                 }
                 
-                HealthKitService.shared.healthStore.execute(query)
+                HKHealthStore().execute(query)
             }
             
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!

@@ -7,11 +7,9 @@ struct RHRCandlestickChart: View {
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var animateChart: Bool = false
+    @State private var data: [RHRDataPoint] = []
+    @State private var isLoading: Bool = false
     @Environment(\.accessibilityReduceMotion) var reduceMotion
-    
-    private var data: [RHRDataPoint] {
-        getData(selectedPeriod)
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
@@ -114,23 +112,34 @@ struct RHRCandlestickChart: View {
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
         }
-        .onAppear {
-            if !reduceMotion {
-                animateChart = false
-                withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: 0.4)) {
-                    animateChart = true
-                }
-            } else {
-                animateChart = true
-            }
+        .task {
+            await loadData()
         }
         .onChange(of: selectedPeriod) { _, _ in
-            if !reduceMotion {
-                animateChart = false
-                withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: 0.4)) {
-                    animateChart = true
-                }
+            Task {
+                await loadData()
             }
+        }
+    }
+    
+    private func loadData() async {
+        isLoading = true
+        // Run on background thread
+        let newData = await Task.detached(priority: .userInitiated) {
+            getData(selectedPeriod)
+        }.value
+        
+        data = newData
+        isLoading = false
+        
+        // Animate after data loads
+        if !reduceMotion {
+            animateChart = false
+            withAnimation(.timingCurve(0.2, 0.8, 0.2, 1.0, duration: 0.4)) {
+                animateChart = true
+            }
+        } else {
+            animateChart = true
         }
     }
     
