@@ -66,13 +66,14 @@ struct RideSummaryView: View {
 
 private struct LoadingView: View {
     var body: some View {
-        HStack {
-            Spacer()
+        HStack(spacing: Spacing.sm) {
             ProgressView()
                 .scaleEffect(0.8)
-            Spacer()
+            Text(RideSummaryContent.analyzing)
+                .bodyStyle()
+                .foregroundColor(.text.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Spacing.md)
     }
 }
 

@@ -38,6 +38,7 @@ enum TodayContent {
     enum AIBrief {
         static let title = "Daily Brief"  /// AI Brief section title
         static let loading = "Loading your daily brief..."  /// Loading message
+        static let analyzing = "Analyzing your data..."  /// Analyzing message (loading state)
         static let tsb = "Training Stress Balance:"  /// TSB label
         static let targetTSS = "Target TSS Today:"  /// Target TSS label
         static let tssDescription = "Training Stress Score - aim for this range based on your fitness"  /// TSS description

@@ -23,6 +23,7 @@ enum RideSummaryContent {
     
     // MARK: - States
     static let loading = "Generating AI insights..."  /// Loading message
+    static let analyzing = "Analyzing your ride..."  /// Analyzing message (loading state)
     static let error = "Failed to generate summary"  /// Error message
     static let retry = "Retry"  /// Retry button
     

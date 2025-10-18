@@ -20,24 +20,45 @@ struct AIBriefView: View {
                 }
                 .padding(.bottom, 12)
                 
-                // Content
-                if service.isLoading {
-                    LoadingStateView(size: .small)
-                        .padding(.vertical, 8)
-                } else if let error = service.error {
-                    ErrorView(error: error)
-                } else if let text = service.briefText {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(text)
-                            .bodyStyle()
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Training Metrics
-                        TrainingMetricsView()
+                // Content with fixed height to prevent layout shifts
+                ZStack(alignment: .topLeading) {
+                    // Invisible placeholder to maintain height
+                    Text("Placeholder text to maintain consistent height during loading. This ensures the layout doesn't jump when content loads.")
+                        .bodyStyle()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .opacity(0)
+                    
+                    // Actual content
+                    if service.isLoading {
+                        HStack(spacing: Spacing.sm) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text(TodayContent.AIBrief.analyzing)
+                                .bodyStyle()
+                                .foregroundColor(.text.secondary)
+                        }
+                        .padding(.vertical, Spacing.md)
+                    } else if let error = service.error {
+                        ErrorView(error: error)
+                    } else if let text = service.briefText {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(text)
+                                .bodyStyle()
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            // Training Metrics
+                            TrainingMetricsView()
+                        }
+                    } else {
+                        HStack(spacing: Spacing.sm) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text(TodayContent.AIBrief.analyzing)
+                                .bodyStyle()
+                                .foregroundColor(.text.secondary)
+                        }
+                        .padding(.vertical, Spacing.md)
                     }
-                } else {
-                    LoadingStateView(size: .small)
-                        .padding(.vertical, 8)
                 }
                 
                 SectionDivider(bottomPadding: 0)
