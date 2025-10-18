@@ -60,4 +60,102 @@ enum TrendsContent {
     // MARK: - PRO Feature
     static let proFeature = "PRO"  /// PRO badge text
     static let proRequired = "PRO feature"  /// PRO required message
+    
+    // MARK: - Weekly Report
+    enum WeeklyReport {
+        static let title = "Weekly Performance Report"  /// Weekly report title
+        static let dateRange = "Week of"  /// Week range prefix
+        static let nextReport = "Next report:"  /// Next report prefix
+        static let generatedToday = "Generated today"  /// Generated today message
+        static let daysPlural = "days"  /// Days plural
+        static let daySingular = "day"  /// Day singular
+        
+        // AI Summary
+        static let analyzing = "Analyzing your week..."  /// AI loading message
+        static let unableToGenerate = "Unable to generate analysis"  /// Error message
+        
+        // Fitness Trajectory
+        static let fitnessTrajectory = "Fitness Trajectory (7 Days)"  /// Fitness trajectory title
+        static let ctlLabel = "CTL"  /// CTL label
+        static let atlLabel = "ATL"  /// ATL label
+        static let formLabel = "Form"  /// Form/TSB label
+        static let fitnessLabel = "Fitness"  /// Fitness label for legend
+        static let fatigueLabel = "Fatigue"  /// Fatigue label for legend
+        
+        // Interpretations
+        static let fatigued = "Fatigued - prioritize recovery"  /// Fatigued interpretation
+        static let optimalTraining = "Optimal training zone"  /// Optimal interpretation
+        static let fresh = "Fresh - ready for hard efforts"  /// Fresh interpretation
+        static let veryFresh = "Very fresh - consider increasing load"  /// Very fresh interpretation
+        
+        // Wellness Foundation
+        static let wellnessFoundation = "Wellness Foundation"  /// Wellness foundation title
+        static let overallScore = "Overall Score:"  /// Overall score label
+        static let strongFoundation = "Strong wellness foundation supporting your training"  /// Good wellness message
+        static let sleepNeedsAttention = "Sleep quality needs attention"  /// Sleep warning
+        static let stressElevated = "Stress levels elevated (lower is better)"  /// Stress warning
+        static let consistencyImprove = "Consistency could improve"  /// Consistency warning
+        
+        // Wellness Metrics
+        static let sleepMetric = "Sleep"  /// Sleep metric
+        static let recoveryMetric = "Recovery"  /// Recovery metric
+        static let hrvMetric = "HRV"  /// HRV metric
+        static let lowStressMetric = "Low Stress"  /// Low stress metric
+        static let consistentMetric = "Consistent"  /// Consistent metric
+        static let fuelingMetric = "Fueling"  /// Fueling metric
+        
+        // Recovery Capacity
+        static let recoveryCapacity = "Recovery Capacity"  /// Recovery capacity title
+        static let avgRecovery = "Avg Recovery"  /// Average recovery label
+        static let hrvTrend = "HRV Trend"  /// HRV trend label
+        static let sleepLabel = "Sleep"  /// Sleep label
+        static let excellentCapacity = "Excellent capacity - ready for challenging training"  /// Excellent capacity
+        static let goodCapacity = "Good capacity - can handle moderate training load"  /// Good capacity
+        static let adequateCapacity = "Adequate - maintain current training level"  /// Adequate capacity
+        static let lowCapacity = "Low capacity - prioritize recovery before increasing load"  /// Low capacity
+        
+        // Training Load
+        static let trainingLoadSummary = "Training Load Summary"  /// Training load title
+        static let totalTSS = "Total TSS"  /// Total TSS label
+        static let trainingTime = "Training Time"  /// Training time label
+        static let workouts = "Workouts"  /// Workouts label
+        static let trainingPattern = "Training Pattern"  /// Training pattern label
+        static let optimalDays = "Optimal"  /// Optimal days
+        static let hardDays = "Hard"  /// Hard days
+        static let easyRestDays = "Easy/Rest"  /// Easy/rest days
+        static let intensityDistribution = "Intensity Distribution"  /// Intensity distribution title
+        static let easyZone = "Easy (Z1-2)"  /// Easy zone
+        static let tempoZone = "Tempo (Z3-4)"  /// Tempo zone
+        static let hardZone = "Hard (Z5+)"  /// Hard zone
+        static let polarization = "Polarization:"  /// Polarization label
+        static let wellPolarized = "Well polarized"  /// Well polarized message
+        static let couldBePolarized = "Could be more polarized"  /// Could improve message
+        static let goodBalance = "Good balance of training stress and recovery"  /// Good balance
+        static let highStress = "High training stress - monitor recovery closely"  /// High stress
+        static let lightWeek = "Light training week - good for recovery or taper"  /// Light week
+        
+        // Sleep
+        static let weeklySleep = "Weekly Sleep"  /// Weekly sleep title
+        static let nightDuration = "Night Duration"  /// Night duration label
+        
+        // Sleep Schedule
+        static let sleepSchedule = "Sleep Schedule"  /// Sleep schedule title
+        static let avgBedtime = "Avg Bedtime"  /// Average bedtime label
+        static let avgWake = "Avg Wake"  /// Average wake label
+        static let consistency = "Consistency"  /// Consistency label
+        static let excellentConsistency = "Excellent schedule consistency - supports recovery and adaptation"  /// Excellent consistency
+        static let goodConsistency = "Good consistency - small variations are normal"  /// Good consistency
+        static let variableSchedule = "Variable schedule - more consistency could improve recovery"  /// Variable schedule
+        
+        // Week-over-Week
+        static let weekOverWeek = "Week-over-Week Changes"  /// Week-over-week title
+        static let recoveryLabel = "Recovery"  /// Recovery label
+        static let tssLabel = "TSS"  /// TSS label
+        static let timeLabel = "Training Time"  /// Training time label
+        static let ctlChange = "CTL"  /// CTL change label
+        
+        // No Data
+        static let noTrainingData = "No training load data available"  /// No training data
+        static let noSleepData = "No sleep data available"  /// No sleep data
+    }
 }
