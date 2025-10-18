@@ -7,11 +7,8 @@ struct HRVLineChart: View {
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var sweepProgress: Double = 1.0
+    @State private var data: [TrendDataPoint] = []
     @Environment(\.accessibilityReduceMotion) var reduceMotion
-    
-    private var data: [TrendDataPoint] {
-        getData(selectedPeriod)
-    }
     
     private var normalizedHeights: [Double] {
         guard !data.isEmpty else { return [] }
@@ -131,6 +128,7 @@ struct HRVLineChart: View {
             plotArea.background(Color.clear)
         }
         .onAppear {
+            loadData()
             if !reduceMotion {
                 sweepProgress = 0
                 withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
@@ -139,6 +137,7 @@ struct HRVLineChart: View {
             }
         }
         .onChange(of: selectedPeriod) { _, _ in
+            loadData()
             if !reduceMotion {
                 sweepProgress = 0
                 withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.64)) {
@@ -146,6 +145,10 @@ struct HRVLineChart: View {
                 }
             }
         }
+    }
+    
+    private func loadData() {
+        data = getData(selectedPeriod)
     }
     
     private var summaryStats: some View {
