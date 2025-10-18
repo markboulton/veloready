@@ -79,7 +79,7 @@ struct HRVCandlestickChart: View {
                 .lineStyle(StrokeStyle(lineWidth: 3))
                 .foregroundStyle(candlestickColor(point).opacity(0.6))
                 
-                // For 7-day view: Annotate high and low values
+                // For 7-day view: Annotate high and low values in red circles
                 if selectedPeriod == .sevenDays && animateChart {
                     // High value annotation
                     PointMark(
@@ -87,10 +87,17 @@ struct HRVCandlestickChart: View {
                         y: .value("High", point.high)
                     )
                     .opacity(0)
-                    .annotation(position: .top, spacing: 2) {
-                        Text("\(Int(point.high))")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.white)
+                    .annotation(position: .top, spacing: -8) {
+                        ZStack {
+                            Circle()
+                                .strokeBorder(Color.red, lineWidth: 1.5)
+                                .background(Circle().fill(Color.clear))
+                                .frame(width: 24, height: 24)
+                            
+                            Text("\(Int(point.high))")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(white: 0.9))
+                        }
                     }
                     
                     // Low value annotation
@@ -99,10 +106,17 @@ struct HRVCandlestickChart: View {
                         y: .value("Low", point.low)
                     )
                     .opacity(0)
-                    .annotation(position: .bottom, spacing: 2) {
-                        Text("\(Int(point.low))")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.white)
+                    .annotation(position: .bottom, spacing: -8) {
+                        ZStack {
+                            Circle()
+                                .strokeBorder(Color.red, lineWidth: 1.5)
+                                .background(Circle().fill(Color.clear))
+                                .frame(width: 24, height: 24)
+                            
+                            Text("\(Int(point.low))")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(white: 0.9))
+                        }
                     }
                 }
             }

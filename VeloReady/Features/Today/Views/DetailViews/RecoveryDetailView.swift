@@ -465,23 +465,29 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        // Convert to HRVDataPoint (use HRV as all values since we only have daily HRV, not intraday)
-        let dataPoints = results.compactMap { record -> HRVDataPoint? in
-            guard let date = record.date, record.hrv > 0 else { return nil }
-            
-            // For HRV, we only have one value per day
-            // Add small visual variation for candlestick effect
-            return HRVDataPoint(
-                date: date,
-                open: record.hrv,
-                close: record.hrv,
-                high: record.hrv + 3, // Add small visual variation
-                low: record.hrv - 3,
-                average: record.hrv
-            )
+        // Group by day to avoid duplicates
+        var dailyData: [Date: [Double]] = [:]
+        
+        for record in results {
+            guard let date = record.date, record.hrv > 0 else { continue }
+            let dayStart = calendar.startOfDay(for: date)
+            dailyData[dayStart, default: []].append(record.hrv)
         }
         
-        Logger.debug("❤️ [HRV CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        // Convert to HRVDataPoint (one per day)
+        let dataPoints = dailyData.map { (date, values) -> HRVDataPoint in
+            let avgHRV = values.reduce(0, +) / Double(values.count)
+            return HRVDataPoint(
+                date: date,
+                open: avgHRV,
+                close: avgHRV,
+                high: avgHRV + 3, // Add small visual variation
+                low: avgHRV - 3,
+                average: avgHRV
+            )
+        }.sorted { $0.date < $1.date }
+        
+        Logger.debug("❤️ [HRV CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view (grouped by day)")
         if dataPoints.isEmpty {
             Logger.warning("❤️ [HRV CHART] No data available")
         }
@@ -512,23 +518,29 @@ struct RecoveryDetailView: View {
         
         Logger.debug("💔 [RHR CHART] \(physioRecords.count) records → \(physioRecords.filter { $0.rhr > 0 }.count) points for \(period.days)d view")
         
-        // Convert to RHRDataPoint (use RHR as all values since we only have daily RHR, not intraday)
-        let dataPoints = physioRecords.compactMap { record -> RHRDataPoint? in
-            guard let date = record.date, record.rhr > 0 else { return nil }
-            
-            // For RHR, we only have one value per day (the resting heart rate)
-            // Use it for all candlestick values (no intraday variation available)
-            return RHRDataPoint(
-                date: date,
-                open: record.rhr,
-                close: record.rhr,
-                high: record.rhr + 2, // Add small visual variation
-                low: record.rhr - 2,
-                average: record.rhr
-            )
+        // Group by day to avoid duplicates
+        var dailyData: [Date: [Double]] = [:]
+        
+        for record in physioRecords {
+            guard let date = record.date, record.rhr > 0 else { continue }
+            let dayStart = calendar.startOfDay(for: date)
+            dailyData[dayStart, default: []].append(record.rhr)
         }
         
-        Logger.debug("💔 [RHR CHART] Loaded \(dataPoints.count) data points")
+        // Convert to RHRDataPoint (one per day)
+        let dataPoints = dailyData.map { (date, values) -> RHRDataPoint in
+            let avgRHR = values.reduce(0, +) / Double(values.count)
+            return RHRDataPoint(
+                date: date,
+                open: avgRHR,
+                close: avgRHR,
+                high: avgRHR + 2, // Add small visual variation
+                low: avgRHR - 2,
+                average: avgRHR
+            )
+        }.sorted { $0.date < $1.date }
+        
+        Logger.debug("💔 [RHR CHART] Loaded \(dataPoints.count) data points (grouped by day)")
         return dataPoints
     }
     
