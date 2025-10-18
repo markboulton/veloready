@@ -12,6 +12,7 @@ class UnifiedActivityService: ObservableObject {
     private let intervalsOAuth = IntervalsOAuthManager.shared
     private let stravaAuth = StravaAuthService.shared
     private let proConfig = ProFeatureConfig.shared
+    private let cache = UnifiedCacheManager.shared // NEW: Unified cache
     
     // Data fetch limits based on subscription tier
     // Research-backed windows for >90% accuracy:
@@ -36,24 +37,33 @@ class UnifiedActivityService: ObservableObject {
         
         // Try Intervals.icu first if authenticated
         if intervalsOAuth.isAuthenticated {
-            Logger.data("📊 [Activities] Fetching from Intervals.icu (limit: \(limit), days: \(actualDays))")
-            do {
-                let activities = try await intervalsAPI.fetchRecentActivities(limit: limit, daysBack: actualDays)
+            let cacheKey = CacheKey.intervalsActivities(daysBack: actualDays)
+            
+            return try await cache.fetch(
+                key: cacheKey,
+                ttl: UnifiedCacheManager.CacheTTL.activities
+            ) {
+                Logger.data("📊 [Activities] Fetching from Intervals.icu (limit: \(limit), days: \(actualDays))")
+                let activities = try await self.intervalsAPI.fetchRecentActivities(limit: limit, daysBack: actualDays)
                 Logger.data("✅ [Activities] Fetched \(activities.count) activities from Intervals.icu")
                 return activities
-            } catch {
-                Logger.warning("⚠️ [Activities] Failed to fetch from Intervals.icu, falling back to Strava: \(error)")
             }
         }
         
         // Fallback to backend API (which fetches from Strava with caching)
         let cappedLimit = min(limit, 200)
-        Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
-        let stravaActivities = try await veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
-        let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
+        let cacheKey = CacheKey.stravaActivities(daysBack: actualDays)
         
-        Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend (cached for 5min)")
-        return convertedActivities
+        return try await cache.fetch(
+            key: cacheKey,
+            ttl: UnifiedCacheManager.CacheTTL.activities
+        ) {
+            Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
+            let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
+            let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
+            Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend")
+            return convertedActivities
+        }
     }
     
     /// Fetch today's activities from all available sources
