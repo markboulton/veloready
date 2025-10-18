@@ -15,8 +15,7 @@ struct TrainingLoadComponent: View {
                 HStack(spacing: Spacing.xl) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(TrendsContent.WeeklyReport.totalTSS)
-                            .font(.caption)
-                            .foregroundColor(.text.secondary)
+                            .metricLabel()
                         Text("\(Int(metrics.weeklyTSS))")
                             .font(.title3)
                             .fontWeight(.bold)
@@ -24,8 +23,7 @@ struct TrainingLoadComponent: View {
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(TrendsContent.WeeklyReport.trainingTime)
-                            .font(.caption)
-                            .foregroundColor(.text.secondary)
+                            .metricLabel()
                         Text(formatDuration(metrics.weeklyDuration))
                             .font(.title3)
                             .fontWeight(.bold)
@@ -33,8 +31,7 @@ struct TrainingLoadComponent: View {
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(TrendsContent.WeeklyReport.workouts)
-                            .font(.caption)
-                            .foregroundColor(.text.secondary)
+                            .metricLabel()
                         Text("\(metrics.workoutCount)")
                             .font(.title3)
                             .fontWeight(.bold)

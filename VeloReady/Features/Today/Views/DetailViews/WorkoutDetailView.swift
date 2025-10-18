@@ -428,8 +428,7 @@ struct CompactMetricItem: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.caption)
-                .foregroundStyle(Color.text.secondary)
+                .metricLabel()
                 .lineLimit(1)
             
             Text(value)

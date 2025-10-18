@@ -44,8 +44,8 @@ class DataSourceManager: ObservableObject {
         if let savedPriority = UserDefaults.standard.array(forKey: "dataSourcePriority") as? [String] {
             sourcePriority = savedPriority.compactMap { DataSource(rawValue: $0) }
         } else {
-            // Default priority: Intervals.icu > Strava > Garmin > Apple Health
-            sourcePriority = [.intervalsICU, .strava, .garmin, .appleHealth]
+            // Default priority: Intervals.icu > Strava > Apple Health
+            sourcePriority = [.intervalsICU, .strava, .appleHealth]
         }
     }
     
@@ -140,8 +140,7 @@ class DataSourceManager: ObservableObject {
             connectionStatuses[.strava] = .notConnected
         }
         
-        // Garmin (not yet implemented)
-        connectionStatuses[.garmin] = .notConnected
+        // Garmin removed - not implemented
         
         Logger.data("DataSourceManager: Updated connection statuses")
         connectionStatuses.forEach { source, status in
@@ -169,9 +168,7 @@ class DataSourceManager: ObservableObject {
             // Connection handled by StravaAuthService
             stravaAuthService.startAuth()
             
-        case .garmin:
-            // TODO: Implement Garmin connection
-            throw DataSourceError.notImplemented
+        // Garmin case removed - not implemented
         }
         
         updateConnectionStatuses()
@@ -193,9 +190,7 @@ class DataSourceManager: ObservableObject {
             // Disconnect from Strava
             stravaAuthService.disconnect()
             
-        case .garmin:
-            // TODO: Implement Garmin disconnect
-            Logger.data("DataSourceManager: Garmin disconnect not yet implemented")
+        // Garmin case removed - not implemented
         }
         
         disableSource(source)

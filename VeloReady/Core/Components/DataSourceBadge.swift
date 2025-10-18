@@ -54,7 +54,6 @@ struct DataSourceBadge: View {
         switch source {
         case .intervalsICU: return "INT"
         case .strava: return "STR"
-        case .garmin: return "GAR"
         case .appleHealth: return "AH"
         }
     }

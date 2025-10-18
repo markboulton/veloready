@@ -5,7 +5,7 @@ import SwiftUI
 enum DataSource: String, Codable, CaseIterable, Identifiable {
     case intervalsICU = "intervals_icu"
     case strava = "strava"
-    case garmin = "garmin"
+    // case garmin = "garmin" // Removed - not implemented
     case appleHealth = "apple_health"
     
     var id: String { rawValue }
@@ -15,7 +15,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return "Intervals.icu"
         case .strava: return "Strava"
-        case .garmin: return "Garmin"
         case .appleHealth: return "Apple Health"
         }
     }
@@ -25,7 +24,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return Icons.DataSource.intervalsICU
         case .strava: return Icons.DataSource.strava
-        case .garmin: return Icons.DataSource.garmin
         case .appleHealth: return Icons.DataSource.appleHealth
         }
     }
@@ -35,7 +33,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return .blue
         case .strava: return .orange
-        case .garmin: return .cyan
         case .appleHealth: return .red
         }
     }
@@ -47,8 +44,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return [.activities, .wellness, .zones, .metrics]
         case .strava:
             return [.activities, .metrics]
-        case .garmin:
-            return [.activities, .wellness, .metrics]
         case .appleHealth:
             return [.wellness, .workouts]
         }
@@ -61,8 +56,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return "Training platform with power analysis and performance metrics"
         case .strava:
             return "Activity tracking and social network for athletes"
-        case .garmin:
-            return "Device data, activities, and advanced metrics"
         case .appleHealth:
             return "Health metrics, workouts, HRV, sleep, and heart rate data"
         }
@@ -75,8 +68,6 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return (0/255, 122/255, 255/255) // Intervals blue
         case .strava:
             return (252/255, 76/255, 2/255) // Strava orange #FC4C02
-        case .garmin:
-            return (0/255, 158/255, 227/255) // Garmin cyan
         case .appleHealth:
             return (255/255, 45/255, 85/255) // Apple Health red
         }

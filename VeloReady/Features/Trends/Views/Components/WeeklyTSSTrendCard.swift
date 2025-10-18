@@ -153,8 +153,7 @@ struct WeeklyTSSTrendCard: View {
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Total TSS")
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     
                     Text("\(Int(totalTSS))")
                         .font(.heading)
@@ -163,8 +162,7 @@ struct WeeklyTSSTrendCard: View {
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Weeks")
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     
                     Text("\(data.count)")
                         .font(.heading)

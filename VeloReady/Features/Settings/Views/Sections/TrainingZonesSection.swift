@@ -15,19 +15,8 @@ struct TrainingZonesSection: View {
                             .frame(width: 24)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("Adaptive Zones")
-                                    .font(.body)
-                                
-                                Text("PRO")
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(ColorScale.purpleAccent)
-                                    .cornerRadius(4)
-                            }
+                            Text("Adaptive Zones")
+                                .font(.body)
                             
                             Text("Adaptive FTP, W', VO2max & Zones")
                                 .font(.caption)

@@ -245,8 +245,8 @@ struct DataSourcesSettingsView: View {
                     connectionState: stravaAuthService.connectionState
                 )
                 
-            case .garmin, .appleHealth:
-                // Generic button for other sources
+            case .appleHealth:
+                // Generic button for Apple Health
                 Button(action: {
                     if !isConnected {
                         Task {
