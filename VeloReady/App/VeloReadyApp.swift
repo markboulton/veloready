@@ -26,7 +26,7 @@ struct VeloReadyApp: App {
         
         // Clean up legacy Strava stream data from UserDefaults
         Task { @MainActor in
-            cleanupLegacyStravaStreams()
+            Self.cleanupLegacyStravaStreams()
         }
         
         // Enable automatic iCloud sync
