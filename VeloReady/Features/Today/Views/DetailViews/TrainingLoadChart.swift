@@ -172,7 +172,7 @@ struct TrainingLoadChart: View {
                             .foregroundStyle(Color.text.secondary)
                         }
                         AxisGridLine()
-                            .foregroundStyle(Color.text.tertiary)
+                            .foregroundStyle(ColorPalette.chartGridLine)
                     }
                 }
                 .chartYAxis {

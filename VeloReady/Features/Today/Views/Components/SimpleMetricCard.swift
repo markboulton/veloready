@@ -71,8 +71,9 @@ struct SimpleMetricCard: View {
                         .foregroundColor(metricType.color)
                     
                     Text(metricType.title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(ColorPalette.labelSecondary)
+                        .textCase(.uppercase)
                     
                     Spacer()
                     
@@ -84,22 +85,21 @@ struct SimpleMetricCard: View {
                 // Score
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("\(metricType.score)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .font(.system(size: 48, weight: .bold))
                         .foregroundColor(metricType.color)
                     
                     Text("/100")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(ColorPalette.labelTertiary)
                 }
                 
                 // Band
                 Text(metricType.bandName)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(metricType.color)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(metricType.color.opacity(0.15))
+                    .background(metricType.color.opacity(0.1))
                     .cornerRadius(4)
                 
                 // Description
@@ -115,9 +115,8 @@ struct SimpleMetricCard: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            .background(ColorPalette.backgroundSecondary)
+            .cornerRadius(0)
         }
         .buttonStyle(PlainButtonStyle())
     }
