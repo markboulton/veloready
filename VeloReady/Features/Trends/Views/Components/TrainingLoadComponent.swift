@@ -41,6 +41,9 @@ struct TrainingLoadComponent: View {
             }
             
             if let zones = zones {
+                Divider()
+                    .padding(.vertical, 8)
+                
                 // Training days breakdown
                 VStack(alignment: .leading, spacing: 8) {
                     Text(TrendsContent.WeeklyReport.trainingPattern)
@@ -58,6 +61,9 @@ struct TrainingLoadComponent: View {
                         .foregroundColor(.text.secondary)
                 }
                 .padding(.bottom, 8)
+                
+                Divider()
+                    .padding(.vertical, 8)
                 
                 // Intensity distribution
                 VStack(alignment: .leading, spacing: 8) {
@@ -91,7 +97,7 @@ struct TrainingLoadComponent: View {
                         if zones.polarizationScore >= 80 {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.caption)
-                                .foregroundColor(.green)
+                                .foregroundColor(ColorScale.greenAccent)
                         }
                         Text(zones.polarizationScore >= 80 ? TrendsContent.WeeklyReport.wellPolarized : TrendsContent.WeeklyReport.couldBePolarized)
                             .font(.caption)

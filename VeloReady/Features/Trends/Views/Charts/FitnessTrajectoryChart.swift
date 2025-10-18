@@ -17,8 +17,21 @@ struct FitnessTrajectoryChart: View {
     
     var body: some View {
         let todayIndex = data.firstIndex(where: { !$0.isFuture && Calendar.current.isDateInToday($0.date) }) ?? 6
+        let futureData = data.filter { $0.isFuture }
+        let maxValue = data.map { max($0.ctl, $0.atl, $0.tsb) }.max() ?? 100
         
         Chart {
+            // Grey projection zone (behind everything)
+            if !futureData.isEmpty, let firstFuture = futureData.first, let lastFuture = futureData.last {
+                RectangleMark(
+                    xStart: .value("Start", firstFuture.date),
+                    xEnd: .value("End", lastFuture.date),
+                    yStart: .value("Bottom", 0),
+                    yEnd: .value("Top", maxValue * 1.1)
+                )
+                .foregroundStyle(Color(.systemGray6).opacity(0.5))
+            }
+            
             // Today marker
             if todayIndex < data.count {
                 RuleMark(x: .value("Today", data[todayIndex].date))

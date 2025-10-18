@@ -12,8 +12,7 @@ struct SleepScheduleComponent: View {
             HStack(spacing: Spacing.xl) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.avgBedtime)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     Text(formatHour(circadian.avgBedtime))
                         .font(.title3)
                         .fontWeight(.bold)
@@ -21,8 +20,7 @@ struct SleepScheduleComponent: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.avgWake)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     Text(formatHour(circadian.avgWakeTime))
                         .font(.title3)
                         .fontWeight(.bold)
@@ -30,8 +28,7 @@ struct SleepScheduleComponent: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.consistency)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
+                        .metricLabel()
                     Text("±\(Int(circadian.bedtimeVariance)) min")
                         .font(.title3)
                         .fontWeight(.bold)

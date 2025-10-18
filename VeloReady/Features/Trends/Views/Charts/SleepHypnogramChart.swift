@@ -47,13 +47,13 @@ struct SleepHypnogramChart: View {
         }
         
         var yPosition: Double {
-            // Higher stages appear higher on chart (like iOS)
+            // Awake at top, Deep at bottom (inverted from iOS for clarity)
             switch self {
-            case .inBed: return 0.0
-            case .awake: return 0.2
-            case .core: return 0.5
+            case .awake: return 1.0  // Top
             case .rem: return 0.75
-            case .deep: return 1.0
+            case .core: return 0.5
+            case .inBed: return 0.2
+            case .deep: return 0.0   // Bottom
             }
         }
     }
@@ -93,16 +93,16 @@ struct SleepHypnogramChart: View {
                         )
                     }
                     
-                    // Stage labels on left
+                    // Stage labels on left (top to bottom: Awake → Deep)
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer()
-                        stageLabel("Deep", color: SleepStage.deep.color)
+                        stageLabel("Awake", color: SleepStage.awake.color)
                         Spacer()
                         stageLabel("REM", color: SleepStage.rem.color)
                         Spacer()
                         stageLabel("Core", color: SleepStage.core.color)
                         Spacer()
-                        stageLabel("Awake", color: SleepStage.awake.color)
+                        stageLabel("Deep", color: SleepStage.deep.color)
                         Spacer()
                     }
                     .frame(height: geometry.size.height)

@@ -51,7 +51,7 @@ struct WeekOverWeekComponent: View {
                     Text("\(Int(abs(change)))")
                         .font(.caption)
                 }
-                .foregroundColor(change >= 0 ? .green : .red)
+                .foregroundColor(change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent)
                 .frame(width: 50, alignment: .trailing)
             } else {
                 Text("")
