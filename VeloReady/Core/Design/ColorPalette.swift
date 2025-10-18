@@ -61,4 +61,38 @@ enum ColorPalette {
         start: UnitPoint(x: 0, y: 0),
         end: UnitPoint(x: 1, y: 0.577) // tan(30°) ≈ 0.577
     )
+    
+    // MARK: - Refined Metric Colors
+    
+    /// Recovery scale colors (use for recovery score visualization)
+    static let recoveryPoor = ColorScale.recoveryPoor
+    static let recoveryLow = ColorScale.recoveryLow
+    static let recoveryMedium = ColorScale.recoveryMedium
+    static let recoveryGood = ColorScale.recoveryGood
+    static let recoveryExcellent = ColorScale.recoveryExcellent
+    
+    /// Metric signature colors (one color per metric type)
+    static let strainMetric = ColorScale.strainColor
+    static let sleepMetric = ColorScale.sleepColor
+    static let hrvMetric = ColorScale.hrvColor
+    static let heartRateMetric = ColorScale.heartRateColor
+    static let powerMetric = ColorScale.powerColor
+    static let tssMetric = ColorScale.tssColor
+    static let respiratoryMetric = ColorScale.respiratoryColor
+    
+    /// Chart styling
+    static let chartGridLine = ColorScale.chartGrid
+    static let chartAxisLabel = ColorScale.chartAxis
+    static let textPrimarySoft = ColorScale.textSoftWhite
+    
+    /// Helper function for recovery gradient
+    static func recoveryColor(for score: Double) -> Color {
+        switch score {
+        case 0..<30: return recoveryPoor
+        case 30..<50: return recoveryLow
+        case 50..<70: return recoveryMedium
+        case 70..<85: return recoveryGood
+        default: return recoveryExcellent
+        }
+    }
 }

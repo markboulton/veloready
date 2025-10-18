@@ -11,16 +11,16 @@ struct RecoveryRingView: View {
     
     var body: some View {
         ZStack {
-            // Background ring
+            // Background ring - very subtle
             Circle()
-                .stroke(Color(.systemGray5), lineWidth: ringWidth)
+                .stroke(ColorPalette.backgroundTertiary, lineWidth: ringWidth)
                 .frame(width: size, height: size)
             
-            // Progress ring - solid color based on band
+            // Progress ring - refined color based on score
             Circle()
                 .trim(from: 0, to: progressValue)
                 .stroke(
-                    colorForBand(band),
+                    ColorPalette.recoveryColor(for: Double(score)),
                     style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                 )
                 .frame(width: size, height: size)
@@ -30,13 +30,13 @@ struct RecoveryRingView: View {
             // Center content
             VStack(spacing: 4) {
                 Text("\(score)")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundColor(colorForBand(band))
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundColor(ColorPalette.recoveryColor(for: Double(score)))
                 
-                Text("Recovery")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
+                Text("RECOVERY")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(ColorPalette.labelSecondary)
+                    .textCase(.uppercase)
             }
         }
     }
