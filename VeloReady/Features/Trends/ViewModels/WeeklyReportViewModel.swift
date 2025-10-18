@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+import CoreData
+import CryptoKit
 import HealthKit
 
 /// ViewModel for Weekly Performance Report
@@ -746,11 +748,14 @@ class WeeklyReportViewModel: ObservableObject {
     
     private func fetchFromAPI(body: Data) async throws -> (text: String, cached: Bool) {
         let url = URL(string: "https://veloready.app/.netlify/functions/weekly-report")!
-        let secret = ProcessInfo.processInfo.environment["APP_HMAC_SECRET"] ?? ""
         
-        // Calculate HMAC signature
-        let bodyString = String(data: body, encoding: .utf8) ?? ""
-        let signature = hmacSHA256(message: bodyString, key: secret)
+        // Get HMAC secret from Keychain (same as AIBriefClient)
+        guard let secret = KeychainHelper.shared.get(service: "com.veloready.app.secrets", account: "APP_HMAC_SECRET") else {
+            throw NSError(domain: "WeeklyReport", code: -2, userInfo: [NSLocalizedDescriptionKey: "Missing HMAC secret"])
+        }
+        
+        // Calculate HMAC signature using CryptoKit (same as AIBriefClient)
+        let signature = computeHMAC(data: body, secret: secret)
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -773,9 +778,10 @@ class WeeklyReportViewModel: ObservableObject {
         return (text, cached)
     }
     
-    private func hmacSHA256(message: String, key: String) -> String {
-        // Simplified - should use CryptoKit in production
-        return "mock_signature_\(message.prefix(10))"
+    private func computeHMAC(data: Data, secret: String) -> String {
+        let key = SymmetricKey(data: Data(secret.utf8))
+        let signature = HMAC<SHA256>.authenticationCode(for: data, using: key)
+        return signature.map { String(format: "%02x", $0) }.joined()
     }
     
     private func getFallbackSummary() -> String {
