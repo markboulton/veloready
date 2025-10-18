@@ -93,19 +93,18 @@ struct SleepHypnogramChart: View {
                         )
                     }
                     
-                    // Stage labels on left (top to bottom: Awake → Deep)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Spacer()
+                    // Stage labels on left (top to bottom: Awake → Deep) - positioned exactly at stage y-positions
+                    ZStack(alignment: .leading) {
                         stageLabel("Awake", color: SleepStage.awake.color)
-                        Spacer()
+                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.awake.yPosition))
                         stageLabel("REM", color: SleepStage.rem.color)
-                        Spacer()
+                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.rem.yPosition))
                         stageLabel("Core", color: SleepStage.core.color)
-                        Spacer()
+                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.core.yPosition))
                         stageLabel("Deep", color: SleepStage.deep.color)
-                        Spacer()
+                            .position(x: 30, y: geometry.size.height * (1 - SleepStage.deep.yPosition))
                     }
-                    .frame(height: geometry.size.height)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                 }
             }
             .frame(height: 180)

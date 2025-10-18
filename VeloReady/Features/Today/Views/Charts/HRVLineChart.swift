@@ -6,17 +6,7 @@ struct HRVLineChart: View {
     let getData: (TrendPeriod) -> [TrendDataPoint]
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
-    @State private var sweepProgress: Double = 1.0
     @State private var data: [TrendDataPoint] = []
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
-    
-    private var normalizedHeights: [Double] {
-        guard !data.isEmpty else { return [] }
-        let maxValue = data.map(\.value).max() ?? 100
-        return data.map { point in
-            min(max(point.value / maxValue, 0), 1)
-        }
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
@@ -61,21 +51,11 @@ struct HRVLineChart: View {
     
     private var chartView: some View {
         Chart {
-            ForEach(Array(data.enumerated()), id: \.element.id) { index, point in
-                let normalizedX = Double(index) / Double(max(data.count - 1, 1))
-                let normalizedHeight = index < normalizedHeights.count ? normalizedHeights[index] : 0
-                
-                let sweepWindow: Double = 0.3
-                let pointProgress = max(0, min(1, (sweepProgress - normalizedX) / sweepWindow))
-                let heightDelay = normalizedHeight * 0.2
-                let delayedProgress = max(0, min(1, pointProgress - heightDelay))
-                
-                let animatedValue = reduceMotion ? point.value : (delayedProgress * point.value)
-                
-                // Line - RED, 1px, no gradient
+            ForEach(data) { point in
+                // Line - RED, 1px, no gradient, no animation
                 LineMark(
                     x: .value("Day", point.date, unit: .day),
-                    y: .value("Value", animatedValue)
+                    y: .value("Value", point.value)
                 )
                 .foregroundStyle(Color.red)
                 .lineStyle(StrokeStyle(lineWidth: 1))
@@ -130,7 +110,7 @@ struct HRVLineChart: View {
                 }
             }
         }
-        .chartYScale(domain: 0...100)
+        .chartYScale(domain: .automatic)
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
         }

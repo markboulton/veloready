@@ -545,7 +545,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Bedtime: ±\(Int(consistency.bedtimeVariability))min • Wake: ±\(Int(consistency.wakeTimeVariability))min")
+                Text("Schedule Variability: Bedtime ±\(Int(consistency.bedtimeVariability))min • Wake ±\(Int(consistency.wakeTimeVariability))min")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
