@@ -15,24 +15,18 @@ struct FitnessTrajectoryComponent: View {
                 FitnessTrajectoryChart(data: ctlData)
                     .frame(height: 200)
                 
-                // Current values (legend) - colors match chart lines
+                // Legend - colors match chart lines (values shown on last point)
                 HStack(spacing: Spacing.lg) {
-                    metricPill(
+                    legendItem(
                         label: TrendsContent.WeeklyReport.ctlLabel,
-                        value: "\(Int(metrics.ctlEnd))",
-                        change: metrics.ctlEnd - metrics.ctlStart,
                         color: .button.primary
                     )
-                    metricPill(
+                    legendItem(
                         label: TrendsContent.WeeklyReport.atlLabel,
-                        value: "\(Int(metrics.atl))",
-                        change: nil,
                         color: .semantic.warning
                     )
-                    metricPill(
+                    legendItem(
                         label: TrendsContent.WeeklyReport.formLabel,
-                        value: "\(Int(metrics.tsb))",
-                        change: nil,
                         color: ColorScale.greenAccent
                     )
                 }
@@ -48,22 +42,14 @@ struct FitnessTrajectoryComponent: View {
         }
     }
     
-    private func metricPill(label: String, value: String, change: Double?, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private func legendItem(label: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 10, height: 10)
             Text(label)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
-            HStack(spacing: 4) {
-                Text(value)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(color)
-                if let change = change, change != 0 {
-                    Text(change > 0 ? "+\(Int(change))" : "\(Int(change))")
-                        .font(.caption)
-                        .foregroundColor(change > 0 ? .green : .red)
-                }
-            }
         }
     }
     

@@ -495,9 +495,6 @@ struct RecoveryDetailView: View {
     private func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
         Logger.debug("💔 [RHR CHART] Fetching data for period: \(period.days) days")
         
-        let persistenceController = PersistenceController.shared
-        let context = persistenceController.container.viewContext
-        
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
         guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
@@ -507,36 +504,89 @@ struct RecoveryDetailView: View {
         
         Logger.debug("💔 [RHR CHART] Date range: \(startDate) to \(endDate)")
         
-        let fetchRequest = DailyPhysio.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND rhr > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        // Fetch min/max HR from HealthKit for each day
+        var dataPoints: [RHRDataPoint] = []
+        let group = DispatchGroup()
+        let queue = DispatchQueue(label: "com.veloready.rhr-fetch", attributes: .concurrent)
+        var tempDataPoints: [Date: RHRDataPoint] = [:]
+        let lock = NSLock()
         
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("💔 [RHR CHART] Core Data fetch failed")
+        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
+            Logger.error("💔 [RHR CHART] Failed to get heart rate type")
             return []
         }
         
-        Logger.debug("💔 [RHR CHART] Fetched \(results.count) days with RHR data")
-        
-        // For now, use RHR as all values (open/close/high/low)
-        // TODO: Fetch actual min/max HR from HealthKit samples for true candlestick
-        let dataPoints = results.compactMap { physio -> RHRDataPoint? in
-            guard let date = physio.date else { return nil }
-            let rhr = physio.rhr
-            // Create candlestick with small variation for visualization
-            let variation = rhr * 0.05 // 5% variation
-            Logger.debug("💔 [RHR CHART] Date: \(date), RHR: \(rhr)")
-            return RHRDataPoint(
-                date: date,
-                open: rhr - variation / 2,
-                close: rhr + variation / 2,
-                high: rhr + variation,
-                low: rhr - variation,
-                average: rhr
-            )
+        // Iterate through each day and fetch min/max
+        var currentDate = startDate
+        while currentDate <= endDate {
+            group.enter()
+            queue.async {
+                let dayStart = calendar.startOfDay(for: currentDate)
+                guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
+                    group.leave()
+                    return
+                }
+                
+                let predicate = HKQuery.predicateForSamples(withStart: dayStart, end: dayEnd, options: .strictStartDate)
+                let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+                
+                let query = HKSampleQuery(
+                    sampleType: heartRateType,
+                    predicate: predicate,
+                    limit: HKObjectQueryNoLimit,
+                    sortDescriptors: [sortDescriptor]
+                ) { _, samples, error in
+                    defer { group.leave() }
+                    
+                    guard error == nil, let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
+                        return
+                    }
+                    
+                    let hrValues = samples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
+                    
+                    guard let minHR = hrValues.min(),
+                          let maxHR = hrValues.max() else {
+                        return
+                    }
+                    
+                    // Use first and last values for open/close
+                    let openHR = hrValues.first ?? minHR
+                    let closeHR = hrValues.last ?? maxHR
+                    let avgHR = hrValues.reduce(0, +) / Double(hrValues.count)
+                    
+                    let dataPoint = RHRDataPoint(
+                        date: dayStart,
+                        open: openHR,
+                        close: closeHR,
+                        high: maxHR,
+                        low: minHR,
+                        average: avgHR
+                    )
+                    
+                    lock.lock()
+                    tempDataPoints[dayStart] = dataPoint
+                    lock.unlock()
+                    
+                    Logger.debug("💔 [RHR CHART] Date: \(dayStart), Min: \(Int(minHR)), Max: \(Int(maxHR)), Avg: \(Int(avgHR))")
+                }
+                
+                HealthKitService.shared.healthStore.execute(query)
+            }
+            
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
         }
         
-        Logger.debug("💔 [RHR CHART] Returning \(dataPoints.count) data points for \(period.days)-day view")
+        // Wait for all queries to complete (with timeout)
+        let result = group.wait(timeout: .now() + 10)
+        
+        if result == .timedOut {
+            Logger.error("💔 [RHR CHART] HealthKit fetch timed out")
+        }
+        
+        // Sort by date
+        dataPoints = tempDataPoints.keys.sorted().compactMap { tempDataPoints[$0] }
+        
+        Logger.debug("💔 [RHR CHART] Returning \(dataPoints.count) data points with real min/max from HealthKit")
         
         return dataPoints
     }

@@ -19,6 +19,7 @@ struct FitnessTrajectoryChart: View {
         let todayIndex = data.firstIndex(where: { !$0.isFuture && Calendar.current.isDateInToday($0.date) }) ?? 6
         let futureData = data.filter { $0.isFuture }
         let maxValue = data.map { max($0.ctl, $0.atl, $0.tsb) }.max() ?? 100
+        let lastHistoricalPoint = data.last(where: { !$0.isFuture })
         
         Chart {
             // Grey projection zone (behind everything)
@@ -66,6 +67,17 @@ struct FitnessTrajectoryChart: View {
                     .foregroundStyle(Color.button.primary)
                     .symbolSize(40)
                     .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .annotation(position: .top, alignment: .center) {
+                        if point.id == lastHistoricalPoint?.id {
+                            Text("\(Int(point.ctl))")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color.button.primary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(4)
+                        }
+                    }
                 }
             }
             
@@ -96,6 +108,17 @@ struct FitnessTrajectoryChart: View {
                     .foregroundStyle(Color.semantic.warning)
                     .symbolSize(40)
                     .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .annotation(position: .top, alignment: .center) {
+                        if point.id == lastHistoricalPoint?.id {
+                            Text("\(Int(point.atl))")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color.semantic.warning)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(4)
+                        }
+                    }
                 }
             }
             
@@ -126,6 +149,17 @@ struct FitnessTrajectoryChart: View {
                     .foregroundStyle(ColorScale.greenAccent)
                     .symbolSize(40)
                     .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .annotation(position: .bottom, alignment: .center) {
+                        if point.id == lastHistoricalPoint?.id {
+                            Text("\(Int(point.tsb))")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(ColorScale.greenAccent)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(4)
+                        }
+                    }
                 }
             }
         }
