@@ -1,6 +1,7 @@
 import Foundation
 import CoreData
 import Combine
+import HealthKit
 
 /// Manages caching and refresh strategies for daily data
 @MainActor
@@ -213,7 +214,7 @@ final class CacheManager: ObservableObject {
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd"
                 let targetDateString = dateFormatter.string(from: date)
-                let dateWellness = wellnessArray.first { $0.id == targetDateString }
+                _ = wellnessArray.first { $0.id == targetDateString }
                 
                 // Fetch recent activities using unified service (respects Pro tier limits)
                 activities = try await UnifiedActivityService.shared.fetchActivitiesForFTP()
@@ -618,14 +619,14 @@ final class CacheManager: ObservableObject {
         // Fetch HRV, RHR, and Sleep data from HealthKit for the entire period
         let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
         
-        // Fetch all HRV samples
-        let hrvSamples = await healthKit.fetchHRVSamples(from: startDate, to: Date())
+        // Fetch all HRV samples (use HealthKitManager.shared directly to avoid MainActor isolation)
+        let hrvSamples = await HealthKitManager.shared.fetchHRVSamples(from: startDate, to: Date())
         
         // Fetch all RHR samples
-        let rhrSamples = await healthKit.fetchRHRSamples(from: startDate, to: Date())
+        let rhrSamples = await HealthKitManager.shared.fetchRHRSamples(from: startDate, to: Date())
         
         // Fetch all sleep sessions
-        let sleepSessions = await healthKit.fetchSleepSessions(from: startDate, to: Date())
+        let sleepSessions = await HealthKitManager.shared.fetchSleepSessions(from: startDate, to: Date())
         
         Logger.data("📊 [PHYSIO BACKFILL] Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSessions.count) sleep samples")
         
@@ -635,7 +636,7 @@ final class CacheManager: ObservableObject {
         // Group HRV by day (use average)
         for sample in hrvSamples {
             let day = calendar.startOfDay(for: sample.startDate)
-            let value = sample.quantity.doubleValue(for: .secondUnit(with: .milli))
+            let value = sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
             
             if let existing = dailyData[day]?.hrv {
                 dailyData[day] = (hrv: (existing + value) / 2, rhr: dailyData[day]?.rhr, sleep: dailyData[day]?.sleep)
@@ -647,7 +648,7 @@ final class CacheManager: ObservableObject {
         // Group RHR by day (use minimum)
         for sample in rhrSamples {
             let day = calendar.startOfDay(for: sample.startDate)
-            let value = sample.quantity.doubleValue(for: .init(from: "count/min"))
+            let value = sample.quantity.doubleValue(for: HKUnit(from: "count/min"))
             
             if let existing = dailyData[day]?.rhr {
                 dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: min(existing, value), sleep: dailyData[day]?.sleep)
