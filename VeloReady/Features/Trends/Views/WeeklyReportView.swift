@@ -32,9 +32,9 @@ struct WeeklyReportView: View {
                     recoveryCapacitySection(metrics: metrics)
                 }
                 
-                // Sleep Architecture (Stacked Area Chart)
-                if !viewModel.sleepArchitecture.isEmpty {
-                    sleepArchitectureSection
+                // Sleep Hypnograms (from HealthKit)
+                if !viewModel.sleepHypnograms.isEmpty {
+                    sleepHypnogramSection
                 }
                 
                 // Weekly Rhythm Heatmap
@@ -414,40 +414,45 @@ struct WeeklyReportView: View {
         }
     }
     
-    private var sleepArchitectureSection: some View {
-        Card(style: .flat) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                HStack {
-                    Image(systemName: "moon.zzz.fill")
-                        .font(.system(size: TypeScale.md))
-                        .foregroundColor(.blue)
-                    Text("Sleep Architecture (7 days)")
-                        .font(.heading)
-                    Spacer()
-                }
-                
-                StackedAreaChart(
-                    data: viewModel.sleepArchitecture.map { sleep in
-                        StackedAreaChart.DayData(
-                            date: sleep.date,
-                            values: [
-                                "awake": sleep.awake,
-                                "core": sleep.core,
-                                "rem": sleep.rem,
-                                "deep": sleep.deep
-                            ]
+    private var sleepHypnogramSection: some View {
+        VStack(spacing: Spacing.cardSpacing) {
+            ForEach(viewModel.sleepHypnograms.prefix(3).reversed()) { hypnogram in
+                Card(style: .flat) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        HStack {
+                            Image(systemName: "moon.zzz.fill")
+                                .font(.system(size: TypeScale.md))
+                                .foregroundColor(.blue)
+                            Text(formatHypnogramDate(hypnogram.date))
+                                .font(.heading)
+                            Spacer()
+                            Text(formatNightDuration(hypnogram))
+                                .font(.caption)
+                                .foregroundColor(.text.secondary)
+                        }
+                        
+                        SleepHypnogramChart(
+                            sleepSamples: hypnogram.samples,
+                            nightStart: hypnogram.bedtime,
+                            nightEnd: hypnogram.wakeTime
                         )
-                    },
-                    categories: [
-                        .init(name: "awake", color: Color.red.opacity(0.6), label: "Awake"),
-                        .init(name: "core", color: Color.blue.opacity(0.5), label: "Core"),
-                        .init(name: "rem", color: Color.purple.opacity(0.6), label: "REM"),
-                        .init(name: "deep", color: Color.indigo.opacity(0.7), label: "Deep")
-                    ],
-                    yAxisMax: 9.0
-                )
+                    }
+                }
             }
         }
+    }
+    
+    private func formatHypnogramDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
+        return formatter.string(from: date)
+    }
+    
+    private func formatNightDuration(_ hypnogram: WeeklyReportViewModel.SleepNightData) -> String {
+        let duration = hypnogram.wakeTime.timeIntervalSince(hypnogram.bedtime)
+        let hours = Int(duration / 3600)
+        let minutes = Int((duration.truncatingRemainder(dividingBy: 3600)) / 60)
+        return "\(hours)h \(minutes)m"
     }
     
     private func weeklyRhythmSection(heatmap: WeeklyReportViewModel.WeeklyHeatmapData) -> some View {

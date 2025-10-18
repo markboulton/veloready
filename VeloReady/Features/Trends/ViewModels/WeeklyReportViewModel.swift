@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import HealthKit
 
 /// ViewModel for Weekly Performance Report
 /// Generates comprehensive weekly analysis with holistic health metrics
@@ -21,10 +22,19 @@ class WeeklyReportViewModel: ObservableObject {
     @Published var weeklyMetrics: WeeklyMetrics?
     @Published var trainingZoneDistribution: TrainingZoneDistribution?
     @Published var sleepArchitecture: [SleepDayData] = []
+    @Published var sleepHypnograms: [SleepNightData] = []
     @Published var weeklyHeatmap: WeeklyHeatmapData?
     @Published var circadianRhythm: CircadianRhythmData?
     
     // MARK: - Data Models
+    
+    struct SleepNightData: Identifiable {
+        let id = UUID()
+        let date: Date
+        let samples: [SleepHypnogramChart.SleepStageSample]
+        let bedtime: Date
+        let wakeTime: Date
+    }
     
     struct WellnessFoundation {
         let sleepQuality: Double
@@ -68,6 +78,8 @@ class WeeklyReportViewModel: ObservableObject {
         let rem: Double
         let core: Double
         let awake: Double
+        let bedtime: Date?
+        let wakeTime: Date?
     }
     
     struct WeeklyHeatmapData {
@@ -355,30 +367,90 @@ class WeeklyReportViewModel: ObservableObject {
     // MARK: - Sleep Architecture
     
     private func loadSleepArchitecture() async {
-        // Sleep stages not currently stored in Core Data
-        // Would need to fetch from HealthKit directly or add to DailyPhysio
-        // For now, generate mock data for visualization
         let thisWeek = getLast7Days()
+        var sleepDataArray: [SleepDayData] = []
+        var hypnogramArray: [SleepNightData] = []
         
-        sleepArchitecture = thisWeek.compactMap { day in
-            guard let date = day.date,
-                  let sleepDuration = day.physio?.sleepDuration,
-                  sleepDuration > 0 else {
-                return nil
-            }
+        for day in thisWeek {
+            guard let date = day.date else { continue }
             
-            // Mock distribution: ~20% deep, ~25% REM, ~50% core, ~5% awake
-            let totalHours = sleepDuration / 3600.0
-            return SleepDayData(
-                date: date,
-                deep: totalHours * 0.20,
-                rem: totalHours * 0.25,
-                core: totalHours * 0.50,
-                awake: totalHours * 0.05
-            )
+            // Fetch actual sleep data from HealthKit for this day
+            let dayStart = Calendar.current.startOfDay(for: date)
+            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else { continue }
+            
+            do {
+                let samples = try await healthKitManager.fetchSleepData(from: dayStart, to: dayEnd)
+                
+                var deep: TimeInterval = 0
+                var rem: TimeInterval = 0
+                var core: TimeInterval = 0
+                var awake: TimeInterval = 0
+                var earliestBedtime: Date?
+                var latestWakeTime: Date?
+                
+                // Convert HK samples to hypnogram samples
+                var hypnogramSamples: [SleepHypnogramChart.SleepStageSample] = []
+                
+                for sample in samples {
+                    let duration = sample.endDate.timeIntervalSince(sample.startDate)
+                    
+                    // Track bedtime and wake time
+                    if earliestBedtime == nil || sample.startDate < earliestBedtime! {
+                        earliestBedtime = sample.startDate
+                    }
+                    if latestWakeTime == nil || sample.endDate > latestWakeTime! {
+                        latestWakeTime = sample.endDate
+                    }
+                    
+                    // Add to hypnogram
+                    if let hypnogramSample = SleepHypnogramChart.SleepStageSample(from: sample) {
+                        hypnogramSamples.append(hypnogramSample)
+                    }
+                    
+                    switch sample.value {
+                    case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
+                        deep += duration
+                    case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
+                        rem += duration
+                    case HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+                         HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
+                        core += duration
+                    case HKCategoryValueSleepAnalysis.awake.rawValue:
+                        awake += duration
+                    default:
+                        break
+                    }
+                }
+                
+                if deep > 0 || rem > 0 || core > 0 {
+                    sleepDataArray.append(SleepDayData(
+                        date: date,
+                        deep: deep / 3600.0,
+                        rem: rem / 3600.0,
+                        core: core / 3600.0,
+                        awake: awake / 3600.0,
+                        bedtime: earliestBedtime,
+                        wakeTime: latestWakeTime
+                    ))
+                    
+                    // Add hypnogram data if we have bedtime and wake time
+                    if let bedtime = earliestBedtime, let wakeTime = latestWakeTime, !hypnogramSamples.isEmpty {
+                        hypnogramArray.append(SleepNightData(
+                            date: date,
+                            samples: hypnogramSamples,
+                            bedtime: bedtime,
+                            wakeTime: wakeTime
+                        ))
+                    }
+                }
+            } catch {
+                Logger.error("Failed to fetch sleep data for \(date): \(error)")
+            }
         }
         
-        Logger.debug("😴 Sleep Architecture: \(sleepArchitecture.count) days")
+        sleepArchitecture = sleepDataArray
+        sleepHypnograms = hypnogramArray
+        Logger.debug("😴 Sleep Architecture: \(sleepArchitecture.count) days, \(sleepHypnograms.count) hypnograms from HealthKit")
     }
     
     // MARK: - Heatmap
@@ -436,25 +508,39 @@ class WeeklyReportViewModel: ObservableObject {
     // MARK: - Circadian Rhythm
     
     private func calculateCircadianRhythm() async {
-        // This would ideally come from actual sleep session timestamps
-        // For now, use reasonable defaults based on sleep data
+        // Use actual bedtime/wake time from sleep architecture
+        guard !sleepArchitecture.isEmpty else { return }
+        
+        let bedtimes = sleepArchitecture.compactMap { $0.bedtime }
+        let wakeTimes = sleepArchitecture.compactMap { $0.wakeTime }
+        
+        guard !bedtimes.isEmpty && !wakeTimes.isEmpty else { return }
+        
+        // Calculate average bedtime (in fractional hours)
+        let bedtimeHours = bedtimes.map { date -> Double in
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            return Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+        }
+        let avgBedtime = bedtimeHours.reduce(0, +) / Double(bedtimeHours.count)
+        
+        // Calculate average wake time
+        let wakeTimeHours = wakeTimes.map { date -> Double in
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            return Double(components.hour ?? 0) + Double(components.minute ?? 0) / 60.0
+        }
+        let avgWakeTime = wakeTimeHours.reduce(0, +) / Double(wakeTimeHours.count)
+        
+        // Calculate bedtime variance (standard deviation in minutes)
+        let avgBedtimeMinutes = avgBedtime * 60
+        let bedtimeMinutes = bedtimeHours.map { $0 * 60 }
+        let varianceSum = bedtimeMinutes.map { pow($0 - avgBedtimeMinutes, 2) }.reduce(0, +)
+        let variance = varianceSum / Double(bedtimeMinutes.count)
+        let bedtimeVariance = sqrt(variance)
+        
+        // Training time (could be fetched from workout times if needed)
+        let avgTrainingTime: Double? = nil // TODO: Calculate from workout times
         
         let thisWeek = getLast7Days()
-        let sleepDurations = thisWeek.compactMap { day -> Double? in
-            guard let duration = day.physio?.sleepDuration, duration > 0 else { return nil }
-            return duration
-        }
-        
-        guard !sleepDurations.isEmpty else { return }
-        
-        // Mock bedtime/wake time calculation
-        // TODO: Get actual bedtime/wake time from HealthKit sleep analysis
-        let avgBedtime = 23.0 // 11 PM
-        let avgSleepDuration = sleepDurations.reduce(0, +) / Double(sleepDurations.count)
-        let avgWakeTime = (avgBedtime + avgSleepDuration / 3600.0).truncatingRemainder(dividingBy: 24)
-        
-        let bedtimeVariance = 22.0 // minutes
-        let avgTrainingTime: Double? = 17.5 // 5:30 PM
         let consistency = calculateSleepConsistency(days: thisWeek)
         
         circadianRhythm = CircadianRhythmData(
@@ -464,6 +550,8 @@ class WeeklyReportViewModel: ObservableObject {
             avgTrainingTime: avgTrainingTime,
             consistency: consistency
         )
+        
+        Logger.debug("⏰ Circadian Rhythm: Bedtime \(String(format: "%.1f", avgBedtime))h, Wake \(String(format: "%.1f", avgWakeTime))h, Variance ±\(Int(bedtimeVariance))min")
     }
     
     // MARK: - AI Summary
