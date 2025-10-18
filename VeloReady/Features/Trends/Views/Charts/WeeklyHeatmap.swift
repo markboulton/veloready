@@ -138,7 +138,7 @@ struct WeeklyHeatmap: View {
             .background(intensity.color.opacity(0.15))
             .overlay(
                 Rectangle()
-                    .stroke(Color.text.tertiary.opacity(0.2), lineWidth: 0.5)
+                    .stroke(ColorPalette.chartGridLine, lineWidth: 0.5)
             )
     }
     
