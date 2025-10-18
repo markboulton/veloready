@@ -347,9 +347,20 @@ final class CacheManager: ObservableObject {
             
             let load = (try? context.fetch(loadRequest).first) ?? DailyLoad(context: context)
             load.date = startOfDay
-            load.ctl = intervals.ctl ?? 0
-            load.atl = intervals.atl ?? 0
-            load.tsb = intervals.tsb ?? 0
+            
+            // Use Intervals data if available, otherwise calculate locally
+            if let ctl = intervals.ctl, let atl = intervals.atl {
+                load.ctl = ctl
+                load.atl = atl
+                load.tsb = intervals.tsb ?? (ctl - atl)
+            } else {
+                // Calculate CTL/ATL locally if Intervals doesn't provide it
+                // This will be populated by calculateMissingCTLATL() method
+                load.ctl = load.ctl // Keep existing value if already calculated
+                load.atl = load.atl
+                load.tsb = load.ctl - load.atl
+            }
+            
             load.tss = intervals.tss ?? 0
             load.eftp = intervals.eftp ?? 0
             load.workoutId = intervals.workout?.id
@@ -460,6 +471,54 @@ final class CacheManager: ObservableObject {
                 persistence.pruneOldData(olderThanDays: 90)
             }
         }
+    }
+    
+    // MARK: - CTL/ATL Calculation
+    
+    /// Calculate missing CTL/ATL values from activities
+    /// Called when Intervals.icu doesn't provide CTL/ATL data
+    func calculateMissingCTLATL() async {
+        Logger.data("📊 Calculating missing CTL/ATL values...")
+        
+        // Fetch all activities from last 60 days
+        let activities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 100, daysBack: 60)) ?? []
+        
+        guard !activities.isEmpty else {
+            Logger.warning("No activities found for CTL/ATL calculation")
+            return
+        }
+        
+        // Calculate progressive CTL/ATL
+        let calculator = TrainingLoadCalculator()
+        let progressiveLoad = calculator.calculateProgressiveTrainingLoad(activities)
+        
+        Logger.data("📊 Calculated progressive load for \(progressiveLoad.count) days")
+        
+        // Update DailyLoad entities
+        let context = persistence.container.viewContext
+        let calendar = Calendar.current
+        
+        for (date, load) in progressiveLoad {
+            let startOfDay = calendar.startOfDay(for: date)
+            
+            let loadRequest = DailyLoad.fetchRequest()
+            loadRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
+            loadRequest.fetchLimit = 1
+            
+            if let existingLoad = try? context.fetch(loadRequest).first {
+                // Only update if CTL/ATL are 0 (not provided by Intervals)
+                if existingLoad.ctl == 0 && existingLoad.atl == 0 {
+                    existingLoad.ctl = load.ctl
+                    existingLoad.atl = load.atl
+                    existingLoad.tsb = load.ctl - load.atl
+                    Logger.data("  Updated \(startOfDay): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
+                }
+            }
+        }
+        
+        // Save changes
+        try? context.save()
+        Logger.data("✅ CTL/ATL calculation complete")
     }
 }
 

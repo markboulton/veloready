@@ -668,7 +668,38 @@ class WeeklyReportViewModel: ObservableObject {
             Logger.debug("📈 CTL Historical: \(dataPoints.count) days loaded")
         } else {
             Logger.warning("⚠️ No CTL data available (\(daysWithoutLoad) days without load data)")
-            Logger.warning("   Check if Intervals.icu provides CTL/ATL values in wellness data")
+            Logger.warning("   Attempting to calculate CTL/ATL from activities...")
+            
+            // Try to calculate missing CTL/ATL
+            await CacheManager.shared.calculateMissingCTLATL()
+            
+            // Reload data after calculation
+            let reloadedWeek = getLast7Days()
+            var reloadedPoints: [FitnessTrajectoryChart.DataPoint] = []
+            
+            for day in reloadedWeek {
+                guard let date = day.date,
+                      let ctl = day.load?.ctl,
+                      let atl = day.load?.atl,
+                      ctl > 0 || atl > 0 else {
+                    continue
+                }
+                
+                let tsb = ctl - atl
+                reloadedPoints.append(FitnessTrajectoryChart.DataPoint(
+                    date: date,
+                    ctl: ctl,
+                    atl: atl,
+                    tsb: tsb
+                ))
+            }
+            
+            if !reloadedPoints.isEmpty {
+                ctlHistoricalData = reloadedPoints
+                Logger.debug("📈 CTL Historical: \(reloadedPoints.count) days loaded after calculation")
+            } else {
+                Logger.warning("⚠️ Still no CTL data after calculation - may need more activities")
+            }
         }
     }
     
