@@ -44,6 +44,18 @@ struct RHRCandlestickChart: View {
             }
         }
         .background(Color(.systemBackground))
+        .onAppear {
+            loadData()
+        }
+        .onChange(of: selectedPeriod) { _, _ in
+            loadData()
+        }
+    }
+    
+    private func loadData() {
+        Logger.debug("💔 [RHR CHART] Loading data for \(selectedPeriod.days)d period")
+        data = getData(selectedPeriod)
+        Logger.debug("💔 [RHR CHART] Loaded \(data.count) data points")
     }
     
     private var chartView: some View {
