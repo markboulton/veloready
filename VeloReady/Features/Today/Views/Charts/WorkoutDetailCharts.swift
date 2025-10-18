@@ -345,9 +345,9 @@ struct MetricChartView: View {
         .chartXAxis {
             AxisMarks(position: .bottom, values: .stride(by: timeStride())) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisTick()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisValueLabel {
                     if let timeValue = value.as(Double.self) {
                         Text(formatTime(timeValue))
@@ -359,9 +359,9 @@ struct MetricChartView: View {
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisTick()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.chartGridLine)
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
