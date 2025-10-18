@@ -42,7 +42,6 @@ struct WeeklyReportView: View {
                 // 4. Recovery Capacity
                 if let metrics = viewModel.weeklyMetrics {
                     RecoveryCapacityComponent(metrics: metrics)
-                        .padding(.horizontal, Spacing.lg)
                     
                     SectionDivider()
                 }

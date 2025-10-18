@@ -62,7 +62,6 @@ struct TrendChart: View {
                 summaryStats
             }
         }
-        .padding(Spacing.cardPadding)
         .background(Color(.systemBackground))
     }
     
@@ -92,12 +91,12 @@ struct TrendChart: View {
                 
                 switch chartType {
                 case .bar:
-                    // Very dark grey bar
+                    // Dark grey bar (more visible on 30/60 day views)
                     BarMark(
                         x: .value("Day", point.date, unit: .day),
                         y: .value("Value", animateChart ? point.value : 0)
                     )
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(Color(.systemGray3).opacity(0.8))
                     
                     // Top 2px colored indicator
                     BarMark(

@@ -22,6 +22,18 @@ struct RecoveryDetailView: View {
                     
                     SectionDivider()
                     
+                    // HRV Line Chart (Pro)
+                    hrvLineSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
+                    // RHR Candlestick Chart (Pro)
+                    rhrCandlestickSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
                     // Sub-scores breakdown
                     subScoresSection
                         .padding()
@@ -72,6 +84,34 @@ struct RecoveryDetailView: View {
                 chartType: .bar,
                 unit: "%",
                 showProBadge: true
+            )
+        }
+    }
+    
+    // MARK: - HRV Line Section (Pro)
+    
+    private var hrvLineSection: some View {
+        ProFeatureGate(
+            upgradeContent: .weeklyRecoveryTrend,
+            isEnabled: proConfig.canViewWeeklyTrends,
+            showBenefits: true
+        ) {
+            HRVLineChart(
+                getData: { period in getHistoricalHRVData(for: period) }
+            )
+        }
+    }
+    
+    // MARK: - RHR Candlestick Section (Pro)
+    
+    private var rhrCandlestickSection: some View {
+        ProFeatureGate(
+            upgradeContent: .weeklyRecoveryTrend,
+            isEnabled: proConfig.canViewWeeklyTrends,
+            showBenefits: true
+        ) {
+            RHRCandlestickChart(
+                getData: { period in getHistoricalRHRData(for: period) }
             )
         }
     }
@@ -388,6 +428,73 @@ struct RecoveryDetailView: View {
             return TrendDataPoint(
                 date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
                 value: Double.random(in: 60...85)
+            )
+        }
+    }
+    
+    // MARK: - HRV Data
+    
+    private func getHistoricalHRVData(for period: TrendPeriod) -> [TrendDataPoint] {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+            return []
+        }
+        
+        let fetchRequest = DailyPhysio.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND hrv > 0", startDate as NSDate, endDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        guard let results = try? context.fetch(fetchRequest) else {
+            return []
+        }
+        
+        return results.compactMap { physio in
+            guard let date = physio.date else { return nil }
+            return TrendDataPoint(
+                date: date,
+                value: physio.hrv
+            )
+        }
+    }
+    
+    // MARK: - RHR Data
+    
+    private func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+            return []
+        }
+        
+        let fetchRequest = DailyPhysio.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND rhr > 0", startDate as NSDate, endDate as NSDate)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        guard let results = try? context.fetch(fetchRequest) else {
+            return []
+        }
+        
+        // For now, use RHR as all values (open/close/high/low)
+        // In future, could fetch actual min/max from HealthKit samples
+        return results.compactMap { physio in
+            guard let date = physio.date else { return nil }
+            let rhr = physio.rhr
+            // Create candlestick with small variation
+            let variation = rhr * 0.05 // 5% variation
+            return RHRDataPoint(
+                date: date,
+                open: rhr - variation / 2,
+                close: rhr + variation / 2,
+                high: rhr + variation,
+                low: rhr - variation,
+                average: rhr
             )
         }
     }

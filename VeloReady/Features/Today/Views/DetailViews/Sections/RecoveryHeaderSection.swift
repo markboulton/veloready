@@ -8,10 +8,16 @@ struct RecoveryHeaderSection: View {
         VStack(spacing: 16) {
             RecoveryRingView(score: recoveryScore.score, band: recoveryScore.band)
             
-            Text(recoveryScore.bandDescription)
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(colorForBand(recoveryScore.band))
+            VStack(spacing: 4) {
+                Text(recoveryScore.bandDescription)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(colorForBand(recoveryScore.band))
+                
+                Text("Last 24 Hours")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
             
             Text(recoveryScore.dailyBrief)
                 .font(.body)

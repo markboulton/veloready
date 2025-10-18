@@ -77,4 +77,13 @@ enum ColorScale {
     ) /// Light: subtle black lines, Dark: subtle white lines
     static let chartAxis         = Color.adaptive(lightHex: "999999", darkHex: "6B6B6B") /// Light: medium gray, Dark: #6B6B6B
     static let textSoftWhite     = Color.adaptive(lightHex: "333333", darkHex: "E8E8E8") /// Light: dark gray, Dark: #E8E8E8 soft white
+    
+    // MARK: - Sleep Stage Colors (Adaptive Purple Tones)
+    
+    /// Sleep stage colors - purple gradient from dark (deep) to light (awake)
+    static let sleepDeep         = Color.adaptive(lightHex: "4B1F7F", darkHex: "331966") /// Light: medium purple, Dark: #331966 dark purple
+    static let sleepREM          = Color.adaptive(lightHex: "6B4F9F", darkHex: "4F6BCC") /// Light: medium purple-blue, Dark: #4F6BCC turquoise
+    static let sleepCore         = Color.adaptive(lightHex: "8B7FBF", darkHex: "6680E6") /// Light: light purple, Dark: #6680E6 light blue
+    static let sleepAwake        = Color.adaptive(lightHex: "C9B8E8", darkHex: "FFCC66") /// Light: very light lilac, Dark: #FFCC66 yellow/gold
+    static let sleepInBed        = Color.adaptive(lightHex: "E8E8E8", darkHex: "3A3A3A") /// Light: very light gray, Dark: #3A3A3A dark gray
 }

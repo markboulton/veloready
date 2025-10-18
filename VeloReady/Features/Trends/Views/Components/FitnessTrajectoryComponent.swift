@@ -15,25 +15,25 @@ struct FitnessTrajectoryComponent: View {
                 FitnessTrajectoryChart(data: ctlData)
                     .frame(height: 200)
                 
-                // Current values
+                // Current values (legend) - colors match chart lines
                 HStack(spacing: Spacing.lg) {
                     metricPill(
                         label: TrendsContent.WeeklyReport.ctlLabel,
                         value: "\(Int(metrics.ctlEnd))",
                         change: metrics.ctlEnd - metrics.ctlStart,
-                        color: .workout.power
+                        color: .button.primary
                     )
                     metricPill(
                         label: TrendsContent.WeeklyReport.atlLabel,
                         value: "\(Int(metrics.atl))",
                         change: nil,
-                        color: .workout.tss
+                        color: .semantic.warning
                     )
                     metricPill(
                         label: TrendsContent.WeeklyReport.formLabel,
                         value: "\(Int(metrics.tsb))",
                         change: nil,
-                        color: tsbColor(metrics.tsb)
+                        color: ColorScale.greenAccent
                     )
                 }
                 

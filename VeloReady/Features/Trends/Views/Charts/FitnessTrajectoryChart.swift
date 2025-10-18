@@ -46,18 +46,26 @@ struct FitnessTrajectoryChart: View {
                     y: .value("Value", point.ctl),
                     series: .value("Metric", "CTL")
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.button.primary.opacity(0.5))
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.button.primary.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data)
+                // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.ctl)
+                    )
+                    .foregroundStyle(Color.black)
+                    .symbolSize(20)
+                    
                     PointMark(
                         x: .value("Date", point.date),
                         y: .value("Value", point.ctl)
                     )
                     .foregroundStyle(Color.button.primary)
                     .symbolSize(40)
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
                 }
             }
             
@@ -68,18 +76,26 @@ struct FitnessTrajectoryChart: View {
                     y: .value("Value", point.atl),
                     series: .value("Metric", "ATL")
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.semantic.warning.opacity(0.5))
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.semantic.warning.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data)
+                // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.atl)
+                    )
+                    .foregroundStyle(Color.black)
+                    .symbolSize(20)
+                    
                     PointMark(
                         x: .value("Date", point.date),
                         y: .value("Value", point.atl)
                     )
                     .foregroundStyle(Color.semantic.warning)
                     .symbolSize(40)
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
                 }
             }
             
@@ -90,18 +106,26 @@ struct FitnessTrajectoryChart: View {
                     y: .value("Value", point.tsb),
                     series: .value("Metric", "TSB")
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : ColorScale.greenAccent.opacity(0.5))
+                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : ColorScale.greenAccent.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data)
+                // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", point.tsb)
+                    )
+                    .foregroundStyle(Color.black)
+                    .symbolSize(20)
+                    
                     PointMark(
                         x: .value("Date", point.date),
                         y: .value("Value", point.tsb)
                     )
                     .foregroundStyle(ColorScale.greenAccent)
                     .symbolSize(40)
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
                 }
             }
         }
