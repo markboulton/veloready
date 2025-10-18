@@ -605,6 +605,119 @@ final class CacheManager: ObservableObject {
             }
         }
     }
+    
+    // MARK: - Historical Data Backfill
+    
+    /// Backfill historical HRV/RHR/Sleep data from HealthKit for chart display
+    func backfillHistoricalPhysioData(days: Int = 60) async {
+        Logger.data("📊 [PHYSIO BACKFILL] Starting backfill for last \(days) days...")
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Fetch HRV, RHR, and Sleep data from HealthKit for the entire period
+        let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
+        
+        // Fetch all HRV samples
+        let hrvSamples = await healthKit.fetchHRVSamples(from: startDate, to: Date())
+        
+        // Fetch all RHR samples
+        let rhrSamples = await healthKit.fetchRHRSamples(from: startDate, to: Date())
+        
+        // Fetch all sleep sessions
+        let sleepSessions = await healthKit.fetchSleepSessions(from: startDate, to: Date())
+        
+        Logger.data("📊 [PHYSIO BACKFILL] Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSessions.count) sleep samples")
+        
+        // Group samples by day
+        var dailyData: [Date: (hrv: Double?, rhr: Double?, sleep: TimeInterval?)] = [:]
+        
+        // Group HRV by day (use average)
+        for sample in hrvSamples {
+            let day = calendar.startOfDay(for: sample.startDate)
+            let value = sample.quantity.doubleValue(for: .secondUnit(with: .milli))
+            
+            if let existing = dailyData[day]?.hrv {
+                dailyData[day] = (hrv: (existing + value) / 2, rhr: dailyData[day]?.rhr, sleep: dailyData[day]?.sleep)
+            } else {
+                dailyData[day] = (hrv: value, rhr: dailyData[day]?.rhr, sleep: dailyData[day]?.sleep)
+            }
+        }
+        
+        // Group RHR by day (use minimum)
+        for sample in rhrSamples {
+            let day = calendar.startOfDay(for: sample.startDate)
+            let value = sample.quantity.doubleValue(for: .init(from: "count/min"))
+            
+            if let existing = dailyData[day]?.rhr {
+                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: min(existing, value), sleep: dailyData[day]?.sleep)
+            } else {
+                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: value, sleep: dailyData[day]?.sleep)
+            }
+        }
+        
+        // Group sleep by day (sum duration for each night)
+        for session in sleepSessions {
+            let day = calendar.startOfDay(for: session.wakeTime)
+            let duration = session.wakeTime.timeIntervalSince(session.bedtime)
+            
+            if let existing = dailyData[day]?.sleep {
+                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: dailyData[day]?.rhr, sleep: existing + duration)
+            } else {
+                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: dailyData[day]?.rhr, sleep: duration)
+            }
+        }
+        
+        Logger.data("📊 [PHYSIO BACKFILL] Grouped into \(dailyData.count) days with data")
+        
+        // Save to Core Data
+        let context = persistence.container.newBackgroundContext()
+        await context.perform {
+            var savedCount = 0
+            var skippedCount = 0
+            
+            for (date, data) in dailyData {
+                // Skip today (it's handled by normal refresh)
+                if calendar.isDateInToday(date) {
+                    skippedCount += 1
+                    continue
+                }
+                
+                // Fetch or create DailyPhysio
+                let request = DailyPhysio.fetchRequest()
+                request.predicate = NSPredicate(format: "date == %@", date as NSDate)
+                request.fetchLimit = 1
+                
+                let physio = (try? context.fetch(request).first) ?? DailyPhysio(context: context)
+                physio.date = date
+                
+                // Only update if we have new data and existing is 0 (don't overwrite)
+                if let hrv = data.hrv, physio.hrv == 0 {
+                    physio.hrv = hrv
+                    savedCount += 1
+                }
+                if let rhr = data.rhr, physio.rhr == 0 {
+                    physio.rhr = rhr
+                }
+                if let sleep = data.sleep, physio.sleepDuration == 0 {
+                    physio.sleepDuration = sleep
+                }
+                
+                physio.lastUpdated = Date()
+            }
+            
+            if savedCount > 0 {
+                do {
+                    try context.save()
+                    Logger.data("✅ [PHYSIO BACKFILL] Saved \(savedCount) days (\(skippedCount) skipped)")
+                } catch {
+                    Logger.error("❌ [PHYSIO BACKFILL] Failed to save: \(error)")
+                }
+            } else {
+                Logger.data("📊 [PHYSIO BACKFILL] No new data to save")
+            }
+        }
+    }
 }
 
 // MARK: - Supporting Types

@@ -35,6 +35,16 @@ struct VeloReadyApp: App {
             Logger.debug("☁️ iCloud automatic sync initialized")
         }
         
+        // Backfill historical physio data for charts (one-time on first launch)
+        Task {
+            let hasBackfilled = UserDefaults.standard.bool(forKey: "hasBackfilledPhysioData")
+            if !hasBackfilled {
+                Logger.data("📊 [PHYSIO BACKFILL] First launch - backfilling historical data...")
+                await CacheManager.shared.backfillHistoricalPhysioData(days: 60)
+                UserDefaults.standard.set(true, forKey: "hasBackfilledPhysioData")
+            }
+        }
+        
         // Register background task
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.veloready.app.refresh", using: nil) { task in
             Self.handleBackgroundRefresh(task: task as! BGAppRefreshTask)

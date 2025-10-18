@@ -1350,6 +1350,118 @@ enum AuthorizationState: String {
             return .notDetermined
         }
     }
+    
+    // MARK: - Batch Historical Data Fetching
+    
+    /// Fetch all HRV samples in a date range for historical backfill
+    func fetchHRVSamples(from startDate: Date, to endDate: Date) async -> [HKQuantitySample] {
+        guard let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+            return []
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: hrvType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+                if let error = error {
+                    Logger.error("❌ Failed to fetch HRV samples: \(error)")
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                let quantitySamples = (samples as? [HKQuantitySample]) ?? []
+                continuation.resume(returning: quantitySamples)
+            }
+            
+            healthStore.execute(query)
+        }
+    }
+    
+    /// Fetch all RHR samples in a date range for historical backfill
+    func fetchRHRSamples(from startDate: Date, to endDate: Date) async -> [HKQuantitySample] {
+        guard let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) else {
+            return []
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: rhrType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+                if let error = error {
+                    Logger.error("❌ Failed to fetch RHR samples: \(error)")
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                let quantitySamples = (samples as? [HKQuantitySample]) ?? []
+                continuation.resume(returning: quantitySamples)
+            }
+            
+            healthStore.execute(query)
+        }
+    }
+    
+    /// Fetch all sleep sessions in a date range for historical backfill
+    func fetchSleepSessions(from startDate: Date, to endDate: Date) async -> [(bedtime: Date, wakeTime: Date)] {
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return []
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+                if let error = error {
+                    Logger.error("❌ Failed to fetch sleep samples: \(error)")
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                guard let categorySamples = samples as? [HKCategorySample] else {
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                // Group by sleep session (consecutive samples)
+                var sessions: [(bedtime: Date, wakeTime: Date)] = []
+                var currentSession: (bedtime: Date, wakeTime: Date)?
+                
+                for sample in categorySamples {
+                    // Only count actual sleep stages (not awake/in bed)
+                    guard sample.value != HKCategoryValueSleepAnalysis.awake.rawValue,
+                          sample.value != HKCategoryValueSleepAnalysis.inBed.rawValue else {
+                        continue
+                    }
+                    
+                    if let session = currentSession {
+                        // If this sample is within 2 hours of the last wake time, extend the session
+                        if sample.startDate.timeIntervalSince(session.wakeTime) < 7200 {
+                            currentSession = (bedtime: session.bedtime, wakeTime: max(session.wakeTime, sample.endDate))
+                        } else {
+                            // New session
+                            sessions.append(session)
+                            currentSession = (bedtime: sample.startDate, wakeTime: sample.endDate)
+                        }
+                    } else {
+                        // First session
+                        currentSession = (bedtime: sample.startDate, wakeTime: sample.endDate)
+                    }
+                }
+                
+                // Add the last session
+                if let session = currentSession {
+                    sessions.append(session)
+                }
+                
+                continuation.resume(returning: sessions)
+            }
+            
+            healthStore.execute(query)
+        }
+    }
 }
 
 // MARK: - Sleep Data
