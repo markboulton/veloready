@@ -180,35 +180,35 @@ struct SleepDetailView: View {
                     title: SleepContent.Metrics.duration,
                     value: sleepScore.formattedSleepDuration,
                     icon: "moon.fill",
-                    color: .blue
+                    color: ColorScale.sleepCore
                 )
                 
                 SleepMetricCard(
                     title: "Sleep Need",
                     value: sleepScore.formattedSleepNeed,
                     icon: "target",
-                    color: .green
+                    color: ColorScale.sleepDeep
                 )
                 
                 SleepMetricCard(
                     title: SleepContent.Metrics.efficiency,
                     value: sleepScore.formattedSleepEfficiency,
                     icon: "percent",
-                    color: .orange
+                    color: ColorScale.sleepREM
                 )
                 
                 SleepMetricCard(
                     title: "Wake Events",
                     value: sleepScore.formattedWakeEvents,
                     icon: "exclamationmark.triangle.fill",
-                    color: .red
+                    color: .red  // Keep red as RAG status indicator
                 )
                 
                 SleepMetricCard(
                     title: "Deep Sleep",
                     value: sleepScore.formattedDeepSleepPercentage,
                     icon: "waveform.path.ecg",
-                    color: .indigo
+                    color: ColorScale.sleepDeep
                 )
             }
         }
@@ -227,7 +227,7 @@ struct SleepDetailView: View {
                             title: "Deep Sleep",
                             duration: deepDuration,
                             totalDuration: sleepDuration,
-                            color: .indigo
+                            color: ColorScale.sleepDeep
                         )
                     }
                     
@@ -236,7 +236,7 @@ struct SleepDetailView: View {
                             title: "REM Sleep",
                             duration: remDuration,
                             totalDuration: sleepDuration,
-                            color: .purple
+                            color: ColorScale.sleepREM
                         )
                     }
                     
@@ -245,7 +245,7 @@ struct SleepDetailView: View {
                             title: "Core Sleep",
                             duration: coreDuration,
                             totalDuration: sleepDuration,
-                            color: .blue
+                            color: ColorScale.sleepCore
                         )
                     }
                     
@@ -254,7 +254,7 @@ struct SleepDetailView: View {
                             title: "Awake",
                             duration: awakeDuration,
                             totalDuration: sleepDuration,
-                            color: .orange
+                            color: ColorScale.sleepAwake
                         )
                     }
                 }
@@ -277,7 +277,7 @@ struct SleepDetailView: View {
                 ForEach(generateRecommendations(), id: \.self) { recommendation in
                     HStack(alignment: .top, spacing: 12) {
                         Image(systemName: "lightbulb.fill")
-                            .foregroundColor(ColorPalette.yellow)
+                            .foregroundColor(ColorScale.sleepAwake)
                             .font(.caption)
                             .padding(.top, 2)
                         
