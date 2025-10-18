@@ -394,12 +394,9 @@ struct SleepDetailView: View {
     // MARK: - Mock Data Generator
     
     private func getHistoricalSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
-        Logger.debug("💤 [SLEEP CHART] Fetching data for period: \(period.days) days")
-        
         // Check if mock data is enabled for testing
         #if DEBUG
         if ProFeatureConfig.shared.showMockDataForTesting {
-            Logger.debug("💤 [SLEEP CHART] Using mock data")
             return generateMockSleepData(for: period)
         }
         #endif
@@ -415,8 +412,6 @@ struct SleepDetailView: View {
             return []
         }
         
-        Logger.debug("💤 [SLEEP CHART] Date range: \(startDate) to \(endDate)")
-        
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
@@ -426,8 +421,6 @@ struct SleepDetailView: View {
             return []
         }
         
-        Logger.debug("💤 [SLEEP CHART] Fetched \(results.count) days with sleep data")
-        
         let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
             guard let date = dailyScore.date else { return nil }
             return TrendDataPoint(
@@ -436,9 +429,9 @@ struct SleepDetailView: View {
             )
         }
         
-        Logger.debug("💤 [SLEEP CHART] Returning \(dataPoints.count) data points for \(period.days)-day view")
-        if period.days >= 30 {
-            Logger.debug("💤 [SLEEP CHART] Sample dates: \(dataPoints.prefix(3).map { $0.date })")
+        Logger.debug("💤 [SLEEP CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        if dataPoints.isEmpty {
+            Logger.warning("💤 [SLEEP CHART] No data available")
         }
         
         return dataPoints

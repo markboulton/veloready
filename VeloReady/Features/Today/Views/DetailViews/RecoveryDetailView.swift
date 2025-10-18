@@ -387,12 +387,9 @@ struct RecoveryDetailView: View {
     // MARK: - Mock Data Generator
     
     private func getHistoricalRecoveryData(for period: TrendPeriod) -> [TrendDataPoint] {
-        Logger.debug("📊 [RECOVERY CHART] Fetching data for period: \(period.days) days")
-        
         // Check if mock data is enabled for testing
         #if DEBUG
         if ProFeatureConfig.shared.showMockDataForTesting {
-            Logger.debug("📊 [RECOVERY CHART] Using mock data")
             return generateMockRecoveryData(for: period)
         }
         #endif
@@ -408,8 +405,6 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        Logger.debug("📊 [RECOVERY CHART] Date range: \(startDate) to \(endDate)")
-        
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
@@ -419,8 +414,6 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        Logger.debug("📊 [RECOVERY CHART] Fetched \(results.count) days with recovery data")
-        
         let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
             guard let date = dailyScore.date else { return nil }
             return TrendDataPoint(
@@ -429,9 +422,9 @@ struct RecoveryDetailView: View {
             )
         }
         
-        Logger.debug("📊 [RECOVERY CHART] Returning \(dataPoints.count) data points for \(period.days)-day view")
-        if period.days >= 30 {
-            Logger.debug("📊 [RECOVERY CHART] Sample dates: \(dataPoints.prefix(3).map { $0.date })")
+        Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        if dataPoints.isEmpty {
+            Logger.warning("📊 [RECOVERY CHART] No data available")
         }
         
         return dataPoints
@@ -451,8 +444,6 @@ struct RecoveryDetailView: View {
     // MARK: - HRV Data
     
     private func getHistoricalHRVData(for period: TrendPeriod) -> [TrendDataPoint] {
-        Logger.debug("❤️ [HRV CHART] Fetching data for period: \(period.days) days")
-        
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
         
@@ -463,8 +454,6 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        Logger.debug("❤️ [HRV CHART] Date range: \(startDate) to \(endDate)")
-        
         let fetchRequest = DailyPhysio.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND hrv > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
@@ -474,18 +463,18 @@ struct RecoveryDetailView: View {
             return []
         }
         
-        Logger.debug("❤️ [HRV CHART] Fetched \(results.count) days with HRV data")
-        
         let dataPoints = results.compactMap { physio -> TrendDataPoint? in
             guard let date = physio.date else { return nil }
-            Logger.debug("❤️ [HRV CHART] Date: \(date), HRV: \(physio.hrv)")
             return TrendDataPoint(
                 date: date,
                 value: physio.hrv
             )
         }
         
-        Logger.debug("❤️ [HRV CHART] Returning \(dataPoints.count) data points for \(period.days)-day view")
+        Logger.debug("❤️ [HRV CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        if dataPoints.isEmpty {
+            Logger.warning("❤️ [HRV CHART] No data available")
+        }
         
         return dataPoints
     }
@@ -493,16 +482,12 @@ struct RecoveryDetailView: View {
     // MARK: - RHR Data
     
     private func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
-        Logger.debug("💔 [RHR CHART] Fetching data for period: \(period.days) days")
-        
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
         guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
             Logger.error("💔 [RHR CHART] Failed to calculate start date")
             return []
         }
-        
-        Logger.debug("💔 [RHR CHART] Date range: \(startDate) to \(endDate)")
         
         // Fetch min/max HR from HealthKit for each day
         var dataPoints: [RHRDataPoint] = []
@@ -566,8 +551,6 @@ struct RecoveryDetailView: View {
                     lock.lock()
                     tempDataPoints[dayStart] = dataPoint
                     lock.unlock()
-                    
-                    Logger.debug("💔 [RHR CHART] Date: \(dayStart), Min: \(Int(minHR)), Max: \(Int(maxHR)), Avg: \(Int(avgHR))")
                 }
                 
                 HKHealthStore().execute(query)
@@ -586,7 +569,10 @@ struct RecoveryDetailView: View {
         // Sort by date
         dataPoints = tempDataPoints.keys.sorted().compactMap { tempDataPoints[$0] }
         
-        Logger.debug("💔 [RHR CHART] Returning \(dataPoints.count) data points with real min/max from HealthKit")
+        Logger.debug("💔 [RHR CHART] \(dataPoints.count) points with real min/max for \(period.days)d view")
+        if dataPoints.isEmpty {
+            Logger.warning("💔 [RHR CHART] No HR data available from HealthKit")
+        }
         
         return dataPoints
     }
