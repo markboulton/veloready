@@ -51,13 +51,7 @@ class ProFeatureConfig: ObservableObject {
     
     // MARK: - Dashboard Features
     
-    var canViewWeeklyTrends: Bool {
-        #if DEBUG
-        return true  // Always allow in debug builds for testing
-        #else
-        return hasProAccess
-        #endif
-    }
+    var canViewWeeklyTrends: Bool { hasProAccess }
     var canViewMonthlyTrends: Bool { hasProAccess }
     
     // MARK: - AI Features
