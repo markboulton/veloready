@@ -23,9 +23,11 @@ struct ProFeatureGate<Content: View>: View {
     
     var body: some View {
         if isEnabled {
-            content()
+            Logger.debug("🔓 [PRO GATE] Showing content for: \(upgradeContent.title)")
+            return AnyView(content())
         } else {
-            ProUpgradeCard(content: upgradeContent, showBenefits: showBenefits)
+            Logger.debug("🔒 [PRO GATE] Blocking content for: \(upgradeContent.title)")
+            return AnyView(ProUpgradeCard(content: upgradeContent, showBenefits: showBenefits))
         }
     }
 }
