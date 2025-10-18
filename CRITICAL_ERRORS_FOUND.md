@@ -48,7 +48,7 @@ private func loadData() {
 
 ---
 
-## 🔴 ERROR 2: UserDefaults Overflow
+## 🔴 ERROR 2: UserDefaults Overflow (LEGACY DATA)
 
 **Symptom:**
 ```
@@ -57,7 +57,7 @@ CFPrefsPlistSource: Attempting to store >= 4194304 bytes of data in CFPreference
 ```
 
 **Root Cause:**
-Storing 4MB+ of Strava stream data in UserDefaults:
+Legacy Strava stream data (4MB+) still in UserDefaults from old implementation:
 
 ```
 stream_strava_15923789957: {length = 438442, bytes = ...}
@@ -66,24 +66,33 @@ stream_strava_16130553709: {length = 211152, bytes = ...}
 ... (9+ streams totaling 4MB+)
 ```
 
-**Why This Is Bad:**
-- UserDefaults has 4MB limit on iOS
-- Causes data corruption
-- Slows app launch
-- Can cause crashes
+**Current Strategy:**
+- Streams are fetched **on-demand** when viewing ride detail pages
+- NOT stored persistently
+- NOT fetched in bulk
 
 **Fix Needed:**
-Move Strava stream data to Core Data:
+Clean up legacy UserDefaults keys:
 
-1. Create `StravaStream` entity in Core Data
-2. Store `activityId`, `streamType`, `data` (Binary Data)
-3. Migrate existing UserDefaults streams to Core Data
-4. Delete from UserDefaults after migration
+```swift
+// Add to app startup or migration
+let defaults = UserDefaults.standard
+let dict = defaults.dictionaryRepresentation()
+for key in dict.keys {
+    if key.hasPrefix("stream_strava_") {
+        defaults.removeObject(forKey: key)
+        print("🧹 Removed legacy stream: \(key)")
+    }
+}
+```
+
+**Why This Is Safe:**
+- Current implementation doesn't use these keys
+- Streams are fetched fresh when needed
+- No data loss
 
 **Files to Modify:**
-- `StravaDataService.swift` - Change storage from UserDefaults to Core Data
-- `VeloReady.xcdatamodeld` - Add StravaStream entity
-- Create migration script
+- Add cleanup to `AppDelegate` or `VeloReadyApp.init()`
 
 ---
 
@@ -95,9 +104,10 @@ httpError(statusCode: 400, message: "per page limit exceeded")
 ```
 
 **Root Cause:**
-Trying to fetch 500 activities at once:
+Trying to fetch 500 activities at once for FTP calculation:
 
 ```swift
+📊 [FTP] Fetching activities for FTP computation (120 days, research-backed window)
 📊 [Activities] Fetching from Strava (limit: 500)
 ```
 
@@ -107,17 +117,17 @@ Trying to fetch 500 activities at once:
 - 1000 requests per day
 
 **Fix Needed:**
-1. Cap `per_page` to 200 (Strava's max)
-2. Implement pagination for larger fetches
-3. Add rate limit handling
+Cap `per_page` to 200 (Strava's max):
 
 ```swift
 // In StravaDataService.swift
 let perPage = min(limit, 200)  // Never exceed 200
 ```
 
+**Note:** This is for the FTP calculation which needs 120 days of data. The fix is simple - just cap the limit. Pagination not needed since 200 activities covers 120 days for most users.
+
 **Files to Modify:**
-- `StravaDataService.swift` - Fix pagination logic
+- `StravaDataService.swift` - Cap limit to 200
 
 ---
 
@@ -169,9 +179,9 @@ Verify timezone handling in baseline calculation - ensure consistent use of loca
 
 ## 🚨 STILL NEED TO FIX
 
-1. **UserDefaults overflow** - Move Strava streams to Core Data
-2. **Strava API limit** - Cap per_page to 200
-3. **Baseline timezone** - Verify bedtime calculation
+1. **UserDefaults overflow** - Clean up legacy stream keys (simple cleanup)
+2. **Strava API limit** - Cap per_page to 200 (one-line fix)
+3. **Baseline timezone** - Verify bedtime calculation (investigate)
 
 ---
 

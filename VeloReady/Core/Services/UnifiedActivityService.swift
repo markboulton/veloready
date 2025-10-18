@@ -46,9 +46,10 @@ class UnifiedActivityService: ObservableObject {
             }
         }
         
-        // Fallback to Strava
-        Logger.data("📊 [Activities] Fetching from Strava (limit: \(limit))")
-        let stravaActivities = try await stravaAPI.fetchActivities(perPage: limit)
+        // Fallback to Strava (cap to 200 - Strava's max per_page)
+        let cappedLimit = min(limit, 200)
+        Logger.data("📊 [Activities] Fetching from Strava (limit: \(cappedLimit))")
+        let stravaActivities = try await stravaAPI.fetchActivities(perPage: cappedLimit)
         let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
         
         // Filter by date range (using capped days)

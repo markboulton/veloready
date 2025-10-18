@@ -24,6 +24,11 @@ struct VeloReadyApp: App {
             WorkoutMetadataService.shared.migrateAllLegacyData()
         }
         
+        // Clean up legacy Strava stream data from UserDefaults
+        Task { @MainActor in
+            cleanupLegacyStravaStreams()
+        }
+        
         // Enable automatic iCloud sync
         Task { @MainActor in
             iCloudSyncService.shared.enableAutomaticSync()
@@ -91,6 +96,28 @@ struct VeloReadyApp: App {
             
             // Schedule next refresh
             scheduleBackgroundRefresh()
+        }
+    }
+    
+    /// Clean up legacy Strava stream data from UserDefaults (one-time migration)
+    private static func cleanupLegacyStravaStreams() {
+        let defaults = UserDefaults.standard
+        let dict = defaults.dictionaryRepresentation()
+        var removedCount = 0
+        var totalBytes = 0
+        
+        for key in dict.keys {
+            if key.hasPrefix("stream_strava_") {
+                if let data = dict[key] as? Data {
+                    totalBytes += data.count
+                }
+                defaults.removeObject(forKey: key)
+                removedCount += 1
+            }
+        }
+        
+        if removedCount > 0 {
+            Logger.debug("🧹 Cleaned up \(removedCount) legacy Strava streams (~\(totalBytes / 1024)KB)")
         }
     }
 }
