@@ -1304,52 +1304,6 @@ class HealthKitManager: ObservableObject {
             self.healthStore.execute(query)
         }
     }
-}
-
-// MARK: - HKWorkoutActivityType Extension
-
-extension HKWorkoutActivityType {
-    var name: String {
-        switch self {
-        case .walking: return "Walking"
-        case .traditionalStrengthTraining: return "Strength Training"
-        case .functionalStrengthTraining: return "Functional Strength"
-        default: return "Other"
-        }
-    }
-}
-
-// MARK: - Authorization State
-
-enum AuthorizationState: String {
-    case notDetermined
-    case authorized
-    case denied
-    case partial
-    case notAvailable
-    
-    var description: String {
-        switch self {
-        case .notDetermined: return "Not Requested"
-        case .authorized: return "Authorized"
-        case .denied: return "Denied"
-        case .partial: return "Partially Authorized"
-        case .notAvailable: return "Not Available"
-        }
-    }
-    
-    static func fromHKStatus(_ status: HKAuthorizationStatus) -> AuthorizationState {
-        switch status {
-        case .notDetermined:
-            return .notDetermined
-        case .sharingDenied:
-            return .denied
-        case .sharingAuthorized:
-            return .authorized
-        @unknown default:
-            return .notDetermined
-        }
-    }
     
     // MARK: - Batch Historical Data Fetching
     
@@ -1460,6 +1414,52 @@ enum AuthorizationState: String {
             }
             
             healthStore.execute(query)
+        }
+    }
+}
+
+// MARK: - HKWorkoutActivityType Extension
+
+extension HKWorkoutActivityType {
+    var name: String {
+        switch self {
+        case .walking: return "Walking"
+        case .traditionalStrengthTraining: return "Strength Training"
+        case .functionalStrengthTraining: return "Functional Strength"
+        default: return "Other"
+        }
+    }
+}
+
+// MARK: - Authorization State
+
+enum AuthorizationState: String {
+    case notDetermined
+    case authorized
+    case denied
+    case partial
+    case notAvailable
+    
+    var description: String {
+        switch self {
+        case .notDetermined: return "Not Requested"
+        case .authorized: return "Authorized"
+        case .denied: return "Denied"
+        case .partial: return "Partially Authorized"
+        case .notAvailable: return "Not Available"
+        }
+    }
+    
+    static func fromHKStatus(_ status: HKAuthorizationStatus) -> AuthorizationState {
+        switch status {
+        case .notDetermined:
+            return .notDetermined
+        case .sharingDenied:
+            return .denied
+        case .sharingAuthorized:
+            return .authorized
+        @unknown default:
+            return .notDetermined
         }
     }
 }
