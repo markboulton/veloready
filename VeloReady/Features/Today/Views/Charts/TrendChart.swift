@@ -225,7 +225,9 @@ struct TrendChart: View {
     }
     
     private func loadData() {
+        Logger.debug("📊 [TREND CHART] Loading data for \(selectedPeriod.days)d period")
         data = getData(selectedPeriod)
+        Logger.debug("📊 [TREND CHART] Loaded \(data.count) data points")
     }
     
     // MARK: - Color Coding

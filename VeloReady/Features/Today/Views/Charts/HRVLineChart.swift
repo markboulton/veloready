@@ -148,7 +148,9 @@ struct HRVLineChart: View {
     }
     
     private func loadData() {
+        Logger.debug("❤️ [HRV CHART] Loading data for \(selectedPeriod.days)d period")
         data = getData(selectedPeriod)
+        Logger.debug("❤️ [HRV CHART] Loaded \(data.count) data points")
     }
     
     private var summaryStats: some View {
