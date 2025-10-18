@@ -49,21 +49,21 @@ struct StackedAreaChart: View {
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day, count: 2)) { _ in
                     AxisGridLine()
-                        .foregroundStyle(Color.text.tertiary.opacity(0.2))
+                        .foregroundStyle(ColorPalette.chartGridLine)
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                        .font(.system(size: TypeScale.xxs))
-                        .foregroundStyle(Color.text.secondary)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(ColorPalette.chartAxisLabel)
                 }
             }
             .chartYAxis {
                 AxisMarks(position: .leading) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color.text.tertiary.opacity(0.2))
+                        .foregroundStyle(ColorPalette.chartGridLine)
                     AxisValueLabel {
                         if let hours = value.as(Double.self) {
                             Text("\(Int(hours))h")
-                                .font(.system(size: TypeScale.xxs))
-                                .foregroundStyle(Color.text.secondary)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(ColorPalette.chartAxisLabel)
                         }
                     }
                 }
@@ -79,8 +79,8 @@ struct StackedAreaChart: View {
                             .fill(category.color)
                             .frame(width: 12, height: 12)
                         Text(category.label)
-                            .font(.system(size: TypeScale.xxs))
-                            .foregroundColor(.text.secondary)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                 }
             }
