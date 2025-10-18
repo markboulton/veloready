@@ -402,13 +402,43 @@ class WeeklyReportViewModel: ObservableObject {
         for day in thisWeek {
             guard let date = day.date else { continue }
             
-            // Fetch actual sleep data from HealthKit for this day
+            // Fetch sleep session that ENDED on this day (not started)
+            // Sleep sessions span midnight, so we need to look back ~12 hours to capture the full session
             let dayStart = Calendar.current.startOfDay(for: date)
+            guard let fetchStart = Calendar.current.date(byAdding: .hour, value: -12, to: dayStart) else { continue }
             guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else { continue }
             
             do {
-                let samples = try await healthKitManager.fetchSleepData(from: dayStart, to: dayEnd)
+                let allSamples = try await healthKitManager.fetchSleepData(from: fetchStart, to: dayEnd)
                 
+                // Group samples into sleep sessions (samples within 2 hours are same session)
+                // Then find the session that WOKE UP during this day
+                var sessions: [[HKCategorySample]] = []
+                var currentSession: [HKCategorySample] = []
+                
+                for sample in allSamples.sorted(by: { $0.startDate < $1.startDate }) {
+                    if let lastSample = currentSession.last {
+                        let gap = sample.startDate.timeIntervalSince(lastSample.endDate)
+                        if gap > 7200 { // 2 hour gap = new session
+                            sessions.append(currentSession)
+                            currentSession = []
+                        }
+                    }
+                    currentSession.append(sample)
+                }
+                if !currentSession.isEmpty {
+                    sessions.append(currentSession)
+                }
+                
+                // Find the session that ended (woke up) during this day
+                guard let mainSession = sessions.first(where: { session in
+                    guard let wakeTime = session.max(by: { $0.endDate < $1.endDate })?.endDate else { return false }
+                    return wakeTime >= dayStart && wakeTime < dayEnd
+                }) else {
+                    continue // No sleep session woke up on this day
+                }
+                
+                // Now process only the main session
                 var deep: TimeInterval = 0
                 var rem: TimeInterval = 0
                 var core: TimeInterval = 0
@@ -419,7 +449,7 @@ class WeeklyReportViewModel: ObservableObject {
                 // Convert HK samples to hypnogram samples
                 var hypnogramSamples: [SleepHypnogramChart.SleepStageSample] = []
                 
-                for sample in samples {
+                for sample in mainSession {
                     let duration = sample.endDate.timeIntervalSince(sample.startDate)
                     
                     // Track bedtime and wake time

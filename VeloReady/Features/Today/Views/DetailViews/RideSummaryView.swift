@@ -148,7 +148,7 @@ private struct SummaryContentView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.secondary)
                                     .font(.caption)
                                 Text(RideSummaryContent.strengths)
                                     .font(.subheadline)
@@ -173,7 +173,7 @@ private struct SummaryContentView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.secondary)
                                     .font(.caption)
                                 Text(RideSummaryContent.areasToImprove)
                                     .font(.subheadline)
@@ -202,7 +202,7 @@ private struct SummaryContentView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "lightbulb")
-                            .foregroundColor(.primary)
+                            .foregroundColor(.secondary)
                             .font(.caption)
                         Text(RideSummaryContent.nextSteps)
                             .font(.subheadline)

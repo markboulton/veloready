@@ -479,22 +479,26 @@ final class CacheManager: ObservableObject {
     /// Called when Intervals.icu doesn't provide CTL/ATL data
     /// Optimized to backfill last 42 days and save TSS values
     func calculateMissingCTLATL() async {
-        Logger.data("📊 Calculating missing CTL/ATL values for last 42 days...")
+        Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
         
         let calculator = TrainingLoadCalculator()
         var progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
         
         // Try Intervals.icu first
+        Logger.data("📊 [CTL/ATL BACKFILL] Step 1: Checking Intervals.icu...")
         let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 200, daysBack: 60)) ?? []
         
         if !intervalsActivities.isEmpty {
             let activitiesWithTSS = intervalsActivities.filter { ($0.tss ?? 0) > 0 }
-            Logger.data("📊 Found \(activitiesWithTSS.count) Intervals activities with TSS")
+            Logger.data("📊 [CTL/ATL BACKFILL] Found \(activitiesWithTSS.count) Intervals activities with TSS")
             
             if !activitiesWithTSS.isEmpty {
                 // Get progressive CTL/ATL with TSS per day
                 let ctlAtlData = calculator.calculateProgressiveTrainingLoad(intervalsActivities)
                 let dailyTSS = calculator.getDailyTSSFromActivities(intervalsActivities)
+                
+                Logger.data("📊 [CTL/ATL BACKFILL] Intervals gave us \(ctlAtlData.count) days of CTL/ATL")
+                Logger.data("📊 [CTL/ATL BACKFILL] Daily TSS has \(dailyTSS.count) entries")
                 
                 // Combine CTL/ATL with TSS
                 for (date, load) in ctlAtlData {
@@ -502,21 +506,33 @@ final class CacheManager: ObservableObject {
                     progressiveLoad[date] = (ctl: load.ctl, atl: load.atl, tss: tss)
                 }
             }
+        } else {
+            Logger.data("📊 [CTL/ATL BACKFILL] No Intervals activities found")
         }
         
         // If no Intervals data, calculate from HealthKit using TRIMP
         if progressiveLoad.isEmpty {
-            Logger.data("📊 No Intervals data, calculating from HealthKit workouts...")
+            Logger.data("📊 [CTL/ATL BACKFILL] Step 2: Falling back to HealthKit workouts...")
             progressiveLoad = await calculator.calculateProgressiveTrainingLoadFromHealthKit()
-            Logger.data("📊 Calculated \(progressiveLoad.count) days from HealthKit")
+            Logger.data("📊 [CTL/ATL BACKFILL] HealthKit calculation returned \(progressiveLoad.count) days")
+            
+            // Log first few entries
+            let sortedDates = progressiveLoad.keys.sorted()
+            for date in sortedDates.prefix(5) {
+                if let load = progressiveLoad[date] {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM dd"
+                    Logger.data("📊   \(formatter.string(from: date)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss))")
+                }
+            }
         }
         
-        Logger.data("📊 Calculated progressive load for \(progressiveLoad.count) days")
+        Logger.data("📊 [CTL/ATL BACKFILL] Step 3: Saving \(progressiveLoad.count) days to Core Data...")
         
         // Batch update DailyLoad entities for performance
         await updateDailyLoadBatch(progressiveLoad)
         
-        Logger.data("✅ CTL/ATL calculation complete")
+        Logger.data("✅ [CTL/ATL BACKFILL] Complete!")
     }
     
     /// Batch update DailyLoad entities for performance
@@ -524,8 +540,12 @@ final class CacheManager: ObservableObject {
         let context = persistence.newBackgroundContext()
         let calendar = Calendar.current
         
+        Logger.data("📊 [BATCH UPDATE] Processing \(progressiveLoad.count) days...")
+        
         await context.perform {
             var updatedCount = 0
+            var skippedCount = 0
+            var createdCount = 0
             
             for (date, load) in progressiveLoad {
                 let startOfDay = calendar.startOfDay(for: date)
@@ -535,16 +555,25 @@ final class CacheManager: ObservableObject {
                 loadRequest.fetchLimit = 1
                 
                 let existingLoad: DailyLoad
+                let isNew: Bool
                 if let fetched = try? context.fetch(loadRequest).first {
                     existingLoad = fetched
+                    isNew = false
                 } else {
                     // Create new DailyLoad if doesn't exist
                     existingLoad = DailyLoad(context: context)
                     existingLoad.date = startOfDay
+                    isNew = true
+                    createdCount += 1
                 }
                 
-                // Only update if CTL/ATL are 0 or very small (not provided by Intervals)
-                if existingLoad.ctl < 1.0 && existingLoad.atl < 1.0 {
+                // Update if:
+                // 1. It's a new entry (just created), OR
+                // 2. TSS is currently 0 (needs backfill), OR
+                // 3. CTL/ATL are both 0 or very small
+                let shouldUpdate = isNew || existingLoad.tss == 0.0 || (existingLoad.ctl < 1.0 && existingLoad.atl < 1.0)
+                
+                if shouldUpdate {
                     existingLoad.ctl = load.ctl
                     existingLoad.atl = load.atl
                     existingLoad.tsb = load.ctl - load.atl
@@ -552,7 +581,14 @@ final class CacheManager: ObservableObject {
                     existingLoad.lastUpdated = Date()
                     updatedCount += 1
                     
-                    Logger.data("  Updated \(startOfDay): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss))")
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM dd"
+                    Logger.data("  ✅ \(formatter.string(from: startOfDay)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss)) \(isNew ? "[NEW]" : "[UPDATED]")")
+                } else {
+                    skippedCount += 1
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM dd"
+                    Logger.data("  ⏭️ \(formatter.string(from: startOfDay)): Skipped (has existing data: CTL=\(existingLoad.ctl), TSS=\(existingLoad.tss))")
                 }
             }
             
@@ -560,10 +596,12 @@ final class CacheManager: ObservableObject {
             if context.hasChanges {
                 do {
                     try context.save()
-                    Logger.data("✅ Batch saved \(updatedCount) DailyLoad updates")
+                    Logger.data("✅ [BATCH UPDATE] Saved \(updatedCount) updates (\(createdCount) new, \(updatedCount - createdCount) modified, \(skippedCount) skipped)")
                 } catch {
-                    Logger.error("Failed to save DailyLoad batch: \(error)")
+                    Logger.error("❌ [BATCH UPDATE] Failed to save: \(error)")
                 }
+            } else {
+                Logger.data("📊 [BATCH UPDATE] No changes to save (\(skippedCount) entries skipped)")
             }
         }
     }

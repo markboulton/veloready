@@ -38,11 +38,11 @@ struct SleepHypnogramChart: View {
         
         var color: Color {
             switch self {
-            case .inBed: return ColorPalette.backgroundTertiary
-            case .awake: return ColorPalette.recoveryPoor.opacity(0.4)
-            case .core: return ColorPalette.sleepMetric.opacity(0.5)
-            case .rem: return ColorPalette.respiratoryMetric.opacity(0.6)
-            case .deep: return ColorPalette.sleepMetric.opacity(0.8)
+            case .inBed: return Color(.systemGray5)
+            case .awake: return Color(red: 1.0, green: 0.8, blue: 0.0) // Yellow/gold for awake
+            case .core: return Color(red: 0.4, green: 0.5, blue: 0.9) // Light blue
+            case .rem: return Color(red: 0.3, green: 0.7, blue: 0.8) // Turquoise
+            case .deep: return Color(red: 0.2, green: 0.1, blue: 0.5) // Dark purple
             }
         }
         

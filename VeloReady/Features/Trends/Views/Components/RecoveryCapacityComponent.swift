@@ -20,10 +20,10 @@ struct RecoveryCapacityComponent: View {
                             .foregroundColor(.health.heartRate)
                         if metrics.recoveryChange != 0 {
                             Image(systemName: metrics.recoveryChange > 0 ? "arrow.up" : "arrow.down")
-                                .foregroundColor(metrics.recoveryChange > 0 ? .green : .red)
+                                .foregroundColor(metrics.recoveryChange > 0 ? ColorScale.greenAccent : ColorScale.redAccent)
                             Text("\(Int(abs(metrics.recoveryChange)))%")
                                 .font(.caption)
-                                .foregroundColor(metrics.recoveryChange > 0 ? .green : .red)
+                                .foregroundColor(metrics.recoveryChange > 0 ? ColorScale.greenAccent : ColorScale.redAccent)
                         }
                     }
                 }

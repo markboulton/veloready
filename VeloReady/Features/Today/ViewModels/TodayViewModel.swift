@@ -166,6 +166,10 @@ class TodayViewModel: ObservableObject {
         do {
             try await cacheManager.refreshToday()
             Logger.debug("💾 Saved today's data to Core Data cache")
+            
+            // Backfill historical CTL/ATL/TSS data (runs once, then uses cache)
+            await cacheManager.calculateMissingCTLATL()
+            Logger.debug("✅ Historical CTL/ATL backfill complete")
         } catch {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }
