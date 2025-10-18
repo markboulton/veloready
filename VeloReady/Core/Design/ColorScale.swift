@@ -44,12 +44,13 @@ enum ColorScale {
     static let pinkAccent   = Color(.sRGB, red: 0.980, green: 0.318, blue: 0.408, opacity: 1.0) /// #fa5168 
     static let cyanAccent   = Color(.sRGB, red: 0.275, green: 0.808, blue: 0.745, opacity: 1.0) /// #46cebe 
     
-    // MARK: - Status Colors (Green → Yellow → Amber → Red)
+    // MARK: - Status Colors (Refined - Muted Recovery Gradient)
+    // These are the base tokens used throughout the app for status/bands
     
-    static let greenAccent  = Color(.sRGB, red: 0.251, green: 0.886, blue: 0.443, opacity: 1.0) /// #40E271 - Excellent
-    static let yellowAccent = Color(.sRGB, red: 0.961, green: 0.831, blue: 0.278, opacity: 1.0) /// #F5D447 - Good (was duplicate)
-    static let amberAccent  = Color(.sRGB, red: 0.988, green: 0.612, blue: 0.251, opacity: 1.0) /// #FC9C40 - Fair (orange)
-    static let redAccent    = Color(.sRGB, red: 0.980, green: 0.318, blue: 0.408, opacity: 1.0) /// #FA5168 - Poor
+    static let greenAccent  = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3 - Mint (was bright green)
+    static let yellowAccent = Color(.sRGB, red: 0.722, green: 0.851, blue: 0.275, opacity: 1.0) /// #B8D946 - Yellow-green (was bright yellow)
+    static let amberAccent  = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800 - Warm amber (was bright orange)
+    static let redAccent    = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444 - Coral red (was bright pink-red)
     
     // MARK: - Refined Metric Colors (Muted, Sophisticated)
     
