@@ -15,8 +15,9 @@ struct ReadinessCardView: View {
                         .foregroundColor(readinessScore.band.colorToken)
                     
                     Text(ReadinessContent.title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(ColorPalette.labelSecondary)
+                        .textCase(.uppercase)
                     
                     Spacer()
                     
@@ -28,12 +29,12 @@ struct ReadinessCardView: View {
                 // Score
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("\(readinessScore.score)")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .font(.system(size: 48, weight: .bold))
                         .foregroundColor(readinessScore.band.colorToken)
                     
                     Text("/100")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(ColorPalette.labelTertiary)
                 }
                 
                 // Band and description
@@ -73,9 +74,8 @@ struct ReadinessCardView: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .background(ColorPalette.backgroundSecondary)
+            .cornerRadius(0)
         }
         .buttonStyle(PlainButtonStyle())
     }
