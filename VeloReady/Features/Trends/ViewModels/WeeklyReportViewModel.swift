@@ -628,9 +628,25 @@ class WeeklyReportViewModel: ObservableObject {
     private func loadCTLHistoricalData() async {
         let thisWeek = getLast7Days()
         
+        Logger.debug("📊 Loading CTL data for \(thisWeek.count) days")
+        
         var dataPoints: [FitnessTrajectoryChart.DataPoint] = []
+        var daysWithoutLoad = 0
         
         for day in thisWeek {
+            if let date = day.date {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMM d"
+                let dateStr = dateFormatter.string(from: date)
+                
+                if let load = day.load {
+                    Logger.debug("  \(dateStr): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
+                } else {
+                    Logger.debug("  \(dateStr): No load data")
+                    daysWithoutLoad += 1
+                }
+            }
+            
             guard let date = day.date,
                   let ctl = day.load?.ctl,
                   let atl = day.load?.atl else {
@@ -649,7 +665,10 @@ class WeeklyReportViewModel: ObservableObject {
         
         if !dataPoints.isEmpty {
             ctlHistoricalData = dataPoints
-            Logger.debug("📈 CTL Historical: \(dataPoints.count) days")
+            Logger.debug("📈 CTL Historical: \(dataPoints.count) days loaded")
+        } else {
+            Logger.warning("⚠️ No CTL data available (\(daysWithoutLoad) days without load data)")
+            Logger.warning("   Check if Intervals.icu provides CTL/ATL values in wellness data")
         }
     }
     

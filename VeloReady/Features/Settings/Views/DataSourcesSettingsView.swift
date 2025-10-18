@@ -191,8 +191,8 @@ struct DataSourcesSettingsView: View {
         } header: {
             Text("Priority Order")
         } footer: {
-            Text("Drag to reorder sources (coming soon)")
-                .font(.caption2)
+            Text("When multiple sources provide the same data, VeloReady uses the highest priority source. For example, if both Intervals.icu and Strava have today's ride, the Intervals.icu version will be used because it includes power analysis and training metrics. Drag to reorder (coming soon).")
+                .font(.caption)
         }
     }
     
