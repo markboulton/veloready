@@ -23,9 +23,9 @@ struct CompactRingView: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                // Background ring
+                // Background ring - very subtle
                 Circle()
-                    .stroke(Color(.systemGray5), lineWidth: ringWidth)
+                    .stroke(ColorPalette.backgroundTertiary, lineWidth: ringWidth)
                     .frame(width: size, height: size)
                 
                 if let score = score {
@@ -42,25 +42,24 @@ struct CompactRingView: View {
                     // Center content - use custom text if provided, otherwise show score
                     // Fades in as animation completes
                     Text(centerText ?? "\(score)")
-                        .font(.system(size: 36, weight: .bold))
+                        .font(.system(size: 32, weight: .bold))
                         .foregroundColor(colorForBand(band))
                         .opacity(numberOpacity)
                 } else {
                     // Missing data indicator
                     Text("?")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(Color(.systemGray3))
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(ColorPalette.labelTertiary)
                 }
             }
             
             // Title
             Text(title)
-                .font(.smcaption)
-                .fontWeight(.medium)
-                .lineSpacing(Spacing.lineHeightRelaxed)
-                .foregroundColor(.primary)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(ColorPalette.labelSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.top, 8)  // ← Add 4pt padding to top
+                .textCase(.uppercase)
+                .padding(.top, 8)
         }
         .onAppear {
             // Animate ring drawing on appear with delay and ease-out curve

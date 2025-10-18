@@ -38,11 +38,11 @@ struct SleepHypnogramChart: View {
         
         var color: Color {
             switch self {
-            case .inBed: return Color.gray.opacity(0.3)
-            case .awake: return Color.red.opacity(0.6)
-            case .core: return Color.blue.opacity(0.5)
-            case .rem: return Color.purple.opacity(0.7)
-            case .deep: return Color.indigo.opacity(0.8)
+            case .inBed: return ColorPalette.backgroundTertiary
+            case .awake: return ColorPalette.recoveryPoor.opacity(0.4)
+            case .core: return ColorPalette.sleepMetric.opacity(0.5)
+            case .rem: return ColorPalette.respiratoryMetric.opacity(0.6)
+            case .deep: return ColorPalette.sleepMetric.opacity(0.8)
             }
         }
         
@@ -63,12 +63,12 @@ struct SleepHypnogramChart: View {
             // Time range
             HStack {
                 Text(formatTime(nightStart))
-                    .font(.caption)
-                    .foregroundColor(.text.secondary)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(ColorPalette.labelSecondary)
                 Spacer()
                 Text(formatTime(nightEnd))
-                    .font(.caption)
-                    .foregroundColor(.text.secondary)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(ColorPalette.labelSecondary)
             }
             
             // Hypnogram
@@ -81,7 +81,7 @@ struct SleepHypnogramChart: View {
                             path.move(to: CGPoint(x: 0, y: y))
                             path.addLine(to: CGPoint(x: geometry.size.width, y: y))
                         }
-                        .stroke(Color.text.tertiary.opacity(0.1), lineWidth: 1)
+                        .stroke(ColorPalette.chartGridLine, lineWidth: 1)
                     }
                     
                     // Sleep stage segments

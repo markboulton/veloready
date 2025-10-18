@@ -50,4 +50,27 @@ enum ColorScale {
     static let yellowAccent = Color(.sRGB, red: 0.961, green: 0.831, blue: 0.278, opacity: 1.0) /// #F5D447 - Good (was duplicate)
     static let amberAccent  = Color(.sRGB, red: 0.988, green: 0.612, blue: 0.251, opacity: 1.0) /// #FC9C40 - Fair (orange)
     static let redAccent    = Color(.sRGB, red: 0.980, green: 0.318, blue: 0.408, opacity: 1.0) /// #FA5168 - Poor
+    
+    // MARK: - Refined Metric Colors (Muted, Sophisticated)
+    
+    /// Recovery scale - muted gradient (coral → amber → mint)
+    static let recoveryPoor      = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444
+    static let recoveryLow       = Color(.sRGB, red: 1.000, green: 0.533, blue: 0.267, opacity: 1.0) /// #FF8844
+    static let recoveryMedium    = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800
+    static let recoveryGood      = Color(.sRGB, red: 0.722, green: 0.851, blue: 0.275, opacity: 1.0) /// #B8D946
+    static let recoveryExcellent = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3
+    
+    /// Metric signature colors (one per metric type)
+    static let strainColor       = Color(.sRGB, red: 0.420, green: 0.624, blue: 1.000, opacity: 1.0) /// #6B9FFF - Soft blue
+    static let sleepColor        = Color(.sRGB, red: 0.420, green: 0.624, blue: 1.000, opacity: 1.0) /// #6B9FFF - Soft blue
+    static let hrvColor          = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3 - Mint
+    static let heartRateColor    = Color(.sRGB, red: 1.000, green: 0.420, blue: 0.420, opacity: 1.0) /// #FF6B6B - Coral
+    static let powerColor        = Color(.sRGB, red: 0.302, green: 0.624, blue: 1.000, opacity: 1.0) /// #4D9FFF - Electric blue
+    static let tssColor          = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800 - Amber
+    static let respiratoryColor  = Color(.sRGB, red: 0.608, green: 0.498, blue: 1.000, opacity: 1.0) /// #9B7FFF - Soft purple
+    
+    /// Chart styling colors
+    static let chartGrid         = Color.white.opacity(0.06)  /// Very subtle grid lines
+    static let chartAxis         = Color(.sRGB, red: 0.420, green: 0.420, blue: 0.420, opacity: 1.0) /// #6B6B6B
+    static let textSoftWhite     = Color(.sRGB, red: 0.910, green: 0.910, blue: 0.910, opacity: 1.0) /// #E8E8E8
 }

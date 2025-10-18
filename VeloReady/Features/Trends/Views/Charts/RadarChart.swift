@@ -33,10 +33,10 @@ struct RadarChart: View {
             let radius = min(geometry.size.width, geometry.size.height) / 2 * 0.7
             
             ZStack {
-                // Background grid circles
+                // Background grid circles - very subtle
                 ForEach([0.25, 0.5, 0.75, 1.0], id: \.self) { scale in
                     Circle()
-                        .stroke(Color.text.tertiary.opacity(0.2), lineWidth: 1)
+                        .stroke(ColorPalette.chartGridLine, lineWidth: 1)
                         .frame(width: radius * 2 * scale, height: radius * 2 * scale)
                 }
                 
@@ -49,7 +49,7 @@ struct RadarChart: View {
                         path.move(to: center)
                         path.addLine(to: endPoint)
                     }
-                    .stroke(Color.text.tertiary.opacity(0.3), lineWidth: 1)
+                    .stroke(ColorPalette.chartGridLine, lineWidth: 1)
                 }
                 
                 // Data polygon fill
