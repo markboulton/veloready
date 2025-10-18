@@ -25,6 +25,7 @@ class WeeklyReportViewModel: ObservableObject {
     @Published var sleepHypnograms: [SleepNightData] = []
     @Published var weeklyHeatmap: WeeklyHeatmapData?
     @Published var circadianRhythm: CircadianRhythmData?
+    @Published var ctlHistoricalData: [FitnessTrajectoryChart.DataPoint]?
     
     // MARK: - Data Models
     
@@ -130,6 +131,7 @@ class WeeklyReportViewModel: ObservableObject {
             group.addTask { await self.loadSleepArchitecture() }
             group.addTask { await self.generateWeeklyHeatmap() }
             group.addTask { await self.calculateCircadianRhythm() }
+            group.addTask { await self.loadCTLHistoricalData() }
         }
         
         // Load AI summary last (depends on other metrics)
@@ -552,6 +554,36 @@ class WeeklyReportViewModel: ObservableObject {
         )
         
         Logger.debug("⏰ Circadian Rhythm: Bedtime \(String(format: "%.1f", avgBedtime))h, Wake \(String(format: "%.1f", avgWakeTime))h, Variance ±\(Int(bedtimeVariance))min")
+    }
+    
+    // MARK: - CTL Historical Data
+    
+    private func loadCTLHistoricalData() async {
+        let thisWeek = getLast7Days()
+        
+        var dataPoints: [FitnessTrajectoryChart.DataPoint] = []
+        
+        for day in thisWeek {
+            guard let date = day.date,
+                  let ctl = day.load?.ctl,
+                  let atl = day.load?.atl else {
+                continue
+            }
+            
+            let tsb = ctl - atl
+            
+            dataPoints.append(FitnessTrajectoryChart.DataPoint(
+                date: date,
+                ctl: ctl,
+                atl: atl,
+                tsb: tsb
+            ))
+        }
+        
+        if !dataPoints.isEmpty {
+            ctlHistoricalData = dataPoints
+            Logger.debug("📈 CTL Historical: \(dataPoints.count) days")
+        }
     }
     
     // MARK: - AI Summary
