@@ -3,10 +3,16 @@ import SwiftUI
 /// Profile section showing user info with edit capability
 struct ProfileSection: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @State private var refreshTrigger = false
     
     var body: some View {
         Section {
-            NavigationLink(destination: ProfileView()) {
+            NavigationLink(destination: ProfileView()
+                .onDisappear {
+                    // Reload profile when returning from ProfileView
+                    viewModel.loadProfile()
+                }
+            ) {
                 HStack {
                     // Profile avatar
                     if let image = viewModel.avatarImage {

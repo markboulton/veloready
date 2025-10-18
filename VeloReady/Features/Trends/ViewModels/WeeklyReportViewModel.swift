@@ -663,11 +663,14 @@ class WeeklyReportViewModel: ObservableObject {
             ))
         }
         
-        if !dataPoints.isEmpty {
+        // Check if we have meaningful data (not all zeros)
+        let hasNonZeroData = dataPoints.contains { $0.ctl > 0 || $0.atl > 0 }
+        
+        if !dataPoints.isEmpty && hasNonZeroData {
             ctlHistoricalData = dataPoints
             Logger.debug("📈 CTL Historical: \(dataPoints.count) days loaded")
         } else {
-            Logger.warning("⚠️ No CTL data available (\(daysWithoutLoad) days without load data)")
+            Logger.warning("⚠️ No meaningful CTL data available (\(daysWithoutLoad) days without load data, \(dataPoints.count) days with zero values)")
             Logger.warning("   Attempting to calculate CTL/ATL from activities...")
             
             // Try to calculate missing CTL/ATL
@@ -698,7 +701,7 @@ class WeeklyReportViewModel: ObservableObject {
                 ctlHistoricalData = reloadedPoints
                 Logger.debug("📈 CTL Historical: \(reloadedPoints.count) days loaded after calculation")
             } else {
-                Logger.warning("⚠️ Still no CTL data after calculation - may need more activities")
+                Logger.warning("⚠️ Still no CTL data after calculation - may need more activities with TSS")
             }
         }
     }

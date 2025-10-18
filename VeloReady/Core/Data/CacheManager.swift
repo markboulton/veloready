@@ -480,17 +480,32 @@ final class CacheManager: ObservableObject {
     func calculateMissingCTLATL() async {
         Logger.data("📊 Calculating missing CTL/ATL values...")
         
-        // Fetch all activities from last 60 days
-        let activities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 100, daysBack: 60)) ?? []
+        // Try Intervals.icu first
+        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 100, daysBack: 60)) ?? []
         
-        guard !activities.isEmpty else {
-            Logger.warning("No activities found for CTL/ATL calculation")
-            return
+        let calculator = TrainingLoadCalculator()
+        var progressiveLoad: [Date: (ctl: Double, atl: Double)] = [:]
+        
+        if !intervalsActivities.isEmpty {
+            // Use Intervals activities if available
+            let activitiesWithTSS = intervalsActivities.filter { ($0.tss ?? 0) > 0 }
+            Logger.data("📊 Found \(activitiesWithTSS.count) Intervals activities with TSS")
+            
+            if !activitiesWithTSS.isEmpty {
+                progressiveLoad = calculator.calculateProgressiveTrainingLoad(intervalsActivities)
+            }
         }
         
-        // Calculate progressive CTL/ATL
-        let calculator = TrainingLoadCalculator()
-        let progressiveLoad = calculator.calculateProgressiveTrainingLoad(activities)
+        // If no Intervals data, calculate from HealthKit using TRIMP
+        if progressiveLoad.isEmpty {
+            Logger.data("📊 No Intervals data, calculating from HealthKit workouts...")
+            let (ctl, atl) = await calculator.calculateTrainingLoad()
+            
+            // Store today's values
+            let today = Calendar.current.startOfDay(for: Date())
+            progressiveLoad[today] = (ctl: ctl, atl: atl)
+            Logger.data("📊 Calculated from HealthKit: CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
+        }
         
         Logger.data("📊 Calculated progressive load for \(progressiveLoad.count) days")
         

@@ -149,7 +149,10 @@ struct ProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingEditProfile) {
+        .sheet(isPresented: $showingEditProfile, onDismiss: {
+            // Reload profile when edit sheet dismisses
+            viewModel.loadProfile()
+        }) {
             ProfileEditView()
         }
         .onAppear {
