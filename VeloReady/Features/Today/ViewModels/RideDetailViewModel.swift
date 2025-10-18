@@ -442,14 +442,32 @@ class RideDetailViewModel: ObservableObject {
         Logger.debug("🟠 Strava Activity ID: \(stravaId)")
         
         do {
-            // Fetch streams from Strava API
-            Logger.debug("🟠 Fetching streams from Strava API...")
-            let streams = try await StravaAPIClient.shared.fetchActivityStreams(
-                id: stravaId,
-                types: ["time", "latlng", "distance", "altitude", "velocity_smooth", "heartrate", "cadence", "watts", "temp", "moving", "grade_smooth"]
-            )
+            // Fetch streams from backend API (which caches for 24 hours)
+            Logger.debug("🟠 Fetching streams from VeloReady backend...")
+            let streamsDict = try await VeloReadyAPIClient.shared.fetchActivityStreams(activityId: stravaId)
             
-            Logger.debug("🟠 Received \(streams.count) stream types from Strava")
+            Logger.debug("🟠 Received \(streamsDict.count) stream types from backend")
+            
+            // Convert backend response to StravaStream format
+            let streams = streamsDict.map { (type, streamData) -> StravaStream in
+                let data: StreamData
+                switch streamData.data {
+                case .simple(let values):
+                    data = .simple(values)
+                case .latlng(let coords):
+                    data = .latlng(coords)
+                }
+                
+                return StravaStream(
+                    type: type,
+                    data: data,
+                    series_type: streamData.series_type,
+                    original_size: streamData.original_size,
+                    resolution: streamData.resolution
+                )
+            }
+            
+            Logger.debug("🟠 Converted to \(streams.count) stream objects")
             
             // Convert Strava streams to WorkoutSamples
             let workoutSamples = convertStravaStreamsToWorkoutSamples(streams: streams)

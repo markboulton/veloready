@@ -8,7 +8,7 @@ class UnifiedActivityService: ObservableObject {
     static let shared = UnifiedActivityService()
     
     private let intervalsAPI = IntervalsAPIClient.shared
-    private let stravaAPI = StravaAPIClient.shared
+    private let veloReadyAPI = VeloReadyAPIClient.shared // NEW: Use backend API
     private let intervalsOAuth = IntervalsOAuthManager.shared
     private let stravaAuth = StravaAuthService.shared
     private let proConfig = ProFeatureConfig.shared
@@ -46,21 +46,14 @@ class UnifiedActivityService: ObservableObject {
             }
         }
         
-        // Fallback to Strava (cap to 200 - Strava's max per_page)
+        // Fallback to backend API (which fetches from Strava with caching)
         let cappedLimit = min(limit, 200)
-        Logger.data("📊 [Activities] Fetching from Strava (limit: \(cappedLimit))")
-        let stravaActivities = try await stravaAPI.fetchActivities(perPage: cappedLimit)
+        Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
+        let stravaActivities = try await veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
         let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
         
-        // Filter by date range (using capped days)
-        let cutoffDate = Calendar.current.date(byAdding: .day, value: -actualDays, to: Date())!
-        let filteredActivities = convertedActivities.filter { activity in
-            guard let date = parseDate(from: activity.startDateLocal) else { return false }
-            return date >= cutoffDate
-        }
-        
-        Logger.data("✅ [Activities] Fetched \(filteredActivities.count) activities from Strava (filtered to \(actualDays) days)")
-        return filteredActivities
+        Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend (cached for 5min)")
+        return convertedActivities
     }
     
     /// Fetch today's activities from all available sources
