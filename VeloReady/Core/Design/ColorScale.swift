@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Foundational color scale - primitive color values
-/// Simplified system with system grays and custom accent colors
+/// Now with adaptive light/dark mode support
 enum ColorScale {
     
     // MARK: - System Grays (iOS Native)
@@ -44,34 +44,37 @@ enum ColorScale {
     static let pinkAccent   = Color(.sRGB, red: 0.980, green: 0.318, blue: 0.408, opacity: 1.0) /// #fa5168 
     static let cyanAccent   = Color(.sRGB, red: 0.275, green: 0.808, blue: 0.745, opacity: 1.0) /// #46cebe 
     
-    // MARK: - Status Colors (Refined - Muted Recovery Gradient)
+    // MARK: - Status Colors (Adaptive for Light/Dark Mode)
     // These are the base tokens used throughout the app for status/bands
     
-    static let greenAccent  = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3 - Mint (was bright green)
-    static let yellowAccent = Color(.sRGB, red: 0.929, green: 0.796, blue: 0.341, opacity: 1.0) /// #EDCB57 - Warm gold (was bright yellow)
-    static let amberAccent  = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800 - Warm amber (was bright orange)
-    static let redAccent    = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444 - Coral red (was bright pink-red)
+    static let greenAccent  = Color.adaptive(lightHex: "00A378", darkHex: "00D9A3") /// Light: darker mint, Dark: #00D9A3 mint
+    static let yellowAccent = Color.adaptive(lightHex: "C5A030", darkHex: "EDCB57") /// Light: darker gold, Dark: #EDCB57 warm gold
+    static let amberAccent  = Color.adaptive(lightHex: "CC9500", darkHex: "FFB800") /// Light: darker amber, Dark: #FFB800 warm amber
+    static let redAccent    = Color.adaptive(lightHex: "D63939", darkHex: "FF4444") /// Light: darker coral, Dark: #FF4444 coral red
     
-    // MARK: - Refined Metric Colors (Muted, Sophisticated)
+    // MARK: - Refined Metric Colors (Adaptive)
     
-    /// Recovery scale - muted gradient (coral → amber → mint)
-    static let recoveryPoor      = Color(.sRGB, red: 1.000, green: 0.267, blue: 0.267, opacity: 1.0) /// #FF4444
-    static let recoveryLow       = Color(.sRGB, red: 1.000, green: 0.533, blue: 0.267, opacity: 1.0) /// #FF8844
-    static let recoveryMedium    = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800
-    static let recoveryGood      = Color(.sRGB, red: 0.929, green: 0.796, blue: 0.341, opacity: 1.0) /// #EDCB57 - Warm gold
-    static let recoveryExcellent = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3
+    /// Recovery scale - adaptive gradient (coral → amber → gold → mint)
+    static let recoveryPoor      = Color.adaptive(lightHex: "D63939", darkHex: "FF4444") /// Light: darker coral, Dark: #FF4444
+    static let recoveryLow       = Color.adaptive(lightHex: "D97038", darkHex: "FF8844") /// Light: darker orange, Dark: #FF8844
+    static let recoveryMedium    = Color.adaptive(lightHex: "CC9500", darkHex: "FFB800") /// Light: darker amber, Dark: #FFB800
+    static let recoveryGood      = Color.adaptive(lightHex: "C5A030", darkHex: "EDCB57") /// Light: darker gold, Dark: #EDCB57
+    static let recoveryExcellent = Color.adaptive(lightHex: "00A378", darkHex: "00D9A3") /// Light: darker mint, Dark: #00D9A3
     
-    /// Metric signature colors (one per metric type)
-    static let strainColor       = Color(.sRGB, red: 0.420, green: 0.624, blue: 1.000, opacity: 1.0) /// #6B9FFF - Soft blue
-    static let sleepColor        = Color(.sRGB, red: 0.420, green: 0.624, blue: 1.000, opacity: 1.0) /// #6B9FFF - Soft blue
-    static let hrvColor          = Color(.sRGB, red: 0.000, green: 0.851, blue: 0.639, opacity: 1.0) /// #00D9A3 - Mint
-    static let heartRateColor    = Color(.sRGB, red: 1.000, green: 0.420, blue: 0.420, opacity: 1.0) /// #FF6B6B - Coral
-    static let powerColor        = Color(.sRGB, red: 0.302, green: 0.624, blue: 1.000, opacity: 1.0) /// #4D9FFF - Electric blue
-    static let tssColor          = Color(.sRGB, red: 1.000, green: 0.722, blue: 0.000, opacity: 1.0) /// #FFB800 - Amber
-    static let respiratoryColor  = Color(.sRGB, red: 0.608, green: 0.498, blue: 1.000, opacity: 1.0) /// #9B7FFF - Soft purple
+    /// Metric signature colors (adaptive per metric type)
+    static let strainColor       = Color.adaptive(lightHex: "4B7FE5", darkHex: "6B9FFF") /// Light: darker blue, Dark: #6B9FFF soft blue
+    static let sleepColor        = Color.adaptive(lightHex: "4B7FE5", darkHex: "6B9FFF") /// Light: darker blue, Dark: #6B9FFF soft blue
+    static let hrvColor          = Color.adaptive(lightHex: "00A378", darkHex: "00D9A3") /// Light: darker mint, Dark: #00D9A3 mint
+    static let heartRateColor    = Color.adaptive(lightHex: "E85555", darkHex: "FF6B6B") /// Light: darker coral, Dark: #FF6B6B coral
+    static let powerColor        = Color.adaptive(lightHex: "3D7FE5", darkHex: "4D9FFF") /// Light: darker electric blue, Dark: #4D9FFF
+    static let tssColor          = Color.adaptive(lightHex: "CC9500", darkHex: "FFB800") /// Light: darker amber, Dark: #FFB800 amber
+    static let respiratoryColor  = Color.adaptive(lightHex: "7B5FE5", darkHex: "9B7FFF") /// Light: darker purple, Dark: #9B7FFF soft purple
     
-    /// Chart styling colors
-    static let chartGrid         = Color.white.opacity(0.06)  /// Very subtle grid lines
-    static let chartAxis         = Color(.sRGB, red: 0.420, green: 0.420, blue: 0.420, opacity: 1.0) /// #6B6B6B
-    static let textSoftWhite     = Color(.sRGB, red: 0.910, green: 0.910, blue: 0.910, opacity: 1.0) /// #E8E8E8
+    /// Chart styling colors (adaptive)
+    static let chartGrid         = Color.adaptive(
+        light: Color.black.opacity(0.08),
+        dark: Color.white.opacity(0.06)
+    ) /// Light: subtle black lines, Dark: subtle white lines
+    static let chartAxis         = Color.adaptive(lightHex: "999999", darkHex: "6B6B6B") /// Light: medium gray, Dark: #6B6B6B
+    static let textSoftWhite     = Color.adaptive(lightHex: "333333", darkHex: "E8E8E8") /// Light: dark gray, Dark: #E8E8E8 soft white
 }

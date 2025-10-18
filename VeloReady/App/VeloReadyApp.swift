@@ -99,6 +99,7 @@ struct RootView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
     @ObservedObject private var stravaAuthService = StravaAuthService.shared
+    @ObservedObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Group {
@@ -108,6 +109,7 @@ struct RootView: View {
                 OnboardingFlowView()
             }
         }
+        .preferredColorScheme(themeManager.currentTheme.colorScheme)
         .onOpenURL { url in
             // Handle OAuth callbacks
             Logger.debug("🔗 App received URL: \(url.absoluteString)")

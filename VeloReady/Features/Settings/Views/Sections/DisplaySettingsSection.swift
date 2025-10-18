@@ -2,8 +2,31 @@ import SwiftUI
 
 /// Display settings section
 struct DisplaySettingsSection: View {
+    @ObservedObject private var themeManager = ThemeManager.shared
+    
     var body: some View {
         Section {
+            // Theme settings
+            NavigationLink(destination: ThemeSettingsView()) {
+                HStack {
+                    Image(systemName: themeManager.currentTheme.icon)
+                        .foregroundColor(ColorPalette.aiIconColor)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Theme")
+                            .font(.body)
+                        
+                        Text(themeManager.currentTheme.rawValue + " mode")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            // Display preferences
             NavigationLink(destination: DisplaySettingsView()) {
                 HStack {
                     Image(systemName: "eye.fill")
@@ -23,9 +46,9 @@ struct DisplaySettingsSection: View {
                 }
             }
         } header: {
-            Text("Display")
+            Text("Appearance")
         } footer: {
-            Text("Customize how information is displayed in the app.")
+            Text("Customize theme and how information is displayed in the app.")
         }
     }
 }
