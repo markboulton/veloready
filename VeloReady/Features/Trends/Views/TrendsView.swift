@@ -34,26 +34,7 @@ struct TrendsView: View {
     // MARK: - Trends Content
     
     private var trendsContent: some View {
-        ScrollView {
-            VStack(spacing: Spacing.sectionSpacing) {
-                // Time range selector
-                TrendsTimeRangeSelector(viewModel: viewModel)
-                
-                // Quick Stats
-                quickStats
-                
-                // Trend Cards
-                trendCards
-            }
-            .padding(Spacing.lg)
-        }
-        .background(Color.background.primary)
-        .refreshable {
-            await viewModel.loadTrendData()
-        }
-        .task {
-            await viewModel.loadTrendData()
-        }
+        WeeklyReportView()
     }
     
     
