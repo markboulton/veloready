@@ -18,8 +18,13 @@ struct AccountSection: View {
                             .foregroundColor(.orange)
                             .frame(width: 24)
                         
-                        Text("Sign Out from Intervals.icu")
-                            .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Sign Out from Intervals.icu")
+                                .foregroundColor(.primary)
+                            Text("Disconnect your account and remove access")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         
                         Spacer()
                     }
