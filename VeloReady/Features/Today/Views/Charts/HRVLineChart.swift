@@ -60,6 +60,25 @@ struct HRVLineChart: View {
                 .foregroundStyle(Color.red)
                 .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.linear)
+                
+                // For 7-day view: Add circles at each point with value annotations
+                if selectedPeriod == .sevenDays {
+                    PointMark(
+                        x: .value("Day", point.date, unit: .day),
+                        y: .value("Value", point.value)
+                    )
+                    .symbol {
+                        Circle()
+                            .strokeBorder(Color.red, lineWidth: 1.5)
+                            .background(Circle().fill(Color(.systemBackground)))
+                            .frame(width: 6, height: 6)
+                    }
+                    .annotation(position: .top, spacing: 2) {
+                        Text("\(Int(point.value))")
+                            .font(.system(size: 8, weight: .medium))
+                            .foregroundColor(Color.red)
+                    }
+                }
             }
             
             // Average line - 1px dashed

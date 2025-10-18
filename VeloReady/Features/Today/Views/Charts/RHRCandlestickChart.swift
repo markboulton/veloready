@@ -66,7 +66,7 @@ struct RHRCandlestickChart: View {
                     x: .value("Day", point.date, unit: .day),
                     yStart: .value("Open", animateChart ? point.open : point.average),
                     yEnd: .value("Close", animateChart ? point.close : point.average),
-                    width: selectedPeriod == .sevenDays ? 20 : (selectedPeriod == .thirtyDays ? 8 : 4)
+                    width: selectedPeriod == .sevenDays ? 30 : (selectedPeriod == .thirtyDays ? 10 : 5)
                 )
                 .foregroundStyle(candlestickColor(point))
                 
@@ -76,8 +76,35 @@ struct RHRCandlestickChart: View {
                     yStart: .value("Low", animateChart ? point.low : point.average),
                     yEnd: .value("High", animateChart ? point.high : point.average)
                 )
-                .lineStyle(StrokeStyle(lineWidth: 1.5))
+                .lineStyle(StrokeStyle(lineWidth: 2))
                 .foregroundStyle(candlestickColor(point).opacity(0.6))
+                
+                // For 7-day view: Annotate high and low values
+                if selectedPeriod == .sevenDays && animateChart {
+                    // High value annotation
+                    PointMark(
+                        x: .value("Day", point.date, unit: .day),
+                        y: .value("High", point.high)
+                    )
+                    .opacity(0)
+                    .annotation(position: .top, spacing: 2) {
+                        Text("\(Int(point.high))")
+                            .font(.system(size: 8, weight: .medium))
+                            .foregroundColor(candlestickColor(point))
+                    }
+                    
+                    // Low value annotation
+                    PointMark(
+                        x: .value("Day", point.date, unit: .day),
+                        y: .value("Low", point.low)
+                    )
+                    .opacity(0)
+                    .annotation(position: .bottom, spacing: 2) {
+                        Text("\(Int(point.low))")
+                            .font(.system(size: 8, weight: .medium))
+                            .foregroundColor(candlestickColor(point))
+                    }
+                }
             }
         }
         .frame(height: 225)
