@@ -44,22 +44,72 @@ class VeloReadyAPIClient: ObservableObject {
     }
     
     /// Fetch activity streams from backend (cached for 24 hours)
-    /// - Parameter activityId: The Strava activity ID
+    /// - Parameters:
+    ///   - activityId: The activity ID (Strava or Intervals)
+    ///   - source: Data source ("strava" or "intervals")
     /// - Returns: Dictionary of stream types to stream data
-    func fetchActivityStreams(activityId: String) async throws -> [String: StravaStreamData] {
-        let endpoint = "\(baseURL)/api/streams/\(activityId)"
+    func fetchActivityStreams(activityId: String, source: APIDataSource = .strava) async throws -> [String: StravaStreamData] {
+        let endpoint: String
+        switch source {
+        case .strava:
+            endpoint = "\(baseURL)/api/streams/\(activityId)"
+        case .intervals:
+            endpoint = "\(baseURL)/api/intervals/streams/\(activityId)"
+        }
         
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
         }
         
-        Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId)")
+        Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId) (source: \(source))")
         
         let streams: [String: StravaStreamData] = try await makeRequest(url: url)
         
         Logger.debug("✅ [VeloReady API] Received \(streams.count) stream types for activity \(activityId)")
         
         return streams
+    }
+    
+    // MARK: - Intervals.icu Methods
+    
+    /// Fetch activities from Intervals.icu (cached for 5 minutes)
+    /// - Parameters:
+    ///   - daysBack: Number of days to fetch (default: 30, max: 120)
+    ///   - limit: Maximum activities to return (default: 50, max: 200)
+    /// - Returns: Array of Intervals activities
+    func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [IntervalsActivity] {
+        let endpoint = "\(baseURL)/api/intervals/activities?daysBack=\(daysBack)&limit=\(limit)"
+        
+        guard let url = URL(string: endpoint) else {
+            throw VeloReadyAPIError.invalidURL
+        }
+        
+        Logger.debug("🌐 [VeloReady API] Fetching Intervals activities (daysBack: \(daysBack), limit: \(limit))")
+        
+        let response: IntervalsActivitiesResponse = try await makeRequest(url: url)
+        
+        Logger.debug("✅ [VeloReady API] Received \(response.activities.count) Intervals activities")
+        
+        return response.activities
+    }
+    
+    /// Fetch wellness data from Intervals.icu (cached for 5 minutes)
+    /// - Parameter days: Number of days to fetch (default: 30, max: 90)
+    /// - Returns: Array of wellness data
+    func fetchIntervalsWellness(days: Int = 30) async throws -> [IntervalsWellness] {
+        let endpoint = "\(baseURL)/api/intervals/wellness?days=\(days)"
+        
+        guard let url = URL(string: endpoint) else {
+            throw VeloReadyAPIError.invalidURL
+        }
+        
+        Logger.debug("🌐 [VeloReady API] Fetching Intervals wellness (days: \(days))")
+        
+        let response: IntervalsWellnessResponse = try await makeRequest(url: url)
+        
+        Logger.debug("✅ [VeloReady API] Received \(response.wellness.count) wellness entries")
+        
+        return response.wellness
     }
     
     // MARK: - Private Helpers
@@ -124,6 +174,13 @@ class VeloReadyAPIClient: ObservableObject {
     }
 }
 
+// MARK: - Data Source
+
+enum APIDataSource: String {
+    case strava
+    case intervals
+}
+
 // MARK: - Response Models
 
 struct ActivitiesResponse: Codable {
@@ -136,6 +193,33 @@ struct ActivitiesMetadata: Codable {
     let daysBack: Int
     let limit: Int
     let count: Int
+    let cachedUntil: String
+}
+
+struct IntervalsActivitiesResponse: Codable {
+    let activities: [IntervalsActivity]
+    let metadata: IntervalsMetadata
+}
+
+struct IntervalsMetadata: Codable {
+    let athleteId: String
+    let daysBack: Int
+    let limit: Int
+    let count: Int
+    let source: String
+    let cachedUntil: String
+}
+
+struct IntervalsWellnessResponse: Codable {
+    let wellness: [IntervalsWellness]
+    let metadata: IntervalsWellnessMetadata
+}
+
+struct IntervalsWellnessMetadata: Codable {
+    let athleteId: String
+    let days: Int
+    let count: Int
+    let source: String
     let cachedUntil: String
 }
 
