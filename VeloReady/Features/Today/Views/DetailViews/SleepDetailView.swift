@@ -1,10 +1,12 @@
 import SwiftUI
+import HealthKit
 
 /// Detailed view showing sleep score breakdown and analysis
 struct SleepDetailView: View {
     let sleepScore: SleepScore
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var proConfig = ProFeatureConfig.shared
+    @State private var sleepSamples: [SleepHypnogramChart.SleepStageSample] = []
     
     var body: some View {
         ScrollView {
@@ -178,26 +180,14 @@ struct SleepDetailView: View {
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            if let stages = sleepScore.inputs.sleepStages,
-               !stages.isEmpty,
+            if !sleepSamples.isEmpty,
                let bedtime = sleepScore.inputs.bedtime,
                let wakeTime = sleepScore.inputs.wakeTime {
-                
-                // Convert HKCategorySample to SleepStageSample
-                let samples = stages.compactMap { SleepHypnogramChart.SleepStageSample(from: $0) }
-                
-                if !samples.isEmpty {
-                    SleepHypnogramChart(
-                        sleepSamples: samples,
-                        nightStart: bedtime,
-                        nightEnd: wakeTime
-                    )
-                } else {
-                    Text("No detailed sleep stage data available")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.vertical, 20)
-                }
+                SleepHypnogramChart(
+                    sleepSamples: sleepSamples,
+                    nightStart: bedtime,
+                    nightEnd: wakeTime
+                )
             } else {
                 Text("No detailed sleep stage data available")
                     .foregroundColor(.secondary)
@@ -205,6 +195,38 @@ struct SleepDetailView: View {
                     .padding(.vertical, 20)
             }
         }
+        .task {
+            await loadSleepSamples()
+        }
+    }
+    
+    private func loadSleepSamples() async {
+        // Fetch sleep samples from HealthKit for hypnogram
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return
+        }
+        
+        // Get last night's sleep period
+        let calendar = Calendar.current
+        let now = Date()
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+              let startOfYesterday = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: yesterday),
+              let endOfToday = calendar.date(bySettingHour: 14, minute: 0, second: 0, of: now) else {
+            return
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startOfYesterday, end: endOfToday, options: .strictStartDate)
+        
+        let samples = await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, results, _ in
+                let hkSamples = results as? [HKCategorySample] ?? []
+                let hypnogramSamples = hkSamples.compactMap { SleepHypnogramChart.SleepStageSample(from: $0) }
+                continuation.resume(returning: hypnogramSamples)
+            }
+            HKHealthStore().execute(query)
+        }
+        
+        sleepSamples = samples
     }
     
     private var sleepMetricsSection: some View {
