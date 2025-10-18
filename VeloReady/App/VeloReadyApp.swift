@@ -99,7 +99,7 @@ struct VeloReadyApp: App {
         }
     }
     
-    /// Clean up legacy Strava stream data from UserDefaults (one-time migration)
+    /// Clean up legacy stream data from UserDefaults (one-time migration)
     private static func cleanupLegacyStravaStreams() {
         let defaults = UserDefaults.standard
         let dict = defaults.dictionaryRepresentation()
@@ -107,7 +107,8 @@ struct VeloReadyApp: App {
         var totalBytes = 0
         
         for key in dict.keys {
-            if key.hasPrefix("stream_strava_") {
+            // Clean up both Strava and Intervals.icu streams
+            if key.hasPrefix("stream_strava_") || key.hasPrefix("stream_i") {
                 if let data = dict[key] as? Data {
                     totalBytes += data.count
                 }
@@ -117,7 +118,7 @@ struct VeloReadyApp: App {
         }
         
         if removedCount > 0 {
-            Logger.debug("🧹 Cleaned up \(removedCount) legacy Strava streams (~\(totalBytes / 1024)KB)")
+            Logger.debug("🧹 Cleaned up \(removedCount) legacy streams (~\(totalBytes / 1024)KB)")
         }
     }
 }
