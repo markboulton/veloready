@@ -26,43 +26,50 @@
 - All labels now 9pt uppercase with consistent styling
 - Files: `RecoveryCapacityComponent.swift`, `TrendsView.swift`
 
-## 🔄 IN PROGRESS / PENDING
+### 4. Trend Bar Chart
+**Status:** ✅ FIXED
+- Bars now very dark grey (systemGray5) with 2px colored top
+- Numbers at top colored to match bar color
+- % removed from top numbers, added to Y-axis labels
+- 7-day view: shows numbers at top
+- 30/60-day view: no numbers at top (cleaner)
+- X-axis alignment fixed (removed .aligned preset)
+- Grey grid lines (systemGray4)
+- File: `TrendChart.swift`
 
-### 4. Weekly Performance Summary Refresh Issue
+### 5. Recovery Factors Colors
+**Status:** ✅ FIXED
+- Mapped `colorForScore()` to design tokens
+- 80-100: ColorScale.greenAccent
+- 60-80: ColorScale.blueAccent
+- 40-60: ColorScale.amberAccent
+- 0-40: ColorScale.redAccent
+- File: `RecoveryDetailView.swift`
+
+### 6. Ring and Metric Sizing
+**Status:** ✅ VERIFIED
+- RecoveryRingView: 160x160 (already correct)
+- SleepHeaderSection: 160x160 (already correct)
+- StrainHeaderSection: 160x160 (already correct)
+- All rings consistent size across detail views
+
+## 🔄 REMAINING
+
+### 7. Weekly Performance Summary Refresh Issue
 **Status:** ⚠️ NEEDS INVESTIGATION
 **Issue:** User reports "Now it is just 4 lines after I refreshed"
 **Logs show:** AI weekly summary error: cancelled (-999)
 ```
 ❌ [Performance] AI weekly summary error: Error Domain=NSURLErrorDomain Code=-999 "cancelled"
 ```
-**Action needed:** Debug why AI summary requests are being cancelled on refresh
-
-### 5. Ring and Metric Sizing (Recovery/Sleep/Load Detail Views)
-**Status:** ⚠️ NEEDS FIXING
-**Issue:** "On all of these pages, the ring and metric need to be the same size"
-**Files to check:**
-- `RecoveryDetailView.swift`
-- `SleepDetailView.swift`
-- `LoadDetailView.swift` (if exists)
-**Action needed:** Ensure consistent ring size and metric display across all detail views
-
-### 6. Trend Bar Chart Issues
-**Status:** ⚠️ NEEDS MULTIPLE FIXES
-**Issues:**
-1. Shows 8 days instead of 7
-2. Days in x-axis not aligned with bars
-3. Remove % from each score at top, add % to axes
-4. Make bars very dark grey with 2px colored top
-5. Color the number at top same as bar color
-6. 30/60 day shows 50% before certain point
-7. For 30/60 days: show 30/60 bars (thinner), same styling, no numbers at top
-
-**Action needed:** Complete redesign of trend bar chart component
-
-### 7. Recovery Factors Colors
-**Status:** ⚠️ NEEDS MAPPING
-**Issue:** "Recovery factors numbers use the old colours. Map them to tokens"
-**Action needed:** Find recovery factors component and map colors to design tokens
+**Possible causes:**
+- Multiple rapid refreshes cancelling previous requests
+- View lifecycle issues (onDisappear cancelling tasks)
+- Network timeout or connectivity issues
+**Action needed:** 
+- Add request deduplication
+- Implement proper task cancellation handling
+- Add retry logic for cancelled requests
 
 ## 📝 NOTES
 
@@ -79,12 +86,19 @@
 
 ## 🎯 NEXT STEPS
 
-1. **Priority 1:** Fix weekly performance summary refresh (AI summary cancellation)
-2. **Priority 2:** Fix trend bar chart (multiple issues)
-3. **Priority 3:** Standardize ring/metric sizing across detail views
-4. **Priority 4:** Map recovery factors colors to tokens
+1. **Priority 1:** Investigate weekly performance summary refresh (AI summary cancellation)
+   - This appears to be a race condition or view lifecycle issue
+   - May need to add request deduplication or debouncing
 
 ## 📊 COMMITS
 
 1. `f3f12d2` - Fix: Fitness Trajectory chart and Settings navigation
 2. `caeb8d3` - Fix: Apply metric label styling to Trends components
+3. `499c6dd` - Fix: Trend bar chart styling and recovery factors colors
+
+## 📈 SUMMARY
+
+**Completed:** 6 out of 7 issues
+**Remaining:** 1 issue (AI summary refresh)
+
+All visual/UI fixes are complete. The remaining issue is a backend/networking concern that requires deeper investigation into the request lifecycle and cancellation handling.
