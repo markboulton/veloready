@@ -18,7 +18,7 @@ struct RHRCandlestickChart: View {
             // Header
             HStack {
                 Image(systemName: "heart.circle.fill")
-                    .foregroundColor(ColorScale.heartRateColor)
+                    .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
                 Text("RHR Trend")
@@ -135,8 +135,8 @@ struct RHRCandlestickChart: View {
     }
     
     private func candlestickColor(_ point: RHRDataPoint) -> Color {
-        // Green if closing higher (recovery improving), red if lower
-        point.close >= point.open ? ColorScale.greenAccent : ColorScale.redAccent
+        // All red - lower is better, higher is worse, but keep consistent red
+        return .red
     }
     
     private var summaryStats: some View {

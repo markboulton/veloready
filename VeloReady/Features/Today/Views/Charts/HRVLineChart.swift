@@ -26,7 +26,7 @@ struct HRVLineChart: View {
             // Header
             HStack {
                 Image(systemName: "waveform.path.ecg")
-                    .foregroundColor(ColorScale.hrvColor)
+                    .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
                 Text("HRV Trend")
@@ -69,33 +69,21 @@ struct HRVLineChart: View {
                 
                 let animatedValue = reduceMotion ? point.value : (delayedProgress * point.value)
                 
-                // Line
+                // Line - RED, 1px, no gradient
                 LineMark(
                     x: .value("Day", point.date, unit: .day),
                     y: .value("Value", animatedValue)
                 )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [ColorScale.hrvColor, ColorScale.hrvColor.opacity(0.6)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .foregroundStyle(Color.red)
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
-                
-                // Area fill
-                AreaMark(
-                    x: .value("Day", point.date, unit: .day),
-                    y: .value("Value", animatedValue)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [ColorScale.hrvColor.opacity(0.2), ColorScale.hrvColor.opacity(0.02)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            }
+            
+            // Average line - 1px dashed
+            if averageValue > 0 {
+                RuleMark(y: .value("Average", averageValue))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .foregroundStyle(Color.red.opacity(0.5))
             }
         }
         .frame(height: 225)

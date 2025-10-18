@@ -331,9 +331,12 @@ struct SleepDetailView: View {
     // MARK: - Mock Data Generator
     
     private func getHistoricalSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
+        Logger.debug("💤 [SLEEP CHART] Fetching data for period: \(period.days) days")
+        
         // Check if mock data is enabled for testing
         #if DEBUG
         if ProFeatureConfig.shared.showMockDataForTesting {
+            Logger.debug("💤 [SLEEP CHART] Using mock data")
             return generateMockSleepData(for: period)
         }
         #endif
@@ -345,24 +348,37 @@ struct SleepDetailView: View {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
         guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+            Logger.error("💤 [SLEEP CHART] Failed to calculate start date")
             return []
         }
+        
+        Logger.debug("💤 [SLEEP CHART] Date range: \(startDate) to \(endDate)")
         
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         
         guard let results = try? context.fetch(fetchRequest) else {
+            Logger.error("💤 [SLEEP CHART] Core Data fetch failed")
             return []
         }
         
-        return results.compactMap { dailyScore in
+        Logger.debug("💤 [SLEEP CHART] Fetched \(results.count) days with sleep data")
+        
+        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
             guard let date = dailyScore.date else { return nil }
             return TrendDataPoint(
                 date: date,
                 value: dailyScore.sleepScore
             )
         }
+        
+        Logger.debug("💤 [SLEEP CHART] Returning \(dataPoints.count) data points for \(period.days)-day view")
+        if period.days >= 30 {
+            Logger.debug("💤 [SLEEP CHART] Sample dates: \(dataPoints.prefix(3).map { $0.date })")
+        }
+        
+        return dataPoints
     }
     
     private func generateMockSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
