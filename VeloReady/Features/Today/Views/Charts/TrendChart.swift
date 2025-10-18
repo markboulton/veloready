@@ -18,11 +18,8 @@ struct TrendChart: View {
     @State private var selectedPeriod: TrendPeriod = .sevenDays
     @State private var animateChart: Bool = false
     @State private var sweepProgress: Double = 1.0  // Start at 1.0 so chart is visible immediately
+    @State private var data: [TrendDataPoint] = []
     @Environment(\.accessibilityReduceMotion) var reduceMotion
-    
-    private var data: [TrendDataPoint] {
-        getData(selectedPeriod)
-    }
     
     // Compute normalized heights for organic timing
     private var normalizedHeights: [Double] {
@@ -189,6 +186,7 @@ struct TrendChart: View {
             plotArea.background(Color.clear)
         }
         .onAppear {
+            loadData()
             if !reduceMotion {
                 // Bar charts use simple animation
                 if chartType == .bar {
@@ -206,6 +204,7 @@ struct TrendChart: View {
             }
         }
         .onChange(of: selectedPeriod) { _, _ in
+            loadData()
             if reduceMotion {
                 animateChart = true
                 sweepProgress = 1.0
@@ -223,6 +222,10 @@ struct TrendChart: View {
                 }
             }
         }
+    }
+    
+    private func loadData() {
+        data = getData(selectedPeriod)
     }
     
     // MARK: - Color Coding
