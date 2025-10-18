@@ -33,6 +33,12 @@ struct SleepDetailView: View {
                     
                     SectionDivider()
                     
+                    // Sleep hypnogram
+                    hypnogramSection
+                        .padding()
+                    
+                    SectionDivider()
+                    
                     // Sleep metrics
                     sleepMetricsSection
                         .padding()
@@ -162,6 +168,41 @@ struct SleepDetailView: View {
                     description: "Bedtime/wake time consistency"
                 )
                 
+            }
+        }
+    }
+    
+    private var hypnogramSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Sleep Stages Over Time")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let stages = sleepScore.inputs.sleepStages,
+               !stages.isEmpty,
+               let bedtime = sleepScore.inputs.bedtime,
+               let wakeTime = sleepScore.inputs.wakeTime {
+                
+                // Convert HKCategorySample to SleepStageSample
+                let samples = stages.compactMap { SleepHypnogramChart.SleepStageSample(from: $0) }
+                
+                if !samples.isEmpty {
+                    SleepHypnogramChart(
+                        sleepSamples: samples,
+                        nightStart: bedtime,
+                        nightEnd: wakeTime
+                    )
+                } else {
+                    Text("No detailed sleep stage data available")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
+                }
+            } else {
+                Text("No detailed sleep stage data available")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
             }
         }
     }
