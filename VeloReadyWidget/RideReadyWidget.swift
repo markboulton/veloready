@@ -216,100 +216,118 @@ struct MediumWidgetView: View {
     let entry: Provider.Entry
     
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 16) {
             // Recovery Ring
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
+                Text("Recovery")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .textCase(.lowercase)
+                
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
-                        .frame(width: 80, height: 80)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 7)
+                        .frame(width: 70, height: 70)
                     
                     if let score = entry.recoveryScore {
                         Circle()
                             .trim(from: 0, to: Double(score) / 100.0)
-                            .stroke(colorForRecoveryScore(score), style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 80, height: 80)
+                            .stroke(colorForRecoveryScore(score), style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .frame(width: 70, height: 70)
                             .rotationEffect(.degrees(-90))
                         
                         VStack(spacing: 0) {
                             Text("\(score)")
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(colorForRecoveryScore(score))
                             
                             if entry.isPersonalized {
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 8))
+                                    .font(.system(size: 7))
                                     .foregroundColor(.purple)
                             }
                         }
                     } else {
                         Text("--")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.gray)
                     }
                 }
                 
-                Text("recovery")
+                Text(entry.recoveryBand ?? "--")
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .textCase(.lowercase)
             }
             
             // Sleep Ring
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
+                Text("Sleep")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .textCase(.lowercase)
+                
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
-                        .frame(width: 80, height: 80)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 7)
+                        .frame(width: 70, height: 70)
                     
                     if let score = entry.sleepScore {
                         Circle()
                             .trim(from: 0, to: Double(score) / 100.0)
-                            .stroke(colorForSleepScore(score), style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 80, height: 80)
+                            .stroke(colorForSleepScore(score), style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .frame(width: 70, height: 70)
                             .rotationEffect(.degrees(-90))
                         
                         Text("\(score)")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(colorForSleepScore(score))
                     } else {
                         Text("--")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.gray)
                     }
                 }
                 
-                Text("sleep")
+                Text(sleepBandForScore(entry.sleepScore))
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .textCase(.lowercase)
             }
             
             // Strain Ring
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
+                Text("Strain")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .textCase(.lowercase)
+                
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
-                        .frame(width: 80, height: 80)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 7)
+                        .frame(width: 70, height: 70)
                     
                     if let strain = entry.strainScore {
                         Circle()
                             .trim(from: 0, to: min(strain / 21.0, 1.0)) // Max strain is 21
-                            .stroke(colorForStrain(strain), style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 80, height: 80)
+                            .stroke(colorForStrain(strain), style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .frame(width: 70, height: 70)
                             .rotationEffect(.degrees(-90))
                         
                         Text(String(format: "%.1f", strain))
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(colorForStrain(strain))
                     } else {
                         Text("--")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.gray)
                     }
                 }
                 
-                Text("strain")
+                Text(strainBandForScore(entry.strainScore))
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .textCase(.lowercase)
@@ -343,6 +361,27 @@ struct MediumWidgetView: View {
         case 10..<14: return .orange
         case 14..<18: return .red
         default: return .purple
+        }
+    }
+    
+    private func sleepBandForScore(_ score: Int?) -> String {
+        guard let score = score else { return "--" }
+        switch score {
+        case 80...100: return "optimal"
+        case 60..<80: return "good"
+        case 40..<60: return "fair"
+        default: return "poor"
+        }
+    }
+    
+    private func strainBandForScore(_ strain: Double?) -> String {
+        guard let strain = strain else { return "--" }
+        switch strain {
+        case 0..<4: return "light"
+        case 4..<10: return "moderate"
+        case 10..<14: return "high"
+        case 14..<18: return "very high"
+        default: return "all out"
         }
     }
 }
