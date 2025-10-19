@@ -835,6 +835,94 @@ class HealthKitManager: ObservableObject {
         }
     }
     
+    /// Fetch daily steps (cached for 5 minutes)
+    func fetchDailySteps() async -> Int? {
+        let today = Calendar.current.startOfDay(for: Date())
+        let cacheKey = "healthkit:steps:\(today.timeIntervalSince1970)"
+        
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+                return await self.fetchDailyStepsInternal()
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchDailyStepsInternal()
+        }
+    }
+    
+    private func fetchDailyStepsInternal() async -> Int? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) ?? Date()
+        
+        let predicate = HKQuery.predicateForSamples(
+            withStart: today,
+            end: endOfDay,
+            options: .strictStartDate
+        )
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(
+                quantityType: HKQuantityType.quantityType(forIdentifier: .stepCount)!,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum
+            ) { _, result, error in
+                if let result = result, let steps = result.sumQuantity() {
+                    let stepCount = Int(steps.doubleValue(for: HKUnit.count()))
+                    continuation.resume(returning: stepCount > 0 ? stepCount : nil)
+                } else {
+                    continuation.resume(returning: nil)
+                }
+            }
+            
+            self.healthStore.execute(query)
+        }
+    }
+    
+    /// Fetch daily active calories (cached for 5 minutes)
+    func fetchDailyActiveCalories() async -> Double? {
+        let today = Calendar.current.startOfDay(for: Date())
+        let cacheKey = "healthkit:active_calories:\(today.timeIntervalSince1970)"
+        
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+                return await self.fetchDailyActiveCaloriesInternal()
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchDailyActiveCaloriesInternal()
+        }
+    }
+    
+    private func fetchDailyActiveCaloriesInternal() async -> Double? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) ?? Date()
+        
+        let predicate = HKQuery.predicateForSamples(
+            withStart: today,
+            end: endOfDay,
+            options: .strictStartDate
+        )
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(
+                quantityType: HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum
+            ) { _, result, error in
+                if let result = result, let calories = result.sumQuantity() {
+                    let calorieCount = calories.doubleValue(for: HKUnit.kilocalorie())
+                    continuation.resume(returning: calorieCount > 0 ? calorieCount : nil)
+                } else {
+                    continuation.resume(returning: nil)
+                }
+            }
+            
+            self.healthStore.execute(query)
+        }
+    }
+    
     /// Fetch latest VO₂ Max
     func fetchLatestVO2MaxData() async -> (sample: HKQuantitySample?, value: Double?) {
         guard let vo2MaxType = HKObjectType.quantityType(forIdentifier: .vo2Max) else {

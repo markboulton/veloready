@@ -124,9 +124,9 @@ class StrainScoreService: ObservableObject {
         // Ensure sleep score is calculated first for recovery modulation
         await sleepScoreService.calculateSleepScore()
         
-        // Get health data
-        async let steps = fetchDailySteps()
-        async let activeCalories = fetchDailyActiveCalories()
+        // Get health data (now cached in HealthKitManager)
+        async let steps = healthKitManager.fetchDailySteps()
+        async let activeCalories = healthKitManager.fetchDailyActiveCalories()
         async let hrv = healthKitManager.fetchLatestHRVData()
         async let rhr = healthKitManager.fetchLatestRHRData()
         async let baselines = baselineCalculator.calculateAllBaselines()
@@ -247,68 +247,7 @@ class StrainScoreService: ObservableObject {
     }
     
     // MARK: - Data Fetching
-    
-    private func fetchDailySteps() async -> Int? {
-        guard healthKitManager.isAuthorized else { return nil }
-        
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) ?? Date()
-        
-        let predicate = HKQuery.predicateForSamples(
-            withStart: today,
-            end: endOfDay,
-            options: .strictStartDate
-        )
-        
-        return await withCheckedContinuation { continuation in
-            let query = HKStatisticsQuery(
-                quantityType: HKQuantityType.quantityType(forIdentifier: .stepCount)!,
-                quantitySamplePredicate: predicate,
-                options: .cumulativeSum
-            ) { _, result, error in
-                if let result = result, let steps = result.sumQuantity() {
-                    let stepCount = Int(steps.doubleValue(for: HKUnit.count()))
-                    continuation.resume(returning: stepCount > 0 ? stepCount : nil)
-                } else {
-                    continuation.resume(returning: nil)
-                }
-            }
-            
-            HKHealthStore().execute(query)
-        }
-    }
-    
-    private func fetchDailyActiveCalories() async -> Double? {
-        guard healthKitManager.isAuthorized else { return nil }
-        
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: today) ?? Date()
-        
-        let predicate = HKQuery.predicateForSamples(
-            withStart: today,
-            end: endOfDay,
-            options: .strictStartDate
-        )
-        
-        return await withCheckedContinuation { continuation in
-            let query = HKStatisticsQuery(
-                quantityType: HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!,
-                quantitySamplePredicate: predicate,
-                options: .cumulativeSum
-            ) { _, result, error in
-                if let result = result, let calories = result.sumQuantity() {
-                    let calorieCount = calories.doubleValue(for: HKUnit.kilocalorie())
-                    continuation.resume(returning: calorieCount > 0 ? calorieCount : nil)
-                } else {
-                    continuation.resume(returning: nil)
-                }
-            }
-            
-            HKHealthStore().execute(query)
-        }
-    }
+    // NOTE: fetchDailySteps() and fetchDailyActiveCalories() moved to HealthKitManager with caching
     
     /// Fetch training loads (CTL/ATL) from Intervals.icu or HealthKit
     private func fetchTrainingLoads() async -> (atl: Double?, ctl: Double?) {
