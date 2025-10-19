@@ -5,6 +5,7 @@ import SwiftUI
 struct RecoveryRingView: View {
     let score: Int // 0-100
     let band: RecoveryScore.RecoveryBand
+    let isPersonalized: Bool // Whether ML was used
     
     private let ringWidth: CGFloat = 12
     private let size: CGFloat = 160
@@ -33,10 +34,18 @@ struct RecoveryRingView: View {
                     .font(.system(size: 48, weight: .bold))
                     .foregroundColor(ColorPalette.recoveryColor(for: Double(score)))
                 
-                Text("RECOVERY")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(ColorPalette.labelSecondary)
-                    .textCase(.uppercase)
+                HStack(spacing: 4) {
+                    Text("RECOVERY")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(ColorPalette.labelSecondary)
+                        .textCase(.uppercase)
+                    
+                    if isPersonalized {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(.purple)
+                    }
+                }
             }
         }
     }
@@ -60,10 +69,10 @@ struct RecoveryRingView: View {
 struct RecoveryRingView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 30) {
-            RecoveryRingView(score: 90, band: .optimal)
-            RecoveryRingView(score: 75, band: .good)
-            RecoveryRingView(score: 55, band: .fair)
-            RecoveryRingView(score: 25, band: .payAttention)
+            RecoveryRingView(score: 90, band: .optimal, isPersonalized: true)
+            RecoveryRingView(score: 75, band: .good, isPersonalized: false)
+            RecoveryRingView(score: 55, band: .fair, isPersonalized: true)
+            RecoveryRingView(score: 25, band: .payAttention, isPersonalized: false)
         }
         .padding()
     }

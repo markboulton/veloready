@@ -6,7 +6,11 @@ struct RecoveryHeaderSection: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            RecoveryRingView(score: recoveryScore.score, band: recoveryScore.band)
+            RecoveryRingView(
+                score: recoveryScore.score,
+                band: recoveryScore.band,
+                isPersonalized: recoveryScore.isPersonalized
+            )
             
             VStack(spacing: 4) {
                 Text(recoveryScore.bandDescription)

@@ -21,6 +21,9 @@ struct SettingsView: View {
                 // Data Sources
                 DataSourcesSection()
                 
+                // ML Personalization
+                MLPersonalizationSection()
+                
                 // Training Zones
                 TrainingZonesSection(proConfig: proConfig)
                 
