@@ -420,8 +420,30 @@ class HealthKitManager: ObservableObject {
     
     // MARK: - Data Fetching
     
-    /// Fetch detailed sleep data for last night
+    /// Fetch detailed sleep data for last night (cached for 1 hour)
     func fetchDetailedSleepData() async -> HealthKitSleepData? {
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return nil
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        let cacheKey = "healthkit:sleep:\(startOfToday.timeIntervalSince1970)"
+        
+        // Try cache first
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 3600) { // 1 hour cache
+                return await self.fetchDetailedSleepDataInternal()
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchDetailedSleepDataInternal()
+        }
+    }
+    
+    /// Internal method to fetch sleep data from HealthKit
+    private func fetchDetailedSleepDataInternal() async -> HealthKitSleepData? {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
             return nil
         }
@@ -588,8 +610,29 @@ class HealthKitManager: ObservableObject {
         return (nil, nil)
     }
     
-    /// Fetch historical sleep data for baseline calculations
+    /// Fetch historical sleep data for baseline calculations (cached for 1 hour)
     func fetchHistoricalSleepData(days: Int = 7) async -> [(bedtime: Date?, wakeTime: Date?)] {
+        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return []
+        }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let cacheKey = "healthkit:sleep_history:\(days):\(today.timeIntervalSince1970)"
+        
+        // Try cache first
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 3600) { // 1 hour cache
+                return await self.fetchHistoricalSleepDataInternal(days: days)
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchHistoricalSleepDataInternal(days: days)
+        }
+    }
+    
+    /// Internal method to fetch historical sleep data from HealthKit
+    private func fetchHistoricalSleepDataInternal(days: Int) async -> [(bedtime: Date?, wakeTime: Date?)] {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
             return []
         }
