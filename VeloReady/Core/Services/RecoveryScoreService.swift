@@ -42,11 +42,16 @@ class RecoveryScoreService: ObservableObject {
     
     /// Calculate today's recovery score (only once per day, like Whoop)
     func calculateRecoveryScore() async {
-        // Check if we already calculated today's recovery score
-        if hasCalculatedToday() {
+        // Check if we already calculated today's recovery score AND have a valid cached score
+        if hasCalculatedToday() && currentRecoveryScore != nil {
             Logger.debug("✅ Recovery score already calculated today - skipping recalculation")
             Logger.debug("🍷 NOTE: To test new alcohol detection algorithm, use forceRefreshRecoveryScoreIgnoringDailyLimit()")
             return
+        }
+        
+        // If we calculated today but cache is missing, recalculate
+        if hasCalculatedToday() && currentRecoveryScore == nil {
+            Logger.warning("⚠️ Recovery was calculated today but cache is missing - recalculating")
         }
         
         // Cancel any existing calculation
