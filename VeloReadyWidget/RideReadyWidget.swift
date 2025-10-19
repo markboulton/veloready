@@ -211,6 +211,15 @@ struct VeloReadyWidget: Widget {
             VeloReadyWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
+        .configurationDisplayName("VeloReady")
+        .description("View your recovery score at a glance")
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            .accessoryCircular,
+            .accessoryRectangular,
+            .accessoryInline
+        ])
     }
 }
 
