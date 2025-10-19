@@ -62,6 +62,25 @@ struct MLDebugView: View {
                 }
             }
             
+            Section("🧪 Week 1 Testing") {
+                Button(action: { Task { await testTrainingPipeline() } }) {
+                    HStack {
+                        Text("🚀 Test Training Pipeline")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        if isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
+                    }
+                }
+                .disabled(isProcessing)
+                
+                Text("Tests dataset builder + model trainer with current data")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
             if !statusMessage.isEmpty {
                 Section("Status") {
                     Text(statusMessage)
@@ -132,6 +151,23 @@ struct MLDebugView: View {
         } else {
             statusMessage = "No training data available. Click 'Process Historical Data' to start."
         }
+    }
+    
+    private func testTrainingPipeline() async {
+        isProcessing = true
+        statusMessage = "🧪 Testing training pipeline with current data..."
+        
+        do {
+            let trainer = MLModelTrainer()
+            try await trainer.testTrainingPipeline()
+            
+            statusMessage = "✅ Pipeline test PASSED! Check logs for details."
+        } catch {
+            statusMessage = "❌ Pipeline test FAILED: \(error.localizedDescription)"
+            Logger.error("Pipeline test failed: \(error)")
+        }
+        
+        isProcessing = false
     }
 }
 
