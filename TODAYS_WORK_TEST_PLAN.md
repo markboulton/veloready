@@ -109,12 +109,12 @@ Today's work includes:
 
 ### **Part 2: Backend Testing** (10 minutes)
 
-#### **Test 4: Ops Dashboard - Metrics** (5 min)
+#### **Test 4: Unified Ops Dashboard - Metrics** (5 min)
 
-**Objective:** Verify enhanced ops dashboard works
+**Objective:** Verify unified ops dashboard works
 
-1. Open browser to: **https://veloready.app/ops.html**
-   (Or: `https://veloready.netlify.app/ops.html`)
+1. Open browser to: **https://veloready.app/ops**
+   (Or: `https://veloready.netlify.app/ops`)
 
 2. Check **API & Cache Performance** section displays:
    - **Strava API Usage**: Total calls, usage %, progress bar
@@ -272,7 +272,7 @@ netlify functions:list
 ```bash
 cd /Users/markboulton/Dev/veloready-website
 netlify dev
-# Then visit: http://localhost:8888/ops.html
+# Then visit: http://localhost:8888/ops
 ```
 
 ---
@@ -337,7 +337,7 @@ Issues Found: ___________________________________
 - `/Users/markboulton/Dev/VeloReady/FINAL_IMPLEMENTATION_SUMMARY.md` - Complete overview
 - `/Users/markboulton/Dev/VeloReady/PHASE_2_3_COMPLETION_SUMMARY.md` - Phase 2/3 details
 - `/Users/markboulton/Dev/VeloReady/PHASE_4_EVALUATION.md` - Phase 4 implementation
-- Ops Dashboard: `https://veloready.app/ops.html`
+- Unified Ops Dashboard: `https://veloready.app/ops`
 
 ---
 
