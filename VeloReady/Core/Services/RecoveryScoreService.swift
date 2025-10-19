@@ -256,7 +256,7 @@ class RecoveryScoreService: ObservableObject {
             sleepScore: sleepScoreResult
         )
         
-        return RecoveryScoreCalculator.calculate(inputs: inputs)
+        return await RecoveryScoreCalculator.calculate(inputs: inputs)
     }
     
     // MARK: - Intervals Data Fetching

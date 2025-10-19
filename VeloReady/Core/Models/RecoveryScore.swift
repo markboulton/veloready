@@ -9,6 +9,20 @@ struct RecoveryScore: Codable {
     let subScores: SubScores
     let inputs: RecoveryInputs
     let calculatedAt: Date
+    let isPersonalized: Bool // Whether ML was used
+    let mlConfidence: Double? // ML confidence (0-1)
+    
+    // Default initializer for backward compatibility
+    init(score: Int, band: RecoveryBand, subScores: SubScores, inputs: RecoveryInputs, 
+         calculatedAt: Date, isPersonalized: Bool = false, mlConfidence: Double? = nil) {
+        self.score = score
+        self.band = band
+        self.subScores = subScores
+        self.inputs = inputs
+        self.calculatedAt = calculatedAt
+        self.isPersonalized = isPersonalized
+        self.mlConfidence = mlConfidence
+    }
     
     enum RecoveryBand: String, CaseIterable, Codable {
         case optimal = "Optimal"
@@ -97,8 +111,124 @@ struct RecoveryScore: Codable {
 
 class RecoveryScoreCalculator {
     
-    /// Calculate recovery score from inputs using Whoop-like algorithm
+    /// Calculate recovery score from inputs using ML or rule-based algorithm (async version)
+    static func calculate(inputs: RecoveryScore.RecoveryInputs) async -> RecoveryScore {
+        // Try ML prediction first if available
+        if let mlScore = await tryMLPrediction(inputs: inputs) {
+            return mlScore
+        }
+        
+        // Fall back to rule-based calculation
+        return calculateRuleBased(inputs: inputs)
+    }
+    
+    /// Calculate recovery score synchronously (for previews/testing - always uses rule-based)
     static func calculate(inputs: RecoveryScore.RecoveryInputs) -> RecoveryScore {
+        return calculateRuleBased(inputs: inputs)
+    }
+    
+    /// Try ML prediction (returns nil if ML not available)
+    private static func tryMLPrediction(inputs: RecoveryScore.RecoveryInputs) async -> RecoveryScore? {
+        // Check if ML is enabled
+        let mlRegistry = await MLModelRegistry.shared
+        guard await mlRegistry.isMLEnabled else {
+            return nil
+        }
+        
+        // Convert inputs to feature vector
+        guard let features = convertInputsToFeatures(inputs: inputs) else {
+            Logger.warning("⚠️ [RecoveryScore] Could not convert inputs to features for ML")
+            return nil
+        }
+        
+        // Get ML prediction
+        let calculator = await PersonalizedRecoveryCalculator.shared
+        let result = await calculator.calculateRecoveryScore(features: features)
+        
+        // Check if ML was actually used
+        guard result.method == .machineLearning else {
+            return nil // ML not available, will use rule-based
+        }
+        
+        // Create RecoveryScore from ML prediction
+        let subScores = calculateSubScores(inputs: inputs) // Still calculate sub-scores for display
+        let band = determineBand(score: result.score)
+        
+        Logger.info("🤖 [RecoveryScore] Using ML prediction: \(Int(result.score)) (confidence: \(Int(result.confidence * 100))%)")
+        
+        return RecoveryScore(
+            score: Int(result.score),
+            band: band,
+            subScores: subScores,
+            inputs: inputs,
+            calculatedAt: Date(),
+            isPersonalized: true,
+            mlConfidence: result.confidence
+        )
+    }
+    
+    /// Convert RecoveryInputs to MLFeatureVector
+    private static func convertInputsToFeatures(inputs: RecoveryScore.RecoveryInputs) -> MLFeatureVector? {
+        // This is a simplified conversion - in production, you'd use FeatureEngineer
+        // For now, just check if we have minimum required features
+        guard inputs.hrv != nil || inputs.rhr != nil || inputs.sleepDuration != nil else {
+            return nil
+        }
+        
+        // Create feature vector with available data
+        return MLFeatureVector(
+            hrv: inputs.hrv,
+            hrvBaseline: inputs.hrvBaseline,
+            hrvDelta: inputs.hrv.flatMap { hrv in
+                inputs.hrvBaseline.map { baseline in
+                    baseline > 0 ? (hrv - baseline) / baseline : 0
+                }
+            },
+            hrvCoefficientOfVariation: nil,
+            rhr: inputs.rhr,
+            rhrBaseline: inputs.rhrBaseline,
+            rhrDelta: inputs.rhr.flatMap { rhr in
+                inputs.rhrBaseline.map { baseline in
+                    baseline > 0 ? (rhr - baseline) / baseline : 0
+                }
+            },
+            sleepDuration: inputs.sleepDuration,
+            sleepBaseline: inputs.sleepBaseline,
+            sleepDelta: inputs.sleepDuration.flatMap { duration in
+                inputs.sleepBaseline.map { baseline in
+                    baseline > 0 ? duration - baseline : 0
+                }
+            },
+            respiratoryRate: inputs.respiratoryRate,
+            yesterdayStrain: inputs.recentStrain,
+            yesterdayTSS: nil,
+            ctl: inputs.ctl,
+            atl: inputs.atl,
+            tsb: inputs.ctl.flatMap { ctl in inputs.atl.map { atl in ctl - atl } },
+            acuteChronicRatio: inputs.atl.flatMap { atl in
+                inputs.ctl.map { ctl in ctl > 0 ? atl / ctl : 0 }
+            },
+            trainingMonotony: nil,
+            trainingStrain: nil,
+            recoveryTrend7d: nil,
+            recoveryTrend3d: nil,
+            yesterdayRecovery: nil,
+            recoveryChange: nil,
+            sleepTrend7d: nil,
+            sleepDebt7d: nil,
+            sleepQualityScore: inputs.sleepScore.map { Double($0.score) },
+            dayOfWeek: Calendar.current.component(.weekday, from: Date()),
+            daysSinceHardWorkout: nil,
+            trainingBlockDay: nil,
+            alcoholDetected: nil,
+            illnessMarker: nil,
+            monthOfYear: Calendar.current.component(.month, from: Date()),
+            timestamp: Date()
+        )
+    }
+    
+    /// Calculate recovery score using rule-based algorithm (original method)
+    static func calculateRuleBased(inputs: RecoveryScore.RecoveryInputs) -> RecoveryScore {
         let subScores = calculateSubScores(inputs: inputs)
         
         // Reweighted formula to increase sleep importance (better for alcohol detection):
