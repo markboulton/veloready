@@ -32,6 +32,7 @@ class HealthKitManager: ObservableObject {
     
     // MARK: - Private Properties
     private let healthStore = HKHealthStore()
+    private let cacheManager = UnifiedCacheManager.shared
     
     // MARK: - Health Data Types
     private let readTypes: Set<HKObjectType> = {
@@ -669,13 +670,23 @@ class HealthKitManager: ObservableObject {
         }
     }
 
-    /// Fetch latest HRV data
+    /// Fetch latest HRV data (cached for 5 minutes)
     func fetchLatestHRVData() async -> (sample: HKQuantitySample?, value: Double?) {
         guard let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
             return (nil, nil)
         }
         
-        return await fetchLatestQuantity(for: hrvType, unit: HKUnit.secondUnit(with: .milli))
+        let today = Calendar.current.startOfDay(for: Date())
+        let cacheKey = "healthkit:hrv:\(today.timeIntervalSince1970)"
+        
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+                return await self.fetchLatestQuantity(for: hrvType, unit: HKUnit.secondUnit(with: .milli))
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchLatestQuantity(for: hrvType, unit: HKUnit.secondUnit(with: .milli))
+        }
     }
     
     /// Fetch overnight HRV data (for alcohol detection)
