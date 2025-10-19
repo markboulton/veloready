@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 /// Shared service for fetching and caching Strava activities
+/// Supports Pro (365 days) and Free (90 days) tiers
 @MainActor
 class StravaDataService: ObservableObject {
     static let shared = StravaDataService()
@@ -12,53 +13,80 @@ class StravaDataService: ObservableObject {
     
     private let stravaAuthService = StravaAuthService.shared
     private let stravaAPIClient = StravaAPIClient.shared
-    private let cacheExpiryMinutes = 5 // Cache for 5 minutes
+    private let cache = UnifiedCacheManager.shared
+    private let proConfig = ProFeatureConfig.shared
     
     private init() {}
     
-    /// Fetch activities if cache is expired or force refresh
-    func fetchActivitiesIfNeeded(forceRefresh: Bool = false) async {
-        // Check if we need to refresh
-        if !forceRefresh, let lastFetch = lastFetchDate {
-            let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
-            if timeSinceLastFetch < TimeInterval(cacheExpiryMinutes * 60) {
-                Logger.debug("🟠 [StravaDataService] Using cached data (\(Int(timeSinceLastFetch))s old)")
-                return
-            }
-        }
-        
+    /// Fetch activities for adaptive zones (respects Pro/Free tier)
+    /// Pro: 365 days, Free: 90 days
+    func fetchActivitiesForZones(forceRefresh: Bool = false) async -> [StravaActivity] {
         // Check connection
         guard case .connected(let athleteId) = stravaAuthService.connectionState else {
-            Logger.debug("ℹ️ [StravaDataService] Strava not connected")
-            activities = []
-            return
+            Logger.debug("ℹ️ [Strava] Not connected, skipping fetch")
+            return []
         }
         
-        guard !isLoading else {
-            Logger.warning("️ [StravaDataService] Already loading, skipping duplicate request")
-            return
-        }
+        // Determine days based on Pro status
+        let days = proConfig.hasProAccess ? 365 : 90
+        let cacheKey = "strava_activities_\(days)d"
+        let cacheTTL: TimeInterval = 3600 // 1 hour
         
-        isLoading = true
-        Logger.debug("🟠 [StravaDataService] Fetching activities (athlete: \(athleteId ?? "unknown"))")
+        Logger.info("🟠 [Strava] Fetching activities (\(days) days, Pro: \(proConfig.hasProAccess))")
         
         do {
-            let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())
-            let fetchedActivities = try await stravaAPIClient.fetchActivities(
-                page: 1,
-                perPage: 50,
-                after: thirtyDaysAgo
+            let activities = try await cache.fetch(key: cacheKey, ttl: cacheTTL) {
+                // Fetch from API
+                let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())
+                let activities = try await self.fetchAllActivities(after: startDate)
+                Logger.info("✅ [Strava] Fetched \(activities.count) activities from API")
+                return activities
+            }
+            
+            return activities
+        } catch {
+            Logger.error("❌ [Strava] Failed to fetch activities: \(error)")
+            return []
+        }
+    }
+    
+    /// Fetch activities if cache is expired or force refresh (legacy method)
+    func fetchActivitiesIfNeeded(forceRefresh: Bool = false) async {
+        // Use new method
+        let fetched = await fetchActivitiesForZones(forceRefresh: forceRefresh)
+        activities = fetched
+        lastFetchDate = Date()
+    }
+    
+    /// Fetch all activities with pagination
+    private func fetchAllActivities(after startDate: Date?) async throws -> [StravaActivity] {
+        var allActivities: [StravaActivity] = []
+        var page = 1
+        let perPage = 200 // Max allowed by Strava
+        
+        while true {
+            let batch = try await stravaAPIClient.fetchActivities(
+                page: page,
+                perPage: perPage,
+                after: startDate
             )
             
-            activities = fetchedActivities
-            lastFetchDate = Date()
+            if batch.isEmpty {
+                break
+            }
             
-            Logger.debug("✅ [StravaDataService] Loaded \(fetchedActivities.count) activities from Strava")
-        } catch {
-            Logger.warning("️ [StravaDataService] Fetch failed: \(error.localizedDescription)")
+            allActivities.append(contentsOf: batch)
+            Logger.debug("🟠 [Strava] Fetched page \(page): \(batch.count) activities")
+            
+            // Stop if we got less than a full page
+            if batch.count < perPage {
+                break
+            }
+            
+            page += 1
         }
         
-        isLoading = false
+        return allActivities
     }
     
     /// Clear the cache

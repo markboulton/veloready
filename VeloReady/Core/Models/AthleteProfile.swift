@@ -137,21 +137,30 @@ class AthleteProfileManager: ObservableObject {
     }
     
     /// Compute zones from recent activities using sports science algorithms
+    /// UPDATED: Uses Strava as PRIMARY data source, Intervals.icu as secondary
     /// Uses Critical Power model, power curve analysis, and HR lactate threshold detection
-    /// Activities are pre-filtered by the caller (90 days for Free, 365 days for Pro)
+    /// Pro: 365 days, Free: 90 days
     func computeFromActivities(_ activities: [IntervalsActivity]) async {
         Logger.data("========== COMPUTING ADAPTIVE ZONES FROM PERFORMANCE DATA ==========")
         Logger.data("Using modern sports science algorithms (CP model, power distribution, HR analysis)")
-        Logger.data("Input: \(activities.count) activities (pre-filtered by subscription tier)")
+        Logger.data("Data source priority: 1) Strava (primary), 2) Intervals.icu (secondary)")
         
-        // NEW: Try to get Strava FTP as fallback before computing
-        await useStravaFTPIfAvailable()
+        // NEW: Fetch Strava activities as PRIMARY source
+        let stravaActivities = await StravaDataService.shared.fetchActivitiesForZones()
+        Logger.data("Strava activities: \(stravaActivities.count)")
         
-        // Use all activities passed in (already filtered by caller based on subscription tier)
-        let recentActivities = activities
+        // Merge with Intervals.icu activities (dedupe)
+        let mergedActivities = ActivityMerger.mergeWithLogging(
+            strava: stravaActivities,
+            intervals: activities
+        )
         
-        Logger.data("Processing \(recentActivities.count) activities for zone computation")
+        Logger.data("Total activities after merge: \(mergedActivities.count)")
+        Logger.data("Processing \(mergedActivities.count) activities for zone computation")
         Logger.data("Ignoring hardcoded Intervals.icu zones - computing from actual performance data")
+        
+        // Use merged activities
+        let recentActivities = mergedActivities
         
         // Check PRO access for adaptive zone computation
         let proConfig = await MainActor.run { ProFeatureConfig.shared }
