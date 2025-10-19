@@ -1,6 +1,6 @@
 //
-//  RideReadyWidget.swift
-//  RideReadyWidget
+//  VeloReadyWidget.swift
+//  VeloReadyWidget
 //
 //  Created by Mark Boulton on 30/09/2025.
 //
@@ -61,7 +61,7 @@ struct SimpleEntry: TimelineEntry {
     let isPersonalized: Bool
 }
 
-struct RideReadyWidgetEntryView : View {
+struct VeloReadyWidgetEntryView : View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
 
@@ -203,12 +203,12 @@ struct SmallRecoveryView: View {
     }
 }
 
-struct RideReadyWidget: Widget {
-    let kind: String = "RideReadyWidget"
+struct VeloReadyWidget: Widget {
+    let kind: String = "VeloReadyWidget"
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            RideReadyWidgetEntryView(entry: entry)
+            VeloReadyWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
     }
@@ -229,7 +229,7 @@ extension ConfigurationAppIntent {
 }
 
 #Preview(as: .systemSmall) {
-    RideReadyWidget()
+    VeloReadyWidget()
 } timeline: {
     SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 85, recoveryBand: "Optimal", isPersonalized: true)
     SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 65, recoveryBand: "Good", isPersonalized: false)

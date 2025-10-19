@@ -1,6 +1,6 @@
 //
-//  RideReadyWidgetControl.swift
-//  RideReadyWidget
+//  VeloReadyWidgetControl.swift
+//  VeloReadyWidget
 //
 //  Created by Mark Boulton on 30/09/2025.
 //
@@ -9,8 +9,8 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
-struct RideReadyWidgetControl: ControlWidget {
-    static let kind: String = "com.markboulton.Rideready.RideReadyWidget"
+struct VeloReadyWidgetControl: ControlWidget {
+    static let kind: String = "com.markboulton.VeloReady.VeloReadyWidget"
 
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(
@@ -30,7 +30,7 @@ struct RideReadyWidgetControl: ControlWidget {
     }
 }
 
-extension RideReadyWidgetControl {
+extension VeloReadyWidgetControl {
     struct Value {
         var isRunning: Bool
         var name: String
@@ -38,12 +38,12 @@ extension RideReadyWidgetControl {
 
     struct Provider: AppIntentControlValueProvider {
         func previewValue(configuration: TimerConfiguration) -> Value {
-            RideReadyWidgetControl.Value(isRunning: false, name: configuration.timerName)
+            VeloReadyWidgetControl.Value(isRunning: false, name: configuration.timerName)
         }
 
         func currentValue(configuration: TimerConfiguration) async throws -> Value {
             let isRunning = true // Check if the timer is running
-            return RideReadyWidgetControl.Value(isRunning: isRunning, name: configuration.timerName)
+            return VeloReadyWidgetControl.Value(isRunning: isRunning, name: configuration.timerName)
         }
     }
 }

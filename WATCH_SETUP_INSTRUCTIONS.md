@@ -34,7 +34,7 @@ The widget needs to share data with the main app via an App Group.
    ```
 
 7. **Repeat for VeloReadyWidget target:**
-   - Select VeloReadyWidget target
+   - Select **VeloReadyWidget** target (not RideReadyWidget - we renamed it)
    - Add "App Groups" capability
    - Enable the same group: `group.com.markboulton.VeloReady`
 

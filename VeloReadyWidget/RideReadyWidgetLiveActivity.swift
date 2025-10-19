@@ -1,6 +1,6 @@
 //
-//  RideReadyWidgetLiveActivity.swift
-//  RideReadyWidget
+//  VeloReadyWidgetLiveActivity.swift
+//  VeloReadyWidget
 //
 //  Created by Mark Boulton on 30/09/2025.
 //
@@ -9,7 +9,7 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
-struct RideReadyWidgetAttributes: ActivityAttributes {
+struct VeloReadyWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
         var emoji: String
@@ -19,9 +19,9 @@ struct RideReadyWidgetAttributes: ActivityAttributes {
     var name: String
 }
 
-struct RideReadyWidgetLiveActivity: Widget {
+struct VeloReadyWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
-        ActivityConfiguration(for: RideReadyWidgetAttributes.self) { context in
+        ActivityConfiguration(for: VeloReadyWidgetAttributes.self) { context in
             // Lock screen/banner UI goes here
             VStack {
                 Text("Hello \(context.state.emoji)")
@@ -56,25 +56,25 @@ struct RideReadyWidgetLiveActivity: Widget {
     }
 }
 
-extension RideReadyWidgetAttributes {
-    fileprivate static var preview: RideReadyWidgetAttributes {
-        RideReadyWidgetAttributes(name: "World")
+extension VeloReadyWidgetAttributes {
+    fileprivate static var preview: VeloReadyWidgetAttributes {
+        VeloReadyWidgetAttributes(name: "World")
     }
 }
 
-extension RideReadyWidgetAttributes.ContentState {
-    fileprivate static var smiley: RideReadyWidgetAttributes.ContentState {
-        RideReadyWidgetAttributes.ContentState(emoji: "😀")
+extension VeloReadyWidgetAttributes.ContentState {
+    fileprivate static var smiley: VeloReadyWidgetAttributes.ContentState {
+        VeloReadyWidgetAttributes.ContentState(emoji: "😀")
      }
      
-     fileprivate static var starEyes: RideReadyWidgetAttributes.ContentState {
-         RideReadyWidgetAttributes.ContentState(emoji: "🤩")
+     fileprivate static var starEyes: VeloReadyWidgetAttributes.ContentState {
+         VeloReadyWidgetAttributes.ContentState(emoji: "🤩")
      }
 }
 
-#Preview("Notification", as: .content, using: RideReadyWidgetAttributes.preview) {
-   RideReadyWidgetLiveActivity()
+#Preview("Notification", as: .content, using: VeloReadyWidgetAttributes.preview) {
+   VeloReadyWidgetLiveActivity()
 } contentStates: {
-    RideReadyWidgetAttributes.ContentState.smiley
-    RideReadyWidgetAttributes.ContentState.starEyes
+    VeloReadyWidgetAttributes.ContentState.smiley
+    VeloReadyWidgetAttributes.ContentState.starEyes
 }
