@@ -644,6 +644,14 @@ extension RecoveryScoreService {
                 let cachedScore = try decoder.decode(RecoveryScore.self, from: cachedData)
                 currentRecoveryScore = cachedScore
                 Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
+                
+                // Also save to shared UserDefaults for widget/watch
+                if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+                    sharedDefaults.set(cachedScore.score, forKey: "cachedRecoveryScore")
+                    sharedDefaults.set(cachedScore.band.rawValue, forKey: "cachedRecoveryBand")
+                    sharedDefaults.set(cachedScore.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
+                    Logger.debug("⌚ Synced cached recovery score to shared defaults for widget/watch")
+                }
             } catch {
                 Logger.error("Failed to decode cached recovery score: \(error)")
                 Logger.warning("️ Clearing invalid cache - will recalculate")

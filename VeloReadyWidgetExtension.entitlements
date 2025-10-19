@@ -5,6 +5,7 @@
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.com.veloready.app</string>
+		<string>group.com.markboulton.VeloReady</string>
 	</array>
 </dict>
 </plist>
