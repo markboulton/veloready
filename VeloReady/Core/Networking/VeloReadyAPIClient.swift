@@ -28,7 +28,7 @@ class VeloReadyAPIClient: ObservableObject {
     ///   - limit: Maximum activities to return (default: 50, max: 200)
     /// - Returns: Array of Strava activities
     func fetchActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [StravaActivity] {
-        let endpoint = "\(baseURL)/api/activities?daysBack=\(daysBack)&limit=\(limit)"
+        let endpoint = "\(baseURL)/.netlify/functions/api-activities?daysBack=\(daysBack)&limit=\(limit)"
         
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
@@ -52,9 +52,9 @@ class VeloReadyAPIClient: ObservableObject {
         let endpoint: String
         switch source {
         case .strava:
-            endpoint = "\(baseURL)/api/streams/\(activityId)"
+            endpoint = "\(baseURL)/.netlify/functions/api-streams/\(activityId)"
         case .intervals:
-            endpoint = "\(baseURL)/api/intervals/streams/\(activityId)"
+            endpoint = "\(baseURL)/.netlify/functions/api-intervals-streams/\(activityId)"
         }
         
         guard let url = URL(string: endpoint) else {
@@ -78,7 +78,7 @@ class VeloReadyAPIClient: ObservableObject {
     ///   - limit: Maximum activities to return (default: 50, max: 200)
     /// - Returns: Array of Intervals activities
     func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [IntervalsActivity] {
-        let endpoint = "\(baseURL)/api/intervals/activities?daysBack=\(daysBack)&limit=\(limit)"
+        let endpoint = "\(baseURL)/.netlify/functions/api-intervals-activities?daysBack=\(daysBack)&limit=\(limit)"
         
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
@@ -97,7 +97,7 @@ class VeloReadyAPIClient: ObservableObject {
     /// - Parameter days: Number of days to fetch (default: 30, max: 90)
     /// - Returns: Array of wellness data
     func fetchIntervalsWellness(days: Int = 30) async throws -> [IntervalsWellness] {
-        let endpoint = "\(baseURL)/api/intervals/wellness?days=\(days)"
+        let endpoint = "\(baseURL)/.netlify/functions/api-intervals-wellness?days=\(days)"
         
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
