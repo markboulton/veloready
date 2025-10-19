@@ -15,7 +15,7 @@ class UnifiedCacheManager: ObservableObject {
     
     // MARK: - Cache TTL Configuration
     enum CacheTTL {
-        static let activities: TimeInterval = 300       // 5 minutes
+        static let activities: TimeInterval = 3600      // 1 hour (Phase 3 optimization)
         static let healthMetrics: TimeInterval = 300    // 5 minutes
         static let streams: TimeInterval = 604800       // 7 days
         static let dailyScores: TimeInterval = 3600     // 1 hour
