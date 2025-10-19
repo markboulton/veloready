@@ -184,6 +184,85 @@ struct MLFeatureVector: Codable {
         
         return dict
     }
+    
+    /// Create MLFeatureVector from dictionary
+    static func fromDictionary(_ dict: [String: Double]) throws -> MLFeatureVector {
+        return MLFeatureVector(
+            // Physiological
+            hrv: dict["hrv"],
+            hrvBaseline: dict["hrv_baseline"],
+            hrvDelta: dict["hrv_delta"],
+            hrvCoefficientOfVariation: dict["hrv_cv"],
+            rhr: dict["rhr"],
+            rhrBaseline: dict["rhr_baseline"],
+            rhrDelta: dict["rhr_delta"],
+            sleepDuration: dict["sleep_duration"],
+            sleepBaseline: dict["sleep_baseline"],
+            sleepDelta: dict["sleep_delta"],
+            respiratoryRate: dict["respiratory_rate"],
+            
+            // Training load
+            yesterdayStrain: dict["yesterday_strain"],
+            yesterdayTSS: dict["yesterday_tss"],
+            ctl: dict["ctl"],
+            atl: dict["atl"],
+            tsb: dict["tsb"],
+            acuteChronicRatio: dict["acute_chronic_ratio"],
+            trainingMonotony: dict["training_monotony"],
+            trainingStrain: dict["training_strain"],
+            
+            // Recovery trends
+            recoveryTrend7d: dict["recovery_trend_7d"],
+            recoveryTrend3d: dict["recovery_trend_3d"],
+            yesterdayRecovery: dict["yesterday_recovery"],
+            recoveryChange: dict["recovery_change"],
+            
+            // Sleep trends
+            sleepTrend7d: dict["sleep_trend_7d"],
+            sleepDebt7d: dict["sleep_debt_7d"],
+            sleepQualityScore: dict["sleep_quality"],
+            
+            // Temporal
+            dayOfWeek: Int(dict["day_of_week"] ?? 1),
+            daysSinceHardWorkout: dict["days_since_hard_workout"].map { Int($0) },
+            trainingBlockDay: dict["training_block_day"].map { Int($0) },
+            
+            // Contextual
+            alcoholDetected: dict["alcohol_detected"].map { $0 > 0.5 },
+            illnessMarker: dict["illness_marker"].map { $0 > 0.5 },
+            monthOfYear: Int(dict["month_of_year"] ?? 1),
+            timestamp: Date() // Use current time for reconstructed vectors
+        )
+    }
+    
+    /// All feature names for Create ML
+    static var allFeatureNames: [String] {
+        return [
+            // Physiological
+            "hrv", "hrv_baseline", "hrv_delta", "hrv_cv",
+            "rhr", "rhr_baseline", "rhr_delta",
+            "sleep_duration", "sleep_baseline", "sleep_delta",
+            "respiratory_rate",
+            
+            // Training load
+            "yesterday_strain", "yesterday_tss",
+            "ctl", "atl", "tsb", "acute_chronic_ratio",
+            "training_monotony", "training_strain",
+            
+            // Recovery trends
+            "recovery_trend_7d", "recovery_trend_3d",
+            "yesterday_recovery", "recovery_change",
+            
+            // Sleep trends
+            "sleep_trend_7d", "sleep_debt_7d", "sleep_quality",
+            
+            // Temporal
+            "day_of_week", "days_since_hard_workout", "training_block_day",
+            
+            // Contextual
+            "alcohol_detected", "illness_marker", "month_of_year"
+        ]
+    }
 }
 
 // MARK: - Training Data Point
