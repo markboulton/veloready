@@ -229,11 +229,11 @@
 
 ---
 
-## Timeline: Next 8 Weeks
+## Timeline: Next 4 Weeks (EXPEDITED)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MASTER TIMELINE                              │
+│              EXPEDITED 4-WEEK TIMELINE                          │
 └─────────────────────────────────────────────────────────────────┘
 
 TODAY (Oct 19)
@@ -241,50 +241,41 @@ TODAY (Oct 19)
 ├─ ✅ Strava-First Zones Complete
 └─ ✅ All documentation complete
 
-WEEK 1-2 (Oct 20 - Nov 2)
-├─ ⏸️ Passive data collection (18 days)
-├─ ⏸️ App collects ML training data automatically
-└─ ⏸️ No action required from you
+WEEK 1 (Oct 20-26) - DATA COLLECTION + PREP
+├─ ⏸️ Passive data collection (7 days → 19/30 days)
+├─ 🎯 Build dataset builder (parallel work)
+├─ 🎯 Build model trainer skeleton
+└─ 🎯 Prepare Create ML pipeline
 
-WEEK 3 (Nov 3-9) - ML PHASE 2 WEEK 2
-├─ 🎯 Build dataset builder
-├─ 🎯 Convert Core Data → Create ML format
-├─ 🎯 Train first personalized model
-├─ 🎯 Validate accuracy (MAE < 10)
-└─ 🎯 Export .mlmodel file
-
-WEEK 4 (Nov 10-16) - ML PHASE 2 WEEK 3
-├─ 🎯 Create prediction service
+WEEK 2 (Oct 27 - Nov 2) - MODEL TRAINING + PREDICTION
+├─ ⏸️ Continue data collection (7 days → 26/30 days)
+├─ 🎯 Train model with partial data (26 days is enough)
+├─ 🎯 Build prediction service
 ├─ 🎯 Integrate with RecoveryScoreService
-├─ 🎯 Update UI for personalization
-├─ 🎯 A/B testing mode
-└─ 🎯 Settings integration
+└─ 🎯 Basic UI updates
 
-WEEK 5 (Nov 17-23) - ML PHASE 2 WEEK 4
+WEEK 3 (Nov 3-9) - WATCH + ZONES PHASE 1
+├─ ⏸️ Final data collection (3 days → 30/30 days)
+├─ 🎯 Retrain model with full 30 days
 ├─ 🎯 Apple Watch sync
 ├─ 🎯 Watch complication
-├─ 🎯 Model retraining service
-├─ 🎯 Production deployment
-└─ 🎯 Beta testing
+├─ 🎯 FTP trend prediction (start)
+└─ 🎯 Model retraining service
 
-WEEK 6 (Nov 24-30) - ML PHASE 3 WEEK 1
-├─ 🎯 FTP trend prediction model
-├─ 🎯 Predict FTP changes 3-5 days early
-├─ 🎯 Proactive zone updates
-└─ 🎯 Testing & validation
-
-WEEK 7 (Dec 1-7) - ML PHASE 3 WEEK 2
+WEEK 4 (Nov 10-16) - ZONES PHASE 2 + PRODUCTION
+├─ 🎯 FTP trend prediction (complete)
 ├─ 🎯 Personalized zone boundaries
-├─ 🎯 Learn YOUR lactate threshold
-├─ 🎯 Custom zone percentages
-└─ 🎯 UI updates
-
-WEEK 8 (Dec 8-14) - ML PHASE 3 WEEK 3
-├─ 🎯 Context-aware zone adjustments
-├─ 🎯 Recovery-based zone scaling
-├─ 🎯 Real-time adjustments
+├─ 🎯 Context-aware adjustments
+├─ 🎯 Final testing & polish
 └─ 🎯 Production deployment
 ```
+
+**Key Changes:**
+- ✅ Start building infrastructure DURING data collection (parallel work)
+- ✅ Train with 26 days (good enough), retrain at 30 days
+- ✅ Combine Watch + Zones work in Week 3
+- ✅ Compress all Zone features into Week 4
+- ✅ 4 weeks total instead of 8
 
 ---
 
@@ -312,42 +303,21 @@ WEEK 8 (Dec 8-14) - ML PHASE 3 WEEK 3
 
 ---
 
-### ⏸️ WEEKS 1-2 (Oct 20 - Nov 2) - DATA COLLECTION
+### 🎯 WEEK 1 (Oct 20-26) - DATA COLLECTION + PREP
+
+**Objective:** Build ML infrastructure WHILE collecting data (parallel work)
 
 **What Happens:**
-- App collects ML training data automatically
-- 18 more days of data needed (12/30 currently)
-- HealthKit queries run daily
-- Features calculated and stored in Core Data
-- iCloud sync keeps data backed up
+- ⏸️ App collects ML training data automatically (7 days → 19/30 total)
+- 🎯 You build dataset builder and model trainer in parallel
 
 **What You Do:**
-- ✅ Use app normally
-- ✅ Wear phone/watch overnight (for HRV/RHR)
-- ✅ Sync Intervals.icu daily (for TSS)
-- ✅ Optional: Check progress in Debug → ML Infrastructure
-
-**Verification:**
-- Open app → Debug → ML Infrastructure
-- Should see "X days available" incrementing daily
-- When it hits "30 days available", you're ready for Week 3
-
-**Your Action:** Just use the app normally, no coding needed
-
----
-
-### 🎯 WEEK 3 (Nov 3-9) - ML PHASE 2 WEEK 2
-
-**Objective:** Train your first personalized ML model
-
-**Tasks:**
 
 #### Day 1-2: Dataset Builder
 - [ ] Create `MLDatasetBuilder.swift`
 - [ ] Implement Core Data → Create ML Table conversion
 - [ ] Handle missing features (impute with median)
 - [ ] Remove outliers (recovery score > 3σ)
-- [ ] Implement train/test split (80/20)
 
 **Code to Write:**
 ```swift
@@ -362,12 +332,11 @@ class MLDatasetBuilder {
 }
 ```
 
-#### Day 3-4: Training Pipeline
+#### Day 3-4: Model Trainer Skeleton
 - [ ] Create `MLModelTrainer.swift`
-- [ ] Configure Create ML Boosted Tree Regressor
-- [ ] Set training parameters (max iterations: 100, max depth: 6)
-- [ ] Implement model validation
-- [ ] Export trained model as `.mlmodel` file
+- [ ] Set up Create ML Boosted Tree Regressor
+- [ ] Configure training parameters
+- [ ] Add validation logic
 
 **Code to Write:**
 ```swift
@@ -382,43 +351,47 @@ class MLModelTrainer {
 }
 ```
 
-#### Day 5: Testing & Validation
-- [ ] Train model on YOUR 30 days of data
-- [ ] Calculate validation metrics
-- [ ] Verify model file size < 1MB
-- [ ] Test inference performance < 50ms
-- [ ] Compare predictions to rule-based scores
+#### Day 5-7: Testing & Prep
+- [ ] Test dataset builder with current data (12-19 days)
+- [ ] Verify Create ML pipeline works
+- [ ] Prepare for training with partial data
 
 **Success Criteria:**
-- ✅ Model trains successfully
-- ✅ Validation MAE < 10 points
-- ✅ R² > 0.6
-- ✅ Model file < 1MB
-- ✅ Inference < 50ms
+- ✅ Dataset builder works with partial data
+- ✅ Model trainer skeleton ready
+- ✅ Create ML pipeline tested
+- ✅ Ready to train with 26 days
 
 **Files to Create:**
 ```
 VeloReady/Core/ML/Training/
-├── MLModelTrainer.swift
 ├── MLDatasetBuilder.swift
-├── MLValidationMetrics.swift
-└── PersonalizedRecovery.mlmodel (generated)
-
-VeloReadyTests/ML/
-└── MLModelTrainerTests.swift
+├── MLModelTrainer.swift
+└── MLValidationMetrics.swift
 ```
 
-**Your Action:** Code implementation (5 days)
+**Your Action:** Code implementation (7 days) + app usage (data collection)
 
 ---
 
-### 🎯 WEEK 4 (Nov 10-16) - ML PHASE 2 WEEK 3
+### 🎯 WEEK 2 (Oct 27 - Nov 2) - MODEL TRAINING + PREDICTION
 
-**Objective:** Integrate ML predictions into the app
+**Objective:** Train first model with 26 days (good enough), build prediction service
+
+**What Happens:**
+- ⏸️ App collects data (7 more days → 26/30 total)
+- 🎯 Train model with 26 days (sufficient for initial model)
+- 🎯 Build prediction service
 
 **Tasks:**
 
-#### Day 1-2: Prediction Service
+#### Day 1-2: Train First Model
+- [ ] Use dataset builder from Week 1
+- [ ] Train with 26 days of data (good enough!)
+- [ ] Validate accuracy (expect MAE ~12-15 with partial data)
+- [ ] Export .mlmodel file
+
+#### Day 3-4: Prediction Service
 - [ ] Create `MLPredictionService.swift`
 - [ ] Load trained model into memory
 - [ ] Implement inference logic
@@ -438,38 +411,18 @@ class MLPredictionService {
 }
 ```
 
-#### Day 3-4: Integration
-- [ ] Update `RecoveryScoreService`
-- [ ] Add ML prediction path
+#### Day 5-7: Integration & UI
+- [ ] Update `RecoveryScoreService` with ML path
 - [ ] Keep rule-based fallback
-- [ ] Add A/B testing mode
-- [ ] Update UI to show personalization
-
-**Code to Write:**
-```swift
-class RecoveryScoreService {
-    func calculateRecoveryScore() async -> RecoveryScore {
-        if mlEnabled && mlModel.isAvailable {
-            return await mlPrediction()  // NEW
-        } else {
-            return ruleBasedScore()      // EXISTING
-        }
-    }
-}
-```
-
-#### Day 5: Settings & Polish
+- [ ] Add basic UI updates ("Personalized" badge)
 - [ ] Add ML settings toggle
-- [ ] Create personalization info sheet
-- [ ] Add "Personalized" badge to UI
 - [ ] Test both ML and rule-based modes
-- [ ] Performance testing
 
 **Success Criteria:**
-- ✅ ML predictions work correctly
-- ✅ Fallback to rule-based works
-- ✅ UI shows personalization status
-- ✅ Settings allow enable/disable
+- ✅ Model trains with 26 days (MAE ~12-15 acceptable)
+- ✅ Prediction service works
+- ✅ ML/rule-based toggle works
+- ✅ UI shows personalization
 - ✅ Performance < 100ms total
 
 **Files to Create:**
@@ -478,25 +431,31 @@ VeloReady/Core/ML/Services/
 ├── MLPredictionService.swift
 └── PersonalizedRecoveryCalculator.swift
 
-VeloReady/Features/Settings/Views/
-└── MLPersonalizationSettings.swift
+VeloReady/Core/ML/Training/
+└── PersonalizedRecovery.mlmodel (generated)
 ```
 
-**Your Action:** Code implementation (5 days)
+**Your Action:** Code implementation (7 days) + app usage (data collection)
 
 ---
 
-### 🎯 WEEK 5 (Nov 17-23) - ML PHASE 2 WEEK 4
+### 🎯 WEEK 3 (Nov 3-9) - WATCH + ZONES PHASE 1
 
-**Objective:** Apple Watch integration and production deployment
+**Objective:** Apple Watch integration + FTP prediction + model retraining
+
+**What Happens:**
+- ⏸️ Final data collection (3 days → 30/30 total)
+- 🎯 Retrain model with full 30 days (improve from MAE ~12 to ~8)
+- 🎯 Apple Watch sync
+- 🎯 Start FTP trend prediction
 
 **Tasks:**
 
-#### Day 1-2: Watch Sync
+#### Day 1-2: Model Retraining + Watch Sync
+- [ ] Retrain model with full 30 days (improve MAE to ~8)
 - [ ] Create `WatchConnectivityManager.swift`
 - [ ] Sync HRV/RHR from Watch to iPhone
 - [ ] Prefer Watch data over iPhone data
-- [ ] Handle connectivity issues
 
 **Code to Write:**
 ```swift
@@ -510,235 +469,210 @@ class WatchConnectivityManager {
 }
 ```
 
-#### Day 3-4: Watch Complication
+#### Day 3-4: Watch Complication + FTP Prediction Start
 - [ ] Create `VeloReadyComplication.swift`
 - [ ] Show recovery score on watch face
-- [ ] Update every 30 minutes
-- [ ] Handle background updates
+- [ ] Create `FTPTrendPredictor.swift` skeleton
+- [ ] Define features for FTP prediction
 
 **Code to Write:**
 ```swift
-class VeloReadyComplication {
-    func getCurrentTimelineEntry() -> ComplicationEntry {
-        // 1. Get latest recovery score
-        // 2. Format for watch face
-        // 3. Return entry
+class FTPTrendPredictor {
+    func predictFTPChange(
+        currentFTP: Double,
+        recentActivities: [Activity],
+        recoveryScores: [Double],
+        trainingLoad: TrainingLoad
+    ) async -> FTPPrediction {
+        // ML predicts FTP changes 3-5 days early
     }
 }
 ```
 
-#### Day 5: Production Deployment
+#### Day 5-7: Model Retraining Service
 - [ ] Create `ModelRetrainingService.swift`
 - [ ] Schedule weekly model updates
 - [ ] Background task for retraining
-- [ ] Final testing
-- [ ] Beta deployment
+- [ ] Test Watch sync + complication
 
 **Success Criteria:**
+- ✅ Model retrained with 30 days (MAE < 10)
 - ✅ Watch sync works
 - ✅ Complication displays correctly
+- ✅ FTP predictor skeleton ready
 - ✅ Model retrains weekly
-- ✅ All tests passing
-- ✅ Ready for beta
 
 **Files to Create:**
 ```
 VeloReady/Core/ML/Services/
 ├── WatchConnectivityManager.swift
-└── ModelRetrainingService.swift
+├── ModelRetrainingService.swift
+└── Zones/FTPTrendPredictor.swift (skeleton)
 
 VeloReadyWatch/
 ├── VeloReadyComplication.swift
 └── ComplicationController.swift
 ```
 
-**Your Action:** Code implementation (5 days)
+**Your Action:** Code implementation (7 days)
 
 ---
 
-### 🎯 WEEK 6 (Nov 24-30) - ML PHASE 3 WEEK 1
+### 🎯 WEEK 4 (Nov 10-16) - ZONES PHASE 2 + PRODUCTION
 
-**Objective:** FTP trend prediction
+**Objective:** Complete all ML zone enhancements + production deployment
+
+**What Happens:**
+- 🎯 FTP trend prediction (complete)
+- 🎯 Personalized zone boundaries
+- 🎯 Context-aware adjustments
+- 🎯 Production deployment
 
 **Tasks:**
 
-#### Day 1-2: Model Development
-- [ ] Create `FTPTrendPredictor.swift`
-- [ ] Define features for FTP prediction
-- [ ] Create training dataset
-- [ ] Train regression model
-
-**Features:**
-- Current FTP
-- Recent power curve trends (5s, 1min, 5min, 20min)
-- Average recovery score (last 7 days)
-- Training load (CTL/ATL/TSB)
-- Days since last hard effort
-
-#### Day 3-4: Integration
+#### Day 1-3: FTP Trend Prediction (Complete)
+- [ ] Train FTP prediction model
 - [ ] Integrate with `AthleteProfileManager`
 - [ ] Add predictive FTP to profile
 - [ ] Create UI indicator for predicted changes
-- [ ] Test accuracy
+- [ ] Test accuracy (target MAE < 5 watts)
 
-#### Day 5: Testing
-- [ ] Validate predictions on test data
-- [ ] Add telemetry for accuracy
-- [ ] Test proactive zone updates
-
-**Success Criteria:**
-- ✅ Prediction MAE < 5 watts
-- ✅ Confidence > 70%
-- ✅ Zones update proactively
-
-**Files to Create:**
-```
-VeloReady/Core/ML/Services/Zones/
-├── FTPTrendPredictor.swift
-└── FTPPredictionModel.mlmodel
+**Code to Write:**
+```swift
+class FTPTrendPredictor {
+    func predictFTPChange(...) async -> FTPPrediction {
+        // Features: power curve, recovery, training load
+        // Predicts FTP changes 3-5 days early
+        // Returns prediction + confidence
+    }
+}
 ```
 
-**Your Action:** Code implementation (5 days)
-
----
-
-### 🎯 WEEK 7 (Dec 1-7) - ML PHASE 3 WEEK 2
-
-**Objective:** Personalized zone boundaries
-
-**Tasks:**
-
-#### Day 1-2: Boundary Learning
+#### Day 4-5: Personalized Zone Boundaries
 - [ ] Create `PersonalizedZoneCalculator.swift`
 - [ ] Analyze power curve patterns
 - [ ] Detect personal lactate threshold
 - [ ] Learn VO2max and anaerobic capacity
-
-#### Day 3-4: Zone Generation
 - [ ] Generate personalized zone boundaries
-- [ ] Compare to Coggan model
-- [ ] Update zone display in UI
-- [ ] Add "Personalized" badge
 
-#### Day 5: Testing
-- [ ] Validate zones against workout data
-- [ ] Test edge cases
-- [ ] Add telemetry
-
-**Success Criteria:**
-- ✅ Zones match observed performance
-- ✅ Users can see personalized vs. standard
-- ✅ Smooth fallback for new users
-
-**Files to Create:**
-```
-VeloReady/Core/ML/Services/Zones/
-├── PersonalizedZoneCalculator.swift
-└── ZonePersonalizationModel.mlmodel
+**Code to Write:**
+```swift
+class PersonalizedZoneCalculator {
+    func personalizeZones(
+        baseFTP: Double,
+        activities: [Activity],
+        userProfile: UserPhysiology
+    ) async -> PersonalizedZones {
+        // Learn YOUR personal boundaries
+        // Not generic Coggan percentages
+    }
+}
 ```
 
-**Your Action:** Code implementation (5 days)
-
----
-
-### 🎯 WEEK 8 (Dec 8-14) - ML PHASE 3 WEEK 3
-
-**Objective:** Context-aware zone adjustments
-
-**Tasks:**
-
-#### Day 1-2: Adjustment Logic
+#### Day 6-7: Context-Aware + Production
 - [ ] Create `ContextAwareZoneService.swift`
 - [ ] Implement recovery-based adjustment
 - [ ] Add training load consideration
-- [ ] Test adjustment calculations
-
-**Adjustment Rules:**
-```
-Recovery < 40:  -20% zones (fatigued)
-Recovery 40-60: -10% zones (low)
-Recovery 60-80:   0% zones (normal)
-Recovery 80-95:  +5% zones (good)
-Recovery 95-100: +8% zones (excellent)
-```
-
-#### Day 3-4: UI Integration
-- [ ] Show adjusted zones in workout views
-- [ ] Add explanation ("Adjusted for recovery")
-- [ ] Display adjustment factor
-- [ ] Update zone legends
-
-#### Day 5: Production
-- [ ] Test all scenarios
-- [ ] Performance testing
-- [ ] Documentation
+- [ ] Update UI to show adjusted zones
+- [ ] Final testing & polish
 - [ ] Production deployment
 
+**Code to Write:**
+```swift
+class ContextAwareZoneService {
+    func getAdjustedZones(
+        baseZones: PowerZones,
+        recoveryScore: Double,
+        recentTrainingLoad: TrainingLoad
+    ) -> AdjustedZones {
+        // Adjust zones based on current state
+        // Fatigued: -10-20%, Fresh: +5-8%
+    }
+}
+```
+
 **Success Criteria:**
-- ✅ Zones adjust correctly
-- ✅ Clear UI explanation
-- ✅ Users understand adjustments
+- ✅ FTP prediction MAE < 5 watts
+- ✅ Personalized zones match observed performance
+- ✅ Context-aware adjustments work correctly
+- ✅ All tests passing
+- ✅ Production ready
 
 **Files to Create:**
 ```
 VeloReady/Core/ML/Services/Zones/
-└── ContextAwareZoneService.swift
+├── FTPTrendPredictor.swift (complete)
+├── PersonalizedZoneCalculator.swift
+├── ContextAwareZoneService.swift
+└── FTPPredictionModel.mlmodel
+
+VeloReady/Features/Settings/Views/
+└── MLZonesSettings.swift
 ```
 
-**Your Action:** Code implementation (5 days)
+**Your Action:** Code implementation (7 days)
 
 ---
 
-## What You Need to Do
+## What You Need to Do (EXPEDITED TIMELINE)
 
-### Immediate (Next 18 Days)
+### Week 1 (Oct 20-26) - PARALLEL WORK
 
-**Nothing!** Just use the app normally:
-- ✅ Wear phone/watch overnight (for HRV/RHR)
-- ✅ Sync Intervals.icu daily (for TSS)
-- ✅ Train as usual
-- ✅ Optional: Check progress in Debug → ML Infrastructure
+**Code Implementation + Data Collection:**
+1. Build `MLDatasetBuilder.swift` (Day 1-2)
+2. Build `MLModelTrainer.swift` skeleton (Day 3-4)
+3. Test pipeline with partial data (Day 5-7)
+4. Continue using app normally (data collection)
 
-### Week 3 (Nov 3-9)
+**Estimated Time:** 7 days
 
-**Code Implementation:**
-1. Create `MLDatasetBuilder.swift`
-2. Create `MLModelTrainer.swift`
-3. Train first model using Create ML
-4. Validate accuracy
-5. Export .mlmodel file
+---
 
-**Estimated Time:** 5 days (full-time) or 10 days (part-time)
+### Week 2 (Oct 27 - Nov 2) - TRAIN + PREDICT
 
-### Week 4 (Nov 10-16)
+**Code Implementation + Data Collection:**
+1. Train model with 26 days (Day 1-2)
+2. Build `MLPredictionService.swift` (Day 3-4)
+3. Integrate with `RecoveryScoreService` (Day 5-7)
+4. Continue using app normally (data collection)
 
-**Code Implementation:**
-1. Create `MLPredictionService.swift`
-2. Update `RecoveryScoreService`
-3. Add ML settings
-4. Update UI
-5. Testing
+**Estimated Time:** 7 days
 
-**Estimated Time:** 5 days (full-time) or 10 days (part-time)
+---
 
-### Week 5 (Nov 17-23)
+### Week 3 (Nov 3-9) - WATCH + ZONES START
 
 **Code Implementation:**
-1. Watch connectivity
-2. Watch complication
-3. Model retraining
-4. Production deployment
+1. Retrain model with 30 days (Day 1-2)
+2. Build `WatchConnectivityManager.swift` (Day 1-2)
+3. Build `VeloReadyComplication.swift` (Day 3-4)
+4. Build `FTPTrendPredictor.swift` skeleton (Day 3-4)
+5. Build `ModelRetrainingService.swift` (Day 5-7)
 
-**Estimated Time:** 5 days (full-time) or 10 days (part-time)
+**Estimated Time:** 7 days
 
-### Weeks 6-8 (Nov 24 - Dec 14)
+### Week 4 (Nov 10-16) - ZONES COMPLETE + PRODUCTION
 
 **Code Implementation:**
-1. FTP trend prediction
-2. Personalized zones
-3. Context-aware adjustments
+1. Complete `FTPTrendPredictor.swift` (Day 1-3)
+2. Build `PersonalizedZoneCalculator.swift` (Day 4-5)
+3. Build `ContextAwareZoneService.swift` (Day 6-7)
+4. Final testing & production deployment
 
-**Estimated Time:** 15 days (full-time) or 30 days (part-time)
+**Estimated Time:** 7 days
+
+---
+
+## Summary: 4-Week Expedited Timeline
+
+**Week 1:** Build infrastructure WHILE collecting data (parallel work)  
+**Week 2:** Train with 26 days + build prediction service  
+**Week 3:** Retrain with 30 days + Watch + FTP prediction start  
+**Week 4:** Complete all zone features + production deployment  
+
+**Total:** 4 weeks (28 days) instead of 8 weeks
+
+**Key Strategy:** Don't wait for 30 days - start building NOW!
 
 ---
 
