@@ -444,6 +444,12 @@ extension SleepScoreService {
             userDefaults.set(data, forKey: cachedSleepScoreKey)
             userDefaults.set(Date(), forKey: cachedSleepScoreDateKey)
             Logger.debug("💾 Saved sleep score to cache: \(score.score)")
+            
+            // Also save to shared UserDefaults for widget
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+                sharedDefaults.set(score.score, forKey: "cachedSleepScore")
+                Logger.debug("⌚ Synced sleep score to shared defaults for widget")
+            }
         } catch {
             Logger.error("Failed to save sleep score to cache: \(error)")
         }

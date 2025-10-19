@@ -12,40 +12,45 @@ import AppIntents
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), 
-                   recoveryScore: 75, recoveryBand: "Good", isPersonalized: false)
+                   recoveryScore: 75, recoveryBand: "Good", isPersonalized: false,
+                   sleepScore: 85, strainScore: 8.5)
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        let (score, band, isPersonalized) = await fetchRecoveryScore()
+        let data = await fetchAllScores()
         return SimpleEntry(date: Date(), configuration: configuration,
-                          recoveryScore: score, recoveryBand: band, isPersonalized: isPersonalized)
+                          recoveryScore: data.recovery, recoveryBand: data.band, isPersonalized: data.isPersonalized,
+                          sleepScore: data.sleep, strainScore: data.strain)
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        let (score, band, isPersonalized) = await fetchRecoveryScore()
+        let data = await fetchAllScores()
         let currentDate = Date()
         
-        // Create single entry for current recovery score
+        // Create single entry for current scores
         let entry = SimpleEntry(date: currentDate, configuration: configuration,
-                               recoveryScore: score, recoveryBand: band, isPersonalized: isPersonalized)
+                               recoveryScore: data.recovery, recoveryBand: data.band, isPersonalized: data.isPersonalized,
+                               sleepScore: data.sleep, strainScore: data.strain)
         
         // Update every hour
         let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
         return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
     
-    private func fetchRecoveryScore() async -> (Int?, String?, Bool) {
+    private func fetchAllScores() async -> (recovery: Int?, band: String?, isPersonalized: Bool, sleep: Int?, strain: Double?) {
         // Try to read from shared UserDefaults (App Group)
         if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
-            let score = sharedDefaults.integer(forKey: "cachedRecoveryScore")
+            let recovery = sharedDefaults.integer(forKey: "cachedRecoveryScore")
             let band = sharedDefaults.string(forKey: "cachedRecoveryBand")
             let isPersonalized = sharedDefaults.bool(forKey: "cachedRecoveryIsPersonalized")
+            let sleep = sharedDefaults.integer(forKey: "cachedSleepScore")
+            let strain = sharedDefaults.double(forKey: "cachedStrainScore")
             
-            if score > 0 {
-                return (score, band, isPersonalized)
+            if recovery > 0 {
+                return (recovery, band, isPersonalized, sleep > 0 ? sleep : nil, strain > 0 ? strain : nil)
             }
         }
-        return (nil, nil, false)
+        return (nil, nil, false, nil, nil)
     }
 
 //    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
@@ -59,6 +64,8 @@ struct SimpleEntry: TimelineEntry {
     let recoveryScore: Int?
     let recoveryBand: String?
     let isPersonalized: Bool
+    let sleepScore: Int?
+    let strainScore: Double?
 }
 
 struct VeloReadyWidgetEntryView : View {
@@ -73,6 +80,8 @@ struct VeloReadyWidgetEntryView : View {
             RectangularRecoveryView(score: entry.recoveryScore, band: entry.recoveryBand, isPersonalized: entry.isPersonalized)
         case .accessoryInline:
             InlineRecoveryView(score: entry.recoveryScore)
+        case .systemMedium:
+            MediumWidgetView(entry: entry)
         default:
             SmallRecoveryView(score: entry.recoveryScore, band: entry.recoveryBand, isPersonalized: entry.isPersonalized)
         }
@@ -203,6 +212,141 @@ struct SmallRecoveryView: View {
     }
 }
 
+struct MediumWidgetView: View {
+    let entry: Provider.Entry
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Recovery Ring
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
+                        .frame(width: 80, height: 80)
+                    
+                    if let score = entry.recoveryScore {
+                        Circle()
+                            .trim(from: 0, to: Double(score) / 100.0)
+                            .stroke(colorForRecoveryScore(score), style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                            .frame(width: 80, height: 80)
+                            .rotationEffect(.degrees(-90))
+                        
+                        VStack(spacing: 0) {
+                            Text("\(score)")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(colorForRecoveryScore(score))
+                            
+                            if entry.isPersonalized {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(.purple)
+                            }
+                        }
+                    } else {
+                        Text("--")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Text("recovery")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .textCase(.lowercase)
+            }
+            
+            // Sleep Ring
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
+                        .frame(width: 80, height: 80)
+                    
+                    if let score = entry.sleepScore {
+                        Circle()
+                            .trim(from: 0, to: Double(score) / 100.0)
+                            .stroke(colorForSleepScore(score), style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                            .frame(width: 80, height: 80)
+                            .rotationEffect(.degrees(-90))
+                        
+                        Text("\(score)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(colorForSleepScore(score))
+                    } else {
+                        Text("--")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Text("sleep")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .textCase(.lowercase)
+            }
+            
+            // Strain Ring
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 8)
+                        .frame(width: 80, height: 80)
+                    
+                    if let strain = entry.strainScore {
+                        Circle()
+                            .trim(from: 0, to: min(strain / 21.0, 1.0)) // Max strain is 21
+                            .stroke(colorForStrain(strain), style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                            .frame(width: 80, height: 80)
+                            .rotationEffect(.degrees(-90))
+                        
+                        Text(String(format: "%.1f", strain))
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(colorForStrain(strain))
+                    } else {
+                        Text("--")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Text("strain")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .textCase(.lowercase)
+            }
+        }
+        .padding()
+    }
+    
+    private func colorForRecoveryScore(_ score: Int) -> Color {
+        switch score {
+        case 80...100: return .green
+        case 60..<80: return .yellow
+        case 40..<60: return .orange
+        default: return .red
+        }
+    }
+    
+    private func colorForSleepScore(_ score: Int) -> Color {
+        switch score {
+        case 80...100: return .green
+        case 60..<80: return .yellow
+        case 40..<60: return .orange
+        default: return .red
+        }
+    }
+    
+    private func colorForStrain(_ strain: Double) -> Color {
+        switch strain {
+        case 0..<4: return .green
+        case 4..<10: return .yellow
+        case 10..<14: return .orange
+        case 14..<18: return .red
+        default: return .purple
+        }
+    }
+}
+
 struct VeloReadyWidget: Widget {
     let kind: String = "VeloReadyWidget"
 
@@ -240,6 +384,13 @@ extension ConfigurationAppIntent {
 #Preview(as: .systemSmall) {
     VeloReadyWidget()
 } timeline: {
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 85, recoveryBand: "Optimal", isPersonalized: true)
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 65, recoveryBand: "Good", isPersonalized: false)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 85, recoveryBand: "Optimal", isPersonalized: true, sleepScore: 90, strainScore: 8.5)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 65, recoveryBand: "Good", isPersonalized: false, sleepScore: 75, strainScore: 12.3)
+}
+
+#Preview(as: .systemMedium) {
+    VeloReadyWidget()
+} timeline: {
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 68, recoveryBand: "Good", isPersonalized: false, sleepScore: 84, strainScore: 8.6)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), recoveryScore: 85, recoveryBand: "Optimal", isPersonalized: true, sleepScore: 90, strainScore: 5.2)
 }

@@ -530,6 +530,12 @@ extension StrainScoreService {
             userDefaults.set(data, forKey: cachedStrainScoreKey)
             userDefaults.set(Date(), forKey: cachedStrainScoreDateKey)
             Logger.debug("💾 Saved strain score to cache: \(score.score)")
+            
+            // Also save to shared UserDefaults for widget
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+                sharedDefaults.set(score.score, forKey: "cachedStrainScore")
+                Logger.debug("⌚ Synced strain score to shared defaults for widget")
+            }
         } catch {
             Logger.error("Failed to save strain score to cache: \(error)")
         }
