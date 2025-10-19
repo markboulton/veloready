@@ -441,6 +441,23 @@ class RideDetailViewModel: ObservableObject {
         
         Logger.debug("🟠 Strava Activity ID: \(stravaId)")
         
+        // Try cache first (7-day TTL)
+        if let cachedSamples = StreamCacheService.shared.getCachedStreams(activityId: activity.id) {
+            Logger.debug("⚡ Using cached stream data (\(cachedSamples.count) samples)")
+            samples = cachedSamples
+            
+            // Enrich activity with cached stream data
+            var enriched = enrichActivityWithStreamData(activity: activity, samples: cachedSamples, profileManager: profileManager)
+            enriched = await calculateTSSAndIF(for: enriched, profileManager: profileManager)
+            
+            enrichedActivity = enriched
+            isLoading = false
+            return
+        }
+        
+        // Cache miss - fetch from API
+        Logger.debug("📡 Cache miss - fetching from API...")
+        
         do {
             // Fetch streams from backend API (which caches for 24 hours)
             Logger.debug("🟠 Fetching streams from VeloReady backend...")
