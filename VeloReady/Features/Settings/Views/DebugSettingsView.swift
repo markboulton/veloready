@@ -926,6 +926,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: MLDebugView()) {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundColor(.pink)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("ML Infrastructure")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Machine learning data and model status")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
         } footer: {

@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="DailyPhysio" representedClassName="DailyPhysio" syncable="YES">
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="hrv" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="hrvBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="rhr" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="rhrBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="sleepDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="sleepBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="scores" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DailyScores" inverseName="physio" inverseEntity="DailyScores"/>
-    </entity>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24B91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="DailyLoad" representedClassName="DailyLoad" syncable="YES">
         <attribute name="atl" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="ctl" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -24,6 +13,17 @@
         <attribute name="workoutType" optional="YES" attributeType="String"/>
         <relationship name="scores" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DailyScores" inverseName="load" inverseEntity="DailyScores"/>
     </entity>
+    <entity name="DailyPhysio" representedClassName="DailyPhysio" syncable="YES">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hrv" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="hrvBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="rhr" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="rhrBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="sleepBaseline" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="sleepDuration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="scores" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="DailyScores" inverseName="physio" inverseEntity="DailyScores"/>
+    </entity>
     <entity name="DailyScores" representedClassName="DailyScores" syncable="YES">
         <attribute name="aiBriefText" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -36,13 +36,30 @@
         <relationship name="load" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DailyLoad" inverseName="scores" inverseEntity="DailyLoad"/>
         <relationship name="physio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DailyPhysio" inverseName="scores" inverseEntity="DailyPhysio"/>
     </entity>
-    <entity name="WorkoutMetadata" representedClassName="WorkoutMetadata" syncable="YES">
-        <attribute name="workoutUUID" optional="YES" attributeType="String"/>
-        <attribute name="workoutDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="rpe" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="muscleGroups" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData"/>
-        <attribute name="isEccentricFocused" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+    <entity name="MLTrainingData" representedClassName="VeloReady.MLTrainingData" syncable="YES">
+        <attribute name="actualReadinessScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="actualRecoveryScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dataQualityScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="featureVectorData" optional="YES" attributeType="Binary"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isValidTrainingData" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="modelVersion" optional="YES" attributeType="String"/>
+        <attribute name="predictionConfidence" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="predictionError" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="targetReadinessScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="targetRecoveryScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="trainingPhase" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="WorkoutMetadata" representedClassName="WorkoutMetadata" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isEccentricFocused" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="muscleGroups" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData"/>
+        <attribute name="rpe" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="workoutDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="workoutUUID" optional="YES" attributeType="String"/>
     </entity>
 </model>

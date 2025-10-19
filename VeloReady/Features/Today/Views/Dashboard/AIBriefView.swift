@@ -3,6 +3,7 @@ import SwiftUI
 /// View displaying AI-generated daily brief
 struct AIBriefView: View {
     @ObservedObject var service = AIBriefService.shared
+    @ObservedObject var mlService = MLTrainingDataService.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -45,6 +46,15 @@ struct AIBriefView: View {
                             Text(text)
                                 .bodyStyle()
                                 .fixedSize(horizontal: false, vertical: true)
+                            
+                            // ML Data Collection Progress (if not sufficient data yet)
+                            if mlService.trainingDataCount < 30 {
+                                MLDataCollectionView(
+                                    currentDays: mlService.trainingDataCount,
+                                    totalDays: 30
+                                )
+                                .padding(.top, 4)
+                            }
                             
                             // Training Metrics
                             TrainingMetricsView()
@@ -113,6 +123,59 @@ private struct ErrorView: View {
     }
 }
 
+// MARK: - ML Data Collection View
+
+private struct MLDataCollectionView: View {
+    let currentDays: Int
+    let totalDays: Int
+    
+    private var daysRemaining: Int {
+        max(0, totalDays - currentDays)
+    }
+    
+    private var progress: Double {
+        Double(currentDays) / Double(totalDays)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(TodayContent.AIBrief.mlCollecting)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            // Progress bar (similar to chart progress bars)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background (grey)
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(height: 4)
+                        .cornerRadius(2)
+                    
+                    // Progress (blue)
+                    Rectangle()
+                        .fill(Color.blue)
+                        .frame(width: geometry.size.width * progress, height: 4)
+                        .cornerRadius(2)
+                }
+            }
+            .frame(height: 4)
+            
+            HStack {
+                Text("\(currentDays) days")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text("\(daysRemaining) \(TodayContent.AIBrief.mlDaysRemaining)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+}
+
 // MARK: - Training Metrics View
 
 private struct TrainingMetricsView: View {
@@ -121,7 +184,9 @@ private struct TrainingMetricsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // Grey dividing line before TSB section
             Divider()
+                .padding(.vertical, 4)
             
             // TSB (Training Stress Balance)
             if let recovery = recoveryService.currentRecoveryScore {

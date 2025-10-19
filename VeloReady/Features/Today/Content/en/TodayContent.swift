@@ -36,11 +36,13 @@ enum TodayContent {
     
     // MARK: - AI Brief
     enum AIBrief {
-        static let title = "Daily Brief"  /// AI Brief section title
+        static let title = "VeloAI"  /// AI Brief section title
         static let loading = "Loading your daily brief..."  /// Loading message
         static let analyzing = "Analyzing your data..."  /// Analyzing message (loading state)
         static let tsb = "Training Stress Balance:"  /// TSB label
         static let targetTSS = "Target TSS Today:"  /// Target TSS label
         static let tssDescription = "Training Stress Score - aim for this range based on your fitness"  /// TSS description
+        static let mlCollecting = "Collecting data to personalize your insights"  /// ML data collection message
+        static let mlDaysRemaining = "days remaining"  /// ML days remaining label
     }
 }
