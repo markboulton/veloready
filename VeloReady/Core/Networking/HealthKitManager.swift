@@ -754,13 +754,23 @@ class HealthKitManager: ObservableObject {
         }
     }
     
-    /// Fetch latest resting heart rate
+    /// Fetch latest resting heart rate (cached for 5 minutes)
     func fetchLatestRHRData() async -> (sample: HKQuantitySample?, value: Double?) {
         guard let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) else {
             return (nil, nil)
         }
         
-        return await fetchLatestQuantity(for: rhrType, unit: HKUnit(from: "count/min"))
+        let today = Calendar.current.startOfDay(for: Date())
+        let cacheKey = "healthkit:rhr:\(today.timeIntervalSince1970)"
+        
+        do {
+            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+                return await self.fetchLatestQuantity(for: rhrType, unit: HKUnit(from: "count/min"))
+            }
+        } catch {
+            // If cache fails, fetch directly
+            return await fetchLatestQuantity(for: rhrType, unit: HKUnit(from: "count/min"))
+        }
     }
     
     /// Fetch latest respiratory rate
