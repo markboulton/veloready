@@ -150,6 +150,11 @@ class RecoveryScoreService: ObservableObject {
         let realScore = await calculateRealRecoveryScore(forceRefresh: forceRefresh)
         currentRecoveryScore = realScore
         
+        // Sync to Apple Watch
+        if let score = realScore {
+            WatchConnectivityManager.shared.sendRecoveryScore(score)
+        }
+        
         // Calculate additional recovery metrics
         await calculateRecoveryDebt()
         await calculateReadinessScore()
@@ -672,6 +677,14 @@ extension RecoveryScoreService {
             userDefaults.set(data, forKey: cachedRecoveryScoreKey)
             userDefaults.set(Date(), forKey: cachedRecoveryScoreDateKey)
             Logger.debug("💾 Saved recovery score to cache: \(score.score)")
+            
+            // Also save to shared UserDefaults for widget/watch
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+                sharedDefaults.set(score.score, forKey: "cachedRecoveryScore")
+                sharedDefaults.set(score.band.rawValue, forKey: "cachedRecoveryBand")
+                sharedDefaults.set(score.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
+                Logger.debug("⌚ Saved recovery score to shared defaults for widget/watch")
+            }
         } catch {
             Logger.error("Failed to save recovery score to cache: \(error)")
         }
