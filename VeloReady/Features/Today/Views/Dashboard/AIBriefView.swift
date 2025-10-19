@@ -4,6 +4,7 @@ import SwiftUI
 struct AIBriefView: View {
     @ObservedObject var service = AIBriefService.shared
     @ObservedObject var mlService = MLTrainingDataService.shared
+    @State private var showingMLInfoSheet = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -51,7 +52,8 @@ struct AIBriefView: View {
                             if mlService.trainingDataCount < 30 {
                                 MLDataCollectionView(
                                     currentDays: mlService.trainingDataCount,
-                                    totalDays: 30
+                                    totalDays: 30,
+                                    showInfoSheet: { showingMLInfoSheet = true }
                                 )
                                 .padding(.top, 4)
                             }
@@ -81,6 +83,9 @@ struct AIBriefView: View {
                     await service.fetchBrief()
                 }
             }
+        }
+        .sheet(isPresented: $showingMLInfoSheet) {
+            MLPersonalizationInfoSheet()
         }
     }
 }
@@ -129,6 +134,8 @@ private struct MLDataCollectionView: View {
     let currentDays: Int
     let totalDays: Int
     
+    let showInfoSheet: () -> Void
+    
     private var daysRemaining: Int {
         max(0, totalDays - currentDays)
     }
@@ -139,9 +146,21 @@ private struct MLDataCollectionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(TodayContent.AIBrief.mlCollecting)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // Text with info button on the right
+            HStack {
+                Text(TodayContent.AIBrief.mlCollecting)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Button(action: showInfoSheet) {
+                    Image(systemName: "questionmark.circle")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
             
             // Progress bar (similar to chart progress bars)
             GeometryReader { geometry in

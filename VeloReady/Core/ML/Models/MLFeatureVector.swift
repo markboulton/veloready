@@ -13,6 +13,9 @@ struct MLFeatureVector: Codable {
     /// HRV delta from baseline (percentage, -1.0 to 1.0)
     let hrvDelta: Double?
     
+    /// HRV coefficient of variation over last 7 days (std dev / mean * 100)
+    let hrvCoefficientOfVariation: Double?
+    
     /// Current RHR value (bpm)
     let rhr: Double?
     
@@ -53,6 +56,12 @@ struct MLFeatureVector: Codable {
     
     /// Acute:Chronic ratio (ATL/CTL)
     let acuteChronicRatio: Double?
+    
+    /// Training monotony (average TSS / std dev TSS over last 7 days)
+    let trainingMonotony: Double?
+    
+    /// Training strain (total TSS * monotony over last 7 days)
+    let trainingStrain: Double?
     
     // MARK: - Recovery Trends
     
@@ -133,6 +142,7 @@ struct MLFeatureVector: Codable {
         if let hrv = hrv { dict["hrv"] = hrv }
         if let hrvBaseline = hrvBaseline { dict["hrv_baseline"] = hrvBaseline }
         if let hrvDelta = hrvDelta { dict["hrv_delta"] = hrvDelta }
+        if let hrvCoefficientOfVariation = hrvCoefficientOfVariation { dict["hrv_cv"] = hrvCoefficientOfVariation }
         if let rhr = rhr { dict["rhr"] = rhr }
         if let rhrBaseline = rhrBaseline { dict["rhr_baseline"] = rhrBaseline }
         if let rhrDelta = rhrDelta { dict["rhr_delta"] = rhrDelta }
@@ -148,6 +158,8 @@ struct MLFeatureVector: Codable {
         if let atl = atl { dict["atl"] = atl }
         if let tsb = tsb { dict["tsb"] = tsb }
         if let acuteChronicRatio = acuteChronicRatio { dict["acute_chronic_ratio"] = acuteChronicRatio }
+        if let trainingMonotony = trainingMonotony { dict["training_monotony"] = trainingMonotony }
+        if let trainingStrain = trainingStrain { dict["training_strain"] = trainingStrain }
         
         // Recovery trends
         if let recoveryTrend7d = recoveryTrend7d { dict["recovery_trend_7d"] = recoveryTrend7d }

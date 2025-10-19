@@ -103,6 +103,14 @@ class FeatureEngineer {
         )
         let hrvDelta = calculateDelta(current: hrv, baseline: hrvBaseline)
         
+        let hrvCoefficientOfVariation = calculateCoefficientOfVariation(
+            dates: allDates,
+            data: historicalData,
+            endIndex: currentIndex,
+            window: 7,
+            extractor: { $0.healthKitData?.hrv ?? $0.coreDataScore?.physio?.hrv }
+        )
+        
         let rhr = dataPoint.healthKitData?.rhr ?? dataPoint.coreDataScore?.physio?.rhr
         let rhrBaseline = calculateRollingAverage(
             dates: allDates,
@@ -135,6 +143,13 @@ class FeatureEngineer {
         let atl = dataPoint.coreDataScore?.load?.atl
         let tsb = dataPoint.coreDataScore?.load?.tsb
         let acuteChronicRatio = atl.flatMap { a in ctl.flatMap { c in c > 0 ? a / c : nil } }
+        
+        let (trainingMonotony, trainingStrain) = calculateTrainingMonotonyAndStrain(
+            dates: allDates,
+            data: historicalData,
+            endIndex: currentIndex,
+            window: 7
+        )
         
         // MARK: Recovery Trends
         
@@ -215,6 +230,7 @@ class FeatureEngineer {
             hrv: hrv,
             hrvBaseline: hrvBaseline,
             hrvDelta: hrvDelta,
+            hrvCoefficientOfVariation: hrvCoefficientOfVariation,
             rhr: rhr,
             rhrBaseline: rhrBaseline,
             rhrDelta: rhrDelta,
@@ -228,6 +244,8 @@ class FeatureEngineer {
             atl: atl,
             tsb: tsb,
             acuteChronicRatio: acuteChronicRatio,
+            trainingMonotony: trainingMonotony,
+            trainingStrain: trainingStrain,
             recoveryTrend7d: recoveryTrend7d,
             recoveryTrend3d: recoveryTrend3d,
             yesterdayRecovery: yesterdayRecovery,
@@ -336,5 +354,63 @@ class FeatureEngineer {
         // Simple weighted formula (matches existing ReadinessScore logic)
         let loadReadiness = max(0, 100 - (strain / 18.0 * 100))
         return (recovery * 0.4) + (sleep * 0.35) + (loadReadiness * 0.25)
+    }
+    
+    /// Calculate coefficient of variation (CV) = (std dev / mean) * 100
+    /// Used to measure stability/variability in metrics like HRV
+    private func calculateCoefficientOfVariation(
+        dates: [Date],
+        data: [Date: HistoricalDataPoint],
+        endIndex: Int,
+        window: Int,
+        extractor: (HistoricalDataPoint) -> Double?
+    ) -> Double? {
+        let startIndex = max(0, endIndex - window + 1)
+        let windowDates = Array(dates[startIndex...endIndex])
+        
+        let values = windowDates.compactMap { date in
+            data[date].flatMap(extractor)
+        }
+        
+        guard values.count >= 3 else { return nil } // Need at least 3 points
+        
+        let mean = values.reduce(0, +) / Double(values.count)
+        guard mean > 0 else { return nil }
+        
+        let variance = values.map { pow($0 - mean, 2) }.reduce(0, +) / Double(values.count)
+        let stdDev = sqrt(variance)
+        
+        return (stdDev / mean) * 100.0
+    }
+    
+    /// Calculate training monotony and strain over a window
+    /// Monotony = average TSS / std dev TSS
+    /// Strain = total TSS * monotony
+    private func calculateTrainingMonotonyAndStrain(
+        dates: [Date],
+        data: [Date: HistoricalDataPoint],
+        endIndex: Int,
+        window: Int
+    ) -> (monotony: Double?, strain: Double?) {
+        let startIndex = max(0, endIndex - window + 1)
+        let windowDates = Array(dates[startIndex...endIndex])
+        
+        let tssValues = windowDates.compactMap { date in
+            data[date]?.dailyTSS
+        }
+        
+        guard tssValues.count >= 3 else { return (nil, nil) } // Need at least 3 points
+        
+        let mean = tssValues.reduce(0, +) / Double(tssValues.count)
+        let variance = tssValues.map { pow($0 - mean, 2) }.reduce(0, +) / Double(tssValues.count)
+        let stdDev = sqrt(variance)
+        
+        guard stdDev > 0 else { return (nil, nil) } // Avoid division by zero
+        
+        let monotony = mean / stdDev
+        let totalTSS = tssValues.reduce(0, +)
+        let strain = totalTSS * monotony
+        
+        return (monotony, strain)
     }
 }
