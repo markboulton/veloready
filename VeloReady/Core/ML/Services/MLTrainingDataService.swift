@@ -31,6 +31,23 @@ class MLTrainingDataService: ObservableObject {
     
     private init() {
         loadState()
+        
+        // Auto-process historical data on first launch if we have no data
+        Task {
+            await autoProcessIfNeeded()
+        }
+    }
+    
+    /// Automatically process historical data if we have none
+    private func autoProcessIfNeeded() async {
+        // Only run if we have no training data and haven't processed before
+        guard trainingDataCount == 0, lastProcessingDate == nil else {
+            Logger.debug("📊 [ML] Training data already exists (\(trainingDataCount) days), skipping auto-process")
+            return
+        }
+        
+        Logger.info("🚀 [ML] No training data found - auto-processing historical data...")
+        await processHistoricalData(days: 90)
     }
     
     // MARK: - Public API

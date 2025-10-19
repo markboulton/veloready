@@ -941,6 +941,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: AppGroupDebugView()) {
+                HStack {
+                    Image(systemName: "square.grid.2x2")
+                        .foregroundColor(.orange)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("App Group Test")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Test widget data sharing")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
         } footer: {
