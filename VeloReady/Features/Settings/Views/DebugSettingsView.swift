@@ -911,6 +911,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: CacheStatsView()) {
+                HStack {
+                    Image(systemName: "chart.bar.doc.horizontal.fill")
+                        .foregroundColor(.orange)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Cache Statistics")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Monitor cache performance and hit rates")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
         } footer: {
