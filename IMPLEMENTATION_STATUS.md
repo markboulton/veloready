@@ -1,5 +1,8 @@
 # VeloReady Implementation Status
 
+**Last Updated:** October 19, 2025  
+**Master Plan:** See `API_CACHE_IMPLEMENTATION_ROADMAP.md`
+
 **Last Updated:** October 18, 2025, 9:45pm UTC+01:00  
 **Session:** API & Cache Strategy Implementation
 
