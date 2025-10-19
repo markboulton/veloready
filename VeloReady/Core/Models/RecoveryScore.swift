@@ -24,6 +24,24 @@ struct RecoveryScore: Codable {
         self.mlConfidence = mlConfidence
     }
     
+    // Custom decoder for backward compatibility with cached data
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        score = try container.decode(Int.self, forKey: .score)
+        band = try container.decode(RecoveryBand.self, forKey: .band)
+        subScores = try container.decode(SubScores.self, forKey: .subScores)
+        inputs = try container.decode(RecoveryInputs.self, forKey: .inputs)
+        calculatedAt = try container.decode(Date.self, forKey: .calculatedAt)
+        
+        // New fields - use defaults if not present (backward compatibility)
+        isPersonalized = try container.decodeIfPresent(Bool.self, forKey: .isPersonalized) ?? false
+        mlConfidence = try container.decodeIfPresent(Double.self, forKey: .mlConfidence)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case score, band, subScores, inputs, calculatedAt, isPersonalized, mlConfidence
+    }
+    
     enum RecoveryBand: String, CaseIterable, Codable {
         case optimal = "Optimal"
         case good = "Good"
