@@ -335,9 +335,36 @@ enum CommonContent {
         static let errorPrefix = "Error: "  /// Error prefix
     }
     
-    // MARK: - Wellness Alerts
+    // MARK: - Wellness & Illness Detection
     enum WellnessAlerts {
         static let keyMetricsElevated = "Key metrics elevated"  /// Key metrics elevated alert
+        static let bodyStressDetected = "Body stress signals detected"  /// Body stress detected
+        static let unusualPatterns = "Unusual patterns detected"  /// Unusual patterns
+        static let monitorHealth = "Monitor your health"  /// Monitor health
+        static let restRecommended = "Rest recommended"  /// Rest recommended
+        static let seekMedicalAdvice = "Consider medical advice"  /// Seek medical advice
+    }
+    
+    // MARK: - Illness Indicators
+    enum IllnessIndicators {
+        // Severity levels
+        static let lowSeverity = "Low"  /// Low severity
+        static let moderateSeverity = "Moderate"  /// Moderate severity
+        static let highSeverity = "High"  /// High severity
+        
+        // Signal types
+        static let hrvDrop = "HRV Drop"  /// HRV drop signal
+        static let elevatedRHR = "Elevated RHR"  /// Elevated RHR signal
+        static let respiratoryChange = "Respiratory Change"  /// Respiratory change
+        static let sleepDisruption = "Sleep Disruption"  /// Sleep disruption
+        static let activityDrop = "Activity Drop"  /// Activity drop
+        static let temperatureElevation = "Temperature Elevation"  /// Temperature elevation
+        
+        // Status messages
+        static let analyzing = "Analyzing health patterns..."  /// Analyzing
+        static let detected = "Detected"  /// Detected status
+        static let monitoring = "Monitoring"  /// Monitoring status
+        static let normal = "Normal"  /// Normal status
     }
     
     // MARK: - AI Brief

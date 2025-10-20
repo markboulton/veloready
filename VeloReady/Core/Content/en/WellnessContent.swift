@@ -91,4 +91,63 @@ enum WellnessContent {
         static let insufficientData = "Not enough data to analyze trends"
         static let insufficientDataDescription = "We need a few more days of health data to detect patterns."
     }
+    
+    // MARK: - Illness Detection
+    
+    enum IllnessDetection {
+        static let title = "Body Stress Signals"
+        static let subtitle = "Potential strain indicators"
+        
+        // Detection messages
+        static let patternsDetected = "We've detected some unusual patterns in your health metrics"
+        static let multiDayTrend = "These changes have been consistent over multiple days"
+        static let notMedicalDiagnosis = "This is not a medical diagnosis - just observations from your data"
+        
+        // Confidence levels
+        static let lowConfidence = "Low confidence"
+        static let moderateConfidence = "Moderate confidence"
+        static let highConfidence = "High confidence"
+        
+        // Actions
+        static let viewDetails = "View Details"
+        static let dismiss = "Dismiss"
+        static let understood = "Understood"
+        
+        // Signal descriptions (detailed)
+        static let hrvDropDetail = "Your heart rate variability has dropped significantly below your baseline, which may indicate your body is under stress or fighting something."
+        static let elevatedRHRDetail = "Your resting heart rate has been consistently elevated, suggesting your cardiovascular system is working harder than usual."
+        static let respiratoryChangeDetail = "Changes in your breathing patterns during sleep can indicate respiratory system stress or congestion."
+        static let sleepDisruptionDetail = "Sustained poor sleep quality can impact your immune system and overall recovery capacity."
+        static let activityDropDetail = "A significant decrease in your usual activity levels may indicate fatigue or reduced energy."
+        static let temperatureElevationDetail = "Elevated body temperature readings above your baseline."
+        
+        // Recommendations by severity
+        static func recommendations(for severity: String) -> [String] {
+            switch severity.lowercased() {
+            case "low":
+                return [
+                    "Monitor how you're feeling over the next day or two",
+                    "Consider reducing training intensity",
+                    "Prioritize sleep and hydration",
+                    "Track any symptoms you notice"
+                ]
+            case "moderate":
+                return [
+                    "Take it easy with training - light activity or rest",
+                    "Focus on recovery: sleep, nutrition, hydration",
+                    "Monitor your symptoms closely",
+                    "Consider if you're feeling unwell"
+                ]
+            case "high":
+                return [
+                    "Rest is strongly recommended today",
+                    "Monitor your symptoms carefully",
+                    "If you're feeling unwell, consider contacting a healthcare provider",
+                    "Prioritize rest, hydration, and nutrition"
+                ]
+            default:
+                return []
+            }
+        }
+    }
 }

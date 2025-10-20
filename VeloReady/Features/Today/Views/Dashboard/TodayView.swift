@@ -17,10 +17,12 @@ struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var wellnessService = WellnessDetectionService.shared
+    @StateObject private var illnessService = IllnessDetectionService.shared
     @StateObject private var liveActivityService: LiveActivityService
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
+    @State private var showingIllnessDetailSheet = false
     @State private var missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
     @State private var showMissingSleepInfo = false
     @State private var showMainSpinner = true
@@ -78,6 +80,17 @@ struct TodayView: View {
                             animationTrigger: viewModel.animationTrigger,
                             hideBottomDivider: false
                         )
+                        
+                        // Illness Detection Card (if detected)
+                        if healthKitManager.isAuthorized,
+                           let indicator = illnessService.currentIndicator,
+                           indicator.isSignificant {
+                            IllnessIndicatorCard(indicator: indicator) {
+                                showingIllnessDetailSheet = true
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                        }
                         
                         // AI Daily Brief (only when HealthKit authorized)
                         if healthKitManager.isAuthorized {
@@ -175,6 +188,13 @@ struct TodayView: View {
             .sheet(isPresented: $showingWellnessDetailSheet) {
                 if let alert = wellnessService.currentAlert {
                     WellnessDetailSheet(alert: alert)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.visible)
+                }
+            }
+            .sheet(isPresented: $showingIllnessDetailSheet) {
+                if let indicator = illnessService.currentIndicator {
+                    IllnessDetailSheet(indicator: indicator)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
@@ -494,6 +514,8 @@ struct TodayView: View {
                 liveActivityService.startAutoUpdates()
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
                 await wellnessService.analyzeHealthTrends()
+                // Run illness detection after wellness analysis
+                await illnessService.analyzeHealthTrends()
             }
         }
         wasHealthKitAuthorized = healthKitManager.isAuthorized
@@ -516,6 +538,8 @@ struct TodayView: View {
             liveActivityService.startAutoUpdates()
             if healthKitManager.isAuthorized {
                 await viewModel.refreshData()
+                // Re-analyze illness detection when app comes to foreground
+                await illnessService.analyzeHealthTrends()
             }
         }
     }
