@@ -624,7 +624,7 @@ struct AdditionalDataSection: View {
     }
     
     private func formatHeartRate(_ hr: Double) -> String {
-        return String(format: "%.0f bpm", hr)
+        return String(format: "%.0f \(CommonContent.Units.bpm)", hr)
     }
     
     private func formatCadence(_ cadence: Double) -> String {

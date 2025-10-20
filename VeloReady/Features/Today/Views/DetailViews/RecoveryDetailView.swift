@@ -231,8 +231,8 @@ struct RecoveryDetailView: View {
                     if let rhrBaseline = recoveryScore.inputs.rhrBaseline {
                         healthMetricRow(
                             title: RecoveryContent.HealthMetrics.restingHeartRate,
-                            current: String(format: "%.0f bpm", rhr),
-                            baseline: String(format: "%.0f bpm", rhrBaseline),
+                            current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
+                            baseline: String(format: "%.0f \(CommonContent.Units.bpm)", rhrBaseline),
                             change: calculatePercentageChange(current: rhr, baseline: rhrBaseline),
                             icon: "heart.circle.fill",
                             color: ColorScale.redAccent
@@ -240,7 +240,7 @@ struct RecoveryDetailView: View {
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: RecoveryContent.HealthMetrics.restingHeartRate,
-                            current: String(format: "%.0f bpm", rhr),
+                            current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
                             icon: "heart.circle.fill",
                             color: ColorScale.redAccent
                         )

@@ -400,12 +400,12 @@ struct ZonePieChartSection: View {
     
     private func freeHRZoneBoundary(_ index: Int) -> String {
         switch index {
-        case 0: return "≤ \(userSettings.hrZone1Max) bpm"
-        case 1: return "\(userSettings.hrZone1Max + 1) - \(userSettings.hrZone2Max) bpm"
-        case 2: return "\(userSettings.hrZone2Max + 1) - \(userSettings.hrZone3Max) bpm"
-        case 3: return "\(userSettings.hrZone3Max + 1) - \(userSettings.hrZone4Max) bpm"
-        case 4: return "\(userSettings.hrZone4Max + 1) - \(userSettings.hrZone5Max) bpm"
-        case 5: return "> \(userSettings.hrZone5Max) bpm"
+        case 0: return "≤ \(userSettings.hrZone1Max) \(CommonContent.Units.bpm)"
+        case 1: return "\(userSettings.hrZone1Max + 1) - \(userSettings.hrZone2Max) \(CommonContent.Units.bpm)"
+        case 2: return "\(userSettings.hrZone2Max + 1) - \(userSettings.hrZone3Max) \(CommonContent.Units.bpm)"
+        case 3: return "\(userSettings.hrZone3Max + 1) - \(userSettings.hrZone4Max) \(CommonContent.Units.bpm)"
+        case 4: return "\(userSettings.hrZone4Max + 1) - \(userSettings.hrZone5Max) \(CommonContent.Units.bpm)"
+        case 5: return "> \(userSettings.hrZone5Max) \(CommonContent.Units.bpm)"
         default: return hrZoneName(index)
         }
     }
