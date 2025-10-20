@@ -14,15 +14,15 @@ struct PreferencesStepView: View {
         
         var distance: String {
             switch self {
-            case .metric: return "Kilometers"
-            case .imperial: return "Miles"
+            case .metric: return OnboardingContent.Preferences.kilometers
+            case .imperial: return OnboardingContent.Preferences.miles
             }
         }
         
         var weight: String {
             switch self {
-            case .metric: return "Kilograms"
-            case .imperial: return "Pounds"
+            case .metric: return OnboardingContent.Preferences.kilograms
+            case .imperial: return OnboardingContent.Preferences.pounds
             }
         }
     }

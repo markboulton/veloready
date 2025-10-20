@@ -345,5 +345,22 @@ enum OnboardingContent {
         static let notificationsTitle = "Notifications"  /// Notifications section title
         static let recoveryReminders = "Recovery Reminders"  /// Recovery reminders toggle
         static let recoveryRemindersDescription = "Get notified about your daily recovery score"  /// Recovery reminders description
+        
+        // Unit Systems
+        static let metric = "Metric"  /// Metric unit system
+        static let imperial = "Imperial"  /// Imperial unit system
+        static let kilometers = "Kilometers"  /// Kilometers unit
+        static let miles = "Miles"  /// Miles unit
+        static let kilograms = "Kilograms"  /// Kilograms unit
+        static let pounds = "Pounds"  /// Pounds unit
+        
+        // Activity Types
+        static let cycling = "Cycling"  /// Cycling activity
+        static let running = "Running"  /// Running activity
+        static let swimming = "Swimming"  /// Swimming activity
+        static let walking = "Walking"  /// Walking activity
+        static let hiking = "Hiking"  /// Hiking activity
+        static let other = "Other"  /// Other activity
     }
 }
+
