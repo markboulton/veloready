@@ -56,7 +56,7 @@ struct DataSourcesStepView: View {
                     
                     // Wahoo (bottom) - Coming soon
                     Button(action: {}) {
-                        Text("Wahoo (Coming Soon)")
+                        Text(OnboardingContent.DataSources.wahooComingSoon)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -68,18 +68,18 @@ struct DataSourcesStepView: View {
                 }
                 .padding(.horizontal, 32)
                 
-                Text("Optional: Connect your training platform")
+                Text(OnboardingContent.DataSources.optionalNote)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 8)
             } else {
                 // Non-cycling message
                 VStack(spacing: 16) {
-                    Text("You're all set!")
+                    Text(OnboardingContent.DataSources.allSetTitle)
                         .font(.title2)
                         .fontWeight(.semibold)
                     
-                    Text("We'll track your activities through Apple Health")
+                    Text(OnboardingContent.DataSources.allSetMessage)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -96,7 +96,7 @@ struct DataSourcesStepView: View {
                 }
                 onboardingManager.nextStep()
             }) {
-                Text("Continue")
+                Text(OnboardingContent.DataSources.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

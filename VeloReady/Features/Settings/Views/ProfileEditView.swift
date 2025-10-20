@@ -18,9 +18,9 @@ struct ProfileEditView: View {
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                 } header: {
-                    Text("Personal Information")
+                    Text(SettingsContent.Profile.personalInformation)
                 } footer: {
-                    Text("This information is stored locally on your device.")
+                    Text(SettingsContent.Profile.personalInfoFooter)
                 }
                 
                 // Athletic Info
@@ -60,7 +60,7 @@ struct ProfileEditView: View {
                 } header: {
                     Text(SettingsContent.Profile.editProfile)
                 } footer: {
-                    Text("Used for calculating BMR and other metrics.")
+                    Text(SettingsContent.Profile.athleticInfoFooter)
                 }
                 
                 // Connected Services
@@ -90,16 +90,16 @@ struct ProfileEditView: View {
                     }
                     
                     if viewModel.intervalsID == nil && viewModel.stravaID == nil {
-                        Text("No connected services")
+                        Text(SettingsContent.Profile.noConnectedServices)
                             .foregroundColor(.secondary)
                     }
                 } header: {
-                    Text("Connected Services")
+                    Text(SettingsContent.Profile.connectedServicesSection)
                 } footer: {
-                    Text("Connect services in Data Sources settings.")
+                    Text(SettingsContent.Profile.connectedServicesEditFooter)
                 }
             }
-            .navigationTitle("Edit Profile")
+            .navigationTitle(SettingsContent.Profile.editNavigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

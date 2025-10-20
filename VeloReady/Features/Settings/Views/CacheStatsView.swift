@@ -117,7 +117,7 @@ struct CacheStatsView: View {
                 Logger.debug("🗑️ All caches cleared")
             }
         } message: {
-            Text("This will clear all cached data. The app will re-fetch data as needed.")
+            Text(SettingsContent.Cache.clearMessage)
         }
     }
     

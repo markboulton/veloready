@@ -38,12 +38,12 @@ struct SubscriptionStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Text("Unlock Pro Features")
+                Text(OnboardingContent.Subscription.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Get the most out of VeloReady")
+                Text(OnboardingContent.Subscription.subtitle)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -142,7 +142,7 @@ struct SubscriptionStepView: View {
                     Logger.debug("🔥 Starting \(selectedPlan.rawValue) subscription")
                     onboardingManager.completeOnboarding()
                 }) {
-                    Text("Start Free Trial")
+                    Text(OnboardingContent.Subscription.continueButton)
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -154,7 +154,7 @@ struct SubscriptionStepView: View {
                 Button(action: {
                     onboardingManager.completeOnboarding()
                 }) {
-                    Text("Continue with Free")
+                    Text(OnboardingContent.Subscription.skipButton)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }

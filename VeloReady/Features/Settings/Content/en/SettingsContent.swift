@@ -48,6 +48,11 @@ enum SettingsContent {
         static let connectedServicesSection = "Connected Services"  /// Connected services section
         static let connectedServicesFooter = "Connect services in Data Sources settings to sync your activities and metrics."  /// Connected services footer
         static let navigationTitle = "Profile"  /// Navigation title
+        static let personalInformation = "Personal Information"  /// Personal info section
+        static let personalInfoFooter = "This information is stored locally on your device."  /// Personal info footer
+        static let athleticInfoFooter = "Used for calculating BMR and other metrics."  /// Athletic info footer
+        static let connectedServicesEditFooter = "Connect services in Data Sources settings."  /// Edit footer
+        static let editNavigationTitle = "Edit Profile"  /// Edit navigation title
     }
     
     // MARK: - iCloud
@@ -101,6 +106,7 @@ enum SettingsContent {
         static let cacheMisses = "Cache Misses"
         static let deduplicated = "Deduplicated"
         static let targetHitRate = "Target: >85% hit rate after warm-up"
+        static let clearMessage = "This will clear all cached data. The app will re-fetch data as needed."  /// Clear cache message
     }
     
     // MARK: - Feedback
