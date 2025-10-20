@@ -37,7 +37,7 @@ struct AthleteZonesSettingsView: View {
                 proActionsSection
             }
         }
-        .navigationTitle("Athlete Zones")
+        .navigationTitle(SettingsContent.AthleteZones.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             initializeEditingStates()
@@ -81,14 +81,14 @@ struct AthleteZonesSettingsView: View {
                                 Text(CommonContent.Units.watts)
                                     .foregroundColor(.secondary)
                                 
-                                Button("Save") {
+                                Button(SettingsContent.AthleteZones.save) {
                                     saveFTP()
                                     isEditingFTP = false
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(editingFTP.isEmpty || Int(editingFTP) == nil)
                                 
-                                Button("Cancel") {
+                                Button(SettingsContent.AthleteZones.cancel) {
                                     editingFTP = "\(Int(profileManager.profile.ftp ?? 0))"
                                     isEditingFTP = false
                                 }
@@ -108,7 +108,7 @@ struct AthleteZonesSettingsView: View {
                                 } label: {
                                     HStack {
                                         Image(systemName: "pencil")
-                                        Text("Edit")
+                                        Text(SettingsContent.AthleteZones.edit)
                                     }
                                 }
                                 .buttonStyle(.bordered)
@@ -121,7 +121,7 @@ struct AthleteZonesSettingsView: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
                             
-                            Text("Computed from performance data")
+                            Text(SettingsContent.AthleteZones.computedFromData)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -153,14 +153,14 @@ struct AthleteZonesSettingsView: View {
                                 Text(CommonContent.Units.bpm)
                                     .foregroundColor(.secondary)
                                 
-                                Button("Save") {
+                                Button(SettingsContent.AthleteZones.save) {
                                     saveMaxHR()
                                     isEditingMaxHR = false
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(editingMaxHR.isEmpty || Int(editingMaxHR) == nil)
                                 
-                                Button("Cancel") {
+                                Button(SettingsContent.AthleteZones.cancel) {
                                     editingMaxHR = "\(Int(profileManager.profile.maxHR ?? 0))"
                                     isEditingMaxHR = false
                                 }
@@ -180,7 +180,7 @@ struct AthleteZonesSettingsView: View {
                                 } label: {
                                     HStack {
                                         Image(systemName: "pencil")
-                                        Text("Edit")
+                                        Text(SettingsContent.AthleteZones.edit)
                                     }
                                 }
                                 .buttonStyle(.bordered)
@@ -193,7 +193,7 @@ struct AthleteZonesSettingsView: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
                             
-                            Text("Computed from performance data")
+                            Text(SettingsContent.AthleteZones.computedFromData)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -202,7 +202,7 @@ struct AthleteZonesSettingsView: View {
             }
             .padding(.vertical, 8)
         } header: {
-            Text("Athlete Profile")
+            Text(SettingsContent.AthleteZones.athleteProfile)
         } footer: {
             profileFooterText
         }
@@ -216,7 +216,7 @@ struct AthleteZonesSettingsView: View {
                 // Zone Source Picker (PRO only)
                 if proConfig.hasProAccess {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Zone Source")
+                        Text(SettingsContent.AthleteZones.zoneSource)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -242,14 +242,14 @@ struct AthleteZonesSettingsView: View {
                         powerZoneRow(index: index, zones: zones)
                     }
                 } else {
-                    Text("No power zones available")
+                    Text(SettingsContent.AthleteZones.noPowerZones)
                         .foregroundColor(.secondary)
                         .italic()
                 }
             }
             .padding(.vertical, 8)
         } header: {
-            Text("Power Training Zones")
+            Text(SettingsContent.AthleteZones.powerTrainingZones)
         } footer: {
             powerZonesFooterText
         }
@@ -263,7 +263,7 @@ struct AthleteZonesSettingsView: View {
                 // Zone Source Picker (PRO only)
                 if proConfig.hasProAccess {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Zone Source")
+                        Text(SettingsContent.AthleteZones.zoneSource)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -289,14 +289,14 @@ struct AthleteZonesSettingsView: View {
                         hrZoneRow(index: index, zones: zones)
                     }
                 } else {
-                    Text("No HR zones available")
+                    Text(SettingsContent.AthleteZones.noHRZones)
                         .foregroundColor(.secondary)
                         .italic()
                 }
             }
             .padding(.vertical, 8)
         } header: {
-            Text("Heart Rate Training Zones")
+            Text(SettingsContent.AthleteZones.heartRateTrainingZones)
         } footer: {
             hrZonesFooterText
         }
@@ -312,16 +312,16 @@ struct AthleteZonesSettingsView: View {
                 } label: {
                     HStack {
                         Image(systemName: "arrow.clockwise")
-                        Text("Reset to Adaptive Zones")
+                        Text(SettingsContent.AthleteZones.resetToAdaptive)
                     }
                 }
-                .alert("Reset to Adaptive Zones?", isPresented: $showRecomputeConfirmation) {
+                .alert(SettingsContent.AthleteZones.resetConfirmTitle, isPresented: $showRecomputeConfirmation) {
                     Button("Cancel", role: .cancel) { }
                     Button("Reset") {
                         resetToAdaptive()
                     }
                 } message: {
-                    Text("This will reset your zones to adaptive computation based on your performance data.")
+                    Text(SettingsContent.AthleteZones.resetConfirmMessage)
                 }
             }
         }
@@ -337,7 +337,7 @@ struct AthleteZonesSettingsView: View {
         return HStack {
             // Zone number and name
             VStack(alignment: .leading, spacing: 2) {
-                Text("Zone \(index + 1)")
+                Text("\(SettingsContent.AthleteZones.zone) \(index + 1)")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
@@ -368,10 +368,10 @@ struct AthleteZonesSettingsView: View {
                     .fontWeight(.medium)
             }
             
-            Text("-")
+            Text(SettingsContent.AthleteZones.dash)
                 .foregroundColor(.secondary)
             
-            Text(index == zones.count - 2 ? "Max" : "\(upperBound)")
+            Text(index == zones.count - 2 ? SettingsContent.AthleteZones.max : "\(upperBound)")
                 .fontWeight(.medium)
             
             Text("W")
@@ -389,7 +389,7 @@ struct AthleteZonesSettingsView: View {
         return HStack {
             // Zone number and name
             VStack(alignment: .leading, spacing: 2) {
-                Text("Zone \(index + 1)")
+                Text("\(SettingsContent.AthleteZones.zone) \(index + 1)")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
@@ -450,13 +450,13 @@ struct AthleteZonesSettingsView: View {
     private func sourceInfo(_ source: AthleteProfile.ZoneSource) -> (String, Color) {
         switch source {
         case .computed:
-            return ("Adaptive", .blue)
+            return (SettingsContent.AthleteZones.adaptive, .blue)
         case .manual:
-            return ("Manual", .orange)
+            return (SettingsContent.AthleteZones.manual, .orange)
         case .coggan:
-            return ("Coggan", .green)
+            return (SettingsContent.AthleteZones.coggan, .green)
         case .intervals:
-            return ("Intervals", .purple) // Deprecated but kept for compatibility
+            return (SettingsContent.AthleteZones.intervals, .purple) // Deprecated but kept for compatibility
         }
     }
     
@@ -492,31 +492,31 @@ struct AthleteZonesSettingsView: View {
     
     private var profileFooterText: Text {
         if !proConfig.hasProAccess {
-            return Text("FREE tier: Edit FTP and Max HR to adjust your Coggan zones. Upgrade to PRO for adaptive zones computed from your performance data.")
+            return Text(SettingsContent.AthleteZones.freeFooter)
         }
         
         switch profileManager.profile.ftpSource {
         case .computed:
-            return Text("Adaptive zones are computed from your performance data using modern sports science algorithms. Values update automatically as your fitness changes.")
+            return Text(SettingsContent.AthleteZones.adaptiveFooter)
         case .coggan:
-            return Text("Coggan zones use the standard 7-zone model. Edit FTP or Max HR above to adjust all zones proportionally.")
+            return Text(SettingsContent.AthleteZones.cogganFooter)
         case .manual:
-            return Text("Manual mode allows full control. Edit FTP, Max HR, and individual zone boundaries.")
+            return Text(SettingsContent.AthleteZones.manualFooter)
         case .intervals:
-            return Text("Legacy mode - switch to Coggan or Manual for better control.")
+            return Text(SettingsContent.AthleteZones.legacyFooter)
         }
     }
     
     private var powerZonesFooterText: Text {
         switch profileManager.profile.ftpSource {
         case .computed:
-            return Text("Zones automatically computed from your power-duration curve and performance distribution.")
+            return Text(SettingsContent.AthleteZones.powerAdaptiveFooter)
         case .coggan:
-            return Text("Standard Coggan 7-zone model based on FTP. Zones update automatically when you change FTP.")
+            return Text(SettingsContent.AthleteZones.powerCogganFooter)
         case .manual:
-            return Text("Tap any zone boundary to edit. Changes are saved automatically.")
+            return Text(SettingsContent.AthleteZones.powerManualFooter)
         case .intervals:
-            return Text("Legacy mode - switch to Coggan or Manual to customize zones.")
+            return Text(SettingsContent.AthleteZones.powerLegacyFooter)
         }
     }
     
@@ -526,13 +526,13 @@ struct AthleteZonesSettingsView: View {
             if let lthr = profileManager.profile.lthr {
                 return Text("Zones anchored to lactate threshold (\(Int(lthr)) bpm) detected from sustained efforts.")
             }
-            return Text("Zones computed from max HR with adaptive threshold detection.")
+            return Text(SettingsContent.AthleteZones.hrAdaptiveFooter)
         case .coggan:
-            return Text("Standard Coggan 7-zone model based on Max HR. Zones update automatically when you change Max HR.")
+            return Text(SettingsContent.AthleteZones.hrCogganFooter)
         case .manual:
-            return Text("Tap any zone boundary to edit. Changes are saved automatically.")
+            return Text(SettingsContent.AthleteZones.hrManualFooter)
         case .intervals:
-            return Text("Legacy mode - switch to Coggan or Manual to customize zones.")
+            return Text(SettingsContent.AthleteZones.hrLegacyFooter)
         }
     }
     
@@ -540,26 +540,26 @@ struct AthleteZonesSettingsView: View {
     
     private func powerZoneName(index: Int) -> String {
         switch index {
-        case 0: return "Active Recovery"
-        case 1: return "Endurance"
-        case 2: return "Tempo"
-        case 3: return "Lactate Threshold"
-        case 4: return "VO2 Max"
-        case 5: return "Anaerobic"
-        case 6: return "Neuromuscular"
+        case 0: return SettingsContent.AthleteZones.powerZone1
+        case 1: return SettingsContent.AthleteZones.powerZone2
+        case 2: return SettingsContent.AthleteZones.powerZone3
+        case 3: return SettingsContent.AthleteZones.powerZone4
+        case 4: return SettingsContent.AthleteZones.powerZone5
+        case 5: return SettingsContent.AthleteZones.powerZone6
+        case 6: return SettingsContent.AthleteZones.powerZone7
         default: return "Zone \(index + 1)"
         }
     }
     
     private func hrZoneName(index: Int) -> String {
         switch index {
-        case 0: return "Recovery"
-        case 1: return "Aerobic"
-        case 2: return "Tempo"
-        case 3: return "Lactate Threshold"
-        case 4: return "VO2 Max"
-        case 5: return "Anaerobic"
-        case 6: return "Max"
+        case 0: return SettingsContent.AthleteZones.hrZone1
+        case 1: return SettingsContent.AthleteZones.hrZone2
+        case 2: return SettingsContent.AthleteZones.hrZone3
+        case 3: return SettingsContent.AthleteZones.hrZone4
+        case 4: return SettingsContent.AthleteZones.hrZone5
+        case 5: return SettingsContent.AthleteZones.hrZone6
+        case 6: return SettingsContent.AthleteZones.hrZone7
         default: return "Zone \(index + 1)"
         }
     }

@@ -7,6 +7,7 @@ enum TrendsContent {
     
     // MARK: - Time Ranges
     enum TimeRanges {
+        static let title = "Time Range"  /// Time range selector title
         static let days30 = "30 Days"  /// 30 days range
         static let days90 = "90 Days"  /// 90 days range
         static let days180 = "180 Days"  /// 180 days range

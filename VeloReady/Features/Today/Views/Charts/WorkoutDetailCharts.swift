@@ -380,8 +380,8 @@ struct MetricChartView: View {
     
     private var summaryText: some View {
         HStack(spacing: 12) {
-            Text("Avg: \(safeInt(summary.average))\(summary.unit)")
-            Text("Max: \(safeInt(summary.max))\(summary.unit)")
+            Text("\(ChartContent.Summary.avg) \(safeInt(summary.average))\(summary.unit)")
+            Text("\(ChartContent.Summary.max) \(safeInt(summary.max))\(summary.unit)")
         }
         .font(.caption)
         .foregroundColor(.secondary)
@@ -558,8 +558,8 @@ struct ElevationChartView: View {
     
     private var summaryText: some View {
         HStack(spacing: 12) {
-            Text("Avg: \(safeInt(summary.average))\(summary.unit)")
-            Text("Max: \(safeInt(summary.max))\(summary.unit)")
+            Text("\(ChartContent.Summary.avg) \(safeInt(summary.average))\(summary.unit)")
+            Text("\(ChartContent.Summary.max) \(safeInt(summary.max))\(summary.unit)")
         }
         .font(.caption)
         .foregroundColor(.secondary)

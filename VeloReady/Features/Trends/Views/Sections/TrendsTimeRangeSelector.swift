@@ -6,7 +6,7 @@ struct TrendsTimeRangeSelector: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Time Range")
+            Text(TrendsContent.TimeRanges.title)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
             

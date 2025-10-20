@@ -41,12 +41,12 @@ struct ThemeSettingsView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
             } header: {
-                Text("Appearance")
+                Text(SettingsContent.Theme.appearance)
             } footer: {
-                Text("Choose how VeloReady looks. Auto matches your device's appearance settings.")
+                Text(SettingsContent.Theme.footer)
             }
         }
-        .navigationTitle("Theme")
+        .navigationTitle(SettingsContent.Theme.title)
         .navigationBarTitleDisplayMode(.inline)
     }
     

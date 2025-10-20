@@ -55,4 +55,26 @@ enum ChartContent {
             "\(days)-Day HRV Trend"
         }
     }
+    
+    // MARK: - Zone Labels
+    enum Zones {
+        static let zone = "Zone"  /// Zone prefix
+        static let noData = "No data available"  /// No data message
+        static let noHeartRateData = "No heart rate data available"  /// No HR data
+        static let noPowerData = "No power data available"  /// No power data
+    }
+    
+    // MARK: - Summary Labels
+    enum Summary {
+        static let avg = "Avg:"  /// Average prefix
+        static let max = "Max:"  /// Maximum prefix
+        static let min = "Min:"  /// Minimum prefix
+    }
+    
+    // MARK: - Axis Labels
+    enum Axis {
+        static let time = "Time"  /// Time axis
+        static let value = "Value"  /// Value axis
+        static let date = "Date"  /// Date axis
+    }
 }

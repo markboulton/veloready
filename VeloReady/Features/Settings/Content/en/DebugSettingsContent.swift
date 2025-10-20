@@ -98,6 +98,8 @@ enum DebugSettingsContent {
         static let status = "Status:"
         static let signInFromLogin = "Sign in from the login screen"
         static let accessToken = "Access Token"
+        static let intervalsICU = "Intervals.icu"  /// Intervals.icu label
+        static let connectIntervals = "Connect to Intervals.icu"  /// Connect button
     }
     
     // MARK: - Alerts
@@ -108,5 +110,51 @@ enum DebugSettingsContent {
         static let clearCoreDataMessage = "This will delete all Core Data records. The app will need to re-fetch all data."
         static let cancel = "Cancel"
         static let clear = "Clear"
+    }
+    
+    // MARK: - Monitoring
+    enum Monitoring {
+        static let title = "Monitoring Dashboards"  /// Monitoring section title
+        static let cacheStats = "Cache Statistics"  /// Cache stats link
+    }
+    
+    // MARK: - Ride Summary
+    enum RideSummary {
+        static let title = "AI Ride Summary"  /// Section title
+        static let status = "Ride Summary Status"  /// Status label
+        static let loading = "Loading..."  /// Loading state
+        static let loaded = "Summary loaded"  /// Loaded state
+        static let notLoaded = "Not loaded"  /// Not loaded state
+        static let error = "Error:"  /// Error prefix
+        static let clearCache = "Clear Ride Summary Cache"  /// Clear cache button
+        static let copyResponse = "Copy Last Response JSON"  /// Copy response button
+        static let configureSecret = "Configure HMAC Secret"  /// Configure secret button
+        static let overrideUser = "Override User ID"  /// Override user button
+        static let footer = "Test AI ride summary endpoint. PRO feature. Uses same HMAC secret as Daily Brief."  /// Section footer
+    }
+    
+    // MARK: - Score Recalculation
+    enum ScoreRecalc {
+        static let title = "Score Recalculation & Testing"  /// Section title
+        static let forceRecalcRecovery = "Force Recalculate Recovery"  /// Recovery button
+        static let forceRecalcStrain = "Force Recalculate Strain/Load"  /// Strain button
+        static let forceRecalcSleep = "Force Recalculate Sleep"  /// Sleep button
+        static let info = "These buttons ignore the daily calculation limit and force immediate recalculation using the latest HealthKit data."  /// Info message
+        static let usefulFor = "Useful for testing HealthKit-only mode without Intervals.icu connection."  /// Useful for message
+        static let onboardingStatus = "Onboarding Status"  /// Onboarding status label
+        static let completed = "Completed"  /// Completed status
+        static let notCompleted = "Not Completed"  /// Not completed status
+        static let resetOnboarding = "Reset Onboarding"  /// Reset button
+        static let done = "Done"  /// Done badge
+        static let footer = "Force recalculation bypasses the once-per-day limit. Perfect for testing HealthKit-only mode and algorithm changes."  /// Footer
+    }
+    
+    // MARK: - Strava
+    enum Strava {
+        static let title = "Strava"  /// Strava title
+        static let connected = "Connected"  /// Connected status
+        static let notConnected = "Not Connected"  /// Not connected status
+        static let athleteID = "Athlete ID"  /// Athlete ID label
+        static let signOut = "Sign Out from Strava"  /// Sign out button
     }
 }

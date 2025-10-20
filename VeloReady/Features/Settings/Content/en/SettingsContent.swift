@@ -245,11 +245,75 @@ enum SettingsContent {
     
     // MARK: - Athlete Zones
     enum AthleteZones {
+        static let title = "Athlete Zones"  /// Navigation title
         static let ftp = "FTP"  /// FTP label
         static let maxHR = "Max HR"  /// Max HR label
         static let computedFromData = "Computed from performance data"  /// Computed message
         static let athlete = "Athlete:"  /// Athlete label
         static let unknownAthlete = "Unknown"  /// Unknown athlete
+        static let edit = "Edit"  /// Edit button
+        static let save = "Save"  /// Save button
+        static let cancel = "Cancel"  /// Cancel button
+        
+        // Zone Sources
+        static let zoneSource = "Zone Source"  /// Zone source label
+        static let coggan = "Coggan"  /// Coggan source
+        static let manual = "Manual"  /// Manual source
+        static let adaptive = "Adaptive"  /// Adaptive source
+        static let intervals = "Intervals"  /// Intervals source
+        
+        // Zone Sections
+        static let athleteProfile = "Athlete Profile"  /// Athlete profile section
+        static let powerTrainingZones = "Power Training Zones"  /// Power zones section
+        static let heartRateTrainingZones = "Heart Rate Training Zones"  /// HR zones section
+        
+        // Zone Display
+        static let noPowerZones = "No power zones available"  /// No power zones message
+        static let noHRZones = "No HR zones available"  /// No HR zones message
+        static let max = "Max"  /// Max label for zone ranges
+        static let dash = "-"  /// Dash separator
+        
+        // Actions
+        static let resetToAdaptive = "Reset to Adaptive Zones"  /// Reset button
+        static let resetConfirmTitle = "Reset to Adaptive Zones?"  /// Reset confirmation title
+        static let resetConfirmMessage = "This will reset your zones to adaptive computation based on your performance data."  /// Reset confirmation message
+        
+        // Footer Messages
+        static let freeFooter = "FREE tier: Edit FTP and Max HR to adjust your Coggan zones. Upgrade to PRO for adaptive zones computed from your performance data."  /// Free tier footer
+        static let adaptiveFooter = "Adaptive zones are computed from your performance data using modern sports science algorithms. Values update automatically as your fitness changes."  /// Adaptive footer
+        static let cogganFooter = "Coggan zones use the standard 7-zone model. Edit FTP or Max HR above to adjust all zones proportionally."  /// Coggan footer
+        static let manualFooter = "Manual mode allows full control. Edit FTP, Max HR, and individual zone boundaries."  /// Manual footer
+        static let legacyFooter = "Legacy mode - switch to Coggan or Manual for better control."  /// Legacy footer
+        
+        // Power Zone Footers
+        static let powerAdaptiveFooter = "Zones automatically computed from your power-duration curve and performance distribution."  /// Power adaptive footer
+        static let powerCogganFooter = "Standard Coggan 7-zone model based on FTP. Zones update automatically when you change FTP."  /// Power Coggan footer
+        static let powerManualFooter = "Tap any zone boundary to edit. Changes are saved automatically."  /// Power manual footer
+        static let powerLegacyFooter = "Legacy mode - switch to Coggan or Manual to customize zones."  /// Power legacy footer
+        
+        // HR Zone Footers
+        static let hrAdaptiveFooter = "Zones computed from max HR with adaptive threshold detection."  /// HR adaptive footer
+        static let hrCogganFooter = "Standard Coggan 7-zone model based on Max HR. Zones update automatically when you change Max HR."  /// HR Coggan footer
+        static let hrManualFooter = "Tap any zone boundary to edit. Changes are saved automatically."  /// HR manual footer
+        static let hrLegacyFooter = "Legacy mode - switch to Coggan or Manual to customize zones."  /// HR legacy footer
+        
+        // Zone Names - Power
+        static let powerZone1 = "Active Recovery"  /// Power Zone 1
+        static let powerZone2 = "Endurance"  /// Power Zone 2
+        static let powerZone3 = "Tempo"  /// Power Zone 3
+        static let powerZone4 = "Lactate Threshold"  /// Power Zone 4
+        static let powerZone5 = "VO2 Max"  /// Power Zone 5
+        static let powerZone6 = "Anaerobic"  /// Power Zone 6
+        static let powerZone7 = "Neuromuscular"  /// Power Zone 7
+        
+        // Zone Names - Heart Rate
+        static let hrZone1 = "Recovery"  /// HR Zone 1
+        static let hrZone2 = "Aerobic"  /// HR Zone 2
+        static let hrZone3 = "Tempo"  /// HR Zone 3
+        static let hrZone4 = "Lactate Threshold"  /// HR Zone 4
+        static let hrZone5 = "VO2 Max"  /// HR Zone 5
+        static let hrZone6 = "Anaerobic"  /// HR Zone 6
+        static let hrZone7 = "Max"  /// HR Zone 7
     }
     
     // MARK: - Debug Settings
@@ -349,5 +413,61 @@ enum SettingsContent {
         static let deleteDataMessage = "This will delete all cached activities, scores, and metrics from this device. This action cannot be undone. Your data on connected services will not be affected."  /// Delete message
         static let deleteDataFooter = "Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected."  /// Delete footer
         static let delete = CommonContent.Actions.delete
+    }
+    
+    // MARK: - Theme
+    enum Theme {
+        static let title = "Theme"  /// Theme settings title
+        static let appearance = "Appearance"  /// Appearance section header
+        static let footer = "Choose how VeloReady looks. Auto matches your device's appearance settings."  /// Theme footer
+    }
+    
+    // MARK: - Monitoring
+    enum Monitoring {
+        static let dashboards = "Monitoring Dashboards"  /// Monitoring section
+        static let cacheStats = "Cache Statistics"  /// Cache stats link
+    }
+    
+    // MARK: - Ride Summary
+    enum RideSummary {
+        static let status = "Ride Summary Status"  /// Status label
+        static let loading = "Loading..."  /// Loading state
+        static let loaded = "Summary loaded"  /// Loaded state
+        static let notLoaded = "Not loaded"  /// Not loaded state
+        static let error = "Error:"  /// Error prefix
+        static let clearCache = "Clear Ride Summary Cache"  /// Clear cache button
+        static let copyResponse = "Copy Last Response JSON"  /// Copy response button
+        static let configureSecret = "Configure HMAC Secret"  /// Configure secret button
+        static let overrideUser = "Override User ID"  /// Override user button
+        static let sectionTitle = "AI Ride Summary"  /// Section title
+        static let footer = "Test AI ride summary endpoint. PRO feature. Uses same HMAC secret as Daily Brief."  /// Section footer
+    }
+    
+    // MARK: - Score Recalculation
+    enum ScoreRecalc {
+        static let title = "Score Recalculation & Testing"  /// Section title
+        static let forceRecalcRecovery = "Force Recalculate Recovery"  /// Recovery button
+        static let forceRecalcStrain = "Force Recalculate Strain/Load"  /// Strain button
+        static let forceRecalcSleep = "Force Recalculate Sleep"  /// Sleep button
+        static let info = "These buttons ignore the daily calculation limit and force immediate recalculation using the latest HealthKit data."  /// Info message
+        static let usefulFor = "Useful for testing HealthKit-only mode without Intervals.icu connection."  /// Useful for message
+        static let onboardingStatus = "Onboarding Status"  /// Onboarding status label
+        static let completed = "Completed"  /// Completed status
+        static let notCompleted = "Not Completed"  /// Not completed status
+        static let resetOnboarding = "Reset Onboarding"  /// Reset button
+        static let done = "Done"  /// Done badge
+        static let footer = "Force recalculation bypasses the once-per-day limit. Perfect for testing HealthKit-only mode and algorithm changes."  /// Footer
+    }
+    
+    // MARK: - OAuth Actions
+    enum OAuthActions {
+        static let title = "OAuth Actions"  /// Section title
+        static let intervalsICU = "Intervals.icu"  /// Intervals.icu label
+        static let strava = "Strava"  /// Strava label
+        static let signOut = "Sign Out from Intervals.icu"  /// Sign out button
+        static let signOutStrava = "Sign Out from Strava"  /// Sign out Strava button
+        static let connectIntervals = "Connect to Intervals.icu"  /// Connect button
+        static let status = "Status:"  /// Status label
+        static let accessToken = "Access Token"  /// Access token label
     }
 }

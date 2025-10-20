@@ -92,7 +92,7 @@ struct ZonePieChartSection: View {
                                             .frame(width: 16, height: 16)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Zone \(index + 1)")
+                                            Text("\(ChartContent.Zones.zone) \(index + 1)")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                             Text(hrZoneName(index))
@@ -119,7 +119,7 @@ struct ZonePieChartSection: View {
                     }
                 }
             } else {
-                Text("No heart rate data available")
+                Text(ChartContent.Zones.noHeartRateData)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .frame(height: 200)
@@ -255,7 +255,7 @@ struct ZonePieChartSection: View {
                                             .frame(width: 16, height: 16)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Zone \(index + 1)")
+                                            Text("\(ChartContent.Zones.zone) \(index + 1)")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                             Text(powerZoneName(index))
@@ -282,7 +282,7 @@ struct ZonePieChartSection: View {
                     }
                 }
             } else {
-                Text("No power data available")
+                Text(ChartContent.Zones.noPowerData)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .frame(height: 200)

@@ -153,7 +153,7 @@ struct ActivitiesView: View {
                                 ProgressView()
                                     .padding(.trailing, 8)
                             }
-                            Text("Load More Activities (60 days)")
+                            Text(ActivitiesContent.loadMore60Days)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Spacer()
@@ -176,18 +176,18 @@ struct ActivitiesView: View {
                             HStack {
                                 Image(systemName: "sparkles")
                                     .foregroundColor(ColorScale.purpleAccent)
-                                Text("Upgrade to Pro for More Activities")
+                                Text(ActivitiesContent.Pro.upgradeTitle)
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.primary)
                             }
                             
-                            Text("Access up to 90 days of activity history with PRO")
+                            Text(ActivitiesContent.Pro.upgradeDescription)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                             
-                            Text("Upgrade Now")
+                            Text(ActivitiesContent.Pro.upgradeButton)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)

@@ -119,7 +119,7 @@ struct HRVTrendCard: View {
                     .foregroundStyle(Color.text.tertiary)
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .annotation(position: .top, alignment: .trailing) {
-                        Text("Baseline")
+                        Text(CommonContent.Metrics.baseline)
                             .font(.caption)
                             .foregroundColor(.text.tertiary)
                             .padding(.horizontal, Spacing.xs)

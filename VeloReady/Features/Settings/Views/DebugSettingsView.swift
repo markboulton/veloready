@@ -231,15 +231,15 @@ struct DebugSettingsView: View {
                 Spacer()
                 
                 if stravaAuthService.connectionState.isConnected {
-                    Badge("Connected", variant: .success, size: .small)
+                    Badge(DebugSettingsContent.Strava.connected, variant: .success, size: .small)
                 } else {
-                    Badge("Not Connected", variant: .warning, size: .small)
+                    Badge(DebugSettingsContent.Strava.notConnected, variant: .warning, size: .small)
                 }
             }
             
             if case .connected(let athleteId) = stravaAuthService.connectionState, let id = athleteId {
                 HStack {
-                    Text("Athlete ID")
+                    Text(DebugSettingsContent.Strava.athleteID)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
@@ -491,24 +491,24 @@ struct DebugSettingsView: View {
         Section {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Ride Summary Status")
+                    Text(DebugSettingsContent.RideSummary.status)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
                     if rideSummaryService.isLoading {
-                        Text("Loading...")
+                        Text(DebugSettingsContent.RideSummary.loading)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else if let error = rideSummaryService.error {
-                        Text("Error: \(error.localizedDescription)")
+                        Text("\(DebugSettingsContent.RideSummary.error) \(error.localizedDescription)")
                             .font(.caption)
                             .foregroundColor(Color.text.error)
                     } else if rideSummaryService.currentSummary != nil {
-                        Text("Summary loaded")
+                        Text(DebugSettingsContent.RideSummary.loaded)
                             .font(.caption)
                             .foregroundColor(Color.text.success)
                     } else {
-                        Text("Not loaded")
+                        Text(DebugSettingsContent.RideSummary.notLoaded)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -523,7 +523,7 @@ struct DebugSettingsView: View {
             }) {
                 HStack {
                     Image(systemName: "trash")
-                    Text("Clear Ride Summary Cache")
+                    Text(DebugSettingsContent.RideSummary.clearCache)
                 }
             }
             .buttonStyle(.bordered)
@@ -535,7 +535,7 @@ struct DebugSettingsView: View {
                 }) {
                     HStack {
                         Image(systemName: "doc.on.doc")
-                        Text("Copy Last Response JSON")
+                        Text(DebugSettingsContent.RideSummary.copyResponse)
                     }
                 }
                 .buttonStyle(.bordered)
@@ -545,7 +545,7 @@ struct DebugSettingsView: View {
                 HStack {
                     Image(systemName: "key.fill")
                         .foregroundColor(Color.semantic.warning)
-                    Text("Configure HMAC Secret")
+                    Text(DebugSettingsContent.RideSummary.configureSecret)
                 }
             }
             
@@ -554,13 +554,13 @@ struct DebugSettingsView: View {
                 HStack {
                     Image(systemName: "person.crop.circle")
                         .foregroundColor(Color.button.primary)
-                    Text("Override User ID")
+                    Text(DebugSettingsContent.RideSummary.overrideUser)
                 }
             }
         } header: {
-            Label("AI Ride Summary", systemImage: "brain.head.profile")
+            Label(DebugSettingsContent.RideSummary.title, systemImage: "brain.head.profile")
         } footer: {
-            Text("Test AI ride summary endpoint. PRO feature. Uses same HMAC secret as Daily Brief.")
+            Text(DebugSettingsContent.RideSummary.footer)
         }
     }
     
@@ -588,7 +588,7 @@ struct DebugSettingsView: View {
                     } else {
                         Image(systemName: "heart.fill")
                     }
-                    Text("Force Recalculate Recovery")
+                    Text(DebugSettingsContent.ScoreRecalc.forceRecalcRecovery)
                     Spacer()
                     if refreshSuccess && !isRefreshingRecovery {
                         Image(systemName: "checkmark.circle.fill")
@@ -620,7 +620,7 @@ struct DebugSettingsView: View {
                     } else {
                         Image(systemName: "flame.fill")
                     }
-                    Text("Force Recalculate Strain/Load")
+                    Text(DebugSettingsContent.ScoreRecalc.forceRecalcStrain)
                     Spacer()
                     if refreshSuccess && !isRefreshingStrain {
                         Image(systemName: "checkmark.circle.fill")
@@ -652,7 +652,7 @@ struct DebugSettingsView: View {
                     } else {
                         Image(systemName: "moon.fill")
                     }
-                    Text("Force Recalculate Sleep")
+                    Text(DebugSettingsContent.ScoreRecalc.forceRecalcSleep)
                     Spacer()
                     if refreshSuccess && !isRefreshingSleep {
                         Image(systemName: "checkmark.circle.fill")
@@ -666,11 +666,11 @@ struct DebugSettingsView: View {
             
             // Info about what this does
             VStack(alignment: .leading, spacing: 4) {
-                Text("These buttons ignore the daily calculation limit and force immediate recalculation using the latest HealthKit data.")
+                Text(DebugSettingsContent.ScoreRecalc.info)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Useful for testing HealthKit-only mode without Intervals.icu connection.")
+                Text(DebugSettingsContent.ScoreRecalc.usefulFor)
                     .font(.caption)
                     .foregroundColor(Color.button.primary)
             }
@@ -680,11 +680,11 @@ struct DebugSettingsView: View {
             // Onboarding controls
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Onboarding Status")
+                    Text(DebugSettingsContent.ScoreRecalc.onboardingStatus)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text(OnboardingManager.shared.hasCompletedOnboarding ? "Completed" : "Not Completed")
+                    Text(OnboardingManager.shared.hasCompletedOnboarding ? DebugSettingsContent.ScoreRecalc.completed : DebugSettingsContent.ScoreRecalc.notCompleted)
                         .font(.caption)
                         .foregroundColor(OnboardingManager.shared.hasCompletedOnboarding ? Color.text.success : .secondary)
                 }
@@ -692,7 +692,7 @@ struct DebugSettingsView: View {
                 Spacer()
                 
                 if OnboardingManager.shared.hasCompletedOnboarding {
-                    Badge("Done", variant: .success, size: .small)
+                    Badge(DebugSettingsContent.ScoreRecalc.done, variant: .success, size: .small)
                 }
             }
             
@@ -701,15 +701,15 @@ struct DebugSettingsView: View {
             }) {
                 HStack {
                     Image(systemName: "arrow.counterclockwise")
-                    Text("Reset Onboarding")
+                    Text(DebugSettingsContent.ScoreRecalc.resetOnboarding)
                 }
             }
             .buttonStyle(.bordered)
             .tint(Color.button.primary)
         } header: {
-            Label("Score Recalculation & Testing", systemImage: "arrow.triangle.2.circlepath")
+            Label(DebugSettingsContent.ScoreRecalc.title, systemImage: "arrow.triangle.2.circlepath")
         } footer: {
-            Text("Force recalculation bypasses the once-per-day limit. Perfect for testing HealthKit-only mode and algorithm changes.")
+            Text(DebugSettingsContent.ScoreRecalc.footer)
         }
     }
     
@@ -719,7 +719,7 @@ struct DebugSettingsView: View {
         Section {
             // Intervals.icu OAuth
             Group {
-                Text("Intervals.icu")
+                Text(DebugSettingsContent.OAuth.intervalsICU)
                     .font(.headline)
                     .foregroundColor(.primary)
                 
@@ -765,7 +765,7 @@ struct DebugSettingsView: View {
                         HStack {
                             Image(systemName: "arrow.right.circle.fill")
                                 .foregroundColor(Color.button.primary)
-                            Text("Connect to Intervals.icu")
+                            Text(DebugSettingsContent.OAuth.connectIntervals)
                         }
                     }
                     .buttonStyle(.bordered)
@@ -788,7 +788,7 @@ struct DebugSettingsView: View {
             
             // Strava OAuth
             Group {
-                Text("Strava")
+                Text(DebugSettingsContent.Strava.title)
                     .font(.headline)
                     .foregroundColor(.primary)
                 
@@ -799,7 +799,7 @@ struct DebugSettingsView: View {
                         HStack {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
                                 .foregroundColor(Color.button.danger)
-                            Text("Sign Out from Strava")
+                            Text(DebugSettingsContent.Strava.signOut)
                                 .foregroundColor(Color.button.danger)
                         }
                     }

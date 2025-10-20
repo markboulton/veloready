@@ -16,4 +16,14 @@ enum ActivitiesContent {
     // MARK: - Errors
     static let errorTitle = "Error Loading Activities"
     static let retryButton = "Retry"
+    
+    // MARK: - Load More
+    static let loadMore60Days = "Load More Activities (60 days)"  /// Load more button for 60 days
+    
+    // MARK: - Pro Features
+    enum Pro {
+        static let upgradeTitle = "Upgrade to Pro for More Activities"  /// Pro upgrade title
+        static let upgradeDescription = "Access up to 90 days of activity history with PRO"  /// Pro upgrade description
+        static let upgradeButton = "Upgrade Now"  /// Upgrade button
+    }
 }

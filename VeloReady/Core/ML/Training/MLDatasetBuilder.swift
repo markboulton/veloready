@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import CoreData
 import CreateML
@@ -188,3 +189,4 @@ extension Array where Element == Double {
         return sqrt(variance)
     }
 }
+#endif
