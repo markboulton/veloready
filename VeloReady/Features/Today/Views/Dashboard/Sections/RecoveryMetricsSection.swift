@@ -17,7 +17,7 @@ struct RecoveryMetricsSection: View {
                 HStack(spacing: 12) {
                     // Recovery (left)
                     EmptyStateRingView(
-                        title: "Recovery",
+                        title: TodayContent.recoverySection,
                         icon: "heart.fill",
                         animationDelay: 0.0
                     )
@@ -25,7 +25,7 @@ struct RecoveryMetricsSection: View {
                     
                     // Sleep (center)
                     EmptyStateRingView(
-                        title: "Sleep",
+                        title: TodayContent.sleepSection,
                         icon: "moon.fill",
                         animationDelay: 0.1
                     )
@@ -33,7 +33,7 @@ struct RecoveryMetricsSection: View {
                     
                     // Load (right)
                     EmptyStateRingView(
-                        title: "Load",
+                        title: TodayContent.loadSection,
                         icon: "figure.walk",
                         animationDelay: 0.2
                     )
@@ -72,7 +72,7 @@ struct RecoveryMetricsSection: View {
                         
                         // Show "Limited Data" label if sleep data is missing
                         let title = recoveryScore.inputs.sleepDuration == nil
-                            ? "Limited Data"
+                            ? TodayContent.limitedData
                             : recoveryScore.bandDescription
                         
                         CompactRingView(
@@ -134,7 +134,7 @@ struct RecoveryMetricsSection: View {
                         }) {
                             CompactRingView(
                                 score: nil,
-                                title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
+                                title: missingSleepBannerDismissed ? TodayContent.noDataInfo : TodayContent.noData,
                                 band: SleepScore.SleepBand.payAttention,
                                 animationDelay: 0.1,
                                 action: {
@@ -198,7 +198,7 @@ struct RecoveryMetricsSection: View {
                     }) {
                         CompactRingView(
                             score: nil,
-                            title: missingSleepBannerDismissed ? "No Data ⓘ" : "No Data",
+                            title: missingSleepBannerDismissed ? TodayContent.noDataInfo : TodayContent.noData,
                             band: SleepScore.SleepBand.payAttention,
                             animationDelay: 0.1,
                             action: {

@@ -14,9 +14,13 @@ enum TodayContent {
     
     // MARK: - Empty States
     static let noActivities = "No activities today"  /// No activities message
+    static let noRecentActivities = "No Recent Activities"  /// No recent activities title
     static let noRecoveryData = "Recovery data unavailable"  /// No recovery data
     static let noSleepData = "Sleep data unavailable"  /// No sleep data
     static let syncingData = "Syncing your data..."  /// Syncing message
+    static let limitedData = "Limited Data"  /// Limited data label
+    static let noData = "No Data"  /// No data label
+    static let noDataInfo = "No Data ⓘ"  /// No data with info icon
     
     // MARK: - Actions
     static let viewDetails = "View Details"  /// View details button
@@ -26,6 +30,17 @@ enum TodayContent {
     // MARK: - Health Kit
     static let healthKitRequired = "Health data access required"  /// HealthKit required message
     static let grantAccess = "Grant Access"  /// Grant access button
+    static let enableHealthDescription = "Connect your Apple Health data to see personalized recovery scores, sleep analysis, and training insights."  /// Enable health description
+    
+    // HealthKit Benefits
+    enum HealthKitBenefits {
+        static let recoveryTitle = "Recovery Score"  /// Recovery benefit title
+        static let recoveryDesc = "Track your readiness based on HRV, sleep, and training"  /// Recovery benefit description
+        static let sleepTitle = "Sleep Analysis"  /// Sleep benefit title
+        static let sleepDesc = "Understand your sleep quality and patterns"  /// Sleep benefit description
+        static let trainingLoadTitle = "Training Load"  /// Training load benefit title
+        static let trainingLoadDesc = "Monitor your training stress and recovery balance"  /// Training load benefit description
+    }
     
     enum HealthKit {
         static let title = "Health Data"

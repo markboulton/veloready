@@ -23,7 +23,7 @@ struct RecentActivitiesSection: View {
             if allActivities.isEmpty {
                 EmptyStateCard(
                     icon: "figure.walk",
-                    title: "No Recent Activities",
+                    title: TodayContent.noRecentActivities,
                     message: TodayContent.noActivities
                 )
             } else {

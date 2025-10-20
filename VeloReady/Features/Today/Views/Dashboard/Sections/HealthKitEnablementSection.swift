@@ -16,7 +16,7 @@ struct HealthKitEnablementSection: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("Connect your Apple Health data to see personalized recovery scores, sleep analysis, and training insights.")
+                Text(TodayContent.enableHealthDescription)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -26,20 +26,20 @@ struct HealthKitEnablementSection: View {
             VStack(spacing: 12) {
                 HealthKitBenefitRow(
                     icon: "heart.circle.fill",
-                    title: "Recovery Score",
-                    description: "Track your readiness based on HRV, sleep, and training"
+                    title: TodayContent.HealthKitBenefits.recoveryTitle,
+                    description: TodayContent.HealthKitBenefits.recoveryDesc
                 )
                 
                 HealthKitBenefitRow(
                     icon: "moon.circle.fill",
-                    title: "Sleep Analysis",
-                    description: "Understand your sleep quality and patterns"
+                    title: TodayContent.HealthKitBenefits.sleepTitle,
+                    description: TodayContent.HealthKitBenefits.sleepDesc
                 )
                 
                 HealthKitBenefitRow(
                     icon: "figure.walk.circle.fill",
-                    title: "Training Load",
-                    description: "Monitor your training stress and recovery balance"
+                    title: TodayContent.HealthKitBenefits.trainingLoadTitle,
+                    description: TodayContent.HealthKitBenefits.trainingLoadDesc
                 )
             }
             
@@ -49,7 +49,7 @@ struct HealthKitEnablementSection: View {
             }) {
                 HStack {
                     Image(systemName: "heart.fill")
-                    Text("Enable Health Data")
+                    Text(TodayContent.HealthKit.enableButton)
                 }
                 .font(.headline)
                 .foregroundColor(.white)
