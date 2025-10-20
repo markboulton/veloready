@@ -172,4 +172,32 @@ enum DebugSettingsContent {
         static let athleteProfileJSON = "Athlete Profile JSON"  /// Athlete profile JSON label
         static let activitiesJSON = "Activities JSON (first 1000 chars)"  /// Activities JSON label
     }
+    
+    // MARK: - Sport Preferences Debug
+    enum SportPreferences {
+        static let primarySport = "Primary Sport:"  /// Primary sport label
+        static let testOutput = "Test Output"  /// Test output section
+        static let technicalDetails = "Technical Details"  /// Technical details section
+        static let codable = "Codable: ✅"  /// Codable status
+        static let equatable = "Equatable: ✅"  /// Equatable status
+        static let savedTo = "Saved to: UserDefaults"  /// Saved to label
+        static let syncedTo = "Synced to: iCloud"  /// Synced to label
+        static let key = "Key: UserSettings.sportPreferences"  /// Key label
+    }
+    
+    // MARK: - ML Debug
+    enum MLDebug {
+        static let testOutput = "Test Output"  /// Test output section
+        static let technicalDetails = "Technical Details"  /// Technical details section
+    }
+    
+    // MARK: - Debug Today
+    enum DebugToday {
+        static let testOutput = "Test Output"  /// Test output section
+    }
+    
+    // MARK: - Telemetry
+    enum Telemetry {
+        static let testOutput = "Test Output"  /// Test output section
+    }
 }

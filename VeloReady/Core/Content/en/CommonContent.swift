@@ -2,44 +2,102 @@ import Foundation
 
 /// Common strings shared across the app
 enum CommonContent {
-    // MARK: - Actions
+    // MARK: - Common Actions
     enum Actions {
-        static let close = "Close"  /// Close button
-        static let done = "Done"  /// Done button
-        static let cancel = "Cancel"  /// Cancel button
         static let save = "Save"  /// Save button
+        static let cancel = "Cancel"  /// Cancel button
         static let delete = "Delete"  /// Delete button
         static let edit = "Edit"  /// Edit button
-        static let refresh = "Refresh"  /// Refresh button
-        static let retry = "Retry"  /// Retry button
+        static let done = "Done"  /// Done button
+        static let close = "Close"  /// Close button
         static let ok = "OK"  /// OK button
-        static let yes = "Yes"  /// Yes button
-        static let no = "No"  /// No button
-        static let continue_ = "Continue"  /// Continue button
-        static let sync = "Sync"  /// Sync button
+        static let confirm = "Confirm"  /// Confirm button
+        static let retry = "Retry"  /// Retry button
+        static let refresh = "Refresh"  /// Refresh button
+        static let viewDetails = "View Details"  /// View details button
+        static let learnMore = "Learn More"  /// Learn more button
+        static let getStarted = "Get Started"  /// Get started button
+        static let skip = "Skip"  /// Skip button
+        static let next = "Next"  /// Next button
+        static let back = "Back"  /// Back button
         static let connect = "Connect"  /// Connect button
         static let disconnect = "Disconnect"  /// Disconnect button
         static let reconnect = "Reconnect"  /// Reconnect button
+        static let signIn = "Sign In"  /// Sign in button
+        static let signOut = "Sign Out"  /// Sign out button
+        static let upgrade = "Upgrade"  /// Upgrade button
+        static let subscribe = "Subscribe"  /// Subscribe button
+        static let continueCTA = "Continue"  /// Continue button
+        static let share = "Share"  /// Share button
+        static let export = "Export"  /// Export button
+        static let importData = "Import"  /// Import button
+        static let reset = "Reset"  /// Reset button
+        static let clear = "Clear"  /// Clear button
+        static let apply = "Apply"  /// Apply button
+        static let dismiss = "Dismiss"  /// Dismiss button
         static let enable = "Enable"  /// Enable button
         static let disable = "Disable"  /// Disable button
-        static let viewDetails = "View Details"  /// View details button
+        static let add = "Add"  /// Add button
+        static let remove = "Remove"  /// Remove button
+        static let update = "Update"  /// Update button
+        static let sync = "Sync"  /// Sync button
+        static let download = "Download"  /// Download button
+        static let upload = "Upload"  /// Upload button
+        static let search = "Search"  /// Search action
+        static let filter = "Filter"  /// Filter action
+        static let sort = "Sort"  /// Sort action
+        static let saveDetails = "Save Details"  /// Save details button
     }
     
-    // MARK: - Debug
-    enum Debug {
-        static let title = "App Group Debug"
-        static let sectionTest = "Test App Group"
-        static let sectionData = "Shared Data"
-        static let buttonWrite = "Write Test Data"
-        static let buttonRead = "Read Test Data"
-        static let statusInitial = "Ready to test"
-        static let statusFailed = "Failed"
-        static let statusWriteSuccess = "Write successful"
-        static let statusReadSuccess = "Read successful"
-        static let statusNoData = "No data found"
-        static let labelScore = "Recovery Score"
-        static let labelBand = "Recovery Band"
-        static let messageNoData = "No shared data available"
+    // MARK: - RPE
+    enum RPE {
+        static let veryLight = "Very Light"  /// Very light RPE
+        static let light = "Light"  /// Light RPE
+        static let moderate = "Moderate"  /// Moderate RPE
+        static let hard = "Hard"  /// Hard RPE
+        static let maximum = "Maximum"  /// Maximum RPE
+        
+        // Guide descriptions
+        static let veryLightDesc = "Minimal effort"  /// Very light description
+        static let lightDesc = "Easy, can talk freely"  /// Light description
+        static let moderateDesc = "Working, can still talk"  /// Moderate description
+        static let hardDesc = "Difficult, short answers"  /// Hard description
+        static let maximumDesc = "Can't sustain long"  /// Maximum description
+        
+        // Ranges
+        static let range12 = "1-2"  /// Range 1-2
+        static let range34 = "3-4"  /// Range 3-4
+        static let range56 = "5-6"  /// Range 5-6
+        static let range78 = "7-8"  /// Range 7-8
+        static let range910 = "9-10"  /// Range 9-10
+    }
+    
+    // MARK: - Workout Details
+    enum WorkoutDetails {
+        static let workoutDetails = "Workout Details"
+        static let rateEffort = "Rate your effort and select muscle groups trained"
+        static let effortLevel = "Effort Level"
+        static let muscleGroupsOptional = "Muscle Groups (Optional)"
+        static let muscleGroups = "Muscle Groups"
+        static let muscleGroupsDescription = "Select the muscle groups you trained during this workout"
+        static let cardio = "Cardio"
+        static let strengthTraining = "Strength Training"
+        static let highIntensityIntervalTraining = "High-Intensity Interval Training"
+        static let yoga = "Yoga"
+        static let pilates = "Pilates"
+        static let other = "Other"
+    }
+    
+    // MARK: - Muscle Groups
+    enum MuscleGroups {
+        static let chest = "Chest"
+        static let back = "Back"
+        static let shoulders = "Shoulders"
+        static let biceps = "Biceps"
+        static let triceps = "Triceps"
+        static let legs = "Legs"
+        static let core = "Core"
+        static let cardio = "Cardio"
     }
     
     // MARK: - States
@@ -76,134 +134,6 @@ enum CommonContent {
     static let thisWeek = "This Week"  /// This week label
     static let thisMonth = "This Month"  /// This month label
     
-    // MARK: - Units
-    enum Units {
-        static let bpm = "bpm"  /// Beats per minute
-        static let watts = "W"  /// Watts
-        static let hours = "h"  /// Hours
-        static let minutes = "m"  /// Minutes
-        static let seconds = "s"  /// Seconds
-        static let percent = "%"  /// Percentage
-        static let kilometers = "km"  /// Kilometers
-        static let miles = "mi"  /// Miles
-        static let meters = "m"  /// Meters
-        static let calories = "cal"  /// Calories
-        static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
-        static let sleepTarget = "Sleep Target"  /// Sleep target metric
-        static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
-        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
-        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
-    }
-    
-    // MARK: - Pro Features
-    static let upgradeToPro = "Upgrade to PRO"
-    static let unlockAllFeatures = "Unlock all features"
-    
-    // MARK: - Workout & RPE
-    static let workoutDetails = "Workout Details"
-    static let rateEffort = "Rate your effort and select muscle groups trained"
-    static let effortLevel = "Effort Level"
-    static let muscleGroupsOptional = "Muscle Groups (Optional)"
-    
-    enum RPE {
-        static let veryLight = "1 - Very Light"
-        static let maximum = "10 - Maximum"
-    }
-    
-    // MARK: - Days of Week
-    enum Days {
-        static let monday = "Monday"  /// Monday
-        static let tuesday = "Tuesday"  /// Tuesday
-        static let wednesday = "Wednesday"  /// Wednesday
-        static let thursday = "Thursday"  /// Thursday
-        static let friday = "Friday"  /// Friday
-        static let saturday = "Saturday"  /// Saturday
-        static let sunday = "Sunday"  /// Sunday
-    }
-    
-    // MARK: - Metrics
-    enum Metrics {
-        static let average = "Avg"  /// Average abbreviation
-        static let minimum = "Min"  /// Minimum abbreviation
-        static let maximum = "Max"  /// Maximum abbreviation
-        static let total = "Total"  /// Total label
-        static let current = "Current"  /// Current label
-        static let baseline = "Baseline"  /// Baseline label
-        static let duration = "Duration"  /// Duration metric
-        static let distance = "Distance"  /// Distance metric
-        static let speed = "Speed"  /// Speed metric
-        static let power = "Power"  /// Power metric
-        static let heartRate = "Heart Rate"  /// Heart rate metric
-        static let cadence = "Cadence"  /// Cadence metric
-        static let elevation = "Elevation"  /// Elevation metric
-        static let calories = "Calories"  /// Calories metric
-        static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
-        static let sleepTarget = "Sleep Target"  /// Sleep target metric
-        static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
-        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
-        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
-        static let deepSleep = "Deep Sleep"  /// Deep sleep metric
-        static let remSleep = "REM Sleep"  /// REM sleep metric
-        static let lightSleep = "Light Sleep"  /// Light sleep metric
-        static let awakeDuration = "Awake Duration"  /// Awake duration metric
-    }
-    
-    // MARK: - Sleep Stages
-    enum Stages {
-        static let deep = "Deep"
-        static let rem = "REM"
-        static let light = "Light"
-        static let awake = "Awake"
-    }
-    
-    // MARK: - Readiness Components
-    enum ReadinessComponents {
-        static let recovery = "Recovery"
-        static let sleep = "Sleep"
-        static let strain = "Strain"
-        static let load = "Load"
-        static let hrv = "HRV"
-        static let rhr = "RHR"
-    }
-    
-    // MARK: - Debt Metrics
-    enum DebtMetrics {
-        static let recoveryDebt = "Recovery Debt"  /// Recovery debt title
-        static let sleepDebt = "Sleep Debt"  /// Sleep debt title
-        static let daysLabel = "days"  /// Days label
-    }
-    
-    // MARK: - Common Instructions
-    enum Instructions {
-        static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
-        static let grantPermission = "Grant permission in Settings"  /// Grant permission
-        static let trackConsistently = "Track consistently for 7+ days"  /// Track consistently
-        static let checkBackLater = "Check back after a few days"  /// Check back message
-        static let pullToRefresh = "Pull to refresh"  /// Pull to refresh
-        static let tapToEdit = "Tap to edit"  /// Tap to edit
-    }
-    
-    // MARK: - Common Labels
-    enum Labels {
-        static let title = "Title"  /// Title label
-        static let subtitle = "Subtitle"  /// Subtitle label
-        static let description = "Description"  /// Description label
-        static let status = "Status"  /// Status label
-        static let lastSynced = "Last synced"  /// Last synced label
-        static let lastUpdated = "Last updated"  /// Last updated label
-        static let version = "Version"  /// Version label
-        static let build = "Build"  /// Build label
-    }
-    
-    // MARK: - Common Formatting
-    enum Formatting {
-        static let bulletPoint = "•"  /// Bullet point
-        static let dash = "—"  /// Em dash
-        static let separator = "·"  /// Middle dot separator
-        static let ellipsis = "…"  /// Ellipsis
-        static let outOf100 = "/100"  /// Out of 100 suffix
-    }
-    
     // MARK: - Time Units (Full)
     enum TimeUnits {
         static let day = "day"  /// Day (singular)
@@ -216,6 +146,151 @@ enum CommonContent {
         static let seconds = "seconds"  /// Seconds (plural)
         static let week = "week"  /// Week (singular)
         static let weeks = "weeks"  /// Weeks (plural)
+        static let month = "month"  /// Month (singular)
+        static let months = "months"  /// Months (plural)
+        static let year = "year"  /// Year (singular)
+        static let years = "years"  /// Years (plural)
+    }
+    
+    // MARK: - Common Labels
+    enum Labels {
+        static let title = "Title"  /// Title label
+        static let subtitle = "Subtitle"  /// Subtitle label
+        static let description = "Description"  /// Description label
+        static let status = "Status"  /// Status label
+        static let lastSynced = "Last synced"  /// Last synced label
+        static let lastUpdated = "Last updated"  /// Last updated label
+        static let version = "Version"  /// Version label
+        static let build = "Build"  /// Build label
+        static let count = "Count"  /// Count label
+        static let average = "Avg"  /// Average abbreviation
+        static let p95 = "P95"  /// 95th percentile
+    }
+    
+    // MARK: - Common Formatting
+    enum Formatting {
+        static let bulletPoint = "•"  /// Bullet point
+        static let dash = "—"  /// Em dash
+        static let separator = "·"  /// Middle dot separator
+        static let ellipsis = "…"  /// Ellipsis
+        static let outOf100 = "/100"  /// Out of 100 suffix
+        static let colon = ":"  /// Colon
+        static let lessThanOrEqual = "≤"  /// Less than or equal symbol
+    }
+    
+    // MARK: - Units
+    enum Units {
+        static let bpm = "bpm"  /// Beats per minute
+        static let watts = "W"  /// Watts
+        static let hours = "h"  /// Hours
+        static let minutes = "m"  /// Minutes
+        static let seconds = "s"  /// Seconds
+        static let percent = "%"  /// Percentage
+        static let kilometers = "km"  /// Kilometers
+        static let miles = "mi"  /// Miles
+        static let meters = "m"  /// Meters
+        static let calories = "cal"  /// Calories
+    }
+    
+    // MARK: - Metrics
+    enum Metrics {
+        static let average = "Average"  /// Average metric
+        static let minimum = "Minimum"  /// Minimum metric
+        static let maximum = "Maximum"  /// Maximum metric
+        static let baseline = "Baseline"  /// Baseline metric
+        static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
+        static let sleepTarget = "Sleep Target"  /// Sleep target metric
+        static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
+        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
+        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
+        static let deepSleep = "Deep Sleep"  /// Deep sleep metric
+    }
+    
+    // MARK: - Sleep Stages
+    enum Stages {
+        static let deep = "Deep"  /// Deep sleep stage
+        static let rem = "REM"  /// REM sleep stage
+        static let light = "Light"  /// Light sleep stage
+        static let awake = "Awake"  /// Awake stage
+    }
+    
+    // MARK: - Readiness Components
+    enum ReadinessComponents {
+        static let recovery = "Recovery"  /// Recovery component
+        static let sleep = "Sleep"  /// Sleep component
+        static let load = "Load"  /// Load component
+        static let strain = "Strain"  /// Strain component
+        static let hrv = "HRV"  /// HRV component
+        static let rhr = "RHR"  /// RHR component
+    }
+    
+    // MARK: - Debt Metrics
+    enum DebtMetrics {
+        static let recoveryDebt = "Recovery Debt"  /// Recovery debt title
+        static let sleepDebt = "Sleep Debt"  /// Sleep debt title
+        static let daysLabel = "days"  /// Days label for debt
+    }
+    
+    // MARK: - Instructions
+    enum Instructions {
+        static let wearAppleWatch = "Wear your Apple Watch while sleeping"  /// Wear watch instruction
+        static let trackConsistently = "Track consistently for 7+ days"  /// Track consistently instruction
+        static let grantPermissions = "Grant all health permissions"  /// Grant permissions instruction
+        static let connectDataSource = "Connect a data source"  /// Connect data source instruction
+    }
+    
+    // MARK: - Pro Features
+    static let upgradeToPro = "Upgrade to PRO"
+    static let unlockAllFeatures = "Unlock all features"
+    static let pro = "PRO"  /// PRO badge text
+    
+    // MARK: - Workout & RPE (top-level for easy access)
+    static let workoutDetails = "Workout Details"  /// Workout details title
+    static let rateEffort = "Rate your effort and select muscle groups worked"  /// Rate effort description
+    static let effortLevel = "Effort Level"  /// Effort level label
+    static let muscleGroupsOptional = "Muscle Groups (Optional)"  /// Muscle groups label
+    static let workoutTypeOptional = "Workout Type (Optional)"  /// Workout type label
+    
+    // MARK: - Badges
+    enum Badges {
+        static let pro = "PRO"  /// PRO badge
+        static let new = "NEW"  /// NEW badge
+        static let beta = "BETA"  /// BETA badge
+        static let comingSoon = "COMING SOON"  /// Coming soon badge
+        static let bestValue = "BEST VALUE"  /// Best value badge
+        static let popular = "POPULAR"  /// Popular badge
+        static let excellent = "Excellent"  /// Excellent badge
+        static let good = "Good"  /// Good badge
+        static let fair = "Fair"  /// Fair badge
+        static let poor = "Poor"  /// Poor badge
+        static let low = "Low"  /// Low badge
+        static let medium = "Medium"  /// Medium badge
+        static let high = "High"  /// High badge
+        
+        // Preview badges
+        static let small = "Small"  /// Small size
+        static let mediumSize = "Medium"  /// Medium size
+        static let large = "Large"  /// Large size
+        static let ready = "Ready"  /// Ready badge
+        static let warning = "Warning"  /// Warning badge
+        static let error = "Error"  /// Error badge
+    }
+    
+    // MARK: - Data Sources
+    enum DataSources {
+        // Strava
+        static let stravaConnect = "Connect with Strava"  /// Strava connect
+        static let stravaDisconnect = "Disconnect from Strava"  /// Strava disconnect
+        static let stravaConnecting = "Connecting..."  /// Strava connecting
+        static let stravaName = "Strava"  /// Strava name
+        
+        // Intervals.icu
+        static let intervalsConnect = "Connect with Intervals.icu"  /// Intervals connect
+        static let intervalsDisconnect = "Disconnect from Intervals.icu"  /// Intervals disconnect
+        static let intervalsName = "Intervals.icu"  /// Intervals name
+        
+        // Error
+        static let errorPrefix = "Error: "  /// Error prefix
     }
     
     // MARK: - Empty State Messages
@@ -246,59 +321,25 @@ enum CommonContent {
         static let noTrainingZones = "No Training Zones"  /// No training zones
         static let noTrainingZonesMessage = "Connect a training platform to sync your power and heart rate zones"  /// No zones message
         
-        // Sleep
-        static let noSleepData = "No sleep data"  /// No sleep data
-        static let noSleepDataMessage = "Wear your Apple Watch while sleeping to track sleep quality"  /// No sleep message
-        
-        // Recovery
-        static let noRecoveryData = "No recovery data"  /// No recovery data
-        static let noRecoveryDataMessage = "Complete your first workout to see recovery metrics"  /// No recovery message
-        
         // Metrics
         static let noMetrics = "No Metrics"  /// No metrics
         static let noMetricsMessage = "Connect a data source to see your performance metrics"  /// No metrics message
         
+        // Sleep
+        static let noSleepData = "No sleep data"  /// No sleep data
+        static let noSleepDataMessage = "Wear your Apple Watch while sleeping to track sleep quality"  /// No sleep message
+        
         // Actions
         static let connectButton = "Connect Data Source"  /// Connect button
         static let availableSources = "Available sources:"  /// Available sources label
-    }
-    
-    // MARK: - Badges
-    enum Badges {
-        static let pro = "PRO"  /// PRO badge
-        static let new = "NEW"  /// NEW badge
-        static let beta = "BETA"  /// BETA badge
-        static let comingSoon = "COMING SOON"  /// Coming soon badge
-        static let bestValue = "BEST VALUE"  /// Best value badge
-        static let popular = "POPULAR"  /// Popular badge
-        static let recommended = "RECOMMENDED"  /// Recommended badge
         
-        // Status Badges
-        static let ready = "Ready"  /// Ready status
-        static let excellent = "Excellent"  /// Excellent status
-        static let good = "Good"  /// Good status
-        static let fair = "Fair"  /// Fair status
-        static let poor = "Poor"  /// Poor status
-        static let high = "High"  /// High status
-        static let moderate = "Moderate"  /// Moderate status
-        static let low = "Low"  /// Low status
-    }
-    
-    // MARK: - Data Sources
-    enum DataSources {
-        // Strava
-        static let stravaConnect = "Connect with Strava"  /// Strava connect
-        static let stravaDisconnect = "Disconnect from Strava"  /// Strava disconnect
-        static let stravaConnecting = "Connecting..."  /// Strava connecting
-        static let stravaName = "Strava"  /// Strava name
-        
-        // Intervals.icu
-        static let intervalsConnect = "Connect with Intervals.icu"  /// Intervals connect
-        static let intervalsDisconnect = "Disconnect from Intervals.icu"  /// Intervals disconnect
-        static let intervalsName = "Intervals.icu"  /// Intervals name
-        
-        // Error
-        static let errorPrefix = "Error: "  /// Error prefix
+        // Charts
+        static let dataAvailableButEmpty = "Data available but chart is empty"  /// Chart empty message
+        static let pullToRefreshTrend = "Pull to refresh to load"  /// Pull to refresh trend
+        static let checkBackIn = "Check back in"  /// Check back in prefix
+        static let collectingData = "Collecting data to show"  /// Collecting data prefix
+        static let ofDays = "of"  /// Of (for "X of Y days")
+        static let daysRemaining = "remaining"  /// Remaining suffix
     }
     
     // MARK: - Error Messages
@@ -308,6 +349,7 @@ enum CommonContent {
         static let genericMessage = "Please try again later"  /// Generic error message
         static let unknownError = "An unknown error occurred"  /// Unknown error
         static let tryAgain = "Please try again"  /// Try again message
+        static let connectionError = "Connection Error"  /// Connection error title
         
         // Network
         static let networkTitle = "Connection Error"  /// Network error title
@@ -344,6 +386,37 @@ enum CommonContent {
         // Permissions
         static let permissionTitle = "Permission Required"  /// Permission title
         static let permissionMessage = "This feature requires additional permissions"  /// Permission message
+    }
+    
+    // MARK: - Debug & Testing
+    enum Debug {
+        static let debugMode = "Debug Mode"  /// Debug mode label
+        static let testData = "Test Data"  /// Test data label
+        static let mockData = "Mock Data"  /// Mock data label
+        static let clearCache = "Clear Cache"  /// Clear cache action
+        static let resetDefaults = "Reset to Defaults"  /// Reset defaults action
+        static let viewLogs = "View Logs"  /// View logs action
+        static let exportLogs = "Export Logs"  /// Export logs action
+        
+        // HealthKit Debug
+        static let healthKitIntegration = "HealthKit Integration"  /// HealthKit integration title
+        static let testingHealthKit = "Testing HealthKit authorization"  /// Testing description
+        static let authorizationStatus = "Authorization Status"  /// Authorization status
+        static let authorizationDetails = "Authorization Details"  /// Authorization details
+        static let error = "Error"  /// Error label
+        
+        // App Group Debug
+        static let title = "App Group Debug"  /// App group debug title
+        static let statusInitial = "Ready to test"  /// Initial status
+        static let statusWriteSuccess = "✅ Write successful"  /// Write success
+        static let statusReadSuccess = "✅ Read successful"  /// Read success
+        static let statusFailed = "❌ Failed - check App Group configuration"  /// Failed status
+        static let statusNoData = "No data in shared container"  /// No data status
+        static let buttonWrite = "Write Test Data"  /// Write button
+        static let buttonRead = "Read Test Data"  /// Read button
+        static let labelScore = "Recovery Score:"  /// Score label
+        static let labelBand = "Recovery Band:"  /// Band label
+        static let messageNoData = "No recovery data in shared container"  /// No data message
     }
     
 }

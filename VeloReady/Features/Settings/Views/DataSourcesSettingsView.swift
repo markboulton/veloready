@@ -26,10 +26,10 @@ struct DataSourcesSettingsView: View {
             // Priority Section
             prioritySection
         }
-        .navigationTitle("Data Sources")
+        .navigationTitle(SettingsContent.DataSources.title)
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Connection Error", isPresented: $showingConnectionError) {
-            Button("OK", role: .cancel) { }
+        .alert(CommonContent.Errors.connectionError, isPresented: $showingConnectionError) {
+            Button(CommonContent.Actions.ok, role: .cancel) { }
         } message: {
             Text(errorMessage)
         }

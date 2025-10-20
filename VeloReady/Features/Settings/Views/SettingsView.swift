@@ -217,7 +217,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.performance)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("40%")
+                                Text(SettingsContent.SleepComponents.performancePercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -226,7 +226,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.efficiency)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("15%")
+                                Text(SettingsContent.SleepComponents.efficiencyPercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -235,7 +235,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.stageQuality)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("20%")
+                                Text(SettingsContent.SleepComponents.stageQualityPercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -244,7 +244,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.disturbances)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("10%")
+                                Text(SettingsContent.SleepComponents.disturbancesPercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -253,7 +253,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.timing)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("10%")
+                                Text(SettingsContent.SleepComponents.timingPercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -262,7 +262,7 @@ struct SleepSettingsView: View {
                                 Text(SettingsContent.SleepComponents.latency)
                                     .font(.subheadline)
                                 Spacer()
-                                Text("5%")
+                                Text(SettingsContent.SleepComponents.latencyPercent)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -312,7 +312,7 @@ struct TrainingZoneSettingsView: View {
                                         ProgressView()
                                             .scaleEffect(0.8)
                                     } else {
-                                        Button("Sync Zones") {
+                                        Button(SettingsContent.TrainingZones.syncZones) {
                                             Task {
                                                 await athleteZoneService.fetchAthleteData()
                                             }
@@ -370,7 +370,7 @@ struct TrainingZoneSettingsView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Picker("Zone Source", selection: $userSettings.zoneSource) {
+                        Picker(SettingsContent.TrainingZones.zoneSourcePicker, selection: $userSettings.zoneSource) {
                             Text(SettingsContent.TrainingZones.intervals).tag("intervals")
                             Text(SettingsContent.TrainingZones.manual).tag("manual")
                             Text(SettingsContent.TrainingZones.coggan).tag("coggan")
@@ -517,7 +517,7 @@ struct TrainingZoneSettingsView: View {
                     }
                     .padding(.vertical, 8)
                 } header: {
-                    Text("Heart Rate Zones")
+                    Text(SettingsContent.TrainingZones.heartRateZonesTitle)
                 } footer: {
                     Text(SettingsContent.TrainingZones.heartRateZonesDescription)
                 }
@@ -581,7 +581,7 @@ struct TrainingZoneSettingsView: View {
                     }
                     .padding(.vertical, 8)
                 } header: {
-                    Text("Power Zones")
+                    Text(SettingsContent.TrainingZones.powerZonesTitle)
                 } footer: {
                     Text(SettingsContent.TrainingZones.powerZonesDescription)
                 }
@@ -601,11 +601,11 @@ struct TrainingZoneSettingsView: View {
     private var zoneSourceDescription: String {
         switch userSettings.zoneSource {
         case "intervals":
-            return "Sync zones from Intervals.icu. Tap 'Sync Zones' above to import."
+            return SettingsContent.TrainingZones.intervalsDescription
         case "manual":
-            return "Edit zone boundaries manually below."
+            return SettingsContent.TrainingZones.manualDescription
         case "coggan":
-            return "Use standard Coggan zones. Set your FTP and Max HR below."
+            return SettingsContent.TrainingZones.cogganDescriptionShort
         default:
             return ""
         }

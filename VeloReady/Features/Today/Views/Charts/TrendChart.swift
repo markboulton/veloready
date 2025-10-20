@@ -302,10 +302,10 @@ struct TrendChart: View {
                         .font(.system(size: TypeScale.lg))
                         .foregroundColor(Color.text.secondary)
                     
-                    Text("Data available but chart is empty")
+                    Text(CommonContent.EmptyStates.dataAvailableButEmpty)
                         .font(.system(size: TypeScale.sm, weight: .medium))
                     
-                    Text("Pull to refresh to load \(selectedPeriod.days)-day trend")
+                    Text("\(CommonContent.EmptyStates.pullToRefreshTrend) \(selectedPeriod.days)-day trend")
                         .font(.system(size: TypeScale.xs))
                         .foregroundColor(Color.text.secondary)
                 }
@@ -320,16 +320,16 @@ struct TrendChart: View {
                     Image(systemName: "clock.fill")
                         .foregroundColor(Color.text.secondary)
                     
-                    Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                    Text("\(CommonContent.EmptyStates.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? CommonContent.TimeUnits.day : CommonContent.TimeUnits.days)")
                         .font(.system(size: TypeScale.sm, weight: .medium))
                 }
                 
-                Text("Collecting data to show \(selectedPeriod.days)-day trend")
+                Text("\(CommonContent.EmptyStates.collectingData) \(selectedPeriod.days)-day trend")
                     .font(.system(size: TypeScale.xs))
                     .foregroundColor(Color.text.secondary)
                 
                 HStack(spacing: 4) {
-                    Text("\(availableDays) of \(selectedPeriod.days) days")
+                    Text("\(availableDays) \(CommonContent.EmptyStates.ofDays) \(selectedPeriod.days) \(CommonContent.TimeUnits.days)")
                         .font(.system(size: TypeScale.xxs, weight: .medium))
                         .foregroundColor(Color.text.secondary)
                     
@@ -383,14 +383,14 @@ struct TrendChart: View {
                         .font(.system(size: TypeScale.xxs))
                         .foregroundColor(Color.text.tertiary)
                     
-                    Text("\(availableDays) of \(selectedPeriod.days) days")
+                    Text("\(availableDays) \(CommonContent.EmptyStates.ofDays) \(selectedPeriod.days) \(CommonContent.TimeUnits.days)")
                         .font(.system(size: TypeScale.xxs, weight: .medium))
                         .foregroundColor(Color.text.secondary)
                     
                     Spacer()
                     
                     if daysRemaining > 0 {
-                        Text("\(daysRemaining) \(daysRemaining == 1 ? "day" : "days") remaining")
+                        Text("\(daysRemaining) \(daysRemaining == 1 ? CommonContent.TimeUnits.day : CommonContent.TimeUnits.days) \(CommonContent.EmptyStates.daysRemaining)")
                             .font(.system(size: TypeScale.xxs))
                             .foregroundColor(Color.text.tertiary)
                     }

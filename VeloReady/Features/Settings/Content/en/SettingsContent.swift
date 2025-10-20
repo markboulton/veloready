@@ -107,6 +107,32 @@ enum SettingsContent {
         static let deduplicated = "Deduplicated"
         static let targetHitRate = "Target: >85% hit rate after warm-up"
         static let clearMessage = "This will clear all cached data. The app will re-fetch data as needed."  /// Clear cache message
+        
+        // Stream Cache
+        static let streamCache = "Stream Cache"  /// Stream cache section
+        static let totalActivities = "Total Activities"  /// Total activities label
+        static let totalSamples = "Total Samples"  /// Total samples label
+        
+        // Performance
+        static let performanceMetrics = "Performance Metrics"  /// Performance section
+        static let avgLabel = "Avg"  /// Average label
+        static let p95Label = "P95"  /// P95 label
+        static let countLabel = "Count"  /// Count label
+        static let msUnit = "ms"  /// Milliseconds unit
+        
+        // Memory
+        static let memory = "Memory"  /// Memory section
+        static let appMemory = "App Memory"  /// App memory label
+        static let cacheLimit = "Cache Limit"  /// Cache limit label
+        static let cacheLimitValue = "50 MB"  /// Cache limit value
+        static let cacheEntries = "Cache Entries"  /// Cache entries label
+        static let cacheEntriesValue = "200 max"  /// Cache entries value
+        
+        // Actions
+        static let printStats = "Print Stats to Console"  /// Print stats button
+        static let resetStats = "Reset Statistics"  /// Reset stats button
+        static let cancel = "Cancel"  /// Cancel button
+        static let clear = "Clear"  /// Clear button
     }
     
     // MARK: - Feedback
@@ -234,6 +260,14 @@ enum SettingsContent {
         static let sourceIntervals = "Source: Intervals.icu"
         static let sourceManual = "Source: Manual"
         static let sourceComputed = "Source: Computed"
+        
+        // Zone Source Descriptions
+        static let intervalsDescription = "Sync zones from Intervals.icu. Tap 'Sync Zones' above to import."
+        static let manualDescription = "Edit zone boundaries manually below."
+        static let cogganDescriptionShort = "Use standard Coggan zones. Set your FTP and Max HR below."
+        
+        // Picker Labels
+        static let zoneSourcePicker = "Zone Source"  /// Picker accessibility label
     }
     
     // MARK: - Display Settings
@@ -368,6 +402,14 @@ enum SettingsContent {
         static let timing = "Timing"  /// Timing component
         static let latency = "Latency"  /// Latency component
         static let scoreCalculation = "Score Calculation"  /// Score calculation header
+        
+        // Percentages
+        static let performancePercent = "40%"  /// Performance weight
+        static let efficiencyPercent = "15%"  /// Efficiency weight
+        static let stageQualityPercent = "20%"  /// Stage quality weight
+        static let disturbancesPercent = "10%"  /// Disturbances weight
+        static let timingPercent = "10%"  /// Timing weight
+        static let latencyPercent = "5%"  /// Latency weight
     }
     
     // MARK: - Data Sources

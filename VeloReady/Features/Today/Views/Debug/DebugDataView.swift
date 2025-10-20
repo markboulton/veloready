@@ -31,11 +31,11 @@ struct DebugDataView: View {
     
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("HealthKit Integration")
+            Text(CommonContent.Debug.healthKitIntegration)
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("Testing HealthKit authorization")
+            Text(CommonContent.Debug.testingHealthKit)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -44,7 +44,7 @@ struct DebugDataView: View {
     
     private var authorizationSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Authorization Status")
+            Text(CommonContent.Debug.authorizationStatus)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -70,7 +70,7 @@ struct DebugDataView: View {
     
     private var authorizationDetailsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Authorization Details")
+            Text(CommonContent.Debug.authorizationDetails)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -122,7 +122,7 @@ struct DebugDataView: View {
     
     private func errorSection(_ error: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Error")
+            Text(CommonContent.Debug.error)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color.text.error)

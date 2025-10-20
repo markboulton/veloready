@@ -28,7 +28,7 @@ struct ProUpgradeCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     // PRO badge (top right)
-                    Text("PRO")
+                    Text(CommonContent.pro)
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -116,7 +116,7 @@ struct ProBadgeButton: View {
     
     var body: some View {
         Button(action: { showPaywall = true }) {
-            Text("PRO")
+            Text(CommonContent.pro)
                 .font(.caption2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)

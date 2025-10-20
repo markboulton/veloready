@@ -144,7 +144,7 @@ enum BadgeSize {
         VStack(spacing: Spacing.xl) {
             // Variants
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badge Variants")
+                Text("Badge Variants")  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
@@ -164,13 +164,13 @@ enum BadgeSize {
             
             // Sizes
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badge Sizes")
+                Text("Badge Sizes")  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
-                    Badge("Small", variant: .info, size: .small)
-                    Badge("Medium", variant: .info, size: .medium)
-                    Badge("Large", variant: .info, size: .large)
+                    Badge(CommonContent.Badges.small, variant: .info, size: .small)
+                    Badge(CommonContent.Badges.mediumSize, variant: .info, size: .medium)
+                    Badge(CommonContent.Badges.large, variant: .info, size: .large)
                 }
             }
             
@@ -178,19 +178,19 @@ enum BadgeSize {
             
             // With Icons
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badges with Icons")
+                Text("Badges with Icons")  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
-                    Badge("Ready", variant: .success, icon: "checkmark.circle.fill")
-                    Badge("Warning", variant: .warning, icon: "exclamationmark.triangle.fill")
-                    Badge("Error", variant: .error, icon: "xmark.circle.fill")
+                    Badge(CommonContent.Badges.ready, variant: .success, icon: "checkmark.circle.fill")
+                    Badge(CommonContent.Badges.warning, variant: .warning, icon: "exclamationmark.triangle.fill")
+                    Badge(CommonContent.Badges.error, variant: .error, icon: "xmark.circle.fill")
                 }
                 
                 HStack(spacing: Spacing.sm) {
-                    Badge("PRO", variant: .pro, icon: "star.fill")
-                    Badge("New", variant: .info, icon: "sparkles")
-                    Badge("Beta", variant: .neutral, icon: "hammer.fill")
+                    Badge(CommonContent.Badges.pro, variant: .pro, icon: "star.fill")
+                    Badge(CommonContent.Badges.new, variant: .info, icon: "sparkles")
+                    Badge(CommonContent.Badges.beta, variant: .neutral, icon: "hammer.fill")
                 }
             }
             
@@ -198,40 +198,40 @@ enum BadgeSize {
             
             // Use Cases
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Use Cases")
+                Text("Use Cases")  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Card {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         HStack {
-                            Text("Recovery Score")
+                            Text("Recovery Score")  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
-                            Badge("Excellent", variant: .success, icon: "checkmark.circle.fill", size: .small)
+                            Badge(CommonContent.Badges.excellent, variant: .success, icon: "checkmark.circle.fill", size: .small)
                         }
                         
                         HStack {
-                            Text("Sleep Quality")
+                            Text("Sleep Quality")  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
-                            Badge("Fair", variant: .warning, size: .small)
+                            Badge(CommonContent.Badges.fair, variant: .warning, size: .small)
                         }
                         
                         HStack {
-                            Text("Training Load")
+                            Text("Training Load")  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
-                            Badge("High", variant: .error, size: .small)
+                            Badge(CommonContent.Badges.high, variant: .error, size: .small)
                         }
                     }
                 }
                 
                 Card {
                     HStack {
-                        Text("Weekly Trends")
+                        Text("Weekly Trends")  // Preview only
                             .font(.system(size: TypeScale.md, weight: .semibold))
                         Spacer()
-                        Badge("PRO", variant: .pro, icon: "star.fill", size: .small)
+                        Badge(CommonContent.Badges.pro, variant: .pro, icon: "star.fill", size: .small)
                     }
                 }
             }

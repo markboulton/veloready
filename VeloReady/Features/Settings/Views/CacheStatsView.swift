@@ -27,27 +27,27 @@ struct CacheStatsView: View {
             }
             
             // Stream Cache Section
-            Section("Stream Cache") {
+            Section(SettingsContent.Cache.streamCache) {
                 let streamStats = StreamCacheService.shared.getCacheStats()
                 
-                StatRow(label: "Total Activities", value: "\(streamStats.totalEntries)")
-                StatRow(label: "Total Samples", value: formatNumber(streamStats.totalSamples))
-                StatRow(label: "Cache Hits", value: "\(streamStats.cacheHits)")
-                StatRow(label: "Cache Misses", value: "\(streamStats.cacheMisses)")
-                StatRow(label: "Hit Rate", value: "\(Int(streamStats.hitRate * 100))%")
+                StatRow(label: SettingsContent.Cache.totalActivities, value: "\(streamStats.totalEntries)")
+                StatRow(label: SettingsContent.Cache.totalSamples, value: formatNumber(streamStats.totalSamples))
+                StatRow(label: SettingsContent.Cache.cacheHits, value: "\(streamStats.cacheHits)")
+                StatRow(label: SettingsContent.Cache.cacheMisses, value: "\(streamStats.cacheMisses)")
+                StatRow(label: SettingsContent.Cache.hitRate, value: "\(Int(streamStats.hitRate * 100))%")
             }
             
             // Performance Monitoring Section
             if !performanceStats.isEmpty {
-                Section("Performance Metrics") {
+                Section(SettingsContent.Cache.performanceMetrics) {
                     ForEach(performanceStats) { stat in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(SettingsContent.Cache.totalSize)
                                 .font(.headline)
                             HStack {
                                 VStack(alignment: .leading) {
-                                    Text("Avg: \(stat.averageMs)ms")
-                                    Text("P95: \(stat.p95Ms)ms")
+                                    Text("\(SettingsContent.Cache.avgLabel): \(stat.averageMs)\(SettingsContent.Cache.msUnit)")
+                                    Text("\(SettingsContent.Cache.p95Label): \(stat.p95Ms)\(SettingsContent.Cache.msUnit)")
                                 }
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -55,7 +55,7 @@ struct CacheStatsView: View {
                                 Spacer()
                                 
                                 VStack(alignment: .trailing) {
-                                    Text("Count: \(stat.count)")
+                                    Text("\(SettingsContent.Cache.countLabel): \(stat.count)")
                                     Text(SettingsContent.Cache.statistics)
                                 }
                                 .font(.caption)
@@ -68,10 +68,10 @@ struct CacheStatsView: View {
             }
             
             // Memory Info
-            Section("Memory") {
-                StatRow(label: "App Memory", value: formatMemory(getAppMemory()))
-                StatRow(label: "Cache Limit", value: "50 MB")
-                StatRow(label: "Cache Entries", value: "200 max")
+            Section(SettingsContent.Cache.memory) {
+                StatRow(label: SettingsContent.Cache.appMemory, value: formatMemory(getAppMemory()))
+                StatRow(label: SettingsContent.Cache.cacheLimit, value: SettingsContent.Cache.cacheLimitValue)
+                StatRow(label: SettingsContent.Cache.cacheEntries, value: SettingsContent.Cache.cacheEntriesValue)
             }
             
             // Actions
@@ -82,7 +82,7 @@ struct CacheStatsView: View {
                         await PerformanceMonitor.shared.printAllStatistics()
                     }
                 } label: {
-                    Label("Print Stats to Console", systemImage: "doc.text")
+                    Label(SettingsContent.Cache.printStats, systemImage: "doc.text")
                 }
                 
                 Button {
@@ -91,7 +91,7 @@ struct CacheStatsView: View {
                         performanceStats = []
                     }
                 } label: {
-                    Label(SettingsContent.Cache.statistics, systemImage: "arrow.counterclockwise")
+                    Label(SettingsContent.Cache.resetStats, systemImage: "arrow.counterclockwise")
                 }
                 
                 Button(role: .destructive) {
@@ -101,7 +101,7 @@ struct CacheStatsView: View {
                 }
             }
         }
-        .navigationTitle("Cache Statistics")
+        .navigationTitle(SettingsContent.Cache.statistics)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await loadPerformanceStats()
@@ -110,8 +110,8 @@ struct CacheStatsView: View {
             await loadPerformanceStats()
         }
         .alert(SettingsContent.Cache.clearAll, isPresented: $showingClearAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Clear", role: .destructive) {
+            Button(SettingsContent.Cache.cancel, role: .cancel) {}
+            Button(SettingsContent.Cache.clear, role: .destructive) {
                 cacheManager.invalidate(matching: "*")
                 StreamCacheService.shared.clearAllCaches()
                 Logger.debug("🗑️ All caches cleared")

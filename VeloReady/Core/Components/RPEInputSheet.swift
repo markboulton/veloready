@@ -83,11 +83,11 @@ struct RPEInputSheet: View {
                     
                     // RPE Guide (moved below slider)
                     VStack(alignment: .leading, spacing: 8) {
-                        rpeGuideRow(range: "1-2", label: "Very Light", description: "Minimal effort")
-                        rpeGuideRow(range: "3-4", label: "Light", description: "Easy, can talk freely")
-                        rpeGuideRow(range: "5-6", label: "Moderate", description: "Working, can still talk")
-                        rpeGuideRow(range: "7-8", label: "Hard", description: "Difficult, short answers")
-                        rpeGuideRow(range: "9-10", label: "Maximum", description: "Can't sustain long")
+                        rpeGuideRow(range: CommonContent.RPE.range12, label: CommonContent.RPE.veryLight, description: CommonContent.RPE.veryLightDesc)
+                        rpeGuideRow(range: CommonContent.RPE.range34, label: CommonContent.RPE.light, description: CommonContent.RPE.lightDesc)
+                        rpeGuideRow(range: CommonContent.RPE.range56, label: CommonContent.RPE.moderate, description: CommonContent.RPE.moderateDesc)
+                        rpeGuideRow(range: CommonContent.RPE.range78, label: CommonContent.RPE.hard, description: CommonContent.RPE.hardDesc)
+                        rpeGuideRow(range: CommonContent.RPE.range910, label: CommonContent.RPE.maximum, description: CommonContent.RPE.maximumDesc)
                     }
                     .padding(.horizontal)
                 }
@@ -119,7 +119,7 @@ struct RPEInputSheet: View {
                 
                 // Workout Type Selection
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Workout Type (Optional)")
+                    Text(CommonContent.workoutTypeOptional)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .padding(.horizontal)
@@ -149,7 +149,7 @@ struct RPEInputSheet: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
                                 Image(systemName: "checkmark")
-                                Text("Save Details")
+                                Text(CommonContent.Actions.saveDetails)
                             }
                         }
                         .font(.headline)
@@ -165,11 +165,11 @@ struct RPEInputSheet: View {
                     .padding(.top, 24)
                 }
             }
-            .navigationTitle("Workout Details")
+            .navigationTitle(CommonContent.workoutDetails)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(CommonContent.Actions.cancel) {
                         dismiss()
                     }
                 }
@@ -211,15 +211,15 @@ struct RPEInputSheet: View {
     private var rpeDescription: String {
         switch rpeValue {
         case 1..<2.5:
-            return "Very Light"
+            return CommonContent.RPE.veryLight
         case 2.5..<4.5:
-            return "Light"
+            return CommonContent.RPE.light
         case 4.5..<6.5:
-            return "Moderate"
+            return CommonContent.RPE.moderate
         case 6.5..<8.5:
-            return "Hard"
+            return CommonContent.RPE.hard
         default:
-            return "Maximum"
+            return CommonContent.RPE.maximum
         }
     }
     
