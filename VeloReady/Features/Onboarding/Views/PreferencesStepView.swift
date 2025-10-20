@@ -59,12 +59,12 @@ struct PreferencesStepView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("Set Up Your Profile")
+                Text(OnboardingContent.Preferences.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Customize your experience")
+                Text(OnboardingContent.Preferences.subtitle)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -92,7 +92,7 @@ struct PreferencesStepView: View {
                 savePreferences()
                 onboardingManager.nextStep()
             }) {
-                Text("Continue")
+                Text(OnboardingContent.Preferences.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -109,7 +109,7 @@ struct PreferencesStepView: View {
     
     private var unitSystemSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Units")
+            Text(OnboardingContent.Preferences.unitsTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -149,11 +149,11 @@ struct PreferencesStepView: View {
     
     private var activityTypesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Activities to Track")
+            Text(OnboardingContent.Preferences.activitiesTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Select which activities you want to see in your feed")
+            Text(OnboardingContent.Preferences.activitiesSubtitle)
                 .font(.caption)
                 .foregroundColor(.secondary)
             
@@ -200,17 +200,17 @@ struct PreferencesStepView: View {
     
     private var notificationsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Notifications")
+            Text(OnboardingContent.Preferences.notificationsTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             Toggle(isOn: $enableNotifications) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Recovery Reminders")
+                    Text(OnboardingContent.Preferences.recoveryReminders)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text("Get notified about your daily recovery score")
+                    Text(OnboardingContent.Preferences.recoveryRemindersDescription)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

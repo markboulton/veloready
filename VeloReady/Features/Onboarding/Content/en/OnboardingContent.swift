@@ -276,4 +276,23 @@ enum OnboardingContent {
         // Fine print
         static let finePrint = "7-day free trial. Cancel anytime. Payment charged to Apple ID at confirmation of purchase. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period."  /// Fine print
     }
+    
+    // MARK: - Preferences Step
+    enum Preferences {
+        static let title = "Set Up Your Profile"  /// Main title
+        static let subtitle = "Customize your experience"  /// Subtitle
+        static let continueButton = "Continue"  /// Continue button
+        
+        // Units Section
+        static let unitsTitle = "Units"  /// Units section title
+        
+        // Activity Types Section
+        static let activitiesTitle = "Activities to Track"  /// Activities section title
+        static let activitiesSubtitle = "Select which activities you want to see in your feed"  /// Activities subtitle
+        
+        // Notifications Section
+        static let notificationsTitle = "Notifications"  /// Notifications section title
+        static let recoveryReminders = "Recovery Reminders"  /// Recovery reminders toggle
+        static let recoveryRemindersDescription = "Get notified about your daily recovery score"  /// Recovery reminders description
+    }
 }
