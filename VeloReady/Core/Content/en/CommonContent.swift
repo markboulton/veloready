@@ -166,6 +166,11 @@ enum CommonContent {
         static let outOf10 = "out of 10"
     }
     
+    // MARK: - Labels
+    enum Labels {
+        static let lastSynced = "Last synced"
+    }
+    
     // MARK: - Common Instructions
     enum Instructions {
         static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
