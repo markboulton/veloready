@@ -119,7 +119,7 @@ struct ProFeatureToggle: View {
                 }
             
             if config.bypassSubscriptionForTesting {
-                Text("✅ All Pro features unlocked for testing")
+                Text(SettingsContent.DebugSettings.proFeaturesUnlocked)
                     .font(.caption)
                     .foregroundColor(Color.semantic.success)
             }
@@ -129,7 +129,7 @@ struct ProFeatureToggle: View {
             Toggle("Show Mock Data (Weekly Trends)", isOn: $config.showMockDataForTesting)
             
             if config.showMockDataForTesting {
-                Text("📊 Mock data enabled for weekly trend charts")
+                Text(SettingsContent.DebugSettings.mockDataEnabled)
                     .font(.caption)
                     .foregroundColor(Color.button.primary)
             }
@@ -137,10 +137,10 @@ struct ProFeatureToggle: View {
             Divider()
             
             HStack {
-                Text("Subscription Status:")
+                Text(SettingsContent.DebugSettings.subscriptionStatus)
                     .font(.subheadline)
                 Spacer()
-                Text(config.hasProAccess ? "Pro" : "Free")
+                Text(config.hasProAccess ? SettingsContent.DebugSettings.pro : SettingsContent.DebugSettings.free)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(config.hasProAccess ? Color.semantic.success : Color.semantic.warning)
@@ -148,7 +148,7 @@ struct ProFeatureToggle: View {
             
             if config.isInTrialPeriod {
                 HStack {
-                    Text("Trial Days Remaining:")
+                    Text(SettingsContent.DebugSettings.trialDaysRemaining)
                         .font(.subheadline)
                     Spacer()
                     Text("\(config.trialDaysRemaining)")
@@ -173,11 +173,11 @@ struct SleepSettingsView: View {
             Form {
                 Section {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Sleep Target")
+                        Text(SettingsContent.Sleep.targetTitle)
                             .font(.headline)
                         
                         HStack {
-                            Text("Hours:")
+                            Text(SettingsContent.Sleep.hoursLabel)
                                 .frame(width: 60, alignment: .leading)
                             
                             Stepper(value: $userSettings.sleepTargetHours, in: 4...12, step: 0.5) {
@@ -187,7 +187,7 @@ struct SleepSettingsView: View {
                         }
                         
                         HStack {
-                            Text("Minutes:")
+                            Text(SettingsContent.Sleep.minutesLabel)
                                 .frame(width: 60, alignment: .leading)
                             
                             Stepper(value: $userSettings.sleepTargetMinutes, in: 0...59, step: 15) {
@@ -196,25 +196,25 @@ struct SleepSettingsView: View {
                             }
                         }
                         
-                        Text("Total: \(userSettings.formattedSleepTarget)")
+                        Text("\(SettingsContent.Sleep.totalLabel) \(userSettings.formattedSleepTarget)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 8)
                 } header: {
-                    Text("Sleep Target")
+                    Text(SettingsContent.Sleep.targetTitle)
                 } footer: {
-                    Text("Set your ideal sleep duration. This affects your sleep score calculation.")
+                    Text(SettingsContent.Sleep.targetDescription)
                 }
                 
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Sleep Score Components")
+                        Text(SettingsContent.Sleep.componentsTitle)
                             .font(.headline)
                         
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("Performance")
+                                Text(SettingsContent.SleepComponents.performance)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("40%")
@@ -223,7 +223,7 @@ struct SleepSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Efficiency")
+                                Text(SettingsContent.SleepComponents.efficiency)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("15%")
@@ -232,7 +232,7 @@ struct SleepSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Stage Quality")
+                                Text(SettingsContent.SleepComponents.stageQuality)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("20%")
@@ -241,7 +241,7 @@ struct SleepSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Disturbances")
+                                Text(SettingsContent.SleepComponents.disturbances)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("10%")
@@ -250,7 +250,7 @@ struct SleepSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Timing")
+                                Text(SettingsContent.SleepComponents.timing)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("10%")
@@ -259,7 +259,7 @@ struct SleepSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Latency")
+                                Text(SettingsContent.SleepComponents.latency)
                                     .font(.subheadline)
                                 Spacer()
                                 Text("5%")
@@ -270,9 +270,9 @@ struct SleepSettingsView: View {
                     }
                     .padding(.vertical, 8)
                 } header: {
-                    Text("Score Calculation")
+                    Text(SettingsContent.SleepComponents.scoreCalculation)
                 } footer: {
-                    Text("Your sleep score is calculated using these weighted components from your Apple Health data.")
+                    Text(SettingsContent.Sleep.componentsDescription)
                 }
             }
             .navigationTitle(SettingsContent.Sleep.title)
@@ -303,7 +303,7 @@ struct TrainingZoneSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Text("Intervals.icu Zones")
+                                    Text(SettingsContent.TrainingZones.intervalsSync)
                                         .font(.headline)
                                     
                                     Spacer()
@@ -333,18 +333,18 @@ struct TrainingZoneSettingsView: View {
                         
                         if let athlete = athleteZoneService.athlete {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Athlete: \(athlete.name ?? "Unknown")")
+                                Text("\(SettingsContent.AthleteZones.athlete) \(athlete.name ?? SettingsContent.AthleteZones.unknownAthlete)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
                                 if let powerZones = athlete.powerZones {
-                                    Text("FTP: \(Int(powerZones.ftp ?? 0)) W")
+                                    Text("\(SettingsContent.TrainingZones.ftpLabel) \(Int(powerZones.ftp ?? 0)) W")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                                 
                                 if let hrZones = athlete.heartRateZones {
-                                    Text("Max HR: \(Int(hrZones.maxHr ?? 0)) bpm")
+                                    Text("\(SettingsContent.TrainingZones.maxHRLabel) \(Int(hrZones.maxHr ?? 0)) bpm")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
