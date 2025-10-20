@@ -89,7 +89,7 @@ struct DebugSettingsView: View {
     
     private var loggingSection: some View {
         Section {
-            Toggle("Enable Debug Logging", isOn: Binding(
+            Toggle(DebugSettingsContent.Logging.enableDebug, isOn: Binding(
                 get: { Logger.isDebugLoggingEnabled },
                 set: { Logger.isDebugLoggingEnabled = $0 }
             ))
@@ -99,7 +99,7 @@ struct DebugSettingsView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(Color.semantic.success)
                         .font(.caption)
-                    Text("Verbose logging enabled")
+                    Text(DebugSettingsContent.Logging.verboseEnabled)
                         .font(.caption)
                         .foregroundColor(Color.semantic.success)
                 }
@@ -108,15 +108,15 @@ struct DebugSettingsView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.secondary)
                         .font(.caption)
-                    Text("Logging disabled (optimal performance)")
+                    Text(DebugSettingsContent.Logging.disabled)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
         } header: {
-            Label("Debug Logging", systemImage: "doc.text.magnifyingglass")
+            Label(DebugSettingsContent.Logging.title, systemImage: "doc.text.magnifyingglass")
         } footer: {
-            Text("Enable verbose logging for debugging. Logs are DEBUG-only and never shipped to production. Toggle OFF for best performance during normal testing.")
+            Text(DebugSettingsContent.Logging.footer)
         }
     }
     
@@ -129,19 +129,19 @@ struct DebugSettingsView: View {
                     Image(systemName: "ladybug.fill")
                         .foregroundColor(Color.semantic.warning)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("API Data Inspector")
+                        Text(DebugSettingsContent.API.inspector)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Debug missing activity & athlete data")
+                        Text(DebugSettingsContent.API.inspectorDescription)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
             }
         } header: {
-            Label("API Debugging", systemImage: "network")
+            Label(DebugSettingsContent.API.title, systemImage: "network")
         } footer: {
-            Text("Inspect raw API responses to identify missing fields and data inconsistencies")
+            Text(DebugSettingsContent.API.footer)
         }
     }
     

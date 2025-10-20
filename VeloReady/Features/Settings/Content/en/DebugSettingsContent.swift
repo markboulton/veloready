@@ -6,6 +6,23 @@ enum DebugSettingsContent {
     static let title = "DEBUG & TESTING"
     static let done = "Done"
     
+    // MARK: - Logging
+    enum Logging {
+        static let title = "Debug Logging"
+        static let enableDebug = "Enable Debug Logging"
+        static let verboseEnabled = "Verbose logging enabled"
+        static let disabled = "Logging disabled (optimal performance)"
+        static let footer = "Enable verbose logging for debugging. Logs are DEBUG-only and never shipped to production. Toggle OFF for best performance during normal testing."
+    }
+    
+    // MARK: - API
+    enum API {
+        static let title = "API Debugging"
+        static let inspector = "API Data Inspector"
+        static let inspectorDescription = "Debug missing activity & athlete data"
+        static let footer = "Inspect raw API responses to identify missing fields and data inconsistencies"
+    }
+    
     // MARK: - Section Headers
     enum SectionHeaders {
         static let authStatus = "Authentication Status"

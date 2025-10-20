@@ -61,7 +61,7 @@ struct AthleteZonesSettingsView: View {
                 // FTP Display/Edit
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("FTP")
+                        Text(SettingsContent.AthleteZones.ftp)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -78,7 +78,7 @@ struct AthleteZonesSettingsView: View {
                                     .textFieldStyle(.roundedBorder)
                                     .font(.body)
                                 
-                                Text("watts")
+                                Text(CommonContent.Units.watts)
                                     .foregroundColor(.secondary)
                                 
                                 Button("Save") {
@@ -133,7 +133,7 @@ struct AthleteZonesSettingsView: View {
                 // Max HR Display/Edit
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Max HR")
+                        Text(SettingsContent.AthleteZones.maxHR)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -150,7 +150,7 @@ struct AthleteZonesSettingsView: View {
                                     .textFieldStyle(.roundedBorder)
                                     .font(.body)
                                 
-                                Text("bpm")
+                                Text(CommonContent.Units.bpm)
                                     .foregroundColor(.secondary)
                                 
                                 Button("Save") {

@@ -105,6 +105,15 @@ enum SettingsContent {
         static let recoveryAlertsDescription = "Get notified when your recovery score indicates you should rest."  /// Recovery alerts description
     }
     
+    // MARK: - Athlete Zones
+    enum AthleteZones {
+        static let ftp = "FTP"  /// FTP label
+        static let maxHR = "Max HR"  /// Max HR label
+        static let computedFromData = "Computed from performance data"  /// Computed message
+        static let athlete = "Athlete:"  /// Athlete label
+        static let unknownAthlete = "Unknown"  /// Unknown athlete
+    }
+    
     // MARK: - Debug Settings
     enum DebugSettings {
         static let proFeaturesUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
