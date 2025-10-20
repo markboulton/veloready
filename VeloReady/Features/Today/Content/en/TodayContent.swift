@@ -4,6 +4,11 @@ import Foundation
 enum TodayContent {
     // MARK: - Navigation
     static let title = "Today"  /// Navigation title
+    static let welcomeBack = "Welcome back!"  /// Welcome message
+    static let howFeeling = "How are you feeling today?"  /// Feeling prompt
+    static let healthToday = "Your Health Today"  /// Health section title
+    static let sleepDataMissing = "Sleep data missing"  /// Sleep missing message
+    static let recoveryLimitedMessage = "Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis."  /// Limited recovery message
     
     // MARK: - Sections
     static let recoverySection = "Recovery"  /// Recovery section title

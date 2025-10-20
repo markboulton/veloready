@@ -132,7 +132,7 @@ struct TodayView: View {
                    scrollOffset < -50 {
                     ToolbarItem(placement: .principal) {
                         HStack {
-                            Text("Today")
+                            Text(CommonContent.today)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             Spacer()
@@ -238,11 +238,11 @@ struct TodayView: View {
     
     private var headerSection: some View {
         VStack(spacing: 12) {
-            Text("Welcome back!")
+            Text(TodayContent.welcomeBack)
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
-            Text("How are you feeling today?")
+            Text(TodayContent.howFeeling)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -260,7 +260,7 @@ struct TodayView: View {
     
     private var healthDataSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Your Health Today")
+            Text(TodayContent.healthToday)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -453,7 +453,7 @@ struct TodayView: View {
                         .foregroundColor(.secondary)
                         .font(.system(size: 16))
                     
-                    Text("Sleep data missing")
+                    Text(TodayContent.sleepDataMissing)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
@@ -471,7 +471,7 @@ struct TodayView: View {
             
             // Expandable content
             if isSleepBannerExpanded {
-                Text("Recovery is based only on waking HRV and resting HR. Wear your watch tonight for complete recovery analysis.")
+                Text(TodayContent.recoveryLimitedMessage)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -619,7 +619,7 @@ struct RecentActivityCard: View {
                         }
                         
                         if let duration = activity.duration {
-                            Text("•")
+                            Text(CommonContent.Formatting.bulletPoint)
                                 .foregroundColor(.secondary)
                             Text(formatDuration(duration))
                                 .font(.caption)
@@ -627,7 +627,7 @@ struct RecentActivityCard: View {
                         }
                         
                         if let distance = activity.distance {
-                            Text("•")
+                            Text(CommonContent.Formatting.bulletPoint)
                                 .foregroundColor(.secondary)
                             Text("\(String(format: "%.1f", distance / 1000.0)) km")
                                 .font(.caption)
