@@ -293,14 +293,14 @@ struct DebugSettingsView: View {
             }
             
             // Wellness Warning Toggle
-            Toggle("Show Wellness Warning", isOn: $config.showWellnessWarningForTesting)
+            Toggle(DebugSettingsContent.TestingFeatures.showWellnessWarning, isOn: $config.showWellnessWarningForTesting)
             
             if config.showWellnessWarningForTesting {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.red)
                         .font(.caption)
-                    Text("Mock wellness warning enabled")
+                    Text(DebugSettingsContent.TestingFeatures.wellnessWarningEnabled)
                         .font(.caption)
                         .foregroundColor(.red)
                 }
