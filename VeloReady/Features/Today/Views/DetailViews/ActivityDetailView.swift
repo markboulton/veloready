@@ -91,7 +91,7 @@ struct ActivityDetailView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
                 
-                Text("Heart Rate")
+                Text(ActivityContent.HeartRate.heartRate)
                     .font(.headline)
                     .fontWeight(.semibold)
                 
@@ -99,8 +99,8 @@ struct ActivityDetailView: View {
                 
                 if let avg = viewModel.averageHeartRate, let max = viewModel.maxHeartRate {
                     HStack(spacing: 12) {
-                        Text("Avg: \(Int(avg))")
-                        Text("Max: \(Int(max))")
+                        Text("\(ActivityContent.HeartRate.avg) \(Int(avg))")
+                        Text("\(ActivityContent.HeartRate.max) \(Int(max))")
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -412,7 +412,7 @@ struct InteractiveWorkoutMapSection: View {
                         Image(systemName: "map")
                             .font(.title2)
                             .foregroundColor(.secondary)
-                        Text("No route data")
+                        Text(ActivityContent.Map.noGPSData)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

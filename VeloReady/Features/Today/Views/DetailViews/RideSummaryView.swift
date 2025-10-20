@@ -102,7 +102,7 @@ private struct ErrorView: View {
             }) {
                 HStack {
                     Image(systemName: "arrow.clockwise")
-                    Text("Retry")
+                    Text(RideSummaryContent.retry)
                 }
                 .font(.subheadline)
                 .foregroundColor(.white)
@@ -157,7 +157,7 @@ private struct SummaryContentView: View {
                             
                             ForEach(summary.strengths, id: \.self) { strength in
                                 HStack(alignment: .top, spacing: 8) {
-                                    Text("•")
+                                    Text(RideSummaryContent.bulletPoint)
                                         .foregroundColor(.secondary)
                                     Text(strength)
                                         .font(.subheadline)
@@ -182,7 +182,7 @@ private struct SummaryContentView: View {
                             
                             ForEach(summary.limiters, id: \.self) { limiter in
                                 HStack(alignment: .top, spacing: 8) {
-                                    Text("•")
+                                    Text(RideSummaryContent.bulletPoint)
                                         .foregroundColor(.secondary)
                                     Text(limiter)
                                         .font(.subheadline)

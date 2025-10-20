@@ -1,7 +1,7 @@
 import Foundation
 
 /// Content strings for Load feature
-enum LoadContent {
+enum StrainContent {
     // MARK: - Navigation
     static let title = "Load Analysis"  /// Navigation title
     

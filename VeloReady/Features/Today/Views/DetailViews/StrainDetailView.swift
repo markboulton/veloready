@@ -75,7 +75,7 @@ struct StrainDetailView: View {
     
     private var scoreBreakdownSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Load Components")
+            Text(StrainContent.loadComponents)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -106,7 +106,7 @@ struct StrainDetailView: View {
     
     private var loadComponentsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Activity Summary")
+            Text(StrainContent.activitySummary)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -173,7 +173,7 @@ struct StrainDetailView: View {
     
     private var activitySummarySection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Daily Breakdown")
+            Text(StrainContent.dailyBreakdown)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -210,17 +210,17 @@ struct StrainDetailView: View {
     
     private var recoveryModulationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Recovery Modulation")
+            Text(StrainContent.recoveryModulation)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Recovery Factor")
+                    Text(StrainContent.RecoveryModulation.recoveryFactor)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text("Adjusts load based on recovery")
+                    Text(StrainContent.RecoveryModulation.adjustsLoad)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -238,7 +238,7 @@ struct StrainDetailView: View {
     
     private var recommendationsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Recommendations")
+            Text(StrainContent.recommendations)
                 .font(.headline)
                 .fontWeight(.semibold)
             
