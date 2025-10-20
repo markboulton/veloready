@@ -149,7 +149,10 @@ enum SettingsContent {
         static let signOut = "Sign Out from Intervals.icu"
         static let signOutSubtitle = "Disconnect your account and remove access"
         static let deleteData = "Delete All Local Data"
+        static let deleteDataTitle = "Delete All Data"
+        static let deleteDataMessage = "This will delete all cached activities, scores, and metrics from this device. This action cannot be undone. Your data on connected services will not be affected."
         static let deleteDataFooter = "Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected."
+        static let delete = "Delete"
     }
     
     // MARK: - Feedback

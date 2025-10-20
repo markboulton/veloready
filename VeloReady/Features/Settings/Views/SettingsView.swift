@@ -63,13 +63,13 @@ struct SettingsView: View {
         .sheet(isPresented: $showingNotificationSettings) {
             NotificationSettingsView()
         }
-        .alert("Delete All Data", isPresented: $showingDeleteDataAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert(SettingsContent.Account.deleteDataTitle, isPresented: $showingDeleteDataAlert) {
+            Button(CommonContent.cancel, role: .cancel) { }
+            Button(SettingsContent.Account.delete, role: .destructive) {
                 deleteAllLocalData()
             }
         } message: {
-            Text("This will delete all cached activities, scores, and metrics from this device. This action cannot be undone. Your data on connected services will not be affected.")
+            Text(SettingsContent.Account.deleteDataMessage)
         }
     }
     
