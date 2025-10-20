@@ -220,7 +220,7 @@ struct DebugSettingsView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Strava")
+                    Text(TrendsContent.Labels.strava)
                         .font(.body)
                     
                     Text(stravaStateDescription)
@@ -805,7 +805,7 @@ struct DebugSettingsView: View {
                     }
                     
                     HStack {
-                        Text("Status")
+                        Text(TrendsContent.Labels.status)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -814,7 +814,7 @@ struct DebugSettingsView: View {
                     
                     if case .connected(let athleteId) = stravaAuthService.connectionState, let id = athleteId {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Athlete ID")
+                            Text(TrendsContent.Labels.athleteID)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(id)
@@ -824,7 +824,7 @@ struct DebugSettingsView: View {
                     }
                 } else {
                     HStack {
-                        Text("Status")
+                        Text(TrendsContent.Labels.status)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -837,7 +837,7 @@ struct DebugSettingsView: View {
                         HStack {
                             Image(systemName: "arrow.right.circle.fill")
                                 .foregroundColor(Color(red: 252/255, green: 76/255, blue: 2/255))
-                            Text("Connect to Strava")
+                            Text(TrendsContent.Labels.connectToStrava)
                         }
                     }
                     .buttonStyle(.bordered)
@@ -846,7 +846,7 @@ struct DebugSettingsView: View {
                     
                     if case .error(let message) = stravaAuthService.connectionState {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Error")
+                            Text(TrendsContent.Labels.error)
                                 .font(.caption)
                                 .foregroundColor(.red)
                             Text(message)

@@ -17,7 +17,7 @@ struct FTPTrendCard: View {
                             .foregroundColor(.text.primary)
                         
                         if let currentFTP = data.last?.value {
-                            Text("\(Int(currentFTP))W")
+                            Text("\(Int(currentFTP))\(TrendsContent.Units.watts)")
                                 .font(.title)
                                 .foregroundColor(ColorScale.blueAccent)
                         } else {
@@ -100,7 +100,7 @@ struct FTPTrendCard: View {
                 .foregroundColor(.text.secondary)
             
             if let ftp = data.first?.value {
-                Text("\(Int(ftp))W")
+                Text("\(Int(ftp))\(TrendsContent.Units.watts)")
                     .font(.system(size: 48, weight: .bold))
                     .foregroundColor(ColorScale.blueAccent)
             }

@@ -27,7 +27,7 @@ struct HRVTrendCard: View {
                         
                         if !data.isEmpty {
                             HStack(spacing: Spacing.xs) {
-                                Text("\(Int(averageHRV))ms")
+                                Text("\(Int(averageHRV))\(TrendsContent.Units.ms)")
                                     .font(.title)
                                     .foregroundColor(ColorScale.greenAccent)
                                 
@@ -74,7 +74,7 @@ struct HRVTrendCard: View {
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("\(TrendsContent.toTrack) HRV:")
+                Text("\(TrendsContent.toTrack) \(TrendsContent.Metrics.hrv):")
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)

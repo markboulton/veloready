@@ -27,7 +27,7 @@ struct RestingHRCard: View {
                         
                         if !data.isEmpty {
                             HStack(spacing: Spacing.xs) {
-                                Text("\(Int(averageRHR)) bpm")
+                                Text("\(Int(averageRHR)) \(TrendsContent.Units.bpm)")
                                     .font(.title)
                                     .foregroundColor(ColorScale.pinkAccent)
                                 

@@ -21,7 +21,7 @@ struct TrainingLoadTrendCard: View {
                     
                     if let latest = chartData.last {
                         HStack(spacing: Spacing.xs) {
-                            Text("TSB:")
+                            Text(TrendsContent.Labels.tsbLabel)
                                 .font(.caption)
                                 .foregroundColor(.text.secondary)
                             

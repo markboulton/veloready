@@ -47,6 +47,25 @@ enum TrendsContent {
         static let activities = "Activities"  /// Activities count
     }
     
+    // MARK: - Units
+    enum Units {
+        static let watts = CommonContent.Units.watts  /// Watts - from CommonContent
+        static let bpm = CommonContent.Units.bpm  /// BPM - from CommonContent
+        static let ms = "ms"  /// Milliseconds
+        static let days = "days"  /// Days
+        static let percent = CommonContent.Units.percent  /// Percent - from CommonContent
+    }
+    
+    // MARK: - Labels
+    enum Labels {
+        static let status = CommonContent.Labels.status  /// Status - from CommonContent
+        static let athleteID = "Athlete ID"  /// Athlete ID label
+        static let error = "Error"  /// Error label
+        static let strava = "Strava"  /// Strava label
+        static let connectToStrava = "Connect to Strava"  /// Connect to Strava
+        static let tsbLabel = "TSB:"  /// TSB label with colon
+    }
+    
     // MARK: - Empty States
     static let noData = CommonContent.States.notEnoughData
     

@@ -24,7 +24,7 @@ struct MLPersonalizationSettingsView: View {
                 HStack {
                     Text(SettingsContent.MLPersonalizationSettings.trainingData)
                     Spacer()
-                    Text("\(mlService.trainingDataCount) days")
+                    Text("\(mlService.trainingDataCount) \(TrendsContent.Units.days)")
                         .foregroundColor(.secondary)
                 }
                 
@@ -44,7 +44,7 @@ struct MLPersonalizationSettingsView: View {
                     HStack {
                         Text(SettingsContent.MLPersonalizationSettings.daysUntilReady)
                         Spacer()
-                        Text("\(30 - mlService.trainingDataCount) days")
+                        Text("\(30 - mlService.trainingDataCount) \(TrendsContent.Units.days)")
                             .foregroundColor(.secondary)
                     }
                 }
