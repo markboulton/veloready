@@ -22,7 +22,7 @@ struct StressLevelCard: View {
                             .foregroundColor(.text.primary)
                         
                         if !data.isEmpty {
-                            Text("\(Int(averageStress))/100")
+                            Text("\(Int(averageStress))\(CommonContent.Formatting.outOf100)")
                                 .font(.title)
                                 .foregroundColor(stressColor(averageStress))
                         } else {

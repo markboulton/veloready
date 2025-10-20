@@ -60,7 +60,7 @@ struct WeekOverWeekComponent: View {
                     }
                     .foregroundColor(change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent)
                 } else {
-                    Text("—")
+                    Text(CommonContent.Formatting.dash)
                         .font(.caption)
                         .foregroundColor(.text.tertiary)
                 }
