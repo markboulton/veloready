@@ -366,14 +366,14 @@ struct TrainingZoneSettingsView: View {
                 // Zone Source Selection
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Zone Source")
+                        Text(SettingsContent.TrainingZones.zoneSource)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
                         Picker("Zone Source", selection: $userSettings.zoneSource) {
-                            Text("Intervals.icu").tag("intervals")
-                            Text("Manual").tag("manual")
-                            Text("Coggan").tag("coggan")
+                            Text(SettingsContent.TrainingZones.intervals).tag("intervals")
+                            Text(SettingsContent.TrainingZones.manual).tag("manual")
+                            Text(SettingsContent.TrainingZones.coggan).tag("coggan")
                         }
                         .pickerStyle(.segmented)
                         
@@ -382,7 +382,7 @@ struct TrainingZoneSettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 } header: {
-                    Text("Zone Configuration")
+                    Text(SettingsContent.TrainingZones.zoneConfiguration)
                 }
                 
                 // Coggan FTP/Max HR inputs (show when Coggan selected)
@@ -390,7 +390,7 @@ struct TrainingZoneSettingsView: View {
                     Section {
                         VStack(spacing: 12) {
                             HStack {
-                                Text("FTP")
+                                Text(SettingsContent.AthleteZones.ftp)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.freeUserFTP, in: 100...500, step: 10) {
@@ -400,7 +400,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Max HR")
+                                Text(SettingsContent.AthleteZones.maxHR)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.freeUserMaxHR, in: 100...250, step: 5) {
@@ -410,20 +410,20 @@ struct TrainingZoneSettingsView: View {
                             }
                         }
                     } header: {
-                        Text("Coggan Zone Parameters")
+                        Text(SettingsContent.TrainingZones.cogganParameters)
                     } footer: {
-                        Text("Zones will be calculated using standard Coggan percentages from these values.")
+                        Text(SettingsContent.TrainingZones.cogganDescription)
                     }
                 }
                 
                 // Current Zone Boundaries Section
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Current Zone Boundaries")
+                        Text(SettingsContent.TrainingZones.currentBoundaries)
                             .font(.headline)
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Heart Rate Zones:")
+                            Text(SettingsContent.TrainingZones.heartRateZonesLabel)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
@@ -440,7 +440,7 @@ struct TrainingZoneSettingsView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Power Zones:")
+                            Text(SettingsContent.TrainingZones.powerZonesLabel)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
@@ -460,12 +460,12 @@ struct TrainingZoneSettingsView: View {
                 
                 Section {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Heart Rate Zones")
+                        Text(SettingsContent.TrainingZones.heartRateZonesTitle)
                             .font(.headline)
                         
                         VStack(spacing: 12) {
                             HStack {
-                                Text("Zone 1 Max:")
+                                Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone1Max, in: 100...250, step: 5) {
@@ -475,7 +475,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 2 Max:")
+                                Text(SettingsContent.TrainingZones.zone2Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone2Max, in: 100...250, step: 5) {
@@ -485,7 +485,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 3 Max:")
+                                Text(SettingsContent.TrainingZones.zone3Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone3Max, in: 100...250, step: 5) {
@@ -495,7 +495,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 4 Max:")
+                                Text(SettingsContent.TrainingZones.zone4Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone4Max, in: 100...250, step: 5) {
@@ -505,7 +505,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 5 Max:")
+                                Text(SettingsContent.TrainingZones.zone5Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone5Max, in: 100...250, step: 5) {
@@ -519,17 +519,17 @@ struct TrainingZoneSettingsView: View {
                 } header: {
                     Text("Heart Rate Zones")
                 } footer: {
-                    Text("Set your heart rate zone boundaries. These can be imported from Intervals.icu.")
+                    Text(SettingsContent.TrainingZones.heartRateZonesDescription)
                 }
                 
                 Section {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Power Zones")
+                        Text(SettingsContent.TrainingZones.powerZonesTitle)
                             .font(.headline)
                         
                         VStack(spacing: 12) {
                             HStack {
-                                Text("Zone 1 Max:")
+                                Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone1Max, in: 100...500, step: 10) {
@@ -539,7 +539,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 2 Max:")
+                                Text(SettingsContent.TrainingZones.zone2Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone2Max, in: 100...500, step: 10) {
@@ -549,7 +549,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 3 Max:")
+                                Text(SettingsContent.TrainingZones.zone3Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone3Max, in: 100...500, step: 10) {
@@ -559,7 +559,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 4 Max:")
+                                Text(SettingsContent.TrainingZones.zone4Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone4Max, in: 100...500, step: 10) {
@@ -569,7 +569,7 @@ struct TrainingZoneSettingsView: View {
                             }
                             
                             HStack {
-                                Text("Zone 5 Max:")
+                                Text(SettingsContent.TrainingZones.zone5Max)
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone5Max, in: 100...500, step: 10) {
@@ -583,7 +583,7 @@ struct TrainingZoneSettingsView: View {
                 } header: {
                     Text("Power Zones")
                 } footer: {
-                    Text("Set your power zone boundaries. These can be imported from Intervals.icu.")
+                    Text(SettingsContent.TrainingZones.powerZonesDescription)
                 }
             }
             .navigationTitle(SettingsContent.TrainingZones.title)
@@ -622,35 +622,35 @@ struct DisplaySettingsView: View {
         NavigationView {
             Form {
                 Section {
-                    Toggle("Show Sleep Score", isOn: $userSettings.showSleepScore)
-                    Toggle("Show Recovery Score", isOn: $userSettings.showRecoveryScore)
-                    Toggle("Show Health Data", isOn: $userSettings.showHealthData)
+                    Toggle(SettingsContent.Display.showSleepScore, isOn: $userSettings.showSleepScore)
+                    Toggle(SettingsContent.Display.showRecoveryScore, isOn: $userSettings.showRecoveryScore)
+                    Toggle(SettingsContent.Display.showHealthData, isOn: $userSettings.showHealthData)
                 } header: {
-                    Text("Visibility")
+                    Text(SettingsContent.Display.visibilityTitle)
                 } footer: {
-                    Text("Choose which metrics to display on the main screen.")
+                    Text(SettingsContent.Display.visibilityDescription)
                 }
                 
                 Section {
-                    Toggle("Metric Units", isOn: $userSettings.useMetricUnits)
-                    Toggle("24-Hour Time", isOn: $userSettings.use24HourTime)
+                    Toggle(SettingsContent.Display.metricUnits, isOn: $userSettings.useMetricUnits)
+                    Toggle(SettingsContent.Display.use24Hour, isOn: $userSettings.use24HourTime)
                 } header: {
-                    Text("Units & Format")
+                    Text(SettingsContent.Display.unitsTitle)
                 } footer: {
-                    Text("Configure how measurements and time are displayed.")
+                    Text(SettingsContent.Display.unitsDescription)
                 }
                 
                 Section {
-                    Toggle("Use BMR as Calorie Goal", isOn: $userSettings.useBMRAsGoal)
+                    Toggle(SettingsContent.Display.useBMR, isOn: $userSettings.useBMRAsGoal)
                     
                     if !userSettings.useBMRAsGoal {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Daily Calorie Goal")
+                            Text(SettingsContent.Display.dailyGoal)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
                             HStack {
-                                Text("Calories:")
+                                Text(SettingsContent.Display.caloriesLabel)
                                     .frame(width: 80, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.calorieGoal, in: 1000...5000, step: 50) {
@@ -662,9 +662,9 @@ struct DisplaySettingsView: View {
                         .padding(.vertical, 4)
                     }
                 } header: {
-                    Text("Calorie Goals")
+                    Text(SettingsContent.Display.calorieGoalsTitle)
                 } footer: {
-                    Text("Set your daily calorie goal. Use BMR (Basal Metabolic Rate) or set a custom target.")
+                    Text(SettingsContent.Display.calorieGoalsDescription)
                 }
             }
             .navigationTitle(SettingsContent.Display.title)
@@ -698,7 +698,7 @@ struct NotificationSettingsView: View {
                             .foregroundColor(notificationManager.isAuthorized ? .green : .orange)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Notification Permission")
+                            Text(SettingsContent.Notifications.permission)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             Text(notificationManager.authorizationStatus.description)
@@ -709,7 +709,7 @@ struct NotificationSettingsView: View {
                         Spacer()
                         
                         if !notificationManager.isAuthorized {
-                            Button("Enable") {
+                            Button(SettingsContent.Notifications.enable) {
                                 Task {
                                     let granted = await notificationManager.requestAuthorization()
                                     if !granted {
@@ -722,31 +722,31 @@ struct NotificationSettingsView: View {
                     }
                 } footer: {
                     if !notificationManager.isAuthorized {
-                        Text("VeloReady needs notification permission to send reminders and alerts. Tap Enable to grant permission.")
+                        Text(SettingsContent.Notifications.permissionFooter)
                     }
                 }
                 
                 Section {
-                    Toggle("Sleep Reminders", isOn: $userSettings.sleepReminders)
+                    Toggle(SettingsContent.Notifications.sleepReminders, isOn: $userSettings.sleepReminders)
                         .disabled(!notificationManager.isAuthorized)
                     
                     if userSettings.sleepReminders {
-                        DatePicker("Reminder Time", selection: $userSettings.sleepReminderTime, displayedComponents: .hourAndMinute)
+                        DatePicker(SettingsContent.Notifications.reminderTime, selection: $userSettings.sleepReminderTime, displayedComponents: .hourAndMinute)
                             .disabled(!notificationManager.isAuthorized)
                     }
                 } header: {
-                    Text("Sleep Reminders")
+                    Text(SettingsContent.Notifications.sleepReminders)
                 } footer: {
-                    Text("Get reminded when it's time to wind down for bed. Notification will repeat daily at the selected time.")
+                    Text(SettingsContent.Notifications.sleepRemindersDescription)
                 }
                 
                 Section {
-                    Toggle("Recovery Alerts", isOn: $userSettings.recoveryAlerts)
+                    Toggle(SettingsContent.Notifications.recoveryAlerts, isOn: $userSettings.recoveryAlerts)
                         .disabled(!notificationManager.isAuthorized)
                 } header: {
-                    Text("Recovery Alerts")
+                    Text(SettingsContent.Notifications.recoveryAlerts)
                 } footer: {
-                    Text("Get notified when your recovery score is low (< 60). Maximum one alert per day.")
+                    Text(SettingsContent.Notifications.recoveryAlertsDescription)
                 }
             }
             .navigationTitle(SettingsContent.Notifications.title)
@@ -758,15 +758,15 @@ struct NotificationSettingsView: View {
                     }
                 }
             }
-            .alert("Permission Denied", isPresented: $showingPermissionAlert) {
-                Button("OK", role: .cancel) { }
-                Button("Open Settings") {
+            .alert(SettingsContent.Notifications.permissionDenied, isPresented: $showingPermissionAlert) {
+                Button(CommonContent.Actions.ok, role: .cancel) { }
+                Button(SettingsContent.Notifications.openSettings) {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
             } message: {
-                Text("Notification permission was denied. You can enable it in Settings > VeloReady > Notifications.")
+                Text(SettingsContent.Notifications.permissionDeniedMessage)
             }
             .task {
                 await notificationManager.checkAuthorizationStatus()

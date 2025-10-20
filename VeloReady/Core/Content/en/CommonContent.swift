@@ -23,6 +23,7 @@ enum CommonContent {
         static let enable = "Enable"  /// Enable button
         static let disable = "Disable"  /// Disable button
         static let viewDetails = "View Details"  /// View details button
+        static let ok = "OK"  /// OK button
     }
     
     // MARK: - States

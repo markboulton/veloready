@@ -70,6 +70,22 @@ enum SettingsContent {
         static let heartRateZonesDescription = "Set your heart rate zone boundaries. These can be imported from Intervals.icu."  /// HR zones description
         static let powerZonesTitle = "Power Zones"  /// Power zones section title
         static let powerZonesDescription = "Set your power zone boundaries. These can be imported from Intervals.icu."  /// Power zones description
+        static let zoneSource = "Zone Source"
+        static let intervals = "Intervals.icu"
+        static let manual = "Manual"
+        static let coggan = "Coggan"
+        static let zoneConfiguration = "Zone Configuration"
+        static let cogganParameters = "Coggan Zone Parameters"
+        static let cogganDescription = "Zones will be calculated using standard Coggan percentages from these values."
+        static let currentBoundaries = "Current Zone Boundaries"
+        static let heartRateZonesLabel = "Heart Rate Zones:"
+        static let powerZonesLabel = "Power Zones:"
+        static let zone = "Zone"
+        static let zone1Max = "Zone 1 Max:"
+        static let zone2Max = "Zone 2 Max:"
+        static let zone3Max = "Zone 3 Max:"
+        static let zone4Max = "Zone 4 Max:"
+        static let zone5Max = "Zone 5 Max:"
     }
     
     // MARK: - Display Settings
@@ -103,6 +119,12 @@ enum SettingsContent {
         static let reminderTime = "Reminder Time"  /// Reminder time label
         static let recoveryAlerts = "Recovery Alerts"  /// Recovery alerts toggle
         static let recoveryAlertsDescription = "Get notified when your recovery score indicates you should rest."  /// Recovery alerts description
+        static let permission = "Notification Permission"
+        static let enable = "Enable"
+        static let permissionFooter = "VeloReady needs notification permission to send reminders and alerts. Tap Enable to grant permission."
+        static let permissionDenied = "Permission Denied"
+        static let openSettings = "Open Settings"
+        static let permissionDeniedMessage = "Notification permission was denied. You can enable it in Settings > VeloReady > Notifications."
     }
     
     // MARK: - Athlete Zones
