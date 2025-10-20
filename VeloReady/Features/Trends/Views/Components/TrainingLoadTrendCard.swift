@@ -30,7 +30,7 @@ struct TrainingLoadTrendCard: View {
                                 .foregroundColor(tsbColor(latest.tsb))
                         }
                     } else {
-                        Text("No data")
+                        Text(TrendsContent.noDataFound)
                             .font(.body)
                             .foregroundColor(.text.secondary)
                     }
@@ -55,46 +55,46 @@ struct TrainingLoadTrendCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("No training load data")
+                Text(TrendsContent.TrainingLoad.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("To see training load trends:")
+                Text(TrendsContent.TrainingLoad.toTrackLoad)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Complete cycling workouts")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.TrainingLoad.completeWorkouts)
                     }
                     HStack {
-                        Text("•")
-                        Text("Upload to Intervals.icu")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.TrainingLoad.syncIntervals)
                     }
                     HStack {
-                        Text("•")
-                        Text("CTL/ATL calculated automatically")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.TrainingLoad.calculateCTL)
                     }
                     HStack {
-                        Text("•")
-                        Text("Track for 4+ weeks to see trends")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.TrainingLoad.recordWorkouts)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("CTL = Chronic Training Load (fitness)")
+                Text(TrendsContent.TrainingLoad.fitnessKey)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
                 
-                Text("ATL = Acute Training Load (fatigue)")
+                Text(TrendsContent.TrainingLoad.fatigueKey)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                 
-                Text("TSB = Training Stress Balance (form)")
+                Text(TrendsContent.TrainingLoad.balanceKey)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
             }

@@ -192,4 +192,88 @@ enum TrendsContent {
     enum ChartLabels {
         static let fitnessTrajectory = "Fitness Trajectory"  /// Fitness trajectory chart title
     }
+    
+    // MARK: - Stress Level Card
+    enum Stress {
+        static let calculationRequires = "Stress calculation requires data"  /// Calculation requires message
+        static let inferredFrom = "Stress is inferred from:"  /// Inferred from label
+        static let recoveryInverted = "Recovery scores (inverted)"  /// Recovery inverted
+        static let hrvDeviation = "HRV deviation from baseline"  /// HRV deviation
+        static let rhrElevation = "Resting heart rate elevation"  /// RHR elevation
+        static let sleepInverted = "Sleep quality (inverted)"  /// Sleep inverted
+        static let trainingIntensity = "Training load intensity"  /// Training intensity
+        static let appearsOnce = "Appears once recovery data starts collecting"  /// Appears once message
+        static let uniqueAssessment = "Unique multi-signal stress assessment combining 5 data sources"  /// Unique assessment
+        static let avgStress = "Avg Stress"  /// Average stress label
+        static let level = "Level"  /// Level label
+    }
+    
+    // MARK: - Resting HR Card
+    enum RestingHR {
+        static let noData = "No resting heart rate data"  /// No RHR data
+        static let toTrackRHR = "To track resting HR:"  /// To track RHR
+        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch
+        static let grantPermission = "Grant heart rate permission"  /// Grant permission
+        static let trackDays = "Track for 7+ consecutive days"  /// Track days
+        static let lowerBetter = "Lower RHR indicates better fitness"  /// Lower better
+        static let elevationIndicates = "RHR elevation can indicate stress or illness"  /// Elevation indicates
+        static let baseline = "Baseline"  /// Baseline label
+        static let avg = "avg"  /// Average label
+    }
+    
+    // MARK: - Recovery Trend Card
+    enum RecoveryTrend {
+        static let noData = "No recovery data available"  /// No recovery data
+        static let toTrackRecovery = "To track recovery:"  /// To track recovery
+        static let enableHealthKit = "Enable HealthKit access"  /// Enable HealthKit
+        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch
+        static let trackDays = "Track consistently for 7+ days"  /// Track days
+        static let recoveryKey = "Recovery is key to sustainable training"  /// Recovery key message
+    }
+    
+    // MARK: - Training Load Card
+    enum TrainingLoad {
+        static let noData = "No training load data"  /// No training data
+        static let toTrackLoad = "To track training load:"  /// To track load
+        static let recordWorkouts = "Record workouts with power or HR"  /// Record workouts
+        static let syncIntervals = "Sync with Intervals.icu or Strava"  /// Sync intervals
+        static let trackDays = "Track for 7+ consecutive days"  /// Track days
+        static let balanceKey = "Balance training stress with recovery"  /// Balance key
+        static let weeklyTSS = "Weekly TSS"  /// Weekly TSS label
+    }
+    
+    // MARK: - Overtraining Risk Card
+    enum OvertrainingRisk {
+        static let noData = "Insufficient data for risk assessment"  /// No data
+        static let requiresData = "Overtraining risk requires:"  /// Requires data
+        static let recoveryData = "7+ days of recovery data"  /// Recovery data
+        static let trainingData = "Training load history"  /// Training data
+        static let sleepData = "Sleep tracking"  /// Sleep data
+        static let riskLevel = "Risk Level"  /// Risk level label
+        static let low = "Low"  /// Low risk
+        static let moderate = "Moderate"  /// Moderate risk
+        static let high = "High"  /// High risk
+    }
+    
+    // MARK: - Training Phase Card
+    enum TrainingPhase {
+        static let noData = "No training phase data"  /// No phase data
+        static let requiresData = "Training phase detection requires:"  /// Requires data
+        static let trainingHistory = "4+ weeks of training data"  /// Training history
+        static let recoveryTracking = "Recovery score tracking"  /// Recovery tracking
+        static let currentPhase = "Current Phase"  /// Current phase label
+        static let base = "Base"  /// Base phase
+        static let build = "Build"  /// Build phase
+        static let peak = "Peak"  /// Peak phase
+        static let recovery = "Recovery"  /// Recovery phase
+    }
+    
+    // MARK: - Performance Overview Card
+    enum PerformanceOverview {
+        static let noData = "Not enough performance data"  /// No data
+        static let requiresData = "Performance overview requires:"  /// Requires data
+        static let multipleMetrics = "Multiple performance metrics"  /// Multiple metrics
+        static let historicalData = "Historical data (30+ days)"  /// Historical data
+        static let overallScore = "Overall Score"  /// Overall score
+    }
 }

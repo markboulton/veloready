@@ -31,12 +31,12 @@ struct RestingHRCard: View {
                                     .font(.title)
                                     .foregroundColor(ColorScale.pinkAccent)
                                 
-                                Text("avg")
+                                Text(TrendsContent.RestingHR.avg)
                                     .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
-                            Text("No data")
+                            Text(TrendsContent.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -67,37 +67,37 @@ struct RestingHRCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("No resting heart rate data")
+                Text(TrendsContent.RestingHR.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("To track resting HR:")
+                Text(TrendsContent.RestingHR.toTrackRHR)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Wear Apple Watch during sleep")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.RestingHR.wearWatch)
                     }
                     HStack {
-                        Text("•")
-                        Text("Grant heart rate permission")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.RestingHR.grantPermission)
                     }
                     HStack {
-                        Text("•")
-                        Text("Track for 7+ consecutive days")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.RestingHR.trackDays)
                     }
                     HStack {
-                        Text("•")
-                        Text("Lower RHR indicates better fitness")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.RestingHR.lowerBetter)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("RHR elevation can indicate stress or illness")
+                Text(TrendsContent.RestingHR.elevationIndicates)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
@@ -115,7 +115,7 @@ struct RestingHRCard: View {
                 .foregroundStyle(Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                 .annotation(position: .top, alignment: .trailing) {
-                    Text("Baseline")
+                    Text(TrendsContent.RestingHR.baseline)
                         .font(.caption)
                         .foregroundColor(.text.tertiary)
                         .padding(.horizontal, Spacing.xs)

@@ -26,7 +26,7 @@ struct StressLevelCard: View {
                                 .font(.title)
                                 .foregroundColor(stressColor(averageStress))
                         } else {
-                            Text("No data")
+                            Text(TrendsContent.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -57,47 +57,47 @@ struct StressLevelCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Stress calculation requires data")
+                Text(TrendsContent.Stress.calculationRequires)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("Stress is inferred from:")
+                Text(TrendsContent.Stress.inferredFrom)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Recovery scores (inverted)")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.Stress.recoveryInverted)
                     }
                     HStack {
-                        Text("•")
-                        Text("HRV deviation from baseline")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.Stress.hrvDeviation)
                     }
                     HStack {
-                        Text("•")
-                        Text("Resting heart rate elevation")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.Stress.rhrElevation)
                     }
                     HStack {
-                        Text("•")
-                        Text("Sleep quality (inverted)")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.Stress.sleepInverted)
                     }
                     HStack {
-                        Text("•")
-                        Text("Training load intensity")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.Stress.trainingIntensity)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Appears once recovery data starts collecting")
+                Text(TrendsContent.Stress.appearsOnce)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
                     .padding(.top, Spacing.sm)
                 
-                Text("Unique multi-signal stress assessment combining 5 data sources")
+                Text(TrendsContent.Stress.uniqueAssessment)
                     .font(.caption2)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, 2)
@@ -162,7 +162,7 @@ struct StressLevelCard: View {
             
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Avg Stress")
+                    Text(TrendsContent.Stress.avgStress)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     
@@ -172,7 +172,7 @@ struct StressLevelCard: View {
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Level")
+                    Text(TrendsContent.Stress.level)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     

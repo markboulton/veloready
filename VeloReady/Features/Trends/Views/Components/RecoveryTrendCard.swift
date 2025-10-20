@@ -17,7 +17,7 @@ struct RecoveryTrendCard: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.recoveryTrend)
+                        Text(TrendsContent.RecoveryTrend.trackDays)
                             .font(.heading)
                             .foregroundColor(.text.primary)
                         
@@ -26,7 +26,7 @@ struct RecoveryTrendCard: View {
                                 .font(.title)
                                 .foregroundColor(recoveryColor(averageRecovery))
                         } else {
-                            Text("No data")
+                            Text(TrendsContent.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -58,41 +58,41 @@ struct RecoveryTrendCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Not enough recovery history")
+                Text(TrendsContent.RecoveryTrend.notEnoughHistory)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("To see recovery trends:")
+                Text(TrendsContent.RecoveryTrend.toTrackRecovery)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("1.")
+                        Text(TrendsContent.bulletPoint)
                             .fontWeight(.medium)
-                        Text("Wear Apple Watch overnight (starting tonight)")
+                        Text(TrendsContent.RecoveryTrend.wearWatch)
                     }
                     HStack {
-                        Text("2.")
+                        Text(TrendsContent.RecoveryTrend.stepTwo)
                             .fontWeight(.medium)
-                        Text("Grant HealthKit permissions for HRV & RHR")
+                        Text(TrendsContent.RecoveryTrend.enableHealthKit)
                     }
                     HStack {
-                        Text("3.")
+                        Text(TrendsContent.RecoveryTrend.stepThree)
                             .fontWeight(.medium)
-                        Text("Tomorrow: First recovery score appears")
+                        Text(TrendsContent.RecoveryTrend.firstScoreAppears)
                     }
                     HStack {
-                        Text("4.")
+                        Text(TrendsContent.RecoveryTrend.stepFour)
                             .fontWeight(.medium)
-                        Text("After 7 days: Trends become meaningful")
+                        Text(TrendsContent.RecoveryTrend.recoveryKey)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Your recovery scores are calculated daily at midnight")
+                Text(TrendsContent.RecoveryTrend.noData)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
