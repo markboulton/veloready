@@ -142,6 +142,14 @@ enum CommonContent {
         static let awakeDuration = "Awake Duration"  /// Awake duration metric
     }
     
+    // MARK: - Sleep Stages
+    enum Stages {
+        static let deep = "Deep"
+        static let rem = "REM"
+        static let light = "Light"
+        static let awake = "Awake"
+    }
+    
     // MARK: - Common Instructions
     enum Instructions {
         static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
