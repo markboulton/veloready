@@ -14,7 +14,7 @@ struct AccountSection: View {
                     }
                 }) {
                     HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                        Image(systemName: Icons.Arrow.rectanglePortrait)
                             .foregroundColor(ColorPalette.warning)
                             .frame(width: 24)
                         
@@ -37,7 +37,7 @@ struct AccountSection: View {
                 showingDeleteDataAlert = true
             }) {
                 HStack {
-                    Image(systemName: "trash.fill")
+                    Image(systemName: Icons.Document.trash)
                         .foregroundColor(ColorPalette.error)
                         .frame(width: 24)
                     

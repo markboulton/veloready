@@ -63,7 +63,7 @@ struct WeeklyTSSTrendCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "chart.bar.xaxis")
+            Image(systemName: Icons.System.chartBarXAxis)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

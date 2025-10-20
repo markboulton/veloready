@@ -16,7 +16,7 @@ struct RHRCandlestickChart: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             HStack {
-                Image(systemName: "heart.circle.fill")
+                Image(systemName: Icons.Health.heartCircle)
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
@@ -227,7 +227,7 @@ struct RHRCandlestickChart: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "heart.circle.fill")
+            Image(systemName: Icons.Health.heartCircle)
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             

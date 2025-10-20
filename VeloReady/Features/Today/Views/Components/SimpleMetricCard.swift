@@ -77,7 +77,7 @@ struct SimpleMetricCard: View {
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.right")
+                    Image(systemName: Icons.System.chevronRight)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

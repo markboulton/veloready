@@ -89,7 +89,7 @@ struct WalkingDetailView: View {
     private var heartRateChartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "heart")
+                Image(systemName: Icons.Health.heart)
                     .foregroundColor(.secondary)
                     .font(.caption)
                 

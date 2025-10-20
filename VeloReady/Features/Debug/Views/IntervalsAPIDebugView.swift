@@ -28,7 +28,7 @@ struct IntervalsAPIDebugView: View {
                     }
                 }) {
                     HStack {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: Icons.Arrow.clockwise)
                         Text(DebugContent.IntervalsAPI.fetchFresh)
                     }
                     .frame(maxWidth: .infinity)

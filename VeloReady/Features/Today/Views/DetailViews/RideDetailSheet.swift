@@ -120,7 +120,7 @@ struct RideDetailSheet: View {
             if activity.tss == nil || activity.intensityFactor == nil {
                 if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
                     HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle.fill")
+                        Image(systemName: Icons.Status.warningFill)
                             .foregroundColor(.orange)
                             .font(.caption)
                         VStack(alignment: .leading, spacing: 2) {
@@ -330,7 +330,7 @@ struct RideDetailSheet: View {
                     // No power zone data available
                     VStack(spacing: 12) {
                         HStack(spacing: 8) {
-                            Image(systemName: "bolt.slash.fill")
+                            Image(systemName: Icons.Health.boltSlash)
                                 .foregroundColor(.orange)
                             Text(ActivityContent.powerZonesNotAvailable)
                                 .font(.callout)
@@ -344,7 +344,7 @@ struct RideDetailSheet: View {
                         if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
                             NavigationLink(destination: AthleteZonesSettingsView()) {
                                 HStack {
-                                    Image(systemName: "gear")
+                                    Image(systemName: Icons.Navigation.settings)
                                     Text(ActivityContent.FTPWarnings.setFTPForZones)
                                         .font(.caption)
                                 }

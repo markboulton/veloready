@@ -89,7 +89,7 @@ struct ServiceHealthDashboard: View {
             } else {
                 ForEach(viewModels, id: \.self) { key in
                     HStack {
-                        Image(systemName: "doc.text.fill")
+                        Image(systemName: Icons.System.docText)
                             .foregroundColor(.blue)
                         Text(key)
                             .font(.body)

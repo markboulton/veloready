@@ -8,7 +8,7 @@ struct HealthKitEnablementSection: View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 12) {
-                Image(systemName: "heart.fill")
+                Image(systemName: Icons.Health.heartFill)
                     .font(.system(size: 48))
                     .foregroundColor(.primary)
                 
@@ -48,7 +48,7 @@ struct HealthKitEnablementSection: View {
                 showingHealthKitPermissionsSheet = true
             }) {
                 HStack {
-                    Image(systemName: "heart.fill")
+                    Image(systemName: Icons.Health.heartFill)
                     Text(TodayContent.HealthKit.enableButton)
                 }
                 .font(.headline)

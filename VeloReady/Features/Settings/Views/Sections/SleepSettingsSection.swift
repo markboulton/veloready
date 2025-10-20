@@ -8,7 +8,7 @@ struct SleepSettingsSection: View {
         Section {
             NavigationLink(destination: SleepSettingsView()) {
                 HStack {
-                    Image(systemName: "moon.fill")
+                    Image(systemName: Icons.Health.sleepFill)
                         .foregroundColor(Color.health.sleep)
                         .frame(width: 24)
                     

@@ -174,7 +174,7 @@ struct WellnessDetailSheet: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(recommendations, id: \.self) { recommendation in
                     HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "circle.fill")
+                        Image(systemName: Icons.System.circle)
                             .font(.system(size: 6))
                             .foregroundColor(ColorScale.labelSecondary)
                             .padding(.top, 6)

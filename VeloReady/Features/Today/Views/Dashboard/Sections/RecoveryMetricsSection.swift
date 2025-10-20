@@ -65,7 +65,7 @@ struct RecoveryMetricsSection: View {
                             Text(TodayContent.Scores.recoveryScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
-                            Image(systemName: "chevron.right")
+                            Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -154,7 +154,7 @@ struct RecoveryMetricsSection: View {
                                 Text(TodayContent.Scores.sleepScore)
                                     .font(.headline)
                                     .fontWeight(.semibold)
-                                Image(systemName: "chevron.right")
+                                Image(systemName: Icons.System.chevronRight)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -183,7 +183,7 @@ struct RecoveryMetricsSection: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                         if !missingSleepBannerDismissed {
-                            Image(systemName: "chevron.right")
+                            Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -225,7 +225,7 @@ struct RecoveryMetricsSection: View {
                             Text(TodayContent.Scores.loadScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
-                            Image(systemName: "chevron.right")
+                            Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

@@ -128,7 +128,7 @@ enum CardStyle {
             
             Card(style: .elevated, padding: Spacing.md) {
                 HStack {
-                    Image(systemName: "heart.fill")
+                    Image(systemName: Icons.Health.heartFill)
                         .foregroundColor(Color.health.heartRate)
                     Text("Custom Padding")
                         .font(.system(size: TypeScale.sm))

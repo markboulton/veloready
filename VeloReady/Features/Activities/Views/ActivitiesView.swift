@@ -67,7 +67,7 @@ struct ActivitiesView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Image(systemName: Icons.System.menuDecrease)
                             .foregroundColor(Color.button.primary)
                     }
                 }
@@ -174,7 +174,7 @@ struct ActivitiesView: View {
                     Button(action: { showPaywall = true }) {
                         VStack(spacing: 12) {
                             HStack {
-                                Image(systemName: "sparkles")
+                                Image(systemName: Icons.System.sparkles)
                                     .foregroundColor(ColorScale.purpleAccent)
                                 Text(ActivitiesContent.Pro.upgradeTitle)
                                     .font(.subheadline)
@@ -548,7 +548,7 @@ struct ActivityFilterSheet: View {
                                 .foregroundColor(.primary)
                             Spacer()
                             if viewModel.selectedFilters.contains(type) {
-                                Image(systemName: "checkmark")
+                                Image(systemName: Icons.Status.checkmark)
                                     .foregroundColor(Color.button.primary)
                             }
                         }

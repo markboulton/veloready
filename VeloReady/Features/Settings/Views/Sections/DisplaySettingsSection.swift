@@ -29,7 +29,7 @@ struct DisplaySettingsSection: View {
             // Display preferences
             NavigationLink(destination: DisplaySettingsView()) {
                 HStack {
-                    Image(systemName: "eye.fill")
+                    Image(systemName: Icons.System.eye)
                         .foregroundColor(ColorPalette.purple)
                         .frame(width: 24)
                     

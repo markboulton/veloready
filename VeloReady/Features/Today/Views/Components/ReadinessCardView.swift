@@ -10,7 +10,7 @@ struct ReadinessCardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 // Header
                 HStack {
-                    Image(systemName: "figure.run")
+                    Image(systemName: Icons.Activity.running)
                         .font(.title3)
                         .foregroundColor(readinessScore.band.colorToken)
                     
@@ -21,7 +21,7 @@ struct ReadinessCardView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.right")
+                    Image(systemName: Icons.System.chevronRight)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

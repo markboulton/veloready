@@ -46,7 +46,7 @@ struct OvertrainingRiskCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "heart.text.square")
+            Image(systemName: Icons.System.heartTextSquareOutline)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

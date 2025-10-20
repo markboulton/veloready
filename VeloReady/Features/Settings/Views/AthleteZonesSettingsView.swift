@@ -107,7 +107,7 @@ struct AthleteZonesSettingsView: View {
                                     isEditingFTP = true
                                 } label: {
                                     HStack {
-                                        Image(systemName: "pencil")
+                                        Image(systemName: Icons.System.pencil)
                                         Text(SettingsContent.AthleteZones.edit)
                                     }
                                 }
@@ -179,7 +179,7 @@ struct AthleteZonesSettingsView: View {
                                     isEditingMaxHR = true
                                 } label: {
                                     HStack {
-                                        Image(systemName: "pencil")
+                                        Image(systemName: Icons.System.pencil)
                                         Text(SettingsContent.AthleteZones.edit)
                                     }
                                 }
@@ -292,7 +292,7 @@ struct AthleteZonesSettingsView: View {
                     showRecomputeConfirmation = true
                 } label: {
                     HStack {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: Icons.Arrow.clockwise)
                         Text(SettingsContent.AthleteZones.resetToAdaptive)
                     }
                 }

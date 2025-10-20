@@ -55,7 +55,7 @@ struct ConnectWithStravaButton: View {
 struct StravaBadge: View {
     var body: some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: "figure.outdoor.cycle")
+            Image(systemName: Icons.DataSource.strava)
                 .font(TypeScale.font(size: TypeScale.xs))
                 .foregroundColor(ColorPalette.labelPrimary)
             

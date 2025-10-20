@@ -110,7 +110,7 @@ struct StackedAreaChart: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text("Deep: 1.3h avg")
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .foregroundColor(.green)
                     Text("(target: 1.2h)")
                         .foregroundColor(.text.secondary)
@@ -119,7 +119,7 @@ struct StackedAreaChart: View {
                 
                 HStack {
                     Text("REM: 1.9h avg")
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .foregroundColor(.green)
                     Text("(target: 1.8h)")
                         .foregroundColor(.text.secondary)

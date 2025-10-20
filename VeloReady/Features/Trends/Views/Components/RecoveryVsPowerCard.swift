@@ -61,7 +61,7 @@ struct RecoveryVsPowerCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "chart.xyaxis.line")
+            Image(systemName: Icons.Feature.trends)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

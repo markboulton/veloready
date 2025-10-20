@@ -740,7 +740,7 @@ struct SleepDetailView: View {
             return AnyView(
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
                         
                         Text(SleepContent.DataAvailability.pullToRefresh)
@@ -758,7 +758,7 @@ struct SleepDetailView: View {
         return AnyView(
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: Icons.System.clock)
                         .foregroundColor(.secondary)
                     
                     Text("\(SleepContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? SleepContent.DataAvailability.day : SleepContent.DataAvailability.days)")

@@ -40,7 +40,7 @@ struct TrainingPhaseCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "figure.run.circle")
+            Image(systemName: Icons.Activity.runningCircle)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

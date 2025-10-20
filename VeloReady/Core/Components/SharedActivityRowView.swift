@@ -39,7 +39,7 @@ struct SharedActivityRowView: View {
             }
             
             // Chevron indicator
-            Image(systemName: "chevron.right")
+            Image(systemName: Icons.System.chevronRight)
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary.opacity(0.5))

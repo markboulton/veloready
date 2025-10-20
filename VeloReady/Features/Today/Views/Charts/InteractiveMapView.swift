@@ -50,7 +50,7 @@ struct InteractiveMapView: UIViewRepresentable {
         let button = UIButton(type: .system)
         // Reduce icon size by 50%
         let config = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
-        button.setImage(UIImage(systemName: "lock.fill", withConfiguration: config), for: .normal)
+        button.setImage(UIImage(systemName: Icons.System.lock, withConfiguration: config), for: .normal)
         
         // Adaptive colors for dark/light mode
         if #available(iOS 13.0, *) {

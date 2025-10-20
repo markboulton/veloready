@@ -476,7 +476,7 @@ struct ElevationChartView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header with icon
             HStack {
-                Image(systemName: "mountain.2")
+                Image(systemName: Icons.Training.elevation)
                     .foregroundColor(.secondary)
                     .font(.caption)
                 

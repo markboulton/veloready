@@ -8,7 +8,7 @@ struct MLPersonalizationSection: View {
         Section {
             NavigationLink(destination: MLPersonalizationSettingsView()) {
                 HStack {
-                    Image(systemName: "sparkles")
+                    Image(systemName: Icons.System.sparkles)
                         .foregroundColor(ColorPalette.purple)
                         .frame(width: 24)
                     

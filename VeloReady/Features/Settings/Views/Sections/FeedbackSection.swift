@@ -8,7 +8,7 @@ struct FeedbackSection: View {
         Section {
             Button(action: { showingFeedback = true }) {
                 HStack {
-                    Image(systemName: "envelope.fill")
+                    Image(systemName: Icons.System.envelope)
                         .foregroundColor(ColorPalette.blue)
                         .frame(width: 24)
                     
@@ -24,7 +24,7 @@ struct FeedbackSection: View {
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.right")
+                    Image(systemName: Icons.System.chevronRight)
                         .font(TypeScale.font(size: TypeScale.xs))
                         .foregroundColor(ColorPalette.labelSecondary)
                 }

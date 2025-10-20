@@ -6,7 +6,7 @@ struct DataSourcesSection: View {
         Section {
             NavigationLink(destination: DataSourcesSettingsView()) {
                 HStack {
-                    Image(systemName: "link.circle.fill")
+                    Image(systemName: Icons.System.linkCircleFill)
                         .foregroundColor(ColorPalette.blue)
                         .frame(width: 24)
                     

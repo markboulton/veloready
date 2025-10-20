@@ -8,7 +8,7 @@ struct LatestRidePanel: View {
         NavigationLink(destination: RideDetailSheet(activity: activity)) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Image(systemName: "bicycle")
+                    Image(systemName: Icons.Activity.cycling)
                         .foregroundColor(.primary)
                         .font(.title2)
                     
@@ -19,7 +19,7 @@ struct LatestRidePanel: View {
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.right")
+                    Image(systemName: Icons.System.chevronRight)
                         .foregroundColor(.primary)
                         .font(.caption)
                 }

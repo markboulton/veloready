@@ -34,6 +34,7 @@ enum Icons {
         // Standard SF Symbols
         static let cycling = "bicycle"
         static let running = "figure.run"
+        static let runningCircle = "figure.run.circle"
         static let walking = "figure.walk"
         static let hiking = "figure.hiking"
         static let swimming = "figure.pool.swim"
@@ -53,6 +54,7 @@ enum Icons {
         static let heart = "heart"
         static let heartFill = "heart.fill"
         static let heartCircle = "heart.circle.fill"
+        static let heartCircleOutline = "heart.circle"
         static let heartRate = "waveform.path.ecg"
         static let hrv = "heart.circle"
         static let sleep = "moon"
@@ -68,6 +70,8 @@ enum Icons {
         static let bed = "bed.double.fill"
         static let moon = "moon.stars.fill"
         static let bolt = "bolt.fill"
+        static let boltHeart = "bolt.heart.fill"
+        static let boltSlash = "bolt.slash.fill"
         static let drop = "drop.fill"
     }
     
@@ -81,6 +85,7 @@ enum Icons {
         static let warning = "exclamationmark.triangle"
         static let warningFill = "exclamationmark.triangle.fill"
         static let info = "info.circle"
+        static let infoFill = "info.circle.fill"
         static let alert = "exclamationmark.circle"
         static let checkmark = "checkmark"
     }
@@ -174,6 +179,8 @@ enum Icons {
         static let storageBadge = "externaldrive.badge.xmark"
         static let chart = "chart.bar.fill"
         static let chartDoc = "chart.bar.doc.horizontal.fill"
+        static let chartDocHorizontal = "chart.bar.doc.horizontal"
+        static let chartBarXAxis = "chart.bar.xaxis"
         static let person = "person.crop.circle"
         static let envelope = "envelope.fill"
         static let map = "map"
@@ -195,9 +202,11 @@ enum Icons {
         static let network = "network"
         static let shield = "checkmark.shield"
         static let hammer = "hammer"
+        static let hammerFill = "hammer.fill"
         static let magnifyingGlass = "doc.text.magnifyingglass"
         static let keyHorizontal = "key.horizontal"
         static let heartTextSquare = "heart.text.square.fill"
+        static let heartTextSquareOutline = "heart.text.square"
         static let grid2x2 = "square.grid.2x2"
         static let circleArrowPath = "arrow.triangle.2.circlepath"
         static let counterclockwise = "arrow.counterclockwise"
@@ -205,6 +214,20 @@ enum Icons {
         static let target = "target"
         static let percent = "percent"
         static let lightbulb = "lightbulb.fill"
+        static let bell = "bell.fill"
+        static let camera = "camera.fill"
+        static let docText = "doc.text.fill"
+        static let eye = "eye.fill"
+        static let circle = "circle.fill"
+        static let lock = "lock.fill"
+        static let lockShield = "lock.shield.fill"
+        static let link = "link"
+        static let linkCircle = "link.circle"
+        static let linkCircleFill = "link.circle.fill"
+        static let trophy = "trophy.fill"
+        static let icloud = "icloud.fill"
+        static let questionCircleFill = "questionmark.circle.fill"
+        static let menuDecrease = "line.3.horizontal.decrease.circle"
     }
     
     // MARK: - Arrows & Directions
@@ -218,6 +241,7 @@ enum Icons {
         static let counterclockwise = "arrow.counterclockwise"
         static let rectanglePortrait = "rectangle.portrait.and.arrow.right"
         static let rightCircleFill = "arrow.right.circle.fill"
+        static let rightCircle = "arrow.right.circle"
         static let triangleCirclePath = "arrow.triangle.2.circlepath"
     }
     

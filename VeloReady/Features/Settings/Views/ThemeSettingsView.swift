@@ -32,7 +32,7 @@ struct ThemeSettingsView: View {
                             Spacer()
                             
                             if themeManager.currentTheme == theme {
-                                Image(systemName: "checkmark")
+                                Image(systemName: Icons.Status.checkmark)
                                     .foregroundColor(.button.primary)
                             }
                         }

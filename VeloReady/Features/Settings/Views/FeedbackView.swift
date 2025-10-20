@@ -69,7 +69,7 @@ struct FeedbackView: View {
                 Section {
                     Button(action: sendFeedback) {
                         HStack {
-                            Image(systemName: "envelope.fill")
+                            Image(systemName: Icons.System.envelope)
                             Text(SettingsContent.Feedback.title)
                         }
                         .frame(maxWidth: .infinity)

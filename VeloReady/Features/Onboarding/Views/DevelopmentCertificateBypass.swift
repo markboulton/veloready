@@ -12,7 +12,7 @@ struct DevelopmentCertificateBypass: View {
             VStack(spacing: 20) {
                 // Warning
                 VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle.fill")
+                    Image(systemName: Icons.Status.warningFill)
                         .font(.system(size: 40))
                         .foregroundColor(Color.semantic.warning)
                     

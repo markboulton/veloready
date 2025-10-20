@@ -55,7 +55,7 @@ struct PreferencesStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: "person.circle.fill")
+                Image(systemName: Icons.System.person)
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
@@ -179,7 +179,7 @@ struct PreferencesStepView: View {
                             Spacer()
                             
                             if selectedActivities.contains(activity) {
-                                Image(systemName: "checkmark.circle.fill")
+                                Image(systemName: Icons.Status.successFill)
                                     .foregroundColor(.white)
                             }
                         }

@@ -16,7 +16,7 @@ struct HRVCandlestickChart: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             HStack {
-                Image(systemName: "waveform.path.ecg")
+                Image(systemName: Icons.Health.heartRate)
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
@@ -227,7 +227,7 @@ struct HRVCandlestickChart: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "waveform.path.ecg")
+            Image(systemName: Icons.Health.heartRate)
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             

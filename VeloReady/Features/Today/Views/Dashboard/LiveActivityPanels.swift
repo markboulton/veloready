@@ -12,7 +12,7 @@ struct LiveCaloriesPanel: View {
         Card {
             VStack(spacing: 8) {
                 HStack {
-                    Image(systemName: "flame.fill")
+                    Image(systemName: Icons.Health.caloriesFill)
                         .foregroundColor(ColorPalette.peach)
                         .font(.title2)
                     
@@ -70,7 +70,7 @@ struct LiveStepsPanel: View {
         Card {
             VStack(spacing: 8) {
                 HStack {
-                    Image(systemName: "figure.walk")
+                    Image(systemName: Icons.Activity.walking)
                         .foregroundColor(ColorPalette.mint)
                         .font(.title2)
                     

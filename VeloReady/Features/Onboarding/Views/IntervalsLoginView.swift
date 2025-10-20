@@ -14,7 +14,7 @@ struct IntervalsLoginView: View {
             VStack(spacing: 30) {
                 // Header
                 VStack(spacing: 20) {
-                    Image(systemName: "bicycle")
+                    Image(systemName: Icons.Activity.cycling)
                         .font(.system(size: 80))
                         .foregroundColor(Color.button.primary)
                     

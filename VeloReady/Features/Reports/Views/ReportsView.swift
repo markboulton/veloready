@@ -8,7 +8,7 @@ struct ReportsView: View {
                 Spacer()
                 
                 // Icon
-                Image(systemName: "chart.bar.doc.horizontal")
+                Image(systemName: Icons.System.chartDocHorizontal)
                     .font(.system(size: 80))
                     .foregroundColor(.blue.opacity(0.6))
                 

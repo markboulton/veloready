@@ -9,7 +9,7 @@ struct WellnessIndicator: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 4) {
-                Image(systemName: "exclamationmark.triangle.fill")
+                Image(systemName: Icons.Status.warningFill)
                     .font(.caption)
                     .foregroundColor(alert.severity.color)
                 
@@ -19,7 +19,7 @@ struct WellnessIndicator: View {
                     .foregroundColor(alert.severity.color)
                     .lineLimit(1)
                 
-                Image(systemName: "chevron.right")
+                Image(systemName: Icons.System.chevronRight)
                     .font(.caption2)
                     .foregroundColor(alert.severity.color)
             }

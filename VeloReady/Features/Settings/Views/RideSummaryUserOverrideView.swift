@@ -40,7 +40,7 @@ struct RideSummaryUserOverrideView: View {
                         }
                     }) {
                         HStack {
-                            Image(systemName: "checkmark.circle")
+                            Image(systemName: Icons.Status.success)
                             Text(SettingsContent.RideSummary.saveOverride)
                         }
                     }
@@ -49,7 +49,7 @@ struct RideSummaryUserOverrideView: View {
                     
                     if saved {
                         HStack {
-                            Image(systemName: "checkmark.circle.fill")
+                            Image(systemName: Icons.Status.successFill)
                                 .foregroundColor(Color.semantic.success)
                             Text(SettingsContent.RideSummary.overrideSaved)
                                 .font(.caption)
@@ -97,7 +97,7 @@ struct RideSummaryUserOverrideView: View {
                     UserDefaults.standard.set(false, forKey: overrideEnabledKey)
                 }) {
                     HStack {
-                        Image(systemName: "arrow.counterclockwise")
+                        Image(systemName: Icons.Arrow.counterclockwise)
                         Text(SettingsContent.RideSummary.resetToDefault)
                     }
                 }

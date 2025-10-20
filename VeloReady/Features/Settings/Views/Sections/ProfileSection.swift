@@ -26,7 +26,7 @@ struct ProfileSection: View {
                             .fill(ColorScale.purpleAccent)
                             .frame(width: 60, height: 60)
                             .overlay {
-                                Image(systemName: "person.fill")
+                                Image(systemName: Icons.System.person)
                                     .foregroundColor(.white)
                                     .font(.title2)
                             }

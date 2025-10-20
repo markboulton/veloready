@@ -449,7 +449,7 @@ struct TodayView: View {
                 }
             }) {
                 HStack(spacing: 12) {
-                    Image(systemName: "moon.fill")
+                    Image(systemName: Icons.Health.sleepFill)
                         .foregroundColor(.secondary)
                         .font(.system(size: 16))
                     
@@ -460,7 +460,7 @@ struct TodayView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "chevron.down")
+                    Image(systemName: Icons.System.chevronDown)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(isSleepBannerExpanded ? 0 : -90))
@@ -639,7 +639,7 @@ struct RecentActivityCard: View {
                 Spacer()
                 
                 // Chevron icon on the right
-                Image(systemName: "chevron.right")
+                Image(systemName: Icons.System.chevronRight)
                     .foregroundColor(.secondary)
                     .font(.caption)
             }

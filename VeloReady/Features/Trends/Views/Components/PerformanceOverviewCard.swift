@@ -53,7 +53,7 @@ struct PerformanceOverviewCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "chart.xyaxis.line")
+            Image(systemName: Icons.Feature.trends)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             
@@ -103,7 +103,7 @@ struct PerformanceOverviewCard: View {
     private var partialDataMessage: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
-                Image(systemName: "clock.fill")
+                Image(systemName: Icons.System.clock)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                 

@@ -12,7 +12,7 @@ struct WeeklyReportHeaderComponent: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header matches AIBriefView exactly
             HStack(spacing: 8) {
-                Image(systemName: "sparkles")
+                Image(systemName: Icons.System.sparkles)
                     .font(.heading)
                     .foregroundColor(ColorPalette.aiIconColor)
                 
@@ -60,7 +60,7 @@ struct WeeklyReportHeaderComponent: View {
             // Next report countdown
             if daysUntilNextReport > 0 {
                 HStack(spacing: 4) {
-                    Image(systemName: "clock")
+                    Image(systemName: Icons.Training.duration)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     Text("\(TrendsContent.WeeklyReport.nextReport) \(daysUntilNextReport) \(daysUntilNextReport == 1 ? TrendsContent.WeeklyReport.daySingular : TrendsContent.WeeklyReport.daysPlural)")
@@ -69,7 +69,7 @@ struct WeeklyReportHeaderComponent: View {
                 }
             } else {
                 HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .font(.caption)
                         .foregroundColor(.green)
                     Text(TrendsContent.WeeklyReport.generatedToday)

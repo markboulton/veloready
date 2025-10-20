@@ -62,7 +62,7 @@ struct RestingHRCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "heart.circle")
+            Image(systemName: Icons.Health.heartCircleOutline)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

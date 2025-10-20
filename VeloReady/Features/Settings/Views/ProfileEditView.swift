@@ -67,7 +67,7 @@ struct ProfileEditView: View {
                 Section {
                     if let intervalsID = viewModel.intervalsID {
                         HStack {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
+                            Image(systemName: Icons.DataSource.intervalsICU)
                                 .foregroundColor(.blue)
                             Text(SettingsContent.Profile.dateOfBirth)
                             Spacer()
@@ -79,7 +79,7 @@ struct ProfileEditView: View {
                     
                     if let stravaID = viewModel.stravaID {
                         HStack {
-                            Image(systemName: "figure.outdoor.cycle")
+                            Image(systemName: Icons.DataSource.strava)
                                 .foregroundColor(.orange)
                             Text(SettingsContent.Profile.editProfile)
                             Spacer()
@@ -150,7 +150,7 @@ struct ProfileEditView: View {
                                 .fill(Color.secondary.opacity(0.2))
                                 .frame(width: 120, height: 120)
                                 .overlay(
-                                    Image(systemName: "person.fill")
+                                    Image(systemName: Icons.System.person)
                                         .font(.system(size: 50))
                                         .foregroundColor(.secondary)
                                 )
@@ -160,7 +160,7 @@ struct ProfileEditView: View {
                         Button(action: {
                             viewModel.showingImagePicker = true
                         }) {
-                            Image(systemName: "camera.fill")
+                            Image(systemName: Icons.System.camera)
                                 .font(.system(size: 16))
                                 .foregroundColor(.white)
                                 .frame(width: 36, height: 36)

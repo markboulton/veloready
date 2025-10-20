@@ -56,7 +56,7 @@ struct InfoBanner: View {
             
             if let dismissAction = dismissAction {
                 Button(action: dismissAction) {
-                    Image(systemName: "xmark")
+                    Image(systemName: Icons.Navigation.close)
                         .foregroundColor(ColorPalette.labelSecondary)
                         .font(TypeScale.font(size: TypeScale.xs))
                 }

@@ -25,7 +25,7 @@ struct ProfileView: View {
                                 .fill(Color.secondary.opacity(0.2))
                                 .frame(width: 100, height: 100)
                                 .overlay(
-                                    Image(systemName: "person.fill")
+                                    Image(systemName: Icons.System.person)
                                         .font(.system(size: 40))
                                         .foregroundColor(.secondary)
                                 )
@@ -108,7 +108,7 @@ struct ProfileView: View {
             Section {
                 if let intervalsID = viewModel.intervalsID {
                     HStack {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
+                        Image(systemName: Icons.DataSource.intervalsICU)
                             .foregroundColor(.blue)
                             .frame(width: 24)
                         Text(SettingsContent.Profile.dateOfBirth)
@@ -121,7 +121,7 @@ struct ProfileView: View {
                 
                 if let stravaID = viewModel.stravaID {
                     HStack {
-                        Image(systemName: "figure.outdoor.cycle")
+                        Image(systemName: Icons.DataSource.strava)
                             .foregroundColor(.orange)
                             .frame(width: 24)
                         Text(SettingsContent.Profile.strava)
@@ -134,7 +134,7 @@ struct ProfileView: View {
                 
                 if viewModel.intervalsID == nil && viewModel.stravaID == nil {
                     HStack {
-                        Image(systemName: "link.circle")
+                        Image(systemName: Icons.System.linkCircle)
                             .foregroundColor(.secondary)
                             .frame(width: 24)
                         Text(SettingsContent.Profile.noConnectedServices)

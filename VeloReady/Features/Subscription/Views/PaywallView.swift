@@ -55,7 +55,7 @@ struct PaywallView: View {
     
     private var headerSection: some View {
         VStack(spacing: 12) {
-            Image(systemName: "star.circle.fill")
+            Image(systemName: Icons.Feature.pro)
                 .font(.system(size: 60))
                 .foregroundStyle(
                     LinearGradient(
@@ -80,7 +80,7 @@ struct PaywallView: View {
     
     private var trialBanner: some View {
         HStack {
-            Image(systemName: "gift.fill")
+            Image(systemName: Icons.Feature.pro)
                 .foregroundColor(.white)
             Text(PaywallContent.trialBannerText)
                 .font(.subheadline)

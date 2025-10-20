@@ -95,7 +95,7 @@ struct TrainingLoadComponent: View {
                             .font(.caption)
                             .fontWeight(.medium)
                         if zones.polarizationScore >= 80 {
-                            Image(systemName: "checkmark.circle.fill")
+                            Image(systemName: Icons.Status.successFill)
                                 .font(.caption)
                                 .foregroundColor(ColorScale.greenAccent)
                         }

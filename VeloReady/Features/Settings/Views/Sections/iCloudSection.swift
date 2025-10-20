@@ -11,7 +11,7 @@ struct iCloudSection: View {
                 showingCloudSettings = true
             }) {
                 HStack {
-                    Image(systemName: "icloud.fill")
+                    Image(systemName: Icons.System.icloud)
                         .foregroundColor(Color.button.primary)
                         .frame(width: 24)
                     
@@ -42,7 +42,7 @@ struct iCloudSection: View {
                         ProgressView()
                             .scaleEffect(0.8)
                     } else {
-                        Image(systemName: "chevron.right")
+                        Image(systemName: Icons.System.chevronRight)
                             .font(TypeScale.font(size: TypeScale.xs))
                             .foregroundColor(ColorPalette.labelSecondary)
                     }

@@ -155,11 +155,11 @@ struct DataSourceConnectionCard: View {
                 Spacer()
                 
                 if isConnected {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .font(.title2)
                         .foregroundColor(.green)
                 } else {
-                    Image(systemName: "arrow.right.circle")
+                    Image(systemName: Icons.Arrow.rightCircle)
                         .font(.title2)
                         .foregroundColor(color)
                 }

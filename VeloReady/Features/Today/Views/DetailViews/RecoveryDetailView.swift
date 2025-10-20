@@ -557,7 +557,7 @@ struct RecoveryDetailView: View {
             
             if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
                 HStack(spacing: 12) {
-                    Image(systemName: "bolt.heart.fill")
+                    Image(systemName: Icons.Health.boltHeart)
                         .font(.title2)
                         .foregroundColor(debt.band.colorToken)
                     
@@ -609,7 +609,7 @@ struct RecoveryDetailView: View {
             if let readiness = RecoveryScoreService.shared.currentReadinessScore {
                 
                 HStack(spacing: 12) {
-                    Image(systemName: "figure.run")
+                    Image(systemName: Icons.Activity.running)
                         .font(.title2)
                         .foregroundColor(readiness.band.colorToken)
                     
@@ -660,7 +660,7 @@ struct RecoveryDetailView: View {
             if let resilience = RecoveryScoreService.shared.currentResilienceScore {
                 
                 HStack(spacing: 12) {
-                    Image(systemName: "figure.strengthtraining.traditional")
+                    Image(systemName: Icons.Activity.strength)
                         .font(.title2)
                         .foregroundColor(resilience.band.colorToken)
                     
@@ -730,7 +730,7 @@ struct RecoveryDetailView: View {
             return AnyView(
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
                         
                         Text(RecoveryContent.DataAvailability.pullToRefresh)
@@ -748,7 +748,7 @@ struct RecoveryDetailView: View {
         return AnyView(
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: Icons.System.clock)
                         .foregroundColor(.secondary)
                     
                     Text("\(RecoveryContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? RecoveryContent.DataAvailability.day : RecoveryContent.DataAvailability.days)")

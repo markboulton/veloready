@@ -28,7 +28,7 @@ struct EmptyDataSourceState: View {
             // Connect button
             Button(action: onConnectTapped) {
                 HStack {
-                    Image(systemName: "link")
+                    Image(systemName: Icons.System.link)
                     Text(CommonContent.EmptyStates.connectButton)
                 }
                 .font(.headline)

@@ -245,7 +245,7 @@ struct StrainDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(generateRecommendations(), id: \.self) { recommendation in
                     HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "lightbulb.fill")
+                        Image(systemName: Icons.System.lightbulb)
                             .foregroundColor(ColorPalette.yellow)
                             .font(.caption)
                             .padding(.top, 2)

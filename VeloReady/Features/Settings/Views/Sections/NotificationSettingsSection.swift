@@ -6,7 +6,7 @@ struct NotificationSettingsSection: View {
         Section {
             NavigationLink(destination: NotificationSettingsView()) {
                 HStack {
-                    Image(systemName: "bell.fill")
+                    Image(systemName: Icons.System.bell)
                         .foregroundColor(Color.semantic.warning)
                         .frame(width: 24)
                     

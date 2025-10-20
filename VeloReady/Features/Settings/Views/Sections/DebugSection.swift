@@ -8,7 +8,7 @@ struct DebugSection: View {
             Section {
                 NavigationLink(destination: DebugSettingsView()) {
                     HStack {
-                        Image(systemName: "hammer.fill")
+                        Image(systemName: Icons.System.hammerFill)
                             .foregroundColor(Color.semantic.warning)
                             .frame(width: 24)
                         

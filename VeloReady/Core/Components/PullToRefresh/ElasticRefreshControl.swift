@@ -72,7 +72,7 @@ class ElasticRefreshControl: UIControl {
         spinner.translatesAutoresizingMaskIntoConstraints = false
         
         // Checkmark
-        checkmarkImageView.image = UIImage(systemName: "checkmark")
+        checkmarkImageView.image = UIImage(systemName: Icons.Status.checkmark)
         checkmarkImageView.tintColor = .white
         checkmarkImageView.contentMode = .scaleAspectFit
         checkmarkImageView.alpha = 0

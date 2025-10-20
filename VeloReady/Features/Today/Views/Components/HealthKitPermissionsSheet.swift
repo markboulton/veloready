@@ -15,7 +15,7 @@ struct HealthKitPermissionsSheet: View {
                 VStack(spacing: 30) {
                     // Header
                     VStack(spacing: Spacing.xl) {
-                        Image(systemName: "heart.fill")
+                        Image(systemName: Icons.Health.heartFill)
                             .font(.system(size: 80))
                             .foregroundColor(Color.health.heartRate)
                         
@@ -85,7 +85,7 @@ struct HealthKitPermissionsSheet: View {
                                     ProgressView()
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "heart.fill")
+                                    Image(systemName: Icons.Health.heartFill)
                                 }
                                 
                                 Text(isRequesting ? TodayContent.HealthKit.enabling : TodayContent.HealthKit.enableButton)

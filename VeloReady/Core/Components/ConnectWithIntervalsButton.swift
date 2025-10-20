@@ -28,7 +28,7 @@ struct ConnectWithIntervalsButton: View {
 struct IntervalsBadge: View {
     var body: some View {
         HStack(spacing: Spacing.xs) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
+            Image(systemName: Icons.DataSource.intervalsICU)
                 .font(TypeScale.font(size: TypeScale.xs))
                 .foregroundColor(ColorPalette.labelPrimary)
             

@@ -65,7 +65,7 @@ struct MLPersonalizationInfoSheet: View {
                     // Privacy
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 6) {
-                            Image(systemName: "lock.shield.fill")
+                            Image(systemName: Icons.System.lockShield)
                                 .foregroundColor(Color.blue)
                             Text(MLPersonalizationContent.privacyTitle)
                                 .font(.headline)

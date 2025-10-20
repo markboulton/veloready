@@ -18,7 +18,7 @@ struct CacheStatsView: View {
                 HStack {
                     Text(SettingsContent.Cache.itemsCached)
                     Spacer()
-                    Image(systemName: "trophy.fill")
+                    Image(systemName: Icons.System.trophy)
                         .foregroundColor(hitRateColor)
                 }
             } footer: {

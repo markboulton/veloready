@@ -72,7 +72,7 @@ struct DataSourcesSettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Image(systemName: "link.circle.fill")
+                    Image(systemName: Icons.System.linkCircleFill)
                         .foregroundColor(.blue)
                         .font(.title2)
                     
@@ -88,7 +88,7 @@ struct DataSourcesSettingsView: View {
                 
                 if !dataSourceManager.hasActivitySource {
                     HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
+                        Image(systemName: Icons.Status.warningFill)
                             .foregroundColor(.orange)
                         Text(SettingsContent.DataSources.connectWarning)
                             .font(.caption)
@@ -182,7 +182,7 @@ struct DataSourcesSettingsView: View {
                         
                         Spacer()
                         
-                        Image(systemName: "line.3.horizontal")
+                        Image(systemName: Icons.Navigation.menu)
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)

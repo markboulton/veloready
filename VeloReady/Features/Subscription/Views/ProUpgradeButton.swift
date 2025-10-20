@@ -10,7 +10,7 @@ struct ProUpgradeButton: View {
         Button(action: { showPaywall = true }) {
             VStack(spacing: 12) {
                 HStack {
-                    Image(systemName: "sparkles")
+                    Image(systemName: Icons.System.sparkles)
                         .foregroundColor(ColorScale.purpleAccent)
                     Text(title)
                         .font(.subheadline)

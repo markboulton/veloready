@@ -34,7 +34,7 @@ struct DebugTodayView: View {
     private var statusHeader: some View {
         VStack(spacing: 12) {
             HStack {
-                Image(systemName: "checkmark.circle.fill")
+                Image(systemName: Icons.Status.successFill)
                     .foregroundColor(Color.semantic.success)
                 Text(DebugContent.Today.debugMode)
                     .font(.headline)

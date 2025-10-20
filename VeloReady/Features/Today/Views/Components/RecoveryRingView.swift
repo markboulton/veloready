@@ -41,7 +41,7 @@ struct RecoveryRingView: View {
                         .textCase(.uppercase)
                     
                     if isPersonalized {
-                        Image(systemName: "sparkles")
+                        Image(systemName: Icons.System.sparkles)
                             .font(.system(size: 9, weight: .semibold))
                             .foregroundColor(.purple)
                     }

@@ -10,7 +10,7 @@ struct BenefitsStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Image(systemName: "sparkles")
+                Image(systemName: Icons.System.sparkles)
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 

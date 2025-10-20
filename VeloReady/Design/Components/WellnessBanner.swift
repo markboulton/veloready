@@ -23,7 +23,7 @@ struct WellnessBanner: View {
                 Spacer()
                 
                 // Chevron to indicate it's tappable
-                Image(systemName: "chevron.right")
+                Image(systemName: Icons.System.chevronRight)
                     .font(.caption)
                     .foregroundColor(.white)
             }

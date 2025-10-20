@@ -36,7 +36,7 @@ struct PullToRefreshIndicator: View {
                 
                 // Checkmark (completed state)
                 if case .completed = state {
-                    Image(systemName: "checkmark")
+                    Image(systemName: Icons.Status.checkmark)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(width: 24, height: 24)

@@ -10,7 +10,7 @@ struct TrainingZonesSection: View {
             if proConfig.hasProAccess {
                 NavigationLink(destination: AthleteZonesSettingsView()) {
                     HStack {
-                        Image(systemName: "bolt.heart.fill")
+                        Image(systemName: Icons.Health.boltHeart)
                             .foregroundColor(ColorScale.purpleAccent)
                             .frame(width: 24)
                         
@@ -32,7 +32,7 @@ struct TrainingZonesSection: View {
             if !proConfig.hasProAccess {
                 NavigationLink(destination: AthleteZonesSettingsView()) {
                     HStack {
-                        Image(systemName: "heart.fill")
+                        Image(systemName: Icons.Health.heartFill)
                             .foregroundColor(Color.health.heartRate)
                             .frame(width: 24)
                         

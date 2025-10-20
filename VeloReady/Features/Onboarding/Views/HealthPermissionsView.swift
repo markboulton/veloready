@@ -164,7 +164,7 @@ struct HealthDataRow: View {
             
             Spacer()
             
-            Image(systemName: "checkmark.circle.fill")
+            Image(systemName: Icons.Status.successFill)
                 .foregroundColor(Color.semantic.success)
                 .font(.caption)
         }

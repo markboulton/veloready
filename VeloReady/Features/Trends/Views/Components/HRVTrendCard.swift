@@ -65,7 +65,7 @@ struct HRVTrendCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "waveform.path.ecg")
+            Image(systemName: Icons.Health.heartRate)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

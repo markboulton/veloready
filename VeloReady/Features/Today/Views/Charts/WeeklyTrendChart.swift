@@ -21,7 +21,7 @@ struct WeeklyTrendChart_Legacy: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header with title and Pro badge
             HStack {
-                Image(systemName: "chart.line.uptrend.xyaxis")
+                Image(systemName: Icons.DataSource.intervalsICU)
                     .foregroundColor(.secondary)
                     .font(.caption)
                 
@@ -235,7 +235,7 @@ struct WeeklyTrendChart_Legacy: View {
     
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
+            Image(systemName: Icons.DataSource.intervalsICU)
                 .font(.title2)
                 .foregroundColor(.secondary)
             Text(ChartContent.WeeklyTrend.notEnoughData)

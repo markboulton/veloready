@@ -155,7 +155,7 @@ private struct MLDataCollectionView: View {
                 Spacer()
                 
                 Button(action: showInfoSheet) {
-                    Image(systemName: "questionmark.circle")
+                    Image(systemName: Icons.Status.info)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -215,7 +215,7 @@ private struct TrainingMetricsView: View {
                 let tsb = ctl - atl
                 
                 HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Image(systemName: Icons.DataSource.intervalsICU)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -248,7 +248,7 @@ private struct TrainingMetricsView: View {
                 let tssHigh = Int(ctl * 1.5)
                 
                 HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "target")
+                    Image(systemName: Icons.System.target)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     

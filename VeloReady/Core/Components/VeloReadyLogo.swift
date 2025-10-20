@@ -36,7 +36,7 @@ struct VeloReadyLogo: View {
                     ))
                     .frame(width: size.fontSize * 2, height: size.fontSize * 2)
                 
-                Image(systemName: "bicycle")
+                Image(systemName: Icons.Activity.cycling)
                     .font(.system(size: size.fontSize))
                     .fontWeight(.bold)
                     .foregroundColor(.white)

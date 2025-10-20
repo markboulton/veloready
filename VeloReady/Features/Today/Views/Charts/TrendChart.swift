@@ -269,7 +269,7 @@ struct TrendChart: View {
         guard let startDate = calendar.date(byAdding: .day, value: -selectedPeriod.days, to: endDate) else {
             return AnyView(
                 VStack(spacing: Spacing.sm) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Image(systemName: Icons.DataSource.intervalsICU)
                         .font(.system(size: TypeScale.lg))
                         .foregroundColor(Color.text.secondary)
                     Text(ChartContent.EmptyState.noData)
@@ -298,7 +298,7 @@ struct TrendChart: View {
         if availableDays >= selectedPeriod.days {
             return AnyView(
                 VStack(spacing: Spacing.md) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Image(systemName: Icons.DataSource.intervalsICU)
                         .font(.system(size: TypeScale.lg))
                         .foregroundColor(Color.text.secondary)
                     
@@ -317,7 +317,7 @@ struct TrendChart: View {
         return AnyView(
             VStack(spacing: Spacing.md) {
                 HStack(spacing: 8) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: Icons.System.clock)
                         .foregroundColor(Color.text.secondary)
                     
                     Text("\(CommonContent.EmptyStates.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? CommonContent.TimeUnits.day : CommonContent.TimeUnits.days)")
@@ -379,7 +379,7 @@ struct TrendChart: View {
         return AnyView(
             VStack(spacing: Spacing.sm) {
                 HStack(spacing: 4) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: Icons.System.clock)
                         .font(.system(size: TypeScale.xxs))
                         .foregroundColor(Color.text.tertiary)
                     

@@ -14,7 +14,7 @@ struct CompleteStepView: View {
                     .fill(ColorScale.greenAccent.opacity(0.1))
                     .frame(width: 120, height: 120)
                 
-                Image(systemName: "checkmark.circle.fill")
+                Image(systemName: Icons.Status.successFill)
                     .font(.system(size: 80))
                     .foregroundColor(ColorScale.greenAccent)
             }

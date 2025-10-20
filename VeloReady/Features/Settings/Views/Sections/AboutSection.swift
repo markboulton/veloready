@@ -5,7 +5,7 @@ struct AboutSection: View {
     var body: some View {
         Section {
             HStack {
-                Image(systemName: "info.circle.fill")
+                Image(systemName: Icons.Status.infoFill)
                     .foregroundColor(ColorPalette.labelSecondary)
                     .frame(width: 24)
                 
@@ -22,7 +22,7 @@ struct AboutSection: View {
             }
             
             HStack {
-                Image(systemName: "questionmark.circle.fill")
+                Image(systemName: Icons.System.questionCircleFill)
                     .foregroundColor(ColorPalette.labelSecondary)
                     .frame(width: 24)
                 

@@ -31,7 +31,7 @@ struct SectionHeader: View {
             
             if let action = action {
                 Button(action: action) {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: Icons.System.chevronRight)
                         .foregroundColor(.primary)
                 }
             }

@@ -220,7 +220,7 @@ struct TrendsView: View {
                     .fill(Color.gradient.proIcon.opacity(0.2))
                     .frame(width: 100, height: 100)
                 
-                Image(systemName: "chart.line.uptrend.xyaxis")
+                Image(systemName: Icons.DataSource.intervalsICU)
                     .font(.system(size: 48, weight: .medium))
                     .foregroundStyle(Color.gradient.proIcon)
             }
@@ -260,7 +260,7 @@ struct TrendsView: View {
             // Upgrade Button
             Button(action: { showPaywall = true }) {
                 HStack {
-                    Image(systemName: "star.fill")
+                    Image(systemName: Icons.System.star)
                     Text(TrendsContent.upgradeToPro)
                 }
                 .font(.button)

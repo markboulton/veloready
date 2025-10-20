@@ -17,7 +17,7 @@ struct HealthKitStepView: View {
                         .fill(Color.red.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
-                    Image(systemName: "heart.fill")
+                    Image(systemName: Icons.Health.heartFill)
                         .font(.system(size: 50))
                         .foregroundColor(.red)
                 }
@@ -53,7 +53,7 @@ struct HealthKitStepView: View {
                 if healthKitManager.isAuthorized {
                     // Already authorized
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(.green)
                         Text(OnboardingContent.AppleHealth.connected)
                             .font(.headline)

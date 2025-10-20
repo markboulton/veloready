@@ -87,7 +87,7 @@ struct ActivityDetailView: View {
     private var heartRateChartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "heart")
+                Image(systemName: Icons.Health.heart)
                     .foregroundColor(.secondary)
                     .font(.caption)
                 
@@ -409,7 +409,7 @@ struct InteractiveWorkoutMapSection: View {
                     Color(.systemGray6)
                         .frame(height: UIScreen.main.bounds.width - 32) // Square
                     VStack(spacing: 8) {
-                        Image(systemName: "map")
+                        Image(systemName: Icons.System.map)
                             .font(.title2)
                             .foregroundColor(.secondary)
                         Text(ActivityContent.Map.noGPSData)

@@ -148,7 +148,7 @@ struct RPEInputSheet: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Image(systemName: "checkmark")
+                                Image(systemName: Icons.Status.checkmark)
                                 Text(CommonContent.Actions.saveDetails)
                             }
                         }

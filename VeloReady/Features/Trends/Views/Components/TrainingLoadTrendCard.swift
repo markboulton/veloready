@@ -50,7 +50,7 @@ struct TrainingLoadTrendCard: View {
     
     private var emptyState: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
+            Image(systemName: Icons.DataSource.intervalsICU)
                 .font(.system(size: 40))
                 .foregroundColor(.text.tertiary)
             

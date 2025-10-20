@@ -510,7 +510,7 @@ struct WorkoutMapSection: View {
                     Color.background.secondary
                         .frame(height: UIScreen.main.bounds.width)
                     VStack(spacing: 8) {
-                        Image(systemName: "map")
+                        Image(systemName: Icons.System.map)
                             .font(.title2)
                             .foregroundStyle(Color.text.tertiary)
                         Text("No route data")
