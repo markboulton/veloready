@@ -31,14 +31,14 @@ struct InteractiveMapView: UIViewRepresentable {
             if let first = coordinates.first {
                 let startAnnotation = MKPointAnnotation()
                 startAnnotation.coordinate = first
-                startAnnotation.title = "Start"
+                startAnnotation.title = CommonContent.MapAnnotations.start
                 mapView.addAnnotation(startAnnotation)
             }
             
             if let last = coordinates.last, coordinates.count > 1 {
                 let endAnnotation = MKPointAnnotation()
                 endAnnotation.coordinate = last
-                endAnnotation.title = "End"
+                endAnnotation.title = CommonContent.MapAnnotations.end
                 mapView.addAnnotation(endAnnotation)
             }
         }
@@ -124,7 +124,7 @@ struct InteractiveMapView: UIViewRepresentable {
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            let identifier = "RoutePoint"
+            let identifier = CommonContent.MapAnnotations.routePoint
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
             
             if annotationView == nil {
@@ -135,7 +135,7 @@ struct InteractiveMapView: UIViewRepresentable {
             }
             
             // Custom marker based on title
-            if annotation.title == "Start" {
+            if annotation.title == CommonContent.MapAnnotations.start {
                 let size: CGFloat = 12
                 let view = UIView(frame: CGRect(x: 0, y: 0, width: size, height: size))
                 view.backgroundColor = .systemGreen
@@ -150,7 +150,7 @@ struct InteractiveMapView: UIViewRepresentable {
                 
                 annotationView?.image = image
                 annotationView?.centerOffset = CGPoint(x: 0, y: -size/2)
-            } else if annotation.title == "End" {
+            } else if annotation.title == CommonContent.MapAnnotations.end {
                 let size: CGFloat = 12
                 let view = UIView(frame: CGRect(x: 0, y: 0, width: size, height: size))
                 view.backgroundColor = .systemRed

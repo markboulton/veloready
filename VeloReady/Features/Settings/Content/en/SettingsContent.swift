@@ -44,6 +44,8 @@ enum SettingsContent {
         static let editProfile = "Edit Profile"  /// Edit profile title
         static let editProfileLabel = "Edit Profile"  /// Edit profile label
         static let age = "Age"  /// Age label
+        static let namePlaceholder = "Name"  /// Name placeholder
+        static let emailPlaceholder = "Email"  /// Email placeholder
         static let strava = "Strava"  /// Strava label
         static let noConnectedServices = "No connected services"  /// No services message
         static let connectedServicesSection = "Connected Services"  /// Connected services section
@@ -269,6 +271,10 @@ enum SettingsContent {
         
         // Picker Labels
         static let zoneSourcePicker = "Zone Source"  /// Picker accessibility label
+        
+        // TextField Placeholders
+        static let ftpPlaceholder = "FTP"  /// FTP placeholder
+        static let maxHRPlaceholder = "Max HR"  /// Max HR placeholder
     }
     
     // MARK: - Display Settings
@@ -543,6 +549,7 @@ enum SettingsContent {
         static let overrideUserIDToggle = "Override User ID"  /// Override user ID toggle
         static let saveOverride = "Save Override"  /// Save override button
         static let overrideSaved = "Override saved"  /// Override saved message
+        static let userIDPlaceholder = "User ID"  /// User ID placeholder
     }
     
     // MARK: - Score Recalculation

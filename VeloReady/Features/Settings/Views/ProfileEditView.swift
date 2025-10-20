@@ -13,8 +13,8 @@ struct ProfileEditView: View {
                 
                 // Personal Info
                 Section {
-                    TextField("Name", text: $viewModel.name)
-                    TextField("Email", text: $viewModel.email)
+                    TextField(SettingsContent.Profile.namePlaceholder, text: $viewModel.name)
+                    TextField(SettingsContent.Profile.emailPlaceholder, text: $viewModel.email)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                 } header: {

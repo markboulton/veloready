@@ -24,7 +24,7 @@ struct RideSummaryUserOverrideView: View {
                     }
                 
                 if useOverride {
-                    TextField("User ID", text: $overrideUserId)
+                    TextField(SettingsContent.RideSummary.userIDPlaceholder, text: $overrideUserId)
                         .textFieldStyle(.roundedBorder)
                         .autocapitalization(.none)
                         .autocorrectionDisabled()

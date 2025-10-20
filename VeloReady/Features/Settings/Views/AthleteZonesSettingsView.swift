@@ -73,7 +73,7 @@ struct AthleteZonesSettingsView: View {
                     if canEditFTP {
                         if isEditingFTP {
                             HStack {
-                                TextField("FTP", text: $editingFTP)
+                                TextField(AthleteZonesContent.ftpPlaceholder, text: $editingFTP)
                                     .keyboardType(.numberPad)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.body)
@@ -145,7 +145,7 @@ struct AthleteZonesSettingsView: View {
                     if canEditMaxHR {
                         if isEditingMaxHR {
                             HStack {
-                                TextField("Max HR", text: $editingMaxHR)
+                                TextField(AthleteZonesContent.maxHRPlaceholder, text: $editingMaxHR)
                                     .keyboardType(.numberPad)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.body)

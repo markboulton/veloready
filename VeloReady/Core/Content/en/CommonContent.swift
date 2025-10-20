@@ -134,6 +134,12 @@ enum CommonContent {
     static let thisWeek = "This Week"  /// This week label
     static let thisMonth = "This Month"  /// This month label
     
+    // MARK: - Time of Day
+    enum TimeOfDay {
+        static let am = "AM"  /// AM (morning)
+        static let pm = "PM"  /// PM (afternoon/evening)
+    }
+    
     // MARK: - Time Units (Full)
     enum TimeUnits {
         static let day = "day"  /// Day (singular)
@@ -386,6 +392,13 @@ enum CommonContent {
         // Permissions
         static let permissionTitle = "Permission Required"  /// Permission title
         static let permissionMessage = "This feature requires additional permissions"  /// Permission message
+    }
+    
+    // MARK: - Map Annotations
+    enum MapAnnotations {
+        static let start = "Start"  /// Route start annotation
+        static let end = "End"  /// Route end annotation
+        static let routePoint = "RoutePoint"  /// Route point identifier
     }
     
     // MARK: - Tab Navigation

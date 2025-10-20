@@ -65,4 +65,9 @@ enum AthleteZonesContent {
     // MARK: - Empty States
     static let noData = "No zone data available"  /// No data message
     static let computingZones = "Computing zones from your activities..."  /// Computing message
+    
+    // MARK: - TextField Placeholders
+    static let ftpPlaceholder = "FTP"  /// FTP placeholder
+    static let maxHRPlaceholder = "Max HR"  /// Max HR placeholder
 }
+
