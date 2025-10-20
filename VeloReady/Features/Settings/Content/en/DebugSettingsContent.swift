@@ -157,4 +157,19 @@ enum DebugSettingsContent {
         static let athleteID = "Athlete ID"  /// Athlete ID label
         static let signOut = "Sign Out from Strava"  /// Sign out button
     }
+    
+    // MARK: - Intervals API Debug
+    enum IntervalsAPI {
+        static let noAthleteData = "No athlete data loaded"  /// No athlete data message
+        static let powerZones = "Power Zones"  /// Power zones section
+        static let heartRateZones = "Heart Rate Zones"  /// HR zones section
+        static let boundary = "Boundary"  /// Boundary label
+        static let powerZonesNil = "❌ Power zones are NIL"  /// Power zones nil message
+        static let hrZonesNil = "❌ Heart rate zones are NIL"  /// HR zones nil message
+        static let recentActivities = "Recent Activities (5)"  /// Recent activities section
+        static let noActivities = "No activities loaded"  /// No activities message
+        static let rawJSON = "Raw JSON Responses"  /// Raw JSON section
+        static let athleteProfileJSON = "Athlete Profile JSON"  /// Athlete profile JSON label
+        static let activitiesJSON = "Activities JSON (first 1000 chars)"  /// Activities JSON label
+    }
 }

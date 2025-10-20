@@ -358,30 +358,21 @@ enum SettingsContent {
         static let scoreCalculation = "Score Calculation"  /// Score calculation header
     }
     
-    
     // MARK: - Data Sources
     enum DataSources {
         static let title = "Data Sources"  /// Data sources title
-        static let subtitle = "Manage connected apps and services"  /// Subtitle
-        static let intervalsConnected = "Connected to Intervals.icu"  /// Intervals connected
-        static let stravaConnected = "Connected to Strava"  /// Strava connected
-        static let healthKitEnabled = "HealthKit Enabled"  /// HealthKit enabled
+        static let subtitle = "Connect your training platforms"  /// Subtitle
         static let connect = CommonContent.Actions.connect
         static let disconnect = CommonContent.Actions.disconnect
         static let reconnect = CommonContent.Actions.reconnect
         static let status = "Status"  /// Status label
         static let provides = "Provides"  /// Provides label
-    }
-    
-    // MARK: - iCloud
-    enum iCloudSettings {
-        static let title = "iCloud Sync"  /// iCloud title
-        static let enabled = "iCloud sync enabled"  /// Enabled message
-        static let disabled = "iCloud sync disabled"  /// Disabled message
-        static let syncNow = "Sync Now"  /// Sync now button
-        static let lastSync = CommonContent.Labels.lastSynced
-        static let restore = "Restore from iCloud"  /// Restore button
-        static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."  /// Footer
+        static let overview = "Overview"  /// Overview section
+        static let connectWarning = "Connect at least one activity source to track your rides"  /// Connect warning
+        static let dataPriority = "Data Priority"  /// Data priority title
+        static let priorityDescription = "When multiple sources provide the same data, the higher priority source will be used."  /// Priority description
+        static let priorityOrder = "Priority Order"  /// Priority order section
+        static let priorityFooter = "When multiple sources provide the same data, VeloReady uses the highest priority source. For example, if both Intervals.icu and Strava have today's ride, the Intervals.icu version will be used because it includes power analysis and training metrics. Drag to reorder (coming soon)."  /// Priority footer
     }
     
     // MARK: - ML Personalization

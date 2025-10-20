@@ -90,7 +90,7 @@ struct DataSourcesSettingsView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
-                        Text("Connect at least one activity source to track your rides")
+                        Text(SettingsContent.DataSources.connectWarning)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -99,7 +99,7 @@ struct DataSourcesSettingsView: View {
             }
             .padding(.vertical, 8)
         } header: {
-            Text("Overview")
+            Text(SettingsContent.DataSources.overview)
         }
     }
     
@@ -159,10 +159,10 @@ struct DataSourcesSettingsView: View {
     private var prioritySection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Data Priority")
+                Text(SettingsContent.DataSources.dataPriority)
                     .font(.headline)
                 
-                Text("When multiple sources provide the same data, the higher priority source will be used.")
+                Text(SettingsContent.DataSources.priorityDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -189,9 +189,9 @@ struct DataSourcesSettingsView: View {
                 }
             }
         } header: {
-            Text("Priority Order")
+            Text(SettingsContent.DataSources.priorityOrder)
         } footer: {
-            Text("When multiple sources provide the same data, VeloReady uses the highest priority source. For example, if both Intervals.icu and Strava have today's ride, the Intervals.icu version will be used because it includes power analysis and training metrics. Drag to reorder (coming soon).")
+            Text(SettingsContent.DataSources.priorityFooter)
                 .font(.caption)
         }
     }
@@ -303,7 +303,7 @@ struct DataSourcesSettingsView: View {
                         }
                     }
                 }) {
-                    Text("Connect")
+                    Text(SettingsContent.DataSources.connect)
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
