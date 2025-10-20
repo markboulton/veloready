@@ -7,18 +7,18 @@ struct ConnectWithIntervalsButton: View {
     
     var body: some View {
         Button(action: action) {
-            Text(isConnected ? "Disconnect from Intervals.icu" : "Connect with Intervals.icu")
+            Text(isConnected ? ComponentContent.DataSource.intervalsDisconnect : ComponentContent.DataSource.intervalsConnect)
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .foregroundColor(ColorPalette.labelPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, Spacing.lg)
                 .background(
                     isConnected
-                        ? Color.red
+                        ? ColorPalette.error
                         : Color(red: 0/255, green: 122/255, blue: 255/255) // Intervals blue
                 )
-                .cornerRadius(8)
+                .cornerRadius(Spacing.sm)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -27,20 +27,19 @@ struct ConnectWithIntervalsButton: View {
 /// Compact Intervals.icu badge
 struct IntervalsBadge: View {
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.caption)
-                .foregroundColor(.white)
+                .font(TypeScale.font(size: TypeScale.xs))
+                .foregroundColor(ColorPalette.labelPrimary)
             
-            Text("Intervals.icu")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
+            Text(ComponentContent.DataSource.intervalsName)
+                .font(TypeScale.font(size: TypeScale.xs, weight: .semibold))
+                .foregroundColor(ColorPalette.labelPrimary)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.horizontal, Spacing.sm + 2)
+        .padding(.vertical, Spacing.xs + 1)
         .background(Color(red: 0/255, green: 122/255, blue: 255/255))
-        .cornerRadius(6)
+        .cornerRadius(Spacing.xs)
     }
 }
 

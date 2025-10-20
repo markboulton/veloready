@@ -13,11 +13,11 @@ struct ConnectWithStravaButton: View {
             Text(buttonText)
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .foregroundColor(ColorPalette.labelPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, Spacing.lg)
                 .background(backgroundColor)
-                .cornerRadius(8)
+                .cornerRadius(Spacing.sm)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(connectionState.isLoading)
@@ -26,24 +26,24 @@ struct ConnectWithStravaButton: View {
     private var buttonText: String {
         switch connectionState {
         case .disconnected:
-            return "Connect with Strava"
+            return ComponentContent.DataSource.stravaConnect
         case .connecting:
-            return "Connecting..."
+            return ComponentContent.DataSource.stravaConnecting
         case .pending(let status):
             return status
         case .connected:
-            return "Disconnect from Strava"
+            return ComponentContent.DataSource.stravaDisconnect
         case .error(let message):
-            return "Error: \(message)"
+            return ComponentContent.DataSource.errorPrefix + message
         }
     }
     
     private var backgroundColor: Color {
         switch connectionState {
         case .error:
-            return Color.red
+            return ColorPalette.error
         case .connected:
-            return Color.red.opacity(0.8) // Disconnect button
+            return ColorPalette.error.opacity(0.8) // Disconnect button
         default:
             // Strava orange: #FC4C02
             return Color(red: 252/255, green: 76/255, blue: 2/255)
@@ -54,20 +54,19 @@ struct ConnectWithStravaButton: View {
 /// Compact Strava badge
 struct StravaBadge: View {
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: "figure.outdoor.cycle")
-                .font(.caption)
-                .foregroundColor(.white)
+                .font(TypeScale.font(size: TypeScale.xs))
+                .foregroundColor(ColorPalette.labelPrimary)
             
-            Text("Strava")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
+            Text(ComponentContent.DataSource.stravaName)
+                .font(TypeScale.font(size: TypeScale.xs, weight: .semibold))
+                .foregroundColor(ColorPalette.labelPrimary)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.horizontal, Spacing.sm + 2)
+        .padding(.vertical, Spacing.xs + 1)
         .background(Color(red: 252/255, green: 76/255, blue: 2/255))
-        .cornerRadius(4)
+        .cornerRadius(Spacing.xs)
     }
 }
 

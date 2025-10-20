@@ -3,13 +3,30 @@ import Foundation
 /// Content strings for reusable components
 enum ComponentContent {
     
-    // MARK: - Loading Spinner
+    // MARK: - Loading States
     enum Loading {
         static let defaultMessage = "Loading..."
-        static let loadingData = "Loading your data..."
+        static let loadingData = "Loading data..."
         static let loadingActivity = "Loading latest activity..."
         static let loadingHealthData = "Loading health data..."
         static let syncing = "Syncing..."
+    }
+    
+    // MARK: - Data Source Buttons
+    enum DataSource {
+        // Strava
+        static let stravaConnect = "Connect with Strava"
+        static let stravaDisconnect = "Disconnect from Strava"
+        static let stravaConnecting = "Connecting..."
+        static let stravaName = "Strava"
+        
+        // Intervals.icu
+        static let intervalsConnect = "Connect with Intervals.icu"
+        static let intervalsDisconnect = "Disconnect from Intervals.icu"
+        static let intervalsName = "Intervals.icu"
+        
+        // Generic
+        static let errorPrefix = "Error: "
     }
     
     // MARK: - Empty States
