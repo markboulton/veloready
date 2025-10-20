@@ -14,13 +14,13 @@ struct TrainingZonesSection: View {
                             .foregroundColor(ColorScale.purpleAccent)
                             .frame(width: 24)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Adaptive Zones")
-                                .font(.body)
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text(SettingsContent.TrainingZones.adaptiveZonesTitle)
+                                .font(TypeScale.font(size: TypeScale.md))
                             
-                            Text("Adaptive FTP, W', VO2max & Zones")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(SettingsContent.TrainingZones.adaptiveZonesSubtitle)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                         
                         Spacer()
@@ -36,13 +36,13 @@ struct TrainingZonesSection: View {
                             .foregroundColor(Color.health.heartRate)
                             .frame(width: 24)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("HR and Power Zones")
-                                .font(.body)
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text(SettingsContent.TrainingZones.title)
+                                .font(TypeScale.font(size: TypeScale.md))
                             
-                            Text("Coggan zones based on FTP and Max HR")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(SettingsContent.TrainingZones.standardZonesSubtitle)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                         
                         Spacer()
@@ -50,12 +50,12 @@ struct TrainingZonesSection: View {
                 }
             }
         } header: {
-            Text("Training")
+            Text(SettingsContent.trainingSection)
         } footer: {
             if proConfig.hasProAccess {
-                Text("Adaptive Zones uses sports science to compute your FTP, W', and training zones from your performance data.")
+                Text(SettingsContent.TrainingZones.adaptiveZonesFooter)
             } else {
-                Text("Set your FTP and Max HR to generate Coggan training zones. Upgrade to PRO for adaptive zones computed from your performance data.")
+                Text(SettingsContent.TrainingZones.standardZonesFooter)
             }
         }
     }

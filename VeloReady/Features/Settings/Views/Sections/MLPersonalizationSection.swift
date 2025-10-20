@@ -9,29 +9,29 @@ struct MLPersonalizationSection: View {
             NavigationLink(destination: MLPersonalizationSettingsView()) {
                 HStack {
                     Image(systemName: "sparkles")
-                        .foregroundColor(.purple)
+                        .foregroundColor(ColorPalette.purple)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("ML Personalization")
-                            .font(.body)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.MLPersonalization.title)
+                            .font(TypeScale.font(size: TypeScale.md))
                         
                         if mlRegistry.isMLEnabled {
-                            Text("Enabled")
-                                .font(.caption)
-                                .foregroundColor(.green)
+                            Text(SettingsContent.MLPersonalization.enabled)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.success)
                         } else {
-                            Text("Disabled")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(SettingsContent.MLPersonalization.disabled)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                     }
                 }
             }
         } header: {
-            Text("Personalization")
+            Text(SettingsContent.personalizationSection)
         } footer: {
-            Text("Machine learning personalization for more accurate recovery predictions")
+            Text(SettingsContent.MLPersonalization.footer)
         }
     }
 }

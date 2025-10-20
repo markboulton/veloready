@@ -9,6 +9,7 @@ enum SettingsContent {
     static let profileSection = "Profile"  /// Profile section
     static let sleepSection = "Sleep"  /// Sleep section
     static let trainingSection = "Training"  /// Training section
+    static let personalizationSection = "Personalization"  /// Personalization section
     static let displaySection = "Display"  /// Display section
     static let notificationsSection = "Notifications"  /// Notifications section
     static let aboutSection = "About"  /// About section
@@ -34,9 +35,18 @@ enum SettingsContent {
     
     // MARK: - Training Zones
     enum TrainingZones {
+        // Adaptive Zones (PRO)
+        static let adaptiveZonesTitle = "Adaptive Zones"
+        static let adaptiveZonesSubtitle = "Adaptive FTP, W', VO2max & Zones"
+        static let adaptiveZonesFooter = "Adaptive Zones uses sports science to compute your FTP, W', and training zones from your performance data."
+        
+        // Standard Zones (FREE)
         static let title = "HR and Power Zones"  /// Training zones title
         static let subtitle = "Sync from Intervals.icu"  /// Subtitle
         static let description = "Sync your heart rate and power zones from Intervals.icu for training analysis."  /// Description
+        static let standardZonesSubtitle = "Coggan zones based on FTP and Max HR"
+        static let standardZonesFooter = "Set your FTP and Max HR to generate Coggan training zones. Upgrade to PRO for adaptive zones computed from your performance data."
+        
         static let intervalsSync = "Intervals.icu Zones"  /// Intervals sync title
         static let syncButton = "Sync Zones"  /// Sync button
         static let syncDescription = "Tap 'Sync Zones' to import your zones from Intervals.icu"  /// Sync description
@@ -85,6 +95,14 @@ enum SettingsContent {
         static let reminderTime = "Reminder Time"  /// Reminder time label
         static let recoveryAlerts = "Recovery Alerts"  /// Recovery alerts toggle
         static let recoveryAlertsDescription = "Get notified when your recovery score indicates you should rest."  /// Recovery alerts description
+    }
+    
+    // MARK: - ML Personalization
+    enum MLPersonalization {
+        static let title = "ML Personalization"
+        static let enabled = "Enabled"
+        static let disabled = "Disabled"
+        static let footer = "Machine learning personalization for more accurate recovery predictions"
     }
     
     // MARK: - About
