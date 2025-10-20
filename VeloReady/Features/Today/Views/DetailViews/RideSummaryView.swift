@@ -18,7 +18,7 @@ struct RideSummaryView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Header with rainbow gradient
                     HStack(spacing: 8) {
-                        Image(systemName: "sparkles")
+                        Image(systemName: Icons.System.sparkles)
                             .font(.heading)
                             .foregroundColor(ColorPalette.aiIconColor)
                         
@@ -87,7 +87,7 @@ private struct ErrorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                Image(systemName: "exclamationmark.triangle.fill")
+                Image(systemName: Icons.Status.warningFill)
                     .foregroundColor(.primary)
                 Text(error.localizedDescription)
                     .font(.subheadline)
@@ -101,7 +101,7 @@ private struct ErrorView: View {
                 }
             }) {
                 HStack {
-                    Image(systemName: "arrow.clockwise")
+                    Image(systemName: Icons.Arrow.clockwise)
                     Text(RideSummaryContent.retry)
                 }
                 .font(.subheadline)
@@ -147,7 +147,7 @@ private struct SummaryContentView: View {
                     if !summary.strengths.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Image(systemName: "checkmark.circle.fill")
+                                Image(systemName: Icons.Status.successFill)
                                     .foregroundColor(.secondary)
                                     .font(.caption)
                                 Text(RideSummaryContent.strengths)
@@ -172,7 +172,7 @@ private struct SummaryContentView: View {
                     if !summary.limiters.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
+                                Image(systemName: Icons.Status.warningFill)
                                     .foregroundColor(.secondary)
                                     .font(.caption)
                                 Text(RideSummaryContent.areasToImprove)
@@ -201,7 +201,7 @@ private struct SummaryContentView: View {
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Image(systemName: "lightbulb")
+                        Image(systemName: Icons.System.lightbulb)
                             .foregroundColor(.secondary)
                             .font(.caption)
                         Text(RideSummaryContent.nextSteps)

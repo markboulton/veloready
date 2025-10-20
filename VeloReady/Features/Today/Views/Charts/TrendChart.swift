@@ -34,7 +34,7 @@ struct TrendChart: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header with title and optional Pro badge
             HStack {
-                Image(systemName: "chart.line.uptrend.xyaxis")
+                Image(systemName: Icons.DataSource.intervalsICU)
                     .foregroundColor(Color.text.secondary)
                     .font(.system(size: TypeScale.xs))
                 

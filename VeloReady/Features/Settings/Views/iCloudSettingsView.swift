@@ -22,7 +22,7 @@ struct iCloudSettingsView: View {
                         
                         if syncService.isCloudAvailable {
                             HStack(spacing: 4) {
-                                Image(systemName: "checkmark.circle.fill")
+                                Image(systemName: Icons.Status.successFill)
                                     .foregroundColor(Color.semantic.success)
                                 Text(CommonContent.States.enabled)
                                     .foregroundColor(Color.semantic.success)
@@ -30,7 +30,7 @@ struct iCloudSettingsView: View {
                             .font(.subheadline)
                         } else {
                             HStack(spacing: 4) {
-                                Image(systemName: "xmark.circle.fill")
+                                Image(systemName: Icons.Status.errorFill)
                                     .foregroundColor(Color.semantic.error)
                                 Text(SettingsContent.iCloud.notAvailable)
                                     .foregroundColor(Color.semantic.error)
@@ -83,7 +83,7 @@ struct iCloudSettingsView: View {
                                     ProgressView()
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "arrow.clockwise.icloud")
+                                    Image(systemName: Icons.Arrow.clockwise)
                                 }
                                 
                                 Button(SettingsContent.iCloud.syncNow) {
@@ -96,7 +96,7 @@ struct iCloudSettingsView: View {
                             showingRestoreConfirmation = true
                         }) {
                             HStack {
-                                Image(systemName: "arrow.down.circle")
+                                Image(systemName: Icons.Document.download)
                                 Button(SettingsContent.iCloud.restoreFromCloud) {
                                 }
                             }
@@ -152,7 +152,7 @@ struct iCloudSettingsView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
+                                Image(systemName: Icons.Status.warningFill)
                                     .foregroundColor(Color.semantic.warning)
                                 
                                 Text(SettingsContent.iCloud.notAvailableTitle)

@@ -10,7 +10,7 @@ struct AIBriefView: View {
         VStack(alignment: .leading, spacing: 0) {
                 // Header with rainbow gradient
                 HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
+                    Image(systemName: Icons.System.sparkles)
                         .font(.heading)
                         .foregroundColor(ColorPalette.aiIconColor)
                     
@@ -99,7 +99,7 @@ private struct ErrorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: "exclamationmark.triangle.fill")
+                Image(systemName: Icons.Status.warningFill)
                     .foregroundColor(.primary)
                 Text(error.localizedDescription)
                     .font(.subheadline)
