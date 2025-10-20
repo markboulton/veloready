@@ -68,7 +68,7 @@ struct WeeklyHeatmap: View {
                 
                 // AM row
                 HStack(spacing: Spacing.xs) {
-                    Text("AM")
+                    Text(TrendsContent.TimeLabels.am.uppercased())
                         .font(.system(size: TypeScale.xxs, weight: .medium))
                         .foregroundColor(.text.secondary)
                         .frame(width: 24)
@@ -80,7 +80,7 @@ struct WeeklyHeatmap: View {
                 
                 // PM row
                 HStack(spacing: Spacing.xs) {
-                    Text("PM")
+                    Text(TrendsContent.TimeLabels.pm.uppercased())
                         .font(.system(size: TypeScale.xxs, weight: .medium))
                         .foregroundColor(.text.secondary)
                         .frame(width: 24)

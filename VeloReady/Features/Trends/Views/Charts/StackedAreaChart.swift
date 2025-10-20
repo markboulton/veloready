@@ -61,7 +61,7 @@ struct StackedAreaChart: View {
                         .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel {
                         if let hours = value.as(Double.self) {
-                            Text("\(Int(hours))h")
+                            Text("\(Int(hours))\(CommonContent.Units.hours))")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(ColorPalette.chartAxisLabel)
                         }

@@ -101,7 +101,7 @@ struct ZonePieChartSection: View {
                                         }
                                         .frame(width: 90, alignment: .leading)
                                         
-                                        Text("\(Int(boundary)) - \(Int(nextBoundary)) bpm")
+                                        Text("\(Int(boundary)) - \(Int(nextBoundary)) \(CommonContent.Units.bpm))")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                             .frame(width: 100, alignment: .leading)
@@ -162,7 +162,7 @@ struct ZonePieChartSection: View {
                                     .frame(width: 16, height: 16)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Zone \(index + 1)")
+                                    Text("\(ChartContent.Zones.zone) \(index + 1)")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
                                     Text(hrZoneName(index))
@@ -264,7 +264,7 @@ struct ZonePieChartSection: View {
                                         }
                                         .frame(width: 110, alignment: .leading)
                                         
-                                        Text("\(Int(boundary)) - \(Int(nextBoundary)) W")
+                                        Text("\(Int(boundary)) - \(Int(nextBoundary)) \(CommonContent.Units.watts))")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                             .frame(width: 100, alignment: .leading)
@@ -326,7 +326,7 @@ struct ZonePieChartSection: View {
                                     .frame(width: 16, height: 16)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Zone \(index + 1)")
+                                    Text("\(ChartContent.Zones.zone) \(index + 1)")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
                                     Text(powerZoneName(index))
