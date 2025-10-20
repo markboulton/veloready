@@ -5,21 +5,21 @@ enum LatestRideContent {
     // MARK: - Header
     static let title = "Latest Ride"  /// Panel title
     
-    // MARK: - Metrics
+    // MARK: - Metrics (use ActivityContent)
     enum Metrics {
-        static let duration = "Duration"  /// Duration label
-        static let distance = "Distance"  /// Distance label
+        static let duration = ActivityContent.Metrics.duration
+        static let distance = ActivityContent.Metrics.distance
         static let normalizedPower = "NP"  /// Normalized power abbreviation
-        static let calories = "Calories"  /// Calories label
+        static let calories = ActivityContent.Metrics.calories
         static let avgHR = "Avg HR"  /// Average heart rate abbreviation
-        static let avgPower = "Avg Power"  /// Average power label
-        static let maxPower = "Max Power"  /// Max power label
-        static let avgSpeed = "Avg Speed"  /// Average speed label
-        static let elevation = "Elevation"  /// Elevation label
-        static let tss = "TSS"  /// Training stress score
+        static let avgPower = ActivityContent.Metrics.averagePower
+        static let maxPower = ActivityContent.Metrics.maxPower
+        static let avgSpeed = ActivityContent.Metrics.averageSpeed
+        static let elevation = ActivityContent.Metrics.elevation
+        static let tss = ActivityContent.Metrics.tss
     }
     
     // MARK: - Empty States
-    static let noActivities = "No recent rides"  /// No activities message
+    static let noActivities = "No recent rides"  /// No activities message (specific to rides)
     static let unnamedActivity = "Unnamed Activity"  /// Unnamed activity fallback
 }
