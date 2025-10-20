@@ -124,17 +124,17 @@ struct OAuthWebViewContainer: View {
                     Logger.debug("🌐 Starting OAuth WebView with URL: \(url.absoluteString)")
                 }
             }
-            .navigationTitle("Connect to intervals.icu")
+            .navigationTitle(OnboardingContent.OAuthWebView.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(OnboardingContent.OAuthWebView.cancel) {
                         onDismiss()
                     }
                 }
             }
-            .alert("Network Error", isPresented: $showingError) {
-                Button("OK") { }
+            .alert(OnboardingContent.OAuthWebView.networkError, isPresented: $showingError) {
+                Button(OnboardingContent.OAuthWebView.ok) { }
             } message: {
                 Text(errorMessage)
             }

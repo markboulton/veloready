@@ -64,7 +64,7 @@ struct CorporateNetworkWorkaround: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Network Workaround")
+            .navigationTitle(DebugContent.Navigation.networkWorkaround)
             .sheet(isPresented: $showingInstructions) {
                 WorkaroundInstructions(method: methods[selectedMethod])
             }
@@ -99,11 +99,11 @@ struct WorkaroundInstructions: View {
                 }
                 .padding()
             }
-            .navigationTitle("Instructions")
+            .navigationTitle(DebugContent.Navigation.instructions)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(CommonContent.Actions.done) {
                         dismiss()
                     }
                 }

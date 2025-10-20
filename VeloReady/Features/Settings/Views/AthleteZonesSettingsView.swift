@@ -297,8 +297,8 @@ struct AthleteZonesSettingsView: View {
                     }
                 }
                 .alert(SettingsContent.AthleteZones.resetConfirmTitle, isPresented: $showRecomputeConfirmation) {
-                    Button("Cancel", role: .cancel) { }
-                    Button("Reset") {
+                    Button(CommonContent.Actions.cancel, role: .cancel) { }
+                    Button(CommonContent.Actions.reset) {
                         resetToAdaptive()
                     }
                 } message: {

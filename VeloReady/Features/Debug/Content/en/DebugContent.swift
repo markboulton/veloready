@@ -2,6 +2,22 @@ import Foundation
 
 /// Content strings for Debug views
 enum DebugContent {
+    // MARK: - Navigation Titles
+    enum Navigation {
+        static let apiDebug = "API Debug"  /// API debug navigation title
+        static let mlDebug = "ML Debug"  /// ML debug navigation title
+        static let sportPreferencesDebug = "Sport Preferences Debug"  /// Sport preferences debug title
+        static let serviceHealth = "Service Health"  /// Service health title
+        static let componentTelemetry = "Component Telemetry"  /// Component telemetry title
+        static let healthDataDebug = "Health Data Debug"  /// Health data debug title
+        static let networkDebug = "Network Debug"  /// Network debug title
+        static let oauthDebug = "OAuth Debug"  /// OAuth debug title
+        static let certificateBypass = "Certificate Bypass"  /// Certificate bypass title
+        static let networkWorkaround = "Network Workaround"  /// Network workaround title
+        static let instructions = "Instructions"  /// Instructions title
+        static let oauthTest = "OAuth Test"  /// OAuth test title
+    }
+    
     // MARK: - Intervals API Debug
     enum IntervalsAPI {
         static let title = "Intervals.icu API Inspector"
@@ -111,4 +127,44 @@ enum DebugContent {
         static let allHealthy = "All services healthy"
         static let checkHealth = "Check Health"
     }
+    
+    // MARK: - Network Debug
+    enum NetworkDebug {
+        static let testBasicConnectivity = "Test Basic Connectivity"  /// Test basic connectivity button
+        static let testIntervalsDNS = "Test intervals.icu DNS"  /// Test DNS button
+        static let testIntervalsHTTPS = "Test intervals.icu HTTPS"  /// Test HTTPS button
+        static let testOAuthEndpoint = "Test OAuth Endpoint"  /// Test OAuth button
+        static let testAPIEndpoint = "Test API Endpoint"  /// Test API button
+    }
+    
+    // MARK: - OAuth Test
+    enum OAuthTest {
+        static let testOAuthURLGeneration = "Test OAuth URL Generation"  /// Test URL generation button
+        static let testTokenExchangeEndpoint = "Test Token Exchange Endpoint"  /// Test token exchange button
+        static let testAPIEndpoints = "Test API Endpoints"  /// Test API endpoints button
+        static let testFullOAuthFlow = "Test Full OAuth Flow"  /// Test full flow button
+    }
+    
+    // MARK: - OAuth Debug Actions
+    enum OAuthDebugActions {
+        static let testIntervalsConnection = "Test intervals.icu Connection"  /// Test connection button
+        static let testOAuthTokenExchange = "Test OAuth Token Exchange"  /// Test token exchange button
+        static let testCallbackURL = "Test Callback URL"  /// Test callback button
+    }
+    
+    // MARK: - Health Data Debug
+    enum HealthDataDebug {
+        static let requestHealthKitAuthorization = "Request HealthKit Authorization"  /// Request authorization button
+        static let refreshAuthorizationStatus = "Refresh Authorization Status"  /// Refresh status button
+        static let openSettings = "Open Settings"  /// Open settings button
+    }
+    
+    // MARK: - AI Brief Secret Config
+    enum AIBriefSecretConfig {
+        static let save = "Save"  /// Save button
+        static let cancel = "Cancel"  /// Cancel button
+        static let clearSecret = "Clear Secret"  /// Clear secret button
+        static let configureHMACSecret = "Configure HMAC Secret"  /// Configure HMAC secret title
+    }
 }
+

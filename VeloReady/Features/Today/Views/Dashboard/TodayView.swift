@@ -120,7 +120,7 @@ struct TodayView: View {
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
             }
-            .navigationTitle("Today")
+            .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .toolbar {

@@ -189,32 +189,32 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             TodayView()
                 .tabItem {
-                    Label("Today", systemImage: "house")
+                    Label(CommonContent.TabLabels.today, systemImage: "house")
                 }
                 .tag(0)
             
             ActivitiesView()
                 .tabItem {
-                    Label("Activities", systemImage: "list.bullet")
+                    Label(CommonContent.TabLabels.activities, systemImage: "list.bullet")
                 }
                 .tag(1)
             
             TrendsView()
                 .tabItem {
-                    Label("Trends", systemImage: "chart.line.uptrend.xyaxis")
+                    Label(CommonContent.TabLabels.trends, systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(2)
             
             // TODO: Re-enable Reports tab post-MVP
             // ReportsView()
             //     .tabItem {
-            //         Label("Reports", systemImage: "chart.bar.doc.horizontal")
+            //         Label(CommonContent.TabLabels.reports, systemImage: "chart.bar.doc.horizontal")
             //     }
             //     .tag(3)
             
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape")
+                    Label(CommonContent.TabLabels.settings, systemImage: "gearshape")
                 }
                 .tag(3)
         }

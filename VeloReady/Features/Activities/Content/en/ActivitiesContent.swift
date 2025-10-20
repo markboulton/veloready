@@ -26,4 +26,12 @@ enum ActivitiesContent {
         static let upgradeDescription = "Access up to 90 days of activity history with PRO"  /// Pro upgrade description
         static let upgradeButton = "Upgrade Now"  /// Upgrade button
     }
+    
+    // MARK: - Filter
+    enum Filter {
+        static let navigationTitle = "Filter Activities"  /// Filter navigation title
+        static let clearAll = "Clear All"  /// Clear all button
+        static let done = "Done"  /// Done button
+    }
 }
+

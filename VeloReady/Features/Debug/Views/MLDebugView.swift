@@ -111,7 +111,7 @@ struct MLDebugView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .navigationTitle("ML Debug")
+        .navigationTitle(DebugContent.Navigation.mlDebug)
         .onAppear {
             Task {
                 await checkDataQuality()

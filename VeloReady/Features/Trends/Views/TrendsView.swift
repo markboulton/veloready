@@ -22,7 +22,7 @@ struct TrendsView: View {
                     }
                 }
             }
-            .navigationTitle("Trends")
+            .navigationTitle(TrendsContent.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .sheet(isPresented: $showPaywall) {

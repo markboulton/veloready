@@ -525,6 +525,7 @@ enum SettingsContent {
         static let overrideUser = "Override User ID"  /// Override user button
         static let sectionTitle = "AI Ride Summary"  /// Section title
         static let footer = "Test AI ride summary endpoint. PRO feature. Uses same HMAC secret as Daily Brief."  /// Section footer
+        static let overrideUserNavigationTitle = "Override User ID"  /// Override user ID navigation title
     }
     
     // MARK: - Score Recalculation

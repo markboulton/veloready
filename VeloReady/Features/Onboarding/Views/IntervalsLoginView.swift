@@ -63,7 +63,7 @@ struct IntervalsLoginView: View {
                 
                 // Action Button
                 VStack(spacing: 16) {
-                    Button("Connect to intervals.icu") {
+                    Button(OnboardingContent.IntervalsLogin.connectButton) {
                         authenticateWithIntervals()
                     }
                     .buttonStyle(.borderedProminent)
@@ -71,7 +71,7 @@ struct IntervalsLoginView: View {
                     .disabled(isAuthenticating)
                     
                     if isAuthenticating {
-                        ProgressView("Connecting...")
+                        ProgressView(OnboardingContent.IntervalsOAuth.connecting)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -84,8 +84,8 @@ struct IntervalsLoginView: View {
             }
             .padding()
             .navigationBarHidden(true)
-            .alert("Authentication Error", isPresented: $showingAlert) {
-                Button("OK") { }
+            .alert(OnboardingContent.IntervalsLogin.authenticationError, isPresented: $showingAlert) {
+                Button(OnboardingContent.IntervalsLogin.ok) { }
             } message: {
                 Text(alertMessage)
             }

@@ -555,18 +555,18 @@ struct ActivityFilterSheet: View {
                     }
                 }
             }
-            .navigationTitle("Filter Activities")
+            .navigationTitle(ActivitiesContent.Filter.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Clear All") {
+                    Button(ActivitiesContent.Filter.clearAll) {
                         viewModel.selectedFilters.removeAll()
                         viewModel.applyFilters()
                     }
                     .disabled(viewModel.selectedFilters.isEmpty)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(ActivitiesContent.Filter.done) {
                         dismiss()
                     }
                 }

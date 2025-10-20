@@ -23,7 +23,7 @@ struct TelemetryDashboard: View {
                 // Actions
                 actionsSection
             }
-            .navigationTitle("Component Telemetry")
+            .navigationTitle(DebugContent.Navigation.componentTelemetry)
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 refreshStats()

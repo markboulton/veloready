@@ -105,7 +105,7 @@ struct RideSummaryUserOverrideView: View {
                 .tint(Color.button.danger)
             }
         }
-        .navigationTitle("Override User ID")
+        .navigationTitle(SettingsContent.RideSummary.overrideUserNavigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             useOverride = UserDefaults.standard.bool(forKey: overrideEnabledKey)

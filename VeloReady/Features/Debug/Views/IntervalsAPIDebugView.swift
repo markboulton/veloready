@@ -55,7 +55,7 @@ struct IntervalsAPIDebugView: View {
             .padding(.bottom)
         }
         .background(Color.background.primary)
-        .navigationTitle("API Debug")
+        .navigationTitle(DebugContent.Navigation.apiDebug)
         .navigationBarTitleDisplayMode(.inline)
     }
     

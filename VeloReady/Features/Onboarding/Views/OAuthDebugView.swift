@@ -79,18 +79,18 @@ struct OAuthDebugView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
-                            Button("Test intervals.icu Connection") {
+                            Button(DebugContent.OAuthDebugActions.testIntervalsConnection) {
                                 testAPIConnection()
                             }
                             .buttonStyle(.bordered)
                             
-                            Button("Test OAuth Token Exchange") {
+                            Button(DebugContent.OAuthDebugActions.testOAuthTokenExchange) {
                                 testTokenExchange()
                             }
                             .buttonStyle(.bordered)
                             .foregroundColor(Color.button.primary)
                             
-                            Button("Test Callback URL") {
+                            Button(DebugContent.OAuthDebugActions.testCallbackURL) {
                                 testCallbackURL()
                             }
                             .buttonStyle(.bordered)
@@ -105,7 +105,7 @@ struct OAuthDebugView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("OAuth Debug")
+            .navigationTitle(DebugContent.Navigation.oauthDebug)
         }
     }
     

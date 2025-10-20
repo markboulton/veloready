@@ -388,6 +388,15 @@ enum CommonContent {
         static let permissionMessage = "This feature requires additional permissions"  /// Permission message
     }
     
+    // MARK: - Tab Navigation
+    enum TabLabels {
+        static let today = "Today"  /// Today tab label
+        static let activities = "Activities"  /// Activities tab label
+        static let trends = "Trends"  /// Trends tab label
+        static let reports = "Reports"  /// Reports tab label
+        static let settings = "Settings"  /// Settings tab label
+    }
+    
     // MARK: - Debug & Testing
     enum Debug {
         static let debugMode = "Debug Mode"  /// Debug mode label

@@ -95,6 +95,8 @@ enum OnboardingContent {
         static let title = "Health Data Access"  /// Health permissions title
         static let description = "VeloReady needs access to your health data to calculate recovery scores and track your training."  /// Description
         static let grantAccess = "Grant Access"  /// Grant access button
+        static let continueButton = "Continue"  /// Continue button
+        static let skipForNow = "Skip for Now"  /// Skip button
         static let required = "Required Permissions"  /// Required section title
         static let optional = "Optional Permissions"  /// Optional section title
         static let heartRate = "Heart Rate"  /// Heart rate permission
@@ -305,6 +307,9 @@ enum OnboardingContent {
         static let subtitle = "Connect your intervals.icu account to access your training data and get personalized recommendations."  /// Login subtitle
         static let whatYouGet = "What you'll get:"  /// What you get label
         static let dataPrivate = "Your data stays private and secure"  /// Privacy message
+        static let connectButton = "Connect to intervals.icu"  /// Connect button
+        static let authenticationError = "Authentication Error"  /// Authentication error alert title
+        static let ok = "OK"  /// OK button
     }
     
     // MARK: - Network Debug
@@ -313,6 +318,14 @@ enum OnboardingContent {
         static let networkStatus = "Network Status"  /// Network status section
         static let networkTests = "Network Tests"  /// Network tests section
         static let testResults = "Test Results"  /// Test results section
+    }
+    
+    // MARK: - OAuth Web View
+    enum OAuthWebView {
+        static let navigationTitle = "Connect to intervals.icu"  /// OAuth web view navigation title
+        static let cancel = "Cancel"  /// Cancel button
+        static let networkError = "Network Error"  /// Network error alert title
+        static let ok = "OK"  /// OK button
     }
     
     // MARK: - Preferences Step

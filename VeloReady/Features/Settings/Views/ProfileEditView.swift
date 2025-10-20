@@ -103,13 +103,13 @@ struct ProfileEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(CommonContent.Actions.cancel) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(CommonContent.Actions.save) {
                         viewModel.saveProfile()
                         dismiss()
                     }
@@ -171,7 +171,7 @@ struct ProfileEditView: View {
                     }
                     
                     if viewModel.avatarImage != nil {
-                        Button("Remove Photo", role: .destructive) {
+                        Button(CommonContent.Actions.remove + " Photo", role: .destructive) {
                             viewModel.removeAvatar()
                         }
                         .font(.caption)

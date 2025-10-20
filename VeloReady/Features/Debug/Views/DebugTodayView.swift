@@ -24,7 +24,7 @@ struct DebugTodayView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Today")
+            .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
         }
     }

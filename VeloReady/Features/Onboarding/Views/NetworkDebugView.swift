@@ -21,7 +21,7 @@ struct NetworkDebugView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Network Debug")
+            .navigationTitle(DebugContent.Navigation.networkDebug)
             .onAppear {
                 checkNetworkStatus()
             }
@@ -50,27 +50,27 @@ struct NetworkDebugView: View {
                 .fontWeight(.semibold)
             
             VStack(spacing: 8) {
-                Button("Test Basic Connectivity") {
+                Button(DebugContent.NetworkDebug.testBasicConnectivity) {
                     testBasicConnectivity()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test intervals.icu DNS") {
+                Button(DebugContent.NetworkDebug.testIntervalsDNS) {
                     testIntervalsDNSS()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test intervals.icu HTTPS") {
+                Button(DebugContent.NetworkDebug.testIntervalsHTTPS) {
                     testIntervalsHTTPS()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test OAuth Endpoint") {
+                Button(DebugContent.NetworkDebug.testOAuthEndpoint) {
                     testOAuthEndpoint()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test API Endpoint") {
+                Button(DebugContent.NetworkDebug.testAPIEndpoint) {
                     testAPIEndpoint()
                 }
                 .buttonStyle(.bordered)

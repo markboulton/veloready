@@ -25,7 +25,7 @@ struct IntervalsOAuthTestView: View {
                 }
                 .padding()
             }
-            .navigationTitle("OAuth Test")
+            .navigationTitle(DebugContent.Navigation.oauthTest)
         }
     }
     
@@ -68,23 +68,23 @@ struct IntervalsOAuthTestView: View {
                 .fontWeight(.semibold)
             
             VStack(spacing: 8) {
-                Button("Test OAuth URL Generation") {
+                Button(DebugContent.OAuthTest.testOAuthURLGeneration) {
                     testOAuthURLGeneration()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test Token Exchange Endpoint") {
+                Button(DebugContent.OAuthTest.testTokenExchangeEndpoint) {
                     testTokenExchangeEndpoint()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Test API Endpoints") {
+                Button(DebugContent.OAuthTest.testAPIEndpoints) {
                     testAPIEndpoints()
                 }
                 .buttonStyle(.bordered)
                 .disabled(!oauthManager.isAuthenticated)
                 
-                Button("Test Full OAuth Flow") {
+                Button(DebugContent.OAuthTest.testFullOAuthFlow) {
                     testFullOAuthFlow()
                 }
                 .buttonStyle(.borderedProminent)

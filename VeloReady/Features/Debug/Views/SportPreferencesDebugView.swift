@@ -121,7 +121,7 @@ struct SportPreferencesDebugView: View {
             }
             .padding()
         }
-        .navigationTitle("Sport Preferences Debug")
+        .navigationTitle(DebugContent.Navigation.sportPreferencesDebug)
     }
 }
 

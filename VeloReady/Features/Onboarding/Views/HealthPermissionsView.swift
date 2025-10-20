@@ -57,7 +57,7 @@ struct HealthPermissionsView: View {
                 // Action buttons
                 VStack(spacing: 12) {
                     if healthKitManager.isAuthorized {
-                        Button("Continue") {
+                        Button(OnboardingContent.HealthPermissions.continueButton) {
                             onAuthorized()
                         }
                         .buttonStyle(.borderedProminent)
@@ -75,7 +75,7 @@ struct HealthPermissionsView: View {
                         .controlSize(.large)
                         .disabled(isRequesting)
                         
-                        Button("Skip for Now") {
+                        Button(OnboardingContent.HealthPermissions.skipForNow) {
                             onAuthorized()
                         }
                         .buttonStyle(.bordered)

@@ -78,7 +78,7 @@ struct DevelopmentCertificateBypass: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Certificate Bypass")
+            .navigationTitle(DebugContent.Navigation.certificateBypass)
             .alert(OnboardingContent.CertificateBypass.alertTitle, isPresented: $showingWarning) {
                 Button(CommonContent.Actions.cancel) {
                     isEnabled = false

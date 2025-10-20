@@ -177,18 +177,18 @@ struct iCloudSettingsView: View {
                     }
                 }
             }
-            .navigationTitle("iCloud Sync")
+            .navigationTitle(iCloudSyncContent.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(CommonContent.Actions.done) {
                         dismiss()
                     }
                 }
             }
-            .alert("Restore from iCloud", isPresented: $showingRestoreConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Restore", role: .destructive) {
+            .alert(iCloudSyncContent.Alerts.restoreTitle, isPresented: $showingRestoreConfirmation) {
+                Button(iCloudSyncContent.Alerts.cancel, role: .cancel) { }
+                Button(iCloudSyncContent.Alerts.restoreConfirm, role: .destructive) {
                     Task {
                         do {
                             try await syncService.restoreFromCloud()
@@ -202,12 +202,12 @@ struct iCloudSettingsView: View {
                 Text(SettingsContent.iCloud.restoreConfirmMessage)
             }
             .alert(SettingsContent.iCloud.restoreSuccessTitle, isPresented: $showingRestoreSuccess) {
-                Button("OK", role: .cancel) { }
+                Button(iCloudSyncContent.Alerts.ok, role: .cancel) { }
             } message: {
                 Text(SettingsContent.iCloud.restoreSuccessMessage)
             }
             .alert(SettingsContent.iCloud.restoreFailedTitle, isPresented: $showingRestoreError) {
-                Button("OK", role: .cancel) { }
+                Button(iCloudSyncContent.Alerts.ok, role: .cancel) { }
             } message: {
                 Text(syncService.syncError ?? "Failed to restore data from iCloud. Please try again.")
             }

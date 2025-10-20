@@ -21,7 +21,7 @@ struct ServiceHealthDashboard: View {
                 // Actions
                 actionsSection
             }
-            .navigationTitle("Service Health")
+            .navigationTitle(DebugContent.Navigation.serviceHealth)
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 startRefresh()

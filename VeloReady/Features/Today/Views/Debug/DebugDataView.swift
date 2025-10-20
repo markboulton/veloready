@@ -23,7 +23,7 @@ struct DebugDataView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Health Data Debug")
+            .navigationTitle(DebugContent.Navigation.healthDataDebug)
         }
     }
     
@@ -98,7 +98,7 @@ struct DebugDataView: View {
     
     private var actionButtonsSection: some View {
         VStack(spacing: 12) {
-            Button("Request HealthKit Authorization") {
+            Button(DebugContent.HealthDataDebug.requestHealthKitAuthorization) {
                 Task {
                     await healthKitManager.requestAuthorization()
                 }
@@ -106,14 +106,14 @@ struct DebugDataView: View {
             .buttonStyle(.borderedProminent)
             .disabled(healthKitManager.isAuthorized)
             
-            Button("Refresh Authorization Status") {
+            Button(DebugContent.HealthDataDebug.refreshAuthorizationStatus) {
                 Task {
                     await healthKitManager.refreshAuthorizationStatus()
                 }
             }
             .buttonStyle(.bordered)
             
-            Button("Open Settings") {
+            Button(DebugContent.HealthDataDebug.openSettings) {
                 healthKitManager.openSettings()
             }
             .buttonStyle(.bordered)
