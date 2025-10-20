@@ -66,7 +66,7 @@ struct ProfileView: View {
                 Section {
                     if viewModel.age > 0 {
                         HStack {
-                            Text("Age")
+                            Text(SettingsContent.Profile.title)
                             Spacer()
                             Text("\(viewModel.age) years")
                                 .foregroundColor(.secondary)
@@ -75,7 +75,7 @@ struct ProfileView: View {
                     
                     if viewModel.weight > 0 {
                         HStack {
-                            Text("Weight")
+                            Text(SettingsContent.Profile.weight)
                             Spacer()
                             Text("\(String(format: "%.1f", viewModel.weight)) kg")
                                 .foregroundColor(.secondary)
@@ -84,7 +84,7 @@ struct ProfileView: View {
                     
                     if viewModel.height > 0 {
                         HStack {
-                            Text("Height")
+                            Text(SettingsContent.Profile.height)
                             Spacer()
                             Text("\(viewModel.height) cm")
                                 .foregroundColor(.secondary)
@@ -93,14 +93,14 @@ struct ProfileView: View {
                     
                     if viewModel.bmr > 0 {
                         HStack {
-                            Text("BMR")
+                            Text(SettingsContent.Profile.bmr)
                             Spacer()
                             Text("\(Int(viewModel.bmr)) cal/day")
                                 .foregroundColor(.secondary)
                         }
                     }
                 } header: {
-                    Text("Athletic Profile")
+                    Text(SettingsContent.Profile.athleticProfile)
                 }
             }
             
@@ -111,7 +111,7 @@ struct ProfileView: View {
                         Image(systemName: "chart.line.uptrend.xyaxis")
                             .foregroundColor(.blue)
                             .frame(width: 24)
-                        Text("Intervals.icu")
+                        Text(SettingsContent.Profile.dateOfBirth)
                         Spacer()
                         Text(intervalsID)
                             .foregroundColor(.secondary)

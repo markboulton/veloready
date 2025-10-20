@@ -26,6 +26,16 @@ enum SettingsContent {
         static let user = "VeloReady User"  /// Default user name
         static let tagline = "Cycling Performance Tracker"  /// App tagline
         static let tapToEdit = "Tap to edit profile"
+        static let title = "Profile"
+        static let name = "Name"
+        static let email = "Email"
+        static let weight = "Weight"
+        static let height = "Height"
+        static let dateOfBirth = "Date of Birth"
+        static let gender = "Gender"
+        static let male = "Male"
+        static let female = "Female"
+        static let other = "Other"
     }
     
     // MARK: - Sleep Settings

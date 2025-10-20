@@ -77,7 +77,7 @@ struct DataSourcesSettingsView: View {
                         .font(.title2)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Connected Sources")
+                        Text(CommonContent.States.connectedSources)
                             .font(.headline)
                         
                         Text(dataSourceManager.connectedSourcesSummary)
@@ -115,7 +115,7 @@ struct DataSourcesSettingsView: View {
                 
                 // Connection status
                 HStack {
-                    Text("Status:")
+                    Text(SettingsContent.DataSources.status)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -132,7 +132,7 @@ struct DataSourcesSettingsView: View {
                 
                 // Data types provided
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Provides:")
+                    Text(SettingsContent.DataSources.provides)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -261,7 +261,7 @@ struct DataSourcesSettingsView: View {
                         dataSourceManager.disconnect(from: source)
                     }
                 }) {
-                    Text(isConnected ? "Disconnect" : "Connect")
+                    Text(isConnected ? CommonContent.Actions.disconnect : CommonContent.Actions.connect)
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -283,7 +283,7 @@ struct DataSourcesSettingsView: View {
                 Button(action: {
                     dataSourceManager.disconnect(from: source)
                 }) {
-                    Text("Disconnect")
+                    Text(CommonContent.Actions.disconnect)
                         .font(.caption)
                         .foregroundColor(.red)
                 }
