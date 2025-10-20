@@ -98,6 +98,87 @@ enum SettingsContent {
         static let title = "Notifications"  /// Notifications title
         static let subtitle = "Sleep reminders and recovery alerts"  /// Subtitle
         static let description = "Manage sleep reminders and recovery notifications."  /// Description
+    }
+    
+    // MARK: - Debug Settings
+    enum Debug {
+        static let proFeaturesUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
+        static let mockDataEnabled = "📊 Mock data enabled for weekly trend charts"  /// Mock data message
+        static let subscriptionStatus = "Subscription Status:"  /// Subscription status label
+        static let trialDaysRemaining = "Trial Days Remaining:"  /// Trial days label
+        static let pro = "Pro"  /// Pro status
+        static let free = "Free"  /// Free status
+    }
+    
+    // MARK: - Sleep Components
+    enum SleepComponents {
+        static let performance = "Performance"  /// Performance component
+        static let efficiency = "Efficiency"  /// Efficiency component
+        static let stageQuality = "Stage Quality"  /// Stage quality component
+        static let disturbances = "Disturbances"  /// Disturbances component
+        static let timing = "Timing"  /// Timing component
+        static let latency = "Latency"  /// Latency component
+        static let scoreCalculation = "Score Calculation"  /// Score calculation header
+    }
+    
+    // MARK: - Athlete Zones
+    enum AthleteZones {
+        static let athlete = "Athlete:"  /// Athlete label
+        static let unknownAthlete = "Unknown"  /// Unknown athlete
+        static let syncZones = "Sync Zones"  /// Sync zones button
+        static let syncing = "Syncing..."  /// Syncing status
+        static let lastSynced = "Last synced:"  /// Last synced label
+        static let never = "Never"  /// Never synced
+        static let tapToSync = "Tap 'Sync Zones' to import your zones from Intervals.icu"  /// Sync instruction
+        static let currentBoundaries = "Current Zone Boundaries"  /// Current boundaries title
+    }
+    
+    // MARK: - Data Sources
+    enum DataSources {
+        static let title = "Data Sources"  /// Data sources title
+        static let intervalsConnected = "Connected to Intervals.icu"  /// Intervals connected
+        static let stravaConnected = "Connected to Strava"  /// Strava connected
+        static let healthKitEnabled = "HealthKit Enabled"  /// HealthKit enabled
+        static let connect = "Connect"  /// Connect button
+        static let disconnect = "Disconnect"  /// Disconnect button
+        static let reconnect = "Reconnect"  /// Reconnect button
+    }
+    
+    // MARK: - iCloud
+    enum iCloud {
+        static let title = "iCloud Sync"  /// iCloud title
+        static let enabled = "iCloud sync enabled"  /// Enabled message
+        static let disabled = "iCloud sync disabled"  /// Disabled message
+        static let syncNow = "Sync Now"  /// Sync now button
+        static let lastSync = "Last sync:"  /// Last sync label
+        static let restore = "Restore from iCloud"  /// Restore button
+    }
+    
+    // MARK: - ML Personalization
+    enum MLPersonalization {
+        static let title = "ML Personalization"  /// ML title
+        static let enabled = "Personalization enabled"  /// Enabled message
+        static let disabled = "Personalization disabled"  /// Disabled message
+        static let dataCollected = "Data collected:"  /// Data collected label
+        static let days = "days"  /// Days label
+    }
+    
+    // MARK: - Feedback
+    enum Feedback {
+        static let title = "Feedback"  /// Feedback title
+        static let sendFeedback = "Send Feedback"  /// Send button
+        static let reportBug = "Report Bug"  /// Report bug button
+        static let requestFeature = "Request Feature"  /// Request feature button
+    }
+    
+    // MARK: - About
+    enum About {
+        static let version = "Version"  /// Version label
+        static let build = "Build"  /// Build label
+        static let privacyPolicy = "Privacy Policy"  /// Privacy policy
+        static let termsOfService = "Terms of Service"  /// Terms of service
+        static let licenses = "Open Source Licenses"  /// Licenses
+    }
         static let sleepReminders = "Sleep Reminders"  /// Sleep reminders toggle
         static let sleepRemindersDescription = "Get reminded when it's time to wind down for bed."  /// Sleep reminders description
         static let reminderTime = "Reminder Time"  /// Reminder time label
