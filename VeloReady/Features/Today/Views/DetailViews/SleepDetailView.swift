@@ -488,7 +488,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("\(SleepContent.SleepDebt.avgSleep) \(String(format: "%.1fh", debt.averageSleepDuration)) • \(SleepContent.SleepDebt.need) \(String(format: "%.1fh", debt.sleepNeed))")
+                Text("\(SleepContent.SleepDebt.avgSleep) \(String(format: "%.1fh", debt.averageSleepDuration)) \(CommonContent.Formatting.bulletPoint) \(SleepContent.SleepDebt.need) \(String(format: "%.1fh", debt.sleepNeed))")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
@@ -547,7 +547,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("\(SleepContent.Consistency.scheduleVariability) ±\(Int(consistency.bedtimeVariability))min • \(SleepContent.Consistency.wake) ±\(Int(consistency.wakeTimeVariability))min")
+                Text("\(SleepContent.Consistency.scheduleVariability) ±\(Int(consistency.bedtimeVariability))min \(CommonContent.Formatting.bulletPoint) \(SleepContent.Consistency.wake) ±\(Int(consistency.wakeTimeVariability))min")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
