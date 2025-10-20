@@ -77,4 +77,18 @@ enum ChartContent {
         static let value = "Value"  /// Value axis
         static let date = "Date"  /// Date axis
     }
+    
+    // MARK: - HRV Chart
+    enum HRV {
+        static let hrvTrend = "HRV Trend"  /// HRV trend title
+        static let noDataForPeriod = "No HRV data for this period"  /// No data message
+        static let dataWillAppear = "HRV data will appear as it's collected"  /// Data collection message
+    }
+    
+    // MARK: - Weekly Trend
+    enum WeeklyTrend {
+        static let notEnoughData = "Not enough data"  /// Not enough data message
+        static let checkBackLater = "Check back after a few days"  /// Check back message
+    }
 }
+

@@ -20,7 +20,7 @@ struct HRVCandlestickChart: View {
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
-                Text("HRV Trend")
+                Text(ChartContent.HRV.hrvTrend)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Spacer()
@@ -231,10 +231,10 @@ struct HRVCandlestickChart: View {
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             
-            Text("No HRV data for this period")
+            Text(ChartContent.HRV.noDataForPeriod)
                 .font(.system(size: TypeScale.sm, weight: .medium))
             
-            Text("HRV data will appear as it's collected")
+            Text(ChartContent.HRV.dataWillAppear)
                 .font(.system(size: TypeScale.xs))
                 .foregroundColor(Color.text.secondary)
         }

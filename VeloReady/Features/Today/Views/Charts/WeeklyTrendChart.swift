@@ -238,10 +238,10 @@ struct WeeklyTrendChart_Legacy: View {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.title2)
                 .foregroundColor(.secondary)
-            Text("Not enough data")
+            Text(ChartContent.WeeklyTrend.notEnoughData)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            Text("Check back after a few days")
+            Text(ChartContent.WeeklyTrend.checkBackLater)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
