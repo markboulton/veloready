@@ -20,10 +20,10 @@ struct CorrelationCalculator {
             
             var description: String {
                 switch self {
-                case .strong: return "Strong"
-                case .moderate: return "Moderate"
-                case .weak: return "Weak"
-                case .none: return "No"
+                case .strong: return TrendsContent.Correlation.strong
+                case .moderate: return TrendsContent.Correlation.moderate
+                case .weak: return TrendsContent.Correlation.weak
+                case .none: return TrendsContent.Correlation.none
                 }
             }
         }
@@ -123,23 +123,23 @@ struct CorrelationCalculator {
         switch result.significance {
         case .strong:
             if r > 0 {
-                return "\(result.significance.description) positive correlation (\(percent)%). Higher \(xName) strongly predicts higher \(yName)."
+                return TrendsContent.Correlation.strongPositive(percent: percent, xName: xName, yName: yName)
             } else {
-                return "\(result.significance.description) negative correlation (\(percent)%). Higher \(xName) strongly predicts lower \(yName)."
+                return TrendsContent.Correlation.strongNegative(percent: percent, xName: xName, yName: yName)
             }
             
         case .moderate:
             if r > 0 {
-                return "\(result.significance.description) correlation (\(percent)%). \(xName) has a noticeable positive effect on \(yName)."
+                return TrendsContent.Correlation.moderatePositive(percent: percent, xName: xName, yName: yName)
             } else {
-                return "\(result.significance.description) correlation (\(percent)%). \(xName) has a noticeable negative effect on \(yName)."
+                return TrendsContent.Correlation.moderateNegative(percent: percent, xName: xName, yName: yName)
             }
             
         case .weak:
-            return "Weak correlation (\(percent)%). \(xName) has minimal impact on \(yName)."
+            return TrendsContent.Correlation.weakCorrelation(percent: percent, xName: xName, yName: yName)
             
         case .none:
-            return "No significant correlation. \(xName) and \(yName) appear independent."
+            return TrendsContent.Correlation.noCorrelation(xName: xName, yName: yName)
         }
     }
     

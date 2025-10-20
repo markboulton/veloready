@@ -338,6 +338,40 @@ enum TrendsContent {
         static let varietyIntensities = "Variety of intensities (easy, hard, race)"
     }
     
+    // MARK: - Correlation
+    enum Correlation {
+        // Significance Levels
+        static let strong = "Strong"  /// Strong correlation
+        static let moderate = "Moderate"  /// Moderate correlation
+        static let weak = "Weak"  /// Weak correlation
+        static let none = "No"  /// No correlation
+        
+        // Correlation Descriptions
+        static func strongPositive(percent: Int, xName: String, yName: String) -> String {
+            "Strong positive correlation (\(percent)%). Higher \(xName) strongly predicts higher \(yName)."
+        }
+        
+        static func strongNegative(percent: Int, xName: String, yName: String) -> String {
+            "Strong negative correlation (\(percent)%). Higher \(xName) strongly predicts lower \(yName)."
+        }
+        
+        static func moderatePositive(percent: Int, xName: String, yName: String) -> String {
+            "Moderate correlation (\(percent)%). \(xName) has a noticeable positive effect on \(yName)."
+        }
+        
+        static func moderateNegative(percent: Int, xName: String, yName: String) -> String {
+            "Moderate correlation (\(percent)%). \(xName) has a noticeable negative effect on \(yName)."
+        }
+        
+        static func weakCorrelation(percent: Int, xName: String, yName: String) -> String {
+            "Weak correlation (\(percent)%). \(xName) has minimal impact on \(yName)."
+        }
+        
+        static func noCorrelation(xName: String, yName: String) -> String {
+            "No significant correlation. \(xName) and \(yName) appear independent."
+        }
+    }
+    
     // MARK: - Recovery vs Power
     enum RecoveryVsPower {
         static let noData = "Not enough data for correlation"
