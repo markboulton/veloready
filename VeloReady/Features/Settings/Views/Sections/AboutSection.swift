@@ -3,7 +3,7 @@ import SwiftUI
 /// About section showing app info
 struct AboutSection: View {
     var body: some View {
-        Section(SettingsContent.About.title) {
+        Section {
             HStack {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(ColorPalette.labelSecondary)
