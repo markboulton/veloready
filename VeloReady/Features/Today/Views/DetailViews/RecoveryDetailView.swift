@@ -182,7 +182,7 @@ struct RecoveryDetailView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } else {
-                    Text("\(RecoveryContent.HealthMetrics.weight) \(weight) • \(RecoveryContent.HealthMetrics.calculatingBaseline)")
+                    Text("\(RecoveryContent.HealthMetrics.weight) \(weight) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.HealthMetrics.calculatingBaseline)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -281,7 +281,7 @@ struct RecoveryDetailView: View {
                         .font(.caption)
                         .foregroundColor(.primary)
                     
-                    Text("• \(RecoveryContent.HealthMetrics.baseline) \(baseline)")
+                    Text("\(CommonContent.Formatting.bulletPoint) \(RecoveryContent.HealthMetrics.baseline) \(baseline)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -339,7 +339,7 @@ struct RecoveryDetailView: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                Text("ATL: \(String(format: "%.0f", atl)) • CTL: \(String(format: "%.0f", ctl))")
+                Text("ATL: \(String(format: "%.0f", atl)) \(CommonContent.Formatting.bulletPoint) CTL: \(String(format: "%.0f", ctl))")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -619,7 +619,7 @@ struct RecoveryDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(readiness.band.colorToken)
                         
-                        Text("\(RecoveryContent.Readiness.recovery) \(readiness.components.recoveryScore) • \(RecoveryContent.Readiness.sleep) \(readiness.components.sleepScore) • \(RecoveryContent.Readiness.load) \(readiness.components.loadReadiness)")
+                        Text("\(RecoveryContent.Readiness.recovery) \(readiness.components.recoveryScore) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Readiness.sleep) \(readiness.components.sleepScore) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Readiness.load) \(readiness.components.loadReadiness)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -687,7 +687,7 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("\(RecoveryContent.Resilience.avgRecovery) \(String(format: "%.0f", resilience.averageRecovery)) • \(RecoveryContent.Resilience.avgLoad) \(String(format: "%.1f", resilience.averageLoad))")
+                Text("\(RecoveryContent.Resilience.avgRecovery) \(String(format: "%.0f", resilience.averageRecovery)) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Resilience.avgLoad) \(String(format: "%.1f", resilience.averageLoad))")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
