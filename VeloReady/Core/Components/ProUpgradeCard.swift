@@ -79,7 +79,7 @@ struct ProUpgradeCard: View {
                 }
                 
                 // Upgrade button (full width)
-                Text("Upgrade to Pro")
+                Text(CommonContent.upgradeToPro)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)

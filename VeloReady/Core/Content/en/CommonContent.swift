@@ -66,6 +66,10 @@ enum CommonContent {
         static let calories = "cal"  /// Calories
     }
     
+    // MARK: - Pro Features
+    static let upgradeToPro = "Upgrade to PRO"
+    static let unlockAllFeatures = "Unlock all features"
+    
     // MARK: - Workout & RPE
     static let workoutDetails = "Workout Details"
     static let rateEffort = "Rate your effort and select muscle groups trained"
