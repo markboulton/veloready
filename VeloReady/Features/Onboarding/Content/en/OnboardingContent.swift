@@ -50,6 +50,38 @@ enum OnboardingContent {
         static let certificateStep4 = "4. Not recommended for production apps"
         static let certificateWarning = "⚠️ Warning: This reduces security and may violate corporate policy"
     }
+    
+    // MARK: - Certificate Bypass
+    enum CertificateBypass {
+        static let devOnly = "Development Only"
+        static let securityWarning = "This bypass reduces security and should only be used for development on corporate networks."
+        static let title = "Certificate Bypass"
+        static let acceptCerts = "Accept Corporate Certificates"
+        static let certsAccepted = "✅ Corporate certificates will be accepted for intervals.icu"
+        static let standardValidation = "❌ Standard certificate validation will be used"
+        static let howItWorks = "How it works:"
+        static let step1 = "1. When enabled, the app accepts corporate certificates"
+        static let step2 = "2. This allows OAuth to work on corporate networks"
+        static let step3 = "3. Only applies to intervals.icu domain"
+        static let step4 = "4. Automatically disabled in production builds"
+        static let alertTitle = "Security Warning"
+        static let enableAnyway = "Enable Anyway"
+        static let alertMessage = "This bypass reduces security by accepting corporate certificates. Only use this for development on corporate networks."
+    }
+    
+    // MARK: - OAuth Debug
+    enum OAuthDebug {
+        static let title = "OAuth Debug Information"
+        static let configuration = "OAuth Configuration"
+        static let testURL = "Test OAuth URL"
+        static let openSafari = "Open in Safari"
+        static let testComponents = "Test URL Components"
+        static let failedURL = "Failed to generate OAuth URL"
+        static let debugInfo = "Debug Information"
+        static let noDebugInfo = "No debug info yet"
+        static let testAPI = "Test API Connection"
+    }
+    
     // MARK: - Health Permissions
     enum HealthPermissions {
         static let title = "Health Data Access"  /// Health permissions title

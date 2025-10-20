@@ -7,7 +7,7 @@ struct OAuthDebugView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("OAuth Debug Information")
+                Text(OnboardingContent.OAuthDebug.title)
                     .font(.title2)
                     .fontWeight(.bold)
                 
@@ -15,7 +15,7 @@ struct OAuthDebugView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // OAuth Configuration
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("OAuth Configuration")
+                            Text(OnboardingContent.OAuthDebug.configuration)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
@@ -29,7 +29,7 @@ struct OAuthDebugView: View {
                         
                         // Test OAuth URL
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Test OAuth URL")
+                            Text(OnboardingContent.OAuthDebug.testURL)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
@@ -39,18 +39,18 @@ struct OAuthDebugView: View {
                                     .foregroundColor(Color.button.primary)
                                     .textSelection(.enabled)
                                 
-                                Button("Open in Safari") {
+                                Button(OnboardingContent.OAuthDebug.openSafari) {
                                     UIApplication.shared.open(authURL)
                                 }
                                 .buttonStyle(.bordered)
                                 
-                                Button("Test URL Components") {
+                                Button(OnboardingContent.OAuthDebug.testComponents) {
                                     testURLComponents(authURL)
                                 }
                                 .buttonStyle(.bordered)
                                 .foregroundColor(Color.semantic.warning)
                             } else {
-                                Text("Failed to generate OAuth URL")
+                                Text(OnboardingContent.OAuthDebug.failedURL)
                                     .foregroundColor(Color.text.error)
                             }
                         }
@@ -60,11 +60,11 @@ struct OAuthDebugView: View {
                         
                         // Debug Information
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Debug Information")
+                            Text(OnboardingContent.OAuthDebug.debugInfo)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
-                            Text(debugInfo.isEmpty ? "No debug info yet" : debugInfo)
+                            Text(debugInfo.isEmpty ? OnboardingContent.OAuthDebug.noDebugInfo : debugInfo)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .textSelection(.enabled)
@@ -75,7 +75,7 @@ struct OAuthDebugView: View {
                         
                         // Test API Connection
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Test API Connection")
+                            Text(OnboardingContent.OAuthDebug.testAPI)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             

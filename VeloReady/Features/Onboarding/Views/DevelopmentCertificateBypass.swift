@@ -16,12 +16,12 @@ struct DevelopmentCertificateBypass: View {
                         .font(.system(size: 40))
                         .foregroundColor(Color.semantic.warning)
                     
-                    Text("Development Only")
+                    Text(OnboardingContent.CertificateBypass.devOnly)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(Color.semantic.warning)
                     
-                    Text("This bypass reduces security and should only be used for development on corporate networks.")
+                    Text(OnboardingContent.CertificateBypass.securityWarning)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -32,11 +32,11 @@ struct DevelopmentCertificateBypass: View {
                 
                 // Toggle
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Certificate Bypass")
+                    Text(OnboardingContent.CertificateBypass.title)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    Toggle("Accept Corporate Certificates", isOn: $isEnabled)
+                    Toggle(OnboardingContent.CertificateBypass.acceptCerts, isOn: $isEnabled)
                         .onChange(of: isEnabled) { _, newValue in
                             if newValue {
                                 showingWarning = true
@@ -44,11 +44,11 @@ struct DevelopmentCertificateBypass: View {
                         }
                     
                     if isEnabled {
-                        Text("✅ Corporate certificates will be accepted for intervals.icu")
+                        Text(OnboardingContent.CertificateBypass.certsAccepted)
                             .font(.caption)
                             .foregroundColor(Color.semantic.success)
                     } else {
-                        Text("❌ Standard certificate validation will be used")
+                        Text(OnboardingContent.CertificateBypass.standardValidation)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -59,15 +59,15 @@ struct DevelopmentCertificateBypass: View {
                 
                 // Instructions
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("How it works:")
+                    Text(OnboardingContent.CertificateBypass.howItWorks)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("1. When enabled, the app accepts corporate certificates")
-                        Text("2. This allows OAuth to work on corporate networks")
-                        Text("3. Only applies to intervals.icu domain")
-                        Text("4. Automatically disabled in production builds")
+                        Text(OnboardingContent.CertificateBypass.step1)
+                        Text(OnboardingContent.CertificateBypass.step2)
+                        Text(OnboardingContent.CertificateBypass.step3)
+                        Text(OnboardingContent.CertificateBypass.step4)
                     }
                     .font(.body)
                 }
@@ -79,15 +79,15 @@ struct DevelopmentCertificateBypass: View {
             }
             .padding()
             .navigationTitle("Certificate Bypass")
-            .alert("Security Warning", isPresented: $showingWarning) {
-                Button("Cancel") {
+            .alert(OnboardingContent.CertificateBypass.alertTitle, isPresented: $showingWarning) {
+                Button(CommonContent.Actions.cancel) {
                     isEnabled = false
                 }
-                Button("Enable Anyway", role: .destructive) {
+                Button(OnboardingContent.CertificateBypass.enableAnyway, role: .destructive) {
                     // Bypass is already enabled
                 }
             } message: {
-                Text("This bypass reduces security by accepting corporate certificates. Only use this for development on corporate networks.")
+                Text(OnboardingContent.CertificateBypass.alertMessage)
             }
         }
     }
