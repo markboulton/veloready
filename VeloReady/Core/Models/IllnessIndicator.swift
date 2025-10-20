@@ -121,7 +121,7 @@ extension IllnessIndicator {
         // HRV Drop Detection (most reliable indicator)
         if let hrv = hrv, let hrvBaseline = hrvBaseline, hrvBaseline > 0 {
             let deviation = ((hrv - hrvBaseline) / hrvBaseline) * 100
-            if deviation < -15 {  // 15% drop threshold
+            if deviation < -10 {  // 10% drop threshold (lowered for sensitivity)
                 signals.append(Signal(
                     type: .hrvDrop,
                     deviation: deviation,
@@ -136,7 +136,7 @@ extension IllnessIndicator {
         // Elevated RHR Detection
         if let rhr = rhr, let rhrBaseline = rhrBaseline, rhrBaseline > 0 {
             let deviation = ((rhr - rhrBaseline) / rhrBaseline) * 100
-            if deviation > 5 {  // 5% elevation threshold
+            if deviation > 3 {  // 3% elevation threshold (lowered for sensitivity)
                 signals.append(Signal(
                     type: .elevatedRHR,
                     deviation: deviation,
@@ -151,7 +151,7 @@ extension IllnessIndicator {
         // Sleep Disruption Detection
         if let sleepScore = sleepScore, let sleepBaseline = sleepBaseline, sleepBaseline > 0 {
             let deviation = ((Double(sleepScore) - sleepBaseline) / sleepBaseline) * 100
-            if deviation < -20 {  // 20% drop in sleep quality
+            if deviation < -15 {  // 15% drop in sleep quality (lowered for sensitivity)
                 signals.append(Signal(
                     type: .sleepDisruption,
                     deviation: deviation,
@@ -166,7 +166,7 @@ extension IllnessIndicator {
         // Respiratory Rate Changes
         if let respiratoryRate = respiratoryRate, let respiratoryBaseline = respiratoryBaseline, respiratoryBaseline > 0 {
             let deviation = ((respiratoryRate - respiratoryBaseline) / respiratoryBaseline) * 100
-            if abs(deviation) > 10 {  // 10% change threshold
+            if abs(deviation) > 8 {  // 8% change threshold (lowered for sensitivity)
                 signals.append(Signal(
                     type: .respiratoryRate,
                     deviation: deviation,
@@ -181,7 +181,7 @@ extension IllnessIndicator {
         // Activity Drop Detection
         if let activityLevel = activityLevel, let activityBaseline = activityBaseline, activityBaseline > 0 {
             let deviation = ((activityLevel - activityBaseline) / activityBaseline) * 100
-            if deviation < -30 {  // 30% drop threshold
+            if deviation < -25 {  // 25% drop threshold (lowered for sensitivity)
                 signals.append(Signal(
                     type: .activityDrop,
                     deviation: deviation,
@@ -193,8 +193,8 @@ extension IllnessIndicator {
             }
         }
         
-        // Need at least 2 signals for detection
-        guard signals.count >= 2 else { return nil }
+        // Need at least 1 strong signal for detection (lowered from 2 for better sensitivity)
+        guard signals.count >= 1 else { return nil }
         
         // Calculate severity based on deviation magnitude and signal count
         let avgDeviation = totalDeviation / Double(signalCount)

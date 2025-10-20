@@ -298,11 +298,25 @@ struct DebugSettingsView: View {
             if config.showWellnessWarningForTesting {
                 HStack {
                     Image(systemName: Icons.Status.warningFill)
-                        .foregroundColor(.red)
+                        .foregroundColor(ColorScale.amberAccent)
                         .font(.caption)
                     Text(DebugSettingsContent.TestingFeatures.wellnessWarningEnabled)
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(ColorScale.amberAccent)
+                }
+            }
+            
+            // Illness Indicator Toggle
+            Toggle(DebugSettingsContent.TestingFeatures.showIllnessIndicator, isOn: $config.showIllnessIndicatorForTesting)
+            
+            if config.showIllnessIndicatorForTesting {
+                HStack {
+                    Image(systemName: Icons.Status.warningFill)
+                        .foregroundColor(ColorScale.redAccent)
+                        .font(.caption)
+                    Text(DebugSettingsContent.TestingFeatures.illnessIndicatorEnabled)
+                        .font(.caption)
+                        .foregroundColor(ColorScale.redAccent)
                 }
             }
             

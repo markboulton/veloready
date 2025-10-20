@@ -21,6 +21,9 @@ class ProFeatureConfig: ObservableObject {
     // For development/testing: force wellness warning to show
     @Published var showWellnessWarningForTesting: Bool = false
     
+    // For development/testing: force illness indicator to show
+    @Published var showIllnessIndicatorForTesting: Bool = false
+    
     private init() {
         // Load subscription state from UserDefaults or RevenueCat
         loadSubscriptionState()

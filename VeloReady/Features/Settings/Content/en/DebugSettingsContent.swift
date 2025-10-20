@@ -57,6 +57,8 @@ enum DebugSettingsContent {
     enum TestingFeatures {
         static let showWellnessWarning = "Show Wellness Warning"
         static let wellnessWarningEnabled = "Mock wellness warning enabled"
+        static let showIllnessIndicator = "Show Illness Indicator"
+        static let illnessIndicatorEnabled = "Mock illness indicator enabled"
         static let enablePro = "Enable Pro Features"
         static let allProUnlocked = "All Pro features unlocked"
         static let showMockData = "Show Mock Data (Trends)"
