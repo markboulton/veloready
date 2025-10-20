@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import WidgetKit
 
 /// Service for calculating daily strain scores using Whoop-like algorithm
 @MainActor
@@ -535,6 +536,9 @@ extension StrainScoreService {
             if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
                 sharedDefaults.set(score.score, forKey: "cachedStrainScore")
                 Logger.debug("⌚ Synced strain score to shared defaults for widget")
+                
+                // Reload widgets to show new data
+                WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
             Logger.error("Failed to save strain score to cache: \(error)")

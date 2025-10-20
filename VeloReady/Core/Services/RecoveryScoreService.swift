@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import WidgetKit
 
 /// Service for calculating daily recovery scores
 @MainActor
@@ -651,6 +652,9 @@ extension RecoveryScoreService {
                     sharedDefaults.set(cachedScore.band.rawValue, forKey: "cachedRecoveryBand")
                     sharedDefaults.set(cachedScore.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
                     Logger.debug("⌚ Synced cached recovery score to shared defaults for widget/watch")
+                    
+                    // Reload widgets to show cached data
+                    WidgetCenter.shared.reloadAllTimelines()
                 }
             } catch {
                 Logger.error("Failed to decode cached recovery score: \(error)")
@@ -692,6 +696,10 @@ extension RecoveryScoreService {
                 sharedDefaults.set(score.band.rawValue, forKey: "cachedRecoveryBand")
                 sharedDefaults.set(score.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
                 Logger.debug("⌚ Saved recovery score to shared defaults for widget/watch")
+                
+                // Reload widgets to show new data immediately
+                WidgetCenter.shared.reloadAllTimelines()
+                Logger.debug("🔄 Reloaded widget timelines")
             }
         } catch {
             Logger.error("Failed to save recovery score to cache: \(error)")

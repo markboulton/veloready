@@ -32,8 +32,22 @@ struct Provider: AppIntentTimelineProvider {
                                recoveryScore: data.recovery, recoveryBand: data.band, isPersonalized: data.isPersonalized,
                                sleepScore: data.sleep, strainScore: data.strain)
         
-        // Update every hour
-        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+        // Smart update schedule:
+        // - Morning (6am-10am): Update every 30 minutes (recovery score changes)
+        // - Rest of day: Update every hour
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: currentDate)
+        let updateInterval: TimeInterval
+        
+        if hour >= 6 && hour < 10 {
+            // Morning: Update every 30 minutes
+            updateInterval = 30 * 60 // 30 minutes
+        } else {
+            // Rest of day: Update every hour
+            updateInterval = 60 * 60 // 1 hour
+        }
+        
+        let nextUpdate = currentDate.addingTimeInterval(updateInterval)
         return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
     

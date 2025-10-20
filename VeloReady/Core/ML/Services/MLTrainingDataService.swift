@@ -38,16 +38,32 @@ class MLTrainingDataService: ObservableObject {
         }
     }
     
-    /// Automatically process historical data if we have none
+    /// Automatically process historical data if we have none or if it's a new day
     private func autoProcessIfNeeded() async {
-        // Only run if we have no training data and haven't processed before
-        guard trainingDataCount == 0, lastProcessingDate == nil else {
-            Logger.debug("📊 [ML] Training data already exists (\(trainingDataCount) days), skipping auto-process")
-            return
+        // Check if we need to process
+        let shouldProcess: Bool
+        
+        if trainingDataCount == 0 && lastProcessingDate == nil {
+            // First time - no data at all
+            Logger.info("🚀 [ML] No training data found - auto-processing historical data...")
+            shouldProcess = true
+        } else if let lastDate = lastProcessingDate {
+            // Check if it's a new day since last processing
+            let calendar = Calendar.current
+            if !calendar.isDate(lastDate, inSameDayAs: Date()) {
+                Logger.info("🔄 [ML] New day detected - updating training data...")
+                shouldProcess = true
+            } else {
+                Logger.debug("📊 [ML] Training data already processed today (\(trainingDataCount) days)")
+                shouldProcess = false
+            }
+        } else {
+            shouldProcess = false
         }
         
-        Logger.info("🚀 [ML] No training data found - auto-processing historical data...")
-        await processHistoricalData(days: 90)
+        if shouldProcess {
+            await processHistoricalData(days: 90)
+        }
     }
     
     // MARK: - Public API

@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import WidgetKit
 
 /// Service for calculating daily sleep scores using Whoop-like algorithm
 @MainActor
@@ -449,6 +450,9 @@ extension SleepScoreService {
             if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
                 sharedDefaults.set(score.score, forKey: "cachedSleepScore")
                 Logger.debug("⌚ Synced sleep score to shared defaults for widget")
+                
+                // Reload widgets to show new data
+                WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
             Logger.error("Failed to save sleep score to cache: \(error)")
