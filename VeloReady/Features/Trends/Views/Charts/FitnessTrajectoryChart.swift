@@ -193,7 +193,7 @@ struct FitnessTrajectoryChart: View {
 
 #Preview {
     VStack {
-        Text("Fitness Trajectory")
+        Text(TrendsContent.ChartLabels.fitnessTrajectory)
             .font(.heading)
         
         FitnessTrajectoryChart(

@@ -226,7 +226,7 @@ struct TrendsView: View {
             }
             
             // Title
-            Text("Unlock Performance Trends")
+            Text(TrendsContent.unlockTrends)
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.text.primary)
                 .multilineTextAlignment(.center)
@@ -261,7 +261,7 @@ struct TrendsView: View {
             Button(action: { showPaywall = true }) {
                 HStack {
                     Image(systemName: "star.fill")
-                    Text("Upgrade to VeloReady PRO")
+                    Text(TrendsContent.upgradeToPro)
                 }
                 .font(.button)
                 .foregroundColor(.white)
@@ -302,7 +302,7 @@ private struct FeatureBullet: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
-            Text("•")
+            Text(TrendsContent.bulletPoint)
                 .font(.body)
                 .foregroundColor(.text.primary)
                 .frame(width: 12)

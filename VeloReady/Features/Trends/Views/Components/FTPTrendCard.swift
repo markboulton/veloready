@@ -21,7 +21,7 @@ struct FTPTrendCard: View {
                                 .font(.title)
                                 .foregroundColor(ColorScale.blueAccent)
                         } else {
-                            Text("No data")
+                            Text(TrendsContent.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -55,33 +55,33 @@ struct FTPTrendCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("FTP tracking coming soon")
+                Text(TrendsContent.FTP.trackingComingSoon)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("What you need:")
+                Text(TrendsContent.whatYouNeed)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Complete rides with power meter")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.FTP.completePowerRides)
                     }
                     HStack {
-                        Text("•")
-                        Text("Upload to Intervals.icu")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.FTP.uploadToIntervals)
                     }
                     HStack {
-                        Text("•")
-                        Text("FTP will be auto-detected over time")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.FTP.autoDetected)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Check Today tab to view your current FTP")
+                Text(TrendsContent.FTP.checkToday)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
@@ -95,7 +95,7 @@ struct FTPTrendCard: View {
     
     private var singleDataPoint: some View {
         VStack(spacing: Spacing.sm) {
-            Text("Current FTP")
+            Text(TrendsContent.FTP.currentFTP)
                 .font(.body)
                 .foregroundColor(.text.secondary)
             
@@ -105,7 +105,7 @@ struct FTPTrendCard: View {
                     .foregroundColor(ColorScale.blueAccent)
             }
             
-            Text("Historical FTP tracking coming soon")
+            Text(TrendsContent.FTP.historicalTracking)
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 .padding(.top, Spacing.xs)
@@ -161,7 +161,7 @@ struct FTPTrendCard: View {
                 .font(.caption)
                 .foregroundColor(.text.secondary)
             
-            Text("Track your FTP changes over time to see fitness progression.")
+            Text(TrendsContent.FTP.trackChanges)
                 .font(.body)
                 .foregroundColor(.text.secondary)
         }

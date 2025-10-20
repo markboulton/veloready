@@ -32,13 +32,13 @@ struct HRVTrendCard: View {
                                     .foregroundColor(ColorScale.greenAccent)
                                 
                                 if let baseline = baselineHRV {
-                                    Text("(\(baseline, specifier: "%.0f") baseline)")
+                                    Text("(\(baseline, specifier: "%.0f") \(TrendsContent.HRV.baseline))")
                                         .font(.caption)
                                         .foregroundColor(.text.secondary)
                                 }
                             }
                         } else {
-                            Text("No data")
+                            Text(TrendsContent.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -70,37 +70,37 @@ struct HRVTrendCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("No HRV data found")
+                Text(TrendsContent.HRV.noDataFound)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("To track HRV:")
+                Text("\(TrendsContent.toTrack) HRV:")
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Wear Apple Watch during sleep")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.HRV.wearWatch)
                     }
                     HStack {
-                        Text("•")
-                        Text("Grant HRV permission in Settings")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.HRV.grantPermission)
                     }
                     HStack {
-                        Text("•")
-                        Text("Measure consistently for 7+ days")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.HRV.measureConsistently)
                     }
                     HStack {
-                        Text("•")
-                        Text("Baseline calculated after 7 days")
+                        Text(TrendsContent.bulletPoint)
+                        Text(TrendsContent.HRV.baselineCalculated)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("HRV is your best recovery indicator")
+                Text(TrendsContent.HRV.bestIndicator)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)

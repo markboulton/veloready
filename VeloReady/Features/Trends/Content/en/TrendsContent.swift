@@ -48,8 +48,34 @@ enum TrendsContent {
     
     // MARK: - Empty States
     static let noData = "Not enough data"  /// No data message
+    static let noDataFound = "No data"  /// No data found
     static let loadingData = "Loading trend data..."  /// Loading message
     static let requiresData = "This analysis requires:"  /// Requires data prefix
+    static let whatYouNeed = "What you need:"  /// What you need label
+    static let toTrack = "To track"  /// To track prefix
+    
+    // FTP Card
+    enum FTP {
+        static let trackingComingSoon = "FTP tracking coming soon"  /// FTP tracking message
+        static let currentFTP = "Current FTP"  /// Current FTP label
+        static let historicalTracking = "Historical FTP tracking coming soon"  /// Historical tracking message
+        static let completePowerRides = "Complete rides with power meter"  /// Power meter requirement
+        static let uploadToIntervals = "Upload to Intervals.icu"  /// Upload requirement
+        static let autoDetected = "FTP will be auto-detected over time"  /// Auto-detect message
+        static let checkToday = "Check Today tab to view your current FTP"  /// Check today message
+        static let trackChanges = "Track your FTP changes over time to see fitness progression."  /// Track changes description
+    }
+    
+    // HRV Card
+    enum HRV {
+        static let noDataFound = "No HRV data found"  /// No HRV data
+        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
+        static let grantPermission = "Grant HRV permission in Settings"  /// Grant permission
+        static let measureConsistently = "Measure consistently for 7+ days"  /// Measure consistently
+        static let baselineCalculated = "Baseline calculated after 7 days"  /// Baseline message
+        static let bestIndicator = "HRV is your best recovery indicator"  /// Best indicator message
+        static let baseline = "baseline"  /// Baseline label
+    }
     
     // MARK: - Insights
     static let insight = "Insight"  /// Insight label
@@ -60,6 +86,9 @@ enum TrendsContent {
     // MARK: - PRO Feature
     static let proFeature = "PRO"  /// PRO badge text
     static let proRequired = "PRO feature"  /// PRO required message
+    static let unlockTrends = "Unlock Performance Trends"  /// Unlock trends title
+    static let upgradeToPro = "Upgrade to VeloReady PRO"  /// Upgrade button
+    static let bulletPoint = "•"  /// Bullet point
     
     // MARK: - Weekly Report
     enum WeeklyReport {
@@ -157,5 +186,10 @@ enum TrendsContent {
         // No Data
         static let noTrainingData = "No training load data available"  /// No training data
         static let noSleepData = "No sleep data available"  /// No sleep data
+    }
+    
+    // MARK: - Chart Labels
+    enum ChartLabels {
+        static let fitnessTrajectory = "Fitness Trajectory"  /// Fitness trajectory chart title
     }
 }
