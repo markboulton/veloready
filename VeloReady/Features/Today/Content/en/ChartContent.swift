@@ -11,9 +11,9 @@ enum ChartContent {
     
     // MARK: - Summary Stats
     enum Stats {
-        static let average = "Avg"  /// Average label
-        static let minimum = "Min"  /// Minimum label
-        static let maximum = "Max"  /// Maximum label
+        static let average = CommonContent.Metrics.average
+        static let minimum = CommonContent.Metrics.minimum
+        static let maximum = CommonContent.Metrics.maximum
     }
     
     // MARK: - Trend Indicators
@@ -25,8 +25,8 @@ enum ChartContent {
     
     // MARK: - Empty State
     enum EmptyState {
-        static let noData = "Not enough data"  /// No data message
-        static let checkBack = "Check back after a few days"  /// Check back message
+        static let noData = CommonContent.States.notEnoughData
+        static let checkBack = CommonContent.EmptyStates.checkBack
     }
     
     // MARK: - Chart Titles (Generic)
