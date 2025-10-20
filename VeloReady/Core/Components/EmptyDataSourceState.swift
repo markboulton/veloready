@@ -6,61 +6,60 @@ struct EmptyDataSourceState: View {
     let onConnectTapped: () -> Void
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.xxl) {
             // Icon
             Image(systemName: iconForDataType)
-                .font(.system(size: 60))
-                .foregroundColor(.secondary.opacity(0.5))
+                .font(TypeScale.font(size: TypeScale.xxl + 12))
+                .foregroundColor(ColorPalette.labelSecondary.opacity(0.5))
             
             // Message
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 Text(titleForDataType)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .font(TypeScale.font(size: TypeScale.mlg, weight: .semibold))
+                    .foregroundColor(ColorPalette.labelPrimary)
                 
                 Text(messageForDataType)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .font(TypeScale.font(size: TypeScale.md))
+                    .foregroundColor(ColorPalette.labelSecondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                    .padding(.horizontal, Spacing.lg)
             }
             
             // Connect button
             Button(action: onConnectTapped) {
                 HStack {
                     Image(systemName: "link")
-                    Text("Connect Data Source")
+                    Text(ComponentContent.EmptyState.connectButton)
                 }
                 .font(.headline)
-                .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(Color.blue)
-                .cornerRadius(12)
+                .foregroundColor(ColorPalette.labelPrimary)
+                .padding(.horizontal, Spacing.xxl)
+                .padding(.vertical, Spacing.md)
+                .background(ColorPalette.blue)
+                .cornerRadius(Spacing.md)
             }
             
             // Available sources
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Available Sources:")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                Text(ComponentContent.EmptyState.availableSources)
+                    .font(TypeScale.font(size: TypeScale.xs))
+                    .foregroundColor(ColorPalette.labelSecondary)
                 
                 ForEach(sourcesForDataType, id: \.self) { source in
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Image(systemName: source.icon)
                             .foregroundColor(source.color)
                             .frame(width: 20)
                         Text(source.displayName)
-                            .font(.caption)
+                            .font(TypeScale.font(size: TypeScale.xs))
                     }
                 }
             }
-            .padding()
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(12)
+            .padding(Spacing.lg)
+            .background(ColorPalette.labelSecondary.opacity(0.1))
+            .cornerRadius(Spacing.md)
         }
-        .padding()
+        .padding(Spacing.lg)
         .frame(maxWidth: .infinity)
     }
     
@@ -77,23 +76,23 @@ struct EmptyDataSourceState: View {
     
     private var titleForDataType: String {
         switch dataType {
-        case .activities, .workouts: return "No Activities Yet"
-        case .wellness: return "No Wellness Data"
-        case .zones: return "No Training Zones"
-        case .metrics: return "No Performance Metrics"
+        case .activities, .workouts: return ComponentContent.EmptyState.noActivities
+        case .wellness: return ComponentContent.EmptyState.noWellnessData
+        case .zones: return ComponentContent.EmptyState.noTrainingZones
+        case .metrics: return ComponentContent.EmptyState.noMetrics
         }
     }
     
     private var messageForDataType: String {
         switch dataType {
         case .activities, .workouts:
-            return "Connect a data source to view your rides and track your progress"
+            return ComponentContent.EmptyState.noActivitiesMessage
         case .wellness:
-            return "Connect Apple Health or another source to track sleep, HRV, and recovery"
+            return ComponentContent.EmptyState.noWellnessDataMessage
         case .zones:
-            return "Connect a training platform to sync your power and heart rate zones"
+            return ComponentContent.EmptyState.noTrainingZonesMessage
         case .metrics:
-            return "Connect a data source to see detailed performance analytics"
+            return ComponentContent.EmptyState.noMetricsMessage
         }
     }
     

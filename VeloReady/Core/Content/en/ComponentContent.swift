@@ -17,16 +17,30 @@ enum ComponentContent {
         // Generic
         static let noData = "Not enough data"
         static let noDataMessage = "Check back after a few days"
+        static let connectButton = "Connect Data Source"
+        static let availableSources = "Available Sources:"
         
         // Activities
-        static let noActivities = "No activities yet"
-        static let noActivitiesMessage = "Start tracking your workouts to see them here"
+        static let noActivities = "No Activities Yet"
+        static let noActivitiesMessage = "Connect a data source to view your rides and track your progress"
         static let addActivity = "Add Activity"
         
         // Health Data
         static let healthDataUnavailable = "Health data unavailable"
         static let healthDataMessage = "Grant access to Apple Health to see your recovery metrics"
         static let grantAccess = "Grant Access"
+        
+        // Wellness
+        static let noWellnessData = "No Wellness Data"
+        static let noWellnessDataMessage = "Connect Apple Health or another source to track sleep, HRV, and recovery"
+        
+        // Training Zones
+        static let noTrainingZones = "No Training Zones"
+        static let noTrainingZonesMessage = "Connect a training platform to sync your power and heart rate zones"
+        
+        // Metrics
+        static let noMetrics = "No Performance Metrics"
+        static let noMetricsMessage = "Connect a data source to see detailed performance analytics"
         
         // Sleep
         static let noSleepData = "No sleep data"
