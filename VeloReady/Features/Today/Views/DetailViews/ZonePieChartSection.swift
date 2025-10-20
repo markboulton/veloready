@@ -412,12 +412,12 @@ struct ZonePieChartSection: View {
     
     private func freePowerZoneBoundary(_ index: Int) -> String {
         switch index {
-        case 0: return "≤ \(userSettings.powerZone1Max) W"
-        case 1: return "\(userSettings.powerZone1Max + 1) - \(userSettings.powerZone2Max) W"
-        case 2: return "\(userSettings.powerZone2Max + 1) - \(userSettings.powerZone3Max) W"
-        case 3: return "\(userSettings.powerZone3Max + 1) - \(userSettings.powerZone4Max) W"
-        case 4: return "\(userSettings.powerZone4Max + 1) - \(userSettings.powerZone5Max) W"
-        case 5: return "> \(userSettings.powerZone5Max) W"
+        case 0: return "≤ \(userSettings.powerZone1Max) \(CommonContent.Units.watts)"
+        case 1: return "\(userSettings.powerZone1Max + 1) - \(userSettings.powerZone2Max) \(CommonContent.Units.watts)"
+        case 2: return "\(userSettings.powerZone2Max + 1) - \(userSettings.powerZone3Max) \(CommonContent.Units.watts)"
+        case 3: return "\(userSettings.powerZone3Max + 1) - \(userSettings.powerZone4Max) \(CommonContent.Units.watts)"
+        case 4: return "\(userSettings.powerZone4Max + 1) - \(userSettings.powerZone5Max) \(CommonContent.Units.watts)"
+        case 5: return "> \(userSettings.powerZone5Max) \(CommonContent.Units.watts)"
         default: return powerZoneName(index)
         }
     }

@@ -620,7 +620,7 @@ struct AdditionalDataSection: View {
     }
     
     private func formatPower(_ power: Double) -> String {
-        return String(format: "%.0f W", power)
+        return String(format: "%.0f \(CommonContent.Units.watts)", power)
     }
     
     private func formatHeartRate(_ hr: Double) -> String {
