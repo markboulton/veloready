@@ -57,6 +57,8 @@ enum Icons {
         static let hrv = "heart.circle"
         static let sleep = "moon"
         static let sleepFill = "moon.fill"
+        static let sleepZzz = "moon.zzz"
+        static let sleepZzzFill = "moon.zzz.fill"
         static let respiratory = "lungs"
         static let steps = "figure.walk"
         static let calories = "flame"
@@ -200,6 +202,9 @@ enum Icons {
         static let circleArrowPath = "arrow.triangle.2.circlepath"
         static let counterclockwise = "arrow.counterclockwise"
         static let arrowRightCircle = "arrow.right.circle.fill"
+        static let target = "target"
+        static let percent = "percent"
+        static let lightbulb = "lightbulb.fill"
     }
     
     // MARK: - Arrows & Directions

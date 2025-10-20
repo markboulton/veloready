@@ -85,7 +85,7 @@ struct SleepDetailView: View {
                 Circle()
                     .fill(Color(.systemGray5))
                     .frame(width: 40, height: 40)
-                Image(systemName: "moon.zzz")
+                Image(systemName: Icons.Health.sleepZzz)
                     .foregroundColor(.secondary)
                     .font(.system(size: 18))
             }
@@ -242,35 +242,35 @@ struct SleepDetailView: View {
                 SleepMetricCard(
                     title: SleepContent.Metrics.duration,
                     value: sleepScore.formattedSleepDuration,
-                    icon: "moon.fill",
+                    icon: Icons.Health.sleepFill,
                     color: ColorScale.sleepCore
                 )
                 
                 SleepMetricCard(
                     title: SleepContent.Metrics.sleepNeed,
                     value: sleepScore.formattedSleepNeed,
-                    icon: "target",
+                    icon: Icons.System.target,
                     color: ColorScale.sleepDeep
                 )
                 
                 SleepMetricCard(
                     title: SleepContent.Metrics.efficiency,
                     value: sleepScore.formattedSleepEfficiency,
-                    icon: "percent",
+                    icon: Icons.System.percent,
                     color: ColorScale.sleepREM
                 )
                 
                 SleepMetricCard(
                     title: SleepContent.Metrics.wakeEvents,
                     value: sleepScore.formattedWakeEvents,
-                    icon: "exclamationmark.triangle.fill",
+                    icon: Icons.Status.warningFill,
                     color: .red  // Keep red as RAG status indicator
                 )
                 
                 SleepMetricCard(
                     title: SleepContent.Metrics.deepSleep,
                     value: sleepScore.formattedDeepSleepPercentage,
-                    icon: "waveform.path.ecg",
+                    icon: Icons.Health.heartRate,
                     color: ColorScale.sleepDeep
                 )
             }
@@ -339,7 +339,7 @@ struct SleepDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(generateRecommendations(), id: \.self) { recommendation in
                     HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: "lightbulb.fill")
+                        Image(systemName: Icons.System.lightbulb)
                             .foregroundColor(ColorScale.sleepAwake)
                             .font(.caption)
                             .padding(.top, 2)
@@ -461,7 +461,7 @@ struct SleepDetailView: View {
             
             if let debt = SleepScoreService.shared.currentSleepDebt {
                 HStack(spacing: 12) {
-                    Image(systemName: "moon.zzz.fill")
+                    Image(systemName: Icons.Health.sleepZzzFill)
                         .font(.title2)
                         .foregroundColor(debt.band.colorToken)
                     
@@ -520,7 +520,7 @@ struct SleepDetailView: View {
             
             if let consistency = SleepScoreService.shared.currentSleepConsistency {
                 HStack(spacing: 12) {
-                    Image(systemName: "clock.fill")
+                    Image(systemName: Icons.System.clock)
                         .font(.title2)
                         .foregroundColor(consistency.band.colorToken)
                     
