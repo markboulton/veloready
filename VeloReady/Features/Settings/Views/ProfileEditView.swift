@@ -7,59 +7,9 @@ struct ProfileEditView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
-                // Avatar Section
-                Section {
-                    HStack {
-                        Spacer()
-                        
-                        VStack(spacing: 16) {
-                            // Avatar Display
-                            ZStack(alignment: .bottomTrailing) {
-                                if let image = viewModel.avatarImage {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 120, height: 120)
-                                        .clipShape(Circle())
-                                } else {
-                                    Circle()
-                                        .fill(Color.secondary.opacity(0.2))
-                                        .frame(width: 120, height: 120)
-                                        .overlay(
-                                            Image(systemName: "person.fill")
-                                                .font(.system(size: 50))
-                                                .foregroundColor(.secondary)
-                                        )
-                                }
-                                
-                                // Edit Button
-                                Button(action: {
-                                    viewModel.showingImagePicker = true
-                                }) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .frame(width: 36, height: 36)
-                                        .background(Color.blue)
-                                        .clipShape(Circle())
-                                }
-                                .offset(x: 8, y: 8)
-                            }
-                            
-                            if viewModel.avatarImage != nil {
-                                Button("Remove Photo", role: .destructive) {
-                                    viewModel.removeAvatar()
-                                }
-                                .font(.caption)
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                    .listRowBackground(Color.clear)
-                }
+                avatarSection
                 
                 // Personal Info
                 Section {
@@ -176,6 +126,61 @@ struct ProfileEditView: View {
                     viewModel.loadImage(from: newValue)
                 }
             }
+        }
+    }
+    
+    // MARK: - Avatar Section
+    
+    private var avatarSection: some View {
+        Section {
+            HStack {
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    // Avatar Display
+                    ZStack(alignment: .bottomTrailing) {
+                        if let image = viewModel.avatarImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 120, height: 120)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.secondary.opacity(0.2))
+                                .frame(width: 120, height: 120)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(.secondary)
+                                )
+                        }
+                        
+                        // Edit Button
+                        Button(action: {
+                            viewModel.showingImagePicker = true
+                        }) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                        }
+                        .offset(x: 8, y: 8)
+                    }
+                    
+                    if viewModel.avatarImage != nil {
+                        Button("Remove Photo", role: .destructive) {
+                            viewModel.removeAvatar()
+                        }
+                        .font(.caption)
+                    }
+                }
+                
+                Spacer()
+            }
+            .listRowBackground(Color.clear)
         }
     }
 }
