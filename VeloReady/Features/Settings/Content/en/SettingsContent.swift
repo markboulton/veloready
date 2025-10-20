@@ -59,8 +59,28 @@ enum SettingsContent {
         static let dailyScores = "Daily Scores"
         static let workoutMetadata = "Workout Metadata"
         static let readyToSync = "Ready to sync"  /// Ready to sync message
-        static let notAvailable = "iCloud not available"  /// Not available message
+        static let notAvailable = "Not Available"  /// Not available status
         static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."  /// iCloud footer
+        static let autoSyncDescription = "iCloud automatically syncs your settings, workout data, and strength exercise logs across all your devices."  /// Auto sync description
+        static let actions = "Actions"  /// Actions section header
+        static let actionsFooter = "Manually sync your data to iCloud or restore from your iCloud backup."  /// Actions footer
+        static let encryptionFooter = "All data is encrypted and stored securely in your private iCloud account."  /// Encryption footer
+        static let syncError = "Sync Error"  /// Sync error label
+        
+        // Not Available Section
+        static let notAvailableTitle = "iCloud Not Available"  /// Not available title
+        static let enableInstructions = "To enable iCloud sync:"  /// Enable instructions
+        static let step1 = "1. Open Settings app"  /// Step 1
+        static let step2 = "2. Tap your name at the top"  /// Step 2
+        static let step3 = "3. Tap iCloud"  /// Step 3
+        static let step4 = "4. Enable iCloud Drive"  /// Step 4
+        static let step5 = "5. Ensure VeloReady has iCloud access"  /// Step 5
+        
+        // Alerts
+        static let restoreConfirmMessage = "This will replace your current local data with data from iCloud. Your current data will be overwritten. Are you sure?"  /// Restore confirmation
+        static let restoreSuccessTitle = "Restore Successful"  /// Restore success title
+        static let restoreSuccessMessage = "Your data has been successfully restored from iCloud."  /// Restore success message
+        static let restoreFailedTitle = "Restore Failed"  /// Restore failed title
     }
     
     // MARK: - Cache
@@ -268,6 +288,7 @@ enum SettingsContent {
         static let heartRateTrainingZones = "Heart Rate Training Zones"  /// HR zones section
         
         // Zone Display
+        static let zone = "Zone"  /// Zone prefix label
         static let noPowerZones = "No power zones available"  /// No power zones message
         static let noHRZones = "No HR zones available"  /// No HR zones message
         static let max = "Max"  /// Max label for zone ranges
@@ -380,6 +401,19 @@ enum SettingsContent {
         static let dataCollected = "Data collected:"  /// Data collected label
         static let days = CommonContent.TimeUnits.days
         static let footer = "Machine learning personalization for more accurate recovery predictions"  /// Footer
+        static let description = "Uses machine learning to personalize your recovery score based on your unique patterns"  /// Description
+        static let statusSection = "Status"  /// Status section
+        static let trainingData = "Training Data"  /// Training data label
+        static let modelStatus = "Model Status"  /// Model status label
+        static let ready = "Ready"  /// Ready status
+        static let notReady = "Not Ready"  /// Not ready status
+        static let daysUntilReady = "Days Until Ready"  /// Days until ready label
+        static let howItWorks = "How It Works"  /// How it works section
+        static let howItWorksDescription = "Personalized recovery uses machine learning trained on YOUR data to provide more accurate recovery predictions."  /// How it works description
+        static let requires30Days = "• Requires 30 days of data"  /// Requires 30 days
+        static let learnsPatterns = "• Learns your unique patterns"  /// Learns patterns
+        static let updatesWeekly = "• Updates weekly"  /// Updates weekly
+        static let fallbackStandard = "• Falls back to standard if unavailable"  /// Fallback standard
     }
     
     // MARK: - Feedback

@@ -6,10 +6,11 @@
 ## Progress Overview
 
 ### Strings Abstracted
-- **Total abstracted:** ~110+ hardcoded strings
-- **Starting count:** ~415 `Text("` matches in priority areas
-- **Current count:** ~356 remaining matches
-- **Completion:** ~14% of total strings abstracted in this session
+- **Total abstracted:** ~140+ hardcoded strings ✅
+- **Starting count:** ~471 `Text("` matches in Features directory
+- **Current count:** ~446 remaining matches
+- **Completion:** ~23% progress toward 200+ goal
+- **Build Status:** ✅ BUILD SUCCEEDED
 
 ### Files Modified
 
@@ -55,7 +56,7 @@
 6. **CommonContent.swift** ✅ (already had baseline)
    - Verified `Metrics.baseline` exists for reuse
 
-#### View Files Updated (8 files)
+#### View Files Updated (10 files)
 
 1. **AthleteZonesSettingsView.swift** ✅
    - **45 strings abstracted**
@@ -108,6 +109,19 @@
 8. **HRVTrendCard.swift** ✅
    - **1 string abstracted**
    - Baseline label
+
+9. **iCloudSettingsView.swift** ✅
+   - **15 strings abstracted**
+   - Status labels (Not Available, Sync Error)
+   - Section headers and footers
+   - iCloud not available instructions (5 steps)
+   - Alert messages (restore confirmation, success, failed)
+
+10. **MLPersonalizationSettingsView.swift** ✅
+   - **12 strings abstracted**
+   - Description and status labels
+   - Training data, model status
+   - How it works section (4 bullet points)
 
 ## Content Architecture
 

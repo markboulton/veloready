@@ -32,7 +32,7 @@ struct iCloudSettingsView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(Color.semantic.error)
-                                Text("Not Available")
+                                Text(SettingsContent.iCloud.notAvailable)
                                     .foregroundColor(Color.semantic.error)
                             }
                             .font(.subheadline)
@@ -54,7 +54,7 @@ struct iCloudSettingsView: View {
                     
                     if let error = syncService.syncError {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Sync Error")
+                            Text(SettingsContent.iCloud.syncError)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
@@ -67,7 +67,7 @@ struct iCloudSettingsView: View {
                 } header: {
                     Text(SettingsContent.iCloud.status)
                 } footer: {
-                    Text("iCloud automatically syncs your settings, workout data, and strength exercise logs across all your devices.")
+                    Text(SettingsContent.iCloud.autoSyncDescription)
                 }
                 
                 // Sync Actions Section
@@ -103,9 +103,9 @@ struct iCloudSettingsView: View {
                         }
                         .disabled(syncService.isSyncing)
                     } header: {
-                        Text("Actions")
+                        Text(SettingsContent.iCloud.actions)
                     } footer: {
-                        Text("Manually sync your data to iCloud or restore from your iCloud backup.")
+                        Text(SettingsContent.iCloud.actionsFooter)
                     }
                     
                     // What's Synced Section
@@ -145,7 +145,7 @@ struct iCloudSettingsView: View {
                     } header: {
                         Text(SettingsContent.iCloud.whatSyncs)
                     } footer: {
-                        Text("All data is encrypted and stored securely in your private iCloud account.")
+                        Text(SettingsContent.iCloud.encryptionFooter)
                     }
                 } else {
                     // iCloud Not Available Section
@@ -155,20 +155,20 @@ struct iCloudSettingsView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(Color.semantic.warning)
                                 
-                                Text("iCloud Not Available")
+                                Text(SettingsContent.iCloud.notAvailableTitle)
                                     .font(.headline)
                             }
                             
-                            Text("To enable iCloud sync:")
+                            Text(SettingsContent.iCloud.enableInstructions)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("1. Open Settings app")
-                                Text("2. Tap your name at the top")
-                                Text("3. Tap iCloud")
-                                Text("4. Enable iCloud Drive")
-                                Text("5. Ensure VeloReady has iCloud access")
+                                Text(SettingsContent.iCloud.step1)
+                                Text(SettingsContent.iCloud.step2)
+                                Text(SettingsContent.iCloud.step3)
+                                Text(SettingsContent.iCloud.step4)
+                                Text(SettingsContent.iCloud.step5)
                             }
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -199,14 +199,14 @@ struct iCloudSettingsView: View {
                     }
                 }
             } message: {
-                Text("This will replace your current local data with data from iCloud. Your current data will be overwritten. Are you sure?")
+                Text(SettingsContent.iCloud.restoreConfirmMessage)
             }
-            .alert("Restore Successful", isPresented: $showingRestoreSuccess) {
+            .alert(SettingsContent.iCloud.restoreSuccessTitle, isPresented: $showingRestoreSuccess) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Your data has been successfully restored from iCloud.")
+                Text(SettingsContent.iCloud.restoreSuccessMessage)
             }
-            .alert("Restore Failed", isPresented: $showingRestoreError) {
+            .alert(SettingsContent.iCloud.restoreFailedTitle, isPresented: $showingRestoreError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(syncService.syncError ?? "Failed to restore data from iCloud. Please try again.")

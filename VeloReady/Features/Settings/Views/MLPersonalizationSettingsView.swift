@@ -13,36 +13,36 @@ struct MLPersonalizationSettingsView: View {
                     set: { mlRegistry.setMLEnabled($0) }
                 ))
                 
-                Text("Uses machine learning to personalize your recovery score based on your unique patterns")
+                Text(SettingsContent.MLPersonalizationSettings.description)
                     .font(.caption)
                     .foregroundColor(.secondary)
             } header: {
                 Label("ML Personalization", systemImage: "sparkles")
             }
             
-            Section("Status") {
+            Section(SettingsContent.MLPersonalizationSettings.statusSection) {
                 HStack {
-                    Text("Training Data")
+                    Text(SettingsContent.MLPersonalizationSettings.trainingData)
                     Spacer()
                     Text("\(mlService.trainingDataCount) days")
                         .foregroundColor(.secondary)
                 }
                 
                 HStack {
-                    Text("Model Status")
+                    Text(SettingsContent.MLPersonalizationSettings.modelStatus)
                     Spacer()
                     if mlRegistry.currentModelVersion != nil {
-                        Label("Ready", systemImage: "checkmark.circle.fill")
+                        Label(SettingsContent.MLPersonalizationSettings.ready, systemImage: "checkmark.circle.fill")
                             .foregroundColor(.green)
                     } else {
-                        Label("Training", systemImage: "clock")
+                        Label(SettingsContent.MLPersonalizationSettings.notReady, systemImage: "xmark.circle")
                             .foregroundColor(.orange)
                     }
                 }
                 
                 if mlService.trainingDataCount < 30 {
                     HStack {
-                        Text("Days Until Ready")
+                        Text(SettingsContent.MLPersonalizationSettings.daysUntilReady)
                         Spacer()
                         Text("\(30 - mlService.trainingDataCount) days")
                             .foregroundColor(.secondary)
@@ -51,30 +51,30 @@ struct MLPersonalizationSettingsView: View {
             }
             
             Section {
-                Text("Personalized recovery uses machine learning trained on YOUR data to provide more accurate recovery predictions.")
+                Text(SettingsContent.MLPersonalizationSettings.howItWorksDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("• Requires 30 days of data")
+                Text(SettingsContent.MLPersonalizationSettings.requires30Days)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("• Learns your unique patterns")
+                Text(SettingsContent.MLPersonalizationSettings.learnsPatterns)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("• Updates weekly")
+                Text(SettingsContent.MLPersonalizationSettings.updatesWeekly)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("• Falls back to standard if unavailable")
+                Text(SettingsContent.MLPersonalizationSettings.fallbackStandard)
                     .font(.caption)
                     .foregroundColor(.secondary)
             } header: {
-                Text("How It Works")
+                Text(SettingsContent.MLPersonalizationSettings.howItWorks)
             }
         }
-        .navigationTitle("ML Personalization")
+        .navigationTitle(SettingsContent.MLPersonalizationSettings.title)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

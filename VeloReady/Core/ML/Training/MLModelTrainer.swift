@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import CreateML
 import CoreML
@@ -243,3 +244,4 @@ enum MLTrainingError: LocalizedError {
         }
     }
 }
+#endif

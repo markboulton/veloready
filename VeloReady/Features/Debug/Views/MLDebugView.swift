@@ -157,6 +157,7 @@ struct MLDebugView: View {
         isProcessing = true
         statusMessage = "🧪 Testing training pipeline with current data..."
         
+        #if os(macOS)
         do {
             let trainer = MLModelTrainer()
             try await trainer.testTrainingPipeline()
@@ -166,6 +167,9 @@ struct MLDebugView: View {
             statusMessage = "❌ Pipeline test FAILED: \(error.localizedDescription)"
             Logger.error("Pipeline test failed: \(error)")
         }
+        #else
+        statusMessage = "⚠️ ML training is only available on macOS"
+        #endif
         
         isProcessing = false
     }
