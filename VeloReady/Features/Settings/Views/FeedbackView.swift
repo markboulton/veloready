@@ -15,13 +15,14 @@ struct FeedbackView: View {
     var body: some View {
         NavigationView {
             Form {
-                // Feedback section
+                Text(SettingsContent.Feedback.title)
+                
                 Section {
                     TextEditor(text: $feedbackText)
                         .frame(minHeight: 150)
                         .overlay(alignment: .topLeading) {
                             if feedbackText.isEmpty {
-                                Text("Describe your issue or suggestion...")
+                                Text(SettingsContent.Feedback.describeIssue)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 8)
                                     .padding(.leading, 4)
@@ -31,7 +32,11 @@ struct FeedbackView: View {
                 } header: {
                     Text(SettingsContent.Feedback.yourFeedback)
                 } footer: {
-                    Text("Tell us about bugs, feature requests, or general feedback")
+                    Picker("Type", selection: .constant("general")) {
+                        Text(SettingsContent.Feedback.bugReport).tag("bug")
+                        Text(SettingsContent.Feedback.featureRequest).tag("feature")
+                        Text(SettingsContent.Feedback.general).tag("general")
+                    }
                 }
                 
                 // Options section

@@ -80,6 +80,26 @@ enum SettingsContent {
         static let send = "Send"
     }
     
+    // MARK: - Cache
+    enum Cache {
+        static let statistics = "Cache Statistics"
+        static let totalSize = "Total Size"
+        static let itemsCached = "Items Cached"
+        static let lastUpdated = "Last Updated"
+        static let clearAll = "Clear All Caches"
+    }
+    
+    // MARK: - Feedback
+    enum Feedback {
+        static let title = "Send Feedback"
+        static let type = "Feedback Type"
+        static let bugReport = "Bug Report"
+        static let featureRequest = "Feature Request"
+        static let general = "General Feedback"
+        static let yourFeedback = "Your Feedback"
+        static let send = "Send"
+    }
+    
     // MARK: - Sleep Settings
     enum Sleep {
         static let title = "Sleep Settings"  /// Sleep settings title

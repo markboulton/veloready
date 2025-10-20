@@ -34,7 +34,7 @@ struct StrainDetailView: View {
                     SectionDivider()
                     
                     // Activity summary
-                    activitySummarySection
+                    Text(StrainContent.noData)
                         .padding()
                     
                     SectionDivider()

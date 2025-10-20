@@ -56,7 +56,7 @@ struct CacheStatsView: View {
                                 
                                 VStack(alignment: .trailing) {
                                     Text("Count: \(stat.count)")
-                                    Text("Max: \(stat.maxMs)ms")
+                                    Text(SettingsContent.Cache.statistics)
                                 }
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -109,7 +109,7 @@ struct CacheStatsView: View {
         .refreshable {
             await loadPerformanceStats()
         }
-        .alert("Clear All Caches?", isPresented: $showingClearAlert) {
+        .alert(SettingsContent.Cache.clearAll, isPresented: $showingClearAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Clear", role: .destructive) {
                 cacheManager.invalidate(matching: "*")

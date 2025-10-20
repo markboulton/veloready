@@ -93,7 +93,7 @@ struct ProfileEditView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
-                        Text("kg")
+                        Text(SettingsContent.Profile.weight)
                             .foregroundColor(.secondary)
                     }
                     
@@ -104,7 +104,7 @@ struct ProfileEditView: View {
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
-                        Text("cm")
+                        Text(SettingsContent.Profile.name)
                             .foregroundColor(.secondary)
                     }
                 } header: {
@@ -119,7 +119,7 @@ struct ProfileEditView: View {
                         HStack {
                             Image(systemName: "chart.line.uptrend.xyaxis")
                                 .foregroundColor(.blue)
-                            Text("Intervals.icu")
+                            Text(SettingsContent.Profile.dateOfBirth)
                             Spacer()
                             Text(intervalsID)
                                 .foregroundColor(.secondary)
@@ -131,7 +131,7 @@ struct ProfileEditView: View {
                         HStack {
                             Image(systemName: "figure.outdoor.cycle")
                                 .foregroundColor(.orange)
-                            Text("Strava")
+                            Text(SettingsContent.Profile.editProfile)
                             Spacer()
                             Text(stravaID)
                                 .foregroundColor(.secondary)

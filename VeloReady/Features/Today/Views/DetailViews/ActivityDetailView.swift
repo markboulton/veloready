@@ -250,7 +250,7 @@ struct ActivityInfoHeader: View {
             // Title and Date/Time
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Text(activityData.title)
+                    Text(ActivityContent.Details.title)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.text.primary)
@@ -263,7 +263,7 @@ struct ActivityInfoHeader: View {
                     }
                 }
                 
-                Text(formattedDateAndTime)
+                Text(ActivityContent.Details.dateAndTime)
                     .font(.subheadline)
                     .foregroundStyle(Color.text.secondary)
             }
