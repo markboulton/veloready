@@ -26,6 +26,18 @@ enum CommonContent {
         static let ok = "OK"  /// OK button
     }
     
+    // MARK: - Debug
+    enum Debug {
+        static let title = "App Group Debug"
+        static let sectionTest = "Test App Group"
+        static let buttonWrite = "Write Test Data"
+        static let statusInitial = "Ready to test"
+        static let statusFailed = "Failed"
+        static let statusWriteSuccess = "Write successful"
+        static let statusReadSuccess = "Read successful"
+        static let statusNoData = "No data found"
+    }
+    
     // MARK: - States
     enum States {
         static let loading = "Loading..."  /// Loading state
@@ -35,16 +47,17 @@ enum CommonContent {
         static let computing = "Computing..."  /// Computing state
         static let detecting = "Detecting..."  /// Detecting state
         static let calculating = "Calculating..."  /// Calculating state
+        static let defaultMessage = "Loading..."  /// Default loading message
         static let noData = "No data available"  /// Empty state
         static let notEnoughData = "Not enough data"  /// Not enough data
         static let noDataFound = "No data"  /// No data found (short)
         static let error = "Something went wrong"  /// Generic error
         static let success = "Success"  /// Success state
         static let failed = "Failed"  /// Failed state
-        static let enabled = "Enabled"  /// Enabled state
-        static let disabled = "Disabled"  /// Disabled state
         static let connected = "Connected"  /// Connected state
         static let disconnected = "Disconnected"  /// Disconnected state
+        static let enabled = "Enabled"  /// Enabled state
+        static let disabled = "Disabled"  /// Disabled state
     }
     
     // MARK: - Time
@@ -157,7 +170,9 @@ enum CommonContent {
         
         // Activities
         static let noActivities = "No Activities Yet"  /// No activities
-        static let noActivitiesMessage = "Connect a data source to view your rides and track your progress"  /// No activities message
+        static let noActivitiesMessage = "Connect your data sources or sync with Apple Health to see your activities here."  /// No activities message
+        static let notEnoughTrendData = "Not Enough Data"
+        static let notEnoughTrendDataMessage = "We need at least 7 days of data to show trends."
         
         // Health Data
         static let healthDataUnavailable = "Health data unavailable"  /// Health data unavailable
