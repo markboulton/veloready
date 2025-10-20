@@ -10,11 +10,11 @@ struct IntervalsAPIDebugView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Intervals.icu API Inspector")
+                    Text(DebugContent.IntervalsAPI.title)
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("Inspect raw API responses to debug missing data")
+                    Text(DebugContent.IntervalsAPI.inspectResponses)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -29,7 +29,7 @@ struct IntervalsAPIDebugView: View {
                 }) {
                     HStack {
                         Image(systemName: "arrow.clockwise")
-                        Text("Fetch Fresh Data")
+                        Text(DebugContent.IntervalsAPI.fetchFresh)
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -38,7 +38,7 @@ struct IntervalsAPIDebugView: View {
                 .disabled(viewModel.isLoading)
                 
                 if viewModel.isLoading {
-                    ProgressView("Fetching data...")
+                    ProgressView(DebugContent.IntervalsAPI.fetching)
                         .frame(maxWidth: .infinity)
                         .padding()
                 }
@@ -63,7 +63,7 @@ struct IntervalsAPIDebugView: View {
     
     private var athleteProfileSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Athlete Profile")
+            Text(DebugContent.IntervalsAPI.athleteProfile)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .padding(.horizontal)
@@ -78,7 +78,7 @@ struct IntervalsAPIDebugView: View {
             VStack(alignment: .leading, spacing: 12) {
                 // Basic Info Section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Basic Information")
+                    Text(DebugContent.IntervalsAPI.basicInfo)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     

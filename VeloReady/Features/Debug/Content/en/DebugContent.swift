@@ -4,7 +4,12 @@ import Foundation
 enum DebugContent {
     // MARK: - Intervals API Debug
     enum IntervalsAPI {
-        static let title = "Intervals API Debug"
+        static let title = "Intervals.icu API Inspector"
+        static let inspectResponses = "Inspect raw API responses to debug missing data"
+        static let fetchFresh = "Fetch Fresh Data"
+        static let fetching = "Fetching data..."
+        static let athleteProfile = "Athlete Profile"
+        static let basicInfo = "Basic Information"
         static let athleteData = "Athlete Data"
         static let activitiesData = "Activities Data"
         static let wellnessData = "Wellness Data"
