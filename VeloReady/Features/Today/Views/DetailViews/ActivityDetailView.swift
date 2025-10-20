@@ -383,7 +383,7 @@ struct ActivityInfoHeader: View {
     
     private func formatDistance(_ meters: Double) -> String {
         let km = meters / 1000.0
-        return String(format: "%.2f km", km)
+        return String(format: "%.2f \(CommonContent.Units.kilometers)", km)
     }
 }
 

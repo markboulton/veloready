@@ -591,7 +591,7 @@ struct RideDetailSheet: View {
     
     private func formatDistance(_ distance: Double) -> String {
         // Distance from Intervals.icu is in meters, convert to km
-        return String(format: "%.1f km", distance / 1000.0)
+        return String(format: "%.1f \(CommonContent.Units.kilometers)", distance / 1000.0)
     }
     
     private func formatIntensity(_ intensity: Double) -> String {

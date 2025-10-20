@@ -209,6 +209,7 @@ enum CommonContent {
         static let miles = "mi"  /// Miles
         static let meters = "m"  /// Meters
         static let calories = "cal"  /// Calories
+        static let rpm = "rpm"  /// Revolutions per minute (cadence)
     }
     
     // MARK: - Metrics

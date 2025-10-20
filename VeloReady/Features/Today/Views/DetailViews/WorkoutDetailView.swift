@@ -628,7 +628,7 @@ struct AdditionalDataSection: View {
     }
     
     private func formatCadence(_ cadence: Double) -> String {
-        return String(format: "%.0f rpm", cadence)
+        return String(format: "%.0f \(CommonContent.Units.rpm)", cadence)
     }
     
     
