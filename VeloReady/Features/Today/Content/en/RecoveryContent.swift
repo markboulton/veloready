@@ -10,6 +10,7 @@ enum RecoveryContent {
     static let metricsTitle = "Health Metrics"  /// Metrics section title
     static let trendTitle = "Recovery Trend"  /// Trend chart title (period shown in selector)
     static let appleHealthTitle = "Apple Health Data"  /// Apple Health section title
+    static let timeframe = "Last 24 Hours"  /// Timeframe label for recovery score
     
     // MARK: - Metrics
     enum Metrics {

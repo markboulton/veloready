@@ -18,7 +18,7 @@ struct RecoveryHeaderSection: View {
                     .fontWeight(.semibold)
                     .foregroundColor(colorForBand(recoveryScore.band))
                 
-                Text("Last 24 Hours")
+                Text(RecoveryContent.timeframe)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
