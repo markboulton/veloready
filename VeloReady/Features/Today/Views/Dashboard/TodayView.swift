@@ -81,17 +81,6 @@ struct TodayView: View {
                             hideBottomDivider: false
                         )
                         
-                        // Illness Detection Card (if detected)
-                        if healthKitManager.isAuthorized,
-                           let indicator = illnessService.currentIndicator,
-                           indicator.isSignificant {
-                            IllnessIndicatorCard(indicator: indicator) {
-                                showingIllnessDetailSheet = true
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                        }
-                        
                         // AI Daily Brief (only when HealthKit authorized)
                         if healthKitManager.isAuthorized {
                             AIBriefView()
@@ -153,13 +142,22 @@ struct TodayView: View {
                     }
                 }
                 
-                // Wellness indicator in large title area (only when not scrolled)
-                if healthKitManager.isAuthorized,
-                   let alert = wellnessService.currentAlert,
-                   scrollOffset > -50 {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        WellnessIndicator(alert: alert) {
-                            showingWellnessDetailSheet = true
+                // Health warnings in nav bar (only show ONE at a time, prioritize illness over wellness)
+                if healthKitManager.isAuthorized, scrollOffset > -50 {
+                    // Show illness indicator if present (higher priority)
+                    if let indicator = illnessService.currentIndicator, indicator.isSignificant {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            BodyStressIndicator(indicator: indicator) {
+                                showingIllnessDetailSheet = true
+                            }
+                        }
+                    }
+                    // Otherwise show wellness indicator if present
+                    else if let alert = wellnessService.currentAlert {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            WellnessIndicator(alert: alert) {
+                                showingWellnessDetailSheet = true
+                            }
                         }
                     }
                 }

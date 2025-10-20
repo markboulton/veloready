@@ -24,12 +24,12 @@ class IllnessDetectionService: ObservableObject {
     // Detection thresholds (lowered for better sensitivity based on real-world testing)
     private struct Thresholds {
         static let hrvDropPercent = -10.0 // 10% drop (lowered from 15%)
-        static let rhrElevationPercent = 5.0 // 3% elevation (lowered from 5%)
-        static let sleepQualityDropPercent = -18.0 // 15% drop (lowered from 20%)
-        static let respiratoryChangePercent = 10.0 // 8% change (lowered from 10%)
-        static let activityDropPercent = -27.0 // 25% drop (lowered from 30%)
-        static let temperatureElevationCelsius = 0.4 // 0.3°C (lowered from 0.5°C)
-        static let minimumSignals = 2 // Only need 1 signal if it's strong (lowered from 2)
+        static let rhrElevationPercent = 3.0 // 3% elevation (lowered from 5%)
+        static let sleepQualityDropPercent = -15.0 // 15% drop (lowered from 20%)
+        static let respiratoryChangePercent = 8.0 // 8% change (lowered from 10%)
+        static let activityDropPercent = -25.0 // 25% drop (lowered from 30%)
+        static let temperatureElevationCelsius = 0.3 // 0.3°C (lowered from 0.5°C)
+        static let minimumSignals = 1 // Only need 1 signal if it's strong (lowered from 2)
     }
     
     private init() {}

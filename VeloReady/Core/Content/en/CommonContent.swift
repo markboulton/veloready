@@ -338,7 +338,7 @@ enum CommonContent {
     // MARK: - Wellness & Illness Detection
     enum WellnessAlerts {
         static let keyMetricsElevated = "Key metrics elevated"  /// Key metrics elevated alert
-        static let bodyStressDetected = "Body stress signals detected"  /// Body stress detected
+        static let bodyStressDetected = "Body stress signals"  /// Body stress detected (short for nav bar)
         static let unusualPatterns = "Unusual patterns detected"  /// Unusual patterns
         static let monitorHealth = "Monitor your health"  /// Monitor health
         static let restRecommended = "Rest recommended"  /// Rest recommended
