@@ -150,6 +150,15 @@ enum CommonContent {
         static let awake = "Awake"
     }
     
+    // MARK: - Readiness Components
+    enum ReadinessComponents {
+        static let recovery = "Recovery"
+        static let sleep = "Sleep"
+        static let strain = "Strain"
+        static let hrv = "HRV"
+        static let rhr = "RHR"
+    }
+    
     // MARK: - Common Instructions
     enum Instructions {
         static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
