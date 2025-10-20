@@ -23,8 +23,8 @@ class IllnessDetectionService: ObservableObject {
     
     // Detection thresholds (lowered for better sensitivity based on real-world testing)
     private struct Thresholds {
-        static let hrvDropPercent = -12.0 // 10% drop (lowered from 15%)
-        static let rhrElevationPercent = 4.0 // 3% elevation (lowered from 5%)
+        static let hrvDropPercent = -10.0 // 10% drop (lowered from 15%)
+        static let rhrElevationPercent = 5.0 // 3% elevation (lowered from 5%)
         static let sleepQualityDropPercent = -18.0 // 15% drop (lowered from 20%)
         static let respiratoryChangePercent = 10.0 // 8% change (lowered from 10%)
         static let activityDropPercent = -27.0 // 25% drop (lowered from 30%)

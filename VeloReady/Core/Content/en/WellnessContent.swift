@@ -80,7 +80,7 @@ enum WellnessContent {
             "Focus on rest, hydration, and nutrition"
         ]
         
-        static let medicalDisclaimer = "If you have concerns about your health, always consult with a qualified healthcare professional."
+        static let medicalDisclaimer = "Please do not make any changes to your medication, daily routines, nutrition, sleep schedule, or workouts without first consulting your doctor or another medical professional. If you have concerns about your health, always consult with a qualified healthcare professional."
     }
     
     // MARK: - Empty States
@@ -101,7 +101,7 @@ enum WellnessContent {
         // Detection messages
         static let patternsDetected = "We've detected some unusual patterns in your health metrics"
         static let multiDayTrend = "These changes have been consistent over multiple days"
-        static let notMedicalDiagnosis = "This is not a medical diagnosis - just observations from your data"
+        static let notMedicalDiagnosis = "VeloReady is not a medical device and is not intended for use in the diagnosis of disease or other conditions, or in the cure, mitigation, treatment, or prevention of disease."
         
         // Confidence levels
         static let lowConfidence = "Low confidence"
