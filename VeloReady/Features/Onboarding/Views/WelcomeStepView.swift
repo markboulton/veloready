@@ -13,12 +13,12 @@ struct WelcomeStepView: View {
             
             // Welcome message
             VStack(spacing: 16) {
-                Text("Welcome to VeloReady")
+                Text(OnboardingContent.ValueProp.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Your intelligent cycling companion")
+                Text(OnboardingContent.ValueProp.subtitle)
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -53,7 +53,7 @@ struct WelcomeStepView: View {
             Button(action: {
                 onboardingManager.nextStep()
             }) {
-                Text("Get Started")
+                Text(OnboardingContent.ValueProp.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
