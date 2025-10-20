@@ -98,9 +98,9 @@ enum CardStyle {
         VStack(spacing: Spacing.xl) {
             Card(style: .elevated) {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Elevated Card")
+                    Text(CommonContent.Preview.elevatedCard)
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text("This card has a white background with a subtle shadow")
+                    Text(CommonContent.Preview.elevatedCardDesc)
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }
@@ -108,9 +108,9 @@ enum CardStyle {
             
             Card(style: .flat) {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Flat Card")
+                    Text(CommonContent.Preview.flatCard)
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text("This card has a gray background with no shadow")
+                    Text(CommonContent.Preview.flatCardDesc)
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }
@@ -118,9 +118,9 @@ enum CardStyle {
             
             Card(style: .outlined) {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Outlined Card")
+                    Text(CommonContent.Preview.outlinedCard)
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text("This card has a border with transparent background")
+                    Text(CommonContent.Preview.outlinedCardDesc)
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }
@@ -130,7 +130,7 @@ enum CardStyle {
                 HStack {
                     Image(systemName: Icons.Health.heartFill)
                         .foregroundColor(Color.health.heartRate)
-                    Text("Custom Padding")
+                    Text(CommonContent.Preview.customPadding)
                         .font(.system(size: TypeScale.sm))
                 }
             }

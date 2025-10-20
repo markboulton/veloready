@@ -25,7 +25,7 @@ struct AIBriefView: View {
                 // Content with fixed height to prevent layout shifts
                 ZStack(alignment: .topLeading) {
                     // Invisible placeholder to maintain height
-                    Text("Placeholder text to maintain consistent height during loading. This ensures the layout doesn't jump when content loads.")
+                    Text(CommonContent.Preview.placeholderText)
                         .bodyStyle()
                         .fixedSize(horizontal: false, vertical: true)
                         .opacity(0)

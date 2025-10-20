@@ -162,7 +162,7 @@ struct RadarChart: View {
 #Preview {
     Card(style: .flat) {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Wellness Foundation")
+            Text(ChartContent.ChartTitles.wellnessFoundation)
                 .font(.heading)
             
             RadarChart(
@@ -179,7 +179,7 @@ struct RadarChart: View {
             )
             .frame(height: 300)
             
-            Text("Foundation Score: 78/100")
+            Text(ChartContent.Examples.foundationScore)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
         }

@@ -178,7 +178,7 @@ struct CircadianClockChart: View {
 #Preview {
     Card(style: .flat) {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Daily Rhythm Patterns")
+            Text(ChartContent.ChartTitles.dailyRhythmPatterns)
                 .font(.heading)
             
             CircadianClockChart(
@@ -210,10 +210,10 @@ struct CircadianClockChart: View {
             .frame(height: 280)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Bedtime variance: ±22 min")
+                Text(ChartContent.Examples.bedtimeVariance)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
-                Text("Training time: Mostly afternoons")
+                Text(ChartContent.Examples.trainingTime)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             }

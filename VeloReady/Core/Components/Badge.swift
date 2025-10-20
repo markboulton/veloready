@@ -144,7 +144,7 @@ enum BadgeSize {
         VStack(spacing: Spacing.xl) {
             // Variants
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badge Variants")  // Preview only
+                Text(CommonContent.Preview.badgeVariants)  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
@@ -164,7 +164,7 @@ enum BadgeSize {
             
             // Sizes
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badge Sizes")  // Preview only
+                Text(CommonContent.Preview.badgeSizes)  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
@@ -178,7 +178,7 @@ enum BadgeSize {
             
             // With Icons
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Badges with Icons")  // Preview only
+                Text(CommonContent.Preview.badgesWithIcons)  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
@@ -198,13 +198,13 @@ enum BadgeSize {
             
             // Use Cases
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("Use Cases")  // Preview only
+                Text(CommonContent.Preview.useCases)  // Preview only
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Card {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         HStack {
-                            Text("Recovery Score")  // Preview only
+                            Text(ChartContent.ChartTitles.recoveryScore)  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
                             Badge(CommonContent.Badges.excellent, variant: .success, icon: "checkmark.circle.fill", size: .small)

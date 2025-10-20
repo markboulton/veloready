@@ -119,6 +119,21 @@ enum ChartContent {
     enum ChartTitles {
         static let recoveryScore = "Recovery Score"  /// Recovery score chart
         static let sleepScore = "Sleep Score"  /// Sleep score chart
+        static let sleepHypnogram = "Sleep Hypnogram"  /// Sleep hypnogram chart
+        static let sleepArchitecture = "Sleep Architecture (7 days)"  /// Sleep architecture chart
+        static let dailyRhythmPatterns = "Daily Rhythm Patterns"  /// Daily rhythm patterns
+        static let wellnessFoundation = "Wellness Foundation"  /// Wellness foundation
+    }
+    
+    // MARK: - Chart Examples (Preview/Demo)
+    enum Examples {
+        static let lastNightSleep = "Last night: 7.2h total sleep"  /// Example sleep data
+        static let deepSleepAvg = "Deep: 1.3h avg"  /// Example deep sleep
+        static let remSleepAvg = "REM: 1.9h avg"  /// Example REM sleep
+        static let bedtimeVariance = "Bedtime variance: ±22 min"  /// Example bedtime variance
+        static let trainingTime = "Training time: Mostly afternoons"  /// Example training time
+        static let foundationScore = "Foundation Score: 78/100"  /// Example foundation score
+        static let qualityConsistent = "Quality consistent - supporting training adaptations well."  /// Example quality message
     }
 }
 

@@ -93,7 +93,7 @@ struct StackedAreaChart: View {
 #Preview {
     Card(style: .flat) {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Sleep Architecture (7 days)")
+            Text(ChartContent.ChartTitles.sleepArchitecture)
                 .font(.heading)
             
             StackedAreaChart(
@@ -109,7 +109,7 @@ struct StackedAreaChart: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Deep: 1.3h avg")
+                    Text(ChartContent.Examples.deepSleepAvg)
                     Image(systemName: Icons.Status.successFill)
                         .foregroundColor(.green)
                     Text("(target: 1.2h)")
@@ -118,7 +118,7 @@ struct StackedAreaChart: View {
                 .font(.caption)
                 
                 HStack {
-                    Text("REM: 1.9h avg")
+                    Text(ChartContent.Examples.remSleepAvg)
                     Image(systemName: Icons.Status.successFill)
                         .foregroundColor(.green)
                     Text("(target: 1.8h)")
@@ -126,7 +126,7 @@ struct StackedAreaChart: View {
                 }
                 .font(.caption)
                 
-                Text("Quality consistent - supporting training adaptations well.")
+                Text(ChartContent.Examples.qualityConsistent)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             }

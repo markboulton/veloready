@@ -86,7 +86,7 @@ struct ProNavigationLink<Destination: View, Label: View>: View {
         isEnabled: false,
         showBenefits: true
     ) {
-        Text("Trend content here")
+        Text(CommonContent.Preview.trendContentPlaceholder)
     }
     .padding()
 }

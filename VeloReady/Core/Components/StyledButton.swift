@@ -176,7 +176,7 @@ enum ButtonSize {
         VStack(spacing: Spacing.xl) {
             // Variants
             VStack(spacing: Spacing.md) {
-                Text("Button Variants")
+                Text(CommonContent.Preview.buttonVariants)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 StyledButton("Primary Button", variant: .primary) { }
@@ -192,7 +192,7 @@ enum ButtonSize {
             
             // Sizes
             VStack(spacing: Spacing.md) {
-                Text("Button Sizes")
+                Text(CommonContent.Preview.buttonSizes)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 StyledButton("Small Button", size: .small) { }
@@ -204,7 +204,7 @@ enum ButtonSize {
             
             // With Icons
             VStack(spacing: Spacing.md) {
-                Text("Buttons with Icons")
+                Text(CommonContent.Preview.buttonsWithIcons)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 StyledButton("Add Activity", icon: "plus", variant: .primary) { }
@@ -216,7 +216,7 @@ enum ButtonSize {
             
             // States
             VStack(spacing: Spacing.md) {
-                Text("Button States")
+                Text(CommonContent.Preview.buttonStates)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 StyledButton("Loading", variant: .primary, isLoading: true) { }

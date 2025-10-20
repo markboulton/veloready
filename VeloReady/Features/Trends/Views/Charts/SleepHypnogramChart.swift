@@ -220,7 +220,7 @@ extension SleepHypnogramChart.SleepStageSample {
 #Preview {
     Card(style: .flat) {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Sleep Hypnogram")
+            Text(ChartContent.ChartTitles.sleepHypnogram)
                 .font(.heading)
             
             SleepHypnogramChart(
@@ -229,7 +229,7 @@ extension SleepHypnogramChart.SleepStageSample {
                 nightEnd: Date()
             )
             
-            Text("Last night: 7.2h total sleep")
+            Text(ChartContent.Examples.lastNightSleep)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
         }

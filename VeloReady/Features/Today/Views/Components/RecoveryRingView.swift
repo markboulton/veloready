@@ -35,7 +35,7 @@ struct RecoveryRingView: View {
                     .foregroundColor(ColorPalette.recoveryColor(for: Double(score)))
                 
                 HStack(spacing: 4) {
-                    Text("RECOVERY")
+                    Text(CommonContent.ReadinessComponents.recoveryUpper)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(ColorPalette.labelSecondary)
                         .textCase(.uppercase)

@@ -101,7 +101,7 @@ struct TrainingPhaseCard: View {
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Low Intensity")
+                    Text(CommonContent.Intensity.low)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     
@@ -111,7 +111,7 @@ struct TrainingPhaseCard: View {
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("High Intensity")
+                    Text(CommonContent.Intensity.high)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     

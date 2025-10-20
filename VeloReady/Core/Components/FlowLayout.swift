@@ -94,7 +94,7 @@ struct HeightPreferenceKey: PreferenceKey {
 
 #Preview {
     VStack(alignment: .leading, spacing: 20) {
-        Text("Flow Layout Example")
+        Text(CommonContent.Preview.flowLayoutExample)
             .font(.headline)
         
         FlowLayout(spacing: 8) {

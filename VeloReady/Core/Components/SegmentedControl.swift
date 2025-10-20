@@ -108,7 +108,7 @@ struct SegmentedControlPreview: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Period Selector")
+            Text(CommonContent.Preview.periodSelector)
                 .font(.system(size: TypeScale.sm, weight: .semibold))
             
             SegmentedControl(
@@ -132,7 +132,7 @@ struct SegmentedControlIconPreview: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("View Type")
+            Text(CommonContent.Preview.viewType)
                 .font(.system(size: TypeScale.sm, weight: .semibold))
             
             SegmentedControl(
@@ -156,7 +156,7 @@ struct SegmentedControlIconOnlyPreview: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("Time Range")
+            Text(CommonContent.Preview.timeRange)
                 .font(.system(size: TypeScale.sm, weight: .semibold))
             
             SegmentedControl(

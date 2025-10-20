@@ -2,6 +2,9 @@ import Foundation
 
 /// Common strings shared across the app
 enum CommonContent {
+    // MARK: - App Info
+    static let appName = "VeloReady"  /// App name
+    
     // MARK: - Common Actions
     enum Actions {
         static let save = "Save"  /// Save button
@@ -247,6 +250,7 @@ enum CommonContent {
     // MARK: - Readiness Components
     enum ReadinessComponents {
         static let recovery = "Recovery"  /// Recovery component
+        static let recoveryUpper = "RECOVERY"  /// Recovery (uppercase)
         static let sleep = "Sleep"  /// Sleep component
         static let load = "Load"  /// Load component
         static let strain = "Strain"  /// Strain component
@@ -280,6 +284,12 @@ enum CommonContent {
     static let effortLevel = "Effort Level"  /// Effort level label
     static let muscleGroupsOptional = "Muscle Groups (Optional)"  /// Muscle groups label
     static let workoutTypeOptional = "Workout Type (Optional)"  /// Workout type label
+    
+    // MARK: - Intensity Levels
+    enum Intensity {
+        static let low = "Low Intensity"  /// Low intensity
+        static let high = "High Intensity"  /// High intensity
+    }
     
     // MARK: - Badges
     enum Badges {
@@ -321,6 +331,17 @@ enum CommonContent {
         
         // Error
         static let errorPrefix = "Error: "  /// Error prefix
+    }
+    
+    // MARK: - Wellness Alerts
+    enum WellnessAlerts {
+        static let keyMetricsElevated = "Key metrics elevated"  /// Key metrics elevated alert
+    }
+    
+    // MARK: - AI Brief
+    enum AIBrief {
+        static let enableInstructions = "To enable AI Brief:"  /// Enable instructions header
+        static let hmacSecret = "HMAC Secret:"  /// HMAC secret label
     }
     
     // MARK: - Empty State Messages
@@ -441,6 +462,31 @@ enum CommonContent {
         static let healthData = "Health Data"  /// Health data section
         static let wellnessData = "Wellness Data"  /// Wellness data section
         static let whatThisMeans = "What This Means"  /// What this means section
+    }
+    
+    // MARK: - Preview & Examples
+    enum Preview {
+        static let periodSelector = "Period Selector"  /// Period selector preview
+        static let viewType = "View Type"  /// View type preview
+        static let timeRange = "Time Range"  /// Time range preview
+        static let buttonVariants = "Button Variants"  /// Button variants preview
+        static let buttonSizes = "Button Sizes"  /// Button sizes preview
+        static let buttonsWithIcons = "Buttons with Icons"  /// Buttons with icons preview
+        static let buttonStates = "Button States"  /// Button states preview
+        static let badgeVariants = "Badge Variants"  /// Badge variants preview
+        static let badgeSizes = "Badge Sizes"  /// Badge sizes preview
+        static let badgesWithIcons = "Badges with Icons"  /// Badges with icons preview
+        static let elevatedCard = "Elevated Card"  /// Elevated card preview
+        static let flatCard = "Flat Card"  /// Flat card preview
+        static let outlinedCard = "Outlined Card"  /// Outlined card preview
+        static let customPadding = "Custom Padding"  /// Custom padding preview
+        static let flowLayoutExample = "Flow Layout Example"  /// Flow layout example
+        static let elevatedCardDesc = "This card has a white background with a subtle shadow"  /// Elevated card description
+        static let flatCardDesc = "This card has a gray background with no shadow"  /// Flat card description
+        static let outlinedCardDesc = "This card has a border with transparent background"  /// Outlined card description
+        static let trendContentPlaceholder = "Trend content here"  /// Trend content placeholder
+        static let placeholderText = "Placeholder text to maintain consistent height during loading. This ensures the layout doesn't jump when content loads."  /// Placeholder text
+        static let useCases = "Use Cases"  /// Use cases section
     }
     
     // MARK: - Debug & Testing

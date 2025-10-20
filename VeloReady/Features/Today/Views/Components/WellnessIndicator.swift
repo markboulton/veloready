@@ -13,7 +13,7 @@ struct WellnessIndicator: View {
                     .font(.caption)
                     .foregroundColor(alert.severity.color)
                 
-                Text("Key metrics elevated")
+                Text(CommonContent.WellnessAlerts.keyMetricsElevated)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(alert.severity.color)

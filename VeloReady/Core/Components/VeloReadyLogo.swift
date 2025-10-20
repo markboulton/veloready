@@ -43,7 +43,7 @@ struct VeloReadyLogo: View {
             }
             
             // Text logo
-            Text("VeloReady")
+            Text(CommonContent.appName)
                 .font(.system(size: size.fontSize, weight: .bold, design: .default))
                 .tracking(1)
                 .foregroundStyle(LinearGradient(

@@ -198,7 +198,7 @@ struct ChartZoneBackground: View {
  ----------------------
  
  VStack(alignment: .leading, spacing: 8) {
-     Text("RECOVERY")
+     Text(CommonContent.ReadinessComponents.recoveryUpper)
          .font(.system(size: 11, weight: .medium))
          .foregroundColor(ColorPalette.labelSecondary)
          .textCase(.uppercase)

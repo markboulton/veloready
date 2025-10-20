@@ -25,7 +25,7 @@ struct IntensityChart: View {
             VStack(alignment: .leading, spacing: 16) {
                 // Header
                 HStack(spacing: 8) {
-                    Text("Ride Intensity")
+                    Text(TrainingLoadContent.Metrics.rideIntensity)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -34,7 +34,7 @@ struct IntensityChart: View {
                 
                 // Intensity Factor gauge with explanation
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Intensity Factor (IF)")
+                    Text(TrainingLoadContent.Metrics.intensityFactor)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -72,7 +72,7 @@ struct IntensityChart: View {
                                 .fontWeight(.semibold)
                                 .foregroundColor(intensityColor(intensityFactor))
                             
-                            Text("Weighted average power relative to FTP")
+                            Text(TrainingLoadContent.Descriptions.weightedAveragePower)
                                 .font(.caption)
                                 .foregroundColor(Color.text.secondary)
                             
@@ -91,7 +91,7 @@ struct IntensityChart: View {
                 VStack(alignment: .leading, spacing: 8) {
                     
                     HStack {
-                        Text("Training Stress Score (TSS)")
+                        Text(TrainingLoadContent.Metrics.tss)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -103,7 +103,7 @@ struct IntensityChart: View {
                             .foregroundColor(tssColor(tss))
                     }
                     
-                    Text("Total training load from this ride")
+                    Text(TrainingLoadContent.Descriptions.totalTrainingLoad)
                         .font(.caption)
                         .foregroundColor(Color.text.secondary)
                     
