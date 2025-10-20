@@ -46,11 +46,8 @@ enum SettingsContent {
         static let title = "iCloud Sync"
         static let status = "Status"
         static let lastSync = "Last Sync"
-        static let other = "Other"
-        static let editProfile = "Edit Profile"
-        static let athleticProfile = "Athletic Profile"
-        static let bmr = "BMR"
-        static let athleteLabel = "Athlete:"
+        static let lastSynced = "Last Synced"
+        static let never = "Never"
         static let syncNow = "Sync Now"
         static let restoreFromCloud = "Restore from iCloud"
         static let whatSyncs = "What Syncs"
@@ -97,6 +94,7 @@ enum SettingsContent {
         static let feedbackSent = "Feedback Sent"
         static let thankYou = "Thank you for your feedback!"
         static let describeIssue = "Describe your issue or suggestion..."
+        static let subtitle = "Report issues or suggest improvements"
     }
     
     // MARK: - About
@@ -112,6 +110,7 @@ enum SettingsContent {
     // MARK: - Debug
     enum Debug {
         static let title = "Debug"
+        static let subtitle = "Developer tools and diagnostics"
         static let clearCache = "Clear Cache"
         static let resetData = "Reset Data"
         static let showDebugInfo = "Show Debug Info"
@@ -120,6 +119,7 @@ enum SettingsContent {
     // MARK: - Appearance
     enum Appearance {
         static let title = "Appearance"
+        static let displayPreferences = "Display Preferences"
         static let theme = "Theme"
         static let light = "Light"
         static let dark = "Dark"
