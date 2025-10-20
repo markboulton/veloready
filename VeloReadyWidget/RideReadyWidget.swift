@@ -234,17 +234,16 @@ struct MediumWidgetView: View {
     @State private var strainProgress: Double = 0.0
     @State private var numberOpacity: Double = 0.0
     
-    private let ringWidth: CGFloat = 5
-    private let ringSize: CGFloat = 75
+    private let ringWidth = WidgetDesignTokens.Ring.width
+    private let ringSize = WidgetDesignTokens.Ring.sizeSmall
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: WidgetDesignTokens.Spacing.ringSpacing) {
             // Recovery Ring
-            VStack(spacing: 6) {
-                Text("Recovery")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+            VStack(spacing: WidgetDesignTokens.Spacing.verticalSpacing) {
+                Text(WidgetContent.Labels.recovery)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize, weight: .semibold))
+                    .foregroundColor(WidgetDesignTokens.Colors.title)
                 
                 ZStack {
                     Circle()
@@ -254,103 +253,101 @@ struct MediumWidgetView: View {
                     if let score = entry.recoveryScore {
                         Circle()
                             .trim(from: 0, to: recoveryProgress)
-                            .stroke(colorForRecoveryScore(score), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
+                            .stroke(WidgetDesignTokens.recoveryColor(for: score), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
                             .frame(width: ringSize, height: ringSize)
                             .rotationEffect(.degrees(-90))
                         
                         VStack(spacing: 0) {
                             Text("\(score)")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(colorForRecoveryScore(score))
+                                .font(.system(size: WidgetDesignTokens.Typography.scoreSize, weight: .bold))
+                                .foregroundColor(WidgetDesignTokens.recoveryColor(for: score))
                                 .opacity(numberOpacity)
                             
                             if entry.isPersonalized {
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 7))
-                                    .foregroundColor(.purple)
+                                    .font(.system(size: WidgetDesignTokens.Typography.sparkleSize))
+                                    .foregroundColor(WidgetDesignTokens.Colors.sparkle)
                                     .opacity(numberOpacity)
                             }
                         }
                     } else {
-                        Text("--")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.gray)
+                        Text(WidgetContent.Placeholder.noData)
+                            .font(.system(size: WidgetDesignTokens.Typography.scoreSize, weight: .bold))
+                            .foregroundColor(WidgetDesignTokens.Colors.placeholder)
                     }
                 }
                 
-                Text(entry.recoveryBand ?? "--")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                Text(entry.recoveryBand ?? WidgetContent.Placeholder.noData)
+                    .font(.system(size: WidgetDesignTokens.Typography.bandSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
             }
             
             // Sleep Ring
-            VStack(spacing: 6) {
-                Text("Sleep")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+            VStack(spacing: WidgetDesignTokens.Spacing.verticalSpacing) {
+                Text(WidgetContent.Labels.sleep)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize, weight: .semibold))
+                    .foregroundColor(WidgetDesignTokens.Colors.title)
                 
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: ringWidth)
+                        .stroke(WidgetDesignTokens.Colors.background, lineWidth: ringWidth)
                         .frame(width: ringSize, height: ringSize)
                     
                     if let score = entry.sleepScore {
                         Circle()
                             .trim(from: 0, to: sleepProgress)
-                            .stroke(colorForSleepScore(score), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
+                            .stroke(WidgetDesignTokens.sleepColor(for: score), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
                             .frame(width: ringSize, height: ringSize)
                             .rotationEffect(.degrees(-90))
                         
                         Text("\(score)")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(colorForSleepScore(score))
+                            .font(.system(size: WidgetDesignTokens.Typography.scoreSize, weight: .bold))
+                            .foregroundColor(WidgetDesignTokens.sleepColor(for: score))
                             .opacity(numberOpacity)
                     } else {
-                        Text("--")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.gray)
+                        Text(WidgetContent.Placeholder.noData)
+                            .font(.system(size: WidgetDesignTokens.Typography.scoreSize, weight: .bold))
+                            .foregroundColor(WidgetDesignTokens.Colors.placeholder)
                     }
                 }
                 
                 Text(sleepBandForScore(entry.sleepScore))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: WidgetDesignTokens.Typography.bandSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
             }
             
             // Strain Ring
-            VStack(spacing: 6) {
-                Text("Strain")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+            VStack(spacing: WidgetDesignTokens.Spacing.verticalSpacing) {
+                Text(WidgetContent.Labels.strain)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize, weight: .semibold))
+                    .foregroundColor(WidgetDesignTokens.Colors.title)
                 
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: ringWidth)
+                        .stroke(WidgetDesignTokens.Colors.background, lineWidth: ringWidth)
                         .frame(width: ringSize, height: ringSize)
                     
                     if let strain = entry.strainScore {
                         Circle()
                             .trim(from: 0, to: strainProgress)
-                            .stroke(colorForStrain(strain), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
+                            .stroke(WidgetDesignTokens.strainColor(for: strain), style: StrokeStyle(lineWidth: ringWidth, lineCap: .round))
                             .frame(width: ringSize, height: ringSize)
                             .rotationEffect(.degrees(-90))
                         
                         Text(String(format: "%.1f", strain))
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(colorForStrain(strain))
+                            .font(.system(size: WidgetDesignTokens.Typography.strainScoreSize, weight: .bold))
+                            .foregroundColor(WidgetDesignTokens.strainColor(for: strain))
                             .opacity(numberOpacity)
                     } else {
-                        Text("--")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.gray)
+                        Text(WidgetContent.Placeholder.noData)
+                            .font(.system(size: WidgetDesignTokens.Typography.scoreSize, weight: .bold))
+                            .foregroundColor(WidgetDesignTokens.Colors.placeholder)
                     }
                 }
                 
                 Text(strainBandForScore(entry.strainScore))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: WidgetDesignTokens.Typography.bandSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
             }
         }
         .padding()
@@ -361,8 +358,9 @@ struct MediumWidgetView: View {
     
     private func animateRings() {
         // Staggered animation like the app
-        let animationDuration = 0.84
-        let initialDelay = 0.14
+        let animationDuration = WidgetDesignTokens.Animation.duration
+        let initialDelay = WidgetDesignTokens.Animation.initialDelay
+        let staggerDelay = WidgetDesignTokens.Animation.staggerDelay
         
         // Recovery ring (first)
         if let score = entry.recoveryScore {
@@ -373,20 +371,21 @@ struct MediumWidgetView: View {
         
         // Sleep ring (second, with delay)
         if let score = entry.sleepScore {
-            withAnimation(.easeOut(duration: animationDuration).delay(initialDelay + 0.1)) {
+            withAnimation(.easeOut(duration: animationDuration).delay(initialDelay + staggerDelay)) {
                 sleepProgress = Double(score) / 100.0
             }
         }
         
         // Strain ring (third, with more delay)
         if let strain = entry.strainScore {
-            withAnimation(.easeOut(duration: animationDuration).delay(initialDelay + 0.2)) {
+            withAnimation(.easeOut(duration: animationDuration).delay(initialDelay + staggerDelay * 2)) {
                 strainProgress = min(strain / 21.0, 1.0)
             }
         }
         
         // Fade in numbers as rings complete
-        withAnimation(.easeIn(duration: 0.28).delay(initialDelay + animationDuration * 0.7)) {
+        let numberFadeStart = initialDelay + animationDuration * WidgetDesignTokens.Animation.numberFadeStartPercent
+        withAnimation(.easeIn(duration: WidgetDesignTokens.Animation.numberFadeDuration).delay(numberFadeStart)) {
             numberOpacity = 1.0
         }
     }
@@ -420,23 +419,23 @@ struct MediumWidgetView: View {
     }
     
     private func sleepBandForScore(_ score: Int?) -> String {
-        guard let score = score else { return "--" }
+        guard let score = score else { return WidgetContent.Placeholder.noData }
         switch score {
-        case 80...100: return "Optimal"
-        case 60..<80: return "Good"
-        case 40..<60: return "Fair"
-        default: return "Poor"
+        case 80...100: return WidgetContent.SleepBands.optimal
+        case 60..<80: return WidgetContent.SleepBands.good
+        case 40..<60: return WidgetContent.SleepBands.fair
+        default: return WidgetContent.SleepBands.poor
         }
     }
     
     private func strainBandForScore(_ strain: Double?) -> String {
-        guard let strain = strain else { return "--" }
+        guard let strain = strain else { return WidgetContent.Placeholder.noData }
         switch strain {
-        case 0..<4: return "Light"
-        case 4..<10: return "Moderate"
-        case 10..<14: return "High"
-        case 14..<18: return "Very High"
-        default: return "All Out"
+        case 0..<4: return WidgetContent.StrainBands.light
+        case 4..<10: return WidgetContent.StrainBands.moderate
+        case 10..<14: return WidgetContent.StrainBands.high
+        case 14..<18: return WidgetContent.StrainBands.veryHigh
+        default: return WidgetContent.StrainBands.allOut
         }
     }
 }
@@ -449,8 +448,8 @@ struct VeloReadyWidget: Widget {
             VeloReadyWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("VeloReady")
-        .description("View your recovery score at a glance")
+        .configurationDisplayName(WidgetContent.Configuration.displayName)
+        .description(WidgetContent.Configuration.description)
         .supportedFamilies([
             .systemSmall,
             .systemMedium,
