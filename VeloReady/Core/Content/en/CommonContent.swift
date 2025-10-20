@@ -82,6 +82,7 @@ enum CommonContent {
         static let miles = "mi"  /// Miles
         static let meters = "m"  /// Meters
         static let calories = "cal"  /// Calories
+        static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
     }
     
     // MARK: - Pro Features

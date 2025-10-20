@@ -67,6 +67,11 @@ enum SettingsContent {
         static let itemsCached = "Items Cached"
         static let lastUpdated = "Last Updated"
         static let clearAll = "Clear All Caches"
+        static let hitRate = "Hit Rate"
+        static let cacheHits = "Cache Hits"
+        static let cacheMisses = "Cache Misses"
+        static let deduplicated = "Deduplicated"
+        static let targetHitRate = "Target: >85% hit rate after warm-up"
     }
     
     // MARK: - Feedback
@@ -78,6 +83,47 @@ enum SettingsContent {
         static let general = "General Feedback"
         static let yourFeedback = "Your Feedback"
         static let send = "Send"
+        static let sendFeedback = "Send Feedback"
+        static let includeLogs = "Include diagnostic logs"
+        static let includeDeviceInfo = "Include device information"
+        static let logsFooter = "Logs help us diagnose issues faster. No personal data is included."
+        static let deviceInfo = "Device Information"
+        static let navigationTitle = "Send Feedback"
+        static let cancel = "Cancel"
+        static let subject = "VeloReady Feedback"
+        static let mailNotAvailable = "Mail Not Available"
+        static let ok = "OK"
+        static let mailNotAvailableMessage = "Please configure a mail account in Settings or email us at support@veloready.app"
+        static let feedbackSent = "Feedback Sent"
+        static let thankYou = "Thank you for your feedback!"
+        static let describeIssue = "Describe your issue or suggestion..."
+    }
+    
+    // MARK: - About
+    enum About {
+        static let title = "About"
+        static let version = "Version"
+        static let build = "Build"
+        static let privacyPolicy = "Privacy Policy"
+        static let termsOfService = "Terms of Service"
+        static let acknowledgments = "Acknowledgments"
+    }
+    
+    // MARK: - Debug
+    enum Debug {
+        static let title = "Debug"
+        static let clearCache = "Clear Cache"
+        static let resetData = "Reset Data"
+        static let showDebugInfo = "Show Debug Info"
+    }
+    
+    // MARK: - Appearance
+    enum Appearance {
+        static let title = "Appearance"
+        static let theme = "Theme"
+        static let light = "Light"
+        static let dark = "Dark"
+        static let automatic = "Automatic"
     }
     
     // MARK: - Sleep Settings
@@ -214,17 +260,6 @@ enum SettingsContent {
         static let scoreCalculation = "Score Calculation"  /// Score calculation header
     }
     
-    // MARK: - Athlete Zones
-    enum AthleteZones {
-        static let athlete = "Athlete:"  /// Athlete label
-        static let unknownAthlete = "Unknown"  /// Unknown athlete
-        static let syncZones = "Sync Zones"  /// Sync zones button
-        static let syncing = "Syncing..."  /// Syncing status
-        static let lastSynced = "Last synced:"  /// Last synced label
-        static let never = "Never"  /// Never synced
-        static let tapToSync = "Tap 'Sync Zones' to import your zones from Intervals.icu"  /// Sync instruction
-        static let currentBoundaries = "Current Zone Boundaries"  /// Current boundaries title
-    }
     
     // MARK: - Data Sources
     enum DataSources {
