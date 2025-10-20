@@ -109,7 +109,7 @@ struct ProFeatureToggle: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Toggle("Enable Pro Features (Testing)", isOn: $config.bypassSubscriptionForTesting)
+            Toggle(SettingsContent.DebugSettings.enableProTesting, isOn: $config.bypassSubscriptionForTesting)
                 .onChange(of: config.bypassSubscriptionForTesting) { _, newValue in
                     if newValue {
                         config.enableProForTesting()
@@ -126,7 +126,7 @@ struct ProFeatureToggle: View {
             
             Divider()
             
-            Toggle("Show Mock Data (Weekly Trends)", isOn: $config.showMockDataForTesting)
+            Toggle(SettingsContent.DebugSettings.showMockData, isOn: $config.showMockDataForTesting)
             
             if config.showMockDataForTesting {
                 Text(SettingsContent.DebugSettings.mockDataEnabled)

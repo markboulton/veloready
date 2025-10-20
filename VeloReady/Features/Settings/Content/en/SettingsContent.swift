@@ -42,6 +42,7 @@ enum SettingsContent {
         static let bmr = "BMR"  /// Basal Metabolic Rate
         static let athleticProfile = "Athletic Profile"  /// Athletic profile section
         static let editProfile = "Edit Profile"  /// Edit profile title
+        static let editProfileLabel = "Edit Profile"  /// Edit profile label
         static let age = "Age"  /// Age label
         static let strava = "Strava"  /// Strava label
         static let noConnectedServices = "No connected services"  /// No services message
@@ -396,6 +397,8 @@ enum SettingsContent {
         static let trialDaysRemaining = "Trial Days Remaining:"  /// Trial days label
         static let pro = "Pro"  /// Pro status
         static let free = "Free"  /// Free status
+        static let enableProTesting = "Enable Pro Features (Testing)"  /// Enable pro testing toggle
+        static let showMockData = "Show Mock Data (Weekly Trends)"  /// Show mock data toggle
     }
     
     // MARK: - Sleep Components
@@ -464,6 +467,8 @@ enum SettingsContent {
         static let learnsPatterns = "• Learns your unique patterns"  /// Learns patterns
         static let updatesWeekly = "• Updates weekly"  /// Updates weekly
         static let fallbackStandard = "• Falls back to standard if unavailable"  /// Fallback standard
+        static let personalizedRecovery = "Personalized Recovery"  /// Personalized recovery toggle
+        static let mlPersonalizationHeader = "ML Personalization"  /// ML personalization header label
     }
     
     // MARK: - Feedback
@@ -526,6 +531,18 @@ enum SettingsContent {
         static let sectionTitle = "AI Ride Summary"  /// Section title
         static let footer = "Test AI ride summary endpoint. PRO feature. Uses same HMAC secret as Daily Brief."  /// Section footer
         static let overrideUserNavigationTitle = "Override User ID"  /// Override user ID navigation title
+        
+        // User Override View
+        static let userIDOverrideHeader = "User ID Override"  /// User ID override section header
+        static let userIDOverrideFooter = "Override the X-User header for testing different user accounts. This affects both AI Brief and Ride Summary."  /// User ID override footer
+        static let currentValuesHeader = "Current Values"  /// Current values section header
+        static let currentValuesFooter = "'Current User ID' is what will be sent in requests. 'Actual User ID' is the device's anonymous ID."  /// Current values footer
+        static let currentUserID = "Current User ID"  /// Current user ID label
+        static let actualUserID = "Actual User ID"  /// Actual user ID label
+        static let resetToDefault = "Reset to Default"  /// Reset to default button
+        static let overrideUserIDToggle = "Override User ID"  /// Override user ID toggle
+        static let saveOverride = "Save Override"  /// Save override button
+        static let overrideSaved = "Override saved"  /// Override saved message
     }
     
     // MARK: - Score Recalculation
@@ -554,5 +571,26 @@ enum SettingsContent {
         static let connectIntervals = "Connect to Intervals.icu"  /// Connect button
         static let status = "Status:"  /// Status label
         static let accessToken = "Access Token"  /// Access token label
+        static let oauthActionsFooter = "Connect or disconnect from Intervals.icu and Strava for testing"  /// OAuth actions footer
+    }
+    
+    // MARK: - Monitoring
+    enum MonitoringDashboards {
+        static let header = "Monitoring"  /// Monitoring section header
+        static let footer = "Real-time monitoring of app services and component usage"  /// Monitoring footer
+        static let serviceHealth = "Service Health"  /// Service health title
+        static let serviceHealthDesc = "Monitor service status and connections"  /// Service health description
+        static let componentTelemetry = "Component Telemetry"  /// Component telemetry title
+        static let componentTelemetryDesc = "Track component usage statistics"  /// Component telemetry description
+        static let sportPreferences = "Sport Preferences"  /// Sport preferences title
+        static let sportPreferencesDesc = "Test sport preferences and AI integration"  /// Sport preferences description
+        static let cacheStatistics = "Cache Statistics"  /// Cache statistics title
+        static let cacheStatisticsDesc = "Monitor cache performance and hit rates"  /// Cache statistics description
+        static let mlInfrastructure = "ML Infrastructure"  /// ML infrastructure title
+        static let mlInfrastructureDesc = "Machine learning data and model status"  /// ML infrastructure description
+        static let appGroupTest = "App Group Test"  /// App group test title
+        static let appGroupTestDesc = "Test widget data sharing"  /// App group test description
     }
 }
+
+

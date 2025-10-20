@@ -859,7 +859,7 @@ struct DebugSettingsView: View {
         } header: {
             Label(DebugSettingsContent.SectionHeaders.oauthActions, systemImage: "key.horizontal")
         } footer: {
-            Text("Connect or disconnect from Intervals.icu and Strava for testing")
+            Text(SettingsContent.OAuthActions.oauthActionsFooter)
         }
     }
     
@@ -872,10 +872,10 @@ struct DebugSettingsView: View {
                     Image(systemName: "heart.text.square.fill")
                         .foregroundColor(.green)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Service Health")
+                        Text(SettingsContent.MonitoringDashboards.serviceHealth)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Monitor service status and connections")
+                        Text(SettingsContent.MonitoringDashboards.serviceHealthDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -887,10 +887,10 @@ struct DebugSettingsView: View {
                     Image(systemName: "chart.bar.fill")
                         .foregroundColor(.blue)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Component Telemetry")
+                        Text(SettingsContent.MonitoringDashboards.componentTelemetry)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Track component usage statistics")
+                        Text(SettingsContent.MonitoringDashboards.componentTelemetryDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -902,10 +902,10 @@ struct DebugSettingsView: View {
                     Image(systemName: "figure.outdoor.cycle")
                         .foregroundColor(.purple)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Sport Preferences")
+                        Text(SettingsContent.MonitoringDashboards.sportPreferences)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Test sport preferences and AI integration")
+                        Text(SettingsContent.MonitoringDashboards.sportPreferencesDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -917,10 +917,10 @@ struct DebugSettingsView: View {
                     Image(systemName: "chart.bar.doc.horizontal.fill")
                         .foregroundColor(.orange)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Cache Statistics")
+                        Text(SettingsContent.MonitoringDashboards.cacheStatistics)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Monitor cache performance and hit rates")
+                        Text(SettingsContent.MonitoringDashboards.cacheStatisticsDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -932,10 +932,10 @@ struct DebugSettingsView: View {
                     Image(systemName: "brain.head.profile")
                         .foregroundColor(.pink)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("ML Infrastructure")
+                        Text(SettingsContent.MonitoringDashboards.mlInfrastructure)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Machine learning data and model status")
+                        Text(SettingsContent.MonitoringDashboards.mlInfrastructureDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -947,19 +947,19 @@ struct DebugSettingsView: View {
                     Image(systemName: "square.grid.2x2")
                         .foregroundColor(.orange)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("App Group Test")
+                        Text(SettingsContent.MonitoringDashboards.appGroupTest)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Test widget data sharing")
+                        Text(SettingsContent.MonitoringDashboards.appGroupTestDesc)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
             }
         } header: {
-            Label("Monitoring", systemImage: "gauge.with.dots.needle.67percent")
+            Label(SettingsContent.MonitoringDashboards.header, systemImage: "gauge.with.dots.needle.67percent")
         } footer: {
-            Text("Real-time monitoring of app services and component usage")
+            Text(SettingsContent.MonitoringDashboards.footer)
         }
     }
     

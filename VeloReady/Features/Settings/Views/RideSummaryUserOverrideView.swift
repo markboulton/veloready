@@ -14,7 +14,7 @@ struct RideSummaryUserOverrideView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Override User ID", isOn: $useOverride)
+                Toggle(SettingsContent.RideSummary.overrideUserIDToggle, isOn: $useOverride)
                     .onChange(of: useOverride) { _, newValue in
                         UserDefaults.standard.set(newValue, forKey: overrideEnabledKey)
                         if !newValue {
@@ -41,7 +41,7 @@ struct RideSummaryUserOverrideView: View {
                     }) {
                         HStack {
                             Image(systemName: "checkmark.circle")
-                            Text("Save Override")
+                            Text(SettingsContent.RideSummary.saveOverride)
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -51,21 +51,21 @@ struct RideSummaryUserOverrideView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(Color.semantic.success)
-                            Text("Override saved")
+                            Text(SettingsContent.RideSummary.overrideSaved)
                                 .font(.caption)
                                 .foregroundColor(Color.semantic.success)
                         }
                     }
                 }
             } header: {
-                Label("User ID Override", systemImage: "person.crop.circle")
+                Label(SettingsContent.RideSummary.userIDOverrideHeader, systemImage: "person.crop.circle")
             } footer: {
-                Text("Override the X-User header for testing different user accounts. This affects both AI Brief and Ride Summary.")
+                Text(SettingsContent.RideSummary.userIDOverrideFooter)
             }
             
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Current User ID")
+                    Text(SettingsContent.RideSummary.currentUserID)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -75,7 +75,7 @@ struct RideSummaryUserOverrideView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Actual User ID")
+                    Text(SettingsContent.RideSummary.actualUserID)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -84,9 +84,9 @@ struct RideSummaryUserOverrideView: View {
                         .foregroundColor(.secondary)
                 }
             } header: {
-                Label("Current Values", systemImage: "info.circle")
+                Label(SettingsContent.RideSummary.currentValuesHeader, systemImage: "info.circle")
             } footer: {
-                Text("'Current User ID' is what will be sent in requests. 'Actual User ID' is the device's anonymous ID.")
+                Text(SettingsContent.RideSummary.currentValuesFooter)
             }
             
             Section {
@@ -98,7 +98,7 @@ struct RideSummaryUserOverrideView: View {
                 }) {
                     HStack {
                         Image(systemName: "arrow.counterclockwise")
-                        Text("Reset to Default")
+                        Text(SettingsContent.RideSummary.resetToDefault)
                     }
                 }
                 .buttonStyle(.bordered)

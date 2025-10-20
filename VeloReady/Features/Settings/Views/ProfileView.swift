@@ -49,7 +49,7 @@ struct ProfileView: View {
                         Button(action: {
                             showingEditProfile = true
                         }) {
-                            Label("Edit Profile", systemImage: "pencil")
+                            Label(SettingsContent.Profile.editProfileLabel, systemImage: "pencil")
                                 .font(.subheadline)
                         }
                         .buttonStyle(.bordered)

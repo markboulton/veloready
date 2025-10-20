@@ -8,7 +8,7 @@ struct MLPersonalizationSettingsView: View {
     var body: some View {
         List {
             Section {
-                Toggle("Personalized Recovery", isOn: Binding(
+                Toggle(SettingsContent.MLPersonalizationSettings.personalizedRecovery, isOn: Binding(
                     get: { mlRegistry.isMLEnabled },
                     set: { mlRegistry.setMLEnabled($0) }
                 ))
@@ -17,7 +17,7 @@ struct MLPersonalizationSettingsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             } header: {
-                Label("ML Personalization", systemImage: "sparkles")
+                Label(SettingsContent.MLPersonalizationSettings.mlPersonalizationHeader, systemImage: "sparkles")
             }
             
             Section(SettingsContent.MLPersonalizationSettings.statusSection) {
