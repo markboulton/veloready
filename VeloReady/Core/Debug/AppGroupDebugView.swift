@@ -22,7 +22,7 @@ struct AppGroupDebugView: View {
                     .foregroundColor(ColorPalette.labelSecondary)
             }
             
-            Section(CommonContent.Debug.sectionData) {
+            Section {
                 if let score = recoveryScore {
                     HStack {
                         Text(CommonContent.Debug.labelScore)
