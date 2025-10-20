@@ -350,13 +350,13 @@ struct TrainingZoneSettingsView: View {
                                 }
                                 
                                 if let lastFetch = athleteZoneService.lastFetchDate {
-                                    Text("Last synced: \(lastFetch, style: .relative)")
+                                    Text("\(SettingsContent.TrainingZones.lastSyncLabel) \(lastFetch, style: .relative)")
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
                                 }
                             }
                         } else {
-                            Text("Tap 'Sync Zones' to import your zones from Intervals.icu")
+                            Text(SettingsContent.TrainingZones.syncDescription)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

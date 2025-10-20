@@ -16,7 +16,7 @@ struct LiveCaloriesPanel: View {
                         .foregroundColor(ColorPalette.peach)
                         .font(.title2)
                     
-                    Text("Calories")
+                    Text(TodayContent.calories)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -33,7 +33,7 @@ struct LiveCaloriesPanel: View {
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
                     
-                    Text("kcal")
+                    Text(TodayContent.kcal)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
@@ -43,7 +43,7 @@ struct LiveCaloriesPanel: View {
                 }
                 
                 if let lastUpdated = liveActivityService.lastUpdated {
-                    Text("Updated \(formatLastUpdated(lastUpdated))")
+                    Text("\(TodayContent.updated) \(formatLastUpdated(lastUpdated))")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -74,7 +74,7 @@ struct LiveStepsPanel: View {
                         .foregroundColor(ColorPalette.mint)
                         .font(.title2)
                     
-                    Text("Steps")
+                    Text(TodayContent.steps)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -91,7 +91,7 @@ struct LiveStepsPanel: View {
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
                     
-                    Text("steps")
+                    Text(TodayContent.stepsUnit)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
@@ -101,7 +101,7 @@ struct LiveStepsPanel: View {
                 }
                 
                 if let lastUpdated = liveActivityService.lastUpdated {
-                    Text("Updated \(formatLastUpdated(lastUpdated))")
+                    Text("\(TodayContent.updated) \(formatLastUpdated(lastUpdated))")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }

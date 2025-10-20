@@ -17,6 +17,14 @@ enum TodayContent {
     static let activitiesSection = "Recent Activities"  /// Activities section title
     static let aiBriefSection = "AI Brief"  /// AI Brief section title
     
+    // MARK: - Live Activity
+    static let liveActivityTitle = "Live Activity"
+    static let calories = "Calories"  /// Calories label
+    static let kcal = "kcal"  /// Kilocalories unit
+    static let steps = "Steps"  /// Steps label
+    static let stepsUnit = "steps"  /// Steps unit
+    static let updated = "Updated"  /// Updated prefix
+    
     // MARK: - Empty States
     static let noActivities = "No activities today"  /// No activities message
     static let noRecentActivities = "No Recent Activities"  /// No recent activities title
