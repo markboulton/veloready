@@ -14,13 +14,13 @@ struct OvertrainingRiskCalculator {
         var description: String {
             switch self {
             case .low:
-                return "Low risk. Your body is responding well to training."
+                return TrendsContent.OvertrainingRisk.lowDescription
             case .moderate:
-                return "Moderate risk. Monitor recovery and consider easier training."
+                return TrendsContent.OvertrainingRisk.moderateDescription
             case .high:
-                return "High risk. Immediate rest or recovery week recommended."
+                return TrendsContent.OvertrainingRisk.highDescription
             case .critical:
-                return "Critical risk. Stop hard training immediately. Focus on recovery."
+                return TrendsContent.OvertrainingRisk.criticalDescription
             }
         }
         

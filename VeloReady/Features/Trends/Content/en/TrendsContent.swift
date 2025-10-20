@@ -109,6 +109,30 @@ enum TrendsContent {
     static let upgradeToPro = "Upgrade to VeloReady PRO"  /// Upgrade button
     static let bulletPoint = CommonContent.Formatting.bulletPoint
     
+    // MARK: - Training Phases
+    enum TrainingPhases {
+        // Phase Names
+        static let base = "Base"  /// Base phase
+        static let build = "Build"  /// Build phase
+        static let peak = "Peak"  /// Peak phase
+        static let recovery = "Recovery"  /// Recovery phase
+        static let transition = "Transition"  /// Transition phase
+        
+        // Phase Descriptions
+        static let baseDescription = "Base phase detected: High volume, low intensity (>70% Zone 1-2)"  /// Base description
+        static let buildDescription = "Build phase detected: Mixed intensity with threshold work (15-25% Zone 4-5)"  /// Build description
+        static let peakDescription = "Peak phase detected: High intensity, reduced volume (>25% Zone 4-7)"  /// Peak description
+        static let recoveryDescription = "Recovery phase detected: Low volume and intensity"  /// Recovery description
+        static let transitionDescription = "Transition phase: Mixed training without clear pattern"  /// Transition description
+        
+        // Recommendations
+        static let baseRecommendation = "Continue building aerobic base. Keep 70%+ time in Zone 1-2."  /// Base recommendation
+        static let buildRecommendation = "Build phase: Good mix of volume and intensity. Maintain consistency."  /// Build recommendation
+        static let peakRecommendation = "Peak phase: Race-specific intensity. Ensure adequate recovery between hard sessions."  /// Peak recommendation
+        static let recoveryRecommendation = "Recovery phase active. Consider increasing volume gradually if rested."  /// Recovery recommendation
+        static let transitionRecommendation = "No clear training phase detected. Consider following a structured training plan."  /// Transition recommendation
+    }
+    
     // MARK: - Weekly Report
     enum WeeklyReport {
         static let title = "Weekly Performance Report"  /// Weekly report title
@@ -281,12 +305,19 @@ enum TrendsContent {
         static let low = "Low"  /// Low risk
         static let moderate = "Moderate"  /// Moderate risk
         static let high = "High"  /// High risk
+        static let critical = "Critical"  /// Critical risk
         static let enablePermissions = "Enable all health permissions"
         static let requires = "Risk assessment requires:"
         static let sevenDaysRecovery = "7+ days of recovery scores"
         static let hrvData = "HRV data from Apple Health"
         static let rhrTracking = "Resting heart rate tracking"
         static let sleepDebt = "Sleep data with debt calculation"
+        
+        // Risk Descriptions
+        static let lowDescription = "Low risk. Your body is responding well to training."  /// Low risk description
+        static let moderateDescription = "Moderate risk. Monitor recovery and consider easier training."  /// Moderate risk description
+        static let highDescription = "High risk. Immediate rest or recovery week recommended."  /// High risk description
+        static let criticalDescription = "Critical risk. Stop hard training immediately. Focus on recovery."  /// Critical risk description
     }
     
     // MARK: - Training Phase Card

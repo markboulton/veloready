@@ -15,15 +15,15 @@ struct TrainingPhaseDetector {
         var description: String {
             switch self {
             case .base:
-                return "Base phase detected: High volume, low intensity (>70% Zone 1-2)"
+                return TrendsContent.TrainingPhases.baseDescription
             case .build:
-                return "Build phase detected: Mixed intensity with threshold work (15-25% Zone 4-5)"
+                return TrendsContent.TrainingPhases.buildDescription
             case .peak:
-                return "Peak phase detected: High intensity, reduced volume (>25% Zone 4-7)"
+                return TrendsContent.TrainingPhases.peakDescription
             case .recovery:
-                return "Recovery phase detected: Low volume and intensity"
+                return TrendsContent.TrainingPhases.recoveryDescription
             case .transition:
-                return "Transition phase: Mixed training without clear pattern"
+                return TrendsContent.TrainingPhases.transitionDescription
             }
         }
         
@@ -74,7 +74,7 @@ struct TrainingPhaseDetector {
                 weeklyTSS: weeklyTSS,
                 lowIntensityPercent: lowIntensityPercent,
                 highIntensityPercent: highIntensityPercent,
-                recommendation: "Continue building aerobic base. Keep 70%+ time in Zone 1-2."
+                recommendation: TrendsContent.TrainingPhases.baseRecommendation
             )
         }
         
@@ -86,7 +86,7 @@ struct TrainingPhaseDetector {
                 weeklyTSS: weeklyTSS,
                 lowIntensityPercent: lowIntensityPercent,
                 highIntensityPercent: highIntensityPercent,
-                recommendation: "Recovery phase active. Consider increasing volume gradually if rested."
+                recommendation: TrendsContent.TrainingPhases.recoveryRecommendation
             )
         }
         
@@ -98,7 +98,7 @@ struct TrainingPhaseDetector {
                 weeklyTSS: weeklyTSS,
                 lowIntensityPercent: lowIntensityPercent,
                 highIntensityPercent: highIntensityPercent,
-                recommendation: "Peak phase: Race-specific intensity. Ensure adequate recovery between hard sessions."
+                recommendation: TrendsContent.TrainingPhases.peakRecommendation
             )
         }
         
@@ -110,7 +110,7 @@ struct TrainingPhaseDetector {
                 weeklyTSS: weeklyTSS,
                 lowIntensityPercent: lowIntensityPercent,
                 highIntensityPercent: highIntensityPercent,
-                recommendation: "Build phase: Good mix of volume and intensity. Maintain consistency."
+                recommendation: TrendsContent.TrainingPhases.buildRecommendation
             )
         }
         
@@ -121,7 +121,7 @@ struct TrainingPhaseDetector {
             weeklyTSS: weeklyTSS,
             lowIntensityPercent: lowIntensityPercent,
             highIntensityPercent: highIntensityPercent,
-            recommendation: "No clear training phase detected. Consider following a structured training plan."
+            recommendation: TrendsContent.TrainingPhases.transitionRecommendation
         )
     }
 }
