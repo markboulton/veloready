@@ -93,7 +93,7 @@ struct WalkingDetailView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
                 
-                Text("Heart Rate")
+                Text(ActivityContent.HeartRate.heartRate)
                     .font(.headline)
                     .fontWeight(.semibold)
                 
@@ -101,8 +101,8 @@ struct WalkingDetailView: View {
                 
                 if let avg = viewModel.averageHeartRate, let max = viewModel.maxHeartRate {
                     HStack(spacing: 12) {
-                        Text("Avg: \(Int(avg))")
-                        Text("Max: \(Int(max))")
+                        Text("\(ActivityContent.HeartRate.avg) \(Int(avg))")
+                        Text("\(ActivityContent.HeartRate.max) \(Int(max))")
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -120,7 +120,7 @@ struct WalkingDetailView: View {
     private var workoutTypeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Workout Type")
+                Text(ActivityContent.WorkoutTypes.workoutType)
                     .font(.headline)
                     .fontWeight(.semibold)
                 
@@ -153,7 +153,7 @@ struct WalkingDetailView: View {
                         let loadLabel = trainingLoadLabel(trainingLoad)
                         
                         HStack(spacing: 4) {
-                            Text("Training Load:")
+                            Text(ActivityContent.TrainingLoad.trainingLoad)
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
                             Text(String(format: "%.1f, %@", simplifiedLoad, loadLabel))
@@ -162,7 +162,7 @@ struct WalkingDetailView: View {
                                 .foregroundColor(Color.text.primary)
                             
                             Button(action: { showingTrainingLoadInfo = true }) {
-                                Text("Learn more")
+                                Text(ActivityContent.TrainingLoad.learnMore)
                                     .font(.caption)
                                     .foregroundColor(ColorScale.blueAccent)
                             }
@@ -172,7 +172,7 @@ struct WalkingDetailView: View {
                     // Show RPE if available
                     if let rpe = rpe {
                         HStack(spacing: 4) {
-                            Text("Effort:")
+                            Text(ActivityContent.TrainingLoad.effort)
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
                             Text(String(format: "%.1f RPE", rpe))
@@ -197,7 +197,7 @@ struct WalkingDetailView: View {
                         // Show specific muscle groups
                         if !specificMuscles.isEmpty {
                             HStack(spacing: 4) {
-                                Text("Muscle Groups:")
+                                Text(ActivityContent.TrainingLoad.muscleGroups)
                                     .font(.subheadline)
                                     .foregroundColor(Color.text.secondary)
                                 Text(specificMuscles.map { $0.rawValue }.joined(separator: ", "))
@@ -210,7 +210,7 @@ struct WalkingDetailView: View {
                         // Show workout types
                         if !workoutTypes.isEmpty {
                             HStack(spacing: 4) {
-                                Text("Workout Type:")
+                                Text("\(ActivityContent.WorkoutTypes.workoutType):")
                                     .font(.subheadline)
                                     .foregroundColor(Color.text.secondary)
                                 Text(workoutTypes.map { $0.rawValue }.joined(separator: ", "))
@@ -223,7 +223,7 @@ struct WalkingDetailView: View {
                 }
             } else {
                 let _ = print("🟣 Showing 'Not specified'")
-                Text("Not specified")
+                Text(ActivityContent.WorkoutTypes.notSpecified)
                     .font(.subheadline)
                     .foregroundColor(Color.text.tertiary)
             }
@@ -235,24 +235,24 @@ struct WalkingDetailView: View {
     private var workoutTitle: String {
         switch workout.workoutActivityType {
         case .walking:
-            return "Walking"
+            return ActivityContent.WorkoutTypes.walking
         case .traditionalStrengthTraining, .functionalStrengthTraining:
-            return "Strength Training"
+            return ActivityContent.WorkoutTypes.strengthTraining
         default:
-            return "Workout"
+            return ActivityContent.WorkoutTypes.workout
         }
     }
     
     private var workoutType: String {
         switch workout.workoutActivityType {
         case .walking:
-            return "Walking"
+            return ActivityContent.WorkoutTypes.walking
         case .traditionalStrengthTraining:
-            return "Strength"
+            return ActivityContent.WorkoutTypes.strength
         case .functionalStrengthTraining:
-            return "Functional Strength"
+            return ActivityContent.WorkoutTypes.functionalStrength
         default:
-            return "Workout"
+            return ActivityContent.WorkoutTypes.workout
         }
     }
     
@@ -281,13 +281,13 @@ struct WalkingDetailView: View {
         // Research-based thresholds for strength training load
         switch load {
         case 0..<1500:
-            return "Light"
+            return ActivityContent.TrainingLoad.light
         case 1500..<3000:
-            return "Moderate"
+            return ActivityContent.TrainingLoad.moderate
         case 3000..<4500:
-            return "Hard"
+            return ActivityContent.TrainingLoad.hard
         default:
-            return "Very Hard"
+            return ActivityContent.TrainingLoad.veryHard
         }
     }
     
@@ -486,7 +486,7 @@ struct HeartRateChart: View {
         if samples.isEmpty {
             ZStack {
                 Color(.systemGray6)
-                Text("No heart rate data")
+                Text(ActivityContent.HeartRate.noHeartRateData)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

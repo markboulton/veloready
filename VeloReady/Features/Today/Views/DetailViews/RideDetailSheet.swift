@@ -94,23 +94,23 @@ struct RideDetailSheet: View {
                 GridItem(.flexible())
             ], spacing: 16) {
                 RideMetricCard(
-                    title: "Duration",
+                    title: ActivityContent.Metrics.duration,
                     value: formatDuration(activity.duration ?? 0)
                 )
                 
                 RideMetricCard(
-                    title: "Distance",
+                    title: ActivityContent.Metrics.distance,
                     value: formatDistance(activity.distance ?? 0)
                 )
                 
                 RideMetricCard(
-                    title: "Intensity",
+                    title: ActivityContent.Metrics.intensity,
                     value: activity.intensityFactor != nil ? formatIntensity(activity.intensityFactor!) : "N/A"
                 )
                 .opacity(activity.intensityFactor != nil ? 1.0 : 0.5)
                 
                 RideMetricCard(
-                    title: "Load",
+                    title: ActivityContent.Metrics.load,
                     value: activity.tss != nil ? formatLoad(activity.tss!) : "N/A"
                 )
                 .opacity(activity.tss != nil ? 1.0 : 0.5)
@@ -124,12 +124,12 @@ struct RideDetailSheet: View {
                             .foregroundColor(.orange)
                             .font(.caption)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("FTP Required")
+                            Text(ActivityContent.FTPWarnings.ftpRequired)
                                 .font(.caption)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.orange)
                             NavigationLink(destination: AthleteZonesSettingsView()) {
-                                Text("Set FTP in Settings to see TSS and Intensity")
+                                Text(ActivityContent.FTPWarnings.setFTPMessage)
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -148,13 +148,13 @@ struct RideDetailSheet: View {
     
     private var hrZoneChartSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Heart Rate Zones")
+            Text(ActivityContent.Zones.heartRateZones)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // Real HR Zone Chart
             VStack(spacing: 12) {
-                Text("HR Zone Distribution")
+                Text(ActivityContent.Zones.hrZoneDistribution)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
@@ -225,7 +225,7 @@ struct RideDetailSheet: View {
                         }
                         .cornerRadius(2)
                         .overlay(
-                            Text("Mock HR Data")
+                            Text(ActivityContent.Zones.mockHRData)
                                 .font(.caption2)
                                 .foregroundColor(Color.development.mockDataIndicator)
                                 .padding(2)
@@ -269,13 +269,13 @@ struct RideDetailSheet: View {
     
     private var powerZoneChartSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Power Zones")
+            Text(ActivityContent.Zones.powerZones)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // Real Power Zone Chart based on actual data
             VStack(spacing: 12) {
-                Text("Power Zone Distribution")
+                Text(ActivityContent.Zones.powerZoneDistribution)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
@@ -332,7 +332,7 @@ struct RideDetailSheet: View {
                         HStack(spacing: 8) {
                             Image(systemName: "bolt.slash.fill")
                                 .foregroundColor(.orange)
-                            Text("Power zones not available")
+                            Text(ActivityContent.powerZonesNotAvailable)
                                 .font(.callout)
                                 .foregroundColor(.secondary)
                         }
@@ -345,7 +345,7 @@ struct RideDetailSheet: View {
                             NavigationLink(destination: AthleteZonesSettingsView()) {
                                 HStack {
                                     Image(systemName: "gear")
-                                    Text("Set FTP in Settings to see power zones")
+                                    Text(ActivityContent.FTPWarnings.setFTPForZones)
                                         .font(.caption)
                                 }
                                 .foregroundColor(.blue)
@@ -368,21 +368,21 @@ struct RideDetailSheet: View {
     
     private var timeInZoneTablesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Time in Zones")
+            Text(ActivityContent.Zones.timeInZones)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             VStack(spacing: 16) {
                 // Heart Rate Zones Table
                 timeInZoneTable(
-                    title: "Heart Rate Zones",
+                    title: ActivityContent.Zones.heartRateZones,
                     zones: hrZoneData,
                     colorScheme: hrZoneColors
                 )
                 
                 // Power Zones Table
                 timeInZoneTable(
-                    title: "Power Zones",
+                    title: ActivityContent.Zones.powerZones,
                     zones: powerZoneData,
                     colorScheme: powerZoneColors
                 )
@@ -518,11 +518,11 @@ struct RideDetailSheet: View {
     }
     
     private var hrZoneNames: [String] {
-        ["Zone 1 (Recovery)", "Zone 2 (Endurance)", "Zone 3 (Tempo)", "Zone 4 (Threshold)", "Zone 5 (VO2 Max)"]
+        [ActivityContent.Zones.hrZone1, ActivityContent.Zones.hrZone2, ActivityContent.Zones.hrZone3, ActivityContent.Zones.hrZone4, ActivityContent.Zones.hrZone5]
     }
     
     private var powerZoneNames: [String] {
-        ["Zone 1 (Active Recovery)", "Zone 2 (Endurance)", "Zone 3 (Tempo)", "Zone 4 (Threshold)", "Zone 5 (VO2 Max)"]
+        [ActivityContent.Zones.powerZone1, ActivityContent.Zones.powerZone2, ActivityContent.Zones.powerZone3, ActivityContent.Zones.powerZone4, ActivityContent.Zones.powerZone5]
     }
     
     private func formatTimeFromSeconds(_ seconds: Double) -> String {
@@ -568,9 +568,9 @@ struct RideDetailSheet: View {
         timeFormatter.dateFormat = "h:mm a"
         
         if calendar.isDateInToday(date) {
-            return "Today at \(timeFormatter.string(from: date))"
+            return "\(ActivityContent.DateFormat.today) \(timeFormatter.string(from: date))"
         } else if calendar.isDateInYesterday(date) {
-            return "Yesterday at \(timeFormatter.string(from: date))"
+            return "\(ActivityContent.DateFormat.yesterday) \(timeFormatter.string(from: date))"
         } else {
             let dateTimeFormatter = DateFormatter()
             dateTimeFormatter.dateFormat = "MMM d 'at' h:mm a"

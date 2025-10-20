@@ -178,11 +178,11 @@ struct RecoveryDetailView: View {
                     .fontWeight(.medium)
                 
                 if hasBaseline {
-                    Text("Weight: \(weight)")
+                    Text("\(RecoveryContent.HealthMetrics.weight) \(weight)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } else {
-                    Text("Weight: \(weight) • Calculating baseline...")
+                    Text("\(RecoveryContent.HealthMetrics.weight) \(weight) • \(RecoveryContent.HealthMetrics.calculatingBaseline)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -202,7 +202,7 @@ struct RecoveryDetailView: View {
     
     private var healthMetricsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Apple Health Data")
+            Text(RecoveryContent.appleHealthTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -210,7 +210,7 @@ struct RecoveryDetailView: View {
                 if let hrv = recoveryScore.inputs.hrv {
                     if let hrvBaseline = recoveryScore.inputs.hrvBaseline {
                         healthMetricRow(
-                            title: "HRV (RMSSD)",
+                            title: RecoveryContent.HealthMetrics.hrvRMSSD,
                             current: String(format: "%.1f ms", hrv),
                             baseline: String(format: "%.1f ms", hrvBaseline),
                             change: calculatePercentageChange(current: hrv, baseline: hrvBaseline),
@@ -219,7 +219,7 @@ struct RecoveryDetailView: View {
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
-                            title: "HRV (RMSSD)",
+                            title: RecoveryContent.HealthMetrics.hrvRMSSD,
                             current: String(format: "%.1f ms", hrv),
                             icon: "heart.fill",
                             color: ColorScale.greenAccent
@@ -230,7 +230,7 @@ struct RecoveryDetailView: View {
                 if let rhr = recoveryScore.inputs.rhr {
                     if let rhrBaseline = recoveryScore.inputs.rhrBaseline {
                         healthMetricRow(
-                            title: "Resting Heart Rate",
+                            title: RecoveryContent.HealthMetrics.restingHeartRate,
                             current: String(format: "%.0f bpm", rhr),
                             baseline: String(format: "%.0f bpm", rhrBaseline),
                             change: calculatePercentageChange(current: rhr, baseline: rhrBaseline),
@@ -239,7 +239,7 @@ struct RecoveryDetailView: View {
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
-                            title: "Resting Heart Rate",
+                            title: RecoveryContent.HealthMetrics.restingHeartRate,
                             current: String(format: "%.0f bpm", rhr),
                             icon: "heart.circle.fill",
                             color: ColorScale.redAccent
@@ -249,7 +249,7 @@ struct RecoveryDetailView: View {
                 
                 if let sleep = recoveryScore.inputs.sleepDuration, let sleepBaseline = recoveryScore.inputs.sleepBaseline {
                     healthMetricRow(
-                        title: "Sleep Duration",
+                        title: RecoveryContent.HealthMetrics.sleepDuration,
                         current: formatDuration(sleep),
                         baseline: formatDuration(sleepBaseline),
                         change: calculatePercentageChange(current: sleep, baseline: sleepBaseline),
@@ -277,11 +277,11 @@ struct RecoveryDetailView: View {
                     .fontWeight(.medium)
                 
                 HStack {
-                    Text("Current: \(current)")
+                    Text("\(RecoveryContent.HealthMetrics.current) \(current)")
                         .font(.caption)
                         .foregroundColor(.primary)
                     
-                    Text("• Baseline: \(baseline)")
+                    Text("• \(RecoveryContent.HealthMetrics.baseline) \(baseline)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -308,11 +308,11 @@ struct RecoveryDetailView: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                Text("Current: \(current)")
+                Text("\(RecoveryContent.HealthMetrics.current) \(current)")
                     .font(.caption)
                     .foregroundColor(.primary)
                 
-                Text("Baseline will be available after 7 days")
+                Text(RecoveryContent.HealthMetrics.baselineAvailable)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .italic()
@@ -335,7 +335,7 @@ struct RecoveryDetailView: View {
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text("Training Load Ratio")
+                Text(RecoveryContent.HealthMetrics.trainingLoadRatio)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
@@ -567,7 +567,7 @@ struct RecoveryDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(debt.band.colorToken)
                         
-                        Text("\(debt.consecutiveDays) consecutive days below 60")
+                        Text("\(debt.consecutiveDays) \(RecoveryContent.RecoveryDebt.consecutiveDays)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -592,8 +592,8 @@ struct RecoveryDetailView: View {
                 // Check data availability
                 dataAvailabilityMessage(
                     requiredDays: 7,
-                    metricName: "Recovery Debt",
-                    description: "Tracks consecutive days of suboptimal recovery to prevent overtraining"
+                    metricName: RecoveryContent.NewMetrics.recoveryDebt,
+                    description: RecoveryContent.RecoveryDebt.description
                 )
             }
         }
@@ -619,7 +619,7 @@ struct RecoveryDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(readiness.band.colorToken)
                         
-                        Text("Recovery \(readiness.components.recoveryScore) • Sleep \(readiness.components.sleepScore) • Load \(readiness.components.loadReadiness)")
+                        Text("\(RecoveryContent.Readiness.recovery) \(readiness.components.recoveryScore) • \(RecoveryContent.Readiness.sleep) \(readiness.components.sleepScore) • \(RecoveryContent.Readiness.load) \(readiness.components.loadReadiness)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -643,8 +643,8 @@ struct RecoveryDetailView: View {
             } else {
                 dataAvailabilityMessage(
                     requiredDays: 1,
-                    metricName: "Readiness",
-                    description: "Combines recovery, sleep, and training load for actionable training guidance"
+                    metricName: ReadinessContent.title,
+                    description: RecoveryContent.Readiness.description
                 )
             }
         }
@@ -670,7 +670,7 @@ struct RecoveryDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(resilience.band.colorToken)
                         
-                        Text("30-day recovery capacity")
+                        Text(RecoveryContent.Resilience.capacityLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -687,7 +687,7 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Avg Recovery: \(String(format: "%.0f", resilience.averageRecovery)) • Avg Load: \(String(format: "%.1f", resilience.averageLoad))")
+                Text("\(RecoveryContent.Resilience.avgRecovery) \(String(format: "%.0f", resilience.averageRecovery)) • \(RecoveryContent.Resilience.avgLoad) \(String(format: "%.1f", resilience.averageLoad))")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
@@ -699,8 +699,8 @@ struct RecoveryDetailView: View {
             } else {
                 dataAvailabilityMessage(
                     requiredDays: 30,
-                    metricName: "Resilience",
-                    description: "Analyzes your recovery capacity relative to training load over 30 days"
+                    metricName: RecoveryContent.NewMetrics.resilience,
+                    description: RecoveryContent.Resilience.description
                 )
             }
         }
@@ -733,12 +733,12 @@ struct RecoveryDetailView: View {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.secondary)
                         
-                        Text("Pull to refresh")
+                        Text(RecoveryContent.DataAvailability.pullToRefresh)
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
                     
-                    Text("You have \(availableDays) days of data. \(description)")
+                    Text("\(RecoveryContent.DataAvailability.youHave) \(availableDays) \(RecoveryContent.DataAvailability.daysOfData) \(description)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -751,7 +751,7 @@ struct RecoveryDetailView: View {
                     Image(systemName: "clock.fill")
                         .foregroundColor(.secondary)
                     
-                    Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                    Text("\(RecoveryContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? RecoveryContent.DataAvailability.day : RecoveryContent.DataAvailability.days)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
@@ -761,7 +761,7 @@ struct RecoveryDetailView: View {
                     .foregroundColor(.secondary)
                 
                 HStack(spacing: 4) {
-                    Text("\(availableDays) of \(requiredDays) days")
+                    Text("\(availableDays) \(RecoveryContent.DataAvailability.of) \(requiredDays) \(RecoveryContent.DataAvailability.days)")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)

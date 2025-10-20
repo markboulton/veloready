@@ -91,11 +91,11 @@ struct SleepDetailView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("No sleep data from last night")
+                Text(SleepContent.Warnings.noSleepDataTitle)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Text("Sleep score is unavailable. Wear your Apple Watch tonight to track sleep and get complete recovery analysis tomorrow.")
+                Text(SleepContent.Warnings.noSleepDataMessage)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -139,35 +139,35 @@ struct SleepDetailView: View {
                     title: SleepContent.Components.performance,
                     score: sleepScore.subScores.performance,
                     weight: SleepContent.Weights.performance,
-                    description: "Actual sleep vs. sleep need"
+                    description: SleepContent.ComponentDescriptions.performance
                 )
                 
                 ScoreBreakdownRow(
                     title: SleepContent.Components.efficiency,
                     score: sleepScore.subScores.efficiency,
                     weight: SleepContent.Weights.efficiency,
-                    description: "Time asleep vs. time in bed"
+                    description: SleepContent.ComponentDescriptions.efficiency
                 )
                 
                 ScoreBreakdownRow(
                     title: SleepContent.Components.stageQuality,
                     score: sleepScore.subScores.stageQuality,
                     weight: SleepContent.Weights.stageQuality,
-                    description: "Deep + REM sleep percentage"
+                    description: SleepContent.ComponentDescriptions.stageQuality
                 )
                 
                 ScoreBreakdownRow(
                     title: SleepContent.Components.disturbances,
                     score: sleepScore.subScores.disturbances,
                     weight: SleepContent.Weights.disturbances,
-                    description: "Number of wake events"
+                    description: SleepContent.ComponentDescriptions.disturbances
                 )
                 
                 ScoreBreakdownRow(
                     title: SleepContent.Components.timing,
                     score: sleepScore.subScores.timing,
                     weight: SleepContent.Weights.timing,
-                    description: "Bedtime/wake time consistency"
+                    description: SleepContent.ComponentDescriptions.timing
                 )
                 
             }
@@ -176,7 +176,7 @@ struct SleepDetailView: View {
     
     private var hypnogramSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Sleep Stages Over Time")
+            Text(SleepContent.hypnogramTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -189,7 +189,7 @@ struct SleepDetailView: View {
                     nightEnd: wakeTime
                 )
             } else {
-                Text("No detailed sleep stage data available")
+                Text(SleepContent.Warnings.noDetailedData)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -247,7 +247,7 @@ struct SleepDetailView: View {
                 )
                 
                 SleepMetricCard(
-                    title: "Sleep Need",
+                    title: SleepContent.Metrics.sleepNeed,
                     value: sleepScore.formattedSleepNeed,
                     icon: "target",
                     color: ColorScale.sleepDeep
@@ -261,14 +261,14 @@ struct SleepDetailView: View {
                 )
                 
                 SleepMetricCard(
-                    title: "Wake Events",
+                    title: SleepContent.Metrics.wakeEvents,
                     value: sleepScore.formattedWakeEvents,
                     icon: "exclamationmark.triangle.fill",
                     color: .red  // Keep red as RAG status indicator
                 )
                 
                 SleepMetricCard(
-                    title: "Deep Sleep",
+                    title: SleepContent.Metrics.deepSleep,
                     value: sleepScore.formattedDeepSleepPercentage,
                     icon: "waveform.path.ecg",
                     color: ColorScale.sleepDeep
@@ -279,7 +279,7 @@ struct SleepDetailView: View {
     
     private var sleepStagesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Sleep Stages")
+            Text(SleepContent.stagesTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -287,7 +287,7 @@ struct SleepDetailView: View {
                 VStack(spacing: 12) {
                     if let deepDuration = sleepScore.inputs.deepSleepDuration {
                         SleepStageRow(
-                            title: "Deep Sleep",
+                            title: SleepContent.Stages.deep,
                             duration: deepDuration,
                             totalDuration: sleepDuration,
                             color: ColorScale.sleepDeep
@@ -296,7 +296,7 @@ struct SleepDetailView: View {
                     
                     if let remDuration = sleepScore.inputs.remSleepDuration {
                         SleepStageRow(
-                            title: "REM Sleep",
+                            title: SleepContent.Stages.rem,
                             duration: remDuration,
                             totalDuration: sleepDuration,
                             color: ColorScale.sleepREM
@@ -305,7 +305,7 @@ struct SleepDetailView: View {
                     
                     if let coreDuration = sleepScore.inputs.coreSleepDuration {
                         SleepStageRow(
-                            title: "Core Sleep",
+                            title: SleepContent.Stages.core,
                             duration: coreDuration,
                             totalDuration: sleepDuration,
                             color: ColorScale.sleepCore
@@ -314,7 +314,7 @@ struct SleepDetailView: View {
                     
                     if let awakeDuration = sleepScore.inputs.awakeDuration {
                         SleepStageRow(
-                            title: "Awake",
+                            title: SleepContent.Stages.awake,
                             duration: awakeDuration,
                             totalDuration: sleepDuration,
                             color: ColorScale.sleepAwake
@@ -322,7 +322,7 @@ struct SleepDetailView: View {
                     }
                 }
             } else {
-                Text("No sleep stage data available")
+                Text(SleepContent.Warnings.noStageData)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -332,7 +332,7 @@ struct SleepDetailView: View {
     
     private var recommendationsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Recommendations")
+            Text(SleepContent.recommendationsTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -360,32 +360,32 @@ struct SleepDetailView: View {
         
         // Performance recommendations
         if sleepScore.subScores.performance < 70 {
-            recommendations.append("Try to get closer to your sleep target of \(sleepScore.formattedSleepNeed)")
+            recommendations.append("\(SleepContent.Recommendations.targetSleep) \(sleepScore.formattedSleepNeed)")
         }
         
         // Efficiency recommendations
         if sleepScore.subScores.efficiency < 70 {
-            recommendations.append("Improve sleep efficiency by reducing time spent awake in bed")
+            recommendations.append(SleepContent.Recommendations.improveEfficiency)
         }
         
         // Stage quality recommendations
         if sleepScore.subScores.stageQuality < 70 {
-            recommendations.append("Focus on getting more deep and REM sleep through better sleep hygiene")
+            recommendations.append(SleepContent.Recommendations.focusOnStages)
         }
         
         // Disturbance recommendations
         if sleepScore.subScores.disturbances < 70 {
-            recommendations.append("Reduce sleep disturbances by creating a more comfortable sleep environment")
+            recommendations.append(SleepContent.Recommendations.reduceDisturbances)
         }
         
         // Timing recommendations
         if sleepScore.subScores.timing < 70 {
-            recommendations.append("Maintain consistent bedtime and wake times for better sleep quality")
+            recommendations.append(SleepContent.Recommendations.consistentTiming)
         }
         
         // Default recommendation if all scores are good
         if recommendations.isEmpty {
-            recommendations.append("Great sleep quality! Keep up the good sleep habits.")
+            recommendations.append(SleepContent.Recommendations.goodQuality)
         }
         
         return recommendations
@@ -471,7 +471,7 @@ struct SleepDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(debt.band.colorToken)
                         
-                        Text("7-day cumulative deficit")
+                        Text(SleepContent.SleepDebt.cumulativeDeficit)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -488,7 +488,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Avg sleep: \(String(format: "%.1fh", debt.averageSleepDuration)) • Need: \(String(format: "%.1fh", debt.sleepNeed))")
+                Text("\(SleepContent.SleepDebt.avgSleep) \(String(format: "%.1fh", debt.averageSleepDuration)) • \(SleepContent.SleepDebt.need) \(String(format: "%.1fh", debt.sleepNeed))")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
@@ -504,8 +504,8 @@ struct SleepDetailView: View {
             } else {
                 sleepDataAvailabilityMessage(
                     requiredDays: 7,
-                    metricName: "Sleep Debt",
-                    description: "Tracks cumulative sleep deficit to identify recovery needs"
+                    metricName: SleepContent.NewMetrics.sleepDebt,
+                    description: SleepContent.DataAvailability.sleepDebtDescription
                 )
             }
         }
@@ -530,7 +530,7 @@ struct SleepDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(consistency.band.colorToken)
                         
-                        Text("Circadian rhythm health")
+                        Text(SleepContent.Consistency.circadianHealth)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -547,7 +547,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Schedule Variability: Bedtime ±\(Int(consistency.bedtimeVariability))min • Wake ±\(Int(consistency.wakeTimeVariability))min")
+                Text("\(SleepContent.Consistency.scheduleVariability) ±\(Int(consistency.bedtimeVariability))min • \(SleepContent.Consistency.wake) ±\(Int(consistency.wakeTimeVariability))min")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 4)
@@ -563,8 +563,8 @@ struct SleepDetailView: View {
             } else {
                 sleepDataAvailabilityMessage(
                     requiredDays: 7,
-                    metricName: "Sleep Consistency",
-                    description: "Measures circadian rhythm health via sleep schedule variability"
+                    metricName: SleepContent.NewMetrics.consistency,
+                    description: SleepContent.DataAvailability.consistencyDescription
                 )
             }
         }
@@ -593,7 +593,7 @@ struct SleepDetailView: View {
         
         return AnyView(
             VStack(alignment: .leading, spacing: 8) {
-                Text("7-Day Sleep Quality Trend")
+                Text(SleepContent.SleepDebt.trendTitle)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
@@ -626,7 +626,7 @@ struct SleepDetailView: View {
                     Circle()
                         .fill(ColorScale.greenAccent)
                         .frame(width: 6, height: 6)
-                    Text("Optimal")
+                    Text(SleepContent.SleepDebt.optimal)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     
@@ -635,7 +635,7 @@ struct SleepDetailView: View {
                     Circle()
                         .fill(ColorScale.yellowAccent)
                         .frame(width: 6, height: 6)
-                    Text("Good")
+                    Text(SleepContent.SleepDebt.good)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     
@@ -644,7 +644,7 @@ struct SleepDetailView: View {
                     Circle()
                         .fill(ColorScale.amberAccent)
                         .frame(width: 6, height: 6)
-                    Text("Fair")
+                    Text(SleepContent.SleepDebt.fair)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -681,7 +681,7 @@ struct SleepDetailView: View {
         
         return AnyView(
             VStack(alignment: .leading, spacing: 8) {
-                Text("7-Day Sleep Score Pattern")
+                Text(SleepContent.Consistency.patternTitle)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
@@ -709,7 +709,7 @@ struct SleepDetailView: View {
                 }
                 .frame(height: 60)
                 
-                Text("Dots show deviation from average score")
+                Text(SleepContent.Consistency.deviationNote)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -743,12 +743,12 @@ struct SleepDetailView: View {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.secondary)
                         
-                        Text("Pull to refresh")
+                        Text(SleepContent.DataAvailability.pullToRefresh)
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
                     
-                    Text("You have \(availableDays) days of data. \(description)")
+                    Text("\(SleepContent.DataAvailability.youHave) \(availableDays) \(SleepContent.DataAvailability.daysOfData) \(description)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -761,7 +761,7 @@ struct SleepDetailView: View {
                     Image(systemName: "clock.fill")
                         .foregroundColor(.secondary)
                     
-                    Text("Check back in \(daysRemaining) \(daysRemaining == 1 ? "day" : "days")")
+                    Text("\(SleepContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? SleepContent.DataAvailability.day : SleepContent.DataAvailability.days)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
@@ -771,7 +771,7 @@ struct SleepDetailView: View {
                     .foregroundColor(.secondary)
                 
                 HStack(spacing: 4) {
-                    Text("\(availableDays) of \(requiredDays) days")
+                    Text("\(availableDays) \(SleepContent.DataAvailability.of) \(requiredDays) \(SleepContent.DataAvailability.days)")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)

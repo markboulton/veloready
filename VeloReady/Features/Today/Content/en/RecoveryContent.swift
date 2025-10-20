@@ -9,6 +9,7 @@ enum RecoveryContent {
     static let factorsTitle = "Recovery Factors"  /// Factors section title
     static let metricsTitle = "Health Metrics"  /// Metrics section title
     static let trendTitle = "Recovery Trend"  /// Trend chart title (period shown in selector)
+    static let appleHealthTitle = "Apple Health Data"  /// Apple Health section title
     
     // MARK: - Metrics
     enum Metrics {
@@ -69,6 +70,14 @@ enum RecoveryContent {
         static let baselineRHR = "Baseline RHR"  /// Baseline RHR label
         static let sleepDuration = "Sleep Duration"  /// Sleep duration label
         static let sleepTarget = "Sleep Target"  /// Sleep target label
+        static let hrvRMSSD = "HRV (RMSSD)"  /// HRV RMSSD label
+        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate label
+        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio label
+        static let current = "Current:"  /// Current prefix
+        static let baseline = "Baseline:"  /// Baseline prefix
+        static let weight = "Weight:"  /// Weight prefix
+        static let calculatingBaseline = "Calculating baseline..."  /// Calculating baseline message
+        static let baselineAvailable = "Baseline will be available after 7 days"  /// Baseline availability message
     }
     
     // MARK: - Alerts
@@ -83,4 +92,37 @@ enum RecoveryContent {
     // MARK: - Pro Features
     static let weeklyTrendFeature = "Weekly Recovery Trend"  /// Pro feature name
     static let weeklyTrendDescription = "Track your recovery score over the past 7 days"  /// Pro feature description
+    
+    // MARK: - Recovery Debt
+    enum RecoveryDebt {
+        static let consecutiveDays = "consecutive days below 60"  /// Consecutive days label
+        static let description = "Tracks consecutive days of suboptimal recovery to prevent overtraining"  /// Recovery debt description
+    }
+    
+    // MARK: - Resilience
+    enum Resilience {
+        static let capacityLabel = "30-day recovery capacity"  /// Capacity label
+        static let avgRecovery = "Avg Recovery:"  /// Average recovery label
+        static let avgLoad = "Avg Load:"  /// Average load label
+        static let description = "Analyzes your recovery capacity relative to training load over 30 days"  /// Resilience description
+    }
+    
+    // MARK: - Readiness
+    enum Readiness {
+        static let description = "Combines recovery, sleep, and training load for actionable training guidance"  /// Readiness description
+        static let recovery = "Recovery"  /// Recovery component
+        static let sleep = "Sleep"  /// Sleep component
+        static let load = "Load"  /// Load component
+    }
+    
+    // MARK: - Data Availability
+    enum DataAvailability {
+        static let pullToRefresh = "Pull to refresh"  /// Pull to refresh message
+        static let youHave = "You have"  /// You have prefix
+        static let daysOfData = "days of data."  /// Days of data suffix
+        static let checkBackIn = "Check back in"  /// Check back prefix
+        static let day = "day"  /// Singular day
+        static let days = "days"  /// Plural days
+        static let of = "of"  /// Of label (e.g., "5 of 7 days")
+    }
 }
