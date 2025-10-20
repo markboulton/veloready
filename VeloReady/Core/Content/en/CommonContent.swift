@@ -66,6 +66,17 @@ enum CommonContent {
         static let calories = "cal"  /// Calories
     }
     
+    // MARK: - Workout & RPE
+    static let workoutDetails = "Workout Details"
+    static let rateEffort = "Rate your effort and select muscle groups trained"
+    static let effortLevel = "Effort Level"
+    static let muscleGroupsOptional = "Muscle Groups (Optional)"
+    
+    enum RPE {
+        static let veryLight = "1 - Very Light"
+        static let maximum = "10 - Maximum"
+    }
+    
     // MARK: - Days of Week
     enum Days {
         static let monday = "Monday"  /// Monday

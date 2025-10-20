@@ -33,12 +33,12 @@ struct RPEInputSheet: View {
                 VStack(spacing: 24) {
                     // Header
                     VStack(spacing: 8) {
-                        Text("Workout Details")
+                        Text(CommonContent.workoutDetails)
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.text.primary)
                         
-                        Text("Rate your effort and select muscle groups trained")
+                        Text(CommonContent.rateEffort)
                             .font(.subheadline)
                             .foregroundColor(Color.text.secondary)
                             .multilineTextAlignment(.center)
@@ -60,7 +60,7 @@ struct RPEInputSheet: View {
                 
                 // Slider with custom styling
                 VStack(spacing: 16) {
-                    Text("Effort Level")
+                    Text(CommonContent.effortLevel)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -71,11 +71,11 @@ struct RPEInputSheet: View {
                         .padding(.horizontal)
                     
                     HStack {
-                        Text("1 - Very Light")
+                        Text(CommonContent.RPE.veryLight)
                             .font(.caption)
                             .foregroundColor(Color.text.secondary)
                         Spacer()
-                        Text("10 - Maximum")
+                        Text(CommonContent.RPE.maximum)
                             .font(.caption)
                             .foregroundColor(Color.text.secondary)
                     }
@@ -95,7 +95,7 @@ struct RPEInputSheet: View {
                 
                 // Muscle Groups Selection
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Muscle Groups (Optional)")
+                    Text(CommonContent.muscleGroupsOptional)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .padding(.horizontal)
