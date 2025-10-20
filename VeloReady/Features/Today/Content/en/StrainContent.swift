@@ -83,4 +83,17 @@ enum StrainContent {
     static let loadComponents = "Load Components"  /// Load components section
     static let activitySummary = "Activity Summary"  /// Activity summary section
     static let dailyBreakdown = "Daily Breakdown"  /// Daily breakdown section
+    static let recoveryModulation = "Recovery Modulation"  /// Recovery modulation section
+    static let recommendations = "Recommendations"  /// Recommendations section
+    
+    // MARK: - Empty States
+    static let noData = CommonContent.States.noData  /// No data message
+    
+    // MARK: - Recovery Modulation
+    enum RecoveryModulation {
+        static let title = "Recovery Modulation"  /// Title
+        static let description = "How recovery affects your load"  /// Description
+        static let recoveryFactor = "Recovery Factor"  /// Recovery factor label
+        static let adjustsLoad = "Adjusts Load"  /// Adjusts load label
+    }
 }

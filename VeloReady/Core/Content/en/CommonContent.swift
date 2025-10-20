@@ -65,6 +65,9 @@ enum CommonContent {
         static let connectedSources = "Connected Sources"  /// Connected sources label
     }
     
+    // MARK: - Common States (top-level for backward compatibility)
+    static let loading = States.loading  /// Loading state (alias)
+    
     // MARK: - Time
     static let today = "Today"  /// Today label
     static let yesterday = "Yesterday"  /// Yesterday label

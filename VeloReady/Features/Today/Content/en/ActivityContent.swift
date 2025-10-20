@@ -130,9 +130,11 @@ enum ActivityContent {
     
     // MARK: - Details
     enum Details {
+        static let title = "Details"  /// Details title
         static let overview = "Overview"  /// Overview section
         static let metrics = "Metrics"  /// Metrics section
         static let zones = "Zones"  /// Zones section
         static let map = "Map"  /// Map section
+        static let dateAndTime = "Date & Time"  /// Date and time label
     }
 }

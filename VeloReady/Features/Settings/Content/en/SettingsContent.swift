@@ -282,6 +282,7 @@ enum SettingsContent {
         static let disconnect = CommonContent.Actions.disconnect
         static let reconnect = CommonContent.Actions.reconnect
         static let status = "Status"  /// Status label
+        static let provides = "Provides"  /// Provides label
     }
     
     // MARK: - iCloud

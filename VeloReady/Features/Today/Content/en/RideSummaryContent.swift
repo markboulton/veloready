@@ -8,11 +8,14 @@ enum RideSummaryContent {
     
     // MARK: - States
     static let analyzing = CommonContent.States.analyzing  /// Analyzing message
+    static let loading = "Generating AI insights..."  /// Loading message
     static let retry = "Retry"  /// Retry button
     static let bulletPoint = "•"  /// Bullet point
     
     // MARK: - Sections
     static let strengths = "Strengths"  /// Strengths section title
+    static let areasToImprove = "Areas to Improve"  /// Areas to improve section
+    static let nextSteps = "Next Steps"  /// Next steps section
     
     // MARK: - Execution Score
     enum ExecutionScore {
