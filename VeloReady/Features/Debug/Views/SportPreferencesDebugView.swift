@@ -10,7 +10,7 @@ struct SportPreferencesDebugView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Current Settings
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Current Sport Preferences")
+                    Text(DebugContent.SportPreferences.currentPrefs)
                         .font(.headline)
                     
                     Text("Primary Sport: \(userSettings.primarySport.displayName)")
@@ -38,45 +38,45 @@ struct SportPreferencesDebugView: View {
                 
                 // Test Buttons
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Test Actions")
+                    Text(DebugContent.SportPreferences.testActions)
                         .font(.headline)
                     
-                    Button("Set Cycling Primary") {
+                    Button(DebugContent.SportPreferences.setCycling) {
                         let newPrefs = SportPreferences(primarySport: .cycling)
                         userSettings.sportPreferences = newPrefs
                         testOutput = "✅ Set cycling as primary"
                     }
                     .buttonStyle(.bordered)
                     
-                    Button("Set Strength Primary") {
+                    Button(DebugContent.SportPreferences.setStrength) {
                         let newPrefs = SportPreferences(primarySport: .strength)
                         userSettings.sportPreferences = newPrefs
                         testOutput = "✅ Set strength as primary"
                     }
                     .buttonStyle(.bordered)
                     
-                    Button("Set General Primary") {
+                    Button(DebugContent.SportPreferences.setGeneral) {
                         let newPrefs = SportPreferences(primarySport: .general)
                         userSettings.sportPreferences = newPrefs
                         testOutput = "✅ Set general as primary"
                     }
                     .buttonStyle(.bordered)
                     
-                    Button("Set Full Ranking (Cycling → Strength → General)") {
+                    Button(DebugContent.SportPreferences.setFullRanking) {
                         let newPrefs = SportPreferences(orderedSports: [.cycling, .strength, .general])
                         userSettings.sportPreferences = newPrefs
                         testOutput = "✅ Set full ranking"
                     }
                     .buttonStyle(.borderedProminent)
                     
-                    Button("Run Unit Tests") {
+                    Button(DebugContent.SportPreferences.runTests) {
                         SportPreferencesTests.runAllTests()
                         testOutput = "✅ Check console for test results"
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
                     
-                    Button("Reset to Defaults") {
+                    Button(DebugContent.SportPreferences.resetDefaults) {
                         userSettings.sportPreferences = .default
                         testOutput = "✅ Reset to defaults"
                     }

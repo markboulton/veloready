@@ -11,22 +11,22 @@ struct MLDebugView: View {
     
     var body: some View {
         List {
-            Section("ML Infrastructure Status") {
-                statusRow(label: "ML Enabled", value: mlRegistry.isMLEnabled ? "✅ Yes" : "❌ No")
-                statusRow(label: "Current Model", value: mlRegistry.currentModelVersion ?? "None")
-                statusRow(label: "Training Data", value: "\(mlService.trainingDataCount) days")
-                statusRow(label: "Last Processing", value: mlService.lastProcessingDate?.formatted() ?? "Never")
+            Section(DebugContent.ML.infrastructureStatus) {
+                statusRow(label: DebugContent.ML.mlEnabled, value: mlRegistry.isMLEnabled ? "✅ Yes" : "❌ No")
+                statusRow(label: DebugContent.ML.currentModel, value: mlRegistry.currentModelVersion ?? DebugContent.ML.none)
+                statusRow(label: DebugContent.ML.trainingData, value: "\(mlService.trainingDataCount) days")
+                statusRow(label: DebugContent.ML.lastProcessing, value: mlService.lastProcessingDate?.formatted() ?? DebugContent.ML.never)
             }
             
             if let report = dataQualityReport {
-                Section("Data Quality") {
+                Section(DebugContent.ML.dataQuality) {
                     statusRow(label: "Total Days", value: "\(report.totalDays)")
                     statusRow(label: "Valid Days", value: "\(report.validDays)")
                     statusRow(label: "Completeness", value: report.completenessPercentage)
                     statusRow(label: "Sufficient Data", value: report.hasSufficientData ? "✅ Yes" : "❌ No")
                     
                     if !report.missingFeatures.isEmpty {
-                        Text("Missing Features:")
+                        Text(DebugContent.ML.missingFeatures)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -39,10 +39,10 @@ struct MLDebugView: View {
                 }
             }
             
-            Section("Actions") {
+            Section(DebugContent.ML.actions) {
                 Button(action: { Task { await processHistoricalData() } }) {
                     HStack {
-                        Text("Process Historical Data (90 days)")
+                        Text(DebugContent.ML.processHistorical)
                         Spacer()
                         if isProcessing {
                             ProgressView()
@@ -53,12 +53,12 @@ struct MLDebugView: View {
                 .disabled(isProcessing)
                 
                 Button(action: { Task { await checkDataQuality() } }) {
-                    Text("Check Data Quality")
+                    Text(DebugContent.ML.checkQuality)
                 }
                 .disabled(isProcessing)
                 
                 Button(action: { mlRegistry.setMLEnabled(!mlRegistry.isMLEnabled) }) {
-                    Text(mlRegistry.isMLEnabled ? "Disable ML" : "Enable ML")
+                    Text(mlRegistry.isMLEnabled ? DebugContent.ML.disable : DebugContent.ML.enable)
                 }
             }
             

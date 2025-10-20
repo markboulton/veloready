@@ -36,14 +36,14 @@ struct DebugTodayView: View {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(Color.semantic.success)
-                Text("Debug Mode Active")
+                Text(DebugContent.Today.debugMode)
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
             }
             
             HStack {
-                Text("Using Real Data from HealthKit and Intervals.icu")
+                Text(DebugContent.Today.usingRealData)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
@@ -59,11 +59,11 @@ struct DebugTodayView: View {
     
     private var recentActivitiesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Recent Activities")
+            Text(DebugContent.Today.recentActivities)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Activity data displayed in main Today view")
+            Text(DebugContent.Today.activityData)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
