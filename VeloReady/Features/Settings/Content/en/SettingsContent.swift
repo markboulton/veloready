@@ -141,6 +141,7 @@ enum SettingsContent {
         static let lastSynced = "Last synced"
         static let readyToSync = "Ready to sync"
         static let notAvailable = "Not available"
+        static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."
     }
     
     // MARK: - Account

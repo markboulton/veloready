@@ -10,22 +10,22 @@ struct NotificationSettingsSection: View {
                         .foregroundColor(Color.semantic.warning)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Notifications")
-                            .font(.body)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Notifications.title)
+                            .font(TypeScale.font(size: TypeScale.md))
                         
-                        Text("Sleep reminders and recovery alerts")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(SettingsContent.Notifications.subtitle)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
                 }
             }
         } header: {
-            Text("Notifications")
+            Text(SettingsContent.notificationsSection)
         } footer: {
-            Text("Manage sleep reminders and recovery notifications.")
+            Text(SettingsContent.Notifications.description)
         }
     }
 }

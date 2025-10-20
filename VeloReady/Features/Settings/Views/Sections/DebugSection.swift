@@ -12,30 +12,30 @@ struct DebugSection: View {
                             .foregroundColor(Color.semantic.warning)
                             .frame(width: 24)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("DEBUG & TESTING")
-                                .font(.body)
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text(SettingsContent.Debug.title)
+                                .font(TypeScale.font(size: TypeScale.md))
                             
-                            Text("Developer tools and testing options")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(SettingsContent.Debug.subtitle)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                         
                         Spacer()
                         
                         // Show environment badge
                         Text(DebugFlags.buildEnvironment)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.semantic.warning.opacity(0.2))
-                            .cornerRadius(4)
+                            .font(TypeScale.font(size: TypeScale.xxs))
+                            .padding(.horizontal, Spacing.xs + 2)
+                            .padding(.vertical, Spacing.xs / 2)
+                            .background(ColorPalette.warning.opacity(0.2))
+                            .cornerRadius(Spacing.xs)
                     }
                 }
             } header: {
-                Text("Developer")
+                Text(SettingsContent.developerSection)
             } footer: {
-                Text("Debug tools, cache management, and testing features. Only visible to developers.\n\nDevice ID: \(DebugFlags.getDeviceIdentifier())")
+                Text("\(SettingsContent.Debug.developerFooter)\n\n\(SettingsContent.Debug.deviceIdPrefix)\(DebugFlags.getDeviceIdentifier())")
             }
         }
     }

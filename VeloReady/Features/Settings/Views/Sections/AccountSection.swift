@@ -15,15 +15,15 @@ struct AccountSection: View {
                 }) {
                     HStack {
                         Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .foregroundColor(.orange)
+                            .foregroundColor(ColorPalette.warning)
                             .frame(width: 24)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Sign Out from Intervals.icu")
-                                .foregroundColor(.primary)
-                            Text("Disconnect your account and remove access")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text(SettingsContent.Account.signOut)
+                                .foregroundColor(ColorPalette.labelPrimary)
+                            Text(SettingsContent.Account.signOutSubtitle)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                         
                         Spacer()
@@ -38,18 +38,18 @@ struct AccountSection: View {
             }) {
                 HStack {
                     Image(systemName: "trash.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(ColorPalette.error)
                         .frame(width: 24)
                     
-                    Text("Delete All Local Data")
+                    Text(SettingsContent.Account.deleteData)
                     
                     Spacer()
                 }
             }
         } header: {
-            Text("Account")
+            Text(SettingsContent.accountSection)
         } footer: {
-            Text("Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected.")
+            Text(SettingsContent.Account.deleteDataFooter)
         }
     }
 }

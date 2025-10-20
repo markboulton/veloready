@@ -9,31 +9,31 @@ struct FeedbackSection: View {
             Button(action: { showingFeedback = true }) {
                 HStack {
                     Image(systemName: "envelope.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(ColorPalette.blue)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Send Feedback")
-                            .font(.body)
-                            .foregroundColor(.primary)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Feedback.sendFeedback)
+                            .font(TypeScale.font(size: TypeScale.md))
+                            .foregroundColor(ColorPalette.labelPrimary)
                         
-                        Text("Report issues or suggest improvements")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(SettingsContent.Feedback.subtitle)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(TypeScale.font(size: TypeScale.xs))
+                        .foregroundColor(ColorPalette.labelSecondary)
                 }
             }
             .buttonStyle(PlainButtonStyle())
         } header: {
-            Text("Help & Support")
+            Text(SettingsContent.helpSupportSection)
         } footer: {
-            Text("Send feedback, report bugs, or get help. Your feedback includes diagnostic logs to help us resolve issues faster.")
+            Text(SettingsContent.Feedback.footer)
         }
         .sheet(isPresented: $showingFeedback) {
             FeedbackView()

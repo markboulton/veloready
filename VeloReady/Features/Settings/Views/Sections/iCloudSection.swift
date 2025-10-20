@@ -15,24 +15,24 @@ struct iCloudSection: View {
                         .foregroundColor(Color.button.primary)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("iCloud Sync")
-                            .foregroundColor(.primary)
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(SettingsContent.iCloud.title)
+                            .foregroundColor(ColorPalette.labelPrimary)
                         
                         if syncService.isCloudAvailable {
                             if let lastSync = syncService.lastSyncDate {
-                                Text("Last synced \(lastSync, style: .relative)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                Text("\(SettingsContent.iCloud.lastSynced) \(lastSync, style: .relative)")
+                                    .font(TypeScale.font(size: TypeScale.xs))
+                                    .foregroundColor(ColorPalette.labelSecondary)
                             } else {
-                                Text("Ready to sync")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                Text(SettingsContent.iCloud.readyToSync)
+                                    .font(TypeScale.font(size: TypeScale.xs))
+                                    .foregroundColor(ColorPalette.labelSecondary)
                             }
                         } else {
-                            Text("Not available")
-                                .font(.caption)
-                                .foregroundColor(Color.semantic.warning)
+                            Text(SettingsContent.iCloud.notAvailable)
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.warning)
                         }
                     }
                     
@@ -43,15 +43,15 @@ struct iCloudSection: View {
                             .scaleEffect(0.8)
                     } else {
                         Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                 }
             }
         } header: {
-            Text("Data & Sync")
+            Text(SettingsContent.dataSyncSection)
         } footer: {
-            Text("Automatically sync your settings, workout data, and strength exercise logs to iCloud.")
+            Text(SettingsContent.iCloud.footer)
         }
         .sheet(isPresented: $showingCloudSettings) {
             iCloudSettingsView()

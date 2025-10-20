@@ -6,16 +6,16 @@ struct AboutSection: View {
         Section {
             HStack {
                 Image(systemName: "info.circle.fill")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(ColorPalette.labelSecondary)
                     .frame(width: 24)
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("About VeloReady")
-                        .font(.body)
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                    Text(SettingsContent.About.title)
+                        .font(TypeScale.font(size: TypeScale.md))
                     
-                    Text("Version 1.0.0")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text(SettingsContent.About.version)
+                        .font(TypeScale.font(size: TypeScale.xs))
+                        .foregroundColor(ColorPalette.labelSecondary)
                 }
                 
                 Spacer()
@@ -23,22 +23,22 @@ struct AboutSection: View {
             
             HStack {
                 Image(systemName: "questionmark.circle.fill")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(ColorPalette.labelSecondary)
                     .frame(width: 24)
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Help & Support")
-                        .font(.body)
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                    Text(SettingsContent.About.helpTitle)
+                        .font(TypeScale.font(size: TypeScale.md))
                     
-                    Text("Get help and report issues")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Text(SettingsContent.About.helpDescription)
+                        .font(TypeScale.font(size: TypeScale.xs))
+                        .foregroundColor(ColorPalette.labelSecondary)
                 }
                 
                 Spacer()
             }
         } header: {
-            Text("About")
+            Text(SettingsContent.aboutSection)
         }
     }
 }
