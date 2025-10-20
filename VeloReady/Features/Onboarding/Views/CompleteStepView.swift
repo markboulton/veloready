@@ -20,11 +20,11 @@ struct CompleteStepView: View {
             }
             
             VStack(spacing: 16) {
-                Text("All Set!")
+                Text(OnboardingContent.Complete.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("You're ready to start tracking your rides")
+                Text(OnboardingContent.Complete.subtitle)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -36,7 +36,7 @@ struct CompleteStepView: View {
             Button(action: {
                 onboardingManager.completeOnboarding()
             }) {
-                Text("Start Using VeloReady")
+                Text(OnboardingContent.Complete.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

@@ -283,6 +283,21 @@ enum OnboardingContent {
         static let finePrint = "7-day free trial. Cancel anytime. Payment charged to Apple ID at confirmation of purchase. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period."  /// Fine print
     }
     
+    // MARK: - Complete Step
+    enum Complete {
+        static let title = "All Set!"  /// Complete title
+        static let subtitle = "You're ready to start tracking your rides"  /// Complete subtitle
+        static let continueButton = "Start Using VeloReady"  /// Start button
+    }
+    
+    // MARK: - Intervals Login
+    enum IntervalsLogin {
+        static let title = "Welcome to VeloReady"  /// Login title
+        static let subtitle = "Connect your intervals.icu account to access your training data and get personalized recommendations."  /// Login subtitle
+        static let whatYouGet = "What you'll get:"  /// What you get label
+        static let dataPrivate = "Your data stays private and secure"  /// Privacy message
+    }
+    
     // MARK: - Preferences Step
     enum Preferences {
         static let title = "Set Up Your Profile"  /// Main title

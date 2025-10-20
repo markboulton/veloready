@@ -10,12 +10,12 @@ struct WhatVeloReadyStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Text("What VeloReady Does")
+                Text(OnboardingContent.WhatVeloReady.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Built for athletes who value data-driven training")
+                Text(OnboardingContent.WhatVeloReady.subtitle)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -65,7 +65,7 @@ struct WhatVeloReadyStepView: View {
             Button(action: {
                 onboardingManager.nextStep()
             }) {
-                Text("Continue")
+                Text(OnboardingContent.WhatVeloReady.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

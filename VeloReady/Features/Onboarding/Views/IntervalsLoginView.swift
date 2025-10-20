@@ -18,11 +18,11 @@ struct IntervalsLoginView: View {
                         .font(.system(size: 80))
                         .foregroundColor(Color.button.primary)
                     
-                    Text("Welcome to VeloReady")
+                    Text(OnboardingContent.IntervalsLogin.title)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
-                    Text("Connect your intervals.icu account to access your training data and get personalized recommendations.")
+                    Text(OnboardingContent.IntervalsLogin.subtitle)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -31,7 +31,7 @@ struct IntervalsLoginView: View {
                 
                 // Benefits
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("What you'll get:")
+                    Text(OnboardingContent.IntervalsLogin.whatYouGet)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -76,7 +76,7 @@ struct IntervalsLoginView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Text("Your data stays private and secure")
+                    Text(OnboardingContent.IntervalsLogin.dataPrivate)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
