@@ -24,5 +24,5 @@ enum TrainingLoadContent {
     
     // MARK: - Empty States
     static let noData = "No training load data available"  /// No data message
-    static let loading = "Loading training load..."  /// Loading message
+    static let loading = CommonContent.States.loadingData
 }

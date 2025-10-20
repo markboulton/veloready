@@ -68,17 +68,22 @@ enum RecoveryContent {
         static let baselineHRV = "Baseline HRV"  /// Baseline HRV label
         static let currentRHR = "Current RHR"  /// Current RHR label
         static let baselineRHR = "Baseline RHR"  /// Baseline RHR label
-        static let sleepDuration = "Sleep Duration"  /// Sleep duration label
-        static let sleepTarget = "Sleep Target"  /// Sleep target label
-        static let hrvRMSSD = "HRV (RMSSD)"  /// HRV RMSSD label
-        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate label
-        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio label
+        static let sleepDuration = CommonContent.Metrics.sleepDuration  /// Sleep duration label
+        static let sleepTarget = CommonContent.Metrics.sleepTarget  /// Sleep target label
+        static let hrvRMSSD = CommonContent.Metrics.hrvRMSSD  /// HRV RMSSD label
+        static let restingHeartRate = CommonContent.Metrics.restingHeartRate  /// Resting heart rate label
+        static let trainingLoadRatio = CommonContent.Metrics.trainingLoadRatio  /// Training load ratio label
         static let current = "Current:"  /// Current prefix
         static let baseline = "Baseline:"  /// Baseline prefix
         static let weight = "Weight:"  /// Weight prefix
         static let calculatingBaseline = "Calculating baseline..."  /// Calculating baseline message
         static let baselineAvailable = "Baseline will be available after 7 days"  /// Baseline availability message
     }
+    
+    // MARK: - Empty States
+    static let noData = CommonContent.States.noData  /// No data message
+    static let loading = CommonContent.States.loadingData
+    static let calculating = CommonContent.States.computing  /// Computing message
     
     // MARK: - Alerts
     enum Alerts {

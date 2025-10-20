@@ -98,10 +98,15 @@ enum SettingsContent {
         static let title = "Notifications"  /// Notifications title
         static let subtitle = "Sleep reminders and recovery alerts"  /// Subtitle
         static let description = "Manage sleep reminders and recovery notifications."  /// Description
+        static let sleepReminders = "Sleep Reminders"  /// Sleep reminders toggle
+        static let sleepRemindersDescription = "Get reminded when it's time to wind down for bed."  /// Sleep reminders description
+        static let reminderTime = "Reminder Time"  /// Reminder time label
+        static let recoveryAlerts = "Recovery Alerts"  /// Recovery alerts toggle
+        static let recoveryAlertsDescription = "Get notified when your recovery score indicates you should rest."  /// Recovery alerts description
     }
     
     // MARK: - Debug Settings
-    enum Debug {
+    enum DebugSettings {
         static let proFeaturesUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
         static let mockDataEnabled = "📊 Mock data enabled for weekly trend charts"  /// Mock data message
         static let subscriptionStatus = "Subscription Status:"  /// Subscription status label
@@ -136,125 +141,66 @@ enum SettingsContent {
     // MARK: - Data Sources
     enum DataSources {
         static let title = "Data Sources"  /// Data sources title
+        static let subtitle = "Manage connected apps and services"  /// Subtitle
         static let intervalsConnected = "Connected to Intervals.icu"  /// Intervals connected
         static let stravaConnected = "Connected to Strava"  /// Strava connected
         static let healthKitEnabled = "HealthKit Enabled"  /// HealthKit enabled
-        static let connect = "Connect"  /// Connect button
-        static let disconnect = "Disconnect"  /// Disconnect button
-        static let reconnect = "Reconnect"  /// Reconnect button
+        static let connect = CommonContent.Actions.connect
+        static let disconnect = CommonContent.Actions.disconnect
+        static let reconnect = CommonContent.Actions.reconnect
     }
     
     // MARK: - iCloud
-    enum iCloud {
+    enum iCloudSettings {
         static let title = "iCloud Sync"  /// iCloud title
         static let enabled = "iCloud sync enabled"  /// Enabled message
         static let disabled = "iCloud sync disabled"  /// Disabled message
         static let syncNow = "Sync Now"  /// Sync now button
-        static let lastSync = "Last sync:"  /// Last sync label
+        static let lastSync = CommonContent.Labels.lastSynced
         static let restore = "Restore from iCloud"  /// Restore button
+        static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."  /// Footer
     }
     
     // MARK: - ML Personalization
-    enum MLPersonalization {
+    enum MLPersonalizationSettings {
         static let title = "ML Personalization"  /// ML title
-        static let enabled = "Personalization enabled"  /// Enabled message
-        static let disabled = "Personalization disabled"  /// Disabled message
+        static let enabled = CommonContent.States.enabled
+        static let disabled = CommonContent.States.disabled
         static let dataCollected = "Data collected:"  /// Data collected label
-        static let days = "days"  /// Days label
+        static let days = CommonContent.TimeUnits.days
+        static let footer = "Machine learning personalization for more accurate recovery predictions"  /// Footer
     }
     
     // MARK: - Feedback
-    enum Feedback {
+    enum FeedbackSettings {
         static let title = "Feedback"  /// Feedback title
+        static let subtitle = "Report issues or suggest improvements"  /// Subtitle
         static let sendFeedback = "Send Feedback"  /// Send button
         static let reportBug = "Report Bug"  /// Report bug button
         static let requestFeature = "Request Feature"  /// Request feature button
+        static let footer = "Send feedback, report bugs, or get help. Your feedback includes diagnostic logs to help us resolve issues faster."  /// Footer
     }
     
     // MARK: - About
-    enum About {
-        static let version = "Version"  /// Version label
-        static let build = "Build"  /// Build label
+    enum AboutSettings {
+        static let title = "About VeloReady"  /// About title
+        static let version = CommonContent.Labels.version
+        static let build = CommonContent.Labels.build
         static let privacyPolicy = "Privacy Policy"  /// Privacy policy
         static let termsOfService = "Terms of Service"  /// Terms of service
         static let licenses = "Open Source Licenses"  /// Licenses
-    }
-        static let sleepReminders = "Sleep Reminders"  /// Sleep reminders toggle
-        static let sleepRemindersDescription = "Get reminded when it's time to wind down for bed."  /// Sleep reminders description
-        static let reminderTime = "Reminder Time"  /// Reminder time label
-        static let recoveryAlerts = "Recovery Alerts"  /// Recovery alerts toggle
-        static let recoveryAlertsDescription = "Get notified when your recovery score indicates you should rest."  /// Recovery alerts description
-    }
-    
-    // MARK: - ML Personalization
-    enum MLPersonalization {
-        static let title = "ML Personalization"
-        static let enabled = "Enabled"
-        static let disabled = "Disabled"
-        static let footer = "Machine learning personalization for more accurate recovery predictions"
-    }
-    
-    // MARK: - About
-    enum About {
-        static let title = "About VeloReady"  /// About title
-        static let version = "Version 1.0.0"  /// Version string
         static let helpTitle = "Help & Support"  /// Help title
         static let helpDescription = "Get help and report issues"  /// Help description
     }
     
-    // MARK: - Data Sources
-    enum DataSources {
-        static let title = "Data Sources"
-        static let subtitle = "Manage connected apps and services"
-    }
-    
-    // MARK: - Display/Appearance
-    enum Appearance {
-        static let theme = "Theme"
-        static let displayPreferences = "Display Preferences"
-        static let unitsTimeFormat = "Units, time format, and visibility"
-        static let footer = "Customize theme and how information is displayed in the app."
-    }
-    
-    // MARK: - iCloud
-    enum iCloud {
-        static let title = "iCloud Sync"
-        static let lastSynced = "Last synced"
-        static let readyToSync = "Ready to sync"
-        static let notAvailable = "Not available"
-        static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."
-    }
-    
     // MARK: - Account
     enum Account {
-        static let signOut = "Sign Out from Intervals.icu"
-        static let signOutSubtitle = "Disconnect your account and remove access"
-        static let deleteData = "Delete All Local Data"
-        static let deleteDataTitle = "Delete All Data"
-        static let deleteDataMessage = "This will delete all cached activities, scores, and metrics from this device. This action cannot be undone. Your data on connected services will not be affected."
-        static let deleteDataFooter = "Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected."
-        static let delete = "Delete"
-    }
-    
-    // MARK: - Feedback
-    enum Feedback {
-        static let sendFeedback = "Send Feedback"
-        static let subtitle = "Report issues or suggest improvements"
-        static let footer = "Send feedback, report bugs, or get help. Your feedback includes diagnostic logs to help us resolve issues faster."
-    }
-    
-    // MARK: - Debug (DEBUG only)
-    enum Debug {
-        static let title = "DEBUG & TESTING"
-        static let subtitle = "Developer tools and testing options"
-        static let description = "These options are only available in debug builds for testing Pro features."  /// Debug description
-        static let enablePro = "Enable Pro Features (Testing)"  /// Enable Pro toggle
-        static let developerFooter = "Debug tools, cache management, and testing features. Only visible to developers."
-        static let deviceIdPrefix = "Device ID: "
-        static let proUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
-        static let subscriptionStatus = "Subscription Status:"  /// Subscription status label
-        static let trialDaysRemaining = "Trial Days Remaining:"  /// Trial days label
-        static let statusFree = "Free"  /// Free status
-        static let statusPro = "Pro"  /// Pro status
+        static let signOut = "Sign Out from Intervals.icu"  /// Sign out button
+        static let signOutSubtitle = "Disconnect your account and remove access"  /// Sign out subtitle
+        static let deleteData = "Delete All Local Data"  /// Delete data button
+        static let deleteDataTitle = "Delete All Data"  /// Delete data title
+        static let deleteDataMessage = "This will delete all cached activities, scores, and metrics from this device. This action cannot be undone. Your data on connected services will not be affected."  /// Delete message
+        static let deleteDataFooter = "Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected."  /// Delete footer
+        static let delete = CommonContent.Actions.delete
     }
 }

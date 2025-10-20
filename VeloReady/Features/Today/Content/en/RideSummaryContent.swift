@@ -27,9 +27,9 @@ enum RideSummaryContent_Legacy {
     
     // MARK: - States
     static let loading = "Generating AI insights..."  /// Loading message
-    static let analyzing = "Analyzing your ride..."  /// Analyzing message (loading state)
+    static let analyzing = CommonContent.States.analyzing  /// Analyzing message (loading state)
     static let error = "Failed to generate summary"  /// Error message
-    static let retry = "Retry"  /// Retry button
+    static let retry = CommonContent.Actions.retry  /// Retry button
     
     // MARK: - Empty State
     static let noSummary = "No summary available"  /// No summary message

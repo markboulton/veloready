@@ -2,6 +2,9 @@ import Foundation
 
 /// Content strings for Sleep feature
 enum SleepContent {
+    // MARK: - Actions
+    static let viewDetails = CommonContent.Actions.viewDetails
+    
     // MARK: - Navigation
     static let title = "Sleep Analysis"  /// Navigation title
     
@@ -68,12 +71,12 @@ enum SleepContent {
         static let sleepLatency = "Sleep Latency"  /// Sleep latency label
         static let sleepNeed = "Sleep Need"  /// Sleep need label
         static let wakeEvents = "Wake Events"  /// Wake events label
-        static let deepSleep = "Deep Sleep"  /// Deep sleep label
+        static let deepSleep = CommonContent.Metrics.deepSleep  /// Deep sleep label
     }
     
     // MARK: - Sleep Stages
     enum Stages {
-        static let deep = "Deep Sleep"  /// Deep sleep stage
+        static let deep = CommonContent.Stages.deep  /// Deep sleep stage
         static let core = "Core Sleep"  /// Core sleep stage
         static let rem = "REM Sleep"  /// REM sleep stage
         static let awake = "Awake"  /// Awake time
