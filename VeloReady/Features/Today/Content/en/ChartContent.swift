@@ -94,6 +94,13 @@ enum ChartContent {
         static let msUnit = "ms"  /// Milliseconds unit
     }
     
+    // MARK: - RHR Chart
+    enum RHR {
+        static let rhrTrend = "RHR Trend"  /// RHR trend title
+        static let noDataForPeriod = "No RHR data for this period"  /// No data message
+        static let dataWillAppear = "RHR data will appear as it's collected"  /// Data collection message
+    }
+    
     // MARK: - Weekly Trend
     enum WeeklyTrend {
         static let notEnoughData = CommonContent.States.notEnoughData  /// Not enough data message - from CommonContent

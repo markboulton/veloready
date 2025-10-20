@@ -41,7 +41,7 @@ struct LearnMoreSheet: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(CommonContent.Actions.done) {
                         isPresented = false
                     }
                     .fontWeight(.semibold)

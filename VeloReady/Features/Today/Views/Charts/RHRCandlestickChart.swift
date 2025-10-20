@@ -20,7 +20,7 @@ struct RHRCandlestickChart: View {
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
-                Text("RHR Trend")
+                Text(ChartContent.RHR.rhrTrend)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Spacer()
@@ -153,7 +153,7 @@ struct RHRCandlestickChart: View {
                     .foregroundStyle(Color(.systemGray4))
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)bpm")
+                        Text("\(intValue)\(CommonContent.Units.bpm))")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(ColorPalette.chartAxisLabel)
                     }
@@ -231,10 +231,10 @@ struct RHRCandlestickChart: View {
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             
-            Text("No RHR data for this period")
+            Text(ChartContent.RHR.noDataForPeriod)
                 .font(.system(size: TypeScale.sm, weight: .medium))
             
-            Text("RHR data will appear as it's collected")
+            Text(ChartContent.RHR.dataWillAppear)
                 .font(.system(size: TypeScale.xs))
                 .foregroundColor(Color.text.secondary)
         }
