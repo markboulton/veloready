@@ -114,10 +114,10 @@ struct CircularRecoveryView: View {
                 Gauge(value: Double(score), in: 0...100) {
                     VStack(spacing: 2) {
                         Text("\(score)")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: WidgetDesignTokens.Typography.circularScoreSize, weight: .bold))
                         if isPersonalized {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 8))
+                                .font(.system(size: WidgetDesignTokens.Typography.circularSparkleSize))
                         }
                     }
                 } currentValueLabel: {
@@ -125,8 +125,8 @@ struct CircularRecoveryView: View {
                 }
                 .gaugeStyle(.accessoryCircular)
             } else {
-                Text("--")
-                    .font(.system(size: 24, weight: .bold))
+                Text(WidgetContent.Placeholder.noData)
+                    .font(.system(size: WidgetDesignTokens.Typography.circularScoreSize, weight: .bold))
             }
         }
     }
@@ -141,23 +141,23 @@ struct RectangularRecoveryView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 4) {
-                    Text("Recovery")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    Text(WidgetContent.Labels.recovery)
+                        .font(.system(size: WidgetDesignTokens.Typography.rectangularLabelSize))
+                        .foregroundColor(WidgetDesignTokens.Colors.band)
                     if isPersonalized {
                         Image(systemName: "sparkles")
-                            .font(.system(size: 8))
+                            .font(.system(size: WidgetDesignTokens.Typography.rectangularSparkleSize))
                     }
                 }
                 if let score = score {
                     Text("\(score)")
-                        .font(.system(size: 32, weight: .bold))
-                    Text(band ?? "")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: WidgetDesignTokens.Typography.rectangularScoreSize, weight: .bold))
+                    Text(band ?? WidgetContent.Placeholder.noData)
+                        .font(.system(size: WidgetDesignTokens.Typography.rectangularLabelSize))
+                        .foregroundColor(WidgetDesignTokens.Colors.band)
                 } else {
-                    Text("--")
-                        .font(.system(size: 32, weight: .bold))
+                    Text(WidgetContent.Placeholder.noData)
+                        .font(.system(size: WidgetDesignTokens.Typography.rectangularScoreSize, weight: .bold))
                 }
             }
             Spacer()
@@ -170,9 +170,9 @@ struct InlineRecoveryView: View {
     
     var body: some View {
         if let score = score {
-            Text("Recovery: \(score)")
+            Text(WidgetContent.Inline.recoveryPrefix + "\(score)")
         } else {
-            Text("Recovery: --")
+            Text(WidgetContent.Inline.recoveryPrefix + WidgetContent.Placeholder.noData)
         }
     }
 }
@@ -185,44 +185,35 @@ struct SmallRecoveryView: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: 4) {
-                Text("Recovery")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(WidgetContent.Labels.recovery)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
                 if isPersonalized {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 10))
-                        .foregroundColor(.purple)
+                        .font(.system(size: WidgetDesignTokens.Typography.smallSparkleSize))
+                        .foregroundColor(WidgetDesignTokens.Colors.sparkle)
                 }
             }
             
             if let score = score {
                 Text("\(score)")
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(colorForScore(score))
+                    .font(.system(size: WidgetDesignTokens.Typography.smallScoreSize, weight: .bold))
+                    .foregroundColor(WidgetDesignTokens.recoveryColor(for: score))
                 
-                Text(band ?? "")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(band ?? WidgetContent.Placeholder.noData)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
             } else {
-                Text("--")
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(.secondary)
+                Text(WidgetContent.Placeholder.noData)
+                    .font(.system(size: WidgetDesignTokens.Typography.smallScoreSize, weight: .bold))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
                 
-                Text("No Data")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(WidgetContent.Placeholder.noDataLabel)
+                    .font(.system(size: WidgetDesignTokens.Typography.titleSize))
+                    .foregroundColor(WidgetDesignTokens.Colors.band)
             }
         }
         .padding()
-    }
-    
-    private func colorForScore(_ score: Int) -> Color {
-        switch score {
-        case 80...100: return .green
-        case 60..<80: return .yellow
-        case 40..<60: return .orange
-        default: return .red
-        }
     }
 }
 
@@ -247,7 +238,7 @@ struct MediumWidgetView: View {
                 
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: ringWidth)
+                        .stroke(WidgetDesignTokens.Colors.background, lineWidth: ringWidth)
                         .frame(width: ringSize, height: ringSize)
                     
                     if let score = entry.recoveryScore {
@@ -390,33 +381,7 @@ struct MediumWidgetView: View {
         }
     }
     
-    private func colorForRecoveryScore(_ score: Int) -> Color {
-        switch score {
-        case 80...100: return .green
-        case 60..<80: return .yellow
-        case 40..<60: return .orange
-        default: return .red
-        }
-    }
-    
-    private func colorForSleepScore(_ score: Int) -> Color {
-        switch score {
-        case 80...100: return .green
-        case 60..<80: return .yellow
-        case 40..<60: return .orange
-        default: return .red
-        }
-    }
-    
-    private func colorForStrain(_ strain: Double) -> Color {
-        switch strain {
-        case 0..<4: return .green
-        case 4..<10: return .yellow
-        case 10..<14: return .orange
-        case 14..<18: return .red
-        default: return .purple
-        }
-    }
+    // Color functions moved to WidgetDesignTokens
     
     private func sleepBandForScore(_ score: Int?) -> String {
         guard let score = score else { return WidgetContent.Placeholder.noData }

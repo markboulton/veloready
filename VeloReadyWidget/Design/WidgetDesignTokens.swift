@@ -22,11 +22,25 @@ enum WidgetDesignTokens {
     // MARK: - Typography
     
     enum Typography {
+        // Medium widget
         static let titleSize: CGFloat = 13  // .caption
         static let scoreSize: CGFloat = 24
         static let bandSize: CGFloat = 11   // .caption2
         static let strainScoreSize: CGFloat = 20  // Smaller for decimal
         static let sparkleSize: CGFloat = 7
+        
+        // Small widget
+        static let smallScoreSize: CGFloat = 48
+        static let smallSparkleSize: CGFloat = 10
+        
+        // Circular (watch)
+        static let circularScoreSize: CGFloat = 24
+        static let circularSparkleSize: CGFloat = 8
+        
+        // Rectangular (watch)
+        static let rectangularScoreSize: CGFloat = 32
+        static let rectangularSparkleSize: CGFloat = 8
+        static let rectangularLabelSize: CGFloat = 11  // .caption2
     }
     
     // MARK: - Spacing

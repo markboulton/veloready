@@ -53,6 +53,13 @@ enum WidgetContent {
     enum Placeholder {
         static let noData = "--"
         static let loading = "..."
+        static let noDataLabel = "No Data"
+    }
+    
+    // MARK: - Inline Text
+    
+    enum Inline {
+        static let recoveryPrefix = "Recovery: "
     }
     
     // MARK: - Accessibility
