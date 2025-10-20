@@ -4,7 +4,8 @@ import Foundation
 enum RideSummaryContent {
     static let retry = "Retry"  /// Retry button
     static let bulletPoint = "•"  /// Bullet point
-    
+}
+
 enum RideSummaryContent_Legacy {
     // MARK: - Header
     static let title = "Ride Summary"  /// Panel title

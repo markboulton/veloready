@@ -83,6 +83,10 @@ enum CommonContent {
         static let meters = "m"  /// Meters
         static let calories = "cal"  /// Calories
         static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
+        static let sleepTarget = "Sleep Target"  /// Sleep target metric
+        static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
+        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
+        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
     }
     
     // MARK: - Pro Features
