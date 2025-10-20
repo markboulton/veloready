@@ -616,7 +616,7 @@ struct AdditionalDataSection: View {
     }
     
     private func formatCalories(_ calories: Int) -> String {
-        return String(format: "%d cal", calories)
+        return String(format: "%d \(CommonContent.Units.calories)", calories)
     }
     
     private func formatPower(_ power: Double) -> String {
