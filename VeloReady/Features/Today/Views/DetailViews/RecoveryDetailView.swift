@@ -131,7 +131,7 @@ struct RecoveryDetailView: View {
                     title: RecoveryContent.Metrics.hrv,
                     score: recoveryScore.subScores.hrv,
                     weight: RecoveryContent.Weights.hrvWeight,
-                    icon: "heart.fill",
+                    icon: Icons.Health.heartFill,
                     color: ColorScale.greenAccent,
                     hasBaseline: recoveryScore.inputs.hrvBaseline != nil
                 )
@@ -140,7 +140,7 @@ struct RecoveryDetailView: View {
                     title: RecoveryContent.Metrics.rhr,
                     score: recoveryScore.subScores.rhr,
                     weight: RecoveryContent.Weights.rhrWeight,
-                    icon: "heart.circle.fill",
+                    icon: Icons.Health.heartCircle,
                     color: ColorScale.redAccent,
                     hasBaseline: recoveryScore.inputs.rhrBaseline != nil
                 )
@@ -149,7 +149,7 @@ struct RecoveryDetailView: View {
                     title: RecoveryContent.Metrics.sleep,
                     score: recoveryScore.subScores.sleep,
                     weight: RecoveryContent.Weights.sleepWeight,
-                    icon: "moon.fill",
+                    icon: Icons.Health.sleepFill,
                     color: recoveryScore.inputs.sleepScore?.band.colorToken ?? ColorScale.yellowAccent,
                     hasBaseline: recoveryScore.inputs.sleepBaseline != nil
                 )
@@ -158,7 +158,7 @@ struct RecoveryDetailView: View {
                     title: RecoveryContent.Metrics.load,
                     score: recoveryScore.subScores.form,
                     weight: RecoveryContent.Weights.loadWeight,
-                    icon: "bicycle",
+                    icon: Icons.Activity.cycling,
                     color: ColorScale.amberAccent,
                     hasBaseline: true
                 )
@@ -214,14 +214,14 @@ struct RecoveryDetailView: View {
                             current: String(format: "%.1f ms", hrv),
                             baseline: String(format: "%.1f ms", hrvBaseline),
                             change: calculatePercentageChange(current: hrv, baseline: hrvBaseline),
-                            icon: "heart.fill",
+                            icon: Icons.Health.heartFill,
                             color: ColorScale.greenAccent
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: RecoveryContent.HealthMetrics.hrvRMSSD,
                             current: String(format: "%.1f ms", hrv),
-                            icon: "heart.fill",
+                            icon: Icons.Health.heartFill,
                             color: ColorScale.greenAccent
                         )
                     }
@@ -234,14 +234,14 @@ struct RecoveryDetailView: View {
                             current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
                             baseline: String(format: "%.0f \(CommonContent.Units.bpm)", rhrBaseline),
                             change: calculatePercentageChange(current: rhr, baseline: rhrBaseline),
-                            icon: "heart.circle.fill",
+                            icon: Icons.Health.heartCircle,
                             color: ColorScale.redAccent
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: RecoveryContent.HealthMetrics.restingHeartRate,
                             current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
-                            icon: "heart.circle.fill",
+                            icon: Icons.Health.heartCircle,
                             color: ColorScale.redAccent
                         )
                     }
@@ -253,7 +253,7 @@ struct RecoveryDetailView: View {
                         current: formatDuration(sleep),
                         baseline: formatDuration(sleepBaseline),
                         change: calculatePercentageChange(current: sleep, baseline: sleepBaseline),
-                        icon: "moon.fill",
+                        icon: Icons.Health.sleepFill,
                         color: .blue
                     )
                 }
@@ -330,7 +330,7 @@ struct RecoveryDetailView: View {
     
     private func trainingLoadRow(atl: Double, ctl: Double) -> some View {
         HStack {
-            Image(systemName: "bicycle")
+            Image(systemName: Icons.Activity.cycling)
                 .foregroundColor(.secondary)
                 .frame(width: 24)
             
