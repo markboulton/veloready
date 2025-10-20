@@ -27,26 +27,26 @@ struct InfoBanner: View {
     }
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: type.icon)
                 .foregroundColor(type.color)
-                .font(.system(size: 20))
+                .font(TypeScale.font(size: TypeScale.mlg))
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(title)
                     .font(.heading)
-                    .foregroundColor(.primary)
+                    .foregroundColor(ColorPalette.labelPrimary)
                 
                 if let message = message {
                     Text(message)
                         .font(.body)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(ColorPalette.labelSecondary)
                 }
                 
                 if let actionTitle = actionTitle, let action = action {
                     Button(action: action) {
                         Text(actionTitle)
-                            .font(.caption)
+                            .font(TypeScale.font(size: TypeScale.xs))
                             .foregroundColor(ColorPalette.blue)
                     }
                 }
@@ -57,12 +57,12 @@ struct InfoBanner: View {
             if let dismissAction = dismissAction {
                 Button(action: dismissAction) {
                     Image(systemName: "xmark")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
+                        .foregroundColor(ColorPalette.labelSecondary)
+                        .font(TypeScale.font(size: TypeScale.xs))
                 }
             }
         }
-        .padding()
+        .padding(Spacing.lg)
         .background(type.backgroundColor)
     }
 }
@@ -84,7 +84,7 @@ enum BannerType {
     
     var color: Color {
         switch self {
-        case .info: return .blue
+        case .info: return ColorPalette.blue
         case .warning: return ColorPalette.warning
         case .error: return ColorPalette.error
         case .success: return ColorPalette.success
@@ -93,7 +93,7 @@ enum BannerType {
     
     var backgroundColor: Color {
         switch self {
-        case .info: return Color.blue.opacity(0.1)
+        case .info: return ColorPalette.blue.opacity(0.1)
         case .warning: return ColorPalette.warning.opacity(0.1)
         case .error: return ColorPalette.error.opacity(0.1)
         case .success: return ColorPalette.success.opacity(0.1)

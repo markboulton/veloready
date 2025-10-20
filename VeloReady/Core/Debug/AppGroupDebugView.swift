@@ -2,52 +2,52 @@ import SwiftUI
 
 /// Debug view to test App Group functionality
 struct AppGroupDebugView: View {
-    @State private var testResult = "Not tested yet"
+    @State private var testResult = DebugContent.AppGroup.statusInitial
     @State private var recoveryScore: Int?
     @State private var recoveryBand: String?
     
     var body: some View {
         List {
-            Section("App Group Test") {
-                Button("Test Write to App Group") {
+            Section(DebugContent.AppGroup.sectionTest) {
+                Button(DebugContent.AppGroup.buttonWrite) {
                     testWrite()
                 }
                 
-                Button("Test Read from App Group") {
+                Button(DebugContent.AppGroup.buttonRead) {
                     testRead()
                 }
                 
                 Text(testResult)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(TypeScale.font(size: TypeScale.xs))
+                    .foregroundColor(ColorPalette.labelSecondary)
             }
             
-            Section("Current Recovery Data") {
+            Section(DebugContent.AppGroup.sectionData) {
                 if let score = recoveryScore {
                     HStack {
-                        Text("Score")
+                        Text(DebugContent.AppGroup.labelScore)
                         Spacer()
                         Text("\(score)")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                 }
                 
                 if let band = recoveryBand {
                     HStack {
-                        Text("Band")
+                        Text(DebugContent.AppGroup.labelBand)
                         Spacer()
                         Text(band)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                 }
                 
                 if recoveryScore == nil && recoveryBand == nil {
-                    Text("No data in App Group")
-                        .foregroundColor(.orange)
+                    Text(DebugContent.AppGroup.messageNoData)
+                        .foregroundColor(ColorPalette.warning)
                 }
             }
         }
-        .navigationTitle("App Group Debug")
+        .navigationTitle(DebugContent.AppGroup.title)
         .onAppear {
             testRead()
         }
@@ -55,7 +55,7 @@ struct AppGroupDebugView: View {
     
     private func testWrite() {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") else {
-            testResult = "❌ FAILED: Could not access App Group"
+            testResult = DebugContent.AppGroup.statusFailed
             return
         }
         
@@ -64,7 +64,7 @@ struct AppGroupDebugView: View {
         sharedDefaults.set("Test", forKey: "cachedRecoveryBand")
         sharedDefaults.set(true, forKey: "cachedRecoveryIsPersonalized")
         
-        testResult = "✅ SUCCESS: Wrote test data to App Group"
+        testResult = DebugContent.AppGroup.statusWriteSuccess
         
         // Read it back
         testRead()
@@ -72,7 +72,7 @@ struct AppGroupDebugView: View {
     
     private func testRead() {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") else {
-            testResult = "❌ FAILED: Could not access App Group"
+            testResult = DebugContent.AppGroup.statusFailed
             return
         }
         
@@ -82,11 +82,11 @@ struct AppGroupDebugView: View {
         if score > 0 {
             recoveryScore = score
             recoveryBand = band
-            testResult = "✅ SUCCESS: Read data from App Group"
+            testResult = DebugContent.AppGroup.statusReadSuccess
         } else {
             recoveryScore = nil
             recoveryBand = nil
-            testResult = "⚠️ WARNING: App Group accessible but no data found"
+            testResult = DebugContent.AppGroup.statusNoData
         }
     }
 }
