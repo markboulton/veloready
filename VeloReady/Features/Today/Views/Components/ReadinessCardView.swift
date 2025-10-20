@@ -32,7 +32,7 @@ struct ReadinessCardView: View {
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(readinessScore.band.colorToken)
                     
-                    Text("/100")
+                    Text(TodayContent.ReadinessComponents.outOf100)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(ColorPalette.labelTertiary)
                 }
@@ -55,19 +55,19 @@ struct ReadinessCardView: View {
                 // Component breakdown
                 HStack(spacing: 16) {
                     ComponentPill(
-                        label: "Recovery",
+                        label: TodayContent.ReadinessComponents.recovery,
                         value: readinessScore.components.recoveryScore,
                         color: .blue
                     )
                     
                     ComponentPill(
-                        label: "Sleep",
+                        label: TodayContent.ReadinessComponents.sleep,
                         value: readinessScore.components.sleepScore,
                         color: .purple
                     )
                     
                     ComponentPill(
-                        label: "Load",
+                        label: TodayContent.ReadinessComponents.load,
                         value: readinessScore.components.loadReadiness,
                         color: .orange
                     )

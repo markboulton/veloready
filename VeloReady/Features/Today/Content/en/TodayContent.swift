@@ -94,5 +94,32 @@ enum TodayContent {
         static let tssDescription = "Training Stress Score - aim for this range based on your fitness"  /// TSS description
         static let mlCollecting = "Collecting data to personalize your insights"  /// ML data collection message
         static let mlDaysRemaining = "days remaining"  /// ML days remaining label
+        static let daysLabel = "days"  /// Days label
+        static let hideDebugInfo = "Hide Debug Info"  /// Hide debug info button
+        static let showDebugInfo = "Show Debug Info"  /// Show debug info button
+    }
+    
+    // MARK: - Calories
+    enum Calories {
+        static let calories = "Calories"  /// Calories label
+        static let goal = "Goal"  /// Goal label
+        static let activeEnergy = "Active Energy"  /// Active energy label
+        static let total = "Total"  /// Total label
+        static let updated = "Updated"  /// Updated prefix
+    }
+    
+    // MARK: - Readiness Components
+    enum ReadinessComponents {
+        static let recovery = "Recovery"  /// Recovery component
+        static let sleep = "Sleep"  /// Sleep component
+        static let load = "Load"  /// Load component
+        static let outOf100 = "/100"  /// Out of 100 suffix
+    }
+    
+    // MARK: - Debt Metrics
+    enum DebtMetrics {
+        static let recoveryDebt = "Recovery Debt"  /// Recovery debt title
+        static let sleepDebt = "Sleep Debt"  /// Sleep debt title
+        static let daysLabel = "days"  /// Days label
     }
 }

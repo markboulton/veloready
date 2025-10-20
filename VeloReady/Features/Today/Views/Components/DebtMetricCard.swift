@@ -8,8 +8,8 @@ struct DebtMetricCard: View {
         
         var title: String {
             switch self {
-            case .recovery: return "Recovery Debt"
-            case .sleep: return "Sleep Debt"
+            case .recovery: return TodayContent.DebtMetrics.recoveryDebt
+            case .sleep: return TodayContent.DebtMetrics.sleepDebt
             }
         }
         
@@ -43,7 +43,7 @@ struct DebtMetricCard: View {
         
         var primaryValue: String {
             switch self {
-            case .recovery(let debt): return "\(debt.consecutiveDays) days"
+            case .recovery(let debt): return "\(debt.consecutiveDays) \(TodayContent.DebtMetrics.daysLabel)"
             case .sleep(let debt): return String(format: "%.1fh", debt.totalDebtHours)
             }
         }

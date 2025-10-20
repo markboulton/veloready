@@ -13,19 +13,19 @@ struct DetailedCaloriePanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.cardContentSpacing) {
             // Header
-            Text("Calories")
+            Text(TodayContent.Calories.calories)
                 .font(.heading)
             
             // Goal (BMR or user-set)
             StatRow(
-                label: "Goal",
+                label: TodayContent.Calories.goal,
                 value: "\(Int(effectiveGoal))",
                 valueColor: ColorPalette.peach
             )
             
             // Active Energy - always show to preserve layout
             StatRow(
-                label: "Active Energy",
+                label: TodayContent.Calories.activeEnergy,
                 value: "\(Int(liveActivityService.activeCalories))",
                 valueColor: Color.semantic.success
             )
@@ -37,7 +37,7 @@ struct DetailedCaloriePanel: View {
             
             // Total
             HStack {
-                Text("Total")
+                Text(TodayContent.Calories.total)
                     .font(.heading)
                 
                 Spacer()
@@ -50,7 +50,7 @@ struct DetailedCaloriePanel: View {
             
             // Last updated
             if let lastUpdated = liveActivityService.lastUpdated {
-                Text("Updated \(formatLastUpdated(lastUpdated))")
+                Text("\(TodayContent.Calories.updated) \(formatLastUpdated(lastUpdated))")
                     .captionStyle()
             }
         }

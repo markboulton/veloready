@@ -110,7 +110,7 @@ private struct ErrorView: View {
             Button(action: {
                 showDebugInfo.toggle()
             }) {
-                Text(showDebugInfo ? "Hide Debug Info" : "Show Debug Info")
+                Text(showDebugInfo ? TodayContent.AIBrief.hideDebugInfo : TodayContent.AIBrief.showDebugInfo)
                     .font(.caption)
                     .foregroundColor(Color.button.primary)
             }
