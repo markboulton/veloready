@@ -36,19 +36,19 @@ struct SleepConsistency: Codable {
         
         var description: String {
             switch self {
-            case .excellent: return "Highly consistent sleep schedule"
-            case .good: return "Generally consistent sleep schedule"
-            case .fair: return "Moderately inconsistent sleep schedule"
-            case .poor: return "Highly irregular sleep schedule"
+            case .excellent: return SleepContent.Consistency.excellentDescription
+            case .good: return SleepContent.Consistency.goodDescription
+            case .fair: return SleepContent.Consistency.fairDescription
+            case .poor: return SleepContent.Consistency.poorDescription
             }
         }
         
         var recommendation: String {
             switch self {
-            case .excellent: return "Maintain current sleep schedule"
-            case .good: return "Try to keep bedtime within 30 minutes"
-            case .fair: return "Establish more regular sleep/wake times"
-            case .poor: return "Prioritize consistent sleep schedule - critical for recovery"
+            case .excellent: return SleepContent.Consistency.excellentRecommendation
+            case .good: return SleepContent.Consistency.goodRecommendation
+            case .fair: return SleepContent.Consistency.fairRecommendation
+            case .poor: return SleepContent.Consistency.poorRecommendation
             }
         }
     }

@@ -35,19 +35,19 @@ struct RecoveryDebt: Codable {
         
         var description: String {
             switch self {
-            case .fresh: return "No recovery debt - well rested"
-            case .accumulating: return "Minor fatigue building - monitor closely"
-            case .significant: return "Significant fatigue - reduce training load"
-            case .critical: return "Critical fatigue - rest required"
+            case .fresh: return RecoveryContent.RecoveryDebt.freshDescription
+            case .accumulating: return RecoveryContent.RecoveryDebt.accumulatingDescription
+            case .significant: return RecoveryContent.RecoveryDebt.significantDescription
+            case .critical: return RecoveryContent.RecoveryDebt.criticalDescription
             }
         }
         
         var recommendation: String {
             switch self {
-            case .fresh: return "Ready for high intensity training"
-            case .accumulating: return "Consider an easy day within 24-48 hours"
-            case .significant: return "Schedule rest day or very light activity"
-            case .critical: return "Immediate rest required to prevent overtraining"
+            case .fresh: return RecoveryContent.RecoveryDebt.freshRecommendation
+            case .accumulating: return RecoveryContent.RecoveryDebt.accumulatingRecommendation
+            case .significant: return RecoveryContent.RecoveryDebt.significantRecommendation
+            case .critical: return RecoveryContent.RecoveryDebt.criticalRecommendation
             }
         }
     }

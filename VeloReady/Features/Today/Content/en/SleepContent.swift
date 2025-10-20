@@ -133,6 +133,17 @@ enum SleepContent {
         static let wake = "Wake"  /// Wake label
         static let patternTitle = "7-Day Sleep Score Pattern"  /// Pattern chart title
         static let deviationNote = "Dots show deviation from average score"  /// Chart note
+        // Band Descriptions
+        static let excellentDescription = "Highly consistent sleep schedule"  /// Excellent consistency
+        static let goodDescription = "Generally consistent sleep schedule"  /// Good consistency
+        static let fairDescription = "Moderately inconsistent sleep schedule"  /// Fair consistency
+        static let poorDescription = "Highly irregular sleep schedule"  /// Poor consistency
+        
+        // Recommendations
+        static let excellentRecommendation = "Maintain current sleep schedule"  /// Excellent recommendation
+        static let goodRecommendation = "Try to keep bedtime within 30 minutes"  /// Good recommendation
+        static let fairRecommendation = "Establish more regular sleep/wake times"  /// Fair recommendation
+        static let poorRecommendation = "Prioritize consistent sleep schedule - critical for recovery"  /// Poor recommendation
     }
     
     // MARK: - Data Availability

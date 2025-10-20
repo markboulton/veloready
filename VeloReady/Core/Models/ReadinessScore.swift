@@ -44,28 +44,28 @@ struct ReadinessScore: Codable {
         
         var description: String {
             switch self {
-            case .fullyReady: return "Optimal readiness for training"
-            case .ready: return "Good readiness - moderate intensity safe"
-            case .compromised: return "Reduced readiness - easy training only"
-            case .notReady: return "Poor readiness - rest recommended"
+            case .fullyReady: return RecoveryContent.Readiness.fullyReadyDescription
+            case .ready: return RecoveryContent.Readiness.readyDescription
+            case .compromised: return RecoveryContent.Readiness.compromisedDescription
+            case .notReady: return RecoveryContent.Readiness.notReadyDescription
             }
         }
         
         var trainingRecommendation: String {
             switch self {
-            case .fullyReady: return "High intensity training recommended"
-            case .ready: return "Moderate to high intensity safe"
-            case .compromised: return "Easy to moderate intensity only"
-            case .notReady: return "Rest day or very light activity"
+            case .fullyReady: return RecoveryContent.Readiness.fullyReadyTraining
+            case .ready: return RecoveryContent.Readiness.readyTraining
+            case .compromised: return RecoveryContent.Readiness.compromisedTraining
+            case .notReady: return RecoveryContent.Readiness.notReadyTraining
             }
         }
         
         var intensityGuidance: String {
             switch self {
-            case .fullyReady: return "Intervals, threshold work, or long rides"
-            case .ready: return "Tempo, endurance, or moderate intensity"
-            case .compromised: return "Easy spin, recovery ride, or light cross-training"
-            case .notReady: return "Complete rest or gentle stretching/walking"
+            case .fullyReady: return RecoveryContent.Readiness.fullyReadyGuidance
+            case .ready: return RecoveryContent.Readiness.readyGuidance
+            case .compromised: return RecoveryContent.Readiness.compromisedGuidance
+            case .notReady: return RecoveryContent.Readiness.notReadyGuidance
             }
         }
     }

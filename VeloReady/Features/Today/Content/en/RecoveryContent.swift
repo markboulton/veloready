@@ -102,6 +102,18 @@ enum RecoveryContent {
     enum RecoveryDebt {
         static let consecutiveDays = "consecutive days below 60"  /// Consecutive days label
         static let description = "Tracks consecutive days of suboptimal recovery to prevent overtraining"  /// Recovery debt description
+        
+        // Band Descriptions
+        static let freshDescription = "No recovery debt - well rested"  /// Fresh
+        static let accumulatingDescription = "Minor fatigue building - monitor closely"  /// Accumulating
+        static let significantDescription = "Moderate fatigue - schedule recovery soon"  /// Significant
+        static let criticalDescription = "Critical fatigue - stop training immediately"  /// Critical
+        
+        // Recommendations
+        static let freshRecommendation = "Continue training as planned"  /// Fresh recommendation
+        static let accumulatingRecommendation = "Consider an easy day within 24-48 hours"  /// Accumulating recommendation
+        static let significantRecommendation = "Schedule rest day or very light activity"  /// Significant recommendation
+        static let criticalRecommendation = "Immediate rest required to prevent overtraining"  /// Critical recommendation
     }
     
     // MARK: - Resilience
@@ -110,14 +122,45 @@ enum RecoveryContent {
         static let avgRecovery = "Avg Recovery:"  /// Average recovery label
         static let avgLoad = "Avg Load:"  /// Average load label
         static let description = "Analyzes your recovery capacity relative to training load over 30 days"  /// Resilience description
+        
+        // Band Descriptions
+        static let highDescription = "Excellent recovery capacity"  /// High resilience
+        static let goodDescription = "Good recovery capacity"  /// Good resilience
+        static let fairDescription = "Average recovery capacity"  /// Fair/Moderate resilience
+        static let lowDescription = "Below average recovery capacity"  /// Low resilience
+        
+        // Recommendations
+        static let highRecommendation = "Excellent resilience - can handle high training loads"  /// High recommendation
+        static let goodRecommendation = "Good recovery - maintain current training approach"  /// Good recommendation
+        static let fairRecommendation = "Recovery is adequate - monitor closely"  /// Fair/Moderate recommendation
+        static let lowRecommendation = "Recovery struggling - reduce training volume or intensity"  /// Low recommendation
     }
     
     // MARK: - Readiness
     enum Readiness {
         static let description = "Combines recovery, sleep, and training load for actionable training guidance"  /// Readiness description
-        static let recovery = "Recovery"  /// Recovery component
-        static let sleep = "Sleep"  /// Sleep component
-        static let load = "Load"  /// Load component
+        // Band Descriptions
+        static let fullyReadyDescription = "Optimal readiness for training"  /// Fully ready
+        static let readyDescription = "Good readiness - moderate intensity safe"  /// Ready
+        static let compromisedDescription = "Reduced readiness - easy training only"  /// Compromised
+        static let notReadyDescription = "Poor readiness - rest recommended"  /// Not ready
+        
+        // Training Recommendations
+        static let fullyReadyTraining = "High intensity training recommended"  /// Fully ready training
+        static let readyTraining = "Moderate to high intensity safe"  /// Ready training
+        static let compromisedTraining = "Easy to moderate intensity only"  /// Compromised training
+        static let notReadyTraining = "Rest day or very light activity"  /// Not ready training
+        
+        // Intensity Guidance
+        static let fullyReadyGuidance = "Intervals, threshold work, or long rides"  /// Fully ready guidance
+        static let readyGuidance = "Tempo, endurance, or moderate intensity"  /// Ready guidance
+        static let compromisedGuidance = "Easy spin, recovery ride, or light cross-training"  /// Compromised guidance
+        static let notReadyGuidance = "Complete rest or gentle stretching/walking"  /// Not ready guidance
+        
+        // Labels
+        static let recovery = "Recovery:"  /// Recovery label
+        static let sleep = "Sleep:"  /// Sleep label
+        static let load = "Load:"  /// Load label
     }
     
     // MARK: - Data Availability

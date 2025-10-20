@@ -37,19 +37,19 @@ struct ResilienceScore: Codable {
         
         var description: String {
             switch self {
-            case .high: return "Excellent recovery capacity"
-            case .good: return "Good recovery capacity"
-            case .moderate: return "Moderate recovery capacity"
-            case .low: return "Limited recovery capacity"
+            case .high: return RecoveryContent.Resilience.highDescription
+            case .good: return RecoveryContent.Resilience.goodDescription
+            case .moderate: return RecoveryContent.Resilience.fairDescription
+            case .low: return RecoveryContent.Resilience.lowDescription
             }
         }
         
         var recommendation: String {
             switch self {
-            case .high: return "You handle training load well - can push harder"
-            case .good: return "Good recovery - maintain current training approach"
-            case .moderate: return "Recovery is adequate - monitor closely"
-            case .low: return "Recovery struggling - reduce training volume or intensity"
+            case .high: return RecoveryContent.Resilience.highRecommendation
+            case .good: return RecoveryContent.Resilience.goodRecommendation
+            case .moderate: return RecoveryContent.Resilience.fairRecommendation
+            case .low: return RecoveryContent.Resilience.lowRecommendation
             }
         }
     }
