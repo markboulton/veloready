@@ -8,7 +8,7 @@ struct AppGroupDebugView: View {
     
     var body: some View {
         List {
-            Section(CommonContent.Debug.sectionTest) {
+            Section {
                 Button(CommonContent.Debug.buttonWrite) {
                     testWrite()
                 }
