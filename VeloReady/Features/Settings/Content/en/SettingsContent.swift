@@ -121,7 +121,7 @@ enum SettingsContent {
         static let avgLabel = "Avg"  /// Average label
         static let p95Label = "P95"  /// P95 label
         static let countLabel = "Count"  /// Count label
-        static let msUnit = "ms"  /// Milliseconds unit
+        static let msUnit = CommonContent.Units.milliseconds  /// Milliseconds unit
         
         // Memory
         static let memory = "Memory"  /// Memory section
@@ -345,8 +345,8 @@ enum SettingsContent {
         static let powerTrainingZones = "Power Training Zones"  /// Power zones title
         
         // Units
-        static let watts = "W"  /// Watts unit
-        static let bpm = "bpm"  /// BPM unit
+        static let watts = CommonContent.Units.watts  /// Watts unit
+        static let bpm = CommonContent.Units.bpm  /// BPM unit
         static let dash = "-"  /// Dash separator
         
         // Zone descriptions

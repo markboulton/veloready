@@ -51,7 +51,7 @@ enum TrendsContent {
     enum Units {
         static let watts = CommonContent.Units.watts  /// Watts - from CommonContent
         static let bpm = CommonContent.Units.bpm  /// BPM - from CommonContent
-        static let ms = "ms"  /// Milliseconds
+        static let ms = CommonContent.Units.milliseconds  /// Milliseconds
         static let days = "days"  /// Days
         static let percent = CommonContent.Units.percent  /// Percent - from CommonContent
     }

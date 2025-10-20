@@ -214,6 +214,7 @@ enum CommonContent {
         static let hours = "h"  /// Hours
         static let minutes = "m"  /// Minutes
         static let seconds = "s"  /// Seconds
+        static let milliseconds = "ms"  /// Milliseconds
         static let percent = "%"  /// Percentage
         static let kilometers = "km"  /// Kilometers
         static let miles = "mi"  /// Miles
@@ -243,6 +244,7 @@ enum CommonContent {
     enum Stages {
         static let deep = "Deep"  /// Deep sleep stage
         static let rem = "REM"  /// REM sleep stage
+        static let core = "Core"  /// Core sleep stage
         static let light = "Light"  /// Light sleep stage
         static let awake = "Awake"  /// Awake stage
     }

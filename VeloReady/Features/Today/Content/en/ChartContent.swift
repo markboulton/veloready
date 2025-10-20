@@ -91,7 +91,7 @@ enum ChartContent {
         static let average = CommonContent.Metrics.average  /// Average label - from CommonContent
         static let minimum = CommonContent.Metrics.minimum  /// Minimum label - from CommonContent
         static let maximum = CommonContent.Metrics.maximum  /// Maximum label - from CommonContent
-        static let msUnit = "ms"  /// Milliseconds unit
+        static let msUnit = CommonContent.Units.milliseconds  /// Milliseconds unit
     }
     
     // MARK: - RHR Chart

@@ -96,13 +96,13 @@ struct SleepHypnogramChart: View {
                     
                     // Stage labels on left - always visible with fixed positioning
                     ZStack(alignment: .leading) {
-                        stageLabel("Awake", color: SleepStage.awake.color)
+                        stageLabel(CommonContent.Stages.awake, color: SleepStage.awake.color)
                             .position(x: 25, y: geometry.size.height * (1 - SleepStage.awake.yPosition))
-                        stageLabel("REM", color: SleepStage.rem.color)
+                        stageLabel(CommonContent.Stages.rem, color: SleepStage.rem.color)
                             .position(x: 25, y: geometry.size.height * (1 - SleepStage.rem.yPosition))
-                        stageLabel("Core", color: SleepStage.core.color)
+                        stageLabel(CommonContent.Stages.core, color: SleepStage.core.color)
                             .position(x: 25, y: geometry.size.height * (1 - SleepStage.core.yPosition))
-                        stageLabel("Deep", color: SleepStage.deep.color)
+                        stageLabel(CommonContent.Stages.deep, color: SleepStage.deep.color)
                             .position(x: 25, y: geometry.size.height * (1 - SleepStage.deep.yPosition))
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
