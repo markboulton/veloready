@@ -61,17 +61,17 @@ struct EmptyStateView: View {
         VStack(spacing: Spacing.xxl) {
             EmptyStateView(
                 icon: "chart.line.uptrend.xyaxis",
-                title: ComponentContent.EmptyState.notEnoughTrendData,
-                message: ComponentContent.EmptyState.notEnoughTrendDataMessage
+                title: CommonContent.EmptyStates.notEnoughTrendData,
+                message: CommonContent.EmptyStates.notEnoughTrendDataMessage
             )
             
             Divider()
             
             EmptyStateView(
                 icon: "figure.run",
-                title: ComponentContent.EmptyState.noActivities,
-                message: ComponentContent.EmptyState.noActivitiesMessage,
-                actionTitle: ComponentContent.EmptyState.addActivity,
+                title: CommonContent.EmptyStates.noActivities,
+                message: CommonContent.EmptyStates.noActivitiesMessage,
+                actionTitle: CommonContent.EmptyStates.addActivity,
                 action: {
                     Logger.debug("Add activity tapped")
                 }
@@ -81,9 +81,9 @@ struct EmptyStateView: View {
             
             EmptyStateView(
                 icon: "heart.slash",
-                title: ComponentContent.EmptyState.healthDataUnavailable,
-                message: ComponentContent.EmptyState.healthDataMessage,
-                actionTitle: ComponentContent.EmptyState.grantAccess,
+                title: CommonContent.EmptyStates.healthDataUnavailable,
+                message: CommonContent.EmptyStates.healthDataMessage,
+                actionTitle: CommonContent.EmptyStates.grantAccess,
                 action: {
                     Logger.debug("Grant access tapped")
                 }
@@ -94,8 +94,8 @@ struct EmptyStateView: View {
             Card {
                 EmptyStateView(
                     icon: "moon.zzz",
-                    title: ComponentContent.EmptyState.noSleepData,
-                    message: ComponentContent.EmptyState.noSleepDataMessage
+                    title: CommonContent.EmptyStates.noSleepData,
+                    message: CommonContent.EmptyStates.noSleepDataMessage
                 )
             }
         }

@@ -26,15 +26,15 @@ struct ConnectWithStravaButton: View {
     private var buttonText: String {
         switch connectionState {
         case .disconnected:
-            return ComponentContent.DataSource.stravaConnect
+            return CommonContent.DataSources.stravaConnect
         case .connecting:
-            return ComponentContent.DataSource.stravaConnecting
+            return CommonContent.DataSources.stravaConnecting
         case .pending(let status):
             return status
         case .connected:
-            return ComponentContent.DataSource.stravaDisconnect
+            return CommonContent.DataSources.stravaDisconnect
         case .error(let message):
-            return ComponentContent.DataSource.errorPrefix + message
+            return CommonContent.DataSources.errorPrefix + message
         }
     }
     
@@ -59,7 +59,7 @@ struct StravaBadge: View {
                 .font(TypeScale.font(size: TypeScale.xs))
                 .foregroundColor(ColorPalette.labelPrimary)
             
-            Text(ComponentContent.DataSource.stravaName)
+            Text(CommonContent.DataSources.stravaName)
                 .font(TypeScale.font(size: TypeScale.xs, weight: .semibold))
                 .foregroundColor(ColorPalette.labelPrimary)
         }

@@ -29,7 +29,7 @@ struct EmptyDataSourceState: View {
             Button(action: onConnectTapped) {
                 HStack {
                     Image(systemName: "link")
-                    Text(ComponentContent.EmptyState.connectButton)
+                    Text(CommonContent.EmptyStates.connectButton)
                 }
                 .font(.headline)
                 .foregroundColor(ColorPalette.labelPrimary)
@@ -41,7 +41,7 @@ struct EmptyDataSourceState: View {
             
             // Available sources
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text(ComponentContent.EmptyState.availableSources)
+                Text(CommonContent.EmptyStates.availableSources)
                     .font(TypeScale.font(size: TypeScale.xs))
                     .foregroundColor(ColorPalette.labelSecondary)
                 
@@ -76,23 +76,23 @@ struct EmptyDataSourceState: View {
     
     private var titleForDataType: String {
         switch dataType {
-        case .activities, .workouts: return ComponentContent.EmptyState.noActivities
-        case .wellness: return ComponentContent.EmptyState.noWellnessData
-        case .zones: return ComponentContent.EmptyState.noTrainingZones
-        case .metrics: return ComponentContent.EmptyState.noMetrics
+        case .activities, .workouts: return CommonContent.EmptyStates.noActivities
+        case .wellness: return CommonContent.EmptyStates.noWellnessData
+        case .zones: return CommonContent.EmptyStates.noTrainingZones
+        case .metrics: return CommonContent.EmptyStates.noMetrics
         }
     }
     
     private var messageForDataType: String {
         switch dataType {
         case .activities, .workouts:
-            return ComponentContent.EmptyState.noActivitiesMessage
+            return CommonContent.EmptyStates.noActivitiesMessage
         case .wellness:
-            return ComponentContent.EmptyState.noWellnessDataMessage
+            return CommonContent.EmptyStates.noWellnessDataMessage
         case .zones:
-            return ComponentContent.EmptyState.noTrainingZonesMessage
+            return CommonContent.EmptyStates.noTrainingZonesMessage
         case .metrics:
-            return ComponentContent.EmptyState.noMetricsMessage
+            return CommonContent.EmptyStates.noMetricsMessage
         }
     }
     

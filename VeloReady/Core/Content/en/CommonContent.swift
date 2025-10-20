@@ -136,5 +136,123 @@ enum CommonContent {
         static let checkBack = "Check back after a few days"  /// Check back message
         static let connectDataSource = "Connect a data source to get started"  /// Connect data source
         static let requiresSetup = "Setup required"  /// Setup required
+        
+        // Activities
+        static let noActivities = "No Activities Yet"  /// No activities
+        static let noActivitiesMessage = "Connect a data source to view your rides and track your progress"  /// No activities message
+        
+        // Health Data
+        static let healthDataUnavailable = "Health data unavailable"  /// Health data unavailable
+        static let healthDataMessage = "Grant access to Apple Health to see your recovery metrics"  /// Health data message
+        static let grantAccess = "Grant Access"  /// Grant access button
+        
+        // Wellness
+        static let noWellnessData = "No Wellness Data"  /// No wellness data
+        static let noWellnessDataMessage = "Connect Apple Health or another source to track sleep, HRV, and recovery"  /// No wellness message
+        
+        // Training Zones
+        static let noTrainingZones = "No Training Zones"  /// No training zones
+        static let noTrainingZonesMessage = "Connect a training platform to sync your power and heart rate zones"  /// No zones message
+        
+        // Sleep
+        static let noSleepData = "No sleep data"  /// No sleep data
+        static let noSleepDataMessage = "Wear your Apple Watch while sleeping to track sleep quality"  /// No sleep message
+        
+        // Recovery
+        static let noRecoveryData = "No recovery data"  /// No recovery data
+        static let noRecoveryDataMessage = "Complete your first workout to see recovery metrics"  /// No recovery message
+    }
+    
+    // MARK: - Badges
+    enum Badges {
+        static let pro = "PRO"  /// PRO badge
+        static let new = "NEW"  /// NEW badge
+        static let beta = "BETA"  /// BETA badge
+        static let comingSoon = "COMING SOON"  /// Coming soon badge
+        static let bestValue = "BEST VALUE"  /// Best value badge
+        static let popular = "POPULAR"  /// Popular badge
+        static let recommended = "RECOMMENDED"  /// Recommended badge
+        
+        // Status Badges
+        static let ready = "Ready"  /// Ready status
+        static let excellent = "Excellent"  /// Excellent status
+        static let good = "Good"  /// Good status
+        static let fair = "Fair"  /// Fair status
+        static let poor = "Poor"  /// Poor status
+        static let high = "High"  /// High status
+        static let moderate = "Moderate"  /// Moderate status
+        static let low = "Low"  /// Low status
+    }
+    
+    // MARK: - Data Sources
+    enum DataSources {
+        // Strava
+        static let stravaConnect = "Connect with Strava"  /// Strava connect
+        static let stravaDisconnect = "Disconnect from Strava"  /// Strava disconnect
+        static let stravaConnecting = "Connecting..."  /// Strava connecting
+        static let stravaName = "Strava"  /// Strava name
+        
+        // Intervals.icu
+        static let intervalsConnect = "Connect with Intervals.icu"  /// Intervals connect
+        static let intervalsDisconnect = "Disconnect from Intervals.icu"  /// Intervals disconnect
+        static let intervalsName = "Intervals.icu"  /// Intervals name
+    }
+    
+    // MARK: - Error Messages
+    enum Errors {
+        // Generic
+        static let genericTitle = "Something went wrong"  /// Generic error title
+        static let genericMessage = "Please try again later"  /// Generic error message
+        static let unknownError = "An unknown error occurred"  /// Unknown error
+        static let tryAgain = "Please try again"  /// Try again message
+        
+        // Network
+        static let networkTitle = "Connection Error"  /// Network error title
+        static let networkMessage = "Please check your internet connection"  /// Network error message
+        static let networkUnavailable = "No internet connection"  /// Network unavailable
+        static let requestFailed = "Request failed. Please try again."  /// Request failed
+        static let timeout = "Request timed out"  /// Timeout error
+        
+        // Authentication
+        static let authFailed = "Authentication failed"  /// Auth failed
+        static let tokenExpired = "Session expired. Please log in again."  /// Token expired
+        static let unauthorized = "Unauthorized access"  /// Unauthorized
+        
+        // Data
+        static let dataLoadFailed = "Failed to load data"  /// Data load failed
+        static let dataSaveFailed = "Failed to save data"  /// Data save failed
+        static let dataNotFound = "Data not found"  /// Data not found
+        static let invalidData = "Invalid data format"  /// Invalid data
+        
+        // HealthKit
+        static let healthKitUnavailable = "Health data is not available"  /// HealthKit unavailable
+        static let healthKitPermissionDenied = "Health data access denied"  /// Permission denied
+        static let healthKitReadFailed = "Failed to read health data"  /// Read failed
+        
+        // API
+        static let apiError = "API error occurred"  /// API error
+        static let serverError = "Server error. Please try again later."  /// Server error
+        static let rateLimitExceeded = "Too many requests. Please wait."  /// Rate limit
+        
+        // Sync
+        static let syncFailed = "Sync failed"  /// Sync failed
+        static let conflictDetected = "Data conflict detected"  /// Conflict detected
+        
+        // Permissions
+        static let permissionTitle = "Permission Required"  /// Permission title
+        static let permissionMessage = "This feature requires additional permissions"  /// Permission message
+    }
+    
+    // MARK: - Debug (Development Only)
+    enum Debug {
+        // App Group
+        static let appGroupTitle = "App Group Debug"  /// App group title
+        static let testWrite = "Test Write to App Group"  /// Test write button
+        static let testRead = "Test Read from App Group"  /// Test read button
+        static let writeSuccess = "✅ SUCCESS: Wrote test data to App Group"  /// Write success
+        static let readSuccess = "✅ SUCCESS: Read data from App Group"  /// Read success
+        static let noData = "⚠️ WARNING: App Group accessible but no data found"  /// No data warning
+        static let accessFailed = "❌ FAILED: Could not access App Group"  /// Access failed
+        static let notTested = "Not tested yet"  /// Not tested
     }
 }

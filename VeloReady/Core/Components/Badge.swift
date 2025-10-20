@@ -148,15 +148,15 @@ enum BadgeSize {
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 HStack(spacing: Spacing.sm) {
-                    Badge(ComponentContent.Badge.excellent, variant: .success)
-                    Badge(ComponentContent.Badge.fair, variant: .warning)
-                    Badge(ComponentContent.Badge.poor, variant: .error)
+                    Badge(CommonContent.Badges.excellent, variant: .success)
+                    Badge(CommonContent.Badges.fair, variant: .warning)
+                    Badge(CommonContent.Badges.poor, variant: .error)
                 }
                 
                 HStack(spacing: Spacing.sm) {
-                    Badge(ComponentContent.Badge.new, variant: .info)
-                    Badge(ComponentContent.Badge.beta, variant: .neutral)
-                    Badge(ComponentContent.Badge.pro, variant: .pro)
+                    Badge(CommonContent.Badges.new, variant: .info)
+                    Badge(CommonContent.Badges.beta, variant: .neutral)
+                    Badge(CommonContent.Badges.pro, variant: .pro)
                 }
             }
             

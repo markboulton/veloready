@@ -7,7 +7,7 @@ struct ConnectWithIntervalsButton: View {
     
     var body: some View {
         Button(action: action) {
-            Text(isConnected ? ComponentContent.DataSource.intervalsDisconnect : ComponentContent.DataSource.intervalsConnect)
+            Text(isConnected ? CommonContent.DataSources.intervalsDisconnect : CommonContent.DataSources.intervalsConnect)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(ColorPalette.labelPrimary)
@@ -32,7 +32,7 @@ struct IntervalsBadge: View {
                 .font(TypeScale.font(size: TypeScale.xs))
                 .foregroundColor(ColorPalette.labelPrimary)
             
-            Text(ComponentContent.DataSource.intervalsName)
+            Text(CommonContent.DataSources.intervalsName)
                 .font(TypeScale.font(size: TypeScale.xs, weight: .semibold))
                 .foregroundColor(ColorPalette.labelPrimary)
         }

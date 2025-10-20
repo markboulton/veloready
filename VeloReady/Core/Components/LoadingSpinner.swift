@@ -60,8 +60,8 @@ enum SpinnerSize {
         
         Divider()
         
-        LoadingSpinner(size: .medium, message: ComponentContent.Loading.defaultMessage)
-        LoadingSpinner(size: .large, message: ComponentContent.Loading.loadingData)
+        LoadingSpinner(size: .medium, message: CommonContent.States.defaultMessage)
+        LoadingSpinner(size: .large, message: CommonContent.States.loadingData)
         
         Divider()
         

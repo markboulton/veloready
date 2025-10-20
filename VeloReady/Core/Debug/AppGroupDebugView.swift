@@ -2,18 +2,18 @@ import SwiftUI
 
 /// Debug view to test App Group functionality
 struct AppGroupDebugView: View {
-    @State private var testResult = DebugContent.AppGroup.statusInitial
+    @State private var testResult = CommonContent.Debug.statusInitial
     @State private var recoveryScore: Int?
     @State private var recoveryBand: String?
     
     var body: some View {
         List {
-            Section(DebugContent.AppGroup.sectionTest) {
-                Button(DebugContent.AppGroup.buttonWrite) {
+            Section(CommonContent.Debug.sectionTest) {
+                Button(CommonContent.Debug.buttonWrite) {
                     testWrite()
                 }
                 
-                Button(DebugContent.AppGroup.buttonRead) {
+                Button(CommonContent.Debug.buttonRead) {
                     testRead()
                 }
                 
@@ -22,10 +22,10 @@ struct AppGroupDebugView: View {
                     .foregroundColor(ColorPalette.labelSecondary)
             }
             
-            Section(DebugContent.AppGroup.sectionData) {
+            Section(CommonContent.Debug.sectionData) {
                 if let score = recoveryScore {
                     HStack {
-                        Text(DebugContent.AppGroup.labelScore)
+                        Text(CommonContent.Debug.labelScore)
                         Spacer()
                         Text("\(score)")
                             .foregroundColor(ColorPalette.labelSecondary)
@@ -34,7 +34,7 @@ struct AppGroupDebugView: View {
                 
                 if let band = recoveryBand {
                     HStack {
-                        Text(DebugContent.AppGroup.labelBand)
+                        Text(CommonContent.Debug.labelBand)
                         Spacer()
                         Text(band)
                             .foregroundColor(ColorPalette.labelSecondary)
@@ -42,12 +42,12 @@ struct AppGroupDebugView: View {
                 }
                 
                 if recoveryScore == nil && recoveryBand == nil {
-                    Text(DebugContent.AppGroup.messageNoData)
+                    Text(CommonContent.Debug.messageNoData)
                         .foregroundColor(ColorPalette.warning)
                 }
             }
         }
-        .navigationTitle(DebugContent.AppGroup.title)
+        .navigationTitle(CommonContent.Debug.title)
         .onAppear {
             testRead()
         }
@@ -55,7 +55,7 @@ struct AppGroupDebugView: View {
     
     private func testWrite() {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") else {
-            testResult = DebugContent.AppGroup.statusFailed
+            testResult = CommonContent.Debug.statusFailed
             return
         }
         
@@ -64,7 +64,7 @@ struct AppGroupDebugView: View {
         sharedDefaults.set("Test", forKey: "cachedRecoveryBand")
         sharedDefaults.set(true, forKey: "cachedRecoveryIsPersonalized")
         
-        testResult = DebugContent.AppGroup.statusWriteSuccess
+        testResult = CommonContent.Debug.statusWriteSuccess
         
         // Read it back
         testRead()
@@ -72,7 +72,7 @@ struct AppGroupDebugView: View {
     
     private func testRead() {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") else {
-            testResult = DebugContent.AppGroup.statusFailed
+            testResult = CommonContent.Debug.statusFailed
             return
         }
         
@@ -82,11 +82,11 @@ struct AppGroupDebugView: View {
         if score > 0 {
             recoveryScore = score
             recoveryBand = band
-            testResult = DebugContent.AppGroup.statusReadSuccess
+            testResult = CommonContent.Debug.statusReadSuccess
         } else {
             recoveryScore = nil
             recoveryBand = nil
-            testResult = DebugContent.AppGroup.statusNoData
+            testResult = CommonContent.Debug.statusNoData
         }
     }
 }
