@@ -49,7 +49,7 @@ struct WeeklyHeatmap: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Training pattern
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Training Pattern")
+                Text(TrendsContent.WeeklyHeatmap.trainingPattern)
                     .font(.system(size: TypeScale.sm, weight: .semibold))
                     .foregroundColor(.text.secondary)
                 
@@ -93,7 +93,7 @@ struct WeeklyHeatmap: View {
             
             // Sleep pattern
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Sleep Quality")
+                Text(TrendsContent.WeeklyHeatmap.sleepQuality)
                     .font(.system(size: TypeScale.sm, weight: .semibold))
                     .foregroundColor(.text.secondary)
                 
@@ -155,7 +155,7 @@ struct WeeklyHeatmap: View {
 #Preview {
     Card(style: .flat) {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Weekly Rhythm")
+            Text(TrendsContent.WeeklyHeatmap.weeklyRhythm)
                 .font(.heading)
             
             WeeklyHeatmap(
@@ -193,7 +193,7 @@ struct WeeklyHeatmap: View {
                 ]
             )
             
-            Text("Well-distributed intensity with adequate recovery windows.")
+            Text(TrendsContent.WeeklyHeatmap.wellDistributed)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
         }

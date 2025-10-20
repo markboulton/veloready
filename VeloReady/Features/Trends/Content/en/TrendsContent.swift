@@ -94,6 +94,14 @@ enum TrendsContent {
     static let actionRequired = "Action Required"  /// Action required label
     static let recommendation = "Recommendation"  /// Recommendation label
     
+    // MARK: - Weekly Heatmap
+    enum WeeklyHeatmap {
+        static let trainingPattern = "Training Pattern"  /// Training pattern label
+        static let sleepQuality = "Sleep Quality"  /// Sleep quality label
+        static let weeklyRhythm = "Weekly Rhythm"  /// Weekly rhythm title
+        static let wellDistributed = "Well-distributed intensity with adequate recovery windows."  /// Well distributed description
+    }
+    
     // MARK: - PRO Feature
     static let proFeature = "PRO"  /// PRO badge text
     static let proRequired = "PRO feature"  /// PRO required message

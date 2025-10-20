@@ -200,15 +200,15 @@ struct IntensityChart: View {
     
     private func intensityLabel(_ if: Double) -> String {
         if `if` < 0.65 {
-            return "Recovery-Focused"
+            return ActivityContent.IntensityLabels.recoveryFocused
         } else if `if` < 0.75 {
-            return "Endurance-Focused"
+            return ActivityContent.IntensityLabels.enduranceFocused
         } else if `if` < 0.85 {
-            return "Tempo-Focused"
+            return ActivityContent.IntensityLabels.tempoFocused
         } else if `if` < 0.95 {
-            return "Threshold-Focused"
+            return ActivityContent.IntensityLabels.thresholdFocused
         } else {
-            return "High Intensity-Focused"
+            return ActivityContent.IntensityLabels.highIntensityFocused
         }
     }
     
@@ -226,13 +226,13 @@ struct IntensityChart: View {
     
     private func tssDescription(_ tss: Double) -> String {
         if tss < 50 {
-            return "Light load - minimal fatigue, quick recovery"
+            return ActivityContent.TSSDescriptions.light
         } else if tss < 90 {
-            return "Moderate load - some fatigue, 1-2 days recovery"
+            return ActivityContent.TSSDescriptions.moderate
         } else if tss < 120 {
-            return "Hard load - significant fatigue, 2-3 days recovery"
+            return ActivityContent.TSSDescriptions.hard
         } else {
-            return "Very hard load - heavy fatigue, 3+ days recovery"
+            return ActivityContent.TSSDescriptions.veryHard
         }
     }
 }

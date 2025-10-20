@@ -106,6 +106,23 @@ enum ActivityContent {
         static let notSpecified = "Not specified"  /// Not specified
     }
     
+    // MARK: - Intensity Labels
+    enum IntensityLabels {
+        static let recoveryFocused = "Recovery-Focused"  /// Recovery intensity
+        static let enduranceFocused = "Endurance-Focused"  /// Endurance intensity
+        static let tempoFocused = "Tempo-Focused"  /// Tempo intensity
+        static let thresholdFocused = "Threshold-Focused"  /// Threshold intensity
+        static let highIntensityFocused = "High Intensity-Focused"  /// High intensity
+    }
+    
+    // MARK: - TSS Descriptions
+    enum TSSDescriptions {
+        static let light = "Light load - minimal fatigue, quick recovery"  /// Light TSS
+        static let moderate = "Moderate load - some fatigue, 1-2 days recovery"  /// Moderate TSS
+        static let hard = "Hard load - significant fatigue, 2-3 days recovery"  /// Hard TSS
+        static let veryHard = "Very hard load - heavy fatigue, 3+ days recovery"  /// Very hard TSS
+    }
+    
     // MARK: - Training Load
     enum TrainingLoad {
         static let trainingLoad = "Training Load:"  /// Training load label
