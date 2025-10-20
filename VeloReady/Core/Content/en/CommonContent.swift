@@ -276,16 +276,4 @@ enum CommonContent {
         static let permissionMessage = "This feature requires additional permissions"  /// Permission message
     }
     
-    // MARK: - Debug (Development Only)
-    enum Debug {
-        // App Group
-        static let appGroupTitle = "App Group Debug"  /// App group title
-        static let testWrite = "Test Write to App Group"  /// Test write button
-        static let testRead = "Test Read from App Group"  /// Test read button
-        static let writeSuccess = "✅ SUCCESS: Wrote test data to App Group"  /// Write success
-        static let readSuccess = "✅ SUCCESS: Read data from App Group"  /// Read success
-        static let noData = "⚠️ WARNING: App Group accessible but no data found"  /// No data warning
-        static let accessFailed = "❌ FAILED: Could not access App Group"  /// Access failed
-        static let notTested = "Not tested yet"  /// Not tested
-    }
 }
