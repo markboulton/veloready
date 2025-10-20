@@ -10,19 +10,19 @@ struct CacheStatsView: View {
         List {
             // Unified Cache Section
             Section {
-                StatRow(label: "Hit Rate", value: hitRateText, valueColor: hitRateColor)
-                StatRow(label: "Cache Hits", value: "\(cacheManager.cacheHits)")
-                StatRow(label: "Cache Misses", value: "\(cacheManager.cacheMisses)")
-                StatRow(label: "Deduplicated", value: "\(cacheManager.deduplicatedRequests)")
+                StatRow(label: SettingsContent.Cache.hitRate, value: hitRateText, valueColor: hitRateColor)
+                StatRow(label: SettingsContent.Cache.cacheHits, value: "\(cacheManager.cacheHits)")
+                StatRow(label: SettingsContent.Cache.cacheMisses, value: "\(cacheManager.cacheMisses)")
+                StatRow(label: SettingsContent.Cache.deduplicated, value: "\(cacheManager.deduplicatedRequests)")
             } header: {
                 HStack {
-                    Text("Unified Cache")
+                    Text(SettingsContent.Cache.itemsCached)
                     Spacer()
                     Image(systemName: "trophy.fill")
                         .foregroundColor(hitRateColor)
                 }
             } footer: {
-                Text("Target: >85% hit rate after warm-up")
+                Text(SettingsContent.Cache.targetHitRate)
                     .font(.caption)
             }
             
@@ -42,7 +42,7 @@ struct CacheStatsView: View {
                 Section("Performance Metrics") {
                     ForEach(performanceStats) { stat in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(stat.label)
+                            Text(SettingsContent.Cache.totalSize)
                                 .font(.headline)
                             HStack {
                                 VStack(alignment: .leading) {
@@ -91,13 +91,13 @@ struct CacheStatsView: View {
                         performanceStats = []
                     }
                 } label: {
-                    Label("Reset Statistics", systemImage: "arrow.counterclockwise")
+                    Label(SettingsContent.Cache.statistics, systemImage: "arrow.counterclockwise")
                 }
                 
                 Button(role: .destructive) {
                     showingClearAlert = true
                 } label: {
-                    Label("Clear All Caches", systemImage: "trash")
+                    Label(SettingsContent.Cache.clearAll, systemImage: "trash")
                 }
             }
         }

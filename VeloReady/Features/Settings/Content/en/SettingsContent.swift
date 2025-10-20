@@ -36,6 +36,9 @@ enum SettingsContent {
         static let male = "Male"
         static let female = "Female"
         static let notAuthorized = "Not Authorized"
+        static let status = "Status"
+        static let provides = "Provides"
+        static let connectedSources = "Connected Sources"
     }
     
     // MARK: - iCloud
@@ -43,7 +46,11 @@ enum SettingsContent {
         static let title = "iCloud Sync"
         static let status = "Status"
         static let lastSync = "Last Sync"
-        static let never = "Never"
+        static let other = "Other"
+        static let editProfile = "Edit Profile"
+        static let athleticProfile = "Athletic Profile"
+        static let bmr = "BMR"
+        static let athleteLabel = "Athlete:"
         static let syncNow = "Sync Now"
         static let restoreFromCloud = "Restore from iCloud"
         static let whatSyncs = "What Syncs"
@@ -51,6 +58,26 @@ enum SettingsContent {
         static let strengthData = "Strength Exercise Data"
         static let dailyScores = "Daily Scores"
         static let workoutMetadata = "Workout Metadata"
+    }
+    
+    // MARK: - Cache
+    enum Cache {
+        static let statistics = "Cache Statistics"
+        static let totalSize = "Total Size"
+        static let itemsCached = "Items Cached"
+        static let lastUpdated = "Last Updated"
+        static let clearAll = "Clear All Caches"
+    }
+    
+    // MARK: - Feedback
+    enum Feedback {
+        static let title = "Send Feedback"
+        static let type = "Feedback Type"
+        static let bugReport = "Bug Report"
+        static let featureRequest = "Feature Request"
+        static let general = "General Feedback"
+        static let yourFeedback = "Your Feedback"
+        static let send = "Send"
     }
     
     // MARK: - Sleep Settings
@@ -111,6 +138,12 @@ enum SettingsContent {
         static let zone3Max = "Zone 3 Max:"
         static let zone4Max = "Zone 4 Max:"
         static let zone5Max = "Zone 5 Max:"
+        static let syncZones = "Sync Zones"
+        static let tapSyncMessage = "Tap 'Sync Zones' to import your zones from Intervals.icu"
+        static let lastSynced = "Last synced:"
+        static let sourceIntervals = "Source: Intervals.icu"
+        static let sourceManual = "Source: Manual"
+        static let sourceComputed = "Source: Computed"
     }
     
     // MARK: - Display Settings

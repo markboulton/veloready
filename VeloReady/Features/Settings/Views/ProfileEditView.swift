@@ -76,18 +76,18 @@ struct ProfileEditView: View {
                 // Athletic Info
                 Section {
                     HStack {
-                        Text("Age")
+                        Text(SettingsContent.Profile.name)
                         Spacer()
                         TextField("", value: $viewModel.age, format: .number)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
-                        Text("years")
+                        Text(SettingsContent.Profile.email)
                             .foregroundColor(.secondary)
                     }
                     
                     HStack {
-                        Text("Weight")
+                        Text(SettingsContent.Profile.weight)
                         Spacer()
                         TextField("", value: $viewModel.weight, format: .number)
                             .keyboardType(.decimalPad)
@@ -98,7 +98,7 @@ struct ProfileEditView: View {
                     }
                     
                     HStack {
-                        Text("Height")
+                        Text(SettingsContent.Profile.height)
                         Spacer()
                         TextField("", value: $viewModel.height, format: .number)
                             .keyboardType(.numberPad)
@@ -108,7 +108,7 @@ struct ProfileEditView: View {
                             .foregroundColor(.secondary)
                     }
                 } header: {
-                    Text("Athletic Profile")
+                    Text(SettingsContent.Profile.editProfile)
                 } footer: {
                     Text("Used for calculating BMR and other metrics.")
                 }

@@ -29,19 +29,19 @@ struct FeedbackView: View {
                             }
                         }
                 } header: {
-                    Text("Your Feedback")
+                    Text(SettingsContent.Feedback.yourFeedback)
                 } footer: {
                     Text("Tell us about bugs, feature requests, or general feedback")
                 }
                 
                 // Options section
                 Section {
-                    Toggle("Include diagnostic logs", isOn: $includeLogs)
-                    Toggle("Include device information", isOn: $includeDeviceInfo)
+                    Toggle(SettingsContent.Feedback.includeLogs, isOn: $includeLogs)
+                    Toggle(SettingsContent.Feedback.includeDeviceInfo, isOn: $includeDeviceInfo)
                 } header: {
-                    Text("Attachments")
+                    Text(SettingsContent.Feedback.type)
                 } footer: {
-                    Text("Logs help us diagnose issues faster. No personal data is included.")
+                    Text(SettingsContent.Feedback.logsFooter)
                 }
                 
                 // Device info preview (if enabled)
@@ -56,7 +56,7 @@ struct FeedbackView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     } header: {
-                        Text("Device Information")
+                        Text(SettingsContent.Feedback.deviceInfo)
                     }
                 }
                 
@@ -65,7 +65,7 @@ struct FeedbackView: View {
                     Button(action: sendFeedback) {
                         HStack {
                             Image(systemName: "envelope.fill")
-                            Text("Send Feedback")
+                            Text(SettingsContent.Feedback.title)
                         }
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.white)
@@ -74,18 +74,18 @@ struct FeedbackView: View {
                     .disabled(feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
-            .navigationTitle("Send Feedback")
+            .navigationTitle(SettingsContent.Feedback.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(SettingsContent.Feedback.cancel) {
                         dismiss()
                     }
                 }
             }
             .sheet(isPresented: $showMailComposer) {
                 MailComposeView(
-                    subject: "VeloReady Feedback",
+                    subject: SettingsContent.Feedback.subject,
                     recipients: ["support@veloready.app"],
                     body: buildEmailBody(),
                     attachLogs: includeLogs,
@@ -93,18 +93,18 @@ struct FeedbackView: View {
                     result: $mailResult
                 )
             }
-            .alert("Mail Not Available", isPresented: $showNoMailAlert) {
-                Button("OK", role: .cancel) { }
+            .alert(SettingsContent.Feedback.mailNotAvailable, isPresented: $showNoMailAlert) {
+                Button(SettingsContent.Feedback.ok, role: .cancel) { }
             } message: {
-                Text("Please configure a mail account in Settings or email us at support@veloready.app")
+                Text(SettingsContent.Feedback.mailNotAvailableMessage)
             }
-            .alert("Feedback Sent", isPresented: .constant(mailResult != nil && mailResult?.isSuccess == true)) {
-                Button("OK") {
+            .alert(SettingsContent.Feedback.feedbackSent, isPresented: .constant(mailResult != nil && mailResult?.isSuccess == true)) {
+                Button(SettingsContent.Feedback.send) {
                     mailResult = nil
                     dismiss()
                 }
             } message: {
-                Text("Thank you for your feedback!")
+                Text(SettingsContent.Feedback.thankYou)
             }
         }
     }
