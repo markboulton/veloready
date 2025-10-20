@@ -338,7 +338,7 @@ private struct LegendItem: View {
                         .foregroundColor(.text.primary)
                         .fontWeight(.medium)
                 } else {
-                    Text("--")
+                    Text(TrendsContent.TimeLabels.placeholder)
                         .font(.caption)
                         .foregroundColor(.text.tertiary)
                 }

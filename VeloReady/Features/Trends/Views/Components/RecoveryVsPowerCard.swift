@@ -20,7 +20,7 @@ struct RecoveryVsPowerCard: View {
                         
                         if let correlation = correlation {
                             HStack(spacing: Spacing.xs) {
-                                Text("\(correlation.significance.description) Correlation")
+                                Text("\(correlation.significance.description) \(TrendsContent.Labels.correlation)")
                                     .font(.body)
                                     .foregroundColor(correlationColor(correlation))
                                 

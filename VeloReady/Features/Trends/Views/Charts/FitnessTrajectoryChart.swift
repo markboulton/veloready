@@ -25,17 +25,17 @@ struct FitnessTrajectoryChart: View {
             // Grey projection zone (behind everything)
             if !futureData.isEmpty, let firstFuture = futureData.first, let lastFuture = futureData.last {
                 RectangleMark(
-                    xStart: .value("Start", firstFuture.date),
-                    xEnd: .value("End", lastFuture.date),
-                    yStart: .value("Bottom", 0),
-                    yEnd: .value("Top", maxValue * 1.1)
+                    xStart: .value(TrendsContent.ChartAxis.start, firstFuture.date),
+                    xEnd: .value(TrendsContent.ChartAxis.end, lastFuture.date),
+                    yStart: .value(TrendsContent.ChartAxis.bottom, 0),
+                    yEnd: .value(TrendsContent.ChartAxis.top, maxValue * 1.1)
                 )
                 .foregroundStyle(Color(.systemGray6).opacity(0.5))
             }
             
             // Today marker
             if todayIndex < data.count {
-                RuleMark(x: .value("Today", data[todayIndex].date))
+                RuleMark(x: .value(TrendsContent.ChartAxis.today, data[todayIndex].date))
                     .foregroundStyle(Color.text.tertiary)
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
@@ -43,9 +43,9 @@ struct FitnessTrajectoryChart: View {
             // CTL (Fitness) line
             ForEach(data) { point in
                 LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", point.ctl),
-                    series: .value("Metric", "CTL")
+                    x: .value(TrendsContent.ChartAxis.date, point.date),
+                    y: .value(TrendsContent.ChartAxis.value, point.ctl),
+                    series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.ctlLabel)
                 )
                 .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.button.primary.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
@@ -54,15 +54,15 @@ struct FitnessTrajectoryChart: View {
                 // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.ctl)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.ctl)
                     )
                     .foregroundStyle(Color.black)
                     .symbolSize(20)
                     
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.ctl)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.ctl)
                     )
                     .foregroundStyle(Color.button.primary)
                     .symbolSize(40)
@@ -84,9 +84,9 @@ struct FitnessTrajectoryChart: View {
             // ATL (Fatigue) line
             ForEach(data) { point in
                 LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", point.atl),
-                    series: .value("Metric", "ATL")
+                    x: .value(TrendsContent.ChartAxis.date, point.date),
+                    y: .value(TrendsContent.ChartAxis.value, point.atl),
+                    series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.atlLabel)
                 )
                 .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.semantic.warning.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
@@ -95,15 +95,15 @@ struct FitnessTrajectoryChart: View {
                 // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.atl)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.atl)
                     )
                     .foregroundStyle(Color.black)
                     .symbolSize(20)
                     
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.atl)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.atl)
                     )
                     .foregroundStyle(Color.semantic.warning)
                     .symbolSize(40)
@@ -125,9 +125,9 @@ struct FitnessTrajectoryChart: View {
             // TSB (Form) line
             ForEach(data) { point in
                 LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", point.tsb),
-                    series: .value("Metric", "TSB")
+                    x: .value(TrendsContent.ChartAxis.date, point.date),
+                    y: .value(TrendsContent.ChartAxis.value, point.tsb),
+                    series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.formLabel)
                 )
                 .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : ColorScale.greenAccent.opacity(0.25))
                 .lineStyle(StrokeStyle(lineWidth: 2))
@@ -136,15 +136,15 @@ struct FitnessTrajectoryChart: View {
                 // Point markers (only for historical data) - outlined with black center
                 if !point.isFuture {
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.tsb)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.tsb)
                     )
                     .foregroundStyle(Color.black)
                     .symbolSize(20)
                     
                     PointMark(
-                        x: .value("Date", point.date),
-                        y: .value("Value", point.tsb)
+                        x: .value(TrendsContent.ChartAxis.date, point.date),
+                        y: .value(TrendsContent.ChartAxis.value, point.tsb)
                     )
                     .foregroundStyle(ColorScale.greenAccent)
                     .symbolSize(40)

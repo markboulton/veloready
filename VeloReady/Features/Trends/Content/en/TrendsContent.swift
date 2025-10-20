@@ -64,6 +64,27 @@ enum TrendsContent {
         static let strava = "Strava"  /// Strava label
         static let connectToStrava = "Connect to Strava"  /// Connect to Strava
         static let tsbLabel = "TSB:"  /// TSB label with colon
+        static let consistency = "Consistency"  /// Consistency label
+        static let correlation = "Correlation"  /// Correlation suffix
+    }
+    
+    // MARK: - Chart Axis Labels
+    enum ChartAxis {
+        static let date = "Date"  /// Date axis
+        static let value = "Value"  /// Value axis
+        static let metric = "Metric"  /// Metric series
+        static let start = "Start"  /// Start point
+        static let end = "End"  /// End point
+        static let bottom = "Bottom"  /// Bottom value
+        static let top = "Top"  /// Top value
+        static let today = "Today"  /// Today marker
+    }
+    
+    // MARK: - Time Labels
+    enum TimeLabels {
+        static let am = "am"  /// AM suffix
+        static let pm = "pm"  /// PM suffix
+        static let placeholder = "--"  /// Placeholder for missing data
     }
     
     // MARK: - Empty States

@@ -107,7 +107,7 @@ struct CircadianClockChart: View {
                 
                 // Center label
                 VStack(spacing: 4) {
-                    Text("Consistency")
+                    Text(TrendsContent.Labels.consistency)
                         .font(.system(size: TypeScale.xs))
                         .foregroundColor(.text.secondary)
                     Text("\(Int(consistency))/100")
@@ -132,10 +132,10 @@ struct CircadianClockChart: View {
     }
     
     private func hourLabel(_ hour: Int) -> String {
-        if hour == 0 { return "12am" }
-        if hour == 12 { return "12pm" }
-        if hour < 12 { return "\(hour)am" }
-        return "\(hour - 12)pm"
+        if hour == 0 { return "12\(TrendsContent.TimeLabels.am)" }
+        if hour == 12 { return "12\(TrendsContent.TimeLabels.pm)" }
+        if hour < 12 { return "\(hour)\(TrendsContent.TimeLabels.am)" }
+        return "\(hour - 12)\(TrendsContent.TimeLabels.pm)"
     }
     
     private func arcSegment(
