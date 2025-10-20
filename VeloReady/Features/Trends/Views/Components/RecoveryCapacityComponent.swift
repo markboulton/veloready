@@ -14,14 +14,14 @@ struct RecoveryCapacityComponent: View {
                     Text(TrendsContent.WeeklyReport.avgRecovery)
                         .metricLabel()
                     HStack(spacing: 4) {
-                        Text("\(Int(metrics.avgRecovery))%")
+                        Text("\(Int(metrics.avgRecovery))\(TrendsContent.Units.percent)")
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.health.heartRate)
                         if metrics.recoveryChange != 0 {
                             Image(systemName: metrics.recoveryChange > 0 ? "arrow.up" : "arrow.down")
                                 .foregroundColor(metrics.recoveryChange > 0 ? ColorScale.greenAccent : ColorScale.redAccent)
-                            Text("\(Int(abs(metrics.recoveryChange)))%")
+                            Text("\(Int(abs(metrics.recoveryChange)))\(TrendsContent.Units.percent)")
                                 .font(.caption)
                                 .foregroundColor(metrics.recoveryChange > 0 ? ColorScale.greenAccent : ColorScale.redAccent)
                         }

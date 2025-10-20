@@ -133,7 +133,7 @@ struct RecoveryVsPowerCard: View {
             AxisMarks(position: .bottom) { value in
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)%")
+                        Text("\(intValue)\(TrendsContent.Units.percent)")
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
@@ -146,7 +146,7 @@ struct RecoveryVsPowerCard: View {
             AxisMarks(position: .leading) { value in
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)W")
+                        Text("\(intValue)\(TrendsContent.Units.watts)")
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
@@ -161,7 +161,7 @@ struct RecoveryVsPowerCard: View {
     private func correlationStats(_ correlation: CorrelationCalculator.CorrelationResult) -> some View {
         HStack(spacing: Spacing.lg) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Correlation")
+                Text(TrendsContent.Metrics.correlation)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
                 
@@ -171,7 +171,7 @@ struct RecoveryVsPowerCard: View {
             }
             
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("R² (Variance)")
+                Text(TrendsContent.Metrics.rSquared)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
                 
@@ -181,7 +181,7 @@ struct RecoveryVsPowerCard: View {
             }
             
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Activities")
+                Text(TrendsContent.Metrics.activities)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
                 

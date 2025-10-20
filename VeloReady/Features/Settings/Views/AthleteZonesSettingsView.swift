@@ -96,7 +96,7 @@ struct AthleteZonesSettingsView: View {
                             }
                         } else {
                             HStack {
-                                Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                                Text("\(Int(profileManager.profile.ftp ?? 0)) \(CommonContent.Units.watts)")
                                     .font(.title2)
                                     .fontWeight(.bold)
                                 
@@ -116,7 +116,7 @@ struct AthleteZonesSettingsView: View {
                         }
                     } else {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("\(Int(profileManager.profile.ftp ?? 0)) W")
+                            Text("\(Int(profileManager.profile.ftp ?? 0)) \(CommonContent.Units.watts)")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
@@ -168,7 +168,7 @@ struct AthleteZonesSettingsView: View {
                             }
                         } else {
                             HStack {
-                                Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                                Text("\(Int(profileManager.profile.maxHR ?? 0)) \(CommonContent.Units.bpm)")
                                     .font(.title2)
                                     .fontWeight(.bold)
                                 
@@ -188,7 +188,7 @@ struct AthleteZonesSettingsView: View {
                         }
                     } else {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("\(Int(profileManager.profile.maxHR ?? 0)) bpm")
+                            Text("\(Int(profileManager.profile.maxHR ?? 0)) \(CommonContent.Units.bpm)")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
