@@ -382,7 +382,7 @@ struct DebugSettingsView: View {
             // Core Data Cache
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Image(systemName: "cylinder")
+                    Image(systemName: Icons.System.database)
                         .foregroundColor(ColorPalette.purple)
                     Text(DebugSettingsContent.Cache.coreDataCache)
                         .font(.subheadline)
@@ -464,7 +464,7 @@ struct DebugSettingsView: View {
                 }
             }) {
                 HStack {
-                    Image(systemName: "arrow.clockwise")
+                    Image(systemName: Icons.Arrow.clockwise)
                     Text(DebugSettingsContent.AIBrief.refresh)
                 }
             }
@@ -473,7 +473,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: AIBriefSecretConfigView()) {
                 HStack {
-                    Image(systemName: "key.fill")
+                    Image(systemName: Icons.Document.key)
                         .foregroundColor(Color.semantic.warning)
                     Text(DebugSettingsContent.AIBrief.configureSecret)
                 }
@@ -534,7 +534,7 @@ struct DebugSettingsView: View {
                     UIPasteboard.general.string = lastResponse
                 }) {
                     HStack {
-                        Image(systemName: "doc.on.doc")
+                        Image(systemName: Icons.Document.copy)
                         Text(DebugSettingsContent.RideSummary.copyResponse)
                     }
                 }
@@ -543,7 +543,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: RideSummarySecretConfigView()) {
                 HStack {
-                    Image(systemName: "key.fill")
+                    Image(systemName: Icons.Document.key)
                         .foregroundColor(Color.semantic.warning)
                     Text(DebugSettingsContent.RideSummary.configureSecret)
                 }
@@ -552,7 +552,7 @@ struct DebugSettingsView: View {
             // Override X-User (for testing)
             NavigationLink(destination: RideSummaryUserOverrideView()) {
                 HStack {
-                    Image(systemName: "person.crop.circle")
+                    Image(systemName: Icons.System.person)
                         .foregroundColor(Color.button.primary)
                     Text(DebugSettingsContent.RideSummary.overrideUser)
                 }
@@ -586,7 +586,7 @@ struct DebugSettingsView: View {
                         ProgressView()
                             .scaleEffect(0.8)
                     } else {
-                        Image(systemName: "heart.fill")
+                        Image(systemName: Icons.Health.heart)
                     }
                     Text(DebugSettingsContent.ScoreRecalc.forceRecalcRecovery)
                     Spacer()
@@ -618,7 +618,7 @@ struct DebugSettingsView: View {
                         ProgressView()
                             .scaleEffect(0.8)
                     } else {
-                        Image(systemName: "flame.fill")
+                        Image(systemName: Icons.Health.calories)
                     }
                     Text(DebugSettingsContent.ScoreRecalc.forceRecalcStrain)
                     Spacer()
