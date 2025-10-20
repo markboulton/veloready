@@ -123,6 +123,19 @@ enum CommonContent {
         static let total = "Total"  /// Total label
         static let current = "Current"  /// Current label
         static let baseline = "Baseline"  /// Baseline label
+        static let duration = "Duration"  /// Duration metric
+        static let distance = "Distance"  /// Distance metric
+        static let speed = "Speed"  /// Speed metric
+        static let power = "Power"  /// Power metric
+        static let heartRate = "Heart Rate"  /// Heart rate metric
+        static let cadence = "Cadence"  /// Cadence metric
+        static let elevation = "Elevation"  /// Elevation metric
+        static let calories = "Calories"  /// Calories metric
+        static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
+        static let sleepTarget = "Sleep Target"  /// Sleep target metric
+        static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
+        static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
+        static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
     }
     
     // MARK: - Common Instructions
