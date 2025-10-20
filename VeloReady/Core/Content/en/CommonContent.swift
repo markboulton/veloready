@@ -160,6 +160,12 @@ enum CommonContent {
         static let rhr = "RHR"
     }
     
+    // MARK: - Formatting
+    enum Formatting {
+        static let outOf100 = "out of 100"
+        static let outOf10 = "out of 10"
+    }
+    
     // MARK: - Common Instructions
     enum Instructions {
         static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
