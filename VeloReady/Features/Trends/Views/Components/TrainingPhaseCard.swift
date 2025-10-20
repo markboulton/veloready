@@ -19,7 +19,7 @@ struct TrainingPhaseCard: View {
                                 .font(.title)
                                 .foregroundColor(phaseColor(phase.phase))
                         } else {
-                            Text("Detecting...")
+                            Text(CommonContent.States.detecting)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -45,31 +45,31 @@ struct TrainingPhaseCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Not enough training data")
+                Text(TrendsContent.TrainingPhase.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("Complete 4+ weeks of workouts")
+                Text(TrendsContent.TrainingPhase.fourWeeks)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                 
-                Text("Phase detection requires:")
+                Text(TrendsContent.TrainingPhase.requires)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("4+ weeks of consistent training")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.TrainingPhase.consistentTraining)
                     }
                     HStack {
-                        Text("•")
-                        Text("Activities with power or heart rate")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.TrainingPhase.powerOrHR)
                     }
                     HStack {
-                        Text("•")
-                        Text("Variety of intensities (easy, hard, race)")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.TrainingPhase.varietyIntensities)
                     }
                 }
                 .font(.caption)
@@ -91,7 +91,7 @@ struct TrainingPhaseCard: View {
             // Metrics
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Weekly TSS")
+                    Text(TrendsContent.TrainingLoad.weeklyTSS)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     

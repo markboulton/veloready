@@ -29,7 +29,7 @@ struct RecoveryVsPowerCard: View {
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
-                            Text("No data")
+                            Text(CommonContent.States.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -66,37 +66,37 @@ struct RecoveryVsPowerCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Not enough data for correlation")
+                Text(TrendsContent.RecoveryVsPower.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("This unique analysis requires:")
+                Text(TrendsContent.RecoveryVsPower.requires)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("3+ weeks of cycling workouts")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.RecoveryVsPower.threeWeeks)
                     }
                     HStack {
-                        Text("•")
-                        Text("Power data (from power meter)")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.RecoveryVsPower.powerData)
                     }
                     HStack {
-                        Text("•")
-                        Text("Daily recovery scores")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.RecoveryVsPower.dailyRecovery)
                     }
                     HStack {
-                        Text("•")
-                        Text("HRV + sleep tracking enabled")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.RecoveryVsPower.hrvSleep)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Only VeloReady can show this correlation")
+                Text(TrendsContent.RecoveryVsPower.unique)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)

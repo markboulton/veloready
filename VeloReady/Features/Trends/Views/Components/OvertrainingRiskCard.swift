@@ -25,7 +25,7 @@ struct OvertrainingRiskCard: View {
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
-                            Text("Calculating...")
+                            Text(CommonContent.States.calculating)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -51,41 +51,41 @@ struct OvertrainingRiskCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Not enough health data")
+                Text(TrendsContent.OvertrainingRisk.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("Enable all health permissions")
+                Text(TrendsContent.OvertrainingRisk.enablePermissions)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                 
-                Text("Risk assessment requires:")
+                Text(TrendsContent.OvertrainingRisk.requires)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("7+ days of recovery scores")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.OvertrainingRisk.sevenDaysRecovery)
                     }
                     HStack {
-                        Text("•")
-                        Text("HRV data from Apple Health")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.OvertrainingRisk.hrvData)
                     }
                     HStack {
-                        Text("•")
-                        Text("Resting heart rate tracking")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.OvertrainingRisk.rhrTracking)
                     }
                     HStack {
-                        Text("•")
-                        Text("Sleep data with debt calculation")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.OvertrainingRisk.sleepDebt)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Check back after a week of tracking")
+                Text(CommonContent.EmptyStates.checkBack)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
