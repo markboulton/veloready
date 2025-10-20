@@ -23,7 +23,6 @@ enum CommonContent {
         static let enable = "Enable"  /// Enable button
         static let disable = "Disable"  /// Disable button
         static let viewDetails = "View Details"  /// View details button
-        static let ok = "OK"  /// OK button
     }
     
     // MARK: - Debug
@@ -173,6 +172,7 @@ enum CommonContent {
         static let noActivitiesMessage = "Connect your data sources or sync with Apple Health to see your activities here."  /// No activities message
         static let notEnoughTrendData = "Not Enough Data"
         static let notEnoughTrendDataMessage = "We need at least 7 days of data to show trends."
+        static let addActivity = "Add Activity"
         
         // Health Data
         static let healthDataUnavailable = "Health data unavailable"  /// Health data unavailable
