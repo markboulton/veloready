@@ -74,12 +74,12 @@ enum SleepContent {
         static let deepSleep = CommonContent.Metrics.deepSleep  /// Deep sleep label
     }
     
-    // MARK: - Sleep Stages
+    // MARK: - Sleep Stages (Extended labels)
     enum Stages {
         static let deep = CommonContent.Stages.deep  /// Deep sleep stage
-        static let core = "Core Sleep"  /// Core sleep stage
-        static let rem = "REM Sleep"  /// REM sleep stage
-        static let awake = "Awake"  /// Awake time
+        static let core = "Core Sleep"  /// Core sleep stage (extended label)
+        static let rem = "REM Sleep"  /// REM sleep stage (extended label)
+        static let awake = CommonContent.Stages.awake  /// Awake time
     }
     
     // MARK: - Recommendations
