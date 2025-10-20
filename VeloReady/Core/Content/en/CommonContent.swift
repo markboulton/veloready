@@ -155,6 +155,7 @@ enum CommonContent {
         static let recovery = "Recovery"
         static let sleep = "Sleep"
         static let strain = "Strain"
+        static let load = "Load"
         static let hrv = "HRV"
         static let rhr = "RHR"
     }
