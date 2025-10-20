@@ -35,7 +35,22 @@ enum SettingsContent {
         static let gender = "Gender"
         static let male = "Male"
         static let female = "Female"
-        static let other = "Other"
+        static let notAuthorized = "Not Authorized"
+    }
+    
+    // MARK: - iCloud
+    enum iCloud {
+        static let title = "iCloud Sync"
+        static let status = "Status"
+        static let lastSync = "Last Sync"
+        static let never = "Never"
+        static let syncNow = "Sync Now"
+        static let restoreFromCloud = "Restore from iCloud"
+        static let whatSyncs = "What Syncs"
+        static let userSettings = "User Settings"
+        static let strengthData = "Strength Exercise Data"
+        static let dailyScores = "Daily Scores"
+        static let workoutMetadata = "Workout Metadata"
     }
     
     // MARK: - Sleep Settings

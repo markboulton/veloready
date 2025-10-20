@@ -15,7 +15,7 @@ struct iCloudSettingsView: View {
                 // iCloud Status Section
                 Section {
                     HStack {
-                        Text("iCloud Status")
+                        Text(SettingsContent.iCloud.title)
                             .font(.subheadline)
                         
                         Spacer()
@@ -24,7 +24,7 @@ struct iCloudSettingsView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(Color.semantic.success)
-                                Text("Available")
+                                Text(CommonContent.States.enabled)
                                     .foregroundColor(Color.semantic.success)
                             }
                             .font(.subheadline)
@@ -41,7 +41,7 @@ struct iCloudSettingsView: View {
                     
                     if let lastSync = syncService.lastSyncDate {
                         HStack {
-                            Text("Last Sync")
+                            Text(SettingsContent.iCloud.lastSync)
                                 .font(.subheadline)
                             
                             Spacer()
@@ -65,7 +65,7 @@ struct iCloudSettingsView: View {
                         .padding(.vertical, 4)
                     }
                 } header: {
-                    Text("Status")
+                    Text(SettingsContent.iCloud.status)
                 } footer: {
                     Text("iCloud automatically syncs your settings, workout data, and strength exercise logs across all your devices.")
                 }
@@ -86,7 +86,8 @@ struct iCloudSettingsView: View {
                                     Image(systemName: "arrow.clockwise.icloud")
                                 }
                                 
-                                Text("Sync Now")
+                                Button(SettingsContent.iCloud.syncNow) {
+                                }
                             }
                         }
                         .disabled(syncService.isSyncing)
@@ -96,7 +97,8 @@ struct iCloudSettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrow.down.circle")
-                                Text("Restore from iCloud")
+                                Button(SettingsContent.iCloud.restoreFromCloud) {
+                                }
                             }
                         }
                         .disabled(syncService.isSyncing)
@@ -111,7 +113,7 @@ struct iCloudSettingsView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             SyncedDataRow(
                                 icon: "gearshape.fill",
-                                title: "User Settings",
+                                title: SettingsContent.iCloud.userSettings,
                                 description: "Sleep targets, zones, display preferences"
                             )
                             
@@ -119,7 +121,7 @@ struct iCloudSettingsView: View {
                             
                             SyncedDataRow(
                                 icon: "figure.strengthtraining.traditional",
-                                title: "Strength Exercise Data",
+                                title: SettingsContent.iCloud.strengthData,
                                 description: "RPE ratings and muscle group selections"
                             )
                             
@@ -127,7 +129,7 @@ struct iCloudSettingsView: View {
                             
                             SyncedDataRow(
                                 icon: "chart.bar.fill",
-                                title: "Workout Metadata",
+                                title: SettingsContent.iCloud.workoutMetadata,
                                 description: "Exercise tracking and recovery data"
                             )
                             
@@ -135,13 +137,13 @@ struct iCloudSettingsView: View {
                             
                             SyncedDataRow(
                                 icon: "heart.fill",
-                                title: "Daily Scores",
+                                title: SettingsContent.iCloud.dailyScores,
                                 description: "Recovery, sleep, and strain scores"
                             )
                         }
                         .padding(.vertical, 4)
                     } header: {
-                        Text("What's Synced")
+                        Text(SettingsContent.iCloud.whatSyncs)
                     } footer: {
                         Text("All data is encrypted and stored securely in your private iCloud account.")
                     }
