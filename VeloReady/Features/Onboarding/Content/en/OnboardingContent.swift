@@ -166,10 +166,15 @@ enum OnboardingContent {
     
     // MARK: - Screen 3: Apple Health
     enum AppleHealth {
-        static let title = "Connect Apple Health"  /// Main title
+        static let title = "Apple Health"  /// Main title (short version)
+        static let fullTitle = "Connect Apple Health"  /// Full title
         static let subtitle = "VeloReady uses Apple Health to monitor your recovery and training metrics"  /// Subtitle
+        static let description = "VeloReady needs access to Apple Health to track your recovery metrics"  /// Description
         static let allowButton = "Allow Access"  /// Allow button
         static let continueButton = "Continue"  /// Continue button
+        static let wellAccess = "We'll access:"  /// We'll access label
+        static let connected = "Apple Health Connected"  /// Connected message
+        static let doLater = "I'll Do This Later"  /// Skip button
         
         // Required section
         static let requiredTitle = "Required"  /// Required section title
@@ -233,6 +238,7 @@ enum OnboardingContent {
         
         // Units section
         static let unitsLabel = "Units"  /// Units field label
+        static let units = "Units"  /// Units label (short)
         static let metricOption = "Metric"  /// Metric option
         static let imperialOption = "Imperial"  /// Imperial option
         static let metricDistance = "Kilometers"  /// Metric distance

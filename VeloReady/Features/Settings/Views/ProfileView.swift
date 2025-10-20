@@ -124,7 +124,7 @@ struct ProfileView: View {
                         Image(systemName: "figure.outdoor.cycle")
                             .foregroundColor(.orange)
                             .frame(width: 24)
-                        Text("Strava")
+                        Text(SettingsContent.Profile.strava)
                         Spacer()
                         Text(stravaID)
                             .foregroundColor(.secondary)
@@ -137,17 +137,17 @@ struct ProfileView: View {
                         Image(systemName: "link.circle")
                             .foregroundColor(.secondary)
                             .frame(width: 24)
-                        Text("No connected services")
+                        Text(SettingsContent.Profile.noConnectedServices)
                             .foregroundColor(.secondary)
                     }
                 }
             } header: {
-                Text("Connected Services")
+                Text(SettingsContent.Profile.connectedServicesSection)
             } footer: {
-                Text("Connect services in Data Sources settings to sync your activities and metrics.")
+                Text(SettingsContent.Profile.connectedServicesFooter)
             }
         }
-        .navigationTitle("Profile")
+        .navigationTitle(SettingsContent.Profile.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingEditProfile, onDismiss: {
             // Reload profile when edit sheet dismisses

@@ -42,6 +42,12 @@ enum SettingsContent {
         static let bmr = "BMR"  /// Basal Metabolic Rate
         static let athleticProfile = "Athletic Profile"  /// Athletic profile section
         static let editProfile = "Edit Profile"  /// Edit profile title
+        static let age = "Age"  /// Age label
+        static let strava = "Strava"  /// Strava label
+        static let noConnectedServices = "No connected services"  /// No services message
+        static let connectedServicesSection = "Connected Services"  /// Connected services section
+        static let connectedServicesFooter = "Connect services in Data Sources settings to sync your activities and metrics."  /// Connected services footer
+        static let navigationTitle = "Profile"  /// Navigation title
     }
     
     // MARK: - iCloud

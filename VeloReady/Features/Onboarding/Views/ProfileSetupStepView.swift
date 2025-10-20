@@ -36,7 +36,7 @@ struct ProfileSetupStepView: View {
             
             // Header
             VStack(spacing: 16) {
-                Text("Set Up Your Profile")
+                Text(OnboardingContent.ProfileSetup.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
@@ -53,7 +53,7 @@ struct ProfileSetupStepView: View {
             VStack(spacing: 24) {
                 // Name (auto-populated from connected service)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Name")
+                    Text(OnboardingContent.ProfileSetup.nameLabel)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
@@ -72,7 +72,7 @@ struct ProfileSetupStepView: View {
                 
                 // Unit System
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Units")
+                    Text(OnboardingContent.ProfileSetup.units)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
@@ -109,7 +109,7 @@ struct ProfileSetupStepView: View {
                 saveProfile()
                 onboardingManager.nextStep()
             }) {
-                Text("Continue")
+                Text(OnboardingContent.ProfileSetup.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

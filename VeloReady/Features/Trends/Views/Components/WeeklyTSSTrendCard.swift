@@ -80,25 +80,25 @@ struct WeeklyTSSTrendCard: View {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
                         Text(CommonContent.Formatting.bulletPoint)
-                        Text("Complete cycling workouts")
+                        Text(TrendsContent.WeeklyTSS.completeCyclingWorkouts)
                     }
                     HStack {
                         Text(CommonContent.Formatting.bulletPoint)
-                        Text("Upload to Intervals.icu")
+                        Text(TrendsContent.WeeklyTSS.uploadToIntervals)
                     }
                     HStack {
                         Text(CommonContent.Formatting.bulletPoint)
-                        Text("TSS auto-calculated from power")
+                        Text(TrendsContent.WeeklyTSS.tssAutoCalculated)
                     }
                     HStack {
                         Text(CommonContent.Formatting.bulletPoint)
-                        Text("Track for 2+ weeks to see trends")
+                        Text(TrendsContent.WeeklyTSS.trackForTrends)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("TSS = Training Stress Score (workout intensity × duration)")
+                Text(TrendsContent.WeeklyTSS.tssDefinition)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .padding(.top, Spacing.sm)
@@ -152,7 +152,7 @@ struct WeeklyTSSTrendCard: View {
             
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Total TSS")
+                    Text(TrendsContent.WeeklyTSS.totalTSS)
                         .metricLabel()
                     
                     Text("\(Int(totalTSS))")

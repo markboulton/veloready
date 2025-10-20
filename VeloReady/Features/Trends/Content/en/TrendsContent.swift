@@ -49,6 +49,16 @@ enum TrendsContent {
     
     // MARK: - Empty States
     static let noData = CommonContent.States.notEnoughData
+    
+    // MARK: - Weekly TSS
+    enum WeeklyTSS {
+        static let completeCyclingWorkouts = "Complete cycling workouts"  /// Complete workouts instruction
+        static let uploadToIntervals = "Upload to Intervals.icu"  /// Upload instruction
+        static let tssAutoCalculated = "TSS auto-calculated from power"  /// Auto-calculated message
+        static let trackForTrends = "Track for 2+ weeks to see trends"  /// Track for trends message
+        static let tssDefinition = "TSS = Training Stress Score (workout intensity × duration)"  /// TSS definition
+        static let totalTSS = "Total TSS"  /// Total TSS label
+    }
     static let noDataFound = CommonContent.States.noDataFound
     static let loadingData = CommonContent.States.loadingData
     static let requiresData = "This analysis requires:"  /// Requires data prefix

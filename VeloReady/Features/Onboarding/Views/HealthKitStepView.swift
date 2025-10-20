@@ -22,11 +22,11 @@ struct HealthKitStepView: View {
                         .foregroundColor(.red)
                 }
                 
-                Text("Apple Health")
+                Text(OnboardingContent.AppleHealth.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("VeloReady needs access to Apple Health to track your recovery metrics")
+                Text(OnboardingContent.AppleHealth.description)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -35,7 +35,7 @@ struct HealthKitStepView: View {
             
             // What we need
             VStack(alignment: .leading, spacing: 16) {
-                Text("We'll access:")
+                Text(OnboardingContent.AppleHealth.wellAccess)
                     .font(.headline)
                     .padding(.horizontal, 32)
                 
@@ -55,7 +55,7 @@ struct HealthKitStepView: View {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                        Text("Apple Health Connected")
+                        Text(OnboardingContent.AppleHealth.connected)
                             .font(.headline)
                             .foregroundColor(.green)
                     }
@@ -65,7 +65,7 @@ struct HealthKitStepView: View {
                         onboardingManager.hasConnectedHealthKit = true
                         onboardingManager.nextStep()
                     }) {
-                        Text("Continue")
+                        Text(OnboardingContent.AppleHealth.continueButton)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -106,7 +106,7 @@ struct HealthKitStepView: View {
                     Button(action: {
                         onboardingManager.skipStep()
                     }) {
-                        Text("I'll Do This Later")
+                        Text(OnboardingContent.AppleHealth.doLater)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
