@@ -64,10 +64,14 @@ enum Icons {
     
     enum Status {
         static let success = "checkmark.circle"
+        static let successFill = "checkmark.circle.fill"
         static let error = "xmark.circle"
+        static let errorFill = "xmark.circle.fill"
         static let warning = "exclamationmark.triangle"
+        static let warningFill = "exclamationmark.triangle.fill"
         static let info = "info.circle"
         static let alert = "exclamationmark.circle"
+        static let checkmark = "checkmark"
     }
     
     // MARK: - Data Sources
@@ -144,6 +148,41 @@ enum Icons {
         static let download = "arrow.down.circle"
         static let upload = "arrow.up.circle"
         static let refresh = "arrow.clockwise"
+        static let copy = "doc.on.doc"
+        static let trash = "trash"
+        static let key = "key.fill"
+    }
+    
+    // MARK: - System & Debug
+    
+    enum System {
+        static let bug = "ladybug.fill"
+        static let database = "cylinder"
+        static let storage = "externaldrive"
+        static let chart = "chart.bar.fill"
+        static let person = "person.crop.circle"
+        static let envelope = "envelope.fill"
+        static let map = "map"
+        static let location = "location.fill"
+        static let clock = "clock.fill"
+        static let star = "star.fill"
+        static let pencil = "pencil"
+        static let plus = "plus"
+        static let minus = "minus"
+        static let chevronRight = "chevron.right"
+        static let chevronDown = "chevron.down"
+        static let chevronUp = "chevron.up"
+    }
+    
+    // MARK: - Arrows & Directions
+    
+    enum Arrow {
+        static let up = "arrow.up"
+        static let down = "arrow.down"
+        static let upRight = "arrow.up.right"
+        static let downRight = "arrow.down.right"
+        static let clockwise = "arrow.clockwise"
+        static let rectanglePortrait = "rectangle.portrait.and.arrow.right"
     }
     
     // MARK: - Custom Icons
