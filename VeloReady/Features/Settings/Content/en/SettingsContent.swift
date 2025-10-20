@@ -39,6 +39,8 @@ enum SettingsContent {
         static let status = "Status"
         static let provides = "Provides"
         static let connectedSources = "Connected Sources"
+        static let bmr = "BMR"  /// Basal Metabolic Rate
+        static let athleticProfile = "Athletic Profile"  /// Athletic profile section
     }
     
     // MARK: - iCloud

@@ -67,6 +67,8 @@ enum CommonContent {
     
     // MARK: - Common States (top-level for backward compatibility)
     static let loading = States.loading  /// Loading state (alias)
+    static let cancel = Actions.cancel  /// Cancel action (alias)
+    static let done = Actions.done  /// Done action (alias)
     
     // MARK: - Time
     static let today = "Today"  /// Today label
