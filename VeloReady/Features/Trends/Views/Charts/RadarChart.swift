@@ -134,7 +134,7 @@ struct RadarChart: View {
                     Text("\(Int(avgValue))")
                         .font(.system(size: TypeScale.xxl, weight: .bold))
                         .foregroundColor(strokeColor)
-                    Text("Overall")
+                    Text(CommonContent.Labels.overall)
                         .font(.system(size: TypeScale.xxs))
                         .foregroundColor(.text.secondary)
                 }

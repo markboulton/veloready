@@ -117,6 +117,7 @@ enum CommonContent {
     enum States {
         static let loading = "Loading..."  /// Loading state
         static let loadingData = "Loading data..."  /// Loading data
+        static let loadingActivityData = "Loading activity data..."  /// Loading activity data
         static let syncing = "Syncing..."  /// Syncing state
         static let analyzing = "Analyzing..."  /// Analyzing state
         static let computing = "Computing..."  /// Computing state
@@ -126,8 +127,10 @@ enum CommonContent {
         static let noData = "No data available"  /// Empty state
         static let notEnoughData = "Not enough data"  /// Not enough data
         static let noDataFound = "No data"  /// No data found (short)
+        static let noRouteData = "No route data"  /// No route data
         static let error = "Something went wrong"  /// Generic error
         static let success = "Success"  /// Success state
+        static let successSaved = "Secret saved successfully"  /// Success saved message
         static let failed = "Failed"  /// Failed state
         static let connected = "Connected"  /// Connected state
         static let disconnected = "Disconnected"  /// Disconnected state
@@ -184,6 +187,10 @@ enum CommonContent {
         static let count = "Count"  /// Count label
         static let average = "Avg"  /// Average abbreviation
         static let p95 = "P95"  /// 95th percentile
+        static let total = "Total"  /// Total label
+        static let overall = "Overall"  /// Overall label
+        static let confidence = "Confidence:"  /// Confidence label
+        static let riskFactors = "Risk Factors:"  /// Risk factors label
     }
     
     // MARK: - Common Formatting
@@ -220,10 +227,13 @@ enum CommonContent {
         static let baseline = "Baseline"  /// Baseline metric
         static let sleepDuration = "Sleep Duration"  /// Sleep duration metric
         static let sleepTarget = "Sleep Target"  /// Sleep target metric
+        static let sleepQuality = "Sleep Quality"  /// Sleep quality metric
         static let hrvRMSSD = "HRV RMSSD"  /// HRV RMSSD metric
         static let restingHeartRate = "Resting Heart Rate"  /// Resting heart rate metric
         static let trainingLoadRatio = "Training Load Ratio"  /// Training load ratio metric
+        static let trainingLoad = "Training Load"  /// Training load metric
         static let deepSleep = "Deep Sleep"  /// Deep sleep metric
+        static let steps = "Steps"  /// Steps metric
     }
     
     // MARK: - Sleep Stages
@@ -420,8 +430,17 @@ enum CommonContent {
         static let today = "Today"  /// Today tab label
         static let activities = "Activities"  /// Activities tab label
         static let trends = "Trends"  /// Trends tab label
+        static let weeklyTrends = "Weekly Trends"  /// Weekly trends label
         static let reports = "Reports"  /// Reports tab label
         static let settings = "Settings"  /// Settings tab label
+    }
+    
+    // MARK: - Sections
+    enum Sections {
+        static let additionalData = "Additional Data"  /// Additional data section
+        static let healthData = "Health Data"  /// Health data section
+        static let wellnessData = "Wellness Data"  /// Wellness data section
+        static let whatThisMeans = "What This Means"  /// What this means section
     }
     
     // MARK: - Debug & Testing
@@ -440,6 +459,8 @@ enum CommonContent {
         static let authorizationStatus = "Authorization Status"  /// Authorization status
         static let authorizationDetails = "Authorization Details"  /// Authorization details
         static let error = "Error"  /// Error label
+        static let healthDataDisplayed = "Health data displayed in main Today view"  /// Health data displayed
+        static let wellnessDataDisplayed = "Wellness data displayed in main Today view"  /// Wellness data displayed
         
         // App Group Debug
         static let title = "App Group Debug"  /// App group debug title

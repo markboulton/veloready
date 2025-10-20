@@ -90,7 +90,7 @@ struct WorkoutDetailView: View {
                             .scaleEffect(1.5)
                             .padding(.top, 40)
                         
-                        Text("Loading activity data...")
+                        Text(CommonContent.States.loadingActivityData)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
@@ -513,7 +513,7 @@ struct WorkoutMapSection: View {
                         Image(systemName: Icons.System.map)
                             .font(.title2)
                             .foregroundStyle(Color.text.tertiary)
-                        Text("No route data")
+                        Text(CommonContent.States.noRouteData)
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
@@ -530,7 +530,7 @@ struct AdditionalDataSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Additional Data")
+            Text(CommonContent.Sections.additionalData)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.text.primary)

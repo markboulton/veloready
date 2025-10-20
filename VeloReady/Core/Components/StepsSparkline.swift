@@ -32,7 +32,7 @@ struct HourlyStepData: Identifiable {
 #Preview {
     VStack(alignment: .leading, spacing: 8) {
         HStack {
-            Text("Steps")
+            Text(CommonContent.Metrics.steps)
                 .font(.heading)
             Spacer()
             StepsSparkline(hourlySteps: [

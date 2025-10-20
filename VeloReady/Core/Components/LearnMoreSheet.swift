@@ -62,7 +62,7 @@ struct LearnMoreLink: View {
         Button(action: {
             showingSheet = true
         }) {
-            Text("Learn more")
+            Text(CommonContent.Actions.learnMore)
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(Color.button.primary)

@@ -129,7 +129,7 @@ struct TrainingPhaseCard: View {
             
             // Confidence
             HStack {
-                Text("Confidence:")
+                Text(CommonContent.Labels.confidence)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
                 

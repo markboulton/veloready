@@ -12,7 +12,7 @@ struct TrainingLoadSummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
-            Text("Training Load")
+            Text(CommonContent.Metrics.trainingLoad)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -48,7 +48,7 @@ struct TrainingLoadSummaryView: View {
             
             // Explanation
             VStack(alignment: .leading, spacing: 8) {
-                Text("What This Means")
+                Text(CommonContent.Sections.whatThisMeans)
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)

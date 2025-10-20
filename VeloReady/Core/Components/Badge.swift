@@ -211,14 +211,14 @@ enum BadgeSize {
                         }
                         
                         HStack {
-                            Text("Sleep Quality")  // Preview only
+                            Text(CommonContent.Metrics.sleepQuality)  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
                             Badge(CommonContent.Badges.fair, variant: .warning, size: .small)
                         }
                         
                         HStack {
-                            Text("Training Load")  // Preview only
+                            Text(CommonContent.Metrics.trainingLoad)  // Preview only
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Spacer()
                             Badge(CommonContent.Badges.high, variant: .error, size: .small)
@@ -228,7 +228,7 @@ enum BadgeSize {
                 
                 Card {
                     HStack {
-                        Text("Weekly Trends")  // Preview only
+                        Text(CommonContent.TabLabels.weeklyTrends)  // Preview only
                             .font(.system(size: TypeScale.md, weight: .semibold))
                         Spacer()
                         Badge(CommonContent.Badges.pro, variant: .pro, icon: "star.fill", size: .small)

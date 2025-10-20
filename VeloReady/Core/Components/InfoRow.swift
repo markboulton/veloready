@@ -197,7 +197,7 @@ extension DataRow {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("1,234")
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
-                            Text("Total")
+                            Text(CommonContent.Labels.total)
                                 .font(.system(size: TypeScale.xxs))
                                 .foregroundColor(Color.text.secondary)
                         }
@@ -213,7 +213,7 @@ extension DataRow {
                             Circle()
                                 .fill(Color.recovery.green)
                                 .frame(width: 8, height: 8)
-                            Text("Ready")
+                            Text(CommonContent.Badges.ready)
                                 .font(.system(size: TypeScale.xs, weight: .semibold))
                                 .foregroundColor(Color.recovery.green)
                         }

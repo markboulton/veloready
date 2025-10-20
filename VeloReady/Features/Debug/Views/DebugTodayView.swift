@@ -78,11 +78,11 @@ struct DebugTodayView: View {
     
     private var healthDataSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Health Data")
+            Text(CommonContent.Sections.healthData)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Health data displayed in main Today view")
+            Text(CommonContent.Debug.healthDataDisplayed)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -97,11 +97,11 @@ struct DebugTodayView: View {
     
     private var wellnessDataSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Wellness Data")
+            Text(CommonContent.Sections.wellnessData)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Wellness data displayed in main Today view")
+            Text(CommonContent.Debug.wellnessDataDisplayed)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)

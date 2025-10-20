@@ -106,7 +106,7 @@ struct OvertrainingRiskCard: View {
             // Risk factors
             if !risk.factors.isEmpty {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Risk Factors:")
+                    Text(CommonContent.Labels.riskFactors)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                     
