@@ -56,8 +56,8 @@ struct RecoveryMetricsSection: View {
     
     // MARK: - Recovery Score
     
+    @ViewBuilder
     private var recoveryScoreView: some View {
-        Group {
             if let recoveryScore = recoveryScoreService.currentRecoveryScore {
                 NavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
                     VStack(spacing: 12) {
@@ -107,7 +107,6 @@ struct RecoveryMetricsSection: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        }
     }
     
     // MARK: - Sleep Score
@@ -217,8 +216,8 @@ struct RecoveryMetricsSection: View {
     
     // MARK: - Load Score
     
+    @ViewBuilder
     private var loadScoreView: some View {
-        Group {
             if let strainScore = strainScoreService.currentStrainScore {
                 NavigationLink(destination: StrainDetailView(strainScore: strainScore)) {
                     VStack(spacing: 12) {
@@ -265,7 +264,6 @@ struct RecoveryMetricsSection: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        }
     }
 }
 

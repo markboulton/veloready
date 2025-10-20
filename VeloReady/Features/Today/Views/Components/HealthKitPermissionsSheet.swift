@@ -10,7 +10,7 @@ struct HealthKitPermissionsSheet: View {
     @State private var showingSuccessAlert = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
                     // Header
