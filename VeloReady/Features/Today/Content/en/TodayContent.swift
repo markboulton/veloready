@@ -27,6 +27,41 @@ enum TodayContent {
     static let healthKitRequired = "Health data access required"  /// HealthKit required message
     static let grantAccess = "Grant Access"  /// Grant access button
     
+    enum HealthKit {
+        static let title = "Health Data"
+        static let enableTitle = "Enable Health Data"
+        static let description = "Connect your Apple Health data to see personalized recovery scores, sleep analysis, and training insights."
+        static let weAccess = "We'll access:"
+        static let whatYouGet = "What you'll get:"
+        static let enableButton = "Enable Health Data"
+        static let enabling = "Enabling..."
+        static let skipButton = "Skip for now"
+        static let privacyNote = "Your health data stays private and secure"
+        static let cancel = "Cancel"
+        
+        // Data types
+        static let sleepAnalysis = "Sleep Analysis"
+        static let hrv = "Heart Rate Variability"
+        static let restingHR = "Resting Heart Rate"
+        static let respiratoryRate = "Respiratory Rate"
+        static let stepsActivity = "Steps & Activity"
+        
+        // Benefits
+        static let recoveryScoreTitle = "Recovery Score"
+        static let recoveryScoreDesc = "Track your readiness based on HRV, sleep, and training"
+        static let sleepAnalysisTitle = "Sleep Analysis"
+        static let sleepAnalysisDesc = "Detailed sleep staging from Apple Watch"
+        static let trainingLoadTitle = "Training Load"
+        static let trainingLoadDesc = "Monitor daily strain and training stress"
+        
+        // Alert
+        static let authorizationTitle = "HealthKit Authorization"
+        static let successMessage = "HealthKit permissions are now enabled! Your data will be analyzed to provide personalized insights."
+        static let instructionsMessage = "To enable HealthKit permissions:\n\n1. Tap 'Open Settings' below\n2. Scroll down and tap 'Privacy & Security'\n3. Tap 'Health'\n4. Find 'VeloReady' and enable the permissions\n\nThen return to the app to see your data."
+        static let openSettings = "Open Settings"
+        static let ok = "OK"
+    }
+    
     // MARK: - Scores
     enum Scores {
         static let recoveryScore = "Recovery"  /// Recovery score label

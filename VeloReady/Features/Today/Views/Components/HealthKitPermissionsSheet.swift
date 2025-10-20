@@ -14,70 +14,70 @@ struct HealthKitPermissionsSheet: View {
             ScrollView {
                 VStack(spacing: 30) {
                     // Header
-                    VStack(spacing: 20) {
+                    VStack(spacing: Spacing.xl) {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 80))
                             .foregroundColor(Color.health.heartRate)
                         
-                        Text("Enable Health Data")
+                        Text(TodayContent.HealthKit.enableTitle)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Connect your Apple Health data to see personalized recovery scores, sleep analysis, and training insights.")
+                        Text(TodayContent.HealthKit.description)
                             .font(.body)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(ColorPalette.labelSecondary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                            .padding(.horizontal, Spacing.lg)
                     }
                     
                     // What we track
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("We'll access:")
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        Text(TodayContent.HealthKit.weAccess)
                             .font(.headline)
                             .fontWeight(.semibold)
                         
-                        HealthKitDataRow(icon: "moon.fill", title: "Sleep Analysis", color: Color.health.sleep)
-                        HealthKitDataRow(icon: "heart.fill", title: "Heart Rate Variability", color: Color.health.hrv)
-                        HealthKitDataRow(icon: "heart.circle.fill", title: "Resting Heart Rate", color: Color.health.heartRate)
-                        HealthKitDataRow(icon: "lungs.fill", title: "Respiratory Rate", color: Color.health.respiratory)
-                        HealthKitDataRow(icon: "figure.walk", title: "Steps & Activity", color: Color.health.activity)
+                        HealthKitDataRow(icon: "moon.fill", title: TodayContent.HealthKit.sleepAnalysis, color: Color.health.sleep)
+                        HealthKitDataRow(icon: "heart.fill", title: TodayContent.HealthKit.hrv, color: Color.health.hrv)
+                        HealthKitDataRow(icon: "heart.circle.fill", title: TodayContent.HealthKit.restingHR, color: Color.health.heartRate)
+                        HealthKitDataRow(icon: "lungs.fill", title: TodayContent.HealthKit.respiratoryRate, color: Color.health.respiratory)
+                        HealthKitDataRow(icon: "figure.walk", title: TodayContent.HealthKit.stepsActivity, color: Color.health.activity)
                     }
-                    .padding()
+                    .padding(Spacing.lg)
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(Spacing.md)
                     
                     // Benefits
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("What you'll get:")
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        Text(TodayContent.HealthKit.whatYouGet)
                             .font(.headline)
                             .fontWeight(.semibold)
                         
                         BenefitRow(
                             icon: "chart.line.uptrend.xyaxis",
-                            title: "Recovery Score",
-                            description: "Track your readiness based on HRV, sleep, and training"
+                            title: TodayContent.HealthKit.recoveryScoreTitle,
+                            description: TodayContent.HealthKit.recoveryScoreDesc
                         )
                         
                         BenefitRow(
                             icon: "moon.stars.fill",
-                            title: "Sleep Analysis",
-                            description: "Detailed sleep staging from Apple Watch"
+                            title: TodayContent.HealthKit.sleepAnalysisTitle,
+                            description: TodayContent.HealthKit.sleepAnalysisDesc
                         )
                         
                         BenefitRow(
                             icon: "figure.strengthtraining.traditional",
-                            title: "Training Load",
-                            description: "Monitor daily strain and training stress"
+                            title: TodayContent.HealthKit.trainingLoadTitle,
+                            description: TodayContent.HealthKit.trainingLoadDesc
                         )
                     }
-                    .padding()
+                    .padding(Spacing.lg)
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(Spacing.md)
                     
                     Spacer(minLength: 20)
                     
                     // Action buttons
-                    VStack(spacing: 12) {
+                    VStack(spacing: Spacing.md) {
                         // Enable button
                         Button(action: requestPermissions) {
                             HStack(spacing: 12) {
@@ -88,60 +88,60 @@ struct HealthKitPermissionsSheet: View {
                                     Image(systemName: "heart.fill")
                                 }
                                 
-                                Text(isRequesting ? "Enabling..." : "Enable Health Data")
+                                Text(isRequesting ? TodayContent.HealthKit.enabling : TodayContent.HealthKit.enableButton)
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(Spacing.lg)
                             .background(Color.button.danger)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+                            .foregroundColor(ColorPalette.labelPrimary)
+                            .cornerRadius(Spacing.md)
                         }
                         .disabled(isRequesting)
                         
                         // Skip button
-                        Button("Skip for now") {
+                        Button(TodayContent.HealthKit.skipButton) {
                             dismiss()
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundColor(ColorPalette.labelSecondary)
                         
-                        Text("Your health data stays private and secure")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(TodayContent.HealthKit.privacyNote)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                             .multilineTextAlignment(.center)
                     }
                 }
-                .padding()
+                .padding(Spacing.lg)
             }
-            .navigationTitle("Health Data")
+            .navigationTitle(TodayContent.HealthKit.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(TodayContent.HealthKit.cancel) {
                         dismiss()
                     }
                 }
             }
         }
-        .alert("HealthKit Authorization", isPresented: $showingSuccessAlert) {
+        .alert(TodayContent.HealthKit.authorizationTitle, isPresented: $showingSuccessAlert) {
             if healthKitManager.isAuthorized {
-                Button("OK") {
+                Button(TodayContent.HealthKit.ok) {
                     dismiss()
                 }
             } else {
-                Button("Open Settings") {
+                Button(TodayContent.HealthKit.openSettings) {
                     healthKitManager.openSettings()
                     dismiss()
                 }
-                Button("Cancel", role: .cancel) {
+                Button(CommonContent.cancel, role: .cancel) {
                     dismiss()
                 }
             }
         } message: {
             if healthKitManager.isAuthorized {
-                Text("HealthKit permissions are now enabled! Your data will be analyzed to provide personalized insights.")
+                Text(TodayContent.HealthKit.successMessage)
             } else {
-                Text("To enable HealthKit permissions:\n\n1. Tap 'Open Settings' below\n2. Scroll down and tap 'Privacy & Security'\n3. Tap 'Health'\n4. Find 'VeloReady' and enable the permissions\n\nThen return to the app to see your data.")
+                Text(TodayContent.HealthKit.instructionsMessage)
             }
         }
     }
@@ -174,7 +174,7 @@ struct HealthKitDataRow: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
@@ -195,20 +195,20 @@ struct BenefitRow: View {
     let description: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(Color.button.primary)
                 .frame(width: 30)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.body)
                     .fontWeight(.medium)
                 
                 Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(TypeScale.font(size: TypeScale.xs))
+                    .foregroundColor(ColorPalette.labelSecondary)
             }
             
             Spacer()

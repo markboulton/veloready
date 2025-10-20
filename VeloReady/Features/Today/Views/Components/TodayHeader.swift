@@ -13,9 +13,9 @@ struct TodayHeader: View {
                 WellnessIndicator(alert: alert, onTap: onAlertTap)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.top, Spacing.sm)
+        .padding(.bottom, Spacing.md)
     }
 }
 
