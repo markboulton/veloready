@@ -271,6 +271,17 @@ enum TrendsContent {
     // MARK: - Performance Overview Card
     enum PerformanceOverview {
         static let noData = "Not enough performance data"  /// No data
+        static let subtitle = "Recovery, Training Load & Sleep"  /// Card subtitle
+        static let gettingStarted = "Getting started with trends"  /// Getting started message
+        static let dailyRecovery = "Daily recovery scores (HRV + RHR + Sleep)"  /// Daily recovery requirement
+        static let trainingActivities = "Training activities uploaded to Intervals.icu"  /// Training requirement
+        static let sleepTracking = "Sleep tracking via Apple Watch"  /// Sleep requirement
+        static let sevenDays = "At least 7 days of consistent tracking"  /// Seven days requirement
+        static let threeMetrics = "Your three most important metrics in one view"  /// Three metrics message
+        static let buildingData = "Building your trend data"  /// Building data message
+        static let recoveryAppears = "Recovery: Starts appearing after 1 day of HRV + RHR + Sleep tracking"  /// Recovery appears
+        static let loadAppears = "Load: Appears when you upload rides to Intervals.icu"  /// Load appears
+        static let sleepAppears = "Sleep: Starts after 1 night wearing Apple Watch to bed"  /// Sleep appears
         static let requiresData = "Performance overview requires:"  /// Requires data
         static let multipleMetrics = "Multiple performance metrics"  /// Multiple metrics
         static let historicalData = "Historical data (30+ days)"  /// Historical data

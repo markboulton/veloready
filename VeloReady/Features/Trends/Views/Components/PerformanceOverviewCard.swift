@@ -28,7 +28,7 @@ struct PerformanceOverviewCard: View {
                         .font(.heading)
                         .foregroundColor(.text.primary)
                     
-                    Text("Recovery, Training Load & Sleep")
+                    Text(TrendsContent.PerformanceOverview.subtitle)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                 }
@@ -58,37 +58,37 @@ struct PerformanceOverviewCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("Getting started with trends")
+                Text(TrendsContent.PerformanceOverview.gettingStarted)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("This overview requires:")
+                Text(TrendsContent.requiresData)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
-                        Text("Daily recovery scores (HRV + RHR + Sleep)")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.PerformanceOverview.dailyRecovery)
                     }
                     HStack {
-                        Text("•")
-                        Text("Training activities uploaded to Intervals.icu")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.PerformanceOverview.trainingActivities)
                     }
                     HStack {
-                        Text("•")
-                        Text("Sleep tracking via Apple Watch")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.PerformanceOverview.sleepTracking)
                     }
                     HStack {
-                        Text("•")
-                        Text("At least 7 days of consistent tracking")
+                        Text(CommonContent.Formatting.bulletPoint)
+                        Text(TrendsContent.PerformanceOverview.sevenDays)
                     }
                 }
                 .font(.caption)
                 .foregroundColor(.text.tertiary)
                 
-                Text("Your three most important metrics in one view")
+                Text(TrendsContent.PerformanceOverview.threeMetrics)
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                     .fontWeight(.medium)
@@ -107,7 +107,7 @@ struct PerformanceOverviewCard: View {
                     .font(.caption)
                     .foregroundColor(.chart.primary)
                 
-                Text("Building your trend data")
+                Text(TrendsContent.PerformanceOverview.buildingData)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             }
@@ -118,7 +118,7 @@ struct PerformanceOverviewCard: View {
                         Circle()
                             .fill(ColorScale.greenAccent)
                             .frame(width: 6, height: 6)
-                        Text("Recovery: Starts appearing after 1 day of HRV + RHR + Sleep tracking")
+                        Text(TrendsContent.PerformanceOverview.recoveryAppears)
                             .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
@@ -128,7 +128,7 @@ struct PerformanceOverviewCard: View {
                         Circle()
                             .fill(Color.workout.tss)
                             .frame(width: 6, height: 6)
-                        Text("Load: Appears when you upload rides to Intervals.icu")
+                        Text(TrendsContent.PerformanceOverview.loadAppears)
                             .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
@@ -138,7 +138,7 @@ struct PerformanceOverviewCard: View {
                         Circle()
                             .fill(Color.health.sleep)
                             .frame(width: 6, height: 6)
-                        Text("Sleep: Starts after 1 night wearing Apple Watch to bed")
+                        Text(TrendsContent.PerformanceOverview.sleepAppears)
                             .font(.caption)
                             .foregroundColor(.text.tertiary)
                     }
@@ -245,7 +245,7 @@ struct PerformanceOverviewCard: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Divider()
             
-            Text("Key Insight")
+            Text(TrendsContent.insight)
                 .font(.caption)
                 .foregroundColor(.text.secondary)
             

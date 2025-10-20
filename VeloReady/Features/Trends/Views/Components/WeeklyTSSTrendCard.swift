@@ -31,12 +31,12 @@ struct WeeklyTSSTrendCard: View {
                                     .font(.title)
                                     .foregroundColor(.workout.tss)
                                 
-                                Text("TSS/week avg")
+                                Text(TrendsContent.TrainingLoad.weeklyTSS)
                                     .font(.caption)
                                     .foregroundColor(.text.secondary)
                             }
                         } else {
-                            Text("No data")
+                            Text(CommonContent.States.noDataFound)
                                 .font(.body)
                                 .foregroundColor(.text.secondary)
                         }
@@ -68,30 +68,30 @@ struct WeeklyTSSTrendCard: View {
                 .foregroundColor(.text.tertiary)
             
             VStack(spacing: Spacing.xs) {
-                Text("No training data yet")
+                Text(TrendsContent.TrainingLoad.noData)
                     .font(.body)
                     .foregroundColor(.text.secondary)
                 
-                Text("To see weekly training load:")
+                Text(TrendsContent.TrainingLoad.toTrackLoad)
                     .font(.caption)
                     .foregroundColor(.text.tertiary)
                     .padding(.top, Spacing.sm)
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
-                        Text("•")
+                        Text(CommonContent.Formatting.bulletPoint)
                         Text("Complete cycling workouts")
                     }
                     HStack {
-                        Text("•")
+                        Text(CommonContent.Formatting.bulletPoint)
                         Text("Upload to Intervals.icu")
                     }
                     HStack {
-                        Text("•")
+                        Text(CommonContent.Formatting.bulletPoint)
                         Text("TSS auto-calculated from power")
                     }
                     HStack {
-                        Text("•")
+                        Text(CommonContent.Formatting.bulletPoint)
                         Text("Track for 2+ weeks to see trends")
                     }
                 }
@@ -161,7 +161,7 @@ struct WeeklyTSSTrendCard: View {
                 }
                 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Weeks")
+                    Text(CommonContent.TimeUnits.weeks)
                         .metricLabel()
                     
                     Text("\(data.count)")
