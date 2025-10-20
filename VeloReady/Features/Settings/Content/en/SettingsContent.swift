@@ -134,8 +134,8 @@ enum SettingsContent {
         // Actions
         static let printStats = "Print Stats to Console"  /// Print stats button
         static let resetStats = "Reset Statistics"  /// Reset stats button
-        static let cancel = "Cancel"  /// Cancel button
-        static let clear = "Clear"  /// Clear button
+        static let cancel = CommonContent.Actions.cancel  /// Cancel button - from CommonContent
+        static let clear = CommonContent.Actions.clear  /// Clear button - from CommonContent
     }
     
     // MARK: - Feedback
@@ -153,7 +153,7 @@ enum SettingsContent {
         static let logsFooter = "Logs help us diagnose issues faster. No personal data is included."
         static let deviceInfo = "Device Information"
         static let navigationTitle = "Send Feedback"
-        static let cancel = "Cancel"
+        static let cancel = CommonContent.Actions.cancel  /// Cancel - from CommonContent
         static let subject = "VeloReady Feedback"
         static let mailNotAvailable = "Mail Not Available"
         static let ok = "OK"
@@ -325,9 +325,9 @@ enum SettingsContent {
         static let unknownAthlete = "Unknown"  /// Unknown athlete
         static let ftp = "FTP"  /// FTP label
         static let maxHR = "Max HR"  /// Max HR label
-        static let save = "Save"  /// Save button
-        static let cancel = "Cancel"  /// Cancel button
-        static let edit = "Edit"  /// Edit button
+        static let save = CommonContent.Actions.save  /// Save button - from CommonContent
+        static let cancel = CommonContent.Actions.cancel  /// Cancel button - from CommonContent
+        static let edit = CommonContent.Actions.edit  /// Edit button - from CommonContent
         static let zone = "Zone"  /// Zone label
         static let max = "Max"  /// Max label
         static let computedFromData = "Computed from your performance data"  /// Computed from data
@@ -433,7 +433,7 @@ enum SettingsContent {
         static let connect = CommonContent.Actions.connect
         static let disconnect = CommonContent.Actions.disconnect
         static let reconnect = CommonContent.Actions.reconnect
-        static let status = "Status"  /// Status label
+        static let status = CommonContent.Labels.status  /// Status label - from CommonContent
         static let provides = "Provides"  /// Provides label
         static let overview = "Overview"  /// Overview section
         static let connectWarning = "Connect at least one activity source to track your rides"  /// Connect warning
@@ -526,10 +526,10 @@ enum SettingsContent {
     // MARK: - Ride Summary
     enum RideSummary {
         static let status = "Ride Summary Status"  /// Status label
-        static let loading = "Loading..."  /// Loading state
+        static let loading = CommonContent.States.loading  /// Loading state - from CommonContent
         static let loaded = "Summary loaded"  /// Loaded state
         static let notLoaded = "Not loaded"  /// Not loaded state
-        static let error = "Error:"  /// Error prefix
+        static let error = "Error:"  /// Error prefix (keeping colon for formatting)
         static let clearCache = "Clear Ride Summary Cache"  /// Clear cache button
         static let copyResponse = "Copy Last Response JSON"  /// Copy response button
         static let configureSecret = "Configure HMAC Secret"  /// Configure secret button

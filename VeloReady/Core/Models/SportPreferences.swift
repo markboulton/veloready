@@ -26,7 +26,7 @@ struct SportPreferences: Codable, Equatable {
         var description: String {
             switch self {
             case .cycling:
-                return "Road cycling, mountain biking, indoor training"
+                return CommonContent.Sports.cyclingDescription
             case .strength:
                 return "Weight training, resistance exercises, functional fitness"
             case .general:

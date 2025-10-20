@@ -323,7 +323,7 @@ enum OnboardingContent {
     // MARK: - OAuth Web View
     enum OAuthWebView {
         static let navigationTitle = "Connect to intervals.icu"  /// OAuth web view navigation title
-        static let cancel = "Cancel"  /// Cancel button
+        static let cancel = CommonContent.Actions.cancel  /// Cancel button - from CommonContent
         static let networkError = "Network Error"  /// Network error alert title
         static let ok = "OK"  /// OK button
     }

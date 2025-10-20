@@ -100,6 +100,19 @@ enum CommonContent {
         static let cardio = "Cardio"
     }
     
+    // MARK: - Sports
+    enum Sports {
+        // Sport Descriptions
+        static let cyclingDescription = "Road cycling, mountain biking, indoor training"  /// Cycling description
+        static let runningDescription = "Road running, trail running, track"  /// Running description
+        static let swimmingDescription = "Pool swimming, open water"  /// Swimming description
+        static let triathlonDescription = "Multi-sport endurance training"  /// Triathlon description
+        static let hikingDescription = "Trail hiking, mountaineering"  /// Hiking description
+        static let skiingDescription = "Cross-country skiing, ski touring"  /// Skiing description
+        static let rowingDescription = "Indoor rowing, on-water rowing"  /// Rowing description
+        static let otherDescription = "Other endurance activities"  /// Other description
+    }
+    
     // MARK: - States
     enum States {
         static let loading = "Loading..."  /// Loading state

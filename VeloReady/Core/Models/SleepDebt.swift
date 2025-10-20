@@ -36,19 +36,19 @@ struct SleepDebt: Codable {
         
         var description: String {
             switch self {
-            case .minimal: return "Well rested - minimal sleep debt"
-            case .moderate: return "Moderate sleep debt - catch up soon"
-            case .significant: return "Significant sleep debt - recovery impaired"
-            case .critical: return "Critical sleep debt - performance severely impacted"
+            case .minimal: return SleepContent.SleepDebt.minimalDescription
+            case .moderate: return SleepContent.SleepDebt.moderateDescription
+            case .significant: return SleepContent.SleepDebt.significantDescription
+            case .critical: return SleepContent.SleepDebt.criticalDescription
             }
         }
         
         var recommendation: String {
             switch self {
-            case .minimal: return "Maintain current sleep schedule"
-            case .moderate: return "Add 30-60 minutes to next 2-3 nights"
-            case .significant: return "Prioritize 8+ hours for next 3-4 nights"
-            case .critical: return "Extended sleep required - consider naps"
+            case .minimal: return SleepContent.SleepDebt.minimalRecommendation
+            case .moderate: return SleepContent.SleepDebt.moderateRecommendation
+            case .significant: return SleepContent.SleepDebt.significantRecommendation
+            case .critical: return SleepContent.SleepDebt.criticalRecommendation
             }
         }
     }

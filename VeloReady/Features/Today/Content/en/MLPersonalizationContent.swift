@@ -66,5 +66,5 @@ The app will feel the same—just more accurate for you.
     
     // MARK: - Actions
     static let closeButton = "Got it"
-    static let learnMore = "Learn More"
+    static let learnMore = CommonContent.Actions.learnMore  /// Learn More - from CommonContent
 }

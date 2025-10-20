@@ -12,18 +12,18 @@ struct MLDebugView: View {
     var body: some View {
         List {
             Section(DebugContent.ML.infrastructureStatus) {
-                statusRow(label: DebugContent.ML.mlEnabled, value: mlRegistry.isMLEnabled ? "✅ Yes" : "❌ No")
+                statusRow(label: DebugContent.ML.mlEnabled, value: mlRegistry.isMLEnabled ? DebugContent.MLDebugExtended.mlEnabledCheck : DebugContent.MLDebugExtended.mlDisabledCheck)
                 statusRow(label: DebugContent.ML.currentModel, value: mlRegistry.currentModelVersion ?? DebugContent.ML.none)
-                statusRow(label: DebugContent.ML.trainingData, value: "\(mlService.trainingDataCount) days")
+                statusRow(label: DebugContent.ML.trainingData, value: "\(mlService.trainingDataCount) " + DebugContent.MLDebugExtended.daysCount)
                 statusRow(label: DebugContent.ML.lastProcessing, value: mlService.lastProcessingDate?.formatted() ?? DebugContent.ML.never)
             }
             
             if let report = dataQualityReport {
                 Section(DebugContent.ML.dataQuality) {
-                    statusRow(label: "Total Days", value: "\(report.totalDays)")
-                    statusRow(label: "Valid Days", value: "\(report.validDays)")
-                    statusRow(label: "Completeness", value: report.completenessPercentage)
-                    statusRow(label: "Sufficient Data", value: report.hasSufficientData ? "✅ Yes" : "❌ No")
+                    statusRow(label: DebugContent.MLDebugExtended.totalDays, value: "\(report.totalDays)")
+                    statusRow(label: DebugContent.MLDebugExtended.validDays, value: "\(report.validDays)")
+                    statusRow(label: DebugContent.MLDebugExtended.completeness, value: report.completenessPercentage)
+                    statusRow(label: DebugContent.MLDebugExtended.sufficientData, value: report.hasSufficientData ? DebugContent.MLDebugExtended.yesCheck : DebugContent.MLDebugExtended.noCheck)
                     
                     if !report.missingFeatures.isEmpty {
                         Text(DebugContent.ML.missingFeatures)
@@ -31,7 +31,7 @@ struct MLDebugView: View {
                             .foregroundColor(.secondary)
                         
                         ForEach(report.missingFeatures, id: \.self) { feature in
-                            Text("• \(feature)")
+                            Text(DebugContent.MLDebugExtended.missingFeaturePrefix + feature)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -62,10 +62,10 @@ struct MLDebugView: View {
                 }
             }
             
-            Section("🧪 Week 1 Testing") {
+            Section(DebugContent.MLDebugExtended.week1Testing) {
                 Button(action: { Task { await testTrainingPipeline() } }) {
                     HStack {
-                        Text("🚀 Test Training Pipeline")
+                        Text(DebugContent.MLDebugExtended.testTrainingPipeline)
                             .fontWeight(.semibold)
                         Spacer()
                         if isProcessing {
@@ -76,37 +76,37 @@ struct MLDebugView: View {
                 }
                 .disabled(isProcessing)
                 
-                Text("Tests dataset builder + model trainer with current data")
+                Text(DebugContent.MLDebugExtended.testDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
             
             if !statusMessage.isEmpty {
-                Section("Status") {
+                Section(DebugContent.MLDebugExtended.statusHeader) {
                     Text(statusMessage)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
             
-            Section("Phase 1 Info") {
-                Text("This is Phase 1: ML Infrastructure Setup")
+            Section(DebugContent.MLDebugExtended.phase1Info) {
+                Text(DebugContent.MLDebugExtended.phase1Description)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("✅ Historical data aggregation from Core Data, HealthKit, Intervals.icu, and Strava")
+                Text(DebugContent.MLDebugExtended.historicalDataCheck)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("✅ Feature engineering (rolling averages, deltas, trends)")
+                Text(DebugContent.MLDebugExtended.featureEngineeringCheck)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("✅ Training data storage in Core Data")
+                Text(DebugContent.MLDebugExtended.trainingDataStorageCheck)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("✅ Model registry for version management")
+                Text(DebugContent.MLDebugExtended.modelRegistryCheck)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

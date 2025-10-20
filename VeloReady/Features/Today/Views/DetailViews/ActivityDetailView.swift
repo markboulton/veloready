@@ -123,9 +123,9 @@ enum ActivityType {
     
     var displayName: String {
         switch self {
-        case .cycling: return "Cycling"
-        case .walking: return "Walking"
-        case .strength: return "Strength"
+        case .cycling: return ActivityContent.ActivityTypes.cycling
+        case .walking: return ActivityContent.ActivityTypes.walking
+        case .strength: return ActivityContent.ActivityTypes.strength
         }
     }
 }
@@ -146,7 +146,7 @@ struct UnifiedActivityData {
     var isIndoorRide: Bool {
         // Check Intervals activity type
         if let intervalsType = intervalsActivity?.type?.lowercased() {
-            if intervalsType.contains("virtual") || intervalsType.contains("indoor") {
+            if intervalsType.contains(ActivityContent.IndoorDetection.virtual) || intervalsType.contains(ActivityContent.IndoorDetection.indoor) {
                 return true
             }
         }
@@ -181,7 +181,7 @@ struct UnifiedActivityData {
     static func fromIntervals(_ activity: IntervalsActivity) -> UnifiedActivityData {
         UnifiedActivityData(
             type: .cycling,
-            title: activity.name ?? "Untitled Workout",
+            title: activity.name ?? ActivityContent.ActivityTypes.untitledWorkout,
             startDate: parseDate(activity.startDateLocal) ?? Date(),
             duration: activity.duration ?? 0,
             distance: activity.distance,
@@ -230,11 +230,11 @@ struct UnifiedActivityData {
     private static func generateTitle(for workout: HKWorkout) -> String {
         switch workout.workoutActivityType {
         case .walking:
-            return "Walking"
+            return ActivityContent.WorkoutTypes.walking
         case .traditionalStrengthTraining, .functionalStrengthTraining:
-            return "Strength Training"
+            return ActivityContent.WorkoutTypes.strengthTraining
         default:
-            return "Workout"
+            return ActivityContent.WorkoutTypes.workout
         }
     }
 }
@@ -272,14 +272,14 @@ struct ActivityInfoHeader: View {
             LazyVGrid(columns: createGridColumns(), spacing: 12) {
                 // Duration (all types)
                 CompactMetricItem(
-                    label: "Duration",
+                    label: ActivityContent.Metrics.duration,
                     value: formatDuration(activityData.duration)
                 )
                 
                 // Distance (if available)
                 if let distance = activityData.distance {
                     CompactMetricItem(
-                        label: "Distance",
+                        label: ActivityContent.Metrics.distance,
                         value: formatDistance(distance)
                     )
                 }
@@ -300,28 +300,28 @@ struct ActivityInfoHeader: View {
         if let activity = activityData.intervalsActivity {
             if let intensityFactor = activity.intensityFactor {
                 CompactMetricItem(
-                    label: "Intensity",
+                    label: ActivityContent.Metrics.intensity,
                     value: String(format: "%.2f", intensityFactor)
                 )
             }
             
             if let tss = activity.tss {
                 CompactMetricItem(
-                    label: "TSS",
+                    label: ActivityContent.Metrics.tss,
                     value: String(format: "%.0f", tss)
                 )
             }
             
             if let normalizedPower = activity.normalizedPower {
                 CompactMetricItem(
-                    label: "NP",
+                    label: ActivityContent.MetricLabelsExtended.np,
                     value: "\(Int(normalizedPower))w"
                 )
             }
             
             if let calories = activity.calories {
                 CompactMetricItem(
-                    label: "Calories",
+                    label: ActivityContent.Metrics.calories,
                     value: "\(calories)"
                 )
             }
@@ -339,21 +339,21 @@ struct ActivityInfoHeader: View {
         
         if viewModel.steps > 0 {
             CompactMetricItem(
-                label: "Steps",
+                label: ActivityContent.Metrics.steps,
                 value: "\(viewModel.steps)"
             )
         }
         
         if let avgHR = viewModel.averageHeartRate {
             CompactMetricItem(
-                label: "Avg HR",
+                label: ActivityContent.MetricLabelsExtended.avgHR,
                 value: "\(Int(avgHR))"
             )
         }
         
         if let maxHR = viewModel.maxHeartRate {
             CompactMetricItem(
-                label: "Max HR",
+                label: ActivityContent.MetricLabelsExtended.maxHR,
                 value: "\(Int(maxHR))"
             )
         }

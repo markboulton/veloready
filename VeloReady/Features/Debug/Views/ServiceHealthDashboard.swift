@@ -35,17 +35,17 @@ struct ServiceHealthDashboard: View {
     // MARK: - Sections
     
     private var overallHealthSection: some View {
-        Section("Overall Status") {
+        Section(DebugContent.ServiceHealthExtended.overallStatus) {
             HStack {
                 Image(systemName: health.isHealthy ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .foregroundColor(health.isHealthy ? .green : .red)
                     .font(.title2)
                 
                 VStack(alignment: .leading) {
-                    Text(health.isHealthy ? "Healthy" : "Issues Detected")
+                    Text(health.isHealthy ? DebugContent.ServiceHealthExtended.healthy : DebugContent.ServiceHealthExtended.issuesDetected)
                         .font(.heading)
                     
-                    Text("\(health.connectedDataSources)/3 data sources connected")
+                    Text("\(health.connectedDataSources)/3 " + DebugContent.ServiceHealthExtended.dataSourcesConnected)
                         .captionStyle()
                 }
                 
@@ -55,24 +55,24 @@ struct ServiceHealthDashboard: View {
     }
     
     private var dataSourcesSection: some View {
-        Section("Data Sources") {
+        Section(DebugContent.ServiceHealthExtended.dataSources) {
             StatRow(
-                label: "HealthKit",
-                value: health.healthKitAuthorized ? "Connected" : "Not Connected",
+                label: DebugContent.ServiceHealthExtended.healthKit,
+                value: health.healthKitAuthorized ? DebugContent.ServiceHealthExtended.connected : DebugContent.ServiceHealthExtended.notConnected,
                 valueColor: health.healthKitAuthorized ? .green : .red,
                 icon: "heart.fill"
             )
             
             StatRow(
-                label: "Intervals.icu",
-                value: health.intervalsConnected ? "Connected" : "Not Connected",
+                label: DebugContent.ServiceHealthExtended.intervalsIcu,
+                value: health.intervalsConnected ? DebugContent.ServiceHealthExtended.connected : DebugContent.ServiceHealthExtended.notConnected,
                 valueColor: health.intervalsConnected ? .green : .gray,
                 icon: "chart.line.uptrend.xyaxis"
             )
             
             StatRow(
-                label: "Strava",
-                value: health.stravaConnected ? "Connected" : "Not Connected",
+                label: DebugContent.ServiceHealthExtended.strava,
+                value: health.stravaConnected ? DebugContent.ServiceHealthExtended.connected : DebugContent.ServiceHealthExtended.notConnected,
                 valueColor: health.stravaConnected ? .green : .gray,
                 icon: "figure.outdoor.cycle"
             )
@@ -80,11 +80,11 @@ struct ServiceHealthDashboard: View {
     }
     
     private var viewModelsSection: some View {
-        Section("Registered ViewModels") {
+        Section(DebugContent.ServiceHealthExtended.registeredViewModels) {
             let viewModels = ServiceContainer.shared.registeredViewModels
             
             if viewModels.isEmpty {
-                Text("No ViewModels registered")
+                Text(DebugContent.ServiceHealthExtended.noViewModels)
                     .captionStyle()
             } else {
                 ForEach(viewModels, id: \.self) { key in
@@ -101,11 +101,11 @@ struct ServiceHealthDashboard: View {
     }
     
     private var actionsSection: some View {
-        Section("Actions") {
+        Section(DebugContent.ServiceHealthExtended.actions) {
             Button(action: {
                 ServiceContainer.shared.clearAllCaches()
             }) {
-                Label("Clear All Caches", systemImage: "trash")
+                Label(DebugContent.ServiceHealthExtended.clearAllCaches, systemImage: "trash")
                     .foregroundColor(.red)
             }
             
@@ -114,14 +114,14 @@ struct ServiceHealthDashboard: View {
                     await ServiceContainer.shared.warmUp()
                 }
             }) {
-                Label("Warm Up Services", systemImage: "flame")
+                Label(DebugContent.ServiceHealthExtended.warmUpServices, systemImage: "flame")
                     .foregroundColor(.orange)
             }
             
             Button(action: {
                 health = ServiceContainer.shared.healthCheck()
             }) {
-                Label("Refresh Status", systemImage: "arrow.clockwise")
+                Label(DebugContent.ServiceHealthExtended.refreshStatus, systemImage: "arrow.clockwise")
             }
         }
     }

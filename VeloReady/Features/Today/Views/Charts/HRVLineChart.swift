@@ -16,7 +16,7 @@ struct HRVLineChart: View {
                     .foregroundColor(.red)
                     .font(.system(size: TypeScale.xs))
                 
-                Text("HRV Trend")
+                Text(ChartContent.HRV.hrvTrend)
                     .font(.system(size: TypeScale.md, weight: .semibold))
                 
                 Spacer()
@@ -54,8 +54,8 @@ struct HRVLineChart: View {
             ForEach(data) { point in
                 // Line - RED, 1px, no gradient, no animation, no smoothing
                 LineMark(
-                    x: .value("Day", point.date, unit: .day),
-                    y: .value("Value", point.value)
+                    x: .value(ChartContent.Axis.day, point.date, unit: .day),
+                    y: .value(ChartContent.Axis.value, point.value)
                 )
                 .foregroundStyle(Color.red)
                 .lineStyle(StrokeStyle(lineWidth: 1))
@@ -64,8 +64,8 @@ struct HRVLineChart: View {
                 // For 7-day view: Add circles at each point with value annotations
                 if selectedPeriod == .sevenDays {
                     PointMark(
-                        x: .value("Day", point.date, unit: .day),
-                        y: .value("Value", point.value)
+                        x: .value(ChartContent.Axis.day, point.date, unit: .day),
+                        y: .value(ChartContent.Axis.value, point.value)
                     )
                     .symbol {
                         Circle()
@@ -83,7 +83,7 @@ struct HRVLineChart: View {
             
             // Average line - 1px dashed
             if averageValue > 0 {
-                RuleMark(y: .value("Average", averageValue))
+                RuleMark(y: .value(ChartContent.Axis.average, averageValue))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                     .foregroundStyle(Color.red.opacity(0.5))
             }
@@ -144,21 +144,21 @@ struct HRVLineChart: View {
     private var summaryStats: some View {
         HStack(spacing: Spacing.xl) {
             StatItem(
-                label: "Average",
+                label: ChartContent.HRV.average,
                 value: String(format: "%.0f", averageValue),
-                unit: "ms"
+                unit: ChartContent.HRV.msUnit
             )
             
             StatItem(
-                label: "Minimum",
+                label: ChartContent.HRV.minimum,
                 value: String(format: "%.0f", minValue),
-                unit: "ms"
+                unit: ChartContent.HRV.msUnit
             )
             
             StatItem(
-                label: "Maximum",
+                label: ChartContent.HRV.maximum,
                 value: String(format: "%.0f", maxValue),
-                unit: "ms"
+                unit: ChartContent.HRV.msUnit
             )
             
             Spacer()
@@ -172,10 +172,10 @@ struct HRVLineChart: View {
                 .font(.system(size: TypeScale.lg))
                 .foregroundColor(Color.text.secondary)
             
-            Text("No HRV data for this period")
+            Text(ChartContent.HRV.noDataForPeriod)
                 .font(.system(size: TypeScale.sm, weight: .medium))
             
-            Text("HRV data will appear as it's collected")
+            Text(ChartContent.HRV.dataWillAppear)
                 .font(.system(size: TypeScale.xs))
                 .foregroundColor(Color.text.secondary)
         }

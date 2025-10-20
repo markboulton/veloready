@@ -103,8 +103,8 @@ struct WeeklyTrendChart_Legacy: View {
             // Bar marks
             ForEach(data) { point in
                 BarMark(
-                    x: .value("Day", point.date, unit: .day),
-                    y: .value("Value", point.value)
+                    x: .value(ChartContent.Axis.day, point.date, unit: .day),
+                    y: .value(ChartContent.Axis.value, point.value)
                 )
                 .foregroundStyle(colorForValue(point.value))
                 .cornerRadius(4)
@@ -122,8 +122,8 @@ struct WeeklyTrendChart_Legacy: View {
             if selectedPeriod != .sevenDays {
                 ForEach(data) { point in
                     LineMark(
-                        x: .value("Day", point.date, unit: .day),
-                        y: .value("Value", point.value)
+                        x: .value(ChartContent.Axis.day, point.date, unit: .day),
+                        y: .value(ChartContent.Axis.value, point.value)
                     )
                     .foregroundStyle(Color.white)
                     .lineStyle(StrokeStyle(lineWidth: 3))
@@ -196,19 +196,19 @@ struct WeeklyTrendChart_Legacy: View {
     private var summaryStats: some View {
         HStack(spacing: 20) {
             StatItem(
-                label: "Avg",
+                label: ChartContent.Summary.avgShort,
                 value: String(format: "%.0f", averageValue),
                 unit: unit
             )
             
             StatItem(
-                label: "Min",
+                label: ChartContent.Summary.minShort,
                 value: String(format: "%.0f", minValue),
                 unit: unit
             )
             
             StatItem(
-                label: "Max",
+                label: ChartContent.Summary.maxShort,
                 value: String(format: "%.0f", maxValue),
                 unit: unit
             )
@@ -267,15 +267,15 @@ struct WeeklyTrendChart_Legacy: View {
     // MARK: - Trend Calculation
     
     private var trendDirection: String {
-        guard data.count >= 2 else { return "minus" }
+        guard data.count >= 2 else { return ChartContent.TrendIcons.minus }
         let changePercent = trendChangePercent
         
         if changePercent > 5 {
-            return "arrow.up.right"
+            return ChartContent.TrendIcons.arrowUpRight
         } else if changePercent < -5 {
-            return "arrow.down.right"
+            return ChartContent.TrendIcons.arrowDownRight
         } else {
-            return "arrow.right"
+            return ChartContent.TrendIcons.arrowRight
         }
     }
     
@@ -293,15 +293,15 @@ struct WeeklyTrendChart_Legacy: View {
     }
     
     private var trendText: String {
-        guard data.count >= 2 else { return "Stable" }
+        guard data.count >= 2 else { return ChartContent.Trend.stable }
         let changePercent = trendChangePercent
         
         if changePercent > 5 {
-            return "Improving"
+            return ChartContent.Trend.improving
         } else if changePercent < -5 {
-            return "Declining"
+            return ChartContent.Trend.declining
         } else {
-            return "Stable"
+            return ChartContent.Trend.stable
         }
     }
     
@@ -335,7 +335,7 @@ struct WeeklyTrendChart_Legacy: View {
 #Preview {
     VStack(spacing: 16) {
         TrendChart(
-            title: "Recovery Score",
+            title: ChartContent.ChartTitles.recoveryScore,
             getData: { period in
                 (0..<period.days).map { dayIndex in
                     let daysAgo = period.days - 1 - dayIndex
@@ -351,7 +351,7 @@ struct WeeklyTrendChart_Legacy: View {
         )
         
         TrendChart(
-            title: "Sleep Score",
+            title: ChartContent.ChartTitles.sleepScore,
             getData: { _ in [] },
             chartType: .bar,
             unit: "%",

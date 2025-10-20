@@ -59,7 +59,7 @@ enum ChartContent {
     // MARK: - Zone Labels
     enum Zones {
         static let zone = "Zone"  /// Zone prefix
-        static let noData = "No data available"  /// No data message
+        static let noData = CommonContent.States.noData  /// No data message - from CommonContent
         static let noHeartRateData = "No heart rate data available"  /// No HR data
         static let noPowerData = "No power data available"  /// No power data
     }
@@ -69,6 +69,9 @@ enum ChartContent {
         static let avg = "Avg:"  /// Average prefix
         static let max = "Max:"  /// Maximum prefix
         static let min = "Min:"  /// Minimum prefix
+        static let avgShort = CommonContent.Labels.average  /// Average (short) - from CommonContent
+        static let maxShort = "Max"  /// Maximum (short)
+        static let minShort = "Min"  /// Minimum (short)
     }
     
     // MARK: - Axis Labels
@@ -76,6 +79,8 @@ enum ChartContent {
         static let time = "Time"  /// Time axis
         static let value = "Value"  /// Value axis
         static let date = "Date"  /// Date axis
+        static let day = "Day"  /// Day axis
+        static let average = CommonContent.Metrics.average  /// Average line label - from CommonContent
     }
     
     // MARK: - HRV Chart
@@ -83,12 +88,30 @@ enum ChartContent {
         static let hrvTrend = "HRV Trend"  /// HRV trend title
         static let noDataForPeriod = "No HRV data for this period"  /// No data message
         static let dataWillAppear = "HRV data will appear as it's collected"  /// Data collection message
+        static let average = CommonContent.Metrics.average  /// Average label - from CommonContent
+        static let minimum = CommonContent.Metrics.minimum  /// Minimum label - from CommonContent
+        static let maximum = CommonContent.Metrics.maximum  /// Maximum label - from CommonContent
+        static let msUnit = "ms"  /// Milliseconds unit
     }
     
     // MARK: - Weekly Trend
     enum WeeklyTrend {
-        static let notEnoughData = "Not enough data"  /// Not enough data message
-        static let checkBackLater = "Check back after a few days"  /// Check back message
+        static let notEnoughData = CommonContent.States.notEnoughData  /// Not enough data message - from CommonContent
+        static let checkBackLater = CommonContent.EmptyStates.checkBack  /// Check back message - from CommonContent
+    }
+    
+    // MARK: - Trend Direction Icons
+    enum TrendIcons {
+        static let arrowUpRight = "arrow.up.right"  /// Upward trend icon
+        static let arrowDownRight = "arrow.down.right"  /// Downward trend icon
+        static let arrowRight = "arrow.right"  /// Stable trend icon
+        static let minus = "minus"  /// No trend icon
+    }
+    
+    // MARK: - Chart Titles (Static)
+    enum ChartTitles {
+        static let recoveryScore = "Recovery Score"  /// Recovery score chart
+        static let sleepScore = "Sleep Score"  /// Sleep score chart
     }
 }
 

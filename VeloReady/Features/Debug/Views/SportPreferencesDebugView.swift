@@ -13,13 +13,13 @@ struct SportPreferencesDebugView: View {
                     Text(DebugContent.SportPreferences.currentPrefs)
                         .font(.headline)
                     
-                    Text("Primary Sport: \(userSettings.primarySport.displayName)")
+                    Text(DebugContent.SportPreferencesDebugExtended.primarySportPrefix + userSettings.primarySport.displayName)
                         .foregroundColor(.blue)
                     
                     ForEach(userSettings.orderedSports, id: \.self) { sport in
                         if let rank = userSettings.sportPreferences.ranking(for: sport) {
                             HStack {
-                                Text("#\(rank)")
+                                Text(DebugContent.SportPreferencesDebugExtended.rankPrefix + "\(rank)")
                                     .fontWeight(.bold)
                                     .foregroundColor(.blue)
                                 
@@ -44,41 +44,41 @@ struct SportPreferencesDebugView: View {
                     Button(DebugContent.SportPreferences.setCycling) {
                         let newPrefs = SportPreferences(primarySport: .cycling)
                         userSettings.sportPreferences = newPrefs
-                        testOutput = "✅ Set cycling as primary"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.setCyclingSuccess
                     }
                     .buttonStyle(.bordered)
                     
                     Button(DebugContent.SportPreferences.setStrength) {
                         let newPrefs = SportPreferences(primarySport: .strength)
                         userSettings.sportPreferences = newPrefs
-                        testOutput = "✅ Set strength as primary"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.setStrengthSuccess
                     }
                     .buttonStyle(.bordered)
                     
                     Button(DebugContent.SportPreferences.setGeneral) {
                         let newPrefs = SportPreferences(primarySport: .general)
                         userSettings.sportPreferences = newPrefs
-                        testOutput = "✅ Set general as primary"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.setGeneralSuccess
                     }
                     .buttonStyle(.bordered)
                     
                     Button(DebugContent.SportPreferences.setFullRanking) {
                         let newPrefs = SportPreferences(orderedSports: [.cycling, .strength, .general])
                         userSettings.sportPreferences = newPrefs
-                        testOutput = "✅ Set full ranking"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.setFullRankingSuccess
                     }
                     .buttonStyle(.borderedProminent)
                     
                     Button(DebugContent.SportPreferences.runTests) {
                         SportPreferencesTests.runAllTests()
-                        testOutput = "✅ Check console for test results"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.runTestsSuccess
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
                     
                     Button(DebugContent.SportPreferences.resetDefaults) {
                         userSettings.sportPreferences = .default
-                        testOutput = "✅ Reset to defaults"
+                        testOutput = DebugContent.SportPreferencesDebugExtended.resetDefaultsSuccess
                     }
                     .buttonStyle(.bordered)
                     .tint(.red)
@@ -90,7 +90,7 @@ struct SportPreferencesDebugView: View {
                 // Test Output
                 if !testOutput.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Test Output")
+                        Text(DebugContent.SportPreferencesDebugExtended.testOutput)
                             .font(.headline)
                         
                         Text(testOutput)
@@ -104,14 +104,14 @@ struct SportPreferencesDebugView: View {
                 
                 // Technical Details
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Technical Details")
+                    Text(DebugContent.SportPreferencesDebugExtended.technicalDetails)
                         .font(.headline)
                     
-                    Text("Codable: ✅")
-                    Text("Equatable: ✅")
-                    Text("Saved to: UserDefaults")
-                    Text("Synced to: iCloud")
-                    Text("Key: UserSettings.sportPreferences")
+                    Text(DebugContent.SportPreferencesDebugExtended.codableCheck)
+                    Text(DebugContent.SportPreferencesDebugExtended.equatableCheck)
+                    Text(DebugContent.SportPreferencesDebugExtended.savedTo)
+                    Text(DebugContent.SportPreferencesDebugExtended.syncedTo)
+                    Text(DebugContent.SportPreferencesDebugExtended.settingsKey)
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)

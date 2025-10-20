@@ -124,6 +124,18 @@ enum SleepContent {
         static let optimal = "Optimal"  /// Optimal legend
         static let good = "Good"  /// Good legend
         static let fair = "Fair"  /// Fair legend
+        
+        // Band Descriptions
+        static let minimalDescription = "Well rested - minimal sleep debt"  /// Minimal debt
+        static let moderateDescription = "Moderate sleep debt - catch up soon"  /// Moderate debt
+        static let significantDescription = "Significant sleep debt - recovery impaired"  /// Significant debt
+        static let criticalDescription = "Critical sleep debt - performance severely impacted"  /// Critical debt
+        
+        // Recommendations
+        static let minimalRecommendation = "Maintain current sleep schedule"  /// Minimal recommendation
+        static let moderateRecommendation = "Add 30-60 minutes to next 2-3 nights"  /// Moderate recommendation
+        static let significantRecommendation = "Prioritize 8+ hours for next 3-4 nights"  /// Significant recommendation
+        static let criticalRecommendation = "Extended sleep required - consider naps"  /// Critical recommendation
     }
     
     // MARK: - Sleep Consistency

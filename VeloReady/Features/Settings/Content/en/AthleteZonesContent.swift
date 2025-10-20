@@ -48,9 +48,9 @@ enum AthleteZonesContent {
     }
     
     // MARK: - Actions
-    static let edit = "Edit"  /// Edit button
-    static let save = "Save"  /// Save button
-    static let cancel = "Cancel"  /// Cancel button
+    static let edit = CommonContent.Actions.edit  /// Edit button - from CommonContent
+    static let save = CommonContent.Actions.save  /// Save button - from CommonContent
+    static let cancel = CommonContent.Actions.cancel  /// Cancel button - from CommonContent
     static let recompute = "Recompute Zones"  /// Recompute button
     static let recomputeMessage = "This will reset any manual overrides and recompute zones from your last 120 days of activities."  /// Recompute confirmation message
     

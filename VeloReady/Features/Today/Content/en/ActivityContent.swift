@@ -25,7 +25,7 @@ enum ActivityContent {
         static let tss = "TSS"  /// TSS label
         static let intensityFactor = "Intensity Factor"  /// IF label
         static let intensity = "Intensity"  /// Intensity label
-        static let load = "Load"  /// Load label
+        static let load = CommonContent.ReadinessComponents.load  /// Load label - from CommonContent
         static let steps = "Steps"  /// Steps label
     }
     
@@ -98,7 +98,7 @@ enum ActivityContent {
     // MARK: - Workout Types
     enum WorkoutTypes {
         static let walking = "Walking"  /// Walking workout
-        static let strengthTraining = "Strength Training"  /// Strength training
+        static let strengthTraining = CommonContent.WorkoutDetails.strengthTraining  /// Strength training - from CommonContent
         static let strength = "Strength"  /// Strength (short)
         static let functionalStrength = "Functional Strength"  /// Functional strength
         static let workout = "Workout"  /// Generic workout
@@ -128,7 +128,7 @@ enum ActivityContent {
         static let trainingLoad = "Training Load:"  /// Training load label
         static let effort = "Effort:"  /// Effort label
         static let muscleGroups = "Muscle Groups:"  /// Muscle groups label
-        static let learnMore = "Learn more"  /// Learn more button
+        static let learnMore = CommonContent.Actions.learnMore  /// Learn more button - from CommonContent
         
         // Load intensity labels
         static let light = "Light"  /// Light intensity
@@ -145,6 +145,13 @@ enum ActivityContent {
         static let noHeartRateData = "No heart rate data"  /// No HR data message
     }
     
+    // MARK: - Common Terms (Aliases to CommonContent)
+    enum CommonTerms {
+        static let average = CommonContent.Metrics.average  /// Average - from CommonContent
+        static let minimum = CommonContent.Metrics.minimum  /// Minimum - from CommonContent
+        static let maximum = CommonContent.Metrics.maximum  /// Maximum - from CommonContent
+    }
+    
     // MARK: - Details
     enum Details {
         static let title = "Details"  /// Details title
@@ -153,5 +160,26 @@ enum ActivityContent {
         static let zones = "Zones"  /// Zones section
         static let map = "Map"  /// Map section
         static let dateAndTime = "Date & Time"  /// Date and time label
+    }
+    
+    // MARK: - Activity Types
+    enum ActivityTypes {
+        static let cycling = "Cycling"  /// Cycling activity
+        static let walking = "Walking"  /// Walking activity
+        static let strength = "Strength"  /// Strength activity
+        static let untitledWorkout = "Untitled Workout"  /// Untitled workout fallback
+    }
+    
+    // MARK: - Indoor Detection
+    enum IndoorDetection {
+        static let virtual = "virtual"  /// Virtual keyword
+        static let indoor = "indoor"  /// Indoor keyword
+    }
+    
+    // MARK: - Metric Labels (Extended)
+    enum MetricLabelsExtended {
+        static let avgHR = "Avg HR"  /// Average HR short
+        static let maxHR = "Max HR"  /// Max HR short
+        static let np = "NP"  /// Normalized Power short
     }
 }

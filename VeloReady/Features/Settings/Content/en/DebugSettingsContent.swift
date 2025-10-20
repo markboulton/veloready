@@ -82,7 +82,7 @@ enum DebugSettingsContent {
     // MARK: - AI Brief
     enum AIBrief {
         static let status = "AI Brief Status"
-        static let loading = "Loading..."
+        static let loading = CommonContent.States.loading  /// Loading - from CommonContent
         static let loaded = "Loaded"
         static let notLoaded = "Not loaded"
         static let error = "Error:"
@@ -108,8 +108,8 @@ enum DebugSettingsContent {
         static let clearIntervalsCacheMessage = "This will clear all cached Intervals.icu data from UserDefaults."
         static let clearCoreDataTitle = "Clear Core Data?"
         static let clearCoreDataMessage = "This will delete all Core Data records. The app will need to re-fetch all data."
-        static let cancel = "Cancel"
-        static let clear = "Clear"
+        static let cancel = CommonContent.Actions.cancel  /// Cancel - from CommonContent
+        static let clear = CommonContent.Actions.clear  /// Clear - from CommonContent
     }
     
     // MARK: - Monitoring

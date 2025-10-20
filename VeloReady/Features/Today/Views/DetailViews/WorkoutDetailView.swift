@@ -185,7 +185,7 @@ struct WorkoutDetailView: View {
                 }
             }
         .background(Color.background.primary)
-        .navigationTitle(activity.name ?? "Workout")
+        .navigationTitle(activity.name ?? ActivityContent.WorkoutTypes.workout)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
         .task {

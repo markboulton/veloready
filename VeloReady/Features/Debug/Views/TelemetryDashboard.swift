@@ -34,7 +34,7 @@ struct TelemetryDashboard: View {
     // MARK: - Sections
     
     private var summarySection: some View {
-        Section("Summary") {
+        Section(DebugContent.TelemetryExtended.summary) {
             let totalUsage = stats.reduce(0) { $0 + $1.usageCount }
             let activeComponents = stats.count
             let totalComponents = ComponentTelemetry.Component.allCases.count
@@ -43,7 +43,7 @@ struct TelemetryDashboard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(totalUsage)")
                         .font(.metric)
-                    Text("Total Uses")
+                    Text(DebugContent.TelemetryExtended.totalUses)
                         .captionStyle()
                 }
                 
@@ -52,7 +52,7 @@ struct TelemetryDashboard: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(activeComponents)/\(totalComponents)")
                         .font(.metric)
-                    Text("Active Components")
+                    Text(DebugContent.TelemetryExtended.activeComponents)
                         .captionStyle()
                 }
             }
@@ -60,9 +60,9 @@ struct TelemetryDashboard: View {
     }
     
     private var topComponentsSection: some View {
-        Section("Top 5 Most Used") {
+        Section(DebugContent.TelemetryExtended.top5MostUsed) {
             if stats.isEmpty {
-                Text("No usage data yet")
+                Text(DebugContent.TelemetryExtended.noUsageData)
                     .captionStyle()
             } else {
                 ForEach(ComponentTelemetry.shared.topComponents(5)) { stat in
@@ -73,7 +73,7 @@ struct TelemetryDashboard: View {
     }
     
     private var allComponentsSection: some View {
-        Section("All Components") {
+        Section(DebugContent.TelemetryExtended.allComponents) {
             ForEach(stats) { stat in
                 ComponentRow(stat: stat)
             }
@@ -81,12 +81,12 @@ struct TelemetryDashboard: View {
     }
     
     private var actionsSection: some View {
-        Section("Actions") {
+        Section(DebugContent.TelemetryExtended.actions) {
             Button(action: {
                 showingAllComponents.toggle()
             }) {
                 Label(
-                    showingAllComponents ? "Hide All Components" : "Show All Components",
+                    showingAllComponents ? DebugContent.TelemetryExtended.hideAllComponents : DebugContent.TelemetryExtended.showAllComponents,
                     systemImage: showingAllComponents ? "chevron.up" : "chevron.down"
                 )
             }
@@ -94,14 +94,14 @@ struct TelemetryDashboard: View {
             Button(action: {
                 refreshStats()
             }) {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Label(DebugContent.TelemetryExtended.refresh, systemImage: "arrow.clockwise")
             }
             
             Button(action: {
                 ComponentTelemetry.shared.reset()
                 refreshStats()
             }) {
-                Label("Reset Telemetry", systemImage: "trash")
+                Label(DebugContent.TelemetryExtended.resetTelemetry, systemImage: "trash")
                     .foregroundColor(.red)
             }
         }
@@ -133,7 +133,7 @@ private struct ComponentRow: View {
             }
             
             if let avgPerDay = stat.averageUsagePerDay {
-                Text(String(format: "%.1f uses/day", avgPerDay))
+                Text(String(format: DebugContent.TelemetryExtended.usesPerDayFormat, avgPerDay))
                     .captionStyle()
             }
         }
