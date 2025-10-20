@@ -12,22 +12,22 @@ struct SleepSettingsSection: View {
                         .foregroundColor(Color.health.sleep)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Sleep Target")
-                            .font(.body)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Sleep.targetTitle)
+                            .font(TypeScale.font(size: TypeScale.md))
                         
                         Text(userSettings.formattedSleepTarget)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
                 }
             }
         } header: {
-            Text("Sleep")
+            Text(SettingsContent.sleepSection)
         } footer: {
-            Text("Configure your sleep preferences and targets for better recovery tracking.")
+            Text(SettingsContent.Sleep.footer)
         }
     }
 }

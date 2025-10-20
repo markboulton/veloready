@@ -7,22 +7,22 @@ struct DataSourcesSection: View {
             NavigationLink(destination: DataSourcesSettingsView()) {
                 HStack {
                     Image(systemName: "link.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(ColorPalette.blue)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Data Sources")
-                            .font(.body)
-                        Text("Manage connected apps and services")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.DataSources.title)
+                            .font(TypeScale.font(size: TypeScale.md))
+                        Text(SettingsContent.DataSources.subtitle)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
                 }
             }
         } header: {
-            Text("Integrations")
+            Text(SettingsContent.integrationsSection)
         }
     }
 }

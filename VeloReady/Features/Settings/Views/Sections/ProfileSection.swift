@@ -32,28 +32,28 @@ struct ProfileSection: View {
                             }
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.name.isEmpty ? "VeloReady User" : viewModel.name)
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(viewModel.name.isEmpty ? SettingsContent.Profile.user : viewModel.name)
                             .font(.headline)
                             .fontWeight(.semibold)
                         
                         if !viewModel.email.isEmpty {
                             Text(viewModel.email)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(ColorPalette.labelSecondary)
                         } else {
-                            Text("Tap to edit profile")
+                            Text(SettingsContent.Profile.tapToEdit)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(ColorPalette.labelSecondary)
                         }
                     }
                     
                     Spacer()
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, Spacing.sm)
             }
         } header: {
-            Text("Profile")
+            Text(SettingsContent.profileSection)
         }
         .onAppear {
             viewModel.loadProfile()

@@ -10,15 +10,22 @@ enum SettingsContent {
     static let sleepSection = "Sleep"  /// Sleep section
     static let trainingSection = "Training"  /// Training section
     static let personalizationSection = "Personalization"  /// Personalization section
+    static let integrationsSection = "Integrations"  /// Integrations section
+    static let appearanceSection = "Appearance"  /// Appearance section
     static let displaySection = "Display"  /// Display section
     static let notificationsSection = "Notifications"  /// Notifications section
+    static let dataSyncSection = "Data & Sync"  /// Data & Sync section
+    static let accountSection = "Account"  /// Account section
+    static let helpSupportSection = "Help & Support"  /// Help & Support section
+    static let developerSection = "Developer"  /// Developer section
     static let aboutSection = "About"  /// About section
-    static let debugSection = "Debug & Testing"  /// Debug section (DEBUG only)
+    static let debugSection = "DEBUG & TESTING"  /// Debug section (DEBUG only)
     
     // MARK: - Profile
     enum Profile {
         static let user = "VeloReady User"  /// Default user name
         static let tagline = "Cycling Performance Tracker"  /// App tagline
+        static let tapToEdit = "Tap to edit profile"
     }
     
     // MARK: - Sleep Settings
@@ -26,6 +33,7 @@ enum SettingsContent {
         static let title = "Sleep Settings"  /// Sleep settings title
         static let targetTitle = "Sleep Target"  /// Sleep target title
         static let targetDescription = "Set your ideal sleep duration. This affects your sleep score calculation."  /// Target description
+        static let footer = "Configure your sleep preferences and targets for better recovery tracking."
         static let hoursLabel = "Hours:"  /// Hours label
         static let minutesLabel = "Minutes:"  /// Minutes label
         static let totalLabel = "Total:"  /// Total label
@@ -113,11 +121,51 @@ enum SettingsContent {
         static let helpDescription = "Get help and report issues"  /// Help description
     }
     
+    // MARK: - Data Sources
+    enum DataSources {
+        static let title = "Data Sources"
+        static let subtitle = "Manage connected apps and services"
+    }
+    
+    // MARK: - Display/Appearance
+    enum Appearance {
+        static let theme = "Theme"
+        static let displayPreferences = "Display Preferences"
+        static let unitsTimeFormat = "Units, time format, and visibility"
+        static let footer = "Customize theme and how information is displayed in the app."
+    }
+    
+    // MARK: - iCloud
+    enum iCloud {
+        static let title = "iCloud Sync"
+        static let lastSynced = "Last synced"
+        static let readyToSync = "Ready to sync"
+        static let notAvailable = "Not available"
+    }
+    
+    // MARK: - Account
+    enum Account {
+        static let signOut = "Sign Out from Intervals.icu"
+        static let signOutSubtitle = "Disconnect your account and remove access"
+        static let deleteData = "Delete All Local Data"
+        static let deleteDataFooter = "Delete all cached activities, metrics, and scores from this device. Your data on connected services will not be affected."
+    }
+    
+    // MARK: - Feedback
+    enum Feedback {
+        static let sendFeedback = "Send Feedback"
+        static let subtitle = "Report issues or suggest improvements"
+        static let footer = "Send feedback, report bugs, or get help. Your feedback includes diagnostic logs to help us resolve issues faster."
+    }
+    
     // MARK: - Debug (DEBUG only)
     enum Debug {
-        static let title = "Debug & Testing"  /// Debug title
+        static let title = "DEBUG & TESTING"
+        static let subtitle = "Developer tools and testing options"
         static let description = "These options are only available in debug builds for testing Pro features."  /// Debug description
         static let enablePro = "Enable Pro Features (Testing)"  /// Enable Pro toggle
+        static let developerFooter = "Debug tools, cache management, and testing features. Only visible to developers."
+        static let deviceIdPrefix = "Device ID: "
         static let proUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
         static let subscriptionStatus = "Subscription Status:"  /// Subscription status label
         static let trialDaysRemaining = "Trial Days Remaining:"  /// Trial days label

@@ -13,13 +13,13 @@ struct DisplaySettingsSection: View {
                         .foregroundColor(ColorPalette.aiIconColor)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Theme")
-                            .font(.body)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Appearance.theme)
+                            .font(TypeScale.font(size: TypeScale.md))
                         
                         Text(themeManager.currentTheme.rawValue + " mode")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
@@ -33,22 +33,22 @@ struct DisplaySettingsSection: View {
                         .foregroundColor(ColorPalette.purple)
                         .frame(width: 24)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Display Preferences")
-                            .font(.body)
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Appearance.displayPreferences)
+                            .font(TypeScale.font(size: TypeScale.md))
                         
-                        Text("Units, time format, and visibility")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(SettingsContent.Appearance.unitsTimeFormat)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
                     }
                     
                     Spacer()
                 }
             }
         } header: {
-            Text("Appearance")
+            Text(SettingsContent.appearanceSection)
         } footer: {
-            Text("Customize theme and how information is displayed in the app.")
+            Text(SettingsContent.Appearance.footer)
         }
     }
 }
