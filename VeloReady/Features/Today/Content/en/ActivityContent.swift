@@ -77,8 +77,8 @@ enum ActivityContent {
     }
     
     // MARK: - Empty States
-    static let noData = "No data available"  /// No data message
-    static let loadingData = "Loading activity data..."  /// Loading message
+    static let noData = CommonContent.States.noData
+    static let loadingData = CommonContent.States.loadingData
     static let syncingFromIntervals = "Syncing from Intervals.icu..."  /// Syncing message
     static let powerZonesNotAvailable = "Power zones not available"  /// No power zones message
     

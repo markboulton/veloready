@@ -17,15 +17,15 @@ enum TodayContent {
     static let noRecentActivities = "No Recent Activities"  /// No recent activities title
     static let noRecoveryData = "Recovery data unavailable"  /// No recovery data
     static let noSleepData = "Sleep data unavailable"  /// No sleep data
-    static let syncingData = "Syncing your data..."  /// Syncing message
+    static let syncingData = CommonContent.States.syncing
     static let limitedData = "Limited Data"  /// Limited data label
-    static let noData = "No Data"  /// No data label
+    static let noData = CommonContent.States.noDataFound
     static let noDataInfo = "No Data ⓘ"  /// No data with info icon
     
     // MARK: - Actions
-    static let viewDetails = "View Details"  /// View details button
+    static let viewDetails = CommonContent.Actions.viewDetails
     static let calculateRecovery = "Calculate Recovery"  /// Calculate recovery button
-    static let refreshData = "Refresh Data"  /// Refresh button
+    static let refreshData = CommonContent.Actions.refresh
     
     // MARK: - Health Kit
     static let healthKitRequired = "Health data access required"  /// HealthKit required message
@@ -88,7 +88,7 @@ enum TodayContent {
     enum AIBrief {
         static let title = "VeloAI"  /// AI Brief section title
         static let loading = "Loading your daily brief..."  /// Loading message
-        static let analyzing = "Analyzing your data..."  /// Analyzing message (loading state)
+        static let analyzing = CommonContent.States.analyzing
         static let tsb = "Training Stress Balance:"  /// TSB label
         static let targetTSS = "Target TSS Today:"  /// Target TSS label
         static let tssDescription = "Training Stress Score - aim for this range based on your fitness"  /// TSS description
@@ -110,16 +110,18 @@ enum TodayContent {
     
     // MARK: - Readiness Components
     enum ReadinessComponents {
-        static let recovery = "Recovery"  /// Recovery component
-        static let sleep = "Sleep"  /// Sleep component
-        static let load = "Load"  /// Load component
-        static let outOf100 = "/100"  /// Out of 100 suffix
+        static let recovery = CommonContent.ReadinessComponents.recovery  /// Recovery component
+        static let sleep = CommonContent.ReadinessComponents.sleep  /// Sleep component
+        static let load = CommonContent.ReadinessComponents.load  /// Load component
+        static let outOf100 = CommonContent.Formatting.outOf100  /// Out of 100 suffix
+        static let bulletPoint = CommonContent.Formatting.bulletPoint
     }
     
     // MARK: - Debt Metrics
     enum DebtMetrics {
-        static let recoveryDebt = "Recovery Debt"  /// Recovery debt title
-        static let sleepDebt = "Sleep Debt"  /// Sleep debt title
+        static let recoveryDebt = CommonContent.DebtMetrics.recoveryDebt  /// Recovery debt title
+        static let sleepDebt = CommonContent.DebtMetrics.sleepDebt  /// Sleep debt title
+        static let daysLabel = CommonContent.DebtMetrics.daysLabel  /// Days label
         static let daysLabel = "days"  /// Days label
     }
 }

@@ -47,9 +47,9 @@ enum TrendsContent {
     }
     
     // MARK: - Empty States
-    static let noData = "Not enough data"  /// No data message
-    static let noDataFound = "No data"  /// No data found
-    static let loadingData = "Loading trend data..."  /// Loading message
+    static let noData = CommonContent.States.notEnoughData
+    static let noDataFound = CommonContent.States.noDataFound
+    static let loadingData = CommonContent.States.loadingData
     static let requiresData = "This analysis requires:"  /// Requires data prefix
     static let whatYouNeed = "What you need:"  /// What you need label
     static let toTrack = "To track"  /// To track prefix
@@ -69,12 +69,12 @@ enum TrendsContent {
     // HRV Card
     enum HRV {
         static let noDataFound = "No HRV data found"  /// No HRV data
-        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
+        static let wearWatch = CommonContent.Instructions.wearAppleWatch
         static let grantPermission = "Grant HRV permission in Settings"  /// Grant permission
-        static let measureConsistently = "Measure consistently for 7+ days"  /// Measure consistently
+        static let measureConsistently = CommonContent.Instructions.trackConsistently
         static let baselineCalculated = "Baseline calculated after 7 days"  /// Baseline message
         static let bestIndicator = "HRV is your best recovery indicator"  /// Best indicator message
-        static let baseline = "baseline"  /// Baseline label
+        static let baseline = CommonContent.Metrics.baseline
     }
     
     // MARK: - Insights
@@ -88,7 +88,7 @@ enum TrendsContent {
     static let proRequired = "PRO feature"  /// PRO required message
     static let unlockTrends = "Unlock Performance Trends"  /// Unlock trends title
     static let upgradeToPro = "Upgrade to VeloReady PRO"  /// Upgrade button
-    static let bulletPoint = "•"  /// Bullet point
+    static let bulletPoint = CommonContent.Formatting.bulletPoint
     
     // MARK: - Weekly Report
     enum WeeklyReport {
@@ -212,13 +212,13 @@ enum TrendsContent {
     enum RestingHR {
         static let noData = "No resting heart rate data"  /// No RHR data
         static let toTrackRHR = "To track resting HR:"  /// To track RHR
-        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch
+        static let wearWatch = CommonContent.Instructions.wearAppleWatch
         static let grantPermission = "Grant heart rate permission"  /// Grant permission
-        static let trackDays = "Track for 7+ consecutive days"  /// Track days
+        static let trackDays = CommonContent.Instructions.trackConsistently
         static let lowerBetter = "Lower RHR indicates better fitness"  /// Lower better
         static let elevationIndicates = "RHR elevation can indicate stress or illness"  /// Elevation indicates
-        static let baseline = "Baseline"  /// Baseline label
-        static let avg = "avg"  /// Average label
+        static let baseline = CommonContent.Metrics.baseline
+        static let avg = CommonContent.Metrics.average
     }
     
     // MARK: - Recovery Trend Card
@@ -226,8 +226,8 @@ enum TrendsContent {
         static let noData = "No recovery data available"  /// No recovery data
         static let toTrackRecovery = "To track recovery:"  /// To track recovery
         static let enableHealthKit = "Enable HealthKit access"  /// Enable HealthKit
-        static let wearWatch = "Wear Apple Watch during sleep"  /// Wear watch
-        static let trackDays = "Track consistently for 7+ days"  /// Track days
+        static let wearWatch = CommonContent.Instructions.wearAppleWatch
+        static let trackDays = CommonContent.Instructions.trackConsistently
         static let recoveryKey = "Recovery is key to sustainable training"  /// Recovery key message
     }
     
@@ -237,7 +237,7 @@ enum TrendsContent {
         static let toTrackLoad = "To track training load:"  /// To track load
         static let recordWorkouts = "Record workouts with power or HR"  /// Record workouts
         static let syncIntervals = "Sync with Intervals.icu or Strava"  /// Sync intervals
-        static let trackDays = "Track for 7+ consecutive days"  /// Track days
+        static let trackDays = CommonContent.Instructions.trackConsistently
         static let balanceKey = "Balance training stress with recovery"  /// Balance key
         static let weeklyTSS = "Weekly TSS"  /// Weekly TSS label
     }
