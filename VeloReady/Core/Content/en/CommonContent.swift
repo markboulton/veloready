@@ -29,12 +29,17 @@ enum CommonContent {
     enum Debug {
         static let title = "App Group Debug"
         static let sectionTest = "Test App Group"
+        static let sectionData = "Shared Data"
         static let buttonWrite = "Write Test Data"
+        static let buttonRead = "Read Test Data"
         static let statusInitial = "Ready to test"
         static let statusFailed = "Failed"
         static let statusWriteSuccess = "Write successful"
         static let statusReadSuccess = "Read successful"
         static let statusNoData = "No data found"
+        static let labelScore = "Recovery Score"
+        static let labelBand = "Recovery Band"
+        static let messageNoData = "No shared data available"
     }
     
     // MARK: - States
