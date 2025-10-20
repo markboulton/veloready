@@ -16,19 +16,19 @@ struct CorporateNetworkWorkaround: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Corporate Network Issue Detected")
+                Text(OnboardingContent.CorporateNetwork.issueDetected)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(Color.semantic.warning)
                 
-                Text("Your corporate network is intercepting HTTPS traffic with Netskope certificates. This prevents OAuth from working.")
+                Text(OnboardingContent.CorporateNetwork.httpsInterception)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding()
                 
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Workaround Options:")
+                    Text(OnboardingContent.CorporateNetwork.workaroundOptions)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
@@ -94,7 +94,7 @@ struct WorkaroundInstructions: View {
                     case "Certificate Bypass":
                         certificateBypassInstructions
                     default:
-                        Text("No instructions available")
+                        Text(OnboardingContent.CorporateNetwork.noInstructions)
                     }
                 }
                 .padding()
@@ -113,106 +113,106 @@ struct WorkaroundInstructions: View {
     
     private var personalHotspotInstructions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Use Personal Hotspot")
+            Text(OnboardingContent.CorporateNetwork.usePersonalHotspot)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("This bypasses your corporate network entirely:")
+            Text(OnboardingContent.CorporateNetwork.hotspotBypass)
                 .font(.subheadline)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("1. Enable Personal Hotspot on your phone")
-                Text("2. Connect your Mac to the hotspot")
-                Text("3. Run the app - OAuth should work normally")
-                Text("4. Switch back to corporate network after testing")
+                Text(OnboardingContent.CorporateNetwork.hotspotStep1)
+                Text(OnboardingContent.CorporateNetwork.hotspotStep2)
+                Text(OnboardingContent.CorporateNetwork.hotspotStep3)
+                Text(OnboardingContent.CorporateNetwork.hotspotStep4)
             }
             .font(.body)
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
             
-            Text("✅ Pros: Completely bypasses corporate network")
+            Text(OnboardingContent.CorporateNetwork.hotspotPros)
                 .foregroundColor(Color.semantic.success)
-            Text("❌ Cons: Uses cellular data")
+            Text(OnboardingContent.CorporateNetwork.hotspotCons)
                 .foregroundColor(Color.semantic.error)
         }
     }
     
     private var vpnInstructions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Use VPN Connection")
+            Text(OnboardingContent.CorporateNetwork.useVPN)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Connect to a VPN to bypass corporate network:")
+            Text(OnboardingContent.CorporateNetwork.vpnBypass)
                 .font(.subheadline)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("1. Install a VPN client (NordVPN, ExpressVPN, etc.)")
-                Text("2. Connect to a server outside your corporate network")
-                Text("3. Run the app - OAuth should work normally")
-                Text("4. Disconnect VPN after testing")
+                Text(OnboardingContent.CorporateNetwork.vpnStep1)
+                Text(OnboardingContent.CorporateNetwork.vpnStep2)
+                Text(OnboardingContent.CorporateNetwork.vpnStep3)
+                Text(OnboardingContent.CorporateNetwork.vpnStep4)
             }
             .font(.body)
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
             
-            Text("✅ Pros: Bypasses corporate network, keeps internet")
+            Text(OnboardingContent.CorporateNetwork.vpnPros)
                 .foregroundColor(Color.semantic.success)
-            Text("❌ Cons: Requires VPN subscription")
+            Text(OnboardingContent.CorporateNetwork.vpnCons)
                 .foregroundColor(Color.semantic.error)
         }
     }
     
     private var differentNetworkInstructions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Use Different Network")
+            Text(OnboardingContent.CorporateNetwork.useDifferentNetwork)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Connect to a network without corporate security:")
+            Text(OnboardingContent.CorporateNetwork.networkWithout)
                 .font(.subheadline)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("1. Go to a coffee shop, library, or home network")
-                Text("2. Connect to their WiFi")
-                Text("3. Run the app - OAuth should work normally")
-                Text("4. Return to corporate network after testing")
+                Text(OnboardingContent.CorporateNetwork.networkStep1)
+                Text(OnboardingContent.CorporateNetwork.networkStep2)
+                Text(OnboardingContent.CorporateNetwork.networkStep3)
+                Text(OnboardingContent.CorporateNetwork.networkStep4)
             }
             .font(.body)
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
             
-            Text("✅ Pros: No additional setup required")
+            Text(OnboardingContent.CorporateNetwork.networkPros)
                 .foregroundColor(Color.semantic.success)
-            Text("❌ Cons: Requires physical location change")
+            Text(OnboardingContent.CorporateNetwork.networkCons)
                 .foregroundColor(Color.semantic.error)
         }
     }
     
     private var certificateBypassInstructions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Certificate Bypass (Advanced)")
+            Text(OnboardingContent.CorporateNetwork.certificateAdvanced)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Text("Configure the app to accept corporate certificates:")
+            Text(OnboardingContent.CorporateNetwork.certificateConfigure)
                 .font(.subheadline)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("1. This requires modifying the app's SSL handling")
-                Text("2. Accept corporate certificates for intervals.icu")
-                Text("3. May require IT approval for security reasons")
-                Text("4. Not recommended for production apps")
+                Text(OnboardingContent.CorporateNetwork.certificateStep1)
+                Text(OnboardingContent.CorporateNetwork.certificateStep2)
+                Text(OnboardingContent.CorporateNetwork.certificateStep3)
+                Text(OnboardingContent.CorporateNetwork.certificateStep4)
             }
             .font(.body)
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
             
-            Text("⚠️ Warning: This reduces security and may violate corporate policy")
+            Text(OnboardingContent.CorporateNetwork.certificateWarning)
                 .foregroundColor(Color.semantic.warning)
                 .font(.caption)
         }

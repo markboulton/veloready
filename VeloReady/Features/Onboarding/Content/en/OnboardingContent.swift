@@ -2,6 +2,54 @@ import Foundation
 
 /// Content strings for Onboarding feature
 enum OnboardingContent {
+    
+    // MARK: - Corporate Network
+    enum CorporateNetwork {
+        static let issueDetected = "Corporate Network Issue Detected"
+        static let httpsInterception = "Your corporate network is intercepting HTTPS traffic with Netskope certificates. This prevents OAuth from working."
+        static let workaroundOptions = "Workaround Options:"
+        static let instructions = "Instructions"
+        static let noInstructions = "No instructions available"
+        
+        static let personalHotspot = "Personal Hotspot"
+        static let usePersonalHotspot = "Use Personal Hotspot"
+        static let hotspotBypass = "This bypasses your corporate network entirely:"
+        static let hotspotStep1 = "1. Enable Personal Hotspot on your phone"
+        static let hotspotStep2 = "2. Connect your Mac to the hotspot"
+        static let hotspotStep3 = "3. Run the app - OAuth should work normally"
+        static let hotspotStep4 = "4. Switch back to corporate network after testing"
+        static let hotspotPros = "✅ Pros: Completely bypasses corporate network"
+        static let hotspotCons = "❌ Cons: Uses cellular data"
+        
+        static let vpnConnection = "VPN Connection"
+        static let useVPN = "Use VPN Connection"
+        static let vpnBypass = "Connect to a VPN to bypass corporate network:"
+        static let vpnStep1 = "1. Install a VPN client (NordVPN, ExpressVPN, etc.)"
+        static let vpnStep2 = "2. Connect to a server outside your corporate network"
+        static let vpnStep3 = "3. Run the app - OAuth should work normally"
+        static let vpnStep4 = "4. Disconnect VPN after testing"
+        static let vpnPros = "✅ Pros: Bypasses corporate network, keeps internet"
+        static let vpnCons = "❌ Cons: Requires VPN subscription"
+        
+        static let differentNetwork = "Different Network"
+        static let useDifferentNetwork = "Use Different Network"
+        static let networkWithout = "Connect to a network without corporate security:"
+        static let networkStep1 = "1. Go to a coffee shop, library, or home network"
+        static let networkStep2 = "2. Connect to their WiFi"
+        static let networkStep3 = "3. Run the app - OAuth should work normally"
+        static let networkStep4 = "4. Return to corporate network after testing"
+        static let networkPros = "✅ Pros: No additional setup required"
+        static let networkCons = "❌ Cons: Requires physical location change"
+        
+        static let certificateBypass = "Certificate Bypass"
+        static let certificateAdvanced = "Certificate Bypass (Advanced)"
+        static let certificateConfigure = "Configure the app to accept corporate certificates:"
+        static let certificateStep1 = "1. This requires modifying the app's SSL handling"
+        static let certificateStep2 = "2. Accept corporate certificates for intervals.icu"
+        static let certificateStep3 = "3. May require IT approval for security reasons"
+        static let certificateStep4 = "4. Not recommended for production apps"
+        static let certificateWarning = "⚠️ Warning: This reduces security and may violate corporate policy"
+    }
     // MARK: - Health Permissions
     enum HealthPermissions {
         static let title = "Health Data Access"  /// Health permissions title
