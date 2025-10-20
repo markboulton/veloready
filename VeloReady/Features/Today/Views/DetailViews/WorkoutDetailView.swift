@@ -310,7 +310,7 @@ struct WorkoutInfoHeader: View {
                         .foregroundStyle(Color.text.secondary)
                     
                     if let location = locationString {
-                        Text("·")
+                        Text(CommonContent.Formatting.separator)
                             .font(.subheadline)
                             .foregroundStyle(Color.text.secondary)
                         Text(location)
