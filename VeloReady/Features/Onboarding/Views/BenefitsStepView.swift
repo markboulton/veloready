@@ -14,7 +14,7 @@ struct BenefitsStepView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
                 
-                Text("What VeloReady Does")
+                Text(OnboardingContent.WhatVeloReady.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
@@ -49,7 +49,7 @@ struct BenefitsStepView: View {
             Button(action: {
                 onboardingManager.nextStep()
             }) {
-                Text("Continue")
+                Text(OnboardingContent.WhatVeloReady.continueButton)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)

@@ -19,9 +19,9 @@ struct OAuthDebugView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
-                            Text("Client ID: 108")
-                            Text("Redirect URI: veloready://oauth/callback")
-                            Text("Scopes: ACTIVITY WELLNESS CALENDAR")
+                            Text(OnboardingContent.OAuthDebug.clientID)
+                            Text(OnboardingContent.OAuthDebug.redirectURI)
+                            Text(OnboardingContent.OAuthDebug.scopes)
                         }
                         .padding()
                         .background(Color(.systemGray6))

@@ -30,7 +30,7 @@ struct NetworkDebugView: View {
     
     private var networkStatusSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Network Status")
+            Text(OnboardingContent.NetworkDebug.networkStatus)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -45,7 +45,7 @@ struct NetworkDebugView: View {
     
     private var networkTestsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Network Tests")
+            Text(OnboardingContent.NetworkDebug.networkTests)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -83,7 +83,7 @@ struct NetworkDebugView: View {
     
     private var testResultsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Test Results")
+            Text(OnboardingContent.NetworkDebug.testResults)
                 .font(.headline)
                 .fontWeight(.semibold)
             

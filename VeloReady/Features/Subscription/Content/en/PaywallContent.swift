@@ -66,5 +66,11 @@ enum PaywallContent {
         
         /// Period label for yearly
         static let yearlyPeriod = "month"
+        
+        /// Per period label
+        static let per = "per"  /// "per" in "per month"
     }
+    
+    // MARK: - Pro Upgrade
+    static let upgradeNow = "Upgrade Now"  /// Upgrade now button
 }

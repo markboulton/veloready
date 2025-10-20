@@ -311,58 +311,63 @@ enum SettingsContent {
     
     // MARK: - Athlete Zones
     enum AthleteZones {
-        static let title = "Athlete Zones"  /// Navigation title
-        static let ftp = "FTP"  /// FTP label
-        static let maxHR = "Max HR"  /// Max HR label
-        static let computedFromData = "Computed from performance data"  /// Computed message
+        static let title = "Athlete Zones"  /// Athlete zones title
+        static let subtitle = "Power and heart rate zones"  /// Subtitle
+        static let athleteProfile = "Athlete Profile"  /// Athlete profile title
         static let athlete = "Athlete:"  /// Athlete label
         static let unknownAthlete = "Unknown"  /// Unknown athlete
-        static let edit = "Edit"  /// Edit button
+        static let ftp = "FTP"  /// FTP label
+        static let maxHR = "Max HR"  /// Max HR label
         static let save = "Save"  /// Save button
         static let cancel = "Cancel"  /// Cancel button
+        static let edit = "Edit"  /// Edit button
+        static let zone = "Zone"  /// Zone label
+        static let max = "Max"  /// Max label
+        static let computedFromData = "Computed from your performance data"  /// Computed from data
+        static let powerAdaptiveFooter = "Zones anchored to FTP detected from sustained efforts. Automatically updates as your fitness changes."  /// Power adaptive footer
+        static let hrAdaptiveFooter = "Zones anchored to lactate threshold detected from sustained efforts. Automatically updates as your fitness changes."  /// HR adaptive footer
         
         // Zone Sources
+        static let coggan = "Coggan"  /// Coggan zones
+        static let manual = "Manual"  /// Manual zones
+        static let adaptive = "Adaptive"  /// Adaptive zones
         static let zoneSource = "Zone Source"  /// Zone source label
-        static let coggan = "Coggan"  /// Coggan source
-        static let manual = "Manual"  /// Manual source
-        static let adaptive = "Adaptive"  /// Adaptive source
-        static let intervals = "Intervals"  /// Intervals source
+        static let powerSource = "Power Source"  /// Power source label
+        static let hrSource = "HR Source"  /// HR source label
+        static let heartRateTrainingZones = "Heart Rate Training Zones"  /// HR zones title
+        static let powerTrainingZones = "Power Training Zones"  /// Power zones title
         
-        // Zone Sections
-        static let athleteProfile = "Athlete Profile"  /// Athlete profile section
-        static let powerTrainingZones = "Power Training Zones"  /// Power zones section
-        static let heartRateTrainingZones = "Heart Rate Training Zones"  /// HR zones section
-        
-        // Zone Display
-        static let zone = "Zone"  /// Zone prefix label
-        static let noPowerZones = "No power zones available"  /// No power zones message
-        static let noHRZones = "No HR zones available"  /// No HR zones message
-        static let max = "Max"  /// Max label for zone ranges
+        // Units
+        static let watts = "W"  /// Watts unit
+        static let bpm = "bpm"  /// BPM unit
         static let dash = "-"  /// Dash separator
+        
+        // Zone descriptions
+        static let zonesAnchored = "Zones anchored to lactate threshold"  /// Zones anchored description
+        static let detectedFrom = "detected from sustained efforts."  /// Detected from description
+        static let noHRZones = "No HR zones available"  /// No HR zones message
+        static let noPowerZones = "No power zones available"  /// No power zones message
         
         // Actions
         static let resetToAdaptive = "Reset to Adaptive Zones"  /// Reset button
         static let resetConfirmTitle = "Reset to Adaptive Zones?"  /// Reset confirmation title
         static let resetConfirmMessage = "This will reset your zones to adaptive computation based on your performance data."  /// Reset confirmation message
         
-        // Footer Messages
+        // Zone sources
+        static let intervals = "Intervals"  /// Intervals source
+        
+        // Footer messages
         static let freeFooter = "FREE tier: Edit FTP and Max HR to adjust your Coggan zones. Upgrade to PRO for adaptive zones computed from your performance data."  /// Free tier footer
         static let adaptiveFooter = "Adaptive zones are computed from your performance data using modern sports science algorithms. Values update automatically as your fitness changes."  /// Adaptive footer
         static let cogganFooter = "Coggan zones use the standard 7-zone model. Edit FTP or Max HR above to adjust all zones proportionally."  /// Coggan footer
         static let manualFooter = "Manual mode allows full control. Edit FTP, Max HR, and individual zone boundaries."  /// Manual footer
         static let legacyFooter = "Legacy mode - switch to Coggan or Manual for better control."  /// Legacy footer
-        
-        // Power Zone Footers
-        static let powerAdaptiveFooter = "Zones automatically computed from your power-duration curve and performance distribution."  /// Power adaptive footer
-        static let powerCogganFooter = "Standard Coggan 7-zone model based on FTP. Zones update automatically when you change FTP."  /// Power Coggan footer
-        static let powerManualFooter = "Tap any zone boundary to edit. Changes are saved automatically."  /// Power manual footer
-        static let powerLegacyFooter = "Legacy mode - switch to Coggan or Manual to customize zones."  /// Power legacy footer
-        
-        // HR Zone Footers
-        static let hrAdaptiveFooter = "Zones computed from max HR with adaptive threshold detection."  /// HR adaptive footer
         static let hrCogganFooter = "Standard Coggan 7-zone model based on Max HR. Zones update automatically when you change Max HR."  /// HR Coggan footer
         static let hrManualFooter = "Tap any zone boundary to edit. Changes are saved automatically."  /// HR manual footer
         static let hrLegacyFooter = "Legacy mode - switch to Coggan or Manual to customize zones."  /// HR legacy footer
+        static let powerCogganFooter = "Standard Coggan 7-zone model based on FTP. Zones update automatically when you change FTP."  /// Power Coggan footer
+        static let powerManualFooter = "Tap any zone boundary to edit. Changes are saved automatically."  /// Power manual footer
+        static let powerLegacyFooter = "Legacy mode - switch to Coggan or Manual to customize zones."  /// Power legacy footer
         
         // Zone Names - Power
         static let powerZone1 = "Active Recovery"  /// Power Zone 1
@@ -380,7 +385,7 @@ enum SettingsContent {
         static let hrZone4 = "Lactate Threshold"  /// HR Zone 4
         static let hrZone5 = "VO2 Max"  /// HR Zone 5
         static let hrZone6 = "Anaerobic"  /// HR Zone 6
-        static let hrZone7 = "Max"  /// HR Zone 7
+        static let hrZone7 = "Maximum"  /// HR Zone 7
     }
     
     // MARK: - Debug Settings

@@ -31,7 +31,7 @@ struct IntervalsOAuthTestView: View {
     
     private var oauthStatusSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("OAuth Status")
+            Text(OnboardingContent.OAuthDebug.oauthStatus)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -45,13 +45,13 @@ struct IntervalsOAuthTestView: View {
             }
             
             if let user = oauthManager.user {
-                Text("User: \(user.name)")
+                Text("\(OnboardingContent.OAuthDebug.user): \(user.name)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
             
             if let error = oauthManager.lastError {
-                Text("Error: \(error)")
+                Text("\(OnboardingContent.OAuthDebug.error): \(error)")
                     .font(.caption)
                     .foregroundColor(Color.text.error)
             }
@@ -63,7 +63,7 @@ struct IntervalsOAuthTestView: View {
     
     private var testButtonsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("OAuth Tests")
+            Text(OnboardingContent.OAuthDebug.oauthTests)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -109,7 +109,7 @@ struct IntervalsOAuthTestView: View {
     
     private var testResultsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Test Results")
+            Text(OnboardingContent.OAuthDebug.testResults)
                 .font(.headline)
                 .fontWeight(.semibold)
             

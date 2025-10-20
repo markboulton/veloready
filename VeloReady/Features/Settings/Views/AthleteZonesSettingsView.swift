@@ -220,15 +220,15 @@ struct AthleteZonesSettingsView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Picker("Power Zone Source", selection: Binding(
+                        Picker(SettingsContent.AthleteZones.powerSource, selection: Binding(
                             get: { profileManager.profile.ftpSource },
                             set: { newSource in
                                 handlePowerSourceChange(newSource)
                             }
                         )) {
-                            Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
-                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
-                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
+                            Text(SettingsContent.AthleteZones.coggan).tag(AthleteProfile.ZoneSource.coggan)
+                            Text(SettingsContent.AthleteZones.manual).tag(AthleteProfile.ZoneSource.manual)
+                            Text(SettingsContent.AthleteZones.adaptive).tag(AthleteProfile.ZoneSource.computed)
                         }
                         .pickerStyle(.segmented)
                     }
@@ -262,25 +262,6 @@ struct AthleteZonesSettingsView: View {
             VStack(alignment: .leading, spacing: 16) {
                 // Zone Source Picker (PRO only)
                 if proConfig.hasProAccess {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(SettingsContent.AthleteZones.zoneSource)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Picker("HR Zone Source", selection: Binding(
-                            get: { profileManager.profile.hrZonesSource },
-                            set: { newSource in
-                                handleHRSourceChange(newSource)
-                            }
-                        )) {
-                            Text("Coggan").tag(AthleteProfile.ZoneSource.coggan)
-                            Text("Manual").tag(AthleteProfile.ZoneSource.manual)
-                            Text("Adaptive").tag(AthleteProfile.ZoneSource.computed)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    
-                    Divider()
                 }
                 
                 // Zone List
@@ -374,7 +355,7 @@ struct AthleteZonesSettingsView: View {
             Text(index == zones.count - 2 ? SettingsContent.AthleteZones.max : "\(upperBound)")
                 .fontWeight(.medium)
             
-            Text("W")
+            Text(SettingsContent.AthleteZones.watts)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -420,13 +401,13 @@ struct AthleteZonesSettingsView: View {
                     .fontWeight(.medium)
             }
             
-            Text("-")
+            Text(SettingsContent.AthleteZones.dash)
                 .foregroundColor(.secondary)
             
-            Text(index == zones.count - 2 ? "Max" : "\(upperBound)")
+            Text(index == zones.count - 2 ? SettingsContent.AthleteZones.max : "\(upperBound)")
                 .fontWeight(.medium)
             
-            Text("bpm")
+            Text(SettingsContent.AthleteZones.bpm)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -524,7 +505,7 @@ struct AthleteZonesSettingsView: View {
         switch profileManager.profile.hrZonesSource {
         case .computed:
             if let lthr = profileManager.profile.lthr {
-                return Text("Zones anchored to lactate threshold (\(Int(lthr)) bpm) detected from sustained efforts.")
+                return Text("\(SettingsContent.AthleteZones.zonesAnchored) (\(Int(lthr)) \(SettingsContent.AthleteZones.bpm)) \(SettingsContent.AthleteZones.detectedFrom)")
             }
             return Text(SettingsContent.AthleteZones.hrAdaptiveFooter)
         case .coggan:

@@ -71,15 +71,23 @@ enum OnboardingContent {
     
     // MARK: - OAuth Debug
     enum OAuthDebug {
-        static let title = "OAuth Debug Information"
-        static let configuration = "OAuth Configuration"
-        static let testURL = "Test OAuth URL"
-        static let openSafari = "Open in Safari"
-        static let testComponents = "Test URL Components"
-        static let failedURL = "Failed to generate OAuth URL"
-        static let debugInfo = "Debug Information"
-        static let noDebugInfo = "No debug info yet"
-        static let testAPI = "Test API Connection"
+        static let title = "OAuth Debug Information"  /// OAuth debug title
+        static let configuration = "OAuth Configuration"  /// Configuration section
+        static let testURL = "Test OAuth URL"  /// Test URL button
+        static let openSafari = "Open in Safari"  /// Open Safari button
+        static let testComponents = "Test URL Components"  /// Test components section
+        static let failedURL = "Failed to generate OAuth URL"  /// Failed URL message
+        static let debugInfo = "Debug Information"  /// Debug info section
+        static let noDebugInfo = "No debug info yet"  /// No debug info message
+        static let testAPI = "Test API Connection"  /// Test API button
+        static let oauthStatus = "OAuth Status"  /// OAuth status section
+        static let oauthTests = "OAuth Tests"  /// OAuth tests section
+        static let testResults = "Test Results"  /// Test results section
+        static let clientID = "Client ID: 108"  /// Client ID
+        static let redirectURI = "Redirect URI: veloready://oauth/callback"  /// Redirect URI
+        static let scopes = "Scopes: ACTIVITY WELLNESS CALENDAR"  /// Scopes
+        static let user = "User"  /// User label
+        static let error = "Error"  /// Error label
     }
     
     // MARK: - Health Permissions
@@ -137,11 +145,12 @@ enum OnboardingContent {
         static let benefit5Description = "Avoid overtraining with intelligent TSB tracking"  /// Load description
     }
     
-    // MARK: - Screen 2: What VeloReady Does
+    // MARK: - Screen 2: What VeloReady Does  
     enum WhatVeloReady {
         static let title = "What VeloReady Does"  /// Main title
         static let subtitle = "Built for athletes who value data-driven training"  /// Subtitle
         static let continueButton = "Continue"  /// Continue button
+        static let privacyNote = "Your data is private and never leaves your device"  /// Privacy note
         
         // Feature 1: Riding First
         static let feature1Icon = "figure.outdoor.cycle"  /// Riding icon
@@ -296,6 +305,14 @@ enum OnboardingContent {
         static let subtitle = "Connect your intervals.icu account to access your training data and get personalized recommendations."  /// Login subtitle
         static let whatYouGet = "What you'll get:"  /// What you get label
         static let dataPrivate = "Your data stays private and secure"  /// Privacy message
+    }
+    
+    // MARK: - Network Debug
+    enum NetworkDebug {
+        static let title = "Network Debug"  /// Network debug title
+        static let networkStatus = "Network Status"  /// Network status section
+        static let networkTests = "Network Tests"  /// Network tests section
+        static let testResults = "Test Results"  /// Test results section
     }
     
     // MARK: - Preferences Step

@@ -83,7 +83,7 @@ struct HealthPermissionsView: View {
                     }
                 }
                 
-                Text("Your data is private and never leaves your device")
+                Text(OnboardingContent.WhatVeloReady.privacyNote)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

@@ -80,7 +80,7 @@ struct WorkaroundInstructions: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("\(method) Instructions")
+                    Text("\(method) \(OnboardingContent.CorporateNetwork.instructions)")
                         .font(.title2)
                         .fontWeight(.bold)
                     

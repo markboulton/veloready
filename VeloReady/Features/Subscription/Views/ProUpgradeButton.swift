@@ -24,7 +24,7 @@ struct ProUpgradeButton: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 
-                Text("Upgrade Now")
+                Text(PaywallContent.upgradeNow)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)

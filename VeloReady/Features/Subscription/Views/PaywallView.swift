@@ -262,7 +262,7 @@ struct PlanCard: View {
                     Text(priceText)
                         .font(.title3)
                         .fontWeight(.bold)
-                    Text("per \(plan.period)")
+                    Text("\(PaywallContent.Plans.per) \(plan.period)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
