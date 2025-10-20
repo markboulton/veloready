@@ -80,26 +80,6 @@ enum SettingsContent {
         static let send = "Send"
     }
     
-    // MARK: - Cache
-    enum Cache {
-        static let statistics = "Cache Statistics"
-        static let totalSize = "Total Size"
-        static let itemsCached = "Items Cached"
-        static let lastUpdated = "Last Updated"
-        static let clearAll = "Clear All Caches"
-    }
-    
-    // MARK: - Feedback
-    enum Feedback {
-        static let title = "Send Feedback"
-        static let type = "Feedback Type"
-        static let bugReport = "Bug Report"
-        static let featureRequest = "Feature Request"
-        static let general = "General Feedback"
-        static let yourFeedback = "Your Feedback"
-        static let send = "Send"
-    }
-    
     // MARK: - Sleep Settings
     enum Sleep {
         static let title = "Sleep Settings"  /// Sleep settings title
@@ -149,7 +129,6 @@ enum SettingsContent {
         static let zoneConfiguration = "Zone Configuration"
         static let cogganParameters = "Coggan Zone Parameters"
         static let cogganDescription = "Zones will be calculated using standard Coggan percentages from these values."
-        static let currentBoundaries = "Current Zone Boundaries"
         static let heartRateZonesLabel = "Heart Rate Zones:"
         static let powerZonesLabel = "Power Zones:"
         static let zone = "Zone"
@@ -216,8 +195,8 @@ enum SettingsContent {
     
     // MARK: - Debug Settings
     enum DebugSettings {
-        static let proFeaturesUnlocked = "✅ All Pro features unlocked for testing"  /// Pro unlocked message
-        static let mockDataEnabled = "📊 Mock data enabled for weekly trend charts"  /// Mock data message
+        static let proFeaturesUnlocked = " All Pro features unlocked for testing"  /// Pro unlocked message
+        static let mockDataEnabled = " Mock data enabled for weekly trend charts"  /// Mock data message
         static let subscriptionStatus = "Subscription Status:"  /// Subscription status label
         static let trialDaysRemaining = "Trial Days Remaining:"  /// Trial days label
         static let pro = "Pro"  /// Pro status
