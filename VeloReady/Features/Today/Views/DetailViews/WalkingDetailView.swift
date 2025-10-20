@@ -317,7 +317,7 @@ struct WalkingWorkoutInfoHeader: View {
                         .foregroundStyle(Color.text.secondary)
                     
                     if let location = locationString {
-                        Text("·")
+                        Text(CommonContent.Formatting.separator)
                             .font(.subheadline)
                             .foregroundStyle(Color.text.secondary)
                         Text(location)
@@ -519,7 +519,7 @@ struct HeartRateChart: View {
                         .foregroundStyle(Color(.systemGray4))
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
-                            Text("\(intValue) bpm")
+                            Text("\(intValue) \(CommonContent.Units.bpm))")
                                 .font(.caption2)
                         }
                     }

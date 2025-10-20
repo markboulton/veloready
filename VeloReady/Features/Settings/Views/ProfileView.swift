@@ -95,7 +95,7 @@ struct ProfileView: View {
                         HStack {
                             Text(SettingsContent.Profile.bmr)
                             Spacer()
-                            Text("\(Int(viewModel.bmr)) cal/day")
+                            Text("\(Int(viewModel.bmr)) \(CommonContent.Units.calories)/day")
                                 .foregroundColor(.secondary)
                         }
                     }
