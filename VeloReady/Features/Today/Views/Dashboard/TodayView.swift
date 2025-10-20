@@ -629,7 +629,7 @@ struct RecentActivityCard: View {
                         if let distance = activity.distance {
                             Text(CommonContent.Formatting.bulletPoint)
                                 .foregroundColor(.secondary)
-                            Text("\(String(format: "%.1f", distance / 1000.0)) km")
+                            Text("\(String(format: "%.1f", distance / 1000.0)) \(CommonContent.Units.kilometers))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

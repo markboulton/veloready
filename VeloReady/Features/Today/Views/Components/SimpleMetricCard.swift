@@ -88,7 +88,7 @@ struct SimpleMetricCard: View {
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(metricType.color)
                     
-                    Text("/100")
+                    Text(CommonContent.Formatting.outOf100)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(ColorPalette.labelTertiary)
                 }

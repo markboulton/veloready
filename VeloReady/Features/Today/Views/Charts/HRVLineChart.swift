@@ -122,7 +122,7 @@ struct HRVLineChart: View {
                     .foregroundStyle(Color(.systemGray4))
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)ms")
+                        Text("\(intValue)\(ChartContent.HRV.msUnit))")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(ColorPalette.chartAxisLabel)
                     }

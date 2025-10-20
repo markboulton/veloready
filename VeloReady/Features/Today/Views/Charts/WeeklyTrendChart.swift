@@ -110,7 +110,7 @@ struct WeeklyTrendChart_Legacy: View {
                 .cornerRadius(4)
                 .annotation(position: .top, alignment: .center) {
                     if selectedPeriod == .sevenDays {
-                        Text("\(Int(point.value))%")
+                        Text("\(Int(point.value))\(CommonContent.Units.percent))")
                             .font(.caption2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
