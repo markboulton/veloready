@@ -2,8 +2,27 @@ import Foundation
 
 /// Content strings for AI Ride Summary
 enum RideSummaryContent {
+    // MARK: - Header
+    static let title = "Ride Summary"  /// Panel title
+    static let proBadge = "PRO"  /// PRO badge text
+    
+    // MARK: - States
+    static let analyzing = CommonContent.States.analyzing  /// Analyzing message
     static let retry = "Retry"  /// Retry button
     static let bulletPoint = "•"  /// Bullet point
+    
+    // MARK: - Sections
+    static let strengths = "Strengths"  /// Strengths section title
+    
+    // MARK: - Execution Score
+    enum ExecutionScore {
+        static let title = "Execution Score"  /// Execution score title
+        static let subtitle = "Pacing, power & effort"  /// Execution score subtitle
+        static let excellent = "Excellent"  /// Excellent rating
+        static let good = "Good"  /// Good rating
+        static let fair = "Fair"  /// Fair rating
+        static let needsWork = "Needs Work"  /// Needs work rating
+    }
 }
 
 enum RideSummaryContent_Legacy {

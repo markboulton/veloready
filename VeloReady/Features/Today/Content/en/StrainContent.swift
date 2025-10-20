@@ -78,4 +78,9 @@ enum StrainContent {
     // MARK: - Pro Features
     static let weeklyTrendFeature = "Weekly Load Trend"  /// Pro feature name
     static let weeklyTrendDescription = "Track your training load over the past 7 days"  /// Pro feature description
+    
+    // MARK: - Section Titles
+    static let loadComponents = "Load Components"  /// Load components section
+    static let activitySummary = "Activity Summary"  /// Activity summary section
+    static let dailyBreakdown = "Daily Breakdown"  /// Daily breakdown section
 }

@@ -50,7 +50,7 @@ struct StrainDetailView: View {
                         .padding()
                 }
             }
-        .navigationTitle(LoadContent.title)
+        .navigationTitle(StrainContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }
     
@@ -63,7 +63,7 @@ struct StrainDetailView: View {
             showBenefits: true
         ) {
             TrendChart(
-                title: LoadContent.trendTitle,
+                title: StrainContent.trendTitle,
                 getData: { period in getHistoricalLoadData(for: period) },
                 chartType: .bar,
                 unit: "TSS",

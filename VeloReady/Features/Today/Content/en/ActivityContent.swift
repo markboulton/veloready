@@ -127,4 +127,12 @@ enum ActivityContent {
         static let max = "Max:"  /// Max prefix
         static let noHeartRateData = "No heart rate data"  /// No HR data message
     }
+    
+    // MARK: - Details
+    enum Details {
+        static let overview = "Overview"  /// Overview section
+        static let metrics = "Metrics"  /// Metrics section
+        static let zones = "Zones"  /// Zones section
+        static let map = "Map"  /// Map section
+    }
 }

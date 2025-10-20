@@ -138,10 +138,10 @@ struct StrainScore: Codable {
         
         var description: String {
             switch self {
-            case .light: return LoadContent.Bands.light
-            case .moderate: return LoadContent.Bands.moderate
-            case .hard: return LoadContent.Bands.hard
-            case .veryHard: return LoadContent.Bands.veryHard
+            case .light: return "Light"
+            case .moderate: return "Moderate"
+            case .hard: return "Hard"
+            case .veryHard: return "Very Hard"
             }
         }
     }

@@ -55,6 +55,9 @@ enum SettingsContent {
         static let strengthData = "Strength Exercise Data"
         static let dailyScores = "Daily Scores"
         static let workoutMetadata = "Workout Metadata"
+        static let readyToSync = "Ready to sync"  /// Ready to sync message
+        static let notAvailable = "iCloud not available"  /// Not available message
+        static let footer = "Automatically sync your settings, workout data, and strength exercise logs to iCloud."  /// iCloud footer
     }
     
     // MARK: - Cache
@@ -95,6 +98,7 @@ enum SettingsContent {
         static let thankYou = "Thank you for your feedback!"
         static let describeIssue = "Describe your issue or suggestion..."
         static let subtitle = "Report issues or suggest improvements"
+        static let footer = "Send feedback, report bugs, or get help. Your feedback includes diagnostic logs to help us resolve issues faster."  /// Feedback footer
     }
     
     // MARK: - About
@@ -105,6 +109,8 @@ enum SettingsContent {
         static let privacyPolicy = "Privacy Policy"
         static let termsOfService = "Terms of Service"
         static let acknowledgments = "Acknowledgments"
+        static let helpTitle = "Help & Support"  /// Help title
+        static let helpDescription = "Get help and report issues"  /// Help description
     }
     
     // MARK: - Debug
@@ -114,6 +120,8 @@ enum SettingsContent {
         static let clearCache = "Clear Cache"
         static let resetData = "Reset Data"
         static let showDebugInfo = "Show Debug Info"
+        static let developerFooter = "Developer tools for testing and diagnostics"  /// Developer footer
+        static let deviceIdPrefix = "Device ID: "  /// Device ID prefix
     }
     
     // MARK: - Appearance
@@ -124,6 +132,8 @@ enum SettingsContent {
         static let light = "Light"
         static let dark = "Dark"
         static let automatic = "Automatic"
+        static let unitsTimeFormat = "Units & time format"  /// Units and time format subtitle
+        static let footer = "Customize the app's appearance and display settings"  /// Appearance footer
     }
     
     // MARK: - Sleep Settings
@@ -271,6 +281,7 @@ enum SettingsContent {
         static let connect = CommonContent.Actions.connect
         static let disconnect = CommonContent.Actions.disconnect
         static let reconnect = CommonContent.Actions.reconnect
+        static let status = "Status"  /// Status label
     }
     
     // MARK: - iCloud
@@ -285,6 +296,15 @@ enum SettingsContent {
     }
     
     // MARK: - ML Personalization
+    enum MLPersonalization {
+        static let title = "ML Personalization"  /// ML title
+        static let enabled = CommonContent.States.enabled
+        static let disabled = CommonContent.States.disabled
+        static let dataCollected = "Data collected:"  /// Data collected label
+        static let days = CommonContent.TimeUnits.days
+        static let footer = "Machine learning personalization for more accurate recovery predictions"  /// Footer
+    }
+    
     enum MLPersonalizationSettings {
         static let title = "ML Personalization"  /// ML title
         static let enabled = CommonContent.States.enabled

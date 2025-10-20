@@ -62,6 +62,7 @@ enum CommonContent {
         static let disconnected = "Disconnected"  /// Disconnected state
         static let enabled = "Enabled"  /// Enabled state
         static let disabled = "Disabled"  /// Disabled state
+        static let connectedSources = "Connected Sources"  /// Connected sources label
     }
     
     // MARK: - Time
@@ -160,6 +161,13 @@ enum CommonContent {
         static let rhr = "RHR"
     }
     
+    // MARK: - Debt Metrics
+    enum DebtMetrics {
+        static let recoveryDebt = "Recovery Debt"  /// Recovery debt title
+        static let sleepDebt = "Sleep Debt"  /// Sleep debt title
+        static let daysLabel = "days"  /// Days label
+    }
+    
     // MARK: - Common Instructions
     enum Instructions {
         static let wearAppleWatch = "Wear Apple Watch during sleep"  /// Wear watch instruction
@@ -188,6 +196,7 @@ enum CommonContent {
         static let dash = "—"  /// Em dash
         static let separator = "·"  /// Middle dot separator
         static let ellipsis = "…"  /// Ellipsis
+        static let outOf100 = "/100"  /// Out of 100 suffix
     }
     
     // MARK: - Time Units (Full)
@@ -239,6 +248,14 @@ enum CommonContent {
         // Recovery
         static let noRecoveryData = "No recovery data"  /// No recovery data
         static let noRecoveryDataMessage = "Complete your first workout to see recovery metrics"  /// No recovery message
+        
+        // Metrics
+        static let noMetrics = "No Metrics"  /// No metrics
+        static let noMetricsMessage = "Connect a data source to see your performance metrics"  /// No metrics message
+        
+        // Actions
+        static let connectButton = "Connect Data Source"  /// Connect button
+        static let availableSources = "Available sources:"  /// Available sources label
     }
     
     // MARK: - Badges
@@ -274,6 +291,9 @@ enum CommonContent {
         static let intervalsConnect = "Connect with Intervals.icu"  /// Intervals connect
         static let intervalsDisconnect = "Disconnect from Intervals.icu"  /// Intervals disconnect
         static let intervalsName = "Intervals.icu"  /// Intervals name
+        
+        // Error
+        static let errorPrefix = "Error: "  /// Error prefix
     }
     
     // MARK: - Error Messages

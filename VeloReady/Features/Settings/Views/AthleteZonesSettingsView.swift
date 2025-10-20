@@ -61,7 +61,7 @@ struct AthleteZonesSettingsView: View {
                 // FTP Display/Edit
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("\(SettingsContent.AthleteZones.athleteLabel) \(athlete.name ?? SettingsContent.AthleteZones.unknownAthlete)")
+                        Text(SettingsContent.AthleteZones.athlete)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         

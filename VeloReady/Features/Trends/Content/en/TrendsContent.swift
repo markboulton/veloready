@@ -229,6 +229,11 @@ enum TrendsContent {
         static let wearWatch = CommonContent.Instructions.wearAppleWatch
         static let trackDays = CommonContent.Instructions.trackConsistently
         static let recoveryKey = "Recovery is key to sustainable training"  /// Recovery key message
+        static let notEnoughHistory = "Not enough recovery history"  /// Not enough history message
+        static let stepTwo = "2."  /// Step two label
+        static let stepThree = "3."  /// Step three label
+        static let stepFour = "4."  /// Step four label
+        static let firstScoreAppears = "First recovery score appears after 1 day of tracking"  /// First score message
     }
     
     // MARK: - Training Load Card
@@ -240,6 +245,10 @@ enum TrendsContent {
         static let trackDays = CommonContent.Instructions.trackConsistently
         static let balanceKey = "Balance training stress with recovery"  /// Balance key
         static let weeklyTSS = "Weekly TSS"  /// Weekly TSS label
+        static let completeWorkouts = "Complete workouts with power or heart rate"  /// Complete workouts message
+        static let calculateCTL = "Calculate CTL (Chronic Training Load)"  /// Calculate CTL message
+        static let fitnessKey = "Track your fitness progression over time"  /// Fitness key message
+        static let fatigueKey = "Monitor fatigue to prevent overtraining"  /// Fatigue key message
     }
     
     // MARK: - Overtraining Risk Card
@@ -253,6 +262,12 @@ enum TrendsContent {
         static let low = "Low"  /// Low risk
         static let moderate = "Moderate"  /// Moderate risk
         static let high = "High"  /// High risk
+        static let enablePermissions = "Enable all health permissions"
+        static let requires = "Risk assessment requires:"
+        static let sevenDaysRecovery = "7+ days of recovery scores"
+        static let hrvData = "HRV data from Apple Health"
+        static let rhrTracking = "Resting heart rate tracking"
+        static let sleepDebt = "Sleep data with debt calculation"
     }
     
     // MARK: - Training Phase Card
@@ -266,27 +281,11 @@ enum TrendsContent {
         static let build = "Build"  /// Build phase
         static let peak = "Peak"  /// Peak phase
         static let recovery = "Recovery"  /// Recovery phase
-    }
-    
-    // MARK: - Training Phase
-    enum TrainingPhase {
-        static let noData = "Not enough training data"
         static let fourWeeks = "Complete 4+ weeks of workouts"
         static let requires = "Phase detection requires:"
         static let consistentTraining = "4+ weeks of consistent training"
         static let powerOrHR = "Activities with power or heart rate"
         static let varietyIntensities = "Variety of intensities (easy, hard, race)"
-    }
-    
-    // MARK: - Overtraining Risk
-    enum OvertrainingRisk {
-        static let noData = "Not enough health data"
-        static let enablePermissions = "Enable all health permissions"
-        static let requires = "Risk assessment requires:"
-        static let sevenDaysRecovery = "7+ days of recovery scores"
-        static let hrvData = "HRV data from Apple Health"
-        static let rhrTracking = "Resting heart rate tracking"
-        static let sleepDebt = "Sleep data with debt calculation"
     }
     
     // MARK: - Recovery vs Power

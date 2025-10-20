@@ -127,6 +127,5 @@ enum TodayContent {
         static let recoveryDebt = CommonContent.DebtMetrics.recoveryDebt  /// Recovery debt title
         static let sleepDebt = CommonContent.DebtMetrics.sleepDebt  /// Sleep debt title
         static let daysLabel = CommonContent.DebtMetrics.daysLabel  /// Days label
-        static let daysLabel = "days"  /// Days label
     }
 }
