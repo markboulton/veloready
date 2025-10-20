@@ -394,7 +394,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.freeUserFTP, in: 100...500, step: 10) {
-                                    Text("\(userSettings.freeUserFTP) W")
+                                    Text("\(userSettings.freeUserFTP) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -404,7 +404,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.freeUserMaxHR, in: 100...250, step: 5) {
-                                    Text("\(userSettings.freeUserMaxHR) bpm")
+                                    Text("\(userSettings.freeUserMaxHR) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -429,10 +429,10 @@ struct TrainingZoneSettingsView: View {
                             
                             ForEach(1...5, id: \.self) { zone in
                                 HStack {
-                                    Text("Zone \(zone):")
+                                    Text("\(SettingsContent.TrainingZones.zone) \(zone):")
                                         .font(.caption)
                                     Spacer()
-                                    Text("≤ \(athleteZoneService.getHeartRateZoneBoundaries()[zone-1]) bpm")
+                                    Text("≤ \(athleteZoneService.getHeartRateZoneBoundaries()[zone-1]) \(CommonContent.Units.bpm))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -446,10 +446,10 @@ struct TrainingZoneSettingsView: View {
                             
                             ForEach(1...5, id: \.self) { zone in
                                 HStack {
-                                    Text("Zone \(zone):")
+                                    Text("\(SettingsContent.TrainingZones.zone) \(zone):")
                                         .font(.caption)
                                     Spacer()
-                                    Text("≤ \(athleteZoneService.getPowerZoneBoundaries()[zone-1]) W")
+                                    Text("≤ \(athleteZoneService.getPowerZoneBoundaries()[zone-1]) \(CommonContent.Units.watts))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -469,7 +469,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone1Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone1Max) bpm")
+                                    Text("\(userSettings.hrZone1Max) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -479,7 +479,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone2Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone2Max) bpm")
+                                    Text("\(userSettings.hrZone2Max) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -489,7 +489,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone3Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone3Max) bpm")
+                                    Text("\(userSettings.hrZone3Max) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -499,7 +499,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone4Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone4Max) bpm")
+                                    Text("\(userSettings.hrZone4Max) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -509,7 +509,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.hrZone5Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone5Max) bpm")
+                                    Text("\(userSettings.hrZone5Max) \(CommonContent.Units.bpm))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -533,7 +533,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone1Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone1Max) W")
+                                    Text("\(userSettings.powerZone1Max) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -543,7 +543,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone2Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone2Max) W")
+                                    Text("\(userSettings.powerZone2Max) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -553,7 +553,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone3Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone3Max) W")
+                                    Text("\(userSettings.powerZone3Max) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -563,7 +563,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone4Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone4Max) W")
+                                    Text("\(userSettings.powerZone4Max) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -573,7 +573,7 @@ struct TrainingZoneSettingsView: View {
                                     .frame(width: 100, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.powerZone5Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone5Max) W")
+                                    Text("\(userSettings.powerZone5Max) \(CommonContent.Units.watts))")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -654,7 +654,7 @@ struct DisplaySettingsView: View {
                                     .frame(width: 80, alignment: .leading)
                                 
                                 Stepper(value: $userSettings.calorieGoal, in: 1000...5000, step: 50) {
-                                    Text("\(Int(userSettings.calorieGoal))")
+                                    Text("\(Int(userSettings.calorieGoal)) \(CommonContent.Units.calories))")
                                         .frame(width: 60, alignment: .trailing)
                                 }
                             }
