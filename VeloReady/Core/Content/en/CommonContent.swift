@@ -32,6 +32,8 @@ enum CommonContent {
         static let syncing = "Syncing..."  /// Syncing state
         static let analyzing = "Analyzing..."  /// Analyzing state
         static let computing = "Computing..."  /// Computing state
+        static let detecting = "Detecting..."  /// Detecting state
+        static let calculating = "Calculating..."  /// Calculating state
         static let noData = "No data available"  /// Empty state
         static let notEnoughData = "Not enough data"  /// Not enough data
         static let noDataFound = "No data"  /// No data found (short)

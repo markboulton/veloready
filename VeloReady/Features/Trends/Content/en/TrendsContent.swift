@@ -268,6 +268,38 @@ enum TrendsContent {
         static let recovery = "Recovery"  /// Recovery phase
     }
     
+    // MARK: - Training Phase
+    enum TrainingPhase {
+        static let noData = "Not enough training data"
+        static let fourWeeks = "Complete 4+ weeks of workouts"
+        static let requires = "Phase detection requires:"
+        static let consistentTraining = "4+ weeks of consistent training"
+        static let powerOrHR = "Activities with power or heart rate"
+        static let varietyIntensities = "Variety of intensities (easy, hard, race)"
+    }
+    
+    // MARK: - Overtraining Risk
+    enum OvertrainingRisk {
+        static let noData = "Not enough health data"
+        static let enablePermissions = "Enable all health permissions"
+        static let requires = "Risk assessment requires:"
+        static let sevenDaysRecovery = "7+ days of recovery scores"
+        static let hrvData = "HRV data from Apple Health"
+        static let rhrTracking = "Resting heart rate tracking"
+        static let sleepDebt = "Sleep data with debt calculation"
+    }
+    
+    // MARK: - Recovery vs Power
+    enum RecoveryVsPower {
+        static let noData = "Not enough data for correlation"
+        static let requires = "This unique analysis requires:"
+        static let threeWeeks = "3+ weeks of cycling workouts"
+        static let powerData = "Power data (from power meter)"
+        static let dailyRecovery = "Daily recovery scores"
+        static let hrvSleep = "HRV + sleep tracking enabled"
+        static let unique = "Only VeloReady can show this correlation"
+    }
+    
     // MARK: - Performance Overview Card
     enum PerformanceOverview {
         static let noData = "Not enough performance data"  /// No data
