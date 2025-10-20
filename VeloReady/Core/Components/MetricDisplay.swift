@@ -21,21 +21,21 @@ struct MetricDisplay: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             if let icon = icon {
                 Image(systemName: icon)
                     .font(size.iconFont)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(ColorPalette.labelSecondary)
             }
             
             Text(value)
                 .font(size.valueFont)
-                .foregroundColor(.primary)
+                .foregroundColor(ColorPalette.labelPrimary)
             
             if let label = label {
                 Text(label)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(TypeScale.font(size: TypeScale.xs))
+                    .foregroundColor(ColorPalette.labelSecondary)
             }
         }
         .trackComponent(.metricDisplay)
