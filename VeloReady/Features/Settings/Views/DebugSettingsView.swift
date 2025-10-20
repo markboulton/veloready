@@ -96,7 +96,7 @@ struct DebugSettingsView: View {
             
             if Logger.isDebugLoggingEnabled {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .foregroundColor(Color.semantic.success)
                         .font(.caption)
                     Text(DebugSettingsContent.Logging.verboseEnabled)
@@ -105,7 +105,7 @@ struct DebugSettingsView: View {
                 }
             } else {
                 HStack {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: Icons.Status.errorFill)
                         .foregroundColor(.secondary)
                         .font(.caption)
                     Text(DebugSettingsContent.Logging.disabled)
@@ -114,7 +114,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.Logging.title, systemImage: "doc.text.magnifyingglass")
+            Label(DebugSettingsContent.Logging.title, systemImage: Icons.System.magnifyingGlass)
         } footer: {
             Text(DebugSettingsContent.Logging.footer)
         }
@@ -126,7 +126,7 @@ struct DebugSettingsView: View {
         Section {
             NavigationLink(destination: IntervalsAPIDebugView().environmentObject(IntervalsAPIClient.shared)) {
                 HStack {
-                    Image(systemName: "ladybug.fill")
+                    Image(systemName: Icons.System.bug)
                         .foregroundColor(Color.semantic.warning)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(DebugSettingsContent.API.inspector)
@@ -139,7 +139,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.API.title, systemImage: "network")
+            Label(DebugSettingsContent.API.title, systemImage: Icons.System.network)
         } footer: {
             Text(DebugSettingsContent.API.footer)
         }
@@ -151,7 +151,7 @@ struct DebugSettingsView: View {
         Section {
             // HealthKit Status
             HStack {
-                Image(systemName: "heart.fill")
+                Image(systemName: Icons.Health.heartFill)
                     .foregroundColor(healthKitManager.isAuthorized ? Color.semantic.success : Color.semantic.warning)
                     .frame(width: 24)
                 
@@ -179,7 +179,7 @@ struct DebugSettingsView: View {
             
             // Intervals.icu Status
             HStack {
-                Image(systemName: "bicycle")
+                Image(systemName: Icons.Activity.cycling)
                     .foregroundColor(oauthManager.isAuthenticated ? Color.semantic.success : Color.semantic.warning)
                     .frame(width: 24)
                 
@@ -215,7 +215,7 @@ struct DebugSettingsView: View {
             
             // Strava Status
             HStack {
-                Image(systemName: "figure.outdoor.cycle")
+                Image(systemName: Icons.DataSource.strava)
                     .foregroundColor(stravaAuthService.connectionState.isConnected ? Color.semantic.success : Color.semantic.warning)
                     .frame(width: 24)
                 
@@ -249,7 +249,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.SectionHeaders.authStatus, systemImage: "checkmark.shield")
+            Label(DebugSettingsContent.SectionHeaders.authStatus, systemImage: Icons.System.shield)
         }
     }
     
@@ -269,7 +269,7 @@ struct DebugSettingsView: View {
             
             if config.bypassSubscriptionForTesting {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: Icons.Status.successFill)
                         .foregroundColor(Color.semantic.success)
                         .font(.caption)
                     Text(DebugSettingsContent.TestingFeatures.allProUnlocked)
@@ -283,7 +283,7 @@ struct DebugSettingsView: View {
             
             if config.showMockDataForTesting {
                 HStack {
-                    Image(systemName: "chart.bar.fill")
+                    Image(systemName: Icons.System.chart)
                         .foregroundColor(Color.button.primary)
                         .font(.caption)
                     Text(DebugSettingsContent.TestingFeatures.mockDataEnabled)
@@ -297,7 +297,7 @@ struct DebugSettingsView: View {
             
             if config.showWellnessWarningForTesting {
                 HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
+                    Image(systemName: Icons.Status.warningFill)
                         .foregroundColor(.red)
                         .font(.caption)
                     Text(DebugSettingsContent.TestingFeatures.wellnessWarningEnabled)
@@ -332,7 +332,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.SectionHeaders.testingFeatures, systemImage: "hammer")
+            Label(DebugSettingsContent.SectionHeaders.testingFeatures, systemImage: Icons.System.hammer)
         } footer: {
             Text(DebugSettingsContent.SectionFooters.testingFeatures)
         }
@@ -345,7 +345,7 @@ struct DebugSettingsView: View {
             // Intervals Cache (UserDefaults)
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Image(systemName: "externaldrive")
+                    Image(systemName: Icons.System.storage)
                         .foregroundColor(Color.button.primary)
                     Text(DebugSettingsContent.Cache.intervalsCache)
                         .font(.subheadline)
@@ -361,7 +361,7 @@ struct DebugSettingsView: View {
                     showingClearCacheAlert = true
                 }) {
                     HStack {
-                        Image(systemName: "trash")
+                        Image(systemName: Icons.Document.trash)
                         Text(DebugSettingsContent.Cache.clearIntervalsCache)
                     }
                 }
@@ -370,7 +370,7 @@ struct DebugSettingsView: View {
                 
                 if cacheCleared {
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                         Text(DebugSettingsContent.Cache.cacheCleared)
                             .font(.caption)
@@ -398,7 +398,7 @@ struct DebugSettingsView: View {
                     showingClearCoreDataAlert = true
                 }) {
                     HStack {
-                        Image(systemName: "trash")
+                        Image(systemName: Icons.Document.trash)
                         Text(DebugSettingsContent.Cache.clearCoreData)
                     }
                 }
@@ -407,7 +407,7 @@ struct DebugSettingsView: View {
                 
                 if coreDataCleared {
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                         Text(DebugSettingsContent.Cache.coreDataCleared)
                             .font(.caption)
@@ -416,7 +416,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.SectionHeaders.cacheManagement, systemImage: "externaldrive.badge.xmark")
+            Label(DebugSettingsContent.SectionHeaders.cacheManagement, systemImage: Icons.System.storageBadge)
         } footer: {
             Text(DebugSettingsContent.SectionFooters.cacheManagement)
         }
@@ -479,7 +479,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.SectionHeaders.aiBrief, systemImage: "sparkles")
+            Label(DebugSettingsContent.SectionHeaders.aiBrief, systemImage: Icons.System.sparkles)
         } footer: {
             Text(DebugSettingsContent.SectionFooters.aiBrief)
         }
@@ -522,7 +522,7 @@ struct DebugSettingsView: View {
                 rideSummaryService.clearCache()
             }) {
                 HStack {
-                    Image(systemName: "trash")
+                    Image(systemName: Icons.Document.trash)
                     Text(DebugSettingsContent.RideSummary.clearCache)
                 }
             }
@@ -558,7 +558,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.RideSummary.title, systemImage: "brain.head.profile")
+            Label(DebugSettingsContent.RideSummary.title, systemImage: Icons.System.brain)
         } footer: {
             Text(DebugSettingsContent.RideSummary.footer)
         }
@@ -591,7 +591,7 @@ struct DebugSettingsView: View {
                     Text(DebugSettingsContent.ScoreRecalc.forceRecalcRecovery)
                     Spacer()
                     if refreshSuccess && !isRefreshingRecovery {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                     }
                 }
@@ -623,7 +623,7 @@ struct DebugSettingsView: View {
                     Text(DebugSettingsContent.ScoreRecalc.forceRecalcStrain)
                     Spacer()
                     if refreshSuccess && !isRefreshingStrain {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                     }
                 }
@@ -650,12 +650,12 @@ struct DebugSettingsView: View {
                         ProgressView()
                             .scaleEffect(0.8)
                     } else {
-                        Image(systemName: "moon.fill")
+                        Image(systemName: Icons.Health.sleepFill)
                     }
                     Text(DebugSettingsContent.ScoreRecalc.forceRecalcSleep)
                     Spacer()
                     if refreshSuccess && !isRefreshingSleep {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                     }
                 }
@@ -700,14 +700,14 @@ struct DebugSettingsView: View {
                 OnboardingManager.shared.resetOnboarding()
             }) {
                 HStack {
-                    Image(systemName: "arrow.counterclockwise")
+                    Image(systemName: Icons.Arrow.counterclockwise)
                     Text(DebugSettingsContent.ScoreRecalc.resetOnboarding)
                 }
             }
             .buttonStyle(.bordered)
             .tint(Color.button.primary)
         } header: {
-            Label(DebugSettingsContent.ScoreRecalc.title, systemImage: "arrow.triangle.2.circlepath")
+            Label(DebugSettingsContent.ScoreRecalc.title, systemImage: Icons.Arrow.triangleCirclePath)
         } footer: {
             Text(DebugSettingsContent.ScoreRecalc.footer)
         }
@@ -736,7 +736,7 @@ struct DebugSettingsView: View {
                         }
                     }) {
                         HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Image(systemName: Icons.Arrow.rectanglePortrait)
                                 .foregroundColor(Color.button.danger)
                             Text(DebugSettingsContent.OAuth.signOut)
                                 .foregroundColor(Color.button.danger)
@@ -763,7 +763,7 @@ struct DebugSettingsView: View {
                         showingIntervalsLogin = true
                     }) {
                         HStack {
-                            Image(systemName: "arrow.right.circle.fill")
+                            Image(systemName: Icons.Arrow.rightCircleFill)
                                 .foregroundColor(Color.button.primary)
                             Text(DebugSettingsContent.OAuth.connectIntervals)
                         }
@@ -797,7 +797,7 @@ struct DebugSettingsView: View {
                         stravaAuthService.disconnect()
                     }) {
                         HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Image(systemName: Icons.Arrow.rectanglePortrait)
                                 .foregroundColor(Color.button.danger)
                             Text(DebugSettingsContent.Strava.signOut)
                                 .foregroundColor(Color.button.danger)
@@ -835,7 +835,7 @@ struct DebugSettingsView: View {
                         stravaAuthService.startAuth()
                     }) {
                         HStack {
-                            Image(systemName: "arrow.right.circle.fill")
+                            Image(systemName: Icons.Arrow.rightCircleFill)
                                 .foregroundColor(Color(red: 252/255, green: 76/255, blue: 2/255))
                             Text(TrendsContent.Labels.connectToStrava)
                         }
@@ -857,7 +857,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(DebugSettingsContent.SectionHeaders.oauthActions, systemImage: "key.horizontal")
+            Label(DebugSettingsContent.SectionHeaders.oauthActions, systemImage: Icons.System.keyHorizontal)
         } footer: {
             Text(SettingsContent.OAuthActions.oauthActionsFooter)
         }
@@ -869,7 +869,7 @@ struct DebugSettingsView: View {
         Section {
             NavigationLink(destination: ServiceHealthDashboard()) {
                 HStack {
-                    Image(systemName: "heart.text.square.fill")
+                    Image(systemName: Icons.System.heartTextSquare)
                         .foregroundColor(.green)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.serviceHealth)
@@ -884,7 +884,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: TelemetryDashboard()) {
                 HStack {
-                    Image(systemName: "chart.bar.fill")
+                    Image(systemName: Icons.System.chart)
                         .foregroundColor(.blue)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.componentTelemetry)
@@ -899,7 +899,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: SportPreferencesDebugView()) {
                 HStack {
-                    Image(systemName: "figure.outdoor.cycle")
+                    Image(systemName: Icons.DataSource.strava)
                         .foregroundColor(.purple)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.sportPreferences)
@@ -914,7 +914,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: CacheStatsView()) {
                 HStack {
-                    Image(systemName: "chart.bar.doc.horizontal.fill")
+                    Image(systemName: Icons.System.chartDoc)
                         .foregroundColor(.orange)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.cacheStatistics)
@@ -929,7 +929,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: MLDebugView()) {
                 HStack {
-                    Image(systemName: "brain.head.profile")
+                    Image(systemName: Icons.System.brain)
                         .foregroundColor(.pink)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.mlInfrastructure)
@@ -944,7 +944,7 @@ struct DebugSettingsView: View {
             
             NavigationLink(destination: AppGroupDebugView()) {
                 HStack {
-                    Image(systemName: "square.grid.2x2")
+                    Image(systemName: Icons.System.grid2x2)
                         .foregroundColor(.orange)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(SettingsContent.MonitoringDashboards.appGroupTest)
@@ -957,7 +957,7 @@ struct DebugSettingsView: View {
                 }
             }
         } header: {
-            Label(SettingsContent.MonitoringDashboards.header, systemImage: "gauge.with.dots.needle.67percent")
+            Label(SettingsContent.MonitoringDashboards.header, systemImage: Icons.System.gaugeBadge)
         } footer: {
             Text(SettingsContent.MonitoringDashboards.footer)
         }

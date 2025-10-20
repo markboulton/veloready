@@ -51,13 +51,22 @@ enum Icons {
     
     enum Health {
         static let heart = "heart"
+        static let heartFill = "heart.fill"
+        static let heartCircle = "heart.circle.fill"
         static let heartRate = "waveform.path.ecg"
         static let hrv = "heart.circle"
         static let sleep = "moon"
+        static let sleepFill = "moon.fill"
         static let respiratory = "lungs"
         static let steps = "figure.walk"
         static let calories = "flame"
+        static let caloriesFill = "flame.fill"
         static let recovery = "leaf"
+        static let leafFill = "leaf.fill"
+        static let bed = "bed.double.fill"
+        static let moon = "moon.stars.fill"
+        static let bolt = "bolt.fill"
+        static let drop = "drop.fill"
     }
     
     // MARK: - Status & Feedback
@@ -93,6 +102,7 @@ enum Icons {
         static let collapse = "chevron.up"
         static let menu = "line.3.horizontal"
         static let settings = "gearshape"
+        static let settingsFill = "gearshape.fill"
     }
     
     // MARK: - Training & Performance
@@ -159,7 +169,9 @@ enum Icons {
         static let bug = "ladybug.fill"
         static let database = "cylinder"
         static let storage = "externaldrive"
+        static let storageBadge = "externaldrive.badge.xmark"
         static let chart = "chart.bar.fill"
+        static let chartDoc = "chart.bar.doc.horizontal.fill"
         static let person = "person.crop.circle"
         static let envelope = "envelope.fill"
         static let map = "map"
@@ -172,6 +184,22 @@ enum Icons {
         static let chevronRight = "chevron.right"
         static let chevronDown = "chevron.down"
         static let chevronUp = "chevron.up"
+        static let gauge = "gauge.medium"
+        static let gaugeBadge = "gauge.with.dots.needle.67percent"
+        static let calendar = "calendar"
+        static let brain = "brain.head.profile"
+        static let sparkles = "sparkles"
+        static let waveform = "waveform.path.ecg"
+        static let network = "network"
+        static let shield = "checkmark.shield"
+        static let hammer = "hammer"
+        static let magnifyingGlass = "doc.text.magnifyingglass"
+        static let keyHorizontal = "key.horizontal"
+        static let heartTextSquare = "heart.text.square.fill"
+        static let grid2x2 = "square.grid.2x2"
+        static let circleArrowPath = "arrow.triangle.2.circlepath"
+        static let counterclockwise = "arrow.counterclockwise"
+        static let arrowRightCircle = "arrow.right.circle.fill"
     }
     
     // MARK: - Arrows & Directions
@@ -182,7 +210,10 @@ enum Icons {
         static let upRight = "arrow.up.right"
         static let downRight = "arrow.down.right"
         static let clockwise = "arrow.clockwise"
+        static let counterclockwise = "arrow.counterclockwise"
         static let rectanglePortrait = "rectangle.portrait.and.arrow.right"
+        static let rightCircleFill = "arrow.right.circle.fill"
+        static let triangleCirclePath = "arrow.triangle.2.circlepath"
     }
     
     // MARK: - Custom Icons
