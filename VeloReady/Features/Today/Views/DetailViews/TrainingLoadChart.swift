@@ -354,8 +354,12 @@ struct TrainingLoadChart: View {
             let calendar = Calendar.current
             let earliestDate = calendar.date(byAdding: .day, value: -42, to: rideDate) ?? rideDate
             
-            Logger.data("TrainingLoadChart: Fetching activities from \(earliestDate) to today")
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: calendar.dateComponents([.day], from: earliestDate, to: Date()).day ?? 42)
+            // Calculate days back from ride date to today (to include the ride itself)
+            let daysFromRideToToday = calendar.dateComponents([.day], from: rideDate, to: Date()).day ?? 0
+            let totalDaysBack = 42 + daysFromRideToToday
+            
+            Logger.data("TrainingLoadChart: Fetching activities from \(earliestDate) (ride: \(rideDate), total days: \(totalDaysBack))")
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: totalDaysBack)
             Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
             
             // Get FTP for TSS enrichment
