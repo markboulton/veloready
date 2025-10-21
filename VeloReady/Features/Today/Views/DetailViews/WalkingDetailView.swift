@@ -161,11 +161,14 @@ struct WalkingDetailView: View {
                                 .fontWeight(.semibold)
                                 .foregroundColor(Color.text.primary)
                             
+                            Spacer()
+                            
                             Button(action: { showingTrainingLoadInfo = true }) {
-                                Text(ActivityContent.TrainingLoad.learnMore)
-                                    .font(.caption)
-                                    .foregroundColor(ColorScale.blueAccent)
+                                Image(systemName: Icons.Status.info)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                     

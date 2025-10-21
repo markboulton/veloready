@@ -3,7 +3,7 @@ import Foundation
 /// Content strings for Training Load chart
 enum TrainingLoadContent {
     // MARK: - Header
-    static let title = "Training Load Impact"  /// Chart title
+    static let title = "Fitness Trajectory"  /// Chart title
     static let proBadge = "PRO"  /// PRO badge text
     
     // MARK: - Metrics

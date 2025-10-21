@@ -3,7 +3,7 @@ import Foundation
 /// Content strings for AI Ride Summary
 enum RideSummaryContent {
     // MARK: - Header
-    static let title = "Ride Summary"  /// Panel title
+    static let title = "VeloAI"  /// Panel title
     static let proBadge = "PRO"  /// PRO badge text
     
     // MARK: - States
