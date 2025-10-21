@@ -58,7 +58,8 @@ struct HealthKitEnablementSection: View {
                 .background(ColorPalette.blue)
             }
             
-            SectionDivider()
+            // Section divider (24px top, 0 bottom - next section provides top padding)
+            SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
         }
     }
 }

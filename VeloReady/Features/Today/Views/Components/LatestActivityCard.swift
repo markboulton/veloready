@@ -131,8 +131,8 @@ struct LatestActivityCard: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Full-width divider at bottom
-            SectionDivider(topPadding: 0)
+            // Full-width divider at bottom (24px top, 0 bottom - next section provides top padding)
+            SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
         }
         .onAppear {
             Task {

@@ -73,7 +73,8 @@ struct AIBriefView: View {
                     }
                 }
                 
-                SectionDivider(bottomPadding: 0)
+                // Section divider (24px top, 0 bottom - next section provides top padding)
+                SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
             }
             .onAppear {
             // Fetch brief on appear if not already loaded

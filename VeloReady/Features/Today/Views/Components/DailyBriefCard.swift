@@ -46,8 +46,8 @@ struct DailyBriefCard: View {
                 .buttonStyle(PlainButtonStyle())
             }
             
-            // Section divider (matches AIBriefView exactly)
-            SectionDivider(bottomPadding: 0)
+            // Section divider (24px top, 0 bottom - next section provides top padding)
+            SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
         }
         .sheet(isPresented: $showingUpgradeSheet) {
             PaywallView()
