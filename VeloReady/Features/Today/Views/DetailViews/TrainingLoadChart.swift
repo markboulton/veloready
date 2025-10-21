@@ -365,7 +365,9 @@ struct TrainingLoadChart: View {
             let activities: [IntervalsActivity]
             if totalDaysBack > 120 {
                 Logger.data("TrainingLoadChart: Historical ride detected - fetching \(totalDaysBack) days directly from backend")
-                let stravaActivities = try await VeloReadyAPIClient.shared.fetchActivities(daysBack: totalDaysBack, limit: 200)
+                // Request more activities (500 instead of 200) to ensure we get older rides
+                // Backend may have its own daysBack cap, but we can get more activities per request
+                let stravaActivities = try await VeloReadyAPIClient.shared.fetchActivities(daysBack: totalDaysBack, limit: 500)
                 activities = ActivityConverter.stravaToIntervals(stravaActivities)
             } else {
                 activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: totalDaysBack)

@@ -24,8 +24,8 @@ class VeloReadyAPIClient: ObservableObject {
     
     /// Fetch activities from backend (cached for 5 minutes)
     /// - Parameters:
-    ///   - daysBack: Number of days to fetch (default: 30, max: 90)
-    ///   - limit: Maximum activities to return (default: 50, max: 200)
+    ///   - daysBack: Number of days to fetch (default: 30, backend may cap at 90-365)
+    ///   - limit: Maximum activities to return (default: 50, can request up to 500)
     /// - Returns: Array of Strava activities
     func fetchActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [StravaActivity] {
         let endpoint = "\(baseURL)/api/activities?daysBack=\(daysBack)&limit=\(limit)"
