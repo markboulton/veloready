@@ -370,7 +370,12 @@ struct WorkoutInfoHeader: View {
     // MARK: - Computed Properties
     
     private var formattedDateAndTime: String {
-        // Parse the ISO date string
+        // Use same formatting as Latest Ride card
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        
+        // Parse the ISO date string to get Date object
         let isoFormatter = DateFormatter()
         isoFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         
@@ -378,11 +383,7 @@ struct WorkoutInfoHeader: View {
             return activity.startDateLocal
         }
         
-        // Format for display (matches walking detail format)
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateStyle = .medium
-        displayFormatter.timeStyle = .short
-        return displayFormatter.string(from: date)
+        return formatter.string(from: date)
     }
     
     private func createGridColumns() -> [GridItem] {

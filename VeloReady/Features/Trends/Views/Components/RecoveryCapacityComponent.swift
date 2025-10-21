@@ -5,11 +5,11 @@ struct RecoveryCapacityComponent: View {
     let metrics: WeeklyReportViewModel.WeeklyMetrics
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(TrendsContent.WeeklyReport.recoveryCapacity)
                 .font(.heading)
             
-            HStack(alignment: .top, spacing: Spacing.xl) {
+            HStack(alignment: .top, spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.avgRecovery)
                         .metricLabel()
