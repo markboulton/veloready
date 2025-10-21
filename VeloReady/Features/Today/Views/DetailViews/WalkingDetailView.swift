@@ -161,14 +161,13 @@ struct WalkingDetailView: View {
                                 .fontWeight(.semibold)
                                 .foregroundColor(Color.text.primary)
                             
-                            Spacer()
-                            
                             Button(action: { showingTrainingLoadInfo = true }) {
-                                Image(systemName: Icons.Status.info)
+                                Image(systemName: "questionmark.circle.fill")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
                             .buttonStyle(.plain)
+                            .padding(.leading, 16)
                         }
                     }
                     

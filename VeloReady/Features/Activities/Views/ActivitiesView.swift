@@ -134,9 +134,9 @@ struct ActivitiesView: View {
                     Text(monthKey)
                         .font(.headline)
                         .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
+                        .padding(.leading, -16)
+                        .listRowBackground(Color.clear)
                 }
-                .headerProminence(.increased)
             }
             
             // Load More button for PRO users

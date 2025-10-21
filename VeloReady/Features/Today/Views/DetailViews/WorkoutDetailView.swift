@@ -114,7 +114,8 @@ struct WorkoutDetailView: View {
                         // AI Ride Summary - PRO feature (below metadata, before charts)
                         RideSummaryView(activity: displayActivity)
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 12)
                         
                         SectionDivider()
                         
@@ -370,20 +371,27 @@ struct WorkoutInfoHeader: View {
     // MARK: - Computed Properties
     
     private var formattedDateAndTime: String {
-        // Use same formatting as Latest Ride card
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        
-        // Parse the ISO date string to get Date object
-        let isoFormatter = DateFormatter()
-        isoFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        
-        guard let date = isoFormatter.date(from: activity.startDateLocal) else {
-            return activity.startDateLocal
+        // Use same parsing logic as UnifiedActivity
+        let iso8601Formatter = ISO8601DateFormatter()
+        if let date = iso8601Formatter.date(from: activity.startDateLocal) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
         }
         
-        return formatter.string(from: date)
+        let localFormatter = DateFormatter()
+        localFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        localFormatter.timeZone = TimeZone.current
+        
+        if let date = localFormatter.date(from: activity.startDateLocal) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+        }
+        
+        return activity.startDateLocal
     }
     
     private func createGridColumns() -> [GridItem] {
