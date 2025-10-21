@@ -29,7 +29,7 @@ struct SleepScheduleComponent: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.consistency)
                         .metricLabel()
-                    Text("±\(Int(circadian.bedtimeVariance)) min")
+                    Text("±\(Int(circadian.bedtimeVariance))min")
                         .font(.title3)
                         .fontWeight(.bold)
                 }

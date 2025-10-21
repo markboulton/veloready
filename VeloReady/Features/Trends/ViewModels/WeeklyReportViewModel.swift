@@ -826,7 +826,7 @@ class WeeklyReportViewModel: ObservableObject {
         Logger.debug("   TSS: \(Int(metrics.weeklyTSS))")
         Logger.debug("   CTL: \(Int(metrics.ctlStart)) → \(Int(metrics.ctlEnd))")
         
-        let payload: [String: Any] = [
+        var payload: [String: Any] = [
             "weekSummary": weekSummary,
             "avgRecovery": Int(metrics.avgRecovery),
             "recoveryChange": Int(metrics.recoveryChange),
@@ -853,6 +853,27 @@ class WeeklyReportViewModel: ObservableObject {
             ]
         ]
         
+        // Add illness indicator if present
+        if let indicator = IllnessDetectionService.shared.currentIndicator {
+            let signalTypes = indicator.signals.map { $0.type.rawValue }
+            payload["illnessIndicator"] = [
+                "severity": indicator.severity.rawValue,
+                "confidence": indicator.confidence,
+                "signals": signalTypes
+            ]
+            Logger.debug("   ⚠️ Illness indicator: \(indicator.severity.rawValue) (\(Int(indicator.confidence * 100))%)")
+        }
+        
+        // Add wellness foundation score if available
+        if let wellness = wellnessFoundation {
+            payload["wellnessScore"] = Int(wellness.overallScore)
+            Logger.debug("   💚 Wellness score: \(Int(wellness.overallScore))/100")
+        }
+        
+        // Add ML predictions if available (placeholder for future ML integration)
+        // TODO: Integrate with ML model when available
+        // payload["mlPredictions"] = "Recovery: 75%, Performance: Good"
+        
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: payload)
             let response = try await fetchFromAPI(body: jsonData)
@@ -871,12 +892,30 @@ class WeeklyReportViewModel: ObservableObject {
         let ctlChange = metrics.ctlEnd - metrics.ctlStart
         let recoveryChange = metrics.recoveryChange
         
+        // Check for illness first - overrides other classifications
+        if let indicator = IllnessDetectionService.shared.currentIndicator {
+            if indicator.severity == .high || indicator.severity == .moderate {
+                return "Recovery from illness"
+            }
+        }
+        
+        // Distinguish between taper and illness recovery
+        if metrics.weeklyTSS < 300 && ctlChange < 0 {
+            // Low TSS with declining CTL could be taper OR illness
+            // Check wellness foundation to distinguish
+            if let wellness = wellnessFoundation, wellness.overallScore < 60 {
+                return "Recovery from illness"
+            } else if recoveryChange > 5 {
+                return "Taper week"
+            } else {
+                return "Recovery week"
+            }
+        }
+        
         if ctlChange > 3 && recoveryChange > -5 {
             return "Building phase"
         } else if abs(ctlChange) < 2 && recoveryChange > 5 {
             return "Recovery week"
-        } else if metrics.weeklyTSS < 300 {
-            return "Taper week"
         } else if recoveryChange < -10 {
             return "Inconsistent"
         } else {
