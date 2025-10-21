@@ -155,9 +155,9 @@ struct MLDebugView: View {
     
     private func testTrainingPipeline() async {
         isProcessing = true
-        statusMessage = "🧪 Testing training pipeline with current data..."
         
         #if os(macOS)
+        statusMessage = "🧪 Testing training pipeline with current data..."
         do {
             let trainer = MLModelTrainer()
             try await trainer.testTrainingPipeline()
@@ -168,7 +168,15 @@ struct MLDebugView: View {
             Logger.error("Pipeline test failed: \(error)")
         }
         #else
-        statusMessage = "⚠️ ML training is only available on macOS"
+        // On iOS, we can still validate the data pipeline
+        statusMessage = "🧪 Validating training data (model training requires macOS)..."
+        
+        let report = await MLTrainingDataService.shared.getDataQualityReport()
+        if report.validDays > 0 {
+            statusMessage = "✅ Data validation PASSED! \(report.validDays) valid days, \(Int(report.completenessPercentage))% complete. Model training available on macOS."
+        } else {
+            statusMessage = "⚠️ No training data available. Process historical data first."
+        }
         #endif
         
         isProcessing = false

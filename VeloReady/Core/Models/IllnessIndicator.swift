@@ -91,13 +91,37 @@ struct IllnessIndicator: Codable, Equatable {
     
     /// Generate recommendation based on severity and signals
     static func generateRecommendation(severity: Severity, signals: [Signal]) -> String {
+        // Find primary signal (largest deviation)
+        let primarySignal = signals.max(by: { abs($0.deviation) < abs($1.deviation) })
+        
+        // Build context based on primary signal
+        var context = ""
+        if let primary = primarySignal {
+            switch primary.type {
+            case .hrvSpike:
+                context = "Elevated HRV detected. "
+            case .hrvDrop:
+                context = "Suppressed HRV detected. "
+            case .elevatedRHR:
+                context = "Elevated resting heart rate detected. "
+            case .sleepDisruption:
+                context = "Sleep disruption detected. "
+            case .respiratoryRate:
+                context = "Respiratory changes detected. "
+            case .activityDrop:
+                context = "Activity levels reduced. "
+            case .temperatureElevation:
+                context = "Temperature elevation detected. "
+            }
+        }
+        
         switch severity {
         case .low:
-            return "Monitor your recovery metrics. Consider taking it easy if symptoms persist."
+            return context + "Monitor your recovery metrics. Consider taking it easy if symptoms persist."
         case .moderate:
-            return "Your body is showing stress signals. Prioritize rest and recovery today."
+            return context + "Your body is showing stress signals. Prioritize rest and recovery today."
         case .high:
-            return "Significant body stress detected. Rest is strongly recommended. Consult a healthcare provider if you feel unwell."
+            return context + "Rest is strongly recommended. Consult a healthcare provider if you feel unwell."
         }
     }
 }

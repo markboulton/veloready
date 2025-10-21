@@ -210,6 +210,7 @@ class ProfileEditViewModel: ObservableObject {
     }
     
     func loadProfile() {
+        // First load from UserProfile
         if let data = UserDefaults.standard.data(forKey: profileKey),
            let profile = try? JSONDecoder().decode(UserProfile.self, from: data) {
             name = profile.name
@@ -217,6 +218,19 @@ class ProfileEditViewModel: ObservableObject {
             age = profile.age
             weight = profile.weight
             height = profile.height
+        }
+        
+        // Then overlay with AthleteProfile data (from Strava if connected)
+        let athleteProfile = AthleteProfileManager.shared.profile
+        
+        // Use Strava name if available and current name is empty
+        if name.isEmpty, let fullName = athleteProfile.fullName {
+            name = fullName
+        }
+        
+        // Use Strava weight if available and current weight is 0
+        if weight == 0, let athleteWeight = athleteProfile.weight {
+            weight = athleteWeight
         }
         
         // Load avatar
@@ -246,6 +260,19 @@ class ProfileEditViewModel: ObservableObject {
             UserDefaults.standard.set(imageData, forKey: avatarKey)
             Logger.info("✅ Avatar saved", category: .data)
         }
+        
+        // Sync with AthleteProfileManager (for weight and name)
+        // Split name into first/last
+        let nameComponents = name.split(separator: " ", maxSplits: 1)
+        let firstName = nameComponents.first.map(String.init)
+        let lastName = nameComponents.count > 1 ? String(nameComponents[1]) : nil
+        
+        AthleteProfileManager.shared.updateManually(
+            firstName: firstName,
+            lastName: lastName,
+            weight: weight > 0 ? weight : nil,
+            sex: nil // Sex not in this form yet
+        )
     }
     
     func loadImage(from item: PhotosPickerItem) {

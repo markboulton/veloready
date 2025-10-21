@@ -443,14 +443,3 @@ class IllnessDetectionService: ObservableObject {
         return totalChanges > 0 ? Double(consistentChanges) / Double(totalChanges) : 0.0
     }
 }
-
-// MARK: - Cache Key Extension
-
-extension CacheKey {
-    static func illnessDetection(date: Date) -> String {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let dateString = ISO8601DateFormatter().string(from: startOfDay)
-        return "illness:detection:\(dateString)"
-    }
-}

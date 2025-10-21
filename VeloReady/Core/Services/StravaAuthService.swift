@@ -149,6 +149,9 @@ class StravaAuthService: NSObject, ObservableObject {
         // Save connection state
         saveConnection(athleteId: athleteId)
         
+        // Sync athlete info (name, photo) from Strava
+        await AthleteProfileManager.shared.syncFromStrava()
+        
         // Start polling for status
         connectionState = .pending(status: "Syncing your rides...")
         await pollStatus()
@@ -405,6 +408,11 @@ class StravaAuthService: NSObject, ObservableObject {
             Logger.debug("🔍 [STRAVA] Restoring connection state: athleteId=\(athleteId ?? "nil")")
             #endif
             connectionState = .connected(athleteId: athleteId)
+            
+            // Sync athlete profile from Strava on app launch
+            Task {
+                await AthleteProfileManager.shared.syncFromStrava()
+            }
         } else {
             connectionState = .disconnected
         }

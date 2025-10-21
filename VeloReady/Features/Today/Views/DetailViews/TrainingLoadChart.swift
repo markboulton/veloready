@@ -1,7 +1,7 @@
 import SwiftUI
 import Charts
 
-/// Training Load chart showing 37-day CTL/ATL/TSB trend (30 days past + 7 days future projection)
+/// Training Load chart showing 21-day CTL/ATL/TSB trend (14 days past + 7 days future projection)
 /// Shows ACTUAL peaks/troughs from real wellness data
 /// Works with both Strava and Intervals.icu data
 /// PRO Feature
@@ -62,8 +62,8 @@ struct TrainingLoadChart: View {
         
         let tsbAfter = ctlAfter - atlAfter
         
-        // Generate 37-day trend (30 past + 7 future) with REAL historical data
-        let chartData = generateThirtySevenDayTrend(
+        // Generate 21-day trend (14 past + 7 future) with REAL historical data
+        let chartData = generateTwentyOneDayTrend(
             rideDate: rideDate,
             ctlAfter: ctlAfter,
             atlAfter: atlAfter,
@@ -109,17 +109,30 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.ctl),
                             series: .value("Metric", "CTL")
                         )
-                        .foregroundStyle(Color.button.primary.opacity(0.5))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.blueAccent.opacity(0.3) : Color.text.tertiary)
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
-                        PointMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.ctl)
-                        )
-                        .foregroundStyle(Color.button.primary)
-                        .symbolSize(dataPoint.isRide ? 50 : (dataPoint.isFuture ? 0 : 20))
+                        if !dataPoint.isFuture {
+                            PointMark(
+                                x: .value("Date", dataPoint.date),
+                                y: .value("Value", dataPoint.ctl)
+                            )
+                            .foregroundStyle(dataPoint.isRide ? ColorScale.blueAccent : Color.clear)
+                            .symbolSize(dataPoint.isRide ? 100 : 64)
+                            .symbol {
+                                if dataPoint.isRide {
+                                    Circle()
+                                        .fill(ColorScale.blueAccent)
+                                        .frame(width: 10, height: 10)
+                                } else {
+                                    Circle()
+                                        .stroke(Color.text.tertiary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                }
+                            }
+                        }
                     }
                     
                     // ATL (Fatigue) line
@@ -129,41 +142,67 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.atl),
                             series: .value("Metric", "ATL")
                         )
-                        .foregroundStyle(Color.semantic.warning.opacity(0.5))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.amberAccent.opacity(0.3) : Color.text.tertiary)
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
-                        PointMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.atl)
-                        )
-                        .foregroundStyle(Color.semantic.warning)
-                        .symbolSize(dataPoint.isRide ? 50 : (dataPoint.isFuture ? 0 : 20))
+                        if !dataPoint.isFuture {
+                            PointMark(
+                                x: .value("Date", dataPoint.date),
+                                y: .value("Value", dataPoint.atl)
+                            )
+                            .foregroundStyle(dataPoint.isRide ? ColorScale.amberAccent : Color.clear)
+                            .symbolSize(dataPoint.isRide ? 100 : 64)
+                            .symbol {
+                                if dataPoint.isRide {
+                                    Circle()
+                                        .fill(ColorScale.amberAccent)
+                                        .frame(width: 10, height: 10)
+                                } else {
+                                    Circle()
+                                        .stroke(Color.text.tertiary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                }
+                            }
+                        }
                     }
                     
-                    // TSB (Form) line - solid, contrasting color
+                    // TSB (Form) line
                     ForEach(chartData) { dataPoint in
                         LineMark(
                             x: .value("Date", dataPoint.date),
                             y: .value("Value", dataPoint.tsb),
                             series: .value("Metric", "TSB")
                         )
-                        .foregroundStyle(ColorScale.greenAccent.opacity(0.5))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.greenAccent.opacity(0.3) : Color.text.tertiary)
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
-                        PointMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.tsb)
-                        )
-                        .foregroundStyle(ColorScale.greenAccent)
-                        .symbolSize(dataPoint.isRide ? 50 : (dataPoint.isFuture ? 0 : 20))
+                        if !dataPoint.isFuture {
+                            PointMark(
+                                x: .value("Date", dataPoint.date),
+                                y: .value("Value", dataPoint.tsb)
+                            )
+                            .foregroundStyle(dataPoint.isRide ? ColorScale.greenAccent : Color.clear)
+                            .symbolSize(dataPoint.isRide ? 100 : 64)
+                            .symbol {
+                                if dataPoint.isRide {
+                                    Circle()
+                                        .fill(ColorScale.greenAccent)
+                                        .frame(width: 10, height: 10)
+                                } else {
+                                    Circle()
+                                        .stroke(Color.text.tertiary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                }
+                            }
+                        }
                     }
                 }
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: 7)) { value in
+                    AxisMarks(values: .stride(by: .day, count: 3)) { value in
                         if let date = value.as(Date.self) {
                             AxisValueLabel {
                                 Text(date, format: .dateTime.month(.abbreviated).day())
@@ -376,7 +415,7 @@ struct TrainingLoadChart: View {
     
     // Conversion now handled by unified ActivityConverter utility
     
-    private func generateThirtySevenDayTrend(
+    private func generateTwentyOneDayTrend(
         rideDate: Date,
         ctlAfter: Double,
         atlAfter: Double,
@@ -406,8 +445,8 @@ struct TrainingLoadChart: View {
         
         // Silently process activities
         
-        // 30 days of historical data
-        for dayOffset in -29...0 {
+        // 14 days of historical data
+        for dayOffset in -13...0 {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: rideDate) else { continue }
             
             let isRide = (dayOffset == 0)
@@ -464,7 +503,7 @@ struct TrainingLoadChart: View {
             ))
         }
         
-        Logger.data("TrainingLoadChart: Total data points = \(data.count) (30 past + 7 future)")
+        Logger.data("TrainingLoadChart: Total data points = \(data.count) (14 past + 7 future)")
         
         // Format dates for logging
         let logFormatter = DateFormatter()

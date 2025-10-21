@@ -9,7 +9,7 @@ struct RecoveryDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
                         .padding()
@@ -66,9 +66,9 @@ struct RecoveryDetailView: View {
                         .padding()
                 }
             }
-        .refreshable {
-            await RecoveryScoreService.shared.forceRefreshRecoveryScore()
-        }
+            .refreshable {
+                await RecoveryScoreService.shared.forceRefreshRecoveryScore()
+            }
         .navigationTitle(RecoveryContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }

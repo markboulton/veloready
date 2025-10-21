@@ -83,6 +83,11 @@ struct AIBriefView: View {
                     await service.fetchBrief()
                 }
             }
+            
+            // Refresh ML training data count to ensure progress bar updates
+            Task {
+                await mlService.refreshTrainingDataCount()
+            }
         }
         .sheet(isPresented: $showingMLInfoSheet) {
             MLPersonalizationInfoSheet()

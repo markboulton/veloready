@@ -61,8 +61,15 @@ struct RHRCandlestickChart: View {
     }
     
     private var chartView: some View {
-        Chart {
+        let isToday: (RHRDataPoint) -> Bool = { point in
+            Calendar.current.isDateInToday(point.date)
+        }
+        
+        return Chart {
             ForEach(data) { point in
+                let isTodayPoint = isToday(point)
+                let color = isTodayPoint ? ColorScale.blueAccent : Color.text.tertiary
+                
                 // Candlestick body (open to close)
                 RectangleMark(
                     x: .value("Day", point.date, unit: .day),
@@ -70,7 +77,7 @@ struct RHRCandlestickChart: View {
                     yEnd: .value("Close", animateChart ? point.close : point.average),
                     width: selectedPeriod == .sevenDays ? 35 : (selectedPeriod == .thirtyDays ? 10 : 5)
                 )
-                .foregroundStyle(candlestickColor(point))
+                .foregroundStyle(color)
                 
                 // Wick (high to low)
                 RuleMark(
@@ -79,9 +86,9 @@ struct RHRCandlestickChart: View {
                     yEnd: .value("High", animateChart ? point.high : point.average)
                 )
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .foregroundStyle(candlestickColor(point).opacity(0.6))
+                .foregroundStyle(color.opacity(0.6))
                 
-                // For 7-day view: Annotate high and low values with color coding
+                // For 7-day view: Annotate high and low values
                 if selectedPeriod == .sevenDays && animateChart {
                     // High value annotation
                     PointMark(
@@ -92,7 +99,7 @@ struct RHRCandlestickChart: View {
                     .annotation(position: .top, spacing: 2) {
                         Text("\(Int(point.high))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(colorForRHRValue(point.high))
+                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.high) : Color.text.tertiary)
                     }
                     
                     // Low value annotation
@@ -104,7 +111,7 @@ struct RHRCandlestickChart: View {
                     .annotation(position: .bottom, spacing: 2) {
                         Text("\(Int(point.low))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(colorForRHRValue(point.low))
+                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.low) : Color.text.tertiary)
                     }
                 }
             }

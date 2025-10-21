@@ -47,31 +47,36 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.ctl),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.ctlLabel)
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.button.primary.opacity(0.25))
+                .foregroundStyle(point.isFuture ? ColorScale.blueAccent.opacity(0.3) : Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data) - outlined with black center
+                // Point markers
                 if !point.isFuture {
-                    PointMark(
-                        x: .value(TrendsContent.ChartAxis.date, point.date),
-                        y: .value(TrendsContent.ChartAxis.value, point.ctl)
-                    )
-                    .foregroundStyle(Color.black)
-                    .symbolSize(20)
+                    let isLatest = point.id == lastHistoricalPoint?.id
                     
                     PointMark(
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.ctl)
                     )
-                    .foregroundStyle(Color.button.primary)
-                    .symbolSize(40)
-                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .foregroundStyle(isLatest ? ColorScale.blueAccent : Color.clear)
+                    .symbolSize(isLatest ? 100 : 64)
+                    .symbol {
+                        if isLatest {
+                            Circle()
+                                .fill(ColorScale.blueAccent)
+                                .frame(width: 10, height: 10)
+                        } else {
+                            Circle()
+                                .stroke(Color.text.tertiary, lineWidth: 1)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
                     .annotation(position: .top, alignment: .center) {
-                        if point.id == lastHistoricalPoint?.id {
+                        if isLatest {
                             Text("\(Int(point.ctl))")
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color.button.primary)
+                                .foregroundColor(ColorScale.blueAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(Color(.systemBackground))
@@ -88,31 +93,36 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.atl),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.atlLabel)
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : Color.semantic.warning.opacity(0.25))
+                .foregroundStyle(point.isFuture ? ColorScale.amberAccent.opacity(0.3) : Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data) - outlined with black center
+                // Point markers
                 if !point.isFuture {
-                    PointMark(
-                        x: .value(TrendsContent.ChartAxis.date, point.date),
-                        y: .value(TrendsContent.ChartAxis.value, point.atl)
-                    )
-                    .foregroundStyle(Color.black)
-                    .symbolSize(20)
+                    let isLatest = point.id == lastHistoricalPoint?.id
                     
                     PointMark(
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.atl)
                     )
-                    .foregroundStyle(Color.semantic.warning)
-                    .symbolSize(40)
-                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .foregroundStyle(isLatest ? ColorScale.amberAccent : Color.clear)
+                    .symbolSize(isLatest ? 100 : 64)
+                    .symbol {
+                        if isLatest {
+                            Circle()
+                                .fill(ColorScale.amberAccent)
+                                .frame(width: 10, height: 10)
+                        } else {
+                            Circle()
+                                .stroke(Color.text.tertiary, lineWidth: 1)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
                     .annotation(position: .top, alignment: .center) {
-                        if point.id == lastHistoricalPoint?.id {
+                        if isLatest {
                             Text("\(Int(point.atl))")
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color.semantic.warning)
+                                .foregroundColor(ColorScale.amberAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(Color(.systemBackground))
@@ -129,28 +139,33 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.tsb),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.formLabel)
                 )
-                .foregroundStyle(point.isFuture ? Color.gray.opacity(0.3) : ColorScale.greenAccent.opacity(0.25))
+                .foregroundStyle(point.isFuture ? ColorScale.greenAccent.opacity(0.3) : Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.linear)
                 
-                // Point markers (only for historical data) - outlined with black center
+                // Point markers
                 if !point.isFuture {
-                    PointMark(
-                        x: .value(TrendsContent.ChartAxis.date, point.date),
-                        y: .value(TrendsContent.ChartAxis.value, point.tsb)
-                    )
-                    .foregroundStyle(Color.black)
-                    .symbolSize(20)
+                    let isLatest = point.id == lastHistoricalPoint?.id
                     
                     PointMark(
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.tsb)
                     )
-                    .foregroundStyle(ColorScale.greenAccent)
-                    .symbolSize(40)
-                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .foregroundStyle(isLatest ? ColorScale.greenAccent : Color.clear)
+                    .symbolSize(isLatest ? 100 : 64)
+                    .symbol {
+                        if isLatest {
+                            Circle()
+                                .fill(ColorScale.greenAccent)
+                                .frame(width: 10, height: 10)
+                        } else {
+                            Circle()
+                                .stroke(Color.text.tertiary, lineWidth: 1)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
                     .annotation(position: .bottom, alignment: .center) {
-                        if point.id == lastHistoricalPoint?.id {
+                        if isLatest {
                             Text("\(Int(point.tsb))")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(ColorScale.greenAccent)

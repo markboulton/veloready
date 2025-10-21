@@ -10,7 +10,7 @@ struct SleepDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
                     // Header with main score
                     SleepHeaderSection(sleepScore: sleepScore)
                         .padding()
@@ -73,9 +73,9 @@ struct SleepDetailView: View {
                         .padding()
                 }
             }
-        .refreshable {
-            await SleepScoreService.shared.calculateSleepScore()
-        }
+            .refreshable {
+                await SleepScoreService.shared.calculateSleepScore()
+            }
         .navigationTitle(SleepContent.title)
         .navigationBarTitleDisplayMode(.inline)
     }

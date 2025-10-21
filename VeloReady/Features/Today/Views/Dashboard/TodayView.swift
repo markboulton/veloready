@@ -118,6 +118,9 @@ struct TodayView: View {
                     .padding()
                 }
                 .coordinateSpace(name: "scroll")
+                .refreshable {
+                    await viewModel.forceRefreshData()
+                }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -161,9 +164,6 @@ struct TodayView: View {
                         }
                     }
                 }
-            }
-            .refreshable {
-                await viewModel.forceRefreshData()
             }
             .onAppear {
                 handleViewAppear()
@@ -225,8 +225,14 @@ struct TodayView: View {
     // MARK: - Loading Spinner
     
     private var loadingSpinner: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.lg) {
             Spacer()
+            
+            // Temporary icon (to be replaced with logo)
+            Image(systemName: Icons.Activity.cycling)
+                .font(.system(size: 64, weight: .light))
+                .foregroundColor(ColorScale.blueAccent)
+                .padding(.bottom, Spacing.md)
             
             ProgressView()
                 .scaleEffect(1.5)
@@ -235,12 +241,12 @@ struct TodayView: View {
             Text(CommonContent.loading)
                 .font(.headline)
                 .fontWeight(.regular)
-                .foregroundColor(.secondary)
+                .foregroundColor(.text.secondary)
             
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .background(Color.background.primary)
         .ignoresSafeArea(.all)
         .zIndex(999)
         .onAppear {

@@ -10,6 +10,35 @@ struct TrainingLoadTrendCard: View {
         generateLoadTrend(activities: activities, days: timeRange.days)
     }
     
+    /// Calculate Y-axis domain with padding to prevent chart breaking out
+    private var yAxisDomain: ClosedRange<Double> {
+        guard !chartData.isEmpty else {
+            return 0...100
+        }
+        
+        // Find min/max across all metrics (CTL, ATL, TSB)
+        var allValues: [Double] = []
+        for point in chartData {
+            allValues.append(point.ctl)
+            allValues.append(point.atl)
+            allValues.append(point.tsb)
+        }
+        
+        guard let minValue = allValues.min(),
+              let maxValue = allValues.max() else {
+            return 0...100
+        }
+        
+        // Add 15% padding on both sides
+        let range = maxValue - minValue
+        let padding = max(range * 0.15, 10) // At least 10 units padding
+        
+        let lowerBound = (minValue - padding).rounded(.down)
+        let upperBound = (maxValue + padding).rounded(.up)
+        
+        return lowerBound...upperBound
+    }
+    
     var body: some View {
         Card(style: .elevated) {
             VStack(alignment: .leading, spacing: Spacing.md) {
@@ -105,57 +134,100 @@ struct TrainingLoadTrendCard: View {
     }
     
     private var chart: some View {
-        Chart {
-            // CTL (Fitness) line - blue
-            ForEach(chartData) { point in
+        let latestIndex = chartData.count - 1
+        
+        return Chart {
+            // CTL (Fitness) line - grey
+            ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("CTL", point.ctl),
                     series: .value("Metric", "CTL")
                 )
-                .foregroundStyle(ColorScale.blueAccent)
+                .foregroundStyle(Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
+                
+                // Grey outlined circles for historical, solid colored for latest
+                PointMark(
+                    x: .value("Date", point.date),
+                    y: .value("CTL", point.ctl)
+                )
+                .foregroundStyle(index == latestIndex ? ColorScale.blueAccent : Color.clear)
+                .symbolSize(index == latestIndex ? 100 : 64)
+                .symbol {
+                    if index == latestIndex {
+                        Circle()
+                            .fill(ColorScale.blueAccent)
+                            .frame(width: 10, height: 10)
+                    } else {
+                        Circle()
+                            .stroke(Color.text.tertiary, lineWidth: 1)
+                            .frame(width: 8, height: 8)
+                    }
+                }
             }
             
-            // ATL (Fatigue) line - orange
-            ForEach(chartData) { point in
+            // ATL (Fatigue) line - grey
+            ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("ATL", point.atl),
                     series: .value("Metric", "ATL")
                 )
-                .foregroundStyle(ColorScale.amberAccent)
+                .foregroundStyle(Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
+                
+                // Grey outlined circles for historical, solid colored for latest
+                PointMark(
+                    x: .value("Date", point.date),
+                    y: .value("ATL", point.atl)
+                )
+                .foregroundStyle(index == latestIndex ? ColorScale.amberAccent : Color.clear)
+                .symbolSize(index == latestIndex ? 100 : 64)
+                .symbol {
+                    if index == latestIndex {
+                        Circle()
+                            .fill(ColorScale.amberAccent)
+                            .frame(width: 10, height: 10)
+                    } else {
+                        Circle()
+                            .stroke(Color.text.tertiary, lineWidth: 1)
+                            .frame(width: 8, height: 8)
+                    }
+                }
             }
             
-            // TSB (Form) area - green with shading
-            ForEach(chartData) { point in
-                AreaMark(
-                    x: .value("Date", point.date),
-                    yStart: .value("Zero", 0),
-                    yEnd: .value("TSB", point.tsb)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            ColorScale.greenAccent.opacity(0.3),
-                            ColorScale.greenAccent.opacity(0.05)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                
+            // TSB (Form) line - grey
+            ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("TSB", point.tsb),
                     series: .value("Metric", "TSB")
                 )
-                .foregroundStyle(ColorScale.greenAccent)
+                .foregroundStyle(Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1.5))
                 .interpolationMethod(.catmullRom)
+                
+                // Grey outlined circles for historical, solid colored for latest
+                PointMark(
+                    x: .value("Date", point.date),
+                    y: .value("TSB", point.tsb)
+                )
+                .foregroundStyle(index == latestIndex ? ColorScale.greenAccent : Color.clear)
+                .symbolSize(index == latestIndex ? 100 : 64)
+                .symbol {
+                    if index == latestIndex {
+                        Circle()
+                            .fill(ColorScale.greenAccent)
+                            .frame(width: 10, height: 10)
+                    } else {
+                        Circle()
+                            .stroke(Color.text.tertiary, lineWidth: 1)
+                            .frame(width: 8, height: 8)
+                    }
+                }
             }
             
             // Zero line for TSB reference
@@ -163,7 +235,7 @@ struct TrainingLoadTrendCard: View {
                 .foregroundStyle(Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
         }
-        .chartYScale(domain: .automatic(includesZero: false))
+        .chartYScale(domain: yAxisDomain)
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisValueLabel {

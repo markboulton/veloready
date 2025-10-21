@@ -17,6 +17,11 @@ struct AthleteProfile: Codable {
     var weight: Double?
     var sex: String? // M/F for gender-specific calculations
     
+    // Athlete info (synced from Strava)
+    var firstName: String?
+    var lastName: String?
+    var profilePhotoURL: String? // Strava profile photo URL
+    
     // Advanced metrics (Leo et al. 2022, Jones et al. 2010)
     var wPrime: Double? // W' - Anaerobic work capacity (joules)
     var powerProfile: PowerDurationProfile? // 5s, 1min, 5min, 20min power
@@ -28,6 +33,12 @@ struct AthleteProfile: Codable {
     var lastUpdated: Date
     var lastComputedFromActivities: Date?
     var dataQuality: DataQuality? // Confidence in computed values
+    
+    // Computed property for full name
+    var fullName: String? {
+        let components = [firstName, lastName].compactMap { $0 }
+        return components.isEmpty ? nil : components.joined(separator: " ")
+    }
     
     enum ZoneSource: String, Codable {
         case computed = "computed" // PRO: Adaptive from performance data
@@ -97,6 +108,87 @@ class AthleteProfileManager: ObservableObject {
         } else {
             self.profile = AthleteProfile()
             Logger.data("Created new athlete profile")
+        }
+    }
+    
+    /// Update profile manually (when not using Strava/Intervals sync)
+    /// - Parameters:
+    ///   - firstName: First name
+    ///   - lastName: Last name
+    ///   - weight: Weight in kg
+    ///   - sex: Sex (M/F)
+    func updateManually(firstName: String? = nil, lastName: String? = nil, weight: Double? = nil, sex: String? = nil) {
+        if let firstName = firstName {
+            profile.firstName = firstName
+        }
+        if let lastName = lastName {
+            profile.lastName = lastName
+        }
+        if let weight = weight {
+            profile.weight = weight
+        }
+        if let sex = sex {
+            profile.sex = sex
+        }
+        profile.lastUpdated = Date()
+        save()
+        Logger.data("✅ Profile updated manually")
+    }
+    
+    /// Sync athlete info (name, photo) from Strava profile
+    /// Only syncs if user is connected to Strava
+    func syncFromStrava() async {
+        // Check if user is connected to Strava
+        let isConnected = await MainActor.run {
+            StravaAuthService.shared.connectionState.isConnected
+        }
+        
+        guard isConnected else {
+            Logger.data("⏭️ Skipping Strava sync - user not connected to Strava")
+            return
+        }
+        
+        do {
+            Logger.data("📸 Syncing athlete info from Strava...")
+            let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+            
+            await MainActor.run {
+                // Update name (only if not manually set)
+                // We sync name every time from Strava to keep it current
+                if let firstName = stravaAthlete.firstname {
+                    profile.firstName = firstName
+                    Logger.data("✅ Synced first name: \(firstName)")
+                }
+                if let lastName = stravaAthlete.lastname {
+                    profile.lastName = lastName
+                    Logger.data("✅ Synced last name: \(lastName)")
+                }
+                
+                // Update profile photo URL (always sync to get latest)
+                if let photoURL = stravaAthlete.profile {
+                    profile.profilePhotoURL = photoURL
+                    Logger.data("✅ Synced profile photo URL")
+                }
+                
+                // Update weight if available and not already set manually
+                // Don't overwrite if user has set it themselves
+                if let weight = stravaAthlete.weight, profile.weight == nil {
+                    profile.weight = weight
+                    Logger.data("✅ Synced weight: \(weight)kg")
+                }
+                
+                // Update sex if available and not already set manually
+                if let sex = stravaAthlete.sex, profile.sex == nil {
+                    profile.sex = sex
+                    Logger.data("✅ Synced sex: \(sex)")
+                }
+                
+                profile.lastUpdated = Date()
+            }
+            save()
+            Logger.data("✅ Athlete info synced from Strava")
+        } catch {
+            Logger.warning("⚠️ Could not sync athlete info from Strava: \(error)")
         }
     }
     

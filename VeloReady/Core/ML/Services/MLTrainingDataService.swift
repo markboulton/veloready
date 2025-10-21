@@ -193,9 +193,19 @@ class MLTrainingDataService: ObservableObject {
     func hasSufficientDataForTraining(minimumDays: Int = 30) async -> Bool {
         let dataset = await getTrainingDataset(days: 90)
         let validDays = dataset?.validDays ?? 0
-        
         Logger.debug("📊 [ML] Sufficient data check: \(validDays) valid days (minimum: \(minimumDays))")
         return validDays >= minimumDays
+    }
+    
+    /// Refresh training data count from Core Data
+    /// Useful for updating UI when data is processed in background
+    func refreshTrainingDataCount() async {
+        let dataset = await getTrainingDataset(days: 90)
+        if let dataset = dataset {
+            trainingDataCount = dataset.validDays
+            dataQualityScore = dataset.completeness
+            saveState()
+        }
     }
     
     /// Get data quality report

@@ -294,4 +294,12 @@ enum CacheKey {
         let dateString = ISO8601DateFormatter().string(from: startOfDay)
         return "score:sleep:\(dateString)"
     }
+    
+    static func illnessDetection(date: Date) -> String {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let dateString = ISO8601DateFormatter().string(from: startOfDay)
+        // v2: Updated recommendation to include signal-specific context
+        return "illness:detection:v2:\(dateString)"
+    }
 }
