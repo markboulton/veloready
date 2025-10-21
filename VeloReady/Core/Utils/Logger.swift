@@ -12,6 +12,51 @@ enum Logger {
     
     private static let debugLoggingKey = "com.veloready.debugLoggingEnabled"
     
+    // MARK: - File Logging
+    
+    private static let logFileURL: URL? = {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        return documentsPath.appendingPathComponent("veloready_debug.log")
+    }()
+    
+    private static let logQueue = DispatchQueue(label: "com.veloready.logger", qos: .utility)
+    private static let maxLogFileSize: Int = 5 * 1024 * 1024 // 5MB
+    
+    /// Write log message to file (DEBUG builds only)
+    private static func writeToFile(_ message: String) {
+        #if DEBUG
+        guard isDebugLoggingEnabled, let logFileURL = logFileURL else { return }
+        
+        logQueue.async {
+            let timestamp = ISO8601DateFormatter().string(from: Date())
+            let logLine = "[\(timestamp)] \(message)\n"
+            
+            // Check file size and rotate if needed
+            if let attributes = try? FileManager.default.attributesOfItem(atPath: logFileURL.path),
+               let fileSize = attributes[.size] as? Int,
+               fileSize > maxLogFileSize {
+                // Rotate log: delete old file and start fresh
+                try? FileManager.default.removeItem(at: logFileURL)
+            }
+            
+            // Append to file
+            if let data = logLine.data(using: .utf8) {
+                if FileManager.default.fileExists(atPath: logFileURL.path) {
+                    if let fileHandle = try? FileHandle(forWritingTo: logFileURL) {
+                        fileHandle.seekToEndOfFile()
+                        fileHandle.write(data)
+                        try? fileHandle.close()
+                    }
+                } else {
+                    try? data.write(to: logFileURL)
+                }
+            }
+        }
+        #endif
+    }
+    
     /// Enable/disable verbose debug logging at runtime
     /// Persists across app launches
     static var isDebugLoggingEnabled: Bool {
@@ -51,14 +96,18 @@ enum Logger {
     static func debug(_ message: String, category: Category = .performance) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        print("🔍 [\(category.rawValue)] \(message)")
+        let logMessage = "🔍 [\(category.rawValue)] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
     /// Log information (always shown, uses os_log in production)
     static func info(_ message: String, category: Category = .performance) {
         #if DEBUG
-        print("ℹ️ [\(category.rawValue)] \(message)")
+        let logMessage = "ℹ️ [\(category.rawValue)] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
         logger.info("\(message, privacy: .public)")
@@ -68,7 +117,9 @@ enum Logger {
     /// Log warnings (always shown)
     static func warning(_ message: String, category: Category = .performance) {
         #if DEBUG
-        print("⚠️ [\(category.rawValue)] \(message)")
+        let logMessage = "⚠️ [\(category.rawValue)] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
         logger.warning("\(message, privacy: .public)")
@@ -78,11 +129,14 @@ enum Logger {
     /// Log errors (always shown)
     static func error(_ message: String, error: Error? = nil, category: Category = .performance) {
         #if DEBUG
+        let logMessage: String
         if let error = error {
-            print("❌ [\(category.rawValue)] \(message): \(error.localizedDescription)")
+            logMessage = "❌ [\(category.rawValue)] \(message): \(error.localizedDescription)"
         } else {
-            print("❌ [\(category.rawValue)] \(message)")
+            logMessage = "❌ [\(category.rawValue)] \(message)"
         }
+        print(logMessage)
+        writeToFile(logMessage)
         #else
         let logger = os.Logger(subsystem: subsystem, category: category.rawValue)
         if let error = error {
@@ -97,11 +151,14 @@ enum Logger {
     static func performance(_ message: String, duration: TimeInterval? = nil) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
+        let logMessage: String
         if let duration = duration {
-            print("⚡ [Performance] \(message) (\(String(format: "%.2f", duration))s)")
+            logMessage = "⚡ [Performance] \(message) (\(String(format: "%.2f", duration))s)"
         } else {
-            print("⚡ [Performance] \(message)")
+            logMessage = "⚡ [Performance] \(message)"
         }
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
@@ -109,7 +166,9 @@ enum Logger {
     static func network(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        print("🌐 [Network] \(message)")
+        let logMessage = "🌐 [Network] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
@@ -117,7 +176,9 @@ enum Logger {
     static func data(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        print("📊 [Data] \(message)")
+        let logMessage = "📊 [Data] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
@@ -125,7 +186,9 @@ enum Logger {
     static func health(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        print("💓 [Health] \(message)")
+        let logMessage = "💓 [Health] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
@@ -133,7 +196,9 @@ enum Logger {
     static func cache(_ message: String) {
         #if DEBUG
         guard isDebugLoggingEnabled else { return }
-        print("💾 [Cache] \(message)")
+        let logMessage = "💾 [Cache] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
         #endif
     }
     
@@ -156,19 +221,45 @@ enum Logger {
         output += "\n"
         
         #if DEBUG
-        output += "Note: Debug build - logs are printed to console, not stored\n"
-        output += "Enable debug logging in Settings → Advanced to see detailed logs\n"
+        output += "Debug Build Information:\n"
         output += "Debug logging enabled: \(isDebugLoggingEnabled)\n"
+        
+        if isDebugLoggingEnabled, let logFileURL = logFileURL {
+            output += "Log file location: \(logFileURL.path)\n\n"
+            
+            // Read log file
+            if let logContents = try? String(contentsOf: logFileURL, encoding: .utf8) {
+                let lines = logContents.components(separatedBy: "\n")
+                output += "Recent Logs (\(lines.count) lines):\n"
+                output += "\n"
+                // Include last 500 lines to keep file size reasonable
+                let recentLines = lines.suffix(500)
+                output += recentLines.joined(separator: "\n")
+            } else {
+                output += "No log file found or unable to read\n"
+            }
+        } else {
+            output += "Note: Enable debug logging in Settings → Debug to generate logs\n"
+        }
         #else
         // In production, try to fetch recent logs from OSLog
         output += "Recent System Logs:\n"
         output += fetchRecentOSLogs()
         #endif
         
-        output += "\n=========================\n"
+        output += "\n\n=========================\n"
         output += "End of logs\n"
         
         return output
+    }
+    
+    /// Clear the debug log file
+    static func clearLogFile() {
+        #if DEBUG
+        guard let logFileURL = logFileURL else { return }
+        try? FileManager.default.removeItem(at: logFileURL)
+        Logger.info("Log file cleared")
+        #endif
     }
     
     #if !DEBUG
