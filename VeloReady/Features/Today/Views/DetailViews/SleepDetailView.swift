@@ -21,6 +21,9 @@ struct SleepDetailView: View {
                             .padding()
                     }
                     
+                    // Illness indicator alert
+                    IllnessAlertBanner()
+                    
                     SectionDivider()
                     
                     // Weekly Trend (Pro)

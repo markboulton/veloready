@@ -14,6 +14,7 @@ class AIBriefService: ObservableObject {
     private let client: AIBriefClientProtocol
     private let recoveryService = RecoveryScoreService.shared
     private let sleepService = SleepScoreService.shared
+    private let illnessService = IllnessDetectionService.shared
     private let cacheManager = CacheManager.shared
     private let persistence = PersistenceController.shared
     
@@ -115,6 +116,9 @@ class AIBriefService: ObservableObject {
         // Get today's completed activities
         let (completedActivities, todayTSS) = getTodaysCompletedActivities()
         
+        // Get illness indicator if present
+        let illnessData = buildIllnessIndicatorData()
+        
         let request = AIBriefRequest(
             recovery: recovery.score,
             sleepDelta: sleepDelta,
@@ -126,7 +130,8 @@ class AIBriefService: ObservableObject {
             tssHigh: tssHigh,
             plan: plan,
             completedActivities: completedActivities,
-            todayTSS: todayTSS
+            todayTSS: todayTSS,
+            illnessIndicator: illnessData
         )
         
         Logger.data("========================================")
@@ -139,6 +144,12 @@ class AIBriefService: ObservableObject {
         Logger.data("  TSB: \(String(format: "%.1f", request.tsb))")
         Logger.data("  TSS Range: \(request.tssLow)-\(request.tssHigh)")
         Logger.data("  Plan: \(request.plan ?? "none")")
+        if let illness = request.illnessIndicator {
+            Logger.data("  ⚠️ Illness: \(illness.severity) (\(Int(illness.confidence * 100))% confidence)")
+            for signal in illness.signals {
+                Logger.data("    - \(signal.type): \(String(format: "%+.1f", signal.deviation))%")
+            }
+        }
         if let activities = request.completedActivities, !activities.isEmpty {
             Logger.data("  ✓ Completed Today:")
             for activity in activities {
@@ -197,6 +208,26 @@ class AIBriefService: ObservableObject {
         
         // For now, return nil - will be populated when we integrate with calendar
         return nil
+    }
+    
+    private func buildIllnessIndicatorData() -> AIBriefRequest.IllnessIndicatorData? {
+        guard let indicator = illnessService.currentIndicator else {
+            return nil
+        }
+        
+        let signals = indicator.signals.map { signal in
+            AIBriefRequest.IllnessIndicatorData.SignalData(
+                type: signal.type.rawValue,
+                deviation: signal.deviation,
+                value: signal.value
+            )
+        }
+        
+        return AIBriefRequest.IllnessIndicatorData(
+            severity: indicator.severity.rawValue,
+            confidence: indicator.confidence,
+            signals: signals
+        )
     }
     
     private func getTodaysCompletedActivities() -> ([AIBriefRequest.CompletedActivity]?, Double?) {

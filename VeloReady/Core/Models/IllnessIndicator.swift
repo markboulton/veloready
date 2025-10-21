@@ -46,6 +46,7 @@ struct IllnessIndicator: Codable, Equatable {
         
         enum SignalType: String, Codable {
             case hrvDrop = "HRV Drop"
+            case hrvSpike = "HRV Spike"
             case elevatedRHR = "Elevated RHR"
             case respiratoryRate = "Respiratory Rate Change"
             case sleepDisruption = "Sleep Disruption"
@@ -55,6 +56,7 @@ struct IllnessIndicator: Codable, Equatable {
             var icon: String {
                 switch self {
                 case .hrvDrop: return Icons.Health.hrv
+                case .hrvSpike: return Icons.Health.hrv
                 case .elevatedRHR: return Icons.Health.heartCircle
                 case .respiratoryRate: return Icons.Health.respiratory
                 case .sleepDisruption: return Icons.Health.sleepFill
@@ -66,6 +68,7 @@ struct IllnessIndicator: Codable, Equatable {
             var description: String {
                 switch self {
                 case .hrvDrop: return "Heart rate variability significantly below baseline"
+                case .hrvSpike: return "Unusually high HRV - parasympathetic overdrive from inflammation"
                 case .elevatedRHR: return "Resting heart rate elevated above normal range"
                 case .respiratoryRate: return "Breathing pattern changes detected"
                 case .sleepDisruption: return "Sleep quality significantly impacted"
@@ -118,10 +121,12 @@ extension IllnessIndicator {
         var totalDeviation: Double = 0
         var signalCount: Int = 0
         
-        // HRV Drop Detection (most reliable indicator)
+        // HRV Detection (both drops and spikes)
         if let hrv = hrv, let hrvBaseline = hrvBaseline, hrvBaseline > 0 {
             let deviation = ((hrv - hrvBaseline) / hrvBaseline) * 100
-            if deviation < -10 {  // 10% drop threshold (lowered for sensitivity)
+            
+            // HRV Drop Detection (fatigue, overtraining)
+            if deviation < -10 {  // 10% drop threshold
                 signals.append(Signal(
                     type: .hrvDrop,
                     deviation: deviation,
@@ -129,6 +134,19 @@ extension IllnessIndicator {
                     baseline: hrvBaseline
                 ))
                 totalDeviation += abs(deviation)
+                signalCount += 1
+            }
+            // HRV Spike Detection (illness - parasympathetic overdrive)
+            // When sick, HRV can spike dramatically (>100% above baseline)
+            // This is inflammation triggering excessive vagal tone
+            else if deviation > 100 {  // 100% spike threshold (very high HRV)
+                signals.append(Signal(
+                    type: .hrvSpike,
+                    deviation: deviation,
+                    value: hrv,
+                    baseline: hrvBaseline
+                ))
+                totalDeviation += abs(deviation) * 1.2  // Higher weight for spikes
                 signalCount += 1
             }
         }
@@ -149,16 +167,18 @@ extension IllnessIndicator {
         }
         
         // Sleep Disruption Detection
+        // Note: Sleep score 70-85 can still mask poor quality sleep with many wake events
         if let sleepScore = sleepScore, let sleepBaseline = sleepBaseline, sleepBaseline > 0 {
             let deviation = ((Double(sleepScore) - sleepBaseline) / sleepBaseline) * 100
-            if deviation < -15 {  // 15% drop in sleep quality (lowered for sensitivity)
+            // Detect drops OR moderate sleep scores (60-84 range often indicates disrupted sleep)
+            if deviation < -15 || (sleepScore >= 60 && sleepScore < 85 && deviation < 0) {
                 signals.append(Signal(
                     type: .sleepDisruption,
                     deviation: deviation,
                     value: Double(sleepScore),
                     baseline: sleepBaseline
                 ))
-                totalDeviation += abs(deviation) * 0.5  // Lower weight
+                totalDeviation += abs(deviation) * 0.7  // Increased weight for sleep
                 signalCount += 1
             }
         }

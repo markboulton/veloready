@@ -15,11 +15,24 @@ struct AIBriefRequest: Codable {
     let plan: String?
     let completedActivities: [CompletedActivity]?
     let todayTSS: Double?
+    let illnessIndicator: IllnessIndicatorData?
     
     struct CompletedActivity: Codable {
         let name: String
         let duration: Int // minutes
         let tss: Double?
+    }
+    
+    struct IllnessIndicatorData: Codable {
+        let severity: String
+        let confidence: Double
+        let signals: [SignalData]
+        
+        struct SignalData: Codable {
+            let type: String
+            let deviation: Double
+            let value: Double
+        }
     }
 }
 

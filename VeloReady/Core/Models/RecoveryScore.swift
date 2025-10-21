@@ -11,10 +11,13 @@ struct RecoveryScore: Codable {
     let calculatedAt: Date
     let isPersonalized: Bool // Whether ML was used
     let mlConfidence: Double? // ML confidence (0-1)
+    let illnessDetected: Bool // Whether illness indicator is present
+    let illnessSeverity: String? // Severity if illness detected
     
     // Default initializer for backward compatibility
     init(score: Int, band: RecoveryBand, subScores: SubScores, inputs: RecoveryInputs, 
-         calculatedAt: Date, isPersonalized: Bool = false, mlConfidence: Double? = nil) {
+         calculatedAt: Date, isPersonalized: Bool = false, mlConfidence: Double? = nil,
+         illnessDetected: Bool = false, illnessSeverity: String? = nil) {
         self.score = score
         self.band = band
         self.subScores = subScores
@@ -22,6 +25,8 @@ struct RecoveryScore: Codable {
         self.calculatedAt = calculatedAt
         self.isPersonalized = isPersonalized
         self.mlConfidence = mlConfidence
+        self.illnessDetected = illnessDetected
+        self.illnessSeverity = illnessSeverity
     }
     
     // Custom decoder for backward compatibility with cached data
@@ -36,10 +41,12 @@ struct RecoveryScore: Codable {
         // New fields - use defaults if not present (backward compatibility)
         isPersonalized = try container.decodeIfPresent(Bool.self, forKey: .isPersonalized) ?? false
         mlConfidence = try container.decodeIfPresent(Double.self, forKey: .mlConfidence)
+        illnessDetected = try container.decodeIfPresent(Bool.self, forKey: .illnessDetected) ?? false
+        illnessSeverity = try container.decodeIfPresent(String.self, forKey: .illnessSeverity)
     }
     
     private enum CodingKeys: String, CodingKey {
-        case score, band, subScores, inputs, calculatedAt, isPersonalized, mlConfidence
+        case score, band, subScores, inputs, calculatedAt, isPersonalized, mlConfidence, illnessDetected, illnessSeverity
     }
     
     enum RecoveryBand: String, CaseIterable, Codable {
@@ -276,6 +283,14 @@ class RecoveryScoreCalculator {
         finalScore = max(0, min(100, finalScore))
         let band = determineBand(score: finalScore)
         
+        // Check for illness indicator
+        let illnessDetected = IllnessDetectionService.shared.currentIndicator != nil
+        let illnessSeverity = IllnessDetectionService.shared.currentIndicator?.severity.rawValue
+        
+        if illnessDetected {
+            Logger.debug("   ⚠️ Illness detected: \(illnessSeverity ?? "unknown") - Score should be interpreted cautiously")
+        }
+        
         Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
         
         return RecoveryScore(
@@ -283,7 +298,9 @@ class RecoveryScoreCalculator {
             band: band,
             subScores: subScores,
             inputs: inputs,
-            calculatedAt: Date()
+            calculatedAt: Date(),
+            illnessDetected: illnessDetected,
+            illnessSeverity: illnessSeverity
         )
     }
     

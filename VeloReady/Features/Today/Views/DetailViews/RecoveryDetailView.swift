@@ -14,6 +14,9 @@ struct RecoveryDetailView: View {
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
                         .padding()
                     
+                    // Illness indicator alert
+                    IllnessAlertBanner()
+                    
                     SectionDivider()
                     
                     // Weekly Trend (Pro)

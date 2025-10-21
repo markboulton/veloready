@@ -95,6 +95,9 @@ struct TrendsView: View {
     
     private var trendCards: some View {
         VStack(spacing: Spacing.cardSpacing) {
+            // Illness Alert (if present)
+            IllnessAlertBanner()
+            
             // Recovery & Readiness Section (Always visible - HealthKit-based)
             sectionHeader(
                 title: "Recovery & Readiness",

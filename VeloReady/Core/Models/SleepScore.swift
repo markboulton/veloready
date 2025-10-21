@@ -10,6 +10,36 @@ struct SleepScore: Codable {
     let subScores: SubScores
     let inputs: SleepInputs
     let calculatedAt: Date
+    let illnessDetected: Bool // Whether illness indicator is present
+    let illnessSeverity: String? // Severity if illness detected
+    
+    // Default initializer
+    init(score: Int, band: SleepBand, subScores: SubScores, inputs: SleepInputs, 
+         calculatedAt: Date, illnessDetected: Bool = false, illnessSeverity: String? = nil) {
+        self.score = score
+        self.band = band
+        self.subScores = subScores
+        self.inputs = inputs
+        self.calculatedAt = calculatedAt
+        self.illnessDetected = illnessDetected
+        self.illnessSeverity = illnessSeverity
+    }
+    
+    // Custom decoder for backward compatibility
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        score = try container.decode(Int.self, forKey: .score)
+        band = try container.decode(SleepBand.self, forKey: .band)
+        subScores = try container.decode(SubScores.self, forKey: .subScores)
+        inputs = try container.decode(SleepInputs.self, forKey: .inputs)
+        calculatedAt = try container.decode(Date.self, forKey: .calculatedAt)
+        illnessDetected = try container.decodeIfPresent(Bool.self, forKey: .illnessDetected) ?? false
+        illnessSeverity = try container.decodeIfPresent(String.self, forKey: .illnessSeverity)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case score, band, subScores, inputs, calculatedAt, illnessDetected, illnessSeverity
+    }
     
     enum SleepBand: String, CaseIterable, Codable {
         case optimal = "Optimal"
@@ -116,6 +146,10 @@ class SleepScoreCalculator {
         let finalScore = max(0, min(100, performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor))
         let band = determineBand(score: finalScore)
         
+        // Check for illness indicator
+        let illnessDetected = IllnessDetectionService.shared.currentIndicator != nil
+        let illnessSeverity = IllnessDetectionService.shared.currentIndicator?.severity.rawValue
+        
         // Log calculation with new weights
         Logger.debug("💤 SLEEP SCORE CALCULATION (NEW WEIGHTS):")
         Logger.debug("   Sub-scores: Perf=\(subScores.performance), Quality=\(subScores.stageQuality), Eff=\(subScores.efficiency), Disturb=\(subScores.disturbances), Timing=\(subScores.timing)")
@@ -126,12 +160,18 @@ class SleepScoreCalculator {
             Logger.debug("   ⚠️ Poor sleep quality detected - likely alcohol impact")
         }
         
+        if illnessDetected {
+            Logger.debug("   ⚠️ Illness detected: \(illnessSeverity ?? "unknown") - Sleep disruption may be illness-related")
+        }
+        
         return SleepScore(
             score: Int(finalScore),
             band: band,
             subScores: subScores,
             inputs: inputs,
-            calculatedAt: Date()
+            calculatedAt: Date(),
+            illnessDetected: illnessDetected,
+            illnessSeverity: illnessSeverity
         )
     }
     
