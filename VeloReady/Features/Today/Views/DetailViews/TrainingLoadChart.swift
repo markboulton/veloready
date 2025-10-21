@@ -109,8 +109,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.ctl),
                             series: .value("Metric", "CTL")
                         )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.blueAccent.opacity(0.3) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.blueAccent.opacity(0.5) : Color.text.tertiary)
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -119,17 +119,27 @@ struct TrainingLoadChart: View {
                                 x: .value("Date", dataPoint.date),
                                 y: .value("Value", dataPoint.ctl)
                             )
-                            .foregroundStyle(dataPoint.isRide ? ColorScale.blueAccent : Color.clear)
+                            .foregroundStyle(Color.clear)
                             .symbolSize(dataPoint.isRide ? 100 : 64)
                             .symbol {
                                 if dataPoint.isRide {
-                                    Circle()
-                                        .fill(ColorScale.blueAccent)
-                                        .frame(width: 10, height: 10)
+                                    ZStack {
+                                        Circle()
+                                            .fill(ColorScale.blueAccent)
+                                            .frame(width: 10, height: 10)
+                                        Circle()
+                                            .stroke(Color.background.primary, lineWidth: 3)
+                                            .frame(width: 10, height: 10)
+                                    }
                                 } else {
-                                    Circle()
-                                        .stroke(Color.text.tertiary, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.background.primary)
+                                            .frame(width: 8, height: 8)
+                                        Circle()
+                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                            .frame(width: 8, height: 8)
+                                    }
                                 }
                             }
                         }
@@ -142,8 +152,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.atl),
                             series: .value("Metric", "ATL")
                         )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.amberAccent.opacity(0.3) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.amberAccent.opacity(0.5) : Color.text.tertiary)
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -152,17 +162,27 @@ struct TrainingLoadChart: View {
                                 x: .value("Date", dataPoint.date),
                                 y: .value("Value", dataPoint.atl)
                             )
-                            .foregroundStyle(dataPoint.isRide ? ColorScale.amberAccent : Color.clear)
+                            .foregroundStyle(Color.clear)
                             .symbolSize(dataPoint.isRide ? 100 : 64)
                             .symbol {
                                 if dataPoint.isRide {
-                                    Circle()
-                                        .fill(ColorScale.amberAccent)
-                                        .frame(width: 10, height: 10)
+                                    ZStack {
+                                        Circle()
+                                            .fill(ColorScale.amberAccent)
+                                            .frame(width: 10, height: 10)
+                                        Circle()
+                                            .stroke(Color.background.primary, lineWidth: 3)
+                                            .frame(width: 10, height: 10)
+                                    }
                                 } else {
-                                    Circle()
-                                        .stroke(Color.text.tertiary, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.background.primary)
+                                            .frame(width: 8, height: 8)
+                                        Circle()
+                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                            .frame(width: 8, height: 8)
+                                    }
                                 }
                             }
                         }
@@ -175,8 +195,8 @@ struct TrainingLoadChart: View {
                             y: .value("Value", dataPoint.tsb),
                             series: .value("Metric", "TSB")
                         )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.greenAccent.opacity(0.3) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .foregroundStyle(dataPoint.isFuture ? ColorScale.greenAccent.opacity(0.5) : Color.text.tertiary)
+                        .lineStyle(StrokeStyle(lineWidth: 1))
                         .interpolationMethod(.linear)
                         
                         // Dots for each day
@@ -185,17 +205,27 @@ struct TrainingLoadChart: View {
                                 x: .value("Date", dataPoint.date),
                                 y: .value("Value", dataPoint.tsb)
                             )
-                            .foregroundStyle(dataPoint.isRide ? ColorScale.greenAccent : Color.clear)
+                            .foregroundStyle(Color.clear)
                             .symbolSize(dataPoint.isRide ? 100 : 64)
                             .symbol {
                                 if dataPoint.isRide {
-                                    Circle()
-                                        .fill(ColorScale.greenAccent)
-                                        .frame(width: 10, height: 10)
+                                    ZStack {
+                                        Circle()
+                                            .fill(ColorScale.greenAccent)
+                                            .frame(width: 10, height: 10)
+                                        Circle()
+                                            .stroke(Color.background.primary, lineWidth: 3)
+                                            .frame(width: 10, height: 10)
+                                    }
                                 } else {
-                                    Circle()
-                                        .stroke(Color.text.tertiary, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.background.primary)
+                                            .frame(width: 8, height: 8)
+                                        Circle()
+                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                            .frame(width: 8, height: 8)
+                                    }
                                 }
                             }
                         }

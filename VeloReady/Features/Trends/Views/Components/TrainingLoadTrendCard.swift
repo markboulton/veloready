@@ -137,95 +137,125 @@ struct TrainingLoadTrendCard: View {
         let latestIndex = chartData.count - 1
         
         return Chart {
-            // CTL (Fitness) line - grey
+            // CTL (Fitness) line - grey for historical, colored with opacity for future
             ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("CTL", point.ctl),
                     series: .value("Metric", "CTL")
                 )
-                .foregroundStyle(Color.text.tertiary)
+                .foregroundStyle(index > latestIndex ? ColorScale.blueAccent.opacity(0.5) : Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
                 
-                // Grey outlined circles for historical, solid colored for latest
+                // Grey outlined circles with black center for historical, solid colored with background outline for latest
                 PointMark(
                     x: .value("Date", point.date),
                     y: .value("CTL", point.ctl)
                 )
-                .foregroundStyle(index == latestIndex ? ColorScale.blueAccent : Color.clear)
+                .foregroundStyle(Color.clear)
                 .symbolSize(index == latestIndex ? 100 : 64)
                 .symbol {
                     if index == latestIndex {
-                        Circle()
-                            .fill(ColorScale.blueAccent)
-                            .frame(width: 10, height: 10)
+                        ZStack {
+                            Circle()
+                                .fill(ColorScale.blueAccent)
+                                .frame(width: 10, height: 10)
+                            Circle()
+                                .stroke(Color.background.primary, lineWidth: 3)
+                                .frame(width: 10, height: 10)
+                        }
                     } else {
-                        Circle()
-                            .stroke(Color.text.tertiary, lineWidth: 1)
-                            .frame(width: 8, height: 8)
+                        ZStack {
+                            Circle()
+                                .fill(Color.background.primary)
+                                .frame(width: 8, height: 8)
+                            Circle()
+                                .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                .frame(width: 8, height: 8)
+                        }
                     }
                 }
             }
             
-            // ATL (Fatigue) line - grey
+            // ATL (Fatigue) line - grey for historical, colored with opacity for future
             ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("ATL", point.atl),
                     series: .value("Metric", "ATL")
                 )
-                .foregroundStyle(Color.text.tertiary)
+                .foregroundStyle(index > latestIndex ? ColorScale.amberAccent.opacity(0.5) : Color.text.tertiary)
                 .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
                 
-                // Grey outlined circles for historical, solid colored for latest
+                // Grey outlined circles with black center for historical, solid colored with background outline for latest
                 PointMark(
                     x: .value("Date", point.date),
                     y: .value("ATL", point.atl)
                 )
-                .foregroundStyle(index == latestIndex ? ColorScale.amberAccent : Color.clear)
+                .foregroundStyle(Color.clear)
                 .symbolSize(index == latestIndex ? 100 : 64)
                 .symbol {
                     if index == latestIndex {
-                        Circle()
-                            .fill(ColorScale.amberAccent)
-                            .frame(width: 10, height: 10)
+                        ZStack {
+                            Circle()
+                                .fill(ColorScale.amberAccent)
+                                .frame(width: 10, height: 10)
+                            Circle()
+                                .stroke(Color.background.primary, lineWidth: 3)
+                                .frame(width: 10, height: 10)
+                        }
                     } else {
-                        Circle()
-                            .stroke(Color.text.tertiary, lineWidth: 1)
-                            .frame(width: 8, height: 8)
+                        ZStack {
+                            Circle()
+                                .fill(Color.background.primary)
+                                .frame(width: 8, height: 8)
+                            Circle()
+                                .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                .frame(width: 8, height: 8)
+                        }
                     }
                 }
             }
             
-            // TSB (Form) line - grey
+            // TSB (Form) line - grey for historical, colored with opacity for future
             ForEach(Array(chartData.enumerated()), id: \.element.id) { index, point in
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("TSB", point.tsb),
                     series: .value("Metric", "TSB")
                 )
-                .foregroundStyle(Color.text.tertiary)
-                .lineStyle(StrokeStyle(lineWidth: 1.5))
+                .foregroundStyle(index > latestIndex ? ColorScale.greenAccent.opacity(0.5) : Color.text.tertiary)
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.catmullRom)
                 
-                // Grey outlined circles for historical, solid colored for latest
+                // Grey outlined circles with black center for historical, solid colored with background outline for latest
                 PointMark(
                     x: .value("Date", point.date),
                     y: .value("TSB", point.tsb)
                 )
-                .foregroundStyle(index == latestIndex ? ColorScale.greenAccent : Color.clear)
+                .foregroundStyle(Color.clear)
                 .symbolSize(index == latestIndex ? 100 : 64)
                 .symbol {
                     if index == latestIndex {
-                        Circle()
-                            .fill(ColorScale.greenAccent)
-                            .frame(width: 10, height: 10)
+                        ZStack {
+                            Circle()
+                                .fill(ColorScale.greenAccent)
+                                .frame(width: 10, height: 10)
+                            Circle()
+                                .stroke(Color.background.primary, lineWidth: 3)
+                                .frame(width: 10, height: 10)
+                        }
                     } else {
-                        Circle()
-                            .stroke(Color.text.tertiary, lineWidth: 1)
-                            .frame(width: 8, height: 8)
+                        ZStack {
+                            Circle()
+                                .fill(Color.background.primary)
+                                .frame(width: 8, height: 8)
+                            Circle()
+                                .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                .frame(width: 8, height: 8)
+                        }
                     }
                 }
             }

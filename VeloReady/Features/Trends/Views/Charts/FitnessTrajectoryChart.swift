@@ -47,8 +47,8 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.ctl),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.ctlLabel)
                 )
-                .foregroundStyle(point.isFuture ? ColorScale.blueAccent.opacity(0.3) : Color.text.tertiary)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .foregroundStyle(point.isFuture ? ColorScale.blueAccent.opacity(0.5) : Color.text.tertiary)
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.linear)
                 
                 // Point markers
@@ -59,17 +59,27 @@ struct FitnessTrajectoryChart: View {
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.ctl)
                     )
-                    .foregroundStyle(isLatest ? ColorScale.blueAccent : Color.clear)
+                    .foregroundStyle(Color.clear)
                     .symbolSize(isLatest ? 100 : 64)
                     .symbol {
                         if isLatest {
-                            Circle()
-                                .fill(ColorScale.blueAccent)
-                                .frame(width: 10, height: 10)
+                            ZStack {
+                                Circle()
+                                    .fill(ColorScale.blueAccent)
+                                    .frame(width: 10, height: 10)
+                                Circle()
+                                    .stroke(Color.background.primary, lineWidth: 3)
+                                    .frame(width: 10, height: 10)
+                            }
                         } else {
-                            Circle()
-                                .stroke(Color.text.tertiary, lineWidth: 1)
-                                .frame(width: 8, height: 8)
+                            ZStack {
+                                Circle()
+                                    .fill(Color.background.primary)
+                                    .frame(width: 8, height: 8)
+                                Circle()
+                                    .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                    .frame(width: 8, height: 8)
+                            }
                         }
                     }
                     .annotation(position: .top, alignment: .center) {
@@ -93,8 +103,8 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.atl),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.atlLabel)
                 )
-                .foregroundStyle(point.isFuture ? ColorScale.amberAccent.opacity(0.3) : Color.text.tertiary)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .foregroundStyle(point.isFuture ? ColorScale.amberAccent.opacity(0.5) : Color.text.tertiary)
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.linear)
                 
                 // Point markers
@@ -105,17 +115,27 @@ struct FitnessTrajectoryChart: View {
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.atl)
                     )
-                    .foregroundStyle(isLatest ? ColorScale.amberAccent : Color.clear)
+                    .foregroundStyle(Color.clear)
                     .symbolSize(isLatest ? 100 : 64)
                     .symbol {
                         if isLatest {
-                            Circle()
-                                .fill(ColorScale.amberAccent)
-                                .frame(width: 10, height: 10)
+                            ZStack {
+                                Circle()
+                                    .fill(ColorScale.amberAccent)
+                                    .frame(width: 10, height: 10)
+                                Circle()
+                                    .stroke(Color.background.primary, lineWidth: 3)
+                                    .frame(width: 10, height: 10)
+                            }
                         } else {
-                            Circle()
-                                .stroke(Color.text.tertiary, lineWidth: 1)
-                                .frame(width: 8, height: 8)
+                            ZStack {
+                                Circle()
+                                    .fill(Color.background.primary)
+                                    .frame(width: 8, height: 8)
+                                Circle()
+                                    .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                    .frame(width: 8, height: 8)
+                            }
                         }
                     }
                     .annotation(position: .top, alignment: .center) {
@@ -139,8 +159,8 @@ struct FitnessTrajectoryChart: View {
                     y: .value(TrendsContent.ChartAxis.value, point.tsb),
                     series: .value(TrendsContent.ChartAxis.metric, TrendsContent.WeeklyReport.formLabel)
                 )
-                .foregroundStyle(point.isFuture ? ColorScale.greenAccent.opacity(0.3) : Color.text.tertiary)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .foregroundStyle(point.isFuture ? ColorScale.greenAccent.opacity(0.5) : Color.text.tertiary)
+                .lineStyle(StrokeStyle(lineWidth: 1))
                 .interpolationMethod(.linear)
                 
                 // Point markers
@@ -151,17 +171,27 @@ struct FitnessTrajectoryChart: View {
                         x: .value(TrendsContent.ChartAxis.date, point.date),
                         y: .value(TrendsContent.ChartAxis.value, point.tsb)
                     )
-                    .foregroundStyle(isLatest ? ColorScale.greenAccent : Color.clear)
+                    .foregroundStyle(Color.clear)
                     .symbolSize(isLatest ? 100 : 64)
                     .symbol {
                         if isLatest {
-                            Circle()
-                                .fill(ColorScale.greenAccent)
-                                .frame(width: 10, height: 10)
+                            ZStack {
+                                Circle()
+                                    .fill(ColorScale.greenAccent)
+                                    .frame(width: 10, height: 10)
+                                Circle()
+                                    .stroke(Color.background.primary, lineWidth: 3)
+                                    .frame(width: 10, height: 10)
+                            }
                         } else {
-                            Circle()
-                                .stroke(Color.text.tertiary, lineWidth: 1)
-                                .frame(width: 8, height: 8)
+                            ZStack {
+                                Circle()
+                                    .fill(Color.background.primary)
+                                    .frame(width: 8, height: 8)
+                                Circle()
+                                    .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
+                                    .frame(width: 8, height: 8)
+                            }
                         }
                     }
                     .annotation(position: .bottom, alignment: .center) {
