@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reusable card container with consistent styling
+/// Reusable card container with liquid glass styling
 struct Card<Content: View>: View {
     let style: CardStyle
     let padding: CGFloat
@@ -19,74 +19,37 @@ struct Card<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .background(style.backgroundColor)
-            .overlay(
-                Rectangle()
-                    .stroke(style.borderColor, lineWidth: style.borderWidth)
-            )
+            .glassCard(material: style.glassMaterial, elevation: style.glassElevation)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
 // MARK: - Card Style
 
 enum CardStyle {
-    case elevated  // White background with shadow
-    case flat      // Gray background, no shadow
-    case outlined  // Border with transparent background
+    case elevated  // Prominent glass card with depth
+    case flat      // Subtle glass card, minimal shadow
+    case outlined  // Ultra-thin glass, maximum transparency
     
-    var backgroundColor: Color {
+    var glassMaterial: GlassMaterial {
         switch self {
         case .elevated:
-            return Color(.systemBackground).opacity(0.6)
+            return .regular
         case .flat:
-            return Color(.systemBackground).opacity(0.6)
+            return .thin
         case .outlined:
-            return Color.clear
+            return .ultraThin
         }
     }
     
-    var borderColor: Color {
-        switch self {
-        case .elevated, .flat:
-            return Color.primary.opacity(0.1)
-        case .outlined:
-            return Color.text.tertiary
-        }
-    }
-    
-    var borderWidth: CGFloat {
-        switch self {
-        case .elevated, .flat:
-            return 1
-        case .outlined:
-            return 1
-        }
-    }
-    
-    var shadowColor: Color {
+    var glassElevation: GlassElevation {
         switch self {
         case .elevated:
-            return Color.clear  // Removed shadow
-        case .flat, .outlined:
-            return Color.clear
-        }
-    }
-    
-    var shadowRadius: CGFloat {
-        switch self {
-        case .elevated:
-            return 0  // Removed shadow
-        case .flat, .outlined:
-            return 0
-        }
-    }
-    
-    var shadowY: CGFloat {
-        switch self {
-        case .elevated:
-            return 0  // Removed shadow
-        case .flat, .outlined:
-            return 0
+            return .medium
+        case .flat:
+            return .low
+        case .outlined:
+            return .flat
         }
     }
 }
