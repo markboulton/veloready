@@ -853,7 +853,7 @@ class WeeklyReportViewModel: ObservableObject {
             ]
         ]
         
-        // Add illness indicator if present
+        // Add body stress indicator if present (terminology for Apple compliance)
         if let indicator = IllnessDetectionService.shared.currentIndicator {
             let signalTypes = indicator.signals.map { $0.type.rawValue }
             payload["illnessIndicator"] = [
@@ -861,7 +861,7 @@ class WeeklyReportViewModel: ObservableObject {
                 "confidence": indicator.confidence,
                 "signals": signalTypes
             ]
-            Logger.debug("   ⚠️ Illness indicator: \(indicator.severity.rawValue) (\(Int(indicator.confidence * 100))%)")
+            Logger.debug("   ⚠️ Body stress indicator: \(indicator.severity.rawValue) (\(Int(indicator.confidence * 100))%)")
         }
         
         // Add wellness foundation score if available
@@ -892,19 +892,19 @@ class WeeklyReportViewModel: ObservableObject {
         let ctlChange = metrics.ctlEnd - metrics.ctlStart
         let recoveryChange = metrics.recoveryChange
         
-        // Check for illness first - overrides other classifications
+        // Check for body stress first - overrides other classifications
         if let indicator = IllnessDetectionService.shared.currentIndicator {
             if indicator.severity == .high || indicator.severity == .moderate {
-                return "Recovery from illness"
+                return "Recovery from body stress"
             }
         }
         
-        // Distinguish between taper and illness recovery
+        // Distinguish between taper and stress recovery
         if metrics.weeklyTSS < 300 && ctlChange < 0 {
-            // Low TSS with declining CTL could be taper OR illness
+            // Low TSS with declining CTL could be taper OR stress recovery
             // Check wellness foundation to distinguish
             if let wellness = wellnessFoundation, wellness.overallScore < 60 {
-                return "Recovery from illness"
+                return "Recovery from body stress"
             } else if recoveryChange > 5 {
                 return "Taper week"
             } else {
