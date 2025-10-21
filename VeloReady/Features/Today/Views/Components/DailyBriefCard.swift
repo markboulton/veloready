@@ -15,7 +15,7 @@ struct DailyBriefCard: View {
                     .foregroundStyle(Color.text.secondary)
                     .font(.system(size: 16))
                 
-                Text("Daily Brief")
+                Text(DailyBriefContent.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.text.primary)
@@ -52,7 +52,7 @@ struct DailyBriefCard: View {
                     let tsb = ctl - atl
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Training Stress Balance")
+                        Text(DailyBriefContent.trainingStressBalance)
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                         
@@ -72,7 +72,7 @@ struct DailyBriefCard: View {
                 // Target TSS
                 if let recoveryScore = recoveryScoreService.currentRecoveryScore {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Recommended Training Today")
+                        Text(DailyBriefContent.recommendedTraining)
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                         
@@ -88,7 +88,7 @@ struct DailyBriefCard: View {
                         .font(.caption)
                         .foregroundStyle(ColorScale.blueAccent)
                     
-                    Text("Upgrade to VeloAI for personalized insights")
+                    Text(DailyBriefContent.upgradePrompt)
                         .font(.caption)
                         .foregroundStyle(Color.text.secondary)
                 }
@@ -118,11 +118,11 @@ struct DailyBriefCard: View {
     
     private func recoveryMessage(_ score: Int) -> String {
         if score >= 80 {
-            return "You're well recovered and ready for hard training"
+            return DailyBriefContent.Recovery.optimal
         } else if score >= 60 {
-            return "Moderate recovery - consider lighter training"
+            return DailyBriefContent.Recovery.moderate
         } else {
-            return "Low recovery - prioritize rest and easy sessions"
+            return DailyBriefContent.Recovery.low
         }
     }
     
@@ -140,23 +140,23 @@ struct DailyBriefCard: View {
     
     private func tsbLabel(_ tsb: Double) -> String {
         if tsb < -10 {
-            return "Fatigued"
+            return DailyBriefContent.TSB.fatigued
         } else if tsb < 5 {
-            return "Optimal"
+            return DailyBriefContent.TSB.optimal
         } else if tsb < 15 {
-            return "Fresh"
+            return DailyBriefContent.TSB.fresh
         } else {
-            return "Very Fresh"
+            return DailyBriefContent.TSB.veryFresh
         }
     }
     
     private func trainingRecommendation(_ recoveryScore: Int) -> String {
         if recoveryScore >= 80 {
-            return "High intensity or long duration workouts"
+            return DailyBriefContent.TrainingRecommendation.highIntensity
         } else if recoveryScore >= 60 {
-            return "Moderate intensity, shorter duration"
+            return DailyBriefContent.TrainingRecommendation.moderate
         } else {
-            return "Easy recovery rides or rest day"
+            return DailyBriefContent.TrainingRecommendation.easy
         }
     }
 }

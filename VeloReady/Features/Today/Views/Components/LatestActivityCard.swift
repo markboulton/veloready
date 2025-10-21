@@ -153,6 +153,44 @@ struct LatestActivityCard: View {
         }
     }
     
+    // MARK: - GPS Coordinate Extraction
+    
+    /// Extract GPS coordinates from the activity
+    private func getGPSCoordinates() async -> [CLLocationCoordinate2D]? {
+        // For Strava activities, we need to fetch stream data
+        if let stravaActivity = activity.stravaActivity {
+            return await fetchStravaGPSCoordinates(activityId: stravaActivity.id)
+        }
+        
+        // For Intervals activities, we need to fetch stream data
+        if let intervalsActivity = activity.intervalsActivity {
+            return await fetchIntervalsGPSCoordinates(activityId: intervalsActivity.id)
+        }
+        
+        // For HealthKit workouts, we'd need to query route data
+        // This is more complex and would require HKWorkoutRoute queries
+        return nil
+    }
+    
+    /// Fetch GPS coordinates from Strava activity streams
+    private func fetchStravaGPSCoordinates(activityId: Int) async -> [CLLocationCoordinate2D]? {
+        // Check if we have cached stream data
+        let cacheKey = "strava_stream_\(activityId)"
+        
+        // Try to get from RideDetailViewModel's cache
+        // For now, return nil - this would require accessing the stream cache
+        // or making an API call to fetch the stream data
+        Logger.debug("🗺️ Would fetch Strava GPS coordinates for activity \(activityId)")
+        return nil
+    }
+    
+    /// Fetch GPS coordinates from Intervals activity streams
+    private func fetchIntervalsGPSCoordinates(activityId: String) async -> [CLLocationCoordinate2D]? {
+        // Similar to Strava, would need to fetch stream data
+        Logger.debug("🗺️ Would fetch Intervals GPS coordinates for activity \(activityId)")
+        return nil
+    }
+    
     // MARK: - Destination View
     
     @ViewBuilder
@@ -184,9 +222,11 @@ struct LatestActivityCard: View {
     // MARK: - Helper Methods
     
     private func loadLocation() async {
-        // Try to get location from activity data
-        // For now, we'll skip this as it requires GPS coordinate parsing
-        // This can be enhanced later with reverse geocoding
+        // Get GPS coordinates from the activity
+        guard let coordinates = await getGPSCoordinates() else { return }
+        
+        // Geocode the start location
+        locationString = await LocationGeocodingService.shared.getStartLocation(from: coordinates)
     }
     
     private func loadMapSnapshot() async {
@@ -195,16 +235,14 @@ struct LatestActivityCard: View {
         isLoadingMap = true
         defer { isLoadingMap = false }
         
-        // Try to load GPS coordinates from the activity
-        // This requires accessing the stream data which we'll need to fetch
-        // For now, we'll create a placeholder
+        // Get GPS coordinates from the activity
+        guard let coordinates = await getGPSCoordinates() else {
+            Logger.debug("🗺️ No GPS coordinates available for map")
+            return
+        }
         
-        // TODO: Implement map snapshot generation from activity GPS data
-        // This would require:
-        // 1. Fetching stream data for the activity
-        // 2. Extracting GPS coordinates
-        // 3. Creating MKMapSnapshotter with the route
-        // 4. Generating the snapshot image
+        // Generate map snapshot
+        mapSnapshot = await MapSnapshotService.shared.generateSnapshot(from: coordinates)
     }
 }
 

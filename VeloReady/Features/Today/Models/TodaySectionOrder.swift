@@ -18,8 +18,14 @@ struct TodaySectionOrder: Codable {
     /// UserDefaults key for persistence
     private static let userDefaultsKey = "todaySectionOrder"
     
-    /// Load saved order from UserDefaults
+    /// Load saved order from iCloud (if available) or UserDefaults
     static func load() -> TodaySectionOrder {
+        // Try iCloud first
+        if let iCloudOrder = loadFromiCloud() {
+            return iCloudOrder
+        }
+        
+        // Fall back to UserDefaults
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
               let order = try? JSONDecoder().decode(TodaySectionOrder.self, from: data) else {
             return defaultOrder
@@ -27,11 +33,43 @@ struct TodaySectionOrder: Codable {
         return order
     }
     
-    /// Save order to UserDefaults
+    /// Save order to UserDefaults and sync to iCloud
     func save() {
         if let data = try? JSONEncoder().encode(self) {
             UserDefaults.standard.set(data, forKey: Self.userDefaultsKey)
+            
+            // Sync to iCloud if available
+            Task {
+                await syncToiCloud(data: data)
+            }
         }
+    }
+    
+    /// Sync section order to iCloud
+    private func syncToiCloud(data: Data) async {
+        // Check if iCloud is available (synchronous check)
+        guard FileManager.default.ubiquityIdentityToken != nil else { return }
+        
+        let store = NSUbiquitousKeyValueStore.default
+        store.set(data, forKey: "todaySectionOrder")
+        store.synchronize()
+        
+        Logger.debug("☁️ Today section order synced to iCloud")
+    }
+    
+    /// Load section order from iCloud (if available)
+    static func loadFromiCloud() -> TodaySectionOrder? {
+        // Check if iCloud is available (synchronous check)
+        guard FileManager.default.ubiquityIdentityToken != nil else { return nil }
+        
+        let store = NSUbiquitousKeyValueStore.default
+        guard let data = store.data(forKey: "todaySectionOrder"),
+              let order = try? JSONDecoder().decode(TodaySectionOrder.self, from: data) else {
+            return nil
+        }
+        
+        Logger.debug("☁️ Today section order loaded from iCloud")
+        return order
     }
     
     /// Reset to default order

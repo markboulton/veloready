@@ -27,6 +27,7 @@ class iCloudSyncService: ObservableObject {
         static let muscleGroupData = "muscleGroupData"
         static let lastSyncDate = "lastSyncDate"
         static let workoutMetadataSync = "workoutMetadataSync"
+        static let todaySectionOrder = "todaySectionOrder"
     }
     
     // MARK: - Initialization
