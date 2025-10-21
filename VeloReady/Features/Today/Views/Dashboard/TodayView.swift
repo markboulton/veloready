@@ -29,6 +29,10 @@ struct TodayView: View {
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
+    @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
+    @ObservedObject private var proConfig = ProFeatureConfig.shared
+    @ObservedObject private var stravaAuth = StravaAuthService.shared
+    @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
     
     init() {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
@@ -81,11 +85,6 @@ struct TodayView: View {
                             hideBottomDivider: false
                         )
                         
-                        // AI Daily Brief (only when HealthKit authorized)
-                        if healthKitManager.isAuthorized {
-                            AIBriefView()
-                        }
-                        
                         // HealthKit Enablement Section (only when not authorized)
                         if !viewModel.isHealthKitAuthorized {
                             HealthKitEnablementSection(
@@ -93,18 +92,12 @@ struct TodayView: View {
                             )
                         }
                         
-                        // Activity stats row (steps and calories)
+                        // Movable sections (ordered by user preference)
                         if healthKitManager.isAuthorized {
-                            ActivityStatsRow(liveActivityService: liveActivityService)
+                            ForEach(sectionOrder.movableSections) { section in
+                                movableSection(section)
+                            }
                         }
-                        
-                        // Recent Activities (excluding the latest one)
-                        RecentActivitiesSection(
-                            allActivities: viewModel.unifiedActivities.isEmpty ?
-                                viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                                viewModel.unifiedActivities,
-                            dailyActivityData: generateDailyActivityData()
-                        )
                         
                         // Pro upgrade CTA (only for free users)
                         if !ProFeatureConfig.shared.hasProAccess {
@@ -176,6 +169,9 @@ struct TodayView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
                 handleIntervalsConnection()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .todaySectionOrderChanged)) { _ in
+                sectionOrder = TodaySectionOrder.load()
             }
             .sheet(isPresented: $showingDebugView) {
                 DebugDataView()
@@ -506,6 +502,56 @@ struct TodayView: View {
         }
         .padding(.top, 12)
         .padding(.bottom, 4)
+    }
+    
+    // MARK: - Movable Sections
+    
+    @ViewBuilder
+    private func movableSection(_ section: TodaySection) -> some View {
+        switch section {
+        case .veloAI:
+            if proConfig.hasProAccess {
+                AIBriefView()
+            }
+        case .dailyBrief:
+            if !proConfig.hasProAccess {
+                DailyBriefCard()
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.sm)
+            }
+        case .latestActivity:
+            if hasConnectedDataSource, let latestActivity = getLatestActivity() {
+                LatestActivityCard(activity: latestActivity)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.sm)
+            }
+        case .stepsAndCalories:
+            ActivityStatsRow(liveActivityService: liveActivityService)
+        case .recentActivities:
+            RecentActivitiesSection(
+                allActivities: viewModel.unifiedActivities.isEmpty ?
+                    viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+                    viewModel.unifiedActivities,
+                dailyActivityData: generateDailyActivityData()
+            )
+        }
+    }
+    
+    // MARK: - Helper Computed Properties
+    
+    private var hasConnectedDataSource: Bool {
+        stravaAuth.connectionState.isConnected || intervalsAuth.isAuthenticated
+    }
+    
+    private func getLatestActivity() -> UnifiedActivity? {
+        let activities = viewModel.unifiedActivities.isEmpty ?
+            viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+            viewModel.unifiedActivities
+        
+        // Filter to only Strava/Intervals activities (not Apple Health)
+        return activities.first { activity in
+            activity.source == .strava || activity.source == .intervalsICU
+        }
     }
     
     // MARK: - Event Handlers

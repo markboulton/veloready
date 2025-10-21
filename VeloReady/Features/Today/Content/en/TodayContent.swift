@@ -16,6 +16,7 @@ enum TodayContent {
     static let loadSection = "Load"  /// Load section title
     static let activitiesSection = "Recent Activities"  /// Activities section title
     static let aiBriefSection = "AI Brief"  /// AI Brief section title
+    static let latestActivity = "Latest Activity"  /// Latest activity section title
     
     // MARK: - Live Activity
     static let liveActivityTitle = "Live Activity"

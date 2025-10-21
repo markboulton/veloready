@@ -45,6 +45,26 @@ struct DisplaySettingsSection: View {
                     Spacer()
                 }
             }
+            
+            // Today page layout
+            NavigationLink(destination: TodaySectionOrderView()) {
+                HStack {
+                    Image(systemName: Icons.System.menuDecrease)
+                        .foregroundColor(ColorScale.blueAccent)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text("Today Page Layout")
+                            .font(TypeScale.font(size: TypeScale.md))
+                        
+                        Text("Customize section order")
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
+                    }
+                    
+                    Spacer()
+                }
+            }
         } header: {
             Text(SettingsContent.appearanceSection)
         } footer: {

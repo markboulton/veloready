@@ -47,13 +47,13 @@ struct SleepHypnogramChart: View {
         }
         
         var yPosition: Double {
-            // Awake at top, Deep at bottom (inverted from iOS for clarity)
+            // Awake at top, Deep at bottom - evenly distributed (no gaps)
             switch self {
-            case .awake: return 1.0  // Top
+            case .awake: return 1.0   // Top
             case .rem: return 0.75
             case .core: return 0.5
-            case .inBed: return 0.2
-            case .deep: return 0.0   // Bottom
+            case .deep: return 0.25   // Bottom (no gap)
+            case .inBed: return 0.0   // Below chart (not shown on grid)
             }
         }
     }
@@ -74,8 +74,8 @@ struct SleepHypnogramChart: View {
             // Hypnogram
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background grid lines - only for visible stages (no inBed line)
-                    ForEach([0.0, 0.5, 0.75, 1.0], id: \.self) { yPos in
+                    // Background grid lines - evenly distributed for visible stages
+                    ForEach([0.25, 0.5, 0.75, 1.0], id: \.self) { yPos in
                         Path { path in
                             let y = geometry.size.height * (1 - yPos)
                             path.move(to: CGPoint(x: 60, y: y))  // Start after labels
