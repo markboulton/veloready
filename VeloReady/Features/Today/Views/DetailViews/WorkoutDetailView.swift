@@ -370,13 +370,15 @@ struct WorkoutInfoHeader: View {
     // MARK: - Computed Properties
     
     private var formattedDateAndTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        // Parse the ISO date string
+        let isoFormatter = DateFormatter()
+        isoFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         
-        guard let date = formatter.date(from: activity.startDateLocal) else {
+        guard let date = isoFormatter.date(from: activity.startDateLocal) else {
             return activity.startDateLocal
         }
         
+        // Format for display (matches walking detail format)
         let displayFormatter = DateFormatter()
         displayFormatter.dateStyle = .medium
         displayFormatter.timeStyle = .short

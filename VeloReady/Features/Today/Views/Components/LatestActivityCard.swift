@@ -10,139 +10,137 @@ struct LatestActivityCard: View {
     @State private var isLoadingMap = false
     
     var body: some View {
-        NavigationLink(destination: destinationView) {
-            VStack(alignment: .leading, spacing: 0) {
-                // Header
-                HStack {
-                    Image(systemName: activity.type.icon)
-                        .foregroundStyle(Color.text.secondary)
-                        .font(.system(size: 16))
-                    
-                    Text(TodayContent.latestActivity)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.text.primary)
-                    
-                    Spacer()
-                    
-                    Image(systemName: Icons.System.chevronRight)
-                        .foregroundStyle(Color.text.tertiary)
-                        .font(.caption)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, Spacing.sm)
-                
-                // Divider
-                Divider()
-                    .padding(.horizontal, Spacing.md)
-                
-                // Activity Content
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Title and Date/Time
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(activity.name)
-                            .font(.title3)
+        VStack(spacing: 0) {
+            NavigationLink(destination: destinationView) {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Header
+                    HStack {
+                        Image(systemName: activity.type.icon)
+                            .foregroundStyle(Color.text.secondary)
+                            .font(.system(size: 16))
+                        
+                        Text(TodayContent.latestActivity)
+                            .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.text.primary)
-                            .lineLimit(2)
                         
-                        HStack(spacing: 4) {
-                            Text(formattedDateAndTime)
-                                .font(.subheadline)
-                                .foregroundStyle(Color.text.secondary)
+                        Spacer()
+                        
+                        Image(systemName: Icons.System.chevronRight)
+                            .foregroundStyle(Color.text.tertiary)
+                            .font(.caption)
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, Spacing.sm)
+                    
+                    // Divider
+                    Divider()
+                    
+                    // Activity Content
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        // Title and Date/Time
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(activity.name)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.text.primary)
+                                .lineLimit(2)
                             
-                            if let location = locationString {
-                                Text(CommonContent.Formatting.separator)
+                            HStack(spacing: 4) {
+                                Text(formattedDateAndTime)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.text.secondary)
-                                Text(location)
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.text.secondary)
+                                
+                                if let location = locationString {
+                                    Text(CommonContent.Formatting.separator)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.text.secondary)
+                                    Text(location)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.text.secondary)
+                                }
+                            }
+                        }
+                    
+                        // Metadata Row 1
+                        HStack(spacing: Spacing.md) {
+                            if let duration = activity.duration {
+                                CompactMetricItem(
+                                    label: ActivityContent.Metrics.duration,
+                                    value: ActivityFormatters.formatDurationDetailed(duration)
+                                )
+                            }
+                            
+                            if let distance = activity.distance {
+                                CompactMetricItem(
+                                    label: ActivityContent.Metrics.distance,
+                                    value: ActivityFormatters.formatDistance(distance)
+                                )
+                            }
+                            
+                            if let tss = activity.tss {
+                                CompactMetricItem(
+                                    label: ActivityContent.Metrics.tss,
+                                    value: "\(Int(tss))"
+                                )
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        // Metadata Row 2
+                        HStack(spacing: Spacing.md) {
+                            if let np = activity.normalizedPower {
+                                CompactMetricItem(
+                                    label: "Norm Power",
+                                    value: "\(Int(np))W"
+                                )
+                            }
+                            
+                            if let intensity = activity.intensityFactor {
+                                CompactMetricItem(
+                                    label: "Intensity",
+                                    value: String(format: "%.2f", intensity)
+                                )
+                            }
+                            
+                            if let avgHR = activity.averageHeartRate {
+                                CompactMetricItem(
+                                    label: "Avg HR",
+                                    value: "\(Int(avgHR)) bpm"
+                                )
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        // Map (if outdoor activity with GPS data)
+                        if activity.shouldShowMap {
+                            if isLoadingMap {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(height: 180)
+                                    .overlay(
+                                        ProgressView()
+                                    )
+                            } else if let snapshot = mapSnapshot {
+                                Image(uiImage: snapshot)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: 180)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                         }
                     }
-                    
-                    // Metadata Row 1
-                    HStack(spacing: Spacing.md) {
-                        if let duration = activity.duration {
-                            CompactMetricItem(
-                                label: ActivityContent.Metrics.duration,
-                                value: ActivityFormatters.formatDurationDetailed(duration)
-                            )
-                        }
-                        
-                        if let distance = activity.distance {
-                            CompactMetricItem(
-                                label: ActivityContent.Metrics.distance,
-                                value: ActivityFormatters.formatDistance(distance)
-                            )
-                        }
-                        
-                        if let tss = activity.tss {
-                            CompactMetricItem(
-                                label: ActivityContent.Metrics.tss,
-                                value: "\(Int(tss))"
-                            )
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    // Metadata Row 2
-                    HStack(spacing: Spacing.md) {
-                        if let np = activity.normalizedPower {
-                            CompactMetricItem(
-                                label: "Norm Power",
-                                value: "\(Int(np))W"
-                            )
-                        }
-                        
-                        if let intensity = activity.intensityFactor {
-                            CompactMetricItem(
-                                label: "Intensity",
-                                value: String(format: "%.2f", intensity)
-                            )
-                        }
-                        
-                        if let avgHR = activity.averageHeartRate {
-                            CompactMetricItem(
-                                label: "Avg HR",
-                                value: "\(Int(avgHR)) bpm"
-                            )
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    // Map (if outdoor activity with GPS data)
-                    if activity.shouldShowMap {
-                        if isLoadingMap {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 180)
-                                .overlay(
-                                    ProgressView()
-                                )
-                        } else if let snapshot = mapSnapshot {
-                            Image(uiImage: snapshot)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 180)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                    }
+                    .padding(Spacing.md)
                 }
-                .padding(Spacing.md)
             }
-            .background(Color.background.primary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            )
+            .buttonStyle(PlainButtonStyle())
+            
+            // Full-width divider at bottom
+            SectionDivider(topPadding: 0)
         }
-        .buttonStyle(PlainButtonStyle())
         .onAppear {
             Task {
                 await loadLocation()
@@ -174,21 +172,64 @@ struct LatestActivityCard: View {
     
     /// Fetch GPS coordinates from Strava activity streams
     private func fetchStravaGPSCoordinates(activityId: Int) async -> [CLLocationCoordinate2D]? {
-        // Check if we have cached stream data
-        let cacheKey = "strava_stream_\(activityId)"
-        
-        // Try to get from RideDetailViewModel's cache
-        // For now, return nil - this would require accessing the stream cache
-        // or making an API call to fetch the stream data
-        Logger.debug("🗺️ Would fetch Strava GPS coordinates for activity \(activityId)")
-        return nil
+        do {
+            Logger.debug("🗺️ Fetching Strava GPS coordinates for activity \(activityId)")
+            
+            // Fetch streams from backend API (includes latlng)
+            let streamsDict = try await VeloReadyAPIClient.shared.fetchActivityStreams(
+                activityId: String(activityId),
+                source: .strava
+            )
+            
+            // Extract latlng stream
+            guard let latlngStreamData = streamsDict["latlng"] else {
+                Logger.debug("🗺️ No latlng stream found in Strava data")
+                return nil
+            }
+            
+            // Convert StreamDataRaw to coordinates
+            let coordinates: [CLLocationCoordinate2D]
+            switch latlngStreamData.data {
+            case .latlng(let coords):
+                coordinates = coords.compactMap { coord -> CLLocationCoordinate2D? in
+                    guard coord.count >= 2 else { return nil }
+                    return CLLocationCoordinate2D(latitude: coord[0], longitude: coord[1])
+                }
+            case .simple:
+                Logger.debug("🗺️ Latlng stream has wrong format (simple instead of latlng)")
+                return nil
+            }
+            
+            Logger.debug("🗺️ ✅ Fetched \(coordinates.count) GPS coordinates from Strava")
+            return coordinates.isEmpty ? nil : coordinates
+        } catch {
+            Logger.error("🗺️ Failed to fetch Strava GPS coordinates: \(error)")
+            return nil
+        }
     }
     
     /// Fetch GPS coordinates from Intervals activity streams
     private func fetchIntervalsGPSCoordinates(activityId: String) async -> [CLLocationCoordinate2D]? {
-        // Similar to Strava, would need to fetch stream data
-        Logger.debug("🗺️ Would fetch Intervals GPS coordinates for activity \(activityId)")
-        return nil
+        do {
+            Logger.debug("🗺️ Fetching Intervals GPS coordinates for activity \(activityId)")
+            
+            // Fetch streams from Intervals API
+            let samples = try await IntervalsAPIClient.shared.fetchActivityStreams(activityId: activityId)
+            
+            // Extract GPS coordinates from samples
+            let coordinates = samples.compactMap { sample -> CLLocationCoordinate2D? in
+                guard let lat = sample.latitude, let lng = sample.longitude else { return nil }
+                // Filter out invalid GPS (0,0)
+                guard !(lat == 0 && lng == 0) else { return nil }
+                return CLLocationCoordinate2D(latitude: lat, longitude: lng)
+            }
+            
+            Logger.debug("🗺️ ✅ Fetched \(coordinates.count) GPS coordinates from Intervals")
+            return coordinates.isEmpty ? nil : coordinates
+        } catch {
+            Logger.error("🗺️ Failed to fetch Intervals GPS coordinates: \(error)")
+            return nil
+        }
     }
     
     // MARK: - Destination View

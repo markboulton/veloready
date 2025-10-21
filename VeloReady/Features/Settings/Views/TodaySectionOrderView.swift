@@ -62,7 +62,13 @@ struct TodaySectionOrderView: View {
     
     private func resetToDefault() {
         sectionOrder = TodaySectionOrder.defaultOrder
-        hasChanges = true
+        sectionOrder.save()
+        hasChanges = false
+        
+        // Post notification to refresh Today page
+        NotificationCenter.default.post(name: .todaySectionOrderChanged, object: nil)
+        
+        dismiss()
     }
     
     private func saveChanges() {

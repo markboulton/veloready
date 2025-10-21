@@ -522,8 +522,6 @@ struct TodayView: View {
         case .latestActivity:
             if hasConnectedDataSource, let latestActivity = getLatestActivity() {
                 LatestActivityCard(activity: latestActivity)
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
             }
         case .stepsAndCalories:
             ActivityStatsRow(liveActivityService: liveActivityService)

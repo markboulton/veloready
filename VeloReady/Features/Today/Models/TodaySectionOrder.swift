@@ -9,6 +9,7 @@ struct TodaySectionOrder: Codable {
     static let defaultOrder = TodaySectionOrder(
         movableSections: [
             .veloAI,
+            .dailyBrief,
             .latestActivity,
             .stepsAndCalories,
             .recentActivities
