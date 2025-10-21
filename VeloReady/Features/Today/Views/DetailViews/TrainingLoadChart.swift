@@ -359,7 +359,18 @@ struct TrainingLoadChart: View {
             let totalDaysBack = 42 + daysFromRideToToday
             
             Logger.data("TrainingLoadChart: Fetching activities from \(earliestDate) (ride: \(rideDate), total days: \(totalDaysBack))")
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: totalDaysBack)
+            
+            // For historical rides beyond 120 days, fetch directly from backend to bypass the cap
+            // UnifiedActivityService has a 120-day cap, but we need more for old rides
+            let activities: [IntervalsActivity]
+            if totalDaysBack > 120 {
+                Logger.data("TrainingLoadChart: Historical ride detected - fetching \(totalDaysBack) days directly from backend")
+                let stravaActivities = try await VeloReadyAPIClient.shared.fetchActivities(daysBack: totalDaysBack, limit: 200)
+                activities = ActivityConverter.stravaToIntervals(stravaActivities)
+            } else {
+                activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: totalDaysBack)
+            }
+            
             Logger.data("TrainingLoadChart: Fetched \(activities.count) activities")
             
             // Get FTP for TSS enrichment
