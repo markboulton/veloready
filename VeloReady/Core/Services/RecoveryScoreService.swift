@@ -267,7 +267,10 @@ class RecoveryScoreService: ObservableObject {
             sleepScore: sleepScoreResult
         )
         
-        return await RecoveryScoreCalculator.calculate(inputs: inputs)
+        // Get current illness indicator
+        let illnessIndicator = IllnessDetectionService.shared.currentIndicator
+        
+        return await RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: illnessIndicator)
     }
     
     // MARK: - Intervals Data Fetching

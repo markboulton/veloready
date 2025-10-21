@@ -80,8 +80,9 @@ struct IllnessIndicator: Codable, Equatable {
     }
     
     /// Computed properties
+    /// Shows alert for moderate/high severity with at least 50% confidence
     var isSignificant: Bool {
-        severity != .low && confidence >= 0.6
+        severity != .low && confidence >= 0.5
     }
     
     var primarySignal: Signal? {

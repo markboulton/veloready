@@ -131,7 +131,7 @@ struct SleepScore: Codable {
 class SleepScoreCalculator {
     
     /// Calculate sleep score from inputs using Whoop-like algorithm
-    static func calculate(inputs: SleepScore.SleepInputs) -> SleepScore {
+    static func calculate(inputs: SleepScore.SleepInputs, illnessIndicator: IllnessIndicator? = nil) -> SleepScore {
         let subScores = calculateSubScores(inputs: inputs)
         
         // Reweighted formula to prioritize quality over duration and timing:
@@ -146,9 +146,9 @@ class SleepScoreCalculator {
         let finalScore = max(0, min(100, performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor))
         let band = determineBand(score: finalScore)
         
-        // Check for illness indicator
-        let illnessDetected = IllnessDetectionService.shared.currentIndicator != nil
-        let illnessSeverity = IllnessDetectionService.shared.currentIndicator?.severity.rawValue
+        // Illness context passed from caller
+        let illnessDetected = illnessIndicator != nil
+        let illnessSeverity = illnessIndicator?.severity.rawValue
         
         // Log calculation with new weights
         Logger.debug("💤 SLEEP SCORE CALCULATION (NEW WEIGHTS):")
@@ -161,7 +161,7 @@ class SleepScoreCalculator {
         }
         
         if illnessDetected {
-            Logger.debug("   ⚠️ Illness detected: \(illnessSeverity ?? "unknown") - Sleep disruption may be illness-related")
+            Logger.debug("   ⚠️ Body stress detected: \(illnessSeverity ?? "unknown") - Sleep disruption may be stress-related")
         }
         
         return SleepScore(

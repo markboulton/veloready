@@ -296,6 +296,8 @@ struct IllnessDetailSheet: View {
         switch signalType {
         case .hrvDrop:
             return WellnessContent.IllnessDetection.hrvDropDetail
+        case .hrvSpike:
+            return "Unusually elevated HRV may indicate your body is responding to stress or inflammation. This can occur when the body is fighting infection."
         case .elevatedRHR:
             return WellnessContent.IllnessDetection.elevatedRHRDetail
         case .respiratoryRate:

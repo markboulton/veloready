@@ -244,7 +244,10 @@ class SleepScoreService: ObservableObject {
         Logger.debug("   HRV Overnight: \(inputs.hrvOvernight?.description ?? "nil") ms")
         Logger.debug("   HRV Baseline: \(inputs.hrvBaseline?.description ?? "nil") ms")
         
-        return SleepScoreCalculator.calculate(inputs: inputs)
+        // Get current illness indicator
+        let illnessIndicator = IllnessDetectionService.shared.currentIndicator
+        
+        return SleepScoreCalculator.calculate(inputs: inputs, illnessIndicator: illnessIndicator)
     }
     
     // MARK: - Helper Methods

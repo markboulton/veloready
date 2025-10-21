@@ -137,23 +137,23 @@ struct RecoveryScore: Codable {
 class RecoveryScoreCalculator {
     
     /// Calculate recovery score from inputs using ML or rule-based algorithm (async version)
-    static func calculate(inputs: RecoveryScore.RecoveryInputs) async -> RecoveryScore {
+    static func calculate(inputs: RecoveryScore.RecoveryInputs, illnessIndicator: IllnessIndicator? = nil) async -> RecoveryScore {
         // Try ML prediction first if available
-        if let mlScore = await tryMLPrediction(inputs: inputs) {
+        if let mlScore = await tryMLPrediction(inputs: inputs, illnessIndicator: illnessIndicator) {
             return mlScore
         }
         
         // Fall back to rule-based calculation
-        return calculateRuleBased(inputs: inputs)
+        return calculateRuleBased(inputs: inputs, illnessIndicator: illnessIndicator)
     }
     
     /// Calculate recovery score synchronously (for previews/testing - always uses rule-based)
-    static func calculate(inputs: RecoveryScore.RecoveryInputs) -> RecoveryScore {
-        return calculateRuleBased(inputs: inputs)
+    static func calculate(inputs: RecoveryScore.RecoveryInputs, illnessIndicator: IllnessIndicator? = nil) -> RecoveryScore {
+        return calculateRuleBased(inputs: inputs, illnessIndicator: illnessIndicator)
     }
     
     /// Try ML prediction (returns nil if ML not available)
-    private static func tryMLPrediction(inputs: RecoveryScore.RecoveryInputs) async -> RecoveryScore? {
+    private static func tryMLPrediction(inputs: RecoveryScore.RecoveryInputs, illnessIndicator: IllnessIndicator? = nil) async -> RecoveryScore? {
         // Check if ML is enabled
         let mlRegistry = await MLModelRegistry.shared
         guard await mlRegistry.isMLEnabled else {
@@ -181,6 +181,14 @@ class RecoveryScoreCalculator {
         
         Logger.info("🤖 [RecoveryScore] Using ML prediction: \(Int(result.score)) (confidence: \(Int(result.confidence * 100))%)")
         
+        // Illness context
+        let illnessDetected = illnessIndicator != nil
+        let illnessSeverity = illnessIndicator?.severity.rawValue
+        
+        if illnessDetected {
+            Logger.debug("   ⚠️ Body stress detected: \(illnessSeverity ?? "unknown") - ML score should be interpreted cautiously")
+        }
+        
         return RecoveryScore(
             score: Int(result.score),
             band: band,
@@ -188,7 +196,9 @@ class RecoveryScoreCalculator {
             inputs: inputs,
             calculatedAt: Date(),
             isPersonalized: true,
-            mlConfidence: result.confidence
+            mlConfidence: result.confidence,
+            illnessDetected: illnessDetected,
+            illnessSeverity: illnessSeverity
         )
     }
     
@@ -253,7 +263,7 @@ class RecoveryScoreCalculator {
     }
     
     /// Calculate recovery score using rule-based algorithm (original method)
-    static func calculateRuleBased(inputs: RecoveryScore.RecoveryInputs) -> RecoveryScore {
+    static func calculateRuleBased(inputs: RecoveryScore.RecoveryInputs, illnessIndicator: IllnessIndicator? = nil) -> RecoveryScore {
         let subScores = calculateSubScores(inputs: inputs)
         
         // Reweighted formula to increase sleep importance (better for alcohol detection):
@@ -283,12 +293,12 @@ class RecoveryScoreCalculator {
         finalScore = max(0, min(100, finalScore))
         let band = determineBand(score: finalScore)
         
-        // Check for illness indicator
-        let illnessDetected = IllnessDetectionService.shared.currentIndicator != nil
-        let illnessSeverity = IllnessDetectionService.shared.currentIndicator?.severity.rawValue
+        // Illness context passed from caller
+        let illnessDetected = illnessIndicator != nil
+        let illnessSeverity = illnessIndicator?.severity.rawValue
         
         if illnessDetected {
-            Logger.debug("   ⚠️ Illness detected: \(illnessSeverity ?? "unknown") - Score should be interpreted cautiously")
+            Logger.debug("   ⚠️ Body stress detected: \(illnessSeverity ?? "unknown") - Score should be interpreted cautiously")
         }
         
         Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
