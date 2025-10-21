@@ -13,25 +13,21 @@ struct LatestActivityCard: View {
         VStack(spacing: 0) {
             NavigationLink(destination: destinationView) {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Header
-                    HStack {
-                        Image(systemName: activity.type.icon)
-                            .foregroundStyle(Color.text.secondary)
-                            .font(.system(size: 16))
-                        
-                        Text(TodayContent.latestActivity)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.text.primary)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.top, Spacing.lg) // Standard 24px top padding
-                    .padding(.bottom, Spacing.sm)
-                    
-                    // Activity Content
+                    // Content (header + activity details in one container)
                     VStack(alignment: .leading, spacing: Spacing.md) {
+                        // Header
+                        HStack {
+                            Image(systemName: activity.type.icon)
+                                .foregroundStyle(Color.text.secondary)
+                                .font(.system(size: 16))
+                            
+                            Text(TodayContent.latestActivity)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.text.primary)
+                            
+                            Spacer()
+                        }
                         // Title and Date/Time
                         VStack(alignment: .leading, spacing: 4) {
                             Text(activity.name)
@@ -126,7 +122,9 @@ struct LatestActivityCard: View {
                             }
                         }
                     }
-                    .padding(Spacing.md)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.lg) // Standard 24px top padding
+                    .padding(.bottom, Spacing.md)
                 }
             }
             .buttonStyle(PlainButtonStyle())
