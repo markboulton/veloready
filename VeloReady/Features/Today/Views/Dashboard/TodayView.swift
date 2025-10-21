@@ -553,6 +553,9 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
+        // Reload section order in case it changed in settings
+        sectionOrder = TodaySectionOrder.load()
+        
         Task {
             await viewModel.loadInitialUI()
             Task {

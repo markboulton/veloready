@@ -7,6 +7,7 @@ struct DailyBriefCard: View {
     @StateObject private var recoveryScoreService = RecoveryScoreService.shared
     @StateObject private var strainScoreService = StrainScoreService.shared
     @StateObject private var profileManager = AthleteProfileManager.shared
+    @State private var showingUpgradeSheet = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -14,7 +15,7 @@ struct DailyBriefCard: View {
             HStack(spacing: 8) {
                 Image(systemName: Icons.System.docText)
                     .font(.heading)
-                    .foregroundColor(ColorPalette.aiIconColor)
+                    .foregroundColor(Color.text.secondary)
                 
                 Text(DailyBriefContent.title)
                     .font(.heading)
@@ -33,10 +34,23 @@ struct DailyBriefCard: View {
                 
                 // Training Metrics (matches AIBriefView)
                 TrainingMetricsView()
+                
+                // Upgrade prompt button
+                Button(action: {
+                    showingUpgradeSheet = true
+                }) {
+                    Text(DailyBriefContent.upgradePrompt)
+                        .font(.subheadline)
+                        .foregroundColor(ColorScale.blueAccent)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             
             // Section divider (matches AIBriefView exactly)
             SectionDivider(bottomPadding: 0)
+        }
+        .sheet(isPresented: $showingUpgradeSheet) {
+            PaywallView()
         }
     }
     
@@ -58,9 +72,6 @@ struct DailyBriefCard: View {
         
         // Add training recommendation
         brief += trainingRecommendation(recoveryScore.score) + "."
-        
-        // Add upgrade prompt
-        brief += "\n\n" + DailyBriefContent.upgradePrompt
         
         return brief
     }

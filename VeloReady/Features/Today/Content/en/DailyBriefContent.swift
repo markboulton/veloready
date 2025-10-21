@@ -32,5 +32,5 @@ enum DailyBriefContent {
     }
     
     // MARK: - Upgrade Prompt
-    static let upgradePrompt = "Upgrade to VeloAI for personalized insights"  /// PRO upgrade message
+    static let upgradePrompt = "Upgrade to Pro for Intelligent Insights with VeloAI >"  /// PRO upgrade message
 }
