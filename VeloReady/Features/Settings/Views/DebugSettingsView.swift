@@ -1,6 +1,7 @@
 import SwiftUI
 import HealthKit
 
+#if DEBUG
 /// Comprehensive debug and testing settings view
 struct DebugSettingsView: View {
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
@@ -1041,3 +1042,4 @@ struct DebugSettingsView: View {
 #Preview {
     DebugSettingsView()
 }
+#endif

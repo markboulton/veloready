@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 /// Simplified debug settings for alpha testers
 /// Only shows relevant testing options without overwhelming technical details
 struct AlphaTesterSettingsView: View {
@@ -172,3 +173,4 @@ struct AlphaTesterSettingsView: View {
         AlphaTesterSettingsView()
     }
 }
+#endif
