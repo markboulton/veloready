@@ -245,11 +245,12 @@ struct TrainingLoadChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading) { value in
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                         AxisGridLine()
                             .foregroundStyle(Color(.systemGray4))
                         AxisValueLabel()
                             .font(.caption2)
+                            .foregroundStyle(Color.text.tertiary)
                     }
                 }
                 .frame(height: 200)

@@ -267,10 +267,10 @@ struct TrainingLoadTrendCard: View {
         }
         .chartYScale(domain: yAxisDomain)
         .chartYAxis {
-            AxisMarks(position: .leading) { value in
+            AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                 AxisValueLabel {
-                    if let intValue = value.as(Int.self) {
-                        Text("\(intValue)")
+                    if let doubleValue = value.as(Double.self) {
+                        Text("\(Int(doubleValue))")
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
