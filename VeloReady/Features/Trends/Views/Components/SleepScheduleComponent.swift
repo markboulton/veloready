@@ -8,6 +8,7 @@ struct SleepScheduleComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.sleepSchedule)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             HStack(spacing: Spacing.xl) {
                 VStack(alignment: .leading, spacing: 4) {

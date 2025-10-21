@@ -59,7 +59,6 @@ struct CompactRingView: View {
                 .fontWeight(.medium)
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .textCase(.lowercase)
                 .padding(.top, 8)
         }
         .onAppear {

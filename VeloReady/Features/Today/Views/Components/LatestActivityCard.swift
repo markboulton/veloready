@@ -28,6 +28,7 @@ struct LatestActivityCard: View {
                             
                             Spacer()
                         }
+                        .padding(.top, Spacing.xxl) // Standard 40px top padding
                         // Title and Date/Time
                         VStack(alignment: .leading, spacing: 4) {
                             Text(activity.name)
@@ -107,9 +108,10 @@ struct LatestActivityCard: View {
                         // Map (if outdoor activity with GPS data)
                         if activity.shouldShowMap {
                             if isLoadingMap {
-                                RoundedRectangle(cornerRadius: 12)
+                                Rectangle()
                                     .fill(Color.gray.opacity(0.2))
                                     .frame(height: 180)
+                                    .padding(.top, Spacing.md)
                                     .overlay(
                                         ProgressView()
                                     )
@@ -118,19 +120,18 @@ struct LatestActivityCard: View {
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(height: 180)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .clipped()
+                                    .padding(.top, Spacing.md)
                             }
                         }
                     }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.top, Spacing.lg) // Standard 24px top padding
                     .padding(.bottom, Spacing.md)
                 }
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Full-width divider at bottom (24px top, 0 bottom - next section provides top padding)
-            SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
+            // Full-width divider at bottom (40px top, 0 bottom - next section provides top padding)
+            SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
         }
         .onAppear {
             Task {

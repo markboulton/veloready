@@ -8,6 +8,7 @@ struct RecoveryCapacityComponent: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(TrendsContent.WeeklyReport.recoveryCapacity)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             HStack(alignment: .top, spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: 4) {

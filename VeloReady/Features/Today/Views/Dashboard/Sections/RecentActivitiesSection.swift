@@ -17,7 +17,7 @@ struct RecentActivitiesSection: View {
                 .frame(width: 120)
                 Spacer()
             }
-            .padding(.top, Spacing.lg) // Standard 24px top padding
+            .padding(.top, Spacing.xxl) // Standard 40px top padding
             .padding(.bottom, 16)
             
             // Show all activities including the latest ride (no offset)
@@ -40,8 +40,8 @@ struct RecentActivitiesSection: View {
                 }
             }
             
-            // Section divider (24px top, 0 bottom - next section provides top padding)
-            SectionDivider(topPadding: Spacing.lg, bottomPadding: 0)
+            // Section divider (40px top, 0 bottom - next section provides top padding)
+            SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
         }
     }
 }

@@ -9,6 +9,7 @@ struct FitnessTrajectoryComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.fitnessTrajectory)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             if let metrics = metrics, let ctlData = ctlData {
                 // Chart showing CTL, ATL, TSB over 7 days

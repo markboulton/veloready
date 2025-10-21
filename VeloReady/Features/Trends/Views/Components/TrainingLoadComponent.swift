@@ -9,6 +9,7 @@ struct TrainingLoadComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.trainingLoadSummary)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             if let metrics = metrics {
                 // Weekly totals

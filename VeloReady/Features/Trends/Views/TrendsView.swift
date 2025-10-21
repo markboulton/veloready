@@ -23,8 +23,9 @@ struct TrendsView: View {
                 }
             }
             .navigationTitle(TrendsContent.title)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.background.secondary, for: .navigationBar)
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }

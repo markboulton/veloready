@@ -22,6 +22,7 @@ struct WeeklyReportHeaderComponent: View {
                 
                 Spacer()
             }
+            .padding(.top, Spacing.xxl)
             .padding(.bottom, 12)
             
             // Date range

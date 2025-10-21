@@ -8,6 +8,7 @@ struct WeekOverWeekComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.weekOverWeek)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             VStack(spacing: 8) {
                 changeRow(

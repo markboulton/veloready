@@ -8,6 +8,7 @@ struct WellnessFoundationComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.wellnessFoundation)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             // Use single color - health purple with minimal fill
             RadarChart(

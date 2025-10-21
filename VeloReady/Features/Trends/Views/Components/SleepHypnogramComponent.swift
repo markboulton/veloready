@@ -9,6 +9,7 @@ struct SleepHypnogramComponent: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(TrendsContent.WeeklyReport.weeklySleep)
                 .font(.heading)
+                .padding(.top, Spacing.xxl)
             
             if hypnograms.isEmpty {
                 Text(TrendsContent.WeeklyReport.noSleepData)
