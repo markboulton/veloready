@@ -67,7 +67,7 @@ struct RecoveryMetricsSection: View {
                                 .fontWeight(.semibold)
                             Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color.text.secondary)
                         }
                         
                         // Show "Limited Data" label if sleep data is missing
@@ -156,7 +156,7 @@ struct RecoveryMetricsSection: View {
                                     .fontWeight(.semibold)
                                 Image(systemName: Icons.System.chevronRight)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.text.secondary)
                             }
                             
                             CompactRingView(
@@ -227,7 +227,7 @@ struct RecoveryMetricsSection: View {
                                 .fontWeight(.semibold)
                             Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color.text.secondary)
                         }
                         
                         // Convert 0-18 score to 0-100 for ring display
