@@ -6,10 +6,6 @@ struct NotificationSettingsSection: View {
         Section {
             NavigationLink(destination: NotificationSettingsView()) {
                 HStack {
-                    Image(systemName: Icons.System.bell)
-                        .foregroundColor(Color.semantic.warning)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Notifications.title)
                             .font(TypeScale.font(size: TypeScale.md))

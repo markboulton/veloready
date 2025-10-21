@@ -6,10 +6,6 @@ struct DataSourcesSection: View {
         Section {
             NavigationLink(destination: DataSourcesSettingsView()) {
                 HStack {
-                    Image(systemName: Icons.System.linkCircleFill)
-                        .foregroundColor(ColorPalette.blue)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.DataSources.title)
                             .font(TypeScale.font(size: TypeScale.md))

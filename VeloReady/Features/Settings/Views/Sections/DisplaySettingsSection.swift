@@ -9,10 +9,6 @@ struct DisplaySettingsSection: View {
             // Theme settings
             NavigationLink(destination: ThemeSettingsView()) {
                 HStack {
-                    Image(systemName: themeManager.currentTheme.icon)
-                        .foregroundColor(ColorPalette.aiIconColor)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Appearance.theme)
                             .font(TypeScale.font(size: TypeScale.md))
@@ -29,10 +25,6 @@ struct DisplaySettingsSection: View {
             // Display preferences
             NavigationLink(destination: DisplaySettingsView()) {
                 HStack {
-                    Image(systemName: Icons.System.eye)
-                        .foregroundColor(ColorPalette.purple)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Appearance.displayPreferences)
                             .font(TypeScale.font(size: TypeScale.md))
@@ -49,10 +41,6 @@ struct DisplaySettingsSection: View {
             // Today page layout
             NavigationLink(destination: TodaySectionOrderView()) {
                 HStack {
-                    Image(systemName: Icons.System.menuDecrease)
-                        .foregroundColor(ColorScale.blueAccent)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text("Today Page Layout")
                             .font(TypeScale.font(size: TypeScale.md))

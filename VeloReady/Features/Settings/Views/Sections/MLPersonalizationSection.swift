@@ -8,10 +8,6 @@ struct MLPersonalizationSection: View {
         Section {
             NavigationLink(destination: MLPersonalizationSettingsView()) {
                 HStack {
-                    Image(systemName: Icons.System.sparkles)
-                        .foregroundColor(ColorPalette.purple)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.MLPersonalization.title)
                             .font(TypeScale.font(size: TypeScale.md))

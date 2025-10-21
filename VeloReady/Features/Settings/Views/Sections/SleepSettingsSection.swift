@@ -8,10 +8,6 @@ struct SleepSettingsSection: View {
         Section {
             NavigationLink(destination: SleepSettingsView()) {
                 HStack {
-                    Image(systemName: Icons.Health.sleepFill)
-                        .foregroundColor(Color.health.sleep)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Sleep.targetTitle)
                             .font(TypeScale.font(size: TypeScale.md))

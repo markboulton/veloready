@@ -5,10 +5,6 @@ struct AboutSection: View {
     var body: some View {
         Section {
             HStack {
-                Image(systemName: Icons.Status.infoFill)
-                    .foregroundColor(ColorPalette.labelSecondary)
-                    .frame(width: 24)
-                
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(SettingsContent.About.title)
                         .font(TypeScale.font(size: TypeScale.md))
@@ -22,10 +18,6 @@ struct AboutSection: View {
             }
             
             HStack {
-                Image(systemName: Icons.System.questionCircleFill)
-                    .foregroundColor(ColorPalette.labelSecondary)
-                    .frame(width: 24)
-                
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(SettingsContent.About.helpTitle)
                         .font(TypeScale.font(size: TypeScale.md))

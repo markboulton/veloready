@@ -8,10 +8,6 @@ struct FeedbackSection: View {
         Section {
             Button(action: { showingFeedback = true }) {
                 HStack {
-                    Image(systemName: Icons.System.envelope)
-                        .foregroundColor(ColorPalette.blue)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Feedback.sendFeedback)
                             .font(TypeScale.font(size: TypeScale.md))

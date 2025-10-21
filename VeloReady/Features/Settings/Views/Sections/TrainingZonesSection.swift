@@ -10,10 +10,6 @@ struct TrainingZonesSection: View {
             if proConfig.hasProAccess {
                 NavigationLink(destination: AthleteZonesSettingsView()) {
                     HStack {
-                        Image(systemName: Icons.Health.boltHeart)
-                            .foregroundColor(ColorScale.purpleAccent)
-                            .frame(width: 24)
-                        
                         VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                             Text(SettingsContent.TrainingZones.adaptiveZonesTitle)
                                 .font(TypeScale.font(size: TypeScale.md))
@@ -32,10 +28,6 @@ struct TrainingZonesSection: View {
             if !proConfig.hasProAccess {
                 NavigationLink(destination: AthleteZonesSettingsView()) {
                     HStack {
-                        Image(systemName: Icons.Health.heartFill)
-                            .foregroundColor(Color.health.heartRate)
-                            .frame(width: 24)
-                        
                         VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                             Text(SettingsContent.TrainingZones.title)
                                 .font(TypeScale.font(size: TypeScale.md))

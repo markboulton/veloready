@@ -14,10 +14,6 @@ struct AccountSection: View {
                     }
                 }) {
                     HStack {
-                        Image(systemName: Icons.Arrow.rectanglePortrait)
-                            .foregroundColor(ColorPalette.warning)
-                            .frame(width: 24)
-                        
                         VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                             Text(SettingsContent.Account.signOut)
                                 .foregroundColor(ColorPalette.labelPrimary)
@@ -37,10 +33,6 @@ struct AccountSection: View {
                 showingDeleteDataAlert = true
             }) {
                 HStack {
-                    Image(systemName: Icons.Document.trash)
-                        .foregroundColor(ColorPalette.error)
-                        .frame(width: 24)
-                    
                     Text(SettingsContent.Account.deleteData)
                     
                     Spacer()

@@ -11,10 +11,6 @@ struct iCloudSection: View {
                 showingCloudSettings = true
             }) {
                 HStack {
-                    Image(systemName: Icons.System.icloud)
-                        .foregroundColor(Color.button.primary)
-                        .frame(width: 24)
-                    
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(SettingsContent.iCloud.title)
                             .foregroundColor(ColorPalette.labelPrimary)

@@ -63,6 +63,26 @@ struct DebugSection: View {
                             .cornerRadius(Spacing.xs)
                     }
                 }
+                
+                // Icon Test Sheet
+                NavigationLink(destination: IconTestView()) {
+                    HStack {
+                        Image(systemName: Icons.System.grid2x2)
+                            .foregroundColor(ColorPalette.purple)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text("Icon Test Sheet")
+                                .font(TypeScale.font(size: TypeScale.md))
+                            
+                            Text("View all SF Symbols and custom icons")
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
+                        }
+                        
+                        Spacer()
+                    }
+                }
             }
         } header: {
             Text(DebugFlags.showDebugMenu ? SettingsContent.developerSection : "Testing")
