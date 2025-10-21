@@ -202,7 +202,7 @@ private struct MLDataCollectionView: View {
 
 // MARK: - Training Metrics View
 
-private struct TrainingMetricsView: View {
+struct TrainingMetricsView: View {
     @ObservedObject private var recoveryService = RecoveryScoreService.shared
     @ObservedObject private var wellnessService = WellnessDetectionService.shared
     

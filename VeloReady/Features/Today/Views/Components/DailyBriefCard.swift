@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Daily Brief card for free users - static, computed version (not AI-generated)
 /// Shows TSB, Target TSS, and recovery status based on current metrics
+/// MATCHES AIBriefView structure exactly
 struct DailyBriefCard: View {
     @StateObject private var recoveryScoreService = RecoveryScoreService.shared
     @StateObject private var strainScoreService = StrainScoreService.shared
@@ -9,99 +10,59 @@ struct DailyBriefCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack {
+            // Header (matches AIBriefView exactly)
+            HStack(spacing: 8) {
                 Image(systemName: Icons.System.docText)
-                    .foregroundStyle(Color.text.secondary)
-                    .font(.system(size: 16))
+                    .font(.heading)
+                    .foregroundColor(ColorPalette.aiIconColor)
                 
                 Text(DailyBriefContent.title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.text.primary)
+                    .font(.heading)
+                    .foregroundColor(Color.text.primary)
                 
                 Spacer()
             }
-            .padding(.horizontal, Spacing.md)
-            .padding(.top, Spacing.md)
-            .padding(.bottom, Spacing.sm)
+            .padding(.bottom, 12)
             
-            // Divider
-            Divider()
-                .padding(.horizontal, Spacing.md)
-            
-            // Content
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // Recovery Status
-                if let recoveryScore = recoveryScoreService.currentRecoveryScore {
-                    HStack(spacing: Spacing.sm) {
-                        Circle()
-                            .fill(recoveryColor(recoveryScore.score))
-                            .frame(width: 8, height: 8)
-                        
-                        Text(recoveryMessage(recoveryScore.score))
-                            .font(.subheadline)
-                            .foregroundStyle(Color.text.primary)
-                    }
-                }
+            // Content (matches AIBriefView structure)
+            VStack(alignment: .leading, spacing: 12) {
+                // Main brief text (computed from recovery data)
+                Text(generateBriefText())
+                    .bodyStyle()
+                    .fixedSize(horizontal: false, vertical: true)
                 
-                // Training Stress Balance
-                if let recoveryScore = recoveryScoreService.currentRecoveryScore,
-                   let ctl = recoveryScore.inputs.ctl,
-                   let atl = recoveryScore.inputs.atl {
-                    let tsb = ctl - atl
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(DailyBriefContent.trainingStressBalance)
-                            .font(.caption)
-                            .foregroundStyle(Color.text.tertiary)
-                        
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(String(format: "%.0f", tsb))
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(tsbColor(tsb))
-                            
-                            Text(tsbLabel(tsb))
-                                .font(.caption)
-                                .foregroundStyle(Color.text.secondary)
-                        }
-                    }
-                }
-                
-                // Target TSS
-                if let recoveryScore = recoveryScoreService.currentRecoveryScore {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(DailyBriefContent.recommendedTraining)
-                            .font(.caption)
-                            .foregroundStyle(Color.text.tertiary)
-                        
-                        Text(trainingRecommendation(recoveryScore.score))
-                            .font(.subheadline)
-                            .foregroundStyle(Color.text.primary)
-                    }
-                }
-                
-                // Upgrade prompt
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: Icons.System.sparkles)
-                        .font(.caption)
-                        .foregroundStyle(ColorScale.blueAccent)
-                    
-                    Text(DailyBriefContent.upgradePrompt)
-                        .font(.caption)
-                        .foregroundStyle(Color.text.secondary)
-                }
-                .padding(.top, Spacing.xs)
+                // Training Metrics (matches AIBriefView)
+                TrainingMetricsView()
             }
-            .padding(Spacing.md)
+            
+            // Section divider (matches AIBriefView exactly)
+            SectionDivider(bottomPadding: 0)
         }
-        .background(Color.background.primary)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+    }
+    
+    // MARK: - Brief Text Generation
+    
+    private func generateBriefText() -> String {
+        guard let recoveryScore = recoveryScoreService.currentRecoveryScore else {
+            return "Calculating your daily brief..."
+        }
+        
+        var brief = recoveryMessage(recoveryScore.score)
+        
+        // Add TSB info if available
+        if let ctl = recoveryScore.inputs.ctl,
+           let atl = recoveryScore.inputs.atl {
+            let tsb = ctl - atl
+            brief += " Your training stress balance is \(tsbLabel(tsb).lowercased()) (\(String(format: "%.0f", tsb))). "
+        }
+        
+        // Add training recommendation
+        brief += trainingRecommendation(recoveryScore.score) + "."
+        
+        // Add upgrade prompt
+        brief += "\n\n" + DailyBriefContent.upgradePrompt
+        
+        return brief
     }
     
     // MARK: - Helper Methods

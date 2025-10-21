@@ -25,17 +25,10 @@ struct LatestActivityCard: View {
                             .foregroundStyle(Color.text.primary)
                         
                         Spacer()
-                        
-                        Image(systemName: Icons.System.chevronRight)
-                            .foregroundStyle(Color.text.tertiary)
-                            .font(.caption)
                     }
                     .padding(.horizontal, Spacing.md)
                     .padding(.top, Spacing.md)
                     .padding(.bottom, Spacing.sm)
-                    
-                    // Divider
-                    Divider()
                     
                     // Activity Content
                     VStack(alignment: .leading, spacing: Spacing.md) {

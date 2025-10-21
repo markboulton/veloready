@@ -516,8 +516,6 @@ struct TodayView: View {
         case .dailyBrief:
             if !proConfig.hasProAccess {
                 DailyBriefCard()
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
             }
         case .latestActivity:
             if hasConnectedDataSource, let latestActivity = getLatestActivity() {
