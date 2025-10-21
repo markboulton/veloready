@@ -23,7 +23,7 @@ struct TodaySectionOrder: Codable {
     static func load() -> TodaySectionOrder {
         // Try iCloud first
         if let iCloudOrder = loadFromiCloud() {
-            return iCloudOrder
+            return migrateIfNeeded(iCloudOrder)
         }
         
         // Fall back to UserDefaults
@@ -31,6 +31,30 @@ struct TodaySectionOrder: Codable {
               let order = try? JSONDecoder().decode(TodaySectionOrder.self, from: data) else {
             return defaultOrder
         }
+        return migrateIfNeeded(order)
+    }
+    
+    /// Migrate old section orders to include new sections
+    private static func migrateIfNeeded(_ order: TodaySectionOrder) -> TodaySectionOrder {
+        var sections = order.movableSections
+        
+        // Check if dailyBrief is missing (old version)
+        if !sections.contains(.dailyBrief) {
+            // Add dailyBrief after veloAI (or at the beginning if veloAI not found)
+            if let veloAIIndex = sections.firstIndex(of: .veloAI) {
+                sections.insert(.dailyBrief, at: veloAIIndex + 1)
+            } else {
+                sections.insert(.dailyBrief, at: 0)
+            }
+            
+            Logger.debug("☁️ Migrated section order to include Daily Brief")
+            
+            // Save the migrated order
+            let migratedOrder = TodaySectionOrder(movableSections: sections)
+            migratedOrder.save()
+            return migratedOrder
+        }
+        
         return order
     }
     
