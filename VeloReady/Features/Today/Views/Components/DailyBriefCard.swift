@@ -23,6 +23,7 @@ struct DailyBriefCard: View {
                 
                 Spacer()
             }
+            .padding(.top, Spacing.lg) // Standard 24px top padding
             .padding(.bottom, 12)
             
             // Content (matches AIBriefView structure)

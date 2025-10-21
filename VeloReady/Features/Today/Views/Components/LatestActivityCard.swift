@@ -27,7 +27,7 @@ struct LatestActivityCard: View {
                         Spacer()
                     }
                     .padding(.horizontal, Spacing.md)
-                    .padding(.top, Spacing.md)
+                    .padding(.top, Spacing.lg) // Standard 24px top padding
                     .padding(.bottom, Spacing.sm)
                     
                     // Activity Content

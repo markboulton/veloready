@@ -17,6 +17,7 @@ struct RecentActivitiesSection: View {
                 .frame(width: 120)
                 Spacer()
             }
+            .padding(.top, Spacing.lg) // Standard 24px top padding
             .padding(.bottom, 16)
             
             // Show all activities including the latest ride (no offset)
