@@ -196,24 +196,54 @@ class ProfileViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         
-        // Load profile data
+        // Load profile data from UserDefaults
         if let data = UserDefaults.standard.data(forKey: profileKey),
            let profile = try? JSONDecoder().decode(UserProfile.self, from: data) {
-            name = profile.name
+            // Only use UserDefaults name if AthleteProfile doesn't have one
+            if AthleteProfileManager.shared.profile.fullName == nil {
+                name = profile.name
+            }
             email = profile.email
             age = profile.age
             weight = profile.weight
             height = profile.height
         }
         
-        // Load avatar
-        if let imageData = UserDefaults.standard.data(forKey: avatarKey),
-           let image = UIImage(data: imageData) {
-            avatarImage = image
+        // Load name from AthleteProfileManager (synced from Strava)
+        let athleteProfile = AthleteProfileManager.shared.profile
+        if let fullName = athleteProfile.fullName {
+            name = fullName
+        }
+        
+        // Load avatar from Strava profile photo URL
+        if let photoURLString = athleteProfile.profilePhotoURL,
+           let photoURL = URL(string: photoURLString) {
+            Task {
+                await loadProfilePhoto(from: photoURL)
+            }
+        } else {
+            // Fallback to local avatar
+            if let imageData = UserDefaults.standard.data(forKey: avatarKey),
+               let image = UIImage(data: imageData) {
+                avatarImage = image
+            }
         }
         
         // Load connected services
         loadConnectedServices()
+    }
+    
+    private func loadProfilePhoto(from url: URL) async {
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let image = UIImage(data: data) {
+                await MainActor.run {
+                    self.avatarImage = image
+                }
+            }
+        } catch {
+            Logger.error("Failed to load profile photo from Strava: \(error)")
+        }
     }
     
     private func loadConnectedServices() {
