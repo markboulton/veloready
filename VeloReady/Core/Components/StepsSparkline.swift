@@ -39,7 +39,7 @@ struct StepsSparkline: View {
                     )
             }
         )
-        .onScrollAppear {
+        .onScrollAppear(id: "steps-sparkline") {
             Logger.debug("🎨 [STEPS SPARKLINE] Scroll trigger fired - starting animation")
             // Draw animation from left to right - faster speed
             withAnimation(.easeOut(duration: 0.65)) {

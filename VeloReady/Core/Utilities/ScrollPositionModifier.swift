@@ -4,14 +4,13 @@ import SwiftUI
 struct ScrollPositionModifier: ViewModifier {
     let threshold: CGFloat
     let onAppear: () -> Void
+    let viewId: String
     
-    @State private var hasAppeared = false
-    @State private var hasRecordedInitialPosition = false
-    @State private var initialMinY: CGFloat = 0
-    @State private var wasInTriggerZone = false
+    private let stateManager = ScrollStateManager.shared
     
-    init(threshold: CGFloat = 200, onAppear: @escaping () -> Void) {
+    init(threshold: CGFloat = 200, viewId: String = UUID().uuidString, onAppear: @escaping () -> Void) {
         self.threshold = threshold
+        self.viewId = viewId
         self.onAppear = onAppear
     }
     
@@ -27,6 +26,8 @@ struct ScrollPositionModifier: ViewModifier {
                 }
             )
             .onPreferenceChange(ScrollPositionPreferenceKey.self) { minY in
+                var state = stateManager.getState(for: viewId)
+                
                 // Get screen height and calculate floating tab bar position
                 let screenHeight = UIScreen.main.bounds.height
                 let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
@@ -37,12 +38,13 @@ struct ScrollPositionModifier: ViewModifier {
                 let isNowInTriggerZone = minY < triggerPoint
                 
                 // Record initial position on first frame
-                if !hasRecordedInitialPosition {
-                    initialMinY = minY
-                    hasRecordedInitialPosition = true
-                    wasInTriggerZone = isNowInTriggerZone
+                if !state.hasRecordedInitialPosition {
+                    state.initialMinY = minY
+                    state.hasRecordedInitialPosition = true
+                    state.wasInTriggerZone = isNowInTriggerZone
+                    stateManager.setState(state, for: viewId)
                     
-                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(wasInTriggerZone)")
+                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(state.wasInTriggerZone), id: \(viewId.prefix(8))")
                     return
                 }
                 
@@ -50,21 +52,24 @@ struct ScrollPositionModifier: ViewModifier {
                 let isInViewport = minY > -100 && minY < screenHeight
                 
                 // Debug logging
-                if !hasAppeared && isInViewport {
-                    Logger.debug("📍 [SCROLL] minY: \(Int(minY)), trigger: \(Int(triggerPoint)), wasInZone: \(wasInTriggerZone), nowInZone: \(isNowInTriggerZone)")
+                if !state.hasAppeared && isInViewport {
+                    Logger.debug("📍 [SCROLL] minY: \(Int(minY)), trigger: \(Int(triggerPoint)), wasInZone: \(state.wasInTriggerZone), nowInZone: \(isNowInTriggerZone), id: \(viewId.prefix(8))")
                 }
                 
                 // Trigger animation when:
                 // 1. View crosses INTO trigger zone (wasn't in, now is)
                 // 2. View is in visible viewport
-                if !hasAppeared && isInViewport && !wasInTriggerZone && isNowInTriggerZone {
-                    hasAppeared = true
-                    Logger.debug("🎬 [SCROLL] Animation triggered! View entered trigger zone")
+                if !state.hasAppeared && isInViewport && !state.wasInTriggerZone && isNowInTriggerZone {
+                    state.hasAppeared = true
+                    stateManager.setState(state, for: viewId)
+                    Logger.debug("🎬 [SCROLL] Animation triggered! View entered trigger zone, id: \(viewId.prefix(8))")
                     onAppear()
+                    return
                 }
                 
                 // Update state for next frame
-                wasInTriggerZone = isNowInTriggerZone
+                state.wasInTriggerZone = isNowInTriggerZone
+                stateManager.setState(state, for: viewId)
             }
     }
 }
@@ -78,7 +83,11 @@ private struct ScrollPositionPreferenceKey: PreferenceKey {
 
 extension View {
     /// Trigger an action when this view scrolls into view (200px above the floating tab bar by default)
-    func onScrollAppear(threshold: CGFloat = 200, perform action: @escaping () -> Void) -> some View {
-        modifier(ScrollPositionModifier(threshold: threshold, onAppear: action))
+    /// - Parameters:
+    ///   - id: Stable identifier for this view to persist state across recreations
+    ///   - threshold: Distance above tab bar to trigger (default 200px)
+    ///   - action: Action to perform when view enters trigger zone
+    func onScrollAppear(id: String = UUID().uuidString, threshold: CGFloat = 200, perform action: @escaping () -> Void) -> some View {
+        modifier(ScrollPositionModifier(threshold: threshold, viewId: id, onAppear: action))
     }
 }
