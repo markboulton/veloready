@@ -30,6 +30,26 @@ struct ScrollPositionModifier: ViewModifier {
                 if !hasRecordedInitialPosition {
                     initialMinY = minY
                     hasRecordedInitialPosition = true
+                    
+                    // Debug: Log initial position
+                    let screenHeight = UIScreen.main.bounds.height
+                    let tabBarHeight: CGFloat = 60
+                    let tabBarTop = screenHeight - tabBarHeight
+                    let triggerPoint = tabBarTop - threshold
+                    let startedInTriggerZone = minY < triggerPoint && minY > -100 && minY < screenHeight
+                    
+                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), inTriggerZone: \(startedInTriggerZone)")
+                    
+                    // If view starts in trigger zone (e.g., at top of page), animate after brief delay
+                    if startedInTriggerZone {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            if !hasAppeared {
+                                hasAppeared = true
+                                Logger.debug("🎬 [SCROLL] Animation triggered! (started in trigger zone, delayed)")
+                                onAppear()
+                            }
+                        }
+                    }
                     return
                 }
                 
@@ -39,18 +59,25 @@ struct ScrollPositionModifier: ViewModifier {
                 let tabBarTop = screenHeight - tabBarHeight
                 let triggerPoint = tabBarTop - threshold
                 
-                // Only trigger if user has scrolled (minY changed from initial)
+                // Check if user has scrolled (position changed from initial)
                 let hasScrolled = abs(minY - initialMinY) > 10
+                
+                // Check if view is in visible viewport (not scrolled off top or bottom)
+                let isInViewport = minY > -100 && minY < screenHeight
+                
+                // Check if view is in trigger zone (approaching bottom tab bar)
+                let isInTriggerZone = minY < triggerPoint
                 
                 // Debug logging
                 if !hasAppeared {
-                    Logger.debug("📍 [SCROLL] View minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), hasScrolled: \(hasScrolled)")
+                    Logger.debug("📍 [SCROLL] minY: \(Int(minY)), trigger: \(Int(triggerPoint)), scrolled: \(hasScrolled), viewport: \(isInViewport), triggerZone: \(isInTriggerZone)")
                 }
                 
                 // Trigger animation when:
                 // 1. User has scrolled (not initial render)
-                // 2. View is within trigger zone
-                if !hasAppeared && hasScrolled && minY < triggerPoint && minY > 0 {
+                // 2. View is in visible viewport
+                // 3. View is in trigger zone (near bottom tab bar)
+                if !hasAppeared && hasScrolled && isInViewport && isInTriggerZone {
                     hasAppeared = true
                     Logger.debug("🎬 [SCROLL] Animation triggered! View scrolled into trigger zone")
                     onAppear()

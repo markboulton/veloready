@@ -542,13 +542,15 @@ struct TodayView: View {
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
-        // If returning to page (not initial load and was previously active), trigger ring animations
-        if hasLoadedInitialData && isViewActive && !viewModel.isInitializing {
-            Logger.debug("🔄 [ANIMATION] Returning to Today page - triggering ring animations")
+        // Check if we're returning from navigation (was inactive, now becoming active)
+        let wasInactive = !isViewActive
+        isViewActive = true
+        
+        // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
+        if hasLoadedInitialData && wasInactive && !viewModel.isInitializing {
+            Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
             viewModel.animationTrigger = UUID()
         }
-        
-        isViewActive = true
         
         // Only do full refresh on first appear
         guard !hasLoadedInitialData else {
