@@ -22,9 +22,6 @@ struct ActivityStatsRow: View {
                         if !liveActivityService.isLoading && !hourlySteps.isEmpty {
                             StepsSparkline(hourlySteps: hourlySteps)
                                 .frame(width: 50)
-                                .onScrollAppear {
-                                    // Sparkline animates when scrolled into view
-                                }
                         }
                     }
                     .task {
