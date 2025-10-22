@@ -109,7 +109,6 @@ struct TodayView: View {
                             .padding(.top, 8)
                         }
                     }
-                    .padding()
                 }
                 .coordinateSpace(name: "scroll")
                 .refreshable {
