@@ -45,7 +45,7 @@ struct ActivitiesView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
+            ZStack(alignment: .top) {
                 // Gradient background
                 GradientBackground()
                 
@@ -60,6 +60,9 @@ struct ActivitiesView: View {
                         activitiesList
                     }
                 }
+                
+                // Navigation gradient mask (iOS Mail style)
+                NavigationGradientMask()
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)

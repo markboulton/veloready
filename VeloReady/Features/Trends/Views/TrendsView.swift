@@ -10,7 +10,7 @@ struct TrendsView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
+            ZStack(alignment: .top) {
                 // Gradient background
                 GradientBackground()
                 
@@ -21,6 +21,9 @@ struct TrendsView: View {
                         proGate
                     }
                 }
+                
+                // Navigation gradient mask (iOS Mail style)
+                NavigationGradientMask()
             }
             .navigationTitle(TrendsContent.title)
             .navigationBarTitleDisplayMode(.large)

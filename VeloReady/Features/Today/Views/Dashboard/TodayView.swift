@@ -41,7 +41,7 @@ struct TodayView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
+            ZStack(alignment: .top) {
                 // Gradient background
                 GradientBackground()
                 
@@ -113,6 +113,11 @@ struct TodayView: View {
                 if viewModel.isInitializing {
                     LoadingOverlay()
                         .transition(.opacity)
+                }
+                
+                // Navigation gradient mask (iOS Mail style)
+                if !viewModel.isInitializing {
+                    NavigationGradientMask()
                 }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
