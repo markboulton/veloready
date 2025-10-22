@@ -60,8 +60,11 @@ struct StepsCard: View {
         )
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xxl / 2)
-        .task {
-            await loadHourlySteps()
+        .onAppear {
+            Logger.debug("📊 [SPARKLINE] StepsCard .onAppear triggered")
+            Task {
+                await loadHourlySteps()
+            }
         }
     }
     
@@ -82,8 +85,10 @@ struct StepsCard: View {
     }
     
     private func loadHourlySteps() async {
+        Logger.debug("📊 [SPARKLINE] Loading hourly steps...")
         let healthKitManager = HealthKitManager.shared
         let steps = await healthKitManager.fetchTodayHourlySteps()
+        Logger.debug("📊 [SPARKLINE] Fetched \(steps.count) hours of data")
         
         var hourlyData: [HourlyStepData] = []
         for (hour, stepCount) in steps.enumerated() {
@@ -92,6 +97,7 @@ struct StepsCard: View {
         
         await MainActor.run {
             self.hourlySteps = hourlyData
+            Logger.debug("📊 [SPARKLINE] Set hourlySteps count: \(self.hourlySteps.count)")
         }
     }
 }
