@@ -157,13 +157,22 @@ struct TodayView: View {
             if viewModel.isInitializing {
                 VStack {
                     Spacer()
+                    
+                    // Bike icon
+                    Image(systemName: Icons.Activity.cycling)
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundColor(ColorPalette.blue)
+                        .padding(.bottom, 16)
+                    
                     ProgressView()
                         .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.neutral400))
+                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.blue))
+                    
                     Text(CommonContent.loading)
                         .font(.headline)
                         .foregroundColor(.secondary)
-                        .padding(.top, 8)
+                        .padding(.top, 16)
+                    
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
