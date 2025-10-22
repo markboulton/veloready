@@ -170,6 +170,7 @@ struct TodayView: View {
                 .ignoresSafeArea(.all) // Cover everything including nav bar and tab bar
                 .transition(.opacity)
             }
+            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
     }
