@@ -55,10 +55,11 @@ struct ActivityStatsRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cardStyle(leading: 0)
-                .task {
-                    // Fetch real hourly steps from HealthKit
-                    Logger.debug("📊 [SPARKLINE] .task triggered on VStack")
-                    await loadHourlySteps()
+                .onAppear {
+                    Logger.debug("📊 [SPARKLINE] .onAppear triggered on VStack")
+                    Task {
+                        await loadHourlySteps()
+                    }
                 }
                 
                 // 2px Vertical Divider
