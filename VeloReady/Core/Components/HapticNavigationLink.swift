@@ -6,31 +6,20 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
     let destination: Destination
     let label: () -> Label
     
-    @State private var isActive = false
-    
     init(destination: Destination, @ViewBuilder label: @escaping () -> Label) {
         self.destination = destination
         self.label = label
     }
     
     var body: some View {
-        Button(action: {
-            Logger.debug("🔘 HapticNavigationLink tapped - firing haptic")
-            HapticFeedback.light()
-            isActive = true
-        }) {
+        NavigationLink(destination: destination) {
             label()
         }
         .buttonStyle(PlainButtonStyle())
-        .background(
-            NavigationLink(
-                destination: destination,
-                isActive: $isActive
-            ) {
-                EmptyView()
-            }
-            .opacity(0)
-        )
+        .simultaneousGesture(TapGesture().onEnded {
+            Logger.debug("🔘 HapticNavigationLink tapped - firing haptic")
+            HapticFeedback.light()
+        })
     }
 }
 
