@@ -4,7 +4,7 @@ import SwiftUI
 struct NotificationSettingsSection: View {
     var body: some View {
         Section {
-            NavigationLink(destination: NotificationSettingsView()) {
+            HapticNavigationLink(destination: NotificationSettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Notifications.title)

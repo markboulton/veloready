@@ -6,7 +6,7 @@ struct SleepSettingsSection: View {
     
     var body: some View {
         Section {
-            NavigationLink(destination: SleepSettingsView()) {
+            HapticNavigationLink(destination: SleepSettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Sleep.targetTitle)

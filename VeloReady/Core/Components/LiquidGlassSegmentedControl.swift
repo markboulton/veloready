@@ -28,37 +28,14 @@ struct LiquidGlassSegmentedControl<T: Hashable>: View {
                     )
                     .frame(height: 40)
                 
-                // Animated selection indicator with liquid glass effect
+                // Animated selection indicator with grey background
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.blue.opacity(0.8),
-                                Color.blue.opacity(0.6)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(Color.white.opacity(colorScheme == .dark ? 0.15 : 0.2))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.white.opacity(0.15))
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.4),
-                                        Color.white.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-                    .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 2)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 36)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
                     .animation(FluidAnimation.bouncy, value: selection)

@@ -6,7 +6,7 @@ struct MLPersonalizationSection: View {
     
     var body: some View {
         Section {
-            NavigationLink(destination: MLPersonalizationSettingsView()) {
+            HapticNavigationLink(destination: MLPersonalizationSettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.MLPersonalization.title)

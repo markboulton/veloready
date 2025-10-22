@@ -7,7 +7,7 @@ struct DisplaySettingsSection: View {
     var body: some View {
         Section {
             // Theme settings
-            NavigationLink(destination: ThemeSettingsView()) {
+            HapticNavigationLink(destination: ThemeSettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Appearance.theme)
@@ -23,7 +23,7 @@ struct DisplaySettingsSection: View {
             }
             
             // Display preferences
-            NavigationLink(destination: DisplaySettingsView()) {
+            HapticNavigationLink(destination: DisplaySettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(SettingsContent.Appearance.displayPreferences)
@@ -39,7 +39,7 @@ struct DisplaySettingsSection: View {
             }
             
             // Today page layout
-            NavigationLink(destination: TodaySectionOrderView()) {
+            HapticNavigationLink(destination: TodaySectionOrderView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text("Today Page Layout")
