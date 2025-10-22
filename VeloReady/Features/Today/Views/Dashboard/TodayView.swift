@@ -40,12 +40,11 @@ struct TodayView: View {
     }
     
     var body: some View {
-        ZStack {
-            NavigationView {
-                ZStack {
-                    // Gradient background
-                    GradientBackground()
-                    
+        NavigationView {
+            ZStack {
+                // Gradient background
+                GradientBackground()
+                
                 ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: 0) {
@@ -109,6 +108,12 @@ struct TodayView: View {
                 .refreshable {
                     await viewModel.forceRefreshData()
                 }
+                
+                // Loading overlay - shows on top of content
+                if viewModel.isInitializing {
+                    LoadingOverlay()
+                        .transition(.opacity)
+                }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -116,85 +121,50 @@ struct TodayView: View {
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
-            .onAppear {
-                Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
-                handleViewAppear()
-            }
-            .onChange(of: healthKitManager.isAuthorized) { _, newValue in
-                handleHealthKitAuthChange(newValue)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                handleAppForeground()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
-                handleIntervalsConnection()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .todaySectionOrderChanged)) { _ in
-                sectionOrder = TodaySectionOrder.load()
-            }
-            .sheet(isPresented: $showingDebugView) {
-                DebugDataView()
-            }
-            .sheet(isPresented: $showingHealthKitPermissionsSheet) {
-                HealthKitPermissionsSheet()
-            }
-            .sheet(isPresented: $showingWellnessDetailSheet) {
-                if let alert = wellnessService.currentAlert {
-                    WellnessDetailSheet(alert: alert)
-                        .presentationDetents([.medium, .large])
-                        .presentationDragIndicator(.visible)
-                }
-            }
-            .sheet(isPresented: $showingIllnessDetailSheet) {
-                if let indicator = illnessService.currentIndicator {
-                    IllnessDetailSheet(indicator: indicator)
-                        .presentationDetents([.medium, .large])
-                        .presentationDragIndicator(.visible)
-                }
-            }
-            
-            // Full-screen loading spinner overlay (covers everything including nav bar)
-            if viewModel.isInitializing {
-                VStack {
-                    Spacer()
-                    
-                    // Bike icon
-                    Image(systemName: Icons.Activity.cycling)
-                        .font(.system(size: 48, weight: .light))
-                        .foregroundColor(ColorPalette.blue)
-                        .padding(.bottom, 16)
-                    
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: ColorPalette.blue))
-                    
-                    Text(CommonContent.loading)
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 16)
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemBackground))
-                .ignoresSafeArea(.all) // Cover everything including nav bar and tab bar
-                .transition(.opacity)
-                .onAppear {
-                    Logger.debug("🔵 [SPINNER] Spinner SHOWING - isInitializing=true")
-                }
-                .onDisappear {
-                    Logger.debug("🟢 [SPINNER] Spinner HIDDEN - isInitializing=false")
-                }
-            }
-            }
+            .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
+        .onAppear {
+            Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
+            handleViewAppear()
+        }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
-            // Synchronize with MainTabView's showInitialSpinner to control FloatingTabBar
             if !newValue {
                 Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
                 showInitialSpinner = false
+            }
+        }
+        .onChange(of: healthKitManager.isAuthorized) { _, newValue in
+            handleHealthKitAuthChange(newValue)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            handleAppForeground()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
+            handleIntervalsConnection()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .todaySectionOrderChanged)) { _ in
+            sectionOrder = TodaySectionOrder.load()
+        }
+        .sheet(isPresented: $showingDebugView) {
+            DebugDataView()
+        }
+        .sheet(isPresented: $showingHealthKitPermissionsSheet) {
+            HealthKitPermissionsSheet()
+        }
+        .sheet(isPresented: $showingWellnessDetailSheet) {
+            if let alert = wellnessService.currentAlert {
+                WellnessDetailSheet(alert: alert)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
+        }
+        .sheet(isPresented: $showingIllnessDetailSheet) {
+            if let indicator = illnessService.currentIndicator {
+                IllnessDetailSheet(indicator: indicator)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
