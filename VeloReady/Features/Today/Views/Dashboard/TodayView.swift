@@ -127,7 +127,16 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
+            .toolbar {
+                // This forces SwiftUI to track scroll for title collapse
+                ToolbarItem(placement: .principal) {
+                    Text(scrollOffset < -50 ? TodayContent.title : "")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
+            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {
