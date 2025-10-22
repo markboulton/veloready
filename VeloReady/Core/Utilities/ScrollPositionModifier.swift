@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// Modifier to detect when a view appears above the floating tab bar (24px threshold)
+/// Modifier to detect when a view appears above the floating tab bar
 struct ScrollPositionModifier: ViewModifier {
     let threshold: CGFloat
     let onAppear: () -> Void
     
     @State private var hasAppeared = false
     
-    init(threshold: CGFloat = 24, onAppear: @escaping () -> Void) {
+    init(threshold: CGFloat = 200, onAppear: @escaping () -> Void) {
         self.threshold = threshold
         self.onAppear = onAppear
     }
@@ -29,7 +29,8 @@ struct ScrollPositionModifier: ViewModifier {
                 let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
                 let tabBarTop = screenHeight - tabBarHeight
                 
-                // Trigger animation when view is 24px above the tab bar
+                // Trigger animation when view is threshold distance above the tab bar
+                // Higher threshold = animate earlier (when view is further from tab bar)
                 if !hasAppeared && minY < (tabBarTop - threshold) {
                     hasAppeared = true
                     onAppear()
@@ -46,8 +47,8 @@ private struct ScrollPositionPreferenceKey: PreferenceKey {
 }
 
 extension View {
-    /// Trigger an action when this view scrolls to 24px above the floating tab bar
-    func onScrollAppear(threshold: CGFloat = 24, perform action: @escaping () -> Void) -> some View {
+    /// Trigger an action when this view scrolls into view (200px above the floating tab bar by default)
+    func onScrollAppear(threshold: CGFloat = 200, perform action: @escaping () -> Void) -> some View {
         modifier(ScrollPositionModifier(threshold: threshold, onAppear: action))
     }
 }
