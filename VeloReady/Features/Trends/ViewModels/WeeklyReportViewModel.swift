@@ -814,6 +814,13 @@ class WeeklyReportViewModel: ObservableObject {
             return
         }
         
+        // Check Core Data cache first (same week)
+        if let cachedSummary = loadWeeklySummaryFromCoreData() {
+            aiSummary = cachedSummary
+            Logger.debug("📦 Using cached AI weekly summary from Core Data")
+            return
+        }
+        
         isLoadingAI = true
         aiError = nil
         
@@ -878,6 +885,10 @@ class WeeklyReportViewModel: ObservableObject {
             let jsonData = try JSONSerialization.data(withJSONObject: payload)
             let response = try await fetchFromAPI(body: jsonData)
             aiSummary = response.text
+            
+            // Save to Core Data for this week
+            saveWeeklySummaryToCoreData(text: response.text)
+            
             Logger.debug("✅ AI weekly summary generated (\(response.cached ? "cached" : "fresh"))")
         } catch {
             aiError = error.localizedDescription
@@ -1017,5 +1028,48 @@ class WeeklyReportViewModel: ObservableObject {
         let calendar = Calendar.current
         let day = calendar.component(.weekday, from: now)
         return day == 1 ? 0 : 9 - day // If Sunday (1), it's 0 days; else count to next Monday
+    }
+    
+    // MARK: - Core Data Caching
+    
+    /// Load weekly AI summary from Core Data for current week (Monday)
+    private func loadWeeklySummaryFromCoreData() -> String? {
+        let monday = weekStartDate
+        
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date == %@", monday as NSDate)
+        request.fetchLimit = 1
+        
+        guard let scores = persistence.fetch(request).first,
+              let summaryText = scores.aiBriefText,
+              !summaryText.isEmpty,
+              summaryText.count > 100 else { // Weekly summaries are longer than daily briefs
+            return nil
+        }
+        
+        return summaryText
+    }
+    
+    /// Save weekly AI summary to Core Data for current week (Monday)
+    private func saveWeeklySummaryToCoreData(text: String) {
+        let monday = weekStartDate
+        
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date == %@", monday as NSDate)
+        request.fetchLimit = 1
+        
+        // Get or create DailyScores for Monday
+        let scores: DailyScores
+        if let existing = persistence.fetch(request).first {
+            scores = existing
+        } else {
+            scores = DailyScores(context: persistence.container.viewContext)
+            scores.date = monday
+        }
+        
+        // Store weekly summary in aiBriefText field (reusing existing field)
+        scores.aiBriefText = text
+        persistence.save()
+        Logger.debug("💾 Saved weekly AI summary to Core Data (Monday: \(monday))")
     }
 }
