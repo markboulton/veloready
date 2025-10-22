@@ -100,9 +100,13 @@ struct MLPersonalizationInfoSheet: View {
             .background(Color.background.primary)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(MLPersonalizationContent.closeButton) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        HapticFeedback.light()
                         dismiss()
+                    }) {
+                        Image(systemName: Icons.Navigation.close)
+                            .foregroundColor(ColorScale.labelSecondary)
                     }
                 }
             }

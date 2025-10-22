@@ -35,7 +35,10 @@ struct IllnessDetailSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { dismiss() }) {
+                    Button(action: {
+                        HapticFeedback.light()
+                        dismiss()
+                    }) {
                         Image(systemName: Icons.Navigation.close)
                             .foregroundColor(ColorScale.labelSecondary)
                     }

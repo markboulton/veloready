@@ -30,6 +30,7 @@ struct HealthWarningsCard: View {
                     if let indicator = illnessService.currentIndicator, indicator.isSignificant {
                         illnessWarningContent(indicator)
                             .onTapGesture {
+                                HapticFeedback.light()
                                 showingIllnessDetail = true
                             }
                     }
@@ -44,6 +45,7 @@ struct HealthWarningsCard: View {
                         
                         wellnessWarningContent(alert)
                             .onTapGesture {
+                                HapticFeedback.light()
                                 showingWellnessDetail = true
                             }
                     }

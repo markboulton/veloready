@@ -63,7 +63,8 @@ struct ActivitiesView: View {
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.automatic, for: .navigationBar)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {
@@ -118,7 +119,7 @@ struct ActivitiesView: View {
                 Section {
                     ForEach(viewModel.groupedActivities[monthKey] ?? []) { activity in
                         ZStack {
-                            NavigationLink(destination: activityDestination(for: activity)) {
+                            HapticNavigationLink(destination: activityDestination(for: activity)) {
                                 EmptyView()
                             }
                             .opacity(0)

@@ -6,13 +6,13 @@ struct GoalsSettingsSection: View {
     
     var body: some View {
         Section {
-            NavigationLink(destination: GoalsSettingsView()) {
+            HapticNavigationLink(destination: GoalsSettingsView()) {
                 HStack {
                     VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text("Daily Goals")
                             .font(TypeScale.font(size: TypeScale.md))
                         
-                        Text("Steps: \(userSettings.stepGoal) • Calories: \(Int(userSettings.calorieGoal))")
+                        Text("Steps: \(userSettings.stepGoal) • Calories: \(Int(userSettings.calorieGoal)) • Sleep: \(userSettings.formattedSleepTarget)")
                             .font(TypeScale.font(size: TypeScale.xs))
                             .foregroundColor(ColorPalette.labelSecondary)
                     }
@@ -23,7 +23,7 @@ struct GoalsSettingsSection: View {
         } header: {
             Text("Goals")
         } footer: {
-            Text("Set your daily step and calorie targets to track your progress.")
+            Text("Set your daily step, calorie, and sleep targets to track your progress.")
         }
     }
 }

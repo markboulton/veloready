@@ -165,7 +165,10 @@ private struct MLDataCollectionView: View {
                 
                 Spacer()
                 
-                Button(action: showInfoSheet) {
+                Button(action: {
+                    HapticFeedback.light()
+                    showInfoSheet()
+                }) {
                     Image(systemName: Icons.Status.info)
                         .font(.caption)
                         .foregroundColor(.secondary)

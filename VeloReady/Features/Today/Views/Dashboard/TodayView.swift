@@ -120,7 +120,8 @@ struct TodayView: View {
             }
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.automatic, for: .navigationBar)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
