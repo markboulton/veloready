@@ -35,12 +35,21 @@ struct ScrollPositionModifier: ViewModifier {
                     Logger.debug("📍 [SCROLL] View minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), diff: \(Int(minY - triggerPoint))")
                 }
                 
-                // Trigger animation when view scrolls to threshold distance above tab bar
-                // minY < triggerPoint means view has scrolled high enough
-                if !hasAppeared && minY > 0 && minY < triggerPoint {
+                // Trigger animation when view is within threshold distance above tab bar
+                // For views at top (minY=0), use a small delay to ensure they're visible
+                if !hasAppeared && minY < triggerPoint {
                     hasAppeared = true
-                    Logger.debug("🎬 [SCROLL] Animation triggered! View reached scroll threshold")
-                    onAppear()
+                    
+                    // If view is at very top (minY < 100), add tiny delay for layout
+                    if minY < 100 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            Logger.debug("🎬 [SCROLL] Animation triggered! (delayed for top view)")
+                            onAppear()
+                        }
+                    } else {
+                        Logger.debug("🎬 [SCROLL] Animation triggered! View reached scroll threshold")
+                        onAppear()
+                    }
                 }
             }
     }
