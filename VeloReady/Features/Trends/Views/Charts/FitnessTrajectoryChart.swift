@@ -89,7 +89,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.blueAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemBackground))
+                                .background(Color(.systemGray6))
                                 .cornerRadius(4)
                         }
                     }
@@ -145,7 +145,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.amberAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemBackground))
+                                .background(Color(.systemGray6))
                                 .cornerRadius(4)
                         }
                     }
@@ -201,7 +201,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.greenAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemBackground))
+                                .background(Color(.systemGray6))
                                 .cornerRadius(4)
                         }
                     }
