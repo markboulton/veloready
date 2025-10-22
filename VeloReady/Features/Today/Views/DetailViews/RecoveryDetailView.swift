@@ -12,44 +12,34 @@ struct RecoveryDetailView: View {
             VStack(spacing: 0) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
-                        .padding(.horizontal)
                         .padding(.top)
                     
                     // Illness indicator alert
                     IllnessAlertBanner()
-                        .padding(.horizontal)
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding(.horizontal)
                     
                     // HRV Line Chart (Pro)
                     hrvLineSection
-                        .padding(.horizontal)
                     
                     // RHR Candlestick Chart (Pro)
                     rhrCandlestickSection
-                        .padding(.horizontal)
                     
                     // Sub-scores breakdown
                     subScoresSection
-                        .padding(.horizontal)
                     
                     // Recovery Debt
                     recoveryDebtSection
-                        .padding(.horizontal)
                     
                     // Readiness Score
                     readinessSection
-                        .padding(.horizontal)
                     
                     // Resilience Score
                     resilienceSection
-                        .padding(.horizontal)
                     
                     // Apple Health metrics
                     healthMetricsSection
-                        .padding(.horizontal)
                         .padding(.bottom, 100)
                 }
             }

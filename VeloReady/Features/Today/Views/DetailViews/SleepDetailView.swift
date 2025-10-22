@@ -26,42 +26,34 @@ struct SleepDetailView: View {
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Score breakdown
                     scoreBreakdownSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Sleep hypnogram
                     hypnogramSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Sleep metrics
                     sleepMetricsSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Sleep stages
                     sleepStagesSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Sleep Debt
                     sleepDebtSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Sleep Consistency
                     sleepConsistencySection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                     
                     // Recommendations
                     recommendationsSection
-                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
                         .padding(.bottom, 100)
                 }
