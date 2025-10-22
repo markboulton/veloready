@@ -15,39 +15,25 @@ struct HRVTrendCard: View {
         data.first?.baseline
     }
     
+    private var subtitleText: String {
+        if data.isEmpty {
+            return TrendsContent.noDataFound
+        }
+        var text = "\(Int(averageHRV))\(TrendsContent.Units.ms)"
+        if let baseline = baselineHRV {
+            text += " (\(Int(baseline)) baseline)"
+        }
+        return text
+    }
+    
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "waveform.path.ecg",
+            iconColor: .health.hrv,
+            title: TrendsContent.Cards.hrvTrend,
+            subtitle: subtitleText
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.hrvTrend)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if !data.isEmpty {
-                            HStack(spacing: Spacing.xs) {
-                                Text("\(Int(averageHRV))\(TrendsContent.Units.ms)")
-                                    .font(.title)
-                                    .foregroundColor(ColorScale.greenAccent)
-                                
-                                if let baseline = baselineHRV {
-                                    Text("(\(baseline, specifier: "%.0f") \(TrendsContent.HRV.baseline))")
-                                        .font(.caption)
-                                        .foregroundColor(.text.secondary)
-                                }
-                            }
-                        } else {
-                            Text(TrendsContent.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
-                
                 // Chart
                 if data.isEmpty {
                     emptyState
