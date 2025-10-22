@@ -134,7 +134,7 @@ struct TodayView: View {
             }
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.thinMaterial, for: .navigationBar)
+            .toolbarBackground(.regularMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)

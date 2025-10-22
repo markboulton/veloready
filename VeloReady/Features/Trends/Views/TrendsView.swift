@@ -36,7 +36,7 @@ struct TrendsView: View {
             }
             .navigationTitle(TrendsContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.thinMaterial, for: .navigationBar)
+            .toolbarBackground(.regularMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(isPresented: $showPaywall) {
