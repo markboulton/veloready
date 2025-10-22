@@ -30,6 +30,7 @@ struct TodayView: View {
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
+    @State private var hasAppeared = false
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
@@ -82,7 +83,7 @@ struct TodayView: View {
                             isHealthKitAuthorized: healthKitManager.isAuthorized,
                             missingSleepBannerDismissed: $missingSleepBannerDismissed,
                             animationTrigger: viewModel.animationTrigger,
-                            hideBottomDivider: false
+                            hideBottomDivider: true
                         )
                         
                         // HealthKit Enablement Section (only when not authorized)
@@ -560,6 +561,10 @@ struct TodayView: View {
     private func handleViewAppear() {
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
+        
+        // Only do full refresh on first appear
+        guard !hasAppeared else { return }
+        hasAppeared = true
         
         Task {
             await viewModel.loadInitialUI()

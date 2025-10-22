@@ -25,16 +25,16 @@ struct FloatingTabBar: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 8)
         .background(
             ZStack {
                 // Frosted glass background
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: 32)
                     .fill(.ultraThinMaterial)
                 
                 // Subtle tint
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: 32)
                     .fill(
                         colorScheme == .dark
                             ? Color.black.opacity(0.3)
@@ -44,7 +44,7 @@ struct FloatingTabBar: View {
         )
         .overlay(
             // Elegant border
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: 32)
                 .strokeBorder(
                     LinearGradient(
                         colors: [

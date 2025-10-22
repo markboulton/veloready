@@ -132,13 +132,10 @@ struct LatestActivityCard: View {
             .padding(.horizontal, Spacing.md)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.05))
+                    .fill(Color.primary.opacity(0.08))
             )
-            .padding(.horizontal, Spacing.md)
+            .padding(.horizontal, 8)
             .padding(.vertical, Spacing.md / 2)
-            
-            // Full-width divider at bottom (40px top, 0 bottom - next section provides top padding)
-            SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
         }
         .onAppear {
             Task {

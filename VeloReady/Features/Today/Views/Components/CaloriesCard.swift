@@ -3,6 +3,7 @@ import SwiftUI
 /// Individual Calories card for Today view
 struct CaloriesCard: View {
     @ObservedObject private var liveActivityService: LiveActivityService
+    @StateObject private var userSettings = UserSettings.shared
     
     init() {
         self.liveActivityService = LiveActivityService(oauthManager: IntervalsOAuthManager.shared)
@@ -10,45 +11,61 @@ struct CaloriesCard: View {
     
     var body: some View {
         Card {
-            HStack(spacing: Spacing.md) {
-                // Icon
-                Circle()
-                    .fill(Color.orange.opacity(0.15))
-                    .frame(width: 48, height: 48)
-                    .overlay(
-                        Image(systemName: Icons.Health.caloriesFill)
-                            .font(.system(size: 22))
-                            .foregroundColor(.orange)
-                    )
-                
-                // Content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Active Calories")
-                        .font(.system(size: TypeScale.sm))
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                // Header with grey outlined icon
+                HStack {
+                    Image(systemName: Icons.Health.caloriesFill)
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(Color.text.secondary)
                     
-                    Text("\(liveActivityService.activeCalories)")
-                        .font(.system(size: TypeScale.xl, weight: .bold))
+                    Text("Calories")
+                        .font(.heading)
                         .foregroundColor(Color.text.primary)
                 }
                 
-                Spacer()
+                // Goal
+                StatRow(
+                    label: "Goal",
+                    value: "\(Int(effectiveGoal))",
+                    valueColor: ColorPalette.peach
+                )
                 
-                // Goal indicator
-                if liveActivityService.activeCalories > 0 {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        let goalProgress = min(Double(liveActivityService.activeCalories) / 500.0, 1.0)
-                        Text("\(Int(goalProgress * 100))%")
-                            .font(.system(size: TypeScale.xs, weight: .semibold))
-                            .foregroundColor(.orange)
-                        
-                        Text("of 500")
-                            .font(.system(size: TypeScale.xxs))
-                            .foregroundColor(Color.text.tertiary)
-                    }
+                // Active Energy
+                StatRow(
+                    label: "Active Energy",
+                    value: "\(Int(liveActivityService.activeCalories))",
+                    valueColor: Color.semantic.success
+                )
+                
+                // Divider
+                Divider()
+                    .background(Color.secondary.opacity(0.3))
+                
+                // Total
+                HStack {
+                    Text("Total")
+                        .font(.heading)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(totalCalories))")
+                        .font(.heading)
+                        .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
                 }
             }
         }
+    }
+    
+    private var effectiveGoal: Double {
+        if userSettings.useBMRAsGoal {
+            return liveActivityService.bmrCalories
+        } else {
+            return userSettings.calorieGoal
+        }
+    }
+    
+    private var totalCalories: Double {
+        return liveActivityService.bmrCalories + Double(liveActivityService.activeCalories)
     }
 }
 

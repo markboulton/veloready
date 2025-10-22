@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reusable card container with 5% opacity background
+/// Reusable card container with 8% opacity background
 /// Consistent spacing and padding across the app
 struct Card<Content: View>: View {
     let style: CardStyle
@@ -24,9 +24,9 @@ struct Card<Content: View>: View {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.05))
+                    .fill(Color.primary.opacity(0.08))
             )
-            .padding(.horizontal, Spacing.md)
+            .padding(.horizontal, 8)
             .padding(.vertical, Spacing.md / 2)
     }
 }
