@@ -29,9 +29,10 @@ struct TodayView: View {
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
-    @State private var hasLoadedInitialData = false
     @State private var isViewActive = false
     @Binding var showInitialSpinner: Bool
+    
+    private let viewState = ViewStateManager.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
@@ -538,7 +539,7 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
-        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(hasLoadedInitialData), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(viewState.hasCompletedTodayInitialLoad), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
@@ -547,17 +548,17 @@ struct TodayView: View {
         isViewActive = true
         
         // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
-        if hasLoadedInitialData && wasInactive && !viewModel.isInitializing {
+        if viewState.hasCompletedTodayInitialLoad && wasInactive && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
             viewModel.animationTrigger = UUID()
         }
         
         // Only do full refresh on first appear
-        guard !hasLoadedInitialData else {
+        guard !viewState.hasCompletedTodayInitialLoad else {
             Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
             return
         }
-        hasLoadedInitialData = true
+        viewState.hasCompletedTodayInitialLoad = true
         Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
         
         Task {
