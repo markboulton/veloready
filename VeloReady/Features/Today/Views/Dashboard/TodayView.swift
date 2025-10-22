@@ -462,23 +462,39 @@ struct TodayView: View {
                 DailyBriefCard()
             }
         case .latestActivity:
-            if hasConnectedDataSource, let latestActivity = getLatestActivity() {
-                LatestActivityCard(activity: latestActivity)
+            if hasConnectedDataSource {
+                if let latestActivity = getLatestActivity() {
+                    LatestActivityCard(activity: latestActivity)
+                } else if viewModel.isLoading {
+                    SkeletonActivityCard()
+                }
             }
         case .steps:
-            StepsCard()
+            if liveActivityService.isLoading {
+                SkeletonStatsCard()
+            } else {
+                StepsCard()
+            }
         case .calories:
-            CaloriesCard()
+            if liveActivityService.isLoading {
+                SkeletonStatsCard()
+            } else {
+                CaloriesCard()
+            }
         case .stepsAndCalories:
             // Legacy - no longer used
             EmptyView()
         case .recentActivities:
-            RecentActivitiesSection(
-                allActivities: viewModel.unifiedActivities.isEmpty ?
-                    viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                    viewModel.unifiedActivities,
-                dailyActivityData: generateDailyActivityData()
-            )
+            if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
+                SkeletonRecentActivities()
+            } else {
+                RecentActivitiesSection(
+                    allActivities: viewModel.unifiedActivities.isEmpty ?
+                        viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+                        viewModel.unifiedActivities,
+                    dailyActivityData: generateDailyActivityData()
+                )
+            }
         }
     }
     
