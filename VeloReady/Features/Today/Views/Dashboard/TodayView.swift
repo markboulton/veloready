@@ -94,6 +94,11 @@ struct TodayView: View {
                             )
                         }
                         
+                        // Health Warnings (Illness & Wellness alerts)
+                        if healthKitManager.isAuthorized {
+                            HealthWarningsCard()
+                        }
+                        
                         // Movable sections (ordered by user preference)
                         if healthKitManager.isAuthorized {
                             ForEach(sectionOrder.movableSections) { section in
