@@ -5,6 +5,8 @@ import Combine
 /// ViewModel for the Today feature
 @MainActor
 class TodayViewModel: ObservableObject {
+    static let shared = TodayViewModel()
+    
     @Published var recentActivities: [IntervalsActivity] = [] // Keep for backwards compatibility
     @Published var unifiedActivities: [UnifiedActivity] = [] // New unified list
     @Published var wellnessData: [IntervalsWellness] = []
@@ -56,7 +58,7 @@ class TodayViewModel: ObservableObject {
         await refreshData()
     }
     
-    init(container: ServiceContainer = .shared) {
+    private init(container: ServiceContainer = .shared) {
         // Use score services from container
         self.recoveryScoreService = container.recoveryScoreService
         self.sleepScoreService = container.sleepScoreService

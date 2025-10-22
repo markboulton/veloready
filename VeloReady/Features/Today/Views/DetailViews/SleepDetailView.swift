@@ -21,8 +21,8 @@ struct SleepDetailView: View {
                             .padding()
                     }
                     
-                    // Illness indicator alert
-                    IllnessAlertBanner()
+                    // Health warnings card
+                    HealthWarningsCard()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
@@ -786,19 +786,11 @@ struct ScoreBreakdownRow: View {
     let description: String
     
     var body: some View {
-        HStack {
+        HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    Text(weight)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                 
                 Text(description)
                     .font(.caption)
@@ -817,10 +809,10 @@ struct ScoreBreakdownRow: View {
     
     private var scoreColor: Color {
         switch score {
-        case 80...100: return .green
-        case 60..<80: return .blue
-        case 40..<60: return .orange
-        default: return .red
+        case 80...100: return ColorScale.greenAccent
+        case 60..<80: return ColorScale.blueAccent
+        case 40..<60: return ColorScale.amberAccent
+        default: return ColorScale.redAccent
         }
     }
 }
