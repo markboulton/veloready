@@ -5,29 +5,13 @@ struct TrainingPhaseCard: View {
     let phase: TrainingPhaseDetector.PhaseDetectionResult?
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "calendar.badge.clock",
+            iconColor: .green,
+            title: TrendsContent.Cards.trainingPhase,
+            subtitle: phase?.phase.rawValue ?? CommonContent.States.detecting
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.trainingPhase)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if let phase = phase {
-                            Text(phase.phase.rawValue)
-                                .font(.title)
-                                .foregroundColor(phaseColor(phase.phase))
-                        } else {
-                            Text(CommonContent.States.detecting)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 if let phase = phase {
                     phaseContent(phase)

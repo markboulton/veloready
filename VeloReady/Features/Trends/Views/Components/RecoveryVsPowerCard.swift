@@ -9,35 +9,13 @@ struct RecoveryVsPowerCard: View {
     let timeRange: TrendsViewModel.TimeRange
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "arrow.triangle.2.circlepath",
+            iconColor: .blue,
+            title: TrendsContent.Cards.recoveryVsPower,
+            subtitle: correlation.map { "\($0.significance.description) correlation (r=\(CorrelationCalculator.formatCoefficient($0.coefficient)))" } ?? CommonContent.States.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.recoveryVsPower)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if let correlation = correlation {
-                            HStack(spacing: Spacing.xs) {
-                                Text("\(correlation.significance.description) \(TrendsContent.Labels.correlation)")
-                                    .font(.body)
-                                    .foregroundColor(correlationColor(correlation))
-                                
-                                Text("(r=\(CorrelationCalculator.formatCoefficient(correlation.coefficient)))")
-                                    .font(.caption)
-                                    .foregroundColor(.text.secondary)
-                            }
-                        } else {
-                            Text(CommonContent.States.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 // Chart
                 if data.isEmpty {

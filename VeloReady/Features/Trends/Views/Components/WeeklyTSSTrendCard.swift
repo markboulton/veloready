@@ -16,35 +16,13 @@ struct WeeklyTSSTrendCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "chart.bar.fill",
+            iconColor: .workout.tss,
+            title: TrendsContent.Cards.weeklyTSS,
+            subtitle: !data.isEmpty ? "\(Int(averageTSS)) weekly TSS" : CommonContent.States.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.weeklyTSS)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if !data.isEmpty {
-                            HStack(spacing: Spacing.xs) {
-                                Text("\(Int(averageTSS))")
-                                    .font(.title)
-                                    .foregroundColor(.workout.tss)
-                                
-                                Text(TrendsContent.TrainingLoad.weeklyTSS)
-                                    .font(.caption)
-                                    .foregroundColor(.text.secondary)
-                            }
-                        } else {
-                            Text(CommonContent.States.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 // Chart
                 if data.isEmpty {

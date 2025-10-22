@@ -20,18 +20,13 @@ struct PerformanceOverviewCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "chart.xyaxis.line",
+            iconColor: .purple,
+            title: TrendsContent.Cards.performanceOverview,
+            subtitle: TrendsContent.PerformanceOverview.subtitle
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(TrendsContent.Cards.performanceOverview)
-                        .font(.heading)
-                        .foregroundColor(.text.primary)
-                    
-                    Text(TrendsContent.PerformanceOverview.subtitle)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
-                }
                 
                 // Chart
                 if hasData {

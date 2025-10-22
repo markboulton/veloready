@@ -40,30 +40,13 @@ struct TrainingLoadTrendCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "figure.run",
+            iconColor: .blue,
+            title: TrendsContent.Cards.trainingLoad,
+            subtitle: chartData.last.map { "TSB: \(String(format: "%.1f", $0.tsb))" } ?? TrendsContent.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(TrendsContent.Cards.trainingLoad)
-                        .font(.heading)
-                        .foregroundColor(.text.primary)
-                    
-                    if let latest = chartData.last {
-                        HStack(spacing: Spacing.xs) {
-                            Text(TrendsContent.Labels.tsbLabel)
-                                .font(.caption)
-                                .foregroundColor(.text.secondary)
-                            
-                            Text(String(format: "%.1f", latest.tsb))
-                                .font(.title)
-                                .foregroundColor(tsbColor(latest.tsb))
-                        }
-                    } else {
-                        Text(TrendsContent.noDataFound)
-                            .font(.body)
-                            .foregroundColor(.text.secondary)
-                    }
-                }
                 
                 // Chart
                 if chartData.isEmpty {

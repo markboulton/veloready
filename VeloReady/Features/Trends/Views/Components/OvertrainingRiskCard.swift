@@ -5,35 +5,13 @@ struct OvertrainingRiskCard: View {
     let risk: OvertrainingRiskCalculator.RiskResult?
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .semantic.warning,
+            title: TrendsContent.Cards.overtrainingRisk,
+            subtitle: risk.map { "\($0.riskLevel.rawValue) (\(Int($0.riskScore))/100)" } ?? CommonContent.States.calculating
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.overtrainingRisk)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if let risk = risk {
-                            HStack(spacing: Spacing.xs) {
-                                Text(risk.riskLevel.rawValue)
-                                    .font(.title)
-                                    .foregroundColor(riskColor(risk.riskLevel))
-                                
-                                Text("(\(Int(risk.riskScore))/100)")
-                                    .font(.caption)
-                                    .foregroundColor(.text.secondary)
-                            }
-                        } else {
-                            Text(CommonContent.States.calculating)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 if let risk = risk {
                     riskContent(risk)
