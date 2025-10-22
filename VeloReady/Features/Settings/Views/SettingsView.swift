@@ -15,6 +15,9 @@ struct SettingsView: View {
                 // Profile Section
                 ProfileSection()
                 
+                // Goals (Steps & Calories)
+                GoalsSettingsSection()
+                
                 // Sleep Settings
                 SleepSettingsSection(userSettings: userSettings)
                 
@@ -638,33 +641,6 @@ struct DisplaySettingsView: View {
                     Text(SettingsContent.Display.unitsTitle)
                 } footer: {
                     Text(SettingsContent.Display.unitsDescription)
-                }
-                
-                Section {
-                    Toggle(SettingsContent.Display.useBMR, isOn: $userSettings.useBMRAsGoal)
-                    
-                    if !userSettings.useBMRAsGoal {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(SettingsContent.Display.dailyGoal)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            
-                            HStack {
-                                Text(SettingsContent.Display.caloriesLabel)
-                                    .frame(width: 80, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.calorieGoal, in: 1000...5000, step: 50) {
-                                    Text("\(Int(userSettings.calorieGoal)) \(CommonContent.Units.calories)")
-                                        .frame(width: 60, alignment: .trailing)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                } header: {
-                    Text(SettingsContent.Display.calorieGoalsTitle)
-                } footer: {
-                    Text(SettingsContent.Display.calorieGoalsDescription)
                 }
             }
             .navigationTitle(SettingsContent.Display.title)
