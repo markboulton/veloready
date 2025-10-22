@@ -7,24 +7,42 @@ struct StepsCard: View {
     @State private var hourlySteps: [HourlyStepData] = []
     
     var body: some View {
-        StandardCard(
-            icon: Icons.Health.steps,
-            title: "Steps"
-        ) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                // Sparkline aligned right
-                if !hourlySteps.isEmpty {
-                    HStack {
-                        Spacer()
-                        StepsSparkline(hourlySteps: hourlySteps)
-                            .frame(width: 160)
-                    }
-                }
+        VStack(alignment: .leading, spacing: 0) {
+            // Custom header with sparkline
+            HStack(alignment: .center, spacing: Spacing.sm) {
+                Image(systemName: Icons.Health.steps)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Color.text.secondary)
                 
-                // Steps count with goal
-                Text("\(formatSteps(liveActivityService.dailySteps)) / \(formatSteps(userSettings.stepGoal))")
-                    .font(.system(size: 32, weight: .bold))
+                Text("Steps")
+                    .font(.heading)
                     .foregroundColor(Color.text.primary)
+                
+                Spacer()
+                
+                // Sparkline aligned with header
+                if !hourlySteps.isEmpty {
+                    StepsSparkline(hourlySteps: hourlySteps)
+                        .frame(width: 160, height: 24)
+                }
+            }
+            .padding(.bottom, Spacing.md)
+            
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                // Steps count with goal - current bold, target regular grey
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text(formatSteps(liveActivityService.dailySteps))
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color.text.primary)
+                    
+                    Text(" / ")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color.text.primary)
+                    
+                    Text(formatSteps(userSettings.stepGoal))
+                        .font(.system(size: 32, weight: .regular))
+                        .foregroundColor(.secondary)
+                }
                 
                 // Distance label
                 if liveActivityService.walkingDistance > 0 {
@@ -34,6 +52,14 @@ struct StepsCard: View {
                 }
             }
         }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.primary.opacity(0.08))
+        )
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xxl / 2)
         .task {
             await loadHourlySteps()
         }
