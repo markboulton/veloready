@@ -61,32 +61,11 @@ struct CompactRingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
         }
-        .onAppear {
-            // Animate ring drawing on appear with delay and ease-out curve
-            // Starts fast, slows down towards the end
-            guard score != nil else { return }
-            
-            animateRing()
-        }
-        .onChange(of: score) { _, newScore in
-            // Re-animate if score changes after initial load
-            guard newScore != nil else {
-                animatedProgress = 0.0
-                numberOpacity = 0.0
-                return
-            }
-            
-            // Reset and re-animate
-            animatedProgress = 0.0
-            numberOpacity = 0.0
-            
-            animateRing()
-        }
         .onChange(of: animationTrigger) { _, _ in
-            // Re-animate when pull-to-refresh completes
+            // Animate when spinner disappears or pull-to-refresh completes
             guard score != nil else { return }
             
-            // Reset and re-animate
+            // Reset and animate
             animatedProgress = 0.0
             numberOpacity = 0.0
             

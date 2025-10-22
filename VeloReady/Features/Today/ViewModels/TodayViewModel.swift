@@ -14,6 +14,11 @@ class TodayViewModel: ObservableObject {
     @Published var isInitializing = true {
         didSet {
             Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(isInitializing)")
+            // Trigger ring animations when spinner disappears
+            if !isInitializing && oldValue {
+                animationTrigger = UUID()
+                Logger.debug("🎬 [ANIMATION] Triggered ring animations after spinner")
+            }
         }
     }
     @Published var isDataLoaded = false // Track when all initial data is ready
