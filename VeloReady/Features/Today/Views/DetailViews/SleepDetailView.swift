@@ -762,14 +762,14 @@ struct SleepDetailView: View {
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(Color(.systemGray5))
-                                .frame(height: 4)
+                                .frame(height: 2)
                             
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(ColorScale.purpleAccent)
-                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 4)
+                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 2)
                         }
                     }
-                    .frame(height: 4)
+                    .frame(height: 2)
                 }
                 .padding(.top, 4)
             }

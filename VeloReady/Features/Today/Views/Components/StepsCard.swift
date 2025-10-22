@@ -36,8 +36,8 @@ struct StepsCard: View {
                         .foregroundColor(Color.text.primary)
                     
                     Text(" / ")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color.text.primary)
+                        .font(.system(size: 32, weight: .regular))
+                        .foregroundColor(.secondary)
                     
                     Text(formatSteps(userSettings.stepGoal))
                         .font(.system(size: 32, weight: .regular))

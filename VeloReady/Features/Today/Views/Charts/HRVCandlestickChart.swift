@@ -67,7 +67,7 @@ struct HRVCandlestickChart: View {
         return Chart {
             ForEach(data) { point in
                 let isTodayPoint = isToday(point)
-                let color = isTodayPoint ? ColorScale.redAccent : Color.text.tertiary
+                let color = isTodayPoint ? ColorScale.redAccent : Color(.systemGray3)
                 
                 // Candlestick body (open to close)
                 RectangleMark(
@@ -85,7 +85,7 @@ struct HRVCandlestickChart: View {
                     yEnd: .value("High", animateChart ? point.high : point.average)
                 )
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .foregroundStyle(color.opacity(0.6))
+                .foregroundStyle(isTodayPoint ? Color.white : Color(.systemGray4))
                 
                 // For 7-day view: Annotate high and low values
                 if selectedPeriod == .sevenDays && animateChart {
@@ -98,7 +98,7 @@ struct HRVCandlestickChart: View {
                     .annotation(position: .top, spacing: 2) {
                         Text("\(Int(point.high))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.high) : Color.text.tertiary)
+                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.high) : Color(.systemGray3))
                     }
                     
                     // Low value annotation
@@ -110,7 +110,7 @@ struct HRVCandlestickChart: View {
                     .annotation(position: .bottom, spacing: 2) {
                         Text("\(Int(point.low))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.low) : Color.text.tertiary)
+                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.low) : Color(.systemGray3))
                     }
                 }
             }

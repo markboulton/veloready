@@ -127,43 +127,6 @@ struct TodayView: View {
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
-            .toolbar {
-                // Only show custom left-aligned title when:
-                // 1. Wellness alert is present AND
-                // 2. User has scrolled
-                if healthKitManager.isAuthorized, 
-                   wellnessService.currentAlert != nil,
-                   scrollOffset < -50 {
-                    ToolbarItem(placement: .principal) {
-                        HStack {
-                            Text(CommonContent.today)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                        }
-                    }
-                }
-                
-                // Health warnings in nav bar (only show ONE at a time, prioritize illness over wellness)
-                if healthKitManager.isAuthorized, scrollOffset > -50 {
-                    // Show illness indicator if present (higher priority)
-                    if let indicator = illnessService.currentIndicator, indicator.isSignificant {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            BodyStressIndicator(indicator: indicator) {
-                                showingIllnessDetailSheet = true
-                            }
-                        }
-                    }
-                    // Otherwise show wellness indicator if present
-                    else if let alert = wellnessService.currentAlert {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            WellnessIndicator(alert: alert) {
-                                showingWellnessDetailSheet = true
-                            }
-                        }
-                    }
-                }
-            }
             .onAppear {
                 handleViewAppear()
             }

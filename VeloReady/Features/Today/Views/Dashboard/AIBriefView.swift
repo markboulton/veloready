@@ -179,15 +179,15 @@ private struct MLDataCollectionView: View {
                     // Background (grey)
                     Rectangle()
                         .fill(Color(.systemGray5))
-                        .frame(height: 1)
+                        .frame(height: 2)
                     
                     // Progress (blue)
                     Rectangle()
                         .fill(Color.blue)
-                        .frame(width: geometry.size.width * progress, height: 1)
+                        .frame(width: geometry.size.width * progress, height: 2)
                 }
             }
-            .frame(height: 1)
+            .frame(height: 2)
             
             HStack {
                 Text("\(currentDays) days")

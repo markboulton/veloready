@@ -10,10 +10,21 @@ struct HealthWarningsCard: View {
     var body: some View {
         // Only show if there's an illness indicator or wellness alert
         if hasWarnings {
-            StandardCard(
-                icon: warningIcon,
-                title: "Health Alerts"
-            ) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Custom header with red styling for illness
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    Image(systemName: warningIcon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.secondary)
+                    
+                    Text(hasIllnessWarning ? "Body Stress Detected" : "Health Alerts")
+                        .font(.heading)
+                        .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.primary)
+                    
+                    Spacer()
+                }
+                .padding(.bottom, Spacing.md)
+                
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     // Illness indicator (higher priority)
                     if let indicator = illnessService.currentIndicator, indicator.isSignificant {
@@ -38,6 +49,14 @@ struct HealthWarningsCard: View {
                     }
                 }
             }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.primary.opacity(0.08))
+            )
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xxl / 2)
             .sheet(isPresented: $showingIllnessDetail) {
                 if let indicator = illnessService.currentIndicator {
                     IllnessDetailSheet(indicator: indicator)
@@ -58,6 +77,10 @@ struct HealthWarningsCard: View {
     private var hasWarnings: Bool {
         (illnessService.currentIndicator?.isSignificant ?? false) || 
         (wellnessService.currentAlert != nil)
+    }
+    
+    private var hasIllnessWarning: Bool {
+        illnessService.currentIndicator?.isSignificant ?? false
     }
     
     private var warningIcon: String {

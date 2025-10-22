@@ -128,16 +128,16 @@ struct TrainingPhaseCard: View {
                     ZStack(alignment: .leading) {
                         Rectangle()
                             .fill(Color.background.secondary)
-                            .frame(height: 4)
+                            .frame(height: 2)
                             .cornerRadius(2)
                         
                         Rectangle()
                             .fill(confidenceColor(phase.confidence))
-                            .frame(width: geometry.size.width * phase.confidence, height: 4)
+                            .frame(width: geometry.size.width * phase.confidence, height: 2)
                             .cornerRadius(2)
                     }
                 }
-                .frame(height: 4)
+                .frame(height: 2)
                 .frame(width: 80)
             }
             
