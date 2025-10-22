@@ -9,8 +9,21 @@ struct SleepDetailView: View {
     @State private var sleepSamples: [SleepHypnogramChart.SleepStageSample] = []
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
+        ZStack(alignment: .top) {
+            // Black gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black,
+                    Color.black.opacity(0.95),
+                    Color.black.opacity(0.9)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 0) {
                     // Header with main score
                     SleepHeaderSection(sleepScore: sleepScore)
                         .padding()
@@ -53,8 +66,30 @@ struct SleepDetailView: View {
             .refreshable {
                 await SleepScoreService.shared.calculateSleepScore()
             }
+            
+            // Navigation gradient mask
+            NavigationGradientMask()
+        }
         .navigationTitle(SleepContent.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                        
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+        }
     }
     
     // MARK: - View Sections
