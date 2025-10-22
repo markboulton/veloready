@@ -16,35 +16,13 @@ struct RestingHRCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "heart.fill",
+            iconColor: .health.heartRate,
+            title: TrendsContent.Cards.restingHR,
+            subtitle: !data.isEmpty ? "\(Int(averageRHR)) \(TrendsContent.Units.bpm) avg" : TrendsContent.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.restingHR)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if !data.isEmpty {
-                            HStack(spacing: Spacing.xs) {
-                                Text("\(Int(averageRHR)) \(TrendsContent.Units.bpm)")
-                                    .font(.title)
-                                    .foregroundColor(ColorScale.pinkAccent)
-                                
-                                Text(TrendsContent.RestingHR.avg)
-                                    .font(.caption)
-                                    .foregroundColor(.text.secondary)
-                            }
-                        } else {
-                            Text(TrendsContent.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                
                 // Chart
                 if data.isEmpty {
                     emptyState

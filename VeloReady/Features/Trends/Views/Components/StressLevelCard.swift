@@ -12,28 +12,13 @@ struct StressLevelCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "brain.head.profile",
+            iconColor: .orange,
+            title: TrendsContent.Cards.stressLevel,
+            subtitle: !data.isEmpty ? "\(Int(averageStress))\(CommonContent.Formatting.outOf100)" : TrendsContent.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.stressLevel)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if !data.isEmpty {
-                            Text("\(Int(averageStress))\(CommonContent.Formatting.outOf100)")
-                                .font(.title)
-                                .foregroundColor(stressColor(averageStress))
-                        } else {
-                            Text(TrendsContent.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                }
                 
                 // Chart
                 if data.isEmpty {

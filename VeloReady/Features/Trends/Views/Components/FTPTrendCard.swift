@@ -7,29 +7,13 @@ struct FTPTrendCard: View {
     let timeRange: TrendsViewModel.TimeRange
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "bolt.fill",
+            iconColor: .workout.power,
+            title: TrendsContent.Cards.ftpTrend,
+            subtitle: data.last.map { "\(Int($0.value))\(TrendsContent.Units.watts)" } ?? TrendsContent.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.Cards.ftpTrend)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if let currentFTP = data.last?.value {
-                            Text("\(Int(currentFTP))\(TrendsContent.Units.watts)")
-                                .font(.title)
-                                .foregroundColor(ColorScale.blueAccent)
-                        } else {
-                            Text(TrendsContent.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 // Chart
                 if data.isEmpty {
