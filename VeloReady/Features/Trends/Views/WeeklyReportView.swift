@@ -18,8 +18,7 @@ struct WeeklyReportView: View {
                     daysUntilNextReport: viewModel.daysUntilNextReport
                 )
                 .padding(.horizontal, Spacing.lg)
-                
-                SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                .padding(.top, Spacing.md)
                 
                 // 2. Fitness Trajectory (CTL/ATL/Form)
                 FitnessTrajectoryComponent(
@@ -27,23 +26,20 @@ struct WeeklyReportView: View {
                     ctlData: viewModel.ctlHistoricalData
                 )
                 .padding(.horizontal, Spacing.lg)
-                
-                SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                .padding(.top, Spacing.md)
                 
                 // 3. Wellness Foundation
                 if let wellness = viewModel.wellnessFoundation {
                     WellnessFoundationComponent(wellness: wellness)
                         .padding(.horizontal, Spacing.lg)
-                    
-                    SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                        .padding(.top, Spacing.md)
                 }
                 
                 // 4. Recovery Capacity
                 if let metrics = viewModel.weeklyMetrics {
                     RecoveryCapacityComponent(metrics: metrics)
                         .padding(.horizontal, Spacing.lg)
-                    
-                    SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                        .padding(.top, Spacing.md)
                 }
                 
                 // 5. Training Load Summary
@@ -52,8 +48,7 @@ struct WeeklyReportView: View {
                     zones: viewModel.trainingZoneDistribution
                 )
                 .padding(.horizontal, Spacing.lg)
-                
-                SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                .padding(.top, Spacing.md)
                 
                 // 6. Sleep Hypnograms with Segmented Control
                 if !viewModel.sleepHypnograms.isEmpty {
@@ -62,16 +57,14 @@ struct WeeklyReportView: View {
                         selectedDay: $selectedSleepDay
                     )
                     .padding(.horizontal, Spacing.lg)
-                    
-                    SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                    .padding(.top, Spacing.md)
                 }
                 
                 // 7. Sleep Schedule (Circadian Rhythm)
                 if let circadian = viewModel.circadianRhythm {
                     SleepScheduleComponent(circadian: circadian)
                         .padding(.horizontal, Spacing.lg)
-                    
-                    SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
+                        .padding(.top, Spacing.md)
                 }
                 
                 // 8. Week-over-Week Changes

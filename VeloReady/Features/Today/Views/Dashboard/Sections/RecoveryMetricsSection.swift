@@ -48,10 +48,6 @@ struct RecoveryMetricsSection: View {
                 }
             }
             
-            if !hideBottomDivider {
-                // Section divider (40px top, 0 bottom - next section provides top padding)
-                SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
-            }
         }
     }
     

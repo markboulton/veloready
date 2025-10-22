@@ -63,8 +63,6 @@ struct ActivityStatsRow: View {
                 DetailedCaloriePanel(liveActivityService: liveActivityService)
                     .frame(maxWidth: .infinity)
             }
-            
-            SectionDivider(topPadding: 0)
         }
     }
     
