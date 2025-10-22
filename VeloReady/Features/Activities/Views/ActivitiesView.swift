@@ -75,7 +75,7 @@ struct ActivitiesView: View {
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.regularMaterial, for: .navigationBar)
+            .toolbarBackground(.bar, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {

@@ -31,38 +31,22 @@ struct FloatingTabBar: View {
         .padding(.vertical, 8)
         .background(
             ZStack {
-                // Liquid glass material - system handles refraction
+                // Dark base for contrast (like Apple Fitness)
                 RoundedRectangle(cornerRadius: 32)
-                    .fill(.regularMaterial)
+                    .fill(Color.black.opacity(0.6))
                 
-                // Subtle highlight for glass effect
+                // Liquid glass blur/refraction
                 RoundedRectangle(cornerRadius: 32)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.clear
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.8)
+                
+                // Subtle edge highlight
+                RoundedRectangle(cornerRadius: 32)
+                    .stroke(
+                        Color.white.opacity(0.15),
+                        lineWidth: 0.5
                     )
             }
-        )
-        .overlay(
-            // Elegant border
-            RoundedRectangle(cornerRadius: 32)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(colorScheme == .dark ? 0.2 : 0.3),
-                            Color.white.opacity(colorScheme == .dark ? 0.05 : 0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.5
-                )
         )
         .shadow(
             color: Color.black.opacity(colorScheme == .dark ? 0.6 : 0.15),
@@ -99,35 +83,14 @@ struct TabBarButton: View {
         }) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Glass selection indicator background
+                    // Selection pill background (like Apple Fitness)
                     if isSelected {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(.thinMaterial)
+                            .fill(Color.white.opacity(colorScheme == .dark ? 0.15 : 0.2))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.white.opacity(colorScheme == .dark ? 0.15 : 0.25),
-                                                Color.white.opacity(colorScheme == .dark ? 0.05 : 0.1)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(
-                                        Color.white.opacity(colorScheme == .dark ? 0.2 : 0.3),
-                                        lineWidth: 0.5
-                                    )
-                            )
-                            .shadow(
-                                color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1),
-                                radius: 4,
-                                x: 0,
-                                y: 2
+                                    .fill(.ultraThinMaterial)
+                                    .opacity(0.5)
                             )
                             .matchedGeometryEffect(id: "tab_background", in: namespace)
                             .frame(width: 60, height: 36)
