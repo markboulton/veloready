@@ -10,15 +10,15 @@ struct WeeklyReportHeaderComponent: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header matches AIBriefView exactly
+            // Header
             HStack(spacing: 8) {
                 Image(systemName: Icons.System.sparkles)
                     .font(.heading)
-                    .foregroundColor(ColorPalette.aiIconColor)
+                    .foregroundColor(Color.text.secondary)
                 
                 Text(TrendsContent.WeeklyReport.title)
                     .font(.heading)
-                    .rainbowGradient()
+                    .foregroundColor(Color.white)
                 
                 Spacer()
             }

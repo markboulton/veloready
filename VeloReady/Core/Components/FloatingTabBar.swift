@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Floating liquid glass tab bar with animations and transitions
 /// Inspired by iOS floating menu design with translucent material
@@ -9,6 +10,7 @@ struct FloatingTabBar: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var indicatorOffset: CGFloat = 0
     @Namespace private var animation
+    @State private var previousSelection: Int = 0
     
     var body: some View {
         HStack(spacing: 0) {
@@ -29,16 +31,24 @@ struct FloatingTabBar: View {
         .padding(.vertical, 8)
         .background(
             ZStack {
-                // Frosted glass background
+                // Primary glass material - iOS native
                 RoundedRectangle(cornerRadius: 32)
                     .fill(.ultraThinMaterial)
                 
-                // Subtle tint
+                // Enhanced depth layer
                 RoundedRectangle(cornerRadius: 32)
                     .fill(
-                        colorScheme == .dark
-                            ? Color.black.opacity(0.3)
-                            : Color.white.opacity(0.5)
+                        LinearGradient(
+                            colors: colorScheme == .dark ? [
+                                Color.black.opacity(0.4),
+                                Color.black.opacity(0.2)
+                            ] : [
+                                Color.white.opacity(0.6),
+                                Color.white.opacity(0.3)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
             }
         )
@@ -65,6 +75,14 @@ struct FloatingTabBar: View {
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
+        .onChange(of: selectedTab) { oldValue, newValue in
+            if oldValue != newValue {
+                // Trigger haptic feedback on tab change
+                let impact = UIImpactFeedbackGenerator(style: .light)
+                impact.impactOccurred()
+                previousSelection = oldValue
+            }
+        }
     }
 }
 
@@ -78,6 +96,7 @@ struct TabBarButton: View {
     
     @Environment(\.colorScheme) var colorScheme
     @State private var isPressed = false
+    @AccessibilityFocusState private var isAccessibilityFocused: Bool
     
     var body: some View {
         Button(action: {
@@ -119,16 +138,31 @@ struct TabBarButton: View {
                             .frame(width: 60, height: 36)
                     }
                     
-                    // Icon - Using SF Symbol rendering modes per Apple guidelines
-                    Image(systemName: tab.icon)
-                        .font(.system(size: 22, weight: isSelected ? .semibold : .medium))
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(
-                            isSelected
-                                ? Color.primary
-                                : Color.primary.opacity(0.5)
-                        )
-                        .scaleEffect(isPressed ? 0.85 : 1.0)
+                    // Icon - Using SF Symbol with iOS 17+ effects
+                    Group {
+                        if #available(iOS 17.0, *) {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 22, weight: isSelected ? .semibold : .medium))
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(
+                                    isSelected
+                                        ? Color.primary
+                                        : Color.primary.opacity(0.5)
+                                )
+                                .scaleEffect(isPressed ? 0.85 : 1.0)
+                                .symbolEffect(.bounce, value: isSelected)
+                        } else {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 22, weight: isSelected ? .semibold : .medium))
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(
+                                    isSelected
+                                        ? Color.primary
+                                        : Color.primary.opacity(0.5)
+                                )
+                                .scaleEffect(isPressed ? 0.85 : 1.0)
+                        }
+                    }
                 }
                 
                 // Label
@@ -141,22 +175,26 @@ struct TabBarButton: View {
                     )
             }
             .frame(height: 60)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        .accessibilityHint(isSelected ? "" : "Double tap to switch to \(tab.title) tab")
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    withAnimation(FluidAnimation.quick) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                         isPressed = true
                     }
                 }
                 .onEnded { _ in
-                    withAnimation(FluidAnimation.quick) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                         isPressed = false
                     }
                 }
         )
-        .animation(FluidAnimation.flow, value: isSelected)
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: isSelected)
     }
 }
 

@@ -25,8 +25,6 @@ struct TodayView: View {
     @State private var showingIllnessDetailSheet = false
     @State private var missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
     @State private var showMissingSleepInfo = false
-    @AppStorage("hasCompletedInitialLoad") private var hasCompletedInitialLoad = false
-    @State private var showMainSpinner = false
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
@@ -43,13 +41,7 @@ struct TodayView: View {
     
     var body: some View {
         ZStack {
-            if showMainSpinner {
-                loadingSpinner
-            }
-            
-            // Only show NavigationView when main spinner is hidden
-            if !showMainSpinner {
-                NavigationView {
+            NavigationView {
                 ZStack {
                     // Gradient background
                     GradientBackground()
@@ -125,18 +117,6 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .onAppear {
-                // Handle initial spinner (only on very first app launch)
-                if !hasCompletedInitialLoad {
-                    showMainSpinner = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                        withAnimation(.easeOut(duration: 0.3)) {
-                            showMainSpinner = false
-                            showInitialSpinner = false
-                            hasCompletedInitialLoad = true
-                        }
-                    }
-                }
-                
                 handleViewAppear()
             }
             .onChange(of: healthKitManager.isAuthorized) { _, newValue in
@@ -188,12 +168,10 @@ struct TodayView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(.systemBackground))
                 .ignoresSafeArea(.all) // Cover everything including nav bar and tab bar
-            }
-            }
-            .transition(.opacity)
+                .transition(.opacity)
             }
         }
-        .toolbar(showMainSpinner ? .hidden : .visible, for: .tabBar)
+        .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
     }
     
     // MARK: - Loading Spinner
