@@ -12,29 +12,13 @@ struct RecoveryTrendCard: View {
     }
     
     var body: some View {
-        Card(style: .elevated) {
+        StandardCard(
+            icon: "heart.fill",
+            iconColor: .health.heartRate,
+            title: TrendsContent.RecoveryTrend.trackDays,
+            subtitle: !data.isEmpty ? "\(Int(averageRecovery))% avg" : TrendsContent.noDataFound
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(TrendsContent.RecoveryTrend.trackDays)
-                            .font(.heading)
-                            .foregroundColor(.text.primary)
-                        
-                        if !data.isEmpty {
-                            Text("\(Int(averageRecovery))% avg")
-                                .font(.title)
-                                .foregroundColor(recoveryColor(averageRecovery))
-                        } else {
-                            Text(TrendsContent.noDataFound)
-                                .font(.body)
-                                .foregroundColor(.text.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                }
                 
                 // Chart
                 if data.isEmpty {
