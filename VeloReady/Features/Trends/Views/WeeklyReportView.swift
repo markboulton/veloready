@@ -8,7 +8,7 @@ struct WeeklyReportView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: Spacing.cardSpacing) {
+            VStack(spacing: 0) {
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(
                     aiSummary: viewModel.aiSummary,

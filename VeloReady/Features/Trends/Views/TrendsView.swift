@@ -93,7 +93,7 @@ struct TrendsView: View {
     // MARK: - Trend Cards
     
     private var trendCards: some View {
-        VStack(spacing: Spacing.cardSpacing) {
+        VStack(spacing: 0) {
             // Illness Alert (if present)
             IllnessAlertBanner()
             
