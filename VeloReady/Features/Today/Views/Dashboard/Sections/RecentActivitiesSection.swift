@@ -7,8 +7,10 @@ struct RecentActivitiesSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Header with sparkline
             HStack(spacing: 4) {
-                SectionHeader(TodayContent.activitiesSection)
+                Text(TodayContent.activitiesSection)
+                    .font(.heading)
                 ActivitySparkline(
                     dailyActivities: dailyActivityData,
                     alignment: .leading,
@@ -17,8 +19,7 @@ struct RecentActivitiesSection: View {
                 .frame(width: 120)
                 Spacer()
             }
-            .padding(.top, Spacing.xxl) // Standard 40px top padding
-            .padding(.bottom, 16)
+            .padding(.bottom, Spacing.md)
             
             // Show all activities including the latest ride (no offset)
             if allActivities.isEmpty {
@@ -28,25 +29,21 @@ struct RecentActivitiesSection: View {
                     message: TodayContent.noActivities
                 )
             } else {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: Spacing.md) {
                     ForEach(allActivities) { activity in
                         UnifiedActivityCard(activity: activity)
-                            .padding(.vertical, 8)
-                        
-                        if activity.id != allActivities.last?.id {
-                            Divider()
-                        }
                     }
                 }
             }
         }
-        .padding(.horizontal, Spacing.md)
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.primary.opacity(0.08))
         )
-        .padding(.horizontal, 8)
-        .padding(.vertical, Spacing.md / 2)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm / 2)
     }
 }
 

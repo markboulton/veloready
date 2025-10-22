@@ -8,79 +8,79 @@ struct AIBriefView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-                // Header with rainbow gradient
-                HStack(spacing: 8) {
-                    Image(systemName: Icons.System.sparkles)
-                        .font(.heading)
-                        .foregroundColor(ColorPalette.aiIconColor)
-                    
-                    Text(TodayContent.AIBrief.title)
-                        .font(.heading)
-                        .rainbowGradient()
-                    
-                    Spacer()
-                }
-                .padding(.top, Spacing.xxl) // Standard 40px top padding
-                .padding(.bottom, 12)
+            // Custom header with rainbow gradient (StandardCard doesn't support this)
+            HStack(spacing: 8) {
+                Image(systemName: Icons.System.sparkles)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(ColorPalette.aiIconColor)
                 
-                // Content with fixed height to prevent layout shifts
-                ZStack(alignment: .topLeading) {
-                    // Invisible placeholder to maintain height
-                    Text(CommonContent.Preview.placeholderText)
-                        .bodyStyle()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .opacity(0)
-                    
-                    // Actual content
-                    if service.isLoading {
-                        HStack(spacing: Spacing.sm) {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text(TodayContent.AIBrief.analyzing)
-                                .bodyStyle()
-                                .foregroundColor(.text.secondary)
-                        }
-                        .padding(.vertical, Spacing.md)
-                    } else if let error = service.error {
-                        ErrorView(error: error)
-                    } else if let text = service.briefText {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(text)
-                                .bodyStyle()
-                                .fixedSize(horizontal: false, vertical: true)
-                            
-                            // ML Data Collection Progress (if not sufficient data yet)
-                            if mlService.trainingDataCount < 30 {
-                                MLDataCollectionView(
-                                    currentDays: mlService.trainingDataCount,
-                                    totalDays: 30,
-                                    showInfoSheet: { showingMLInfoSheet = true }
-                                )
-                                .padding(.top, 4)
-                            }
-                            
-                            // Training Metrics
-                            TrainingMetricsView()
-                        }
-                    } else {
-                        HStack(spacing: Spacing.sm) {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                            Text(TodayContent.AIBrief.analyzing)
-                                .bodyStyle()
-                                .foregroundColor(.text.secondary)
-                        }
-                        .padding(.vertical, Spacing.md)
+                Text(TodayContent.AIBrief.title)
+                    .font(.heading)
+                    .rainbowGradient()
+                
+                Spacer()
+            }
+            .padding(.bottom, Spacing.md)
+            
+            // Content with fixed height to prevent layout shifts
+            ZStack(alignment: .topLeading) {
+                // Invisible placeholder to maintain height
+                Text(CommonContent.Preview.placeholderText)
+                    .bodyStyle()
+                    .fixedSize(horizontal: false, vertical: true)
+                    .opacity(0)
+                
+                // Actual content
+                if service.isLoading {
+                    HStack(spacing: Spacing.sm) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text(TodayContent.AIBrief.analyzing)
+                            .bodyStyle()
+                            .foregroundColor(.text.secondary)
                     }
+                    .padding(.vertical, Spacing.md)
+                } else if let error = service.error {
+                    ErrorView(error: error)
+                } else if let text = service.briefText {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(text)
+                            .bodyStyle()
+                            .fixedSize(horizontal: false, vertical: true)
+                        
+                        // ML Data Collection Progress (if not sufficient data yet)
+                        if mlService.trainingDataCount < 30 {
+                            MLDataCollectionView(
+                                currentDays: mlService.trainingDataCount,
+                                totalDays: 30,
+                                showInfoSheet: { showingMLInfoSheet = true }
+                            )
+                            .padding(.top, 4)
+                        }
+                        
+                        // Training Metrics
+                        TrainingMetricsView()
+                    }
+                } else {
+                    HStack(spacing: Spacing.sm) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text(TodayContent.AIBrief.analyzing)
+                            .bodyStyle()
+                            .foregroundColor(.text.secondary)
+                    }
+                    .padding(.vertical, Spacing.md)
                 }
             }
-            .padding(.horizontal, Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
-            )
-            .padding(.horizontal, 8)
-            .padding(.vertical, Spacing.md / 2)
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.primary.opacity(0.08))
+        )
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm / 2)
             .onAppear {
             // Fetch brief on appear if not already loaded
             // Note: If sleep data is missing, the recovery refresh will trigger AI brief update

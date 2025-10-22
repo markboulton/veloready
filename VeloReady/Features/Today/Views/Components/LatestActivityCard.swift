@@ -10,50 +10,15 @@ struct LatestActivityCard: View {
     @State private var isLoadingMap = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            NavigationLink(destination: destinationView) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Content (header + activity details in one container)
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        // Header
-                        HStack {
-                            Image(systemName: activity.type.icon)
-                                .foregroundStyle(Color.text.secondary)
-                                .font(.system(size: 16))
-                            
-                            Text(TodayContent.latestActivity)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.text.primary)
-                            
-                            Spacer()
-                        }
-                        .padding(.top, Spacing.xxl) // Standard 40px top padding
-                        // Title and Date/Time
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(activity.name)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.text.primary)
-                                .lineLimit(2)
-                            
-                            HStack(spacing: 4) {
-                                Text(formattedDateAndTime)
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.text.secondary)
-                                
-                                if let location = locationString {
-                                    Text(CommonContent.Formatting.separator)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.text.secondary)
-                                    Text(location)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.text.secondary)
-                                }
-                            }
-                        }
-                    
-                        // Metadata Row 1
+        NavigationLink(destination: destinationView) {
+            StandardCard(
+                icon: activity.type.icon,
+                title: activity.name,
+                subtitle: formattedDateAndTimeWithLocation,
+                showChevron: true
+            ) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Metadata Row 1
                         HStack(spacing: Spacing.md) {
                             if let duration = activity.duration {
                                 CompactMetricItem(
@@ -125,18 +90,9 @@ struct LatestActivityCard: View {
                             }
                         }
                     }
-                    .padding(.bottom, Spacing.md)
                 }
-            }
-            .buttonStyle(PlainButtonStyle())
-            .padding(.horizontal, Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
-            )
-            .padding(.horizontal, 8)
-            .padding(.vertical, Spacing.md / 2)
         }
+        .buttonStyle(PlainButtonStyle())
         .onAppear {
             Task {
                 await loadLocation()
@@ -254,6 +210,14 @@ struct LatestActivityCard: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: activity.startDate)
+    }
+    
+    private var formattedDateAndTimeWithLocation: String {
+        var result = formattedDateAndTime
+        if let location = locationString {
+            result += " • \(location)"
+        }
+        return result
     }
     
     // MARK: - Helper Methods

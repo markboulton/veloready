@@ -10,23 +10,15 @@ struct StepsCard: View {
     }
     
     var body: some View {
-        Card {
+        StandardCard(
+            icon: Icons.Health.steps,
+            title: "Steps"
+        ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                // Header with icon and sparkline
-                HStack {
-                    // Grey outlined icon
-                    Image(systemName: Icons.Health.steps)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color.text.secondary)
-                    
-                    Text("Steps")
-                        .font(.heading)
-                        .foregroundColor(Color.text.primary)
-                    
-                    Spacer()
-                    
-                    // Sparkline aligned right
-                    if !hourlySteps.isEmpty {
+                // Sparkline aligned right
+                if !hourlySteps.isEmpty {
+                    HStack {
+                        Spacer()
                         StepsSparkline(hourlySteps: hourlySteps)
                             .frame(width: 80)
                     }

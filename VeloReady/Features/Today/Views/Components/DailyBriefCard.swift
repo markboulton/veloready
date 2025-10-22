@@ -10,30 +10,17 @@ struct DailyBriefCard: View {
     @State private var showingUpgradeSheet = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header (matches AIBriefView exactly)
-            HStack(spacing: 8) {
-                Image(systemName: Icons.System.docText)
-                    .font(.heading)
-                    .foregroundColor(Color.text.secondary)
-                
-                Text(DailyBriefContent.title)
-                    .font(.heading)
-                    .foregroundColor(Color.text.primary)
-                
-                Spacer()
-            }
-            .padding(.top, Spacing.xxl) // Standard 40px top padding
-            .padding(.bottom, 12)
-            
-            // Content (matches AIBriefView structure)
+        StandardCard(
+            icon: Icons.System.docText,
+            title: DailyBriefContent.title
+        ) {
             VStack(alignment: .leading, spacing: 12) {
                 // Main brief text (computed from recovery data)
                 Text(generateBriefText())
                     .bodyStyle()
                     .fixedSize(horizontal: false, vertical: true)
                 
-                // Training Metrics (matches AIBriefView)
+                // Training Metrics
                 TrainingMetricsView()
                 
                 // Upgrade prompt button
@@ -47,13 +34,6 @@ struct DailyBriefCard: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.horizontal, Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.primary.opacity(0.08))
-        )
-        .padding(.horizontal, 8)
-        .padding(.vertical, Spacing.md / 2)
         .sheet(isPresented: $showingUpgradeSheet) {
             PaywallView()
         }
