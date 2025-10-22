@@ -41,6 +41,7 @@ struct RecentActivitiesSection: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.primary.opacity(0.08))
+                .allowsHitTesting(false)
         )
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm / 2)
