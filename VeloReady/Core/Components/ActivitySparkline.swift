@@ -33,6 +33,7 @@ struct ActivitySparkline: View {
         .chartXScale(domain: (dailyActivities.first?.dayOffset ?? 0)...(dailyActivities.last?.dayOffset ?? 0))
         .frame(height: height)
         .onScrollAppear {
+            Logger.debug("📊 [ACTIVITY SPARKLINE] Scroll trigger fired - starting animation")
             animateBars()
         }
     }
@@ -42,10 +43,17 @@ struct ActivitySparkline: View {
         let sortedDays = dailyActivities.map { $0.dayOffset }.sorted()
         let delayPerBar = 0.65 / Double(max(sortedDays.count, 1)) // Faster animation (0.65s total)
         
+        Logger.debug("📊 [ACTIVITY SPARKLINE] Animating \(sortedDays.count) bars, delay per bar: \(String(format: "%.3f", delayPerBar))s")
+        
         for (index, dayOffset) in sortedDays.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * delayPerBar) {
                 withAnimation(.easeOut(duration: 0.15)) {
                     _ = animatedBars.insert(dayOffset)
+                }
+                if index == 0 {
+                    Logger.debug("📊 [ACTIVITY SPARKLINE] First bar animated")
+                } else if index == sortedDays.count - 1 {
+                    Logger.debug("📊 [ACTIVITY SPARKLINE] Last bar animated - sequence complete")
                 }
             }
         }

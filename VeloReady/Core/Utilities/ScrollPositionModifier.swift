@@ -28,11 +28,18 @@ struct ScrollPositionModifier: ViewModifier {
                 let screenHeight = UIScreen.main.bounds.height
                 let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
                 let tabBarTop = screenHeight - tabBarHeight
+                let triggerPoint = tabBarTop - threshold
+                
+                // Debug logging
+                if !hasAppeared {
+                    Logger.debug("📍 [SCROLL] View minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), diff: \(Int(minY - triggerPoint))")
+                }
                 
                 // Trigger animation when view is threshold distance above the tab bar
                 // Higher threshold = animate earlier (when view is further from tab bar)
-                if !hasAppeared && minY < (tabBarTop - threshold) {
+                if !hasAppeared && minY < triggerPoint {
                     hasAppeared = true
+                    Logger.debug("🎬 [SCROLL] Animation triggered! View reached scroll threshold")
                     onAppear()
                 }
             }
