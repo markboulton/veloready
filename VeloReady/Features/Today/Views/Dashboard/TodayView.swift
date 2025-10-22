@@ -491,11 +491,13 @@ struct TodayView: View {
                 }
             }
         case .steps:
-            if liveActivityService.isLoading {
-                SkeletonStatsCard()
-            } else {
-                StepsCard()
-            }
+            StepsCard()
+                .opacity(liveActivityService.isLoading ? 0 : 1)
+                .overlay {
+                    if liveActivityService.isLoading {
+                        SkeletonStatsCard()
+                    }
+                }
         case .calories:
             if liveActivityService.isLoading {
                 SkeletonStatsCard()
