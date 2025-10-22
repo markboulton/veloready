@@ -552,6 +552,11 @@ struct TodayView: View {
         // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
         if viewState.hasCompletedTodayInitialLoad && wasInactive && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
+            
+            // Reset scroll state for sparklines so they can animate again
+            ScrollStateManager.shared.reset()
+            Logger.debug("🔄 [ANIMATION] Reset scroll state for sparklines")
+            
             // Small delay to ensure views are created before triggering animation
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 viewModel.animationTrigger = UUID()
