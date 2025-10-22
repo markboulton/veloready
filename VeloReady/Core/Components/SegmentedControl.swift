@@ -19,14 +19,17 @@ struct SegmentedControl<T: Hashable>: View {
                     .fill(Color.background.primary)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 32)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
-                    .animation(.easeInOut(duration: 0.25), value: selection)
+                    .animation(FluidAnimation.bouncy, value: selection)
                 
                 // Segment buttons
                 HStack(spacing: 0) {
                     ForEach(segments, id: \.value) { segment in
                         Button(action: {
-                            withAnimation {
-                                selection = segment.value
+                            if selection != segment.value {
+                                HapticFeedback.light()
+                                withAnimation(FluidAnimation.bouncy) {
+                                    selection = segment.value
+                                }
                             }
                         }) {
                             segmentContent(for: segment)

@@ -61,14 +61,17 @@ struct LiquidGlassSegmentedControl<T: Hashable>: View {
                     .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 2)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 36)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selection)
+                    .animation(FluidAnimation.bouncy, value: selection)
                 
                 // Segment buttons
                 HStack(spacing: 0) {
                     ForEach(segments, id: \.value) { segment in
                         Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selection = segment.value
+                            if selection != segment.value {
+                                HapticFeedback.light()
+                                withAnimation(FluidAnimation.bouncy) {
+                                    selection = segment.value
+                                }
                             }
                         }) {
                             segmentContent(for: segment)

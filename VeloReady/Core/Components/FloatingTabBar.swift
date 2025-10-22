@@ -77,9 +77,7 @@ struct FloatingTabBar: View {
         .padding(.bottom, 8)
         .onChange(of: selectedTab) { oldValue, newValue in
             if oldValue != newValue {
-                // Trigger haptic feedback on tab change
-                let impact = UIImpactFeedbackGenerator(style: .light)
-                impact.impactOccurred()
+                HapticFeedback.light()
                 previousSelection = oldValue
             }
         }
