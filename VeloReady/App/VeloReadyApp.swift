@@ -199,7 +199,7 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    TodayView(hideInitialSpinner: $showInitialSpinner)
+                    TodayView(showInitialSpinner: $showInitialSpinner)
                 case 1:
                     ActivitiesView()
                 case 2:
@@ -207,7 +207,7 @@ struct MainTabView: View {
                 case 3:
                     SettingsView()
                 default:
-                    TodayView(hideInitialSpinner: $showInitialSpinner)
+                    TodayView(showInitialSpinner: $showInitialSpinner)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
