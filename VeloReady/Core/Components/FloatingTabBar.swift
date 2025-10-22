@@ -31,41 +31,22 @@ struct FloatingTabBar: View {
         .padding(.vertical, 8)
         .background(
             ZStack {
-                // Primary glass material with refraction
+                // Liquid glass material - system handles refraction
                 RoundedRectangle(cornerRadius: 32)
-                    .fill(.thinMaterial)
+                    .fill(.regularMaterial)
                 
-                // Refraction layer - adds glass-like distortion
+                // Subtle highlight for glass effect
                 RoundedRectangle(cornerRadius: 32)
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.15),
-                                Color.white.opacity(0.05),
+                                Color.white.opacity(0.1),
                                 Color.clear
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .blendMode(.overlay)
-                
-                // Depth layer
-                RoundedRectangle(cornerRadius: 32)
-                    .fill(
-                        LinearGradient(
-                            colors: colorScheme == .dark ? [
-                                Color.black.opacity(0.3),
-                                Color.black.opacity(0.1)
-                            ] : [
-                                Color.white.opacity(0.4),
-                                Color.white.opacity(0.2)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .blendMode(.multiply)
             }
         )
         .overlay(
