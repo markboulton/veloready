@@ -29,12 +29,11 @@ struct RecentActivitiesSection: View {
                     message: TodayContent.noActivities
                 )
             } else {
-                LazyVStack(spacing: Spacing.md) {
+                VStack(spacing: Spacing.md) {
                     ForEach(allActivities) { activity in
                         UnifiedActivityCard(activity: activity)
                     }
                 }
-                .buttonStyle(.plain)
             }
         }
         .padding(Spacing.md)
