@@ -33,13 +33,14 @@ struct ScrollPositionModifier: ViewModifier {
                 let tabBarTop = screenHeight - tabBarHeight
                 let triggerPoint = tabBarTop - threshold
                 
+                // Check if view is NOW in trigger zone
+                let isNowInTriggerZone = minY < triggerPoint
+                
                 // Record initial position on first frame
                 if !hasRecordedInitialPosition {
                     initialMinY = minY
                     hasRecordedInitialPosition = true
-                    
-                    // Track if we start in trigger zone
-                    wasInTriggerZone = minY < triggerPoint
+                    wasInTriggerZone = isNowInTriggerZone
                     
                     Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(wasInTriggerZone)")
                     return
@@ -47,9 +48,6 @@ struct ScrollPositionModifier: ViewModifier {
                 
                 // Check if view is in visible viewport (not scrolled off top or bottom)
                 let isInViewport = minY > -100 && minY < screenHeight
-                
-                // Check if view is NOW in trigger zone
-                let isNowInTriggerZone = minY < triggerPoint
                 
                 // Debug logging
                 if !hasAppeared && isInViewport {
