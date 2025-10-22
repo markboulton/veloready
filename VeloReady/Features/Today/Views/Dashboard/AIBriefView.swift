@@ -77,6 +77,13 @@ struct AIBriefView: View {
                 // Section divider (40px top, 0 bottom - next section provides top padding)
                 SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
             }
+            .padding(.horizontal, Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.primary.opacity(0.05))
+            )
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.md / 2)
             .onAppear {
             // Fetch brief on appear if not already loaded
             // Note: If sleep data is missing, the recovery refresh will trigger AI brief update

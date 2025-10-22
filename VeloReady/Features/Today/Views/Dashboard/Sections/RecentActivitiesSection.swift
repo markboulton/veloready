@@ -43,6 +43,13 @@ struct RecentActivitiesSection: View {
             // Section divider (40px top, 0 bottom - next section provides top padding)
             SectionDivider(topPadding: Spacing.xxl, bottomPadding: 0)
         }
+        .padding(.horizontal, Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.primary.opacity(0.05))
+        )
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.md / 2)
     }
 }
 

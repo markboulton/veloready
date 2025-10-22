@@ -35,20 +35,26 @@ extension View {
         self.padding(Spacing.cardPadding)
     }
     
-    /// Apply standard card styling (flat design, no rounded corners)
+    /// Apply standard card styling with 5% opacity background
     func cardStyle() -> some View {
         self
             .padding(Spacing.cardPadding)
-            .background(Color(.systemBackground))
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.primary.opacity(0.05))
+            )
     }
     
-    /// Apply card styling with custom padding per edge
+    /// Apply card styling with custom padding per edge and 5% opacity background
     func cardStyle(leading: CGFloat? = nil, trailing: CGFloat? = nil, top: CGFloat? = nil, bottom: CGFloat? = nil) -> some View {
         self
             .padding(.leading, leading ?? Spacing.cardPadding)
             .padding(.trailing, trailing ?? Spacing.cardPadding)
             .padding(.top, top ?? Spacing.cardPadding)
             .padding(.bottom, bottom ?? Spacing.cardPadding)
-            .background(Color(.systemBackground))
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.primary.opacity(0.05))
+            )
     }
 }

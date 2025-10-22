@@ -85,41 +85,59 @@ struct TabBarButton: View {
         }) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Selection indicator background
+                    // Glass selection indicator background
                     if isSelected {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.blue.opacity(0.2),
-                                        Color.blue.opacity(0.1)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
+                            .fill(.thinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(colorScheme == .dark ? 0.15 : 0.25),
+                                                Color.white.opacity(colorScheme == .dark ? 0.05 : 0.1)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(
+                                        Color.white.opacity(colorScheme == .dark ? 0.2 : 0.3),
+                                        lineWidth: 0.5
+                                    )
+                            )
+                            .shadow(
+                                color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1),
+                                radius: 4,
+                                x: 0,
+                                y: 2
                             )
                             .matchedGeometryEffect(id: "tab_background", in: namespace)
                             .frame(width: 60, height: 36)
                     }
                     
-                    // Icon
+                    // Icon - Using SF Symbol rendering modes per Apple guidelines
                     Image(systemName: tab.icon)
-                        .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(
+                        .font(.system(size: 22, weight: isSelected ? .semibold : .medium))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(
                             isSelected
-                                ? .blue
-                                : Color.primary.opacity(0.6)
+                                ? Color.primary
+                                : Color.primary.opacity(0.5)
                         )
                         .scaleEffect(isPressed ? 0.85 : 1.0)
                 }
                 
                 // Label
                 Text(tab.title)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
                     .foregroundColor(
                         isSelected
-                            ? .blue
-                            : Color.primary.opacity(0.6)
+                            ? Color.primary
+                            : Color.primary.opacity(0.5)
                     )
             }
             .frame(height: 60)
