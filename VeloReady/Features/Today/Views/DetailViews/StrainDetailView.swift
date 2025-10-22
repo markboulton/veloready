@@ -381,19 +381,11 @@ struct LoadComponentRow: View {
     let description: String
     
     var body: some View {
-        HStack {
+        HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    Text(weight)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                 
                 Text(description)
                     .font(.caption)
@@ -413,13 +405,13 @@ struct LoadComponentRow: View {
     private var scoreColor: Color {
         switch score {
         case 80...:
-            return .red
+            return ColorScale.redAccent
         case 60..<80:
-            return .orange
+            return ColorScale.amberAccent
         case 40..<60:
-            return .blue
+            return ColorScale.blueAccent
         default:
-            return .green
+            return ColorScale.greenAccent
         }
     }
 }
