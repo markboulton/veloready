@@ -28,6 +28,12 @@ struct ActivityStatsRow: View {
                         // Fetch real hourly steps from HealthKit
                         await loadHourlySteps()
                     }
+                    .onChange(of: hourlySteps.count) { _, count in
+                        Logger.debug("📊 [SPARKLINE] hourlySteps count changed: \(count), isLoading: \(liveActivityService.isLoading)")
+                    }
+                    .onChange(of: liveActivityService.isLoading) { _, isLoading in
+                        Logger.debug("📊 [SPARKLINE] isLoading changed: \(isLoading), hourlySteps: \(hourlySteps.count)")
+                    }
                     
                     // Always show metric display to preserve layout
                     MetricDisplay(
@@ -82,10 +88,12 @@ struct ActivityStatsRow: View {
     }
     
     private func loadHourlySteps() async {
+        Logger.debug("📊 [SPARKLINE] Loading hourly steps...")
         let healthKitManager = HealthKitManager.shared
         
         // Fetch real hourly steps from HealthKit
         let steps = await healthKitManager.fetchTodayHourlySteps()
+        Logger.debug("📊 [SPARKLINE] Fetched \(steps.count) hours of data")
         
         // Convert to HourlyStepData
         var hourlyData: [HourlyStepData] = []
@@ -95,6 +103,7 @@ struct ActivityStatsRow: View {
         
         await MainActor.run {
             self.hourlySteps = hourlyData
+            Logger.debug("📊 [SPARKLINE] Set hourlySteps count: \(self.hourlySteps.count)")
         }
     }
 }
