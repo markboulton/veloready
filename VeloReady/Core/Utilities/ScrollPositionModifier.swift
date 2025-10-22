@@ -36,20 +36,12 @@ struct ScrollPositionModifier: ViewModifier {
                     let tabBarHeight: CGFloat = 60
                     let tabBarTop = screenHeight - tabBarHeight
                     let triggerPoint = tabBarTop - threshold
-                    let startedInTriggerZone = minY < triggerPoint && minY > -100 && minY < screenHeight
                     
-                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), inTriggerZone: \(startedInTriggerZone)")
+                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint))")
                     
-                    // If view starts in trigger zone (e.g., at top of page), animate after brief delay
-                    if startedInTriggerZone {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            if !hasAppeared {
-                                hasAppeared = true
-                                Logger.debug("🎬 [SCROLL] Animation triggered! (started in trigger zone, delayed)")
-                                onAppear()
-                            }
-                        }
-                    }
+                    // REMOVED: Auto-animation for views in trigger zone
+                    // Issue: Views below fold were animating on load
+                    // Solution: Only animate when user actually scrolls
                     return
                 }
                 

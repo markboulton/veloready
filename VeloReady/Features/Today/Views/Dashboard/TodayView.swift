@@ -550,7 +550,11 @@ struct TodayView: View {
         // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
         if viewState.hasCompletedTodayInitialLoad && wasInactive && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
-            viewModel.animationTrigger = UUID()
+            // Small delay to ensure views are created before triggering animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                viewModel.animationTrigger = UUID()
+                Logger.debug("🎬 [ANIMATION] Ring animation trigger fired")
+            }
         }
         
         // Only do full refresh on first appear
