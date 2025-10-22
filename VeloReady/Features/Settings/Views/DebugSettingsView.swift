@@ -971,6 +971,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: StandardCardDebugView()) {
+                HStack {
+                    Image(systemName: "rectangle.portrait.on.rectangle.portrait")
+                        .foregroundColor(.blue)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("StandardCard Component")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Preview all card variations")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label(SettingsContent.MonitoringDashboards.header, systemImage: Icons.System.gaugeBadge)
         } footer: {
