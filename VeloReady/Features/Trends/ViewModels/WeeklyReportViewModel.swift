@@ -1035,6 +1035,15 @@ class WeeklyReportViewModel: ObservableObject {
     /// Load weekly AI summary from Core Data for current week (Monday)
     private func loadWeeklySummaryFromCoreData() -> String? {
         let monday = weekStartDate
+        let now = Date()
+        
+        // Ensure we're still in the same week (Monday to Sunday)
+        let calendar = Calendar.current
+        guard let nextMonday = calendar.date(byAdding: .day, value: 7, to: monday),
+              now < nextMonday else {
+            Logger.debug("📅 Cache expired - new week started")
+            return nil
+        }
         
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date == %@", monday as NSDate)

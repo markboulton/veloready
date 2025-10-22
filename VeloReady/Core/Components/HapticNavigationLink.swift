@@ -6,28 +6,30 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
     let destination: Destination
     let label: () -> Label
     
+    @State private var isActive = false
+    
     init(destination: Destination, @ViewBuilder label: @escaping () -> Label) {
         self.destination = destination
         self.label = label
     }
     
     var body: some View {
-        NavigationLink(destination: destination) {
+        Button(action: {
+            HapticFeedback.light()
+            isActive = true
+        }) {
             label()
         }
-        .buttonStyle(HapticButtonStyle())
-    }
-}
-
-/// Button style that provides haptic feedback without interfering with navigation
-private struct HapticButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .onChange(of: configuration.isPressed) { oldValue, newValue in
-                if newValue {
-                    HapticFeedback.light()
-                }
+        .buttonStyle(PlainButtonStyle())
+        .background(
+            NavigationLink(
+                destination: destination,
+                isActive: $isActive
+            ) {
+                EmptyView()
             }
+            .opacity(0)
+        )
     }
 }
 
