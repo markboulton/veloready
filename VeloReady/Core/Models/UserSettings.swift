@@ -172,6 +172,13 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // MARK: - Step Settings
+    @Published var stepGoal: Int = 10000 {
+        didSet {
+            saveSettings()
+        }
+    }
+    
     // MARK: - Notifications
     @Published var sleepReminders: Bool = true {
         didSet {
@@ -316,6 +323,7 @@ class UserSettings: ObservableObject {
             use24HourTime: use24HourTime,
             calorieGoal: calorieGoal,
             useBMRAsGoal: useBMRAsGoal,
+            stepGoal: stepGoal,
             sleepReminders: sleepReminders,
             sleepReminderTime: sleepReminderTime,
             recoveryAlerts: recoveryAlerts
@@ -361,6 +369,7 @@ class UserSettings: ObservableObject {
         use24HourTime = settings.use24HourTime
         calorieGoal = settings.calorieGoal
         useBMRAsGoal = settings.useBMRAsGoal
+        stepGoal = settings.stepGoal
         sleepReminders = settings.sleepReminders
         sleepReminderTime = settings.sleepReminderTime
         recoveryAlerts = settings.recoveryAlerts
@@ -396,6 +405,7 @@ class UserSettings: ObservableObject {
         use24HourTime = true
         calorieGoal = 0.0
         useBMRAsGoal = true
+        stepGoal = 10000
         sleepReminders = true
         sleepReminderTime = Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()
         recoveryAlerts = true
@@ -433,6 +443,7 @@ private struct UserSettingsData: Codable {
     let use24HourTime: Bool
     let calorieGoal: Double
     let useBMRAsGoal: Bool
+    let stepGoal: Int
     let sleepReminders: Bool
     let sleepReminderTime: Date
     let recoveryAlerts: Bool

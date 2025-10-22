@@ -43,7 +43,7 @@ struct CompactRingView: View {
                     // Fades in as animation completes
                     Text(centerText ?? "\(score)")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(colorForBand(band))
+                        .foregroundColor(.white)
                         .opacity(numberOpacity)
                 } else {
                     // Missing data indicator

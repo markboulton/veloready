@@ -12,11 +12,11 @@ struct AIBriefView: View {
             HStack(spacing: 8) {
                 Image(systemName: Icons.System.sparkles)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(ColorPalette.aiIconColor)
+                    .foregroundColor(.secondary)
                 
                 Text(TodayContent.AIBrief.title)
                     .font(.heading)
-                    .rainbowGradient()
+                    .foregroundColor(.white)
                 
                 Spacer()
             }
@@ -182,9 +182,9 @@ private struct MLDataCollectionView: View {
                         .frame(height: 4)
                         .cornerRadius(2)
                     
-                    // Progress (blue)
+                    // Progress (white)
                     Rectangle()
-                        .fill(Color.blue)
+                        .fill(Color.white)
                         .frame(width: geometry.size.width * progress, height: 4)
                         .cornerRadius(2)
                 }
@@ -240,7 +240,7 @@ struct TrainingMetricsView: View {
                             Text(String(format: "%.1f", tsb))
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(colorForTSB(tsb))
+                                .foregroundColor(.white)
                         }
                         
                         Text(descriptionForTSB(tsb))
@@ -273,7 +273,7 @@ struct TrainingMetricsView: View {
                             Text("\(tssLow)-\(tssHigh)")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(Color.semantic.success)
+                                .foregroundColor(.white)
                         }
                         
                         Text(TodayContent.AIBrief.tssDescription)

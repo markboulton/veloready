@@ -11,13 +11,13 @@ struct RecentActivitiesSection: View {
             HStack(spacing: 4) {
                 Text(TodayContent.activitiesSection)
                     .font(.heading)
+                Spacer()
                 ActivitySparkline(
                     dailyActivities: dailyActivityData,
-                    alignment: .leading,
+                    alignment: .trailing,
                     height: 24
                 )
-                .frame(width: 120)
-                Spacer()
+                .frame(width: 200)
             }
             .padding(.bottom, Spacing.md)
             

@@ -3,6 +3,7 @@ import SwiftUI
 /// Individual Steps card for Today view
 struct StepsCard: View {
     @ObservedObject private var liveActivityService = LiveActivityService.shared
+    @ObservedObject private var userSettings = UserSettings.shared
     @State private var hourlySteps: [HourlyStepData] = []
     
     var body: some View {
@@ -20,8 +21,8 @@ struct StepsCard: View {
                     }
                 }
                 
-                // Steps count
-                Text("\(liveActivityService.dailySteps)")
+                // Steps count with goal
+                Text("\(formatSteps(liveActivityService.dailySteps)) / \(formatSteps(userSettings.stepGoal))")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(Color.text.primary)
                 
@@ -38,9 +39,14 @@ struct StepsCard: View {
         }
     }
     
+    private func formatSteps(_ steps: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter.string(from: NSNumber(value: steps)) ?? "\(steps)"
+    }
+    
     private func formatDistance(_ kilometers: Double) -> String {
-        let userSettings = UserSettings.shared
-        
         if userSettings.useMetricUnits {
             return String(format: "%.1f km", kilometers)
         } else {

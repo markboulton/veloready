@@ -15,14 +15,14 @@ struct CaloriesCard: View {
                 StatRow(
                     label: "Goal",
                     value: "\(Int(effectiveGoal))",
-                    valueColor: ColorPalette.peach
+                    valueColor: .secondary
                 )
                 
                 // Active Energy
                 StatRow(
                     label: "Active Energy",
                     value: "\(Int(liveActivityService.activeCalories))",
-                    valueColor: Color.semantic.success
+                    valueColor: .secondary
                 )
                 
                 // Total
