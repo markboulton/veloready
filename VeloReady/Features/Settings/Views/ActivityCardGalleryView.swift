@@ -4,6 +4,9 @@ import HealthKit
 #if DEBUG
 /// Gallery view showcasing all ActivityCard variations
 struct ActivityCardGalleryView: View {
+    @State private var outdoorRideMapImage: UIImage?
+    @State private var walkMapImage: UIImage?
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -53,7 +56,8 @@ struct ActivityCardGalleryView: View {
                         )
                     ),
                     showChevron: true,
-                    onTap: { print("Tapped outdoor ride") }
+                    onTap: { print("Tapped outdoor ride") },
+                    mockMapImage: outdoorRideMapImage
                 )
                 
                 // Indoor/Virtual Ride
@@ -126,7 +130,8 @@ struct ActivityCardGalleryView: View {
                         )
                     ),
                     showChevron: true,
-                    onTap: { print("Tapped walking workout") }
+                    onTap: { print("Tapped walking workout") },
+                    mockMapImage: walkMapImage
                 )
                 
                 // Short Ride (different metrics)
@@ -172,6 +177,35 @@ struct ActivityCardGalleryView: View {
         .background(Color.background.primary)
         .navigationTitle("Activity Cards")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadMockMaps()
+        }
+    }
+    
+    private func loadMockMaps() {
+        Task {
+            // Generate outdoor ride map
+            let rideCoords = MockMapGenerator.mockRideRoute()
+            if let rideMap = await MockMapGenerator.shared.generateMockMap(
+                center: rideCoords[rideCoords.count / 2],
+                routeCoordinates: rideCoords
+            ) {
+                await MainActor.run {
+                    self.outdoorRideMapImage = rideMap
+                }
+            }
+            
+            // Generate walk map
+            let walkCoords = MockMapGenerator.mockWalkRoute()
+            if let walkMap = await MockMapGenerator.shared.generateMockMap(
+                center: walkCoords[walkCoords.count / 2],
+                routeCoordinates: walkCoords
+            ) {
+                await MainActor.run {
+                    self.walkMapImage = walkMap
+                }
+            }
+        }
     }
     
     private func sectionHeader(_ title: String, subtitle: String) -> some View {

@@ -8,8 +8,10 @@ struct ActivityCard: View {
     let activity: UnifiedActivity
     let showChevron: Bool
     let onTap: (() -> Void)?
+    let mockMapImage: UIImage? // For preview/debug purposes
     
     @State private var hasRPE = false
+    @State private var rpeValue: Double?
     @State private var showingRPESheet = false
     @State private var mapSnapshot: UIImage?
     @State private var location: String?
@@ -17,11 +19,13 @@ struct ActivityCard: View {
     init(
         activity: UnifiedActivity,
         showChevron: Bool = true,
-        onTap: (() -> Void)? = nil
+        onTap: (() -> Void)? = nil,
+        mockMapImage: UIImage? = nil
     ) {
         self.activity = activity
         self.showChevron = showChevron
         self.onTap = onTap
+        self.mockMapImage = mockMapImage
     }
     
     var body: some View {
@@ -61,7 +65,10 @@ struct ActivityCard: View {
             metadataGrid
             
             // Optional map
-            if let mapSnapshot = mapSnapshot {
+            if let mockMapImage = mockMapImage {
+                mapView(image: mockMapImage)
+                    .padding(.top, Spacing.md)
+            } else if let mapSnapshot = mapSnapshot {
                 mapView(image: mapSnapshot)
                     .padding(.top, Spacing.md)
             }
@@ -111,6 +118,13 @@ struct ActivityCard: View {
             
             Spacer()
             
+            // RPE Badge for strength (top-right aligned)
+            if activity.type == .strength {
+                RPEBadge(hasRPE: hasRPE) {
+                    showingRPESheet = true
+                }
+            }
+            
             // Optional chevron
             if showChevron {
                 Image(systemName: "chevron.right")
@@ -138,7 +152,7 @@ struct ActivityCard: View {
     }
     
     private var cyclingMetadata: some View {
-        HStack(spacing: Spacing.lg) {
+        HStack(alignment: .top, spacing: 20) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -176,7 +190,7 @@ struct ActivityCard: View {
     }
     
     private var strengthMetadata: some View {
-        HStack(spacing: Spacing.lg) {
+        HStack(alignment: .top, spacing: 20) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -193,9 +207,13 @@ struct ActivityCard: View {
                 )
             }
             
-            // RPE Badge
-            RPEBadge(hasRPE: hasRPE) {
-                showingRPESheet = true
+            // Show RPE value in metadata when set
+            if let rpeValue = rpeValue {
+                MetricDisplay(
+                    String(format: "%.1f", rpeValue),
+                    label: "RPE",
+                    size: .small
+                )
             }
             
             if let avgHR = activity.averageHeartRate {
@@ -211,7 +229,7 @@ struct ActivityCard: View {
     }
     
     private var walkingMetadata: some View {
-        HStack(spacing: Spacing.lg) {
+        HStack(alignment: .top, spacing: 20) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -243,7 +261,7 @@ struct ActivityCard: View {
     }
     
     private var defaultMetadata: some View {
-        HStack(spacing: Spacing.lg) {
+        HStack(alignment: .top, spacing: 20) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -312,6 +330,11 @@ struct ActivityCard: View {
     private func checkRPEStatus() {
         guard let workout = activity.healthKitWorkout else { return }
         hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
+        
+        // Load RPE value if it exists
+        if hasRPE {
+            rpeValue = WorkoutMetadataService.shared.getRPE(for: workout)
+        }
     }
     
     private func loadMapSnapshot() {
