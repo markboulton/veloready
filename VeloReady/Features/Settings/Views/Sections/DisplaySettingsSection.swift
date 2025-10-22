@@ -19,6 +19,10 @@ struct DisplaySettingsSection: View {
                     }
                     
                     Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
             
@@ -35,6 +39,10 @@ struct DisplaySettingsSection: View {
                     }
                     
                     Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
             
@@ -51,6 +59,10 @@ struct DisplaySettingsSection: View {
                     }
                     
                     Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
         } header: {

@@ -15,6 +15,7 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
     
     var body: some View {
         Button(action: {
+            Logger.debug("🔘 HapticNavigationLink tapped - firing haptic")
             HapticFeedback.light()
             isActive = true
         }) {
