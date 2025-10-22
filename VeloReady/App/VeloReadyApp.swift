@@ -185,60 +185,39 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var previousTab = 0
     
+    private let tabs = [
+        TabItem(title: CommonContent.TabLabels.today, icon: "house.fill"),
+        TabItem(title: CommonContent.TabLabels.activities, icon: "figure.run"),
+        TabItem(title: CommonContent.TabLabels.trends, icon: "chart.xyaxis.line"),
+        TabItem(title: CommonContent.TabLabels.settings, icon: "gearshape.fill")
+    ]
+    
     var body: some View {
-        TabView(selection: $selectedTab) {
-            TodayView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.today, systemImage: "house")
+        ZStack(alignment: .bottom) {
+            // Content
+            Group {
+                switch selectedTab {
+                case 0:
+                    TodayView()
+                case 1:
+                    ActivitiesView()
+                case 2:
+                    TrendsView()
+                case 3:
+                    SettingsView()
+                default:
+                    TodayView()
                 }
-                .tag(0)
-            
-            ActivitiesView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.activities, systemImage: "list.bullet")
-                }
-                .tag(1)
-            
-            TrendsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.trends, systemImage: "chart.line.uptrend.xyaxis")
-                }
-                .tag(2)
-            
-            // TODO: Re-enable Reports tab post-MVP
-            // ReportsView()
-            //     .tabItem {
-            //         Label(CommonContent.TabLabels.reports, systemImage: "chart.bar.doc.horizontal")
-            //     }
-            //     .tag(3)
-            
-            SettingsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.settings, systemImage: "gearshape")
-                }
-                .tag(3)
-        }
-        .environmentObject(apiClient)
-        .environmentObject(athleteZoneService)
-        .onAppear {
-            // Reduce tab bar icon size
-            let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
-            
-            // Smaller icons
-            let itemAppearance = UITabBarItemAppearance()
-            itemAppearance.normal.iconColor = UIColor.label
-            itemAppearance.selected.iconColor = UIColor.label
-            
-            appearance.stackedLayoutAppearance = itemAppearance
-            appearance.inlineLayoutAppearance = itemAppearance
-            appearance.compactInlineLayoutAppearance = itemAppearance
-            
-            UITabBar.appearance().standardAppearance = appearance
-            if #available(iOS 15.0, *) {
-                UITabBar.appearance().scrollEdgeAppearance = appearance
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .environmentObject(apiClient)
+            .environmentObject(athleteZoneService)
+            
+            // Floating Tab Bar
+            FloatingTabBar(selectedTab: $selectedTab, tabs: tabs)
+                .animation(FluidAnimation.flow, value: selectedTab)
         }
+        .ignoresSafeArea(.keyboard) // Allow tab bar to stay on screen with keyboard
         .onChange(of: selectedTab) { oldValue, newValue in
             // When tapping the same tab again, post notification to pop to root
             if oldValue == newValue {

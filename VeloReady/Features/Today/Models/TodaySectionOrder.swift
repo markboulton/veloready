@@ -11,7 +11,8 @@ struct TodaySectionOrder: Codable {
             .veloAI,
             .dailyBrief,
             .latestActivity,
-            .stepsAndCalories,
+            .steps,
+            .calories,
             .recentActivities
         ]
     )
@@ -37,6 +38,7 @@ struct TodaySectionOrder: Codable {
     /// Migrate old section orders to include new sections
     private static func migrateIfNeeded(_ order: TodaySectionOrder) -> TodaySectionOrder {
         var sections = order.movableSections
+        var needsSave = false
         
         // Check if dailyBrief is missing (old version)
         if !sections.contains(.dailyBrief) {
@@ -48,7 +50,20 @@ struct TodaySectionOrder: Codable {
             }
             
             Logger.debug("☁️ Migrated section order to include Daily Brief")
+            needsSave = true
+        }
+        
+        // Migrate stepsAndCalories to separate steps and calories
+        if let stepsAndCaloriesIndex = sections.firstIndex(of: .stepsAndCalories) {
+            sections.remove(at: stepsAndCaloriesIndex)
+            sections.insert(.calories, at: stepsAndCaloriesIndex)
+            sections.insert(.steps, at: stepsAndCaloriesIndex)
             
+            Logger.debug("☁️ Migrated stepsAndCalories to separate sections")
+            needsSave = true
+        }
+        
+        if needsSave {
             // Save the migrated order
             let migratedOrder = TodaySectionOrder(movableSections: sections)
             migratedOrder.save()
@@ -108,7 +123,9 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
     case veloAI = "VeloAI"
     case dailyBrief = "Daily Brief"
     case latestActivity = "Latest Activity"
-    case stepsAndCalories = "Steps & Calories"
+    case steps = "Steps"
+    case calories = "Calories"
+    case stepsAndCalories = "Steps & Calories" // Legacy - kept for migration
     case recentActivities = "Recent Activities"
     
     var id: String { rawValue }
@@ -122,6 +139,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return "Daily Brief"
         case .latestActivity:
             return TodayContent.latestActivity
+        case .steps:
+            return "Steps"
+        case .calories:
+            return "Calories"
         case .stepsAndCalories:
             return "Steps & Calories"
         case .recentActivities:
@@ -138,6 +159,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return Icons.System.docText
         case .latestActivity:
             return Icons.Activity.cycling
+        case .steps:
+            return Icons.Health.steps
+        case .calories:
+            return Icons.Health.caloriesFill
         case .stepsAndCalories:
             return Icons.Activity.walking
         case .recentActivities:
@@ -154,6 +179,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return "Your daily training summary and targets"
         case .latestActivity:
             return "Your most recent workout or ride"
+        case .steps:
+            return "Daily step count"
+        case .calories:
+            return "Active calories burned"
         case .stepsAndCalories:
             return "Daily step count and calorie tracking"
         case .recentActivities:
@@ -166,7 +195,7 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .veloAI:
             return true
-        case .dailyBrief, .latestActivity, .stepsAndCalories, .recentActivities:
+        case .dailyBrief, .latestActivity, .steps, .calories, .stepsAndCalories, .recentActivities:
             return false
         }
     }

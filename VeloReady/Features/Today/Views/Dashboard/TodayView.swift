@@ -521,8 +521,13 @@ struct TodayView: View {
             if hasConnectedDataSource, let latestActivity = getLatestActivity() {
                 LatestActivityCard(activity: latestActivity)
             }
+        case .steps:
+            StepsCard()
+        case .calories:
+            CaloriesCard()
         case .stepsAndCalories:
-            ActivityStatsRow(liveActivityService: liveActivityService)
+            // Legacy - no longer used
+            EmptyView()
         case .recentActivities:
             RecentActivitiesSection(
                 allActivities: viewModel.unifiedActivities.isEmpty ?

@@ -4,13 +4,7 @@ import SwiftUI
 
 // MARK: - Glass Sheet Modifier
 
-struct GlassSheet<Content: View>: ViewModifier {
-    let content: Content
-    
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-    
+struct GlassSheet: ViewModifier {
     func body(content: Content) -> some View {
         content
             .presentationBackground(.ultraThinMaterial)
@@ -305,7 +299,7 @@ struct GlassContextMenu<Content: View, MenuContent: View>: View {
 extension View {
     /// Apply glass sheet styling
     func glassSheet() -> some View {
-        modifier(GlassSheet(content: { self }))
+        modifier(GlassSheet())
     }
     
     /// Apply glass navigation bar

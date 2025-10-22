@@ -139,6 +139,10 @@ struct SectionRow: View {
             return ColorScale.greenAccent
         case .latestActivity:
             return ColorScale.amberAccent
+        case .steps:
+            return Color.blue
+        case .calories:
+            return Color.orange
         case .stepsAndCalories:
             return Color.text.secondary
         case .recentActivities:

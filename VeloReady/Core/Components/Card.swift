@@ -1,14 +1,17 @@
 import SwiftUI
 
-/// Reusable card container with liquid glass styling
+/// Reusable card container with 5% opacity background
+/// Consistent spacing and padding across the app
 struct Card<Content: View>: View {
     let style: CardStyle
     let padding: CGFloat
     let content: Content
     
+    @Environment(\.colorScheme) var colorScheme
+    
     init(
         style: CardStyle = .elevated,
-        padding: CGFloat = Spacing.cardPadding,
+        padding: CGFloat = Spacing.md,
         @ViewBuilder content: () -> Content
     ) {
         self.style = style
@@ -19,86 +22,57 @@ struct Card<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .glassCard(material: style.glassMaterial, elevation: style.glassElevation)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.primary.opacity(0.05))
+            )
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.md / 2)
     }
 }
 
 // MARK: - Card Style
 
 enum CardStyle {
-    case elevated  // Prominent glass card with depth
-    case flat      // Subtle glass card, minimal shadow
-    case outlined  // Ultra-thin glass, maximum transparency
-    
-    var glassMaterial: GlassMaterial {
-        switch self {
-        case .elevated:
-            return .regular
-        case .flat:
-            return .thin
-        case .outlined:
-            return .ultraThin
-        }
-    }
-    
-    var glassElevation: GlassElevation {
-        switch self {
-        case .elevated:
-            return .medium
-        case .flat:
-            return .low
-        case .outlined:
-            return .flat
-        }
-    }
+    case elevated  // Standard card
+    case flat      // Minimal card
+    case outlined  // Outlined card
 }
 
 // MARK: - Preview
 
 #Preview {
     ScrollView {
-        VStack(spacing: Spacing.xl) {
+        VStack(spacing: 0) {
             Card(style: .elevated) {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(CommonContent.Preview.elevatedCard)
+                    Text("Card Title")
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text(CommonContent.Preview.elevatedCardDesc)
+                    Text("Card content with 5% opacity background, md padding, and md spacing")
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }
             }
             
             Card(style: .flat) {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(CommonContent.Preview.flatCard)
-                        .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text(CommonContent.Preview.flatCardDesc)
-                        .font(.system(size: TypeScale.sm))
-                        .foregroundColor(Color.text.secondary)
-                }
-            }
-            
-            Card(style: .outlined) {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text(CommonContent.Preview.outlinedCard)
-                        .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text(CommonContent.Preview.outlinedCardDesc)
-                        .font(.system(size: TypeScale.sm))
-                        .foregroundColor(Color.text.secondary)
-                }
-            }
-            
-            Card(style: .elevated, padding: Spacing.md) {
                 HStack {
                     Image(systemName: Icons.Health.heartFill)
                         .foregroundColor(Color.health.heartRate)
-                    Text(CommonContent.Preview.customPadding)
+                    Text("Another card with consistent styling")
                         .font(.system(size: TypeScale.sm))
                 }
             }
+            
+            Card(style: .elevated) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Third Card")
+                        .font(.system(size: TypeScale.md, weight: .semibold))
+                    Text("Notice the consistent md spacing between cards")
+                        .font(.system(size: TypeScale.sm))
+                        .foregroundColor(Color.text.secondary)
+                }
+            }
         }
-        .padding(Spacing.cardPadding)
     }
     .background(Color.background.primary)
 }
