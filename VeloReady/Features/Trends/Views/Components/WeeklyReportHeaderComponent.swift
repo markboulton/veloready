@@ -79,6 +79,7 @@ struct WeeklyReportHeaderComponent: View {
                 }
             }
         }
+        .padding(.horizontal, Spacing.md)
     }
     
     private func formatWeekRange() -> String {

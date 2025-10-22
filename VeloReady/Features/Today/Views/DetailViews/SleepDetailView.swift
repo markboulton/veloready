@@ -27,6 +27,7 @@ struct SleepDetailView: View {
                     // Header with main score
                     SleepHeaderSection(sleepScore: sleepScore)
                         .padding()
+                        .padding(.top, 60)
                     
                     // Missing data warning if no sleep duration
                     if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {

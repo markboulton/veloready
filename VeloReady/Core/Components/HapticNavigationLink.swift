@@ -12,15 +12,18 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
     }
     
     var body: some View {
-        NavigationLink(destination: destination) {
+        ZStack {
+            NavigationLink(destination: destination) {
+                EmptyView()
+            }
+            .opacity(0)
+            
             label()
         }
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded { _ in
-                    HapticFeedback.light()
-                }
-        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            HapticFeedback.light()
+        }
     }
 }
 

@@ -25,6 +25,7 @@ struct StrainDetailView: View {
                     // Header with main score
                     StrainHeaderSection(strainScore: strainScore)
                         .padding()
+                        .padding(.top, 60)
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection

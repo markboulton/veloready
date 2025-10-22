@@ -25,7 +25,7 @@ struct RecoveryDetailView: View {
                 VStack(spacing: 0) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
-                        .padding(.top)
+                        .padding(.top, 60)
                     
                     // Health warnings card
                     HealthWarningsCard()
