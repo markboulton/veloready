@@ -94,7 +94,6 @@ struct RecoveryMetricsSection: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(PlainButtonStyle())
             } else {
                 VStack(spacing: 12) {
                     Text(TodayContent.Scores.recoveryScore)
@@ -178,7 +177,6 @@ struct RecoveryMetricsSection: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
             } else {
                 // No sleep data available - make entire ring tappable to reinstate banner
@@ -251,7 +249,6 @@ struct RecoveryMetricsSection: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(PlainButtonStyle())
             } else {
                 VStack(spacing: 12) {
                     Text(TodayContent.Scores.loadScore)

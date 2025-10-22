@@ -12,18 +12,22 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
     }
     
     var body: some View {
-        ZStack {
-            NavigationLink(destination: destination) {
-                EmptyView()
-            }
-            .opacity(0)
-            
+        NavigationLink(destination: destination) {
             label()
         }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            HapticFeedback.light()
-        }
+        .buttonStyle(HapticButtonStyle())
+    }
+}
+
+/// Button style that provides haptic feedback without interfering with navigation
+private struct HapticButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { oldValue, newValue in
+                if newValue {
+                    HapticFeedback.light()
+                }
+            }
     }
 }
 
