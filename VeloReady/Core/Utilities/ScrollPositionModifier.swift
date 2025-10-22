@@ -37,6 +37,9 @@ struct ScrollPositionModifier: ViewModifier {
                 // Check if view is NOW in trigger zone
                 let isNowInTriggerZone = minY < triggerPoint
                 
+                // Check if view is in visible viewport (not scrolled off top or bottom)
+                let isInViewport = minY > -100 && minY < screenHeight
+                
                 // Record initial position on first frame
                 if !state.hasRecordedInitialPosition {
                     state.initialMinY = minY
@@ -45,11 +48,16 @@ struct ScrollPositionModifier: ViewModifier {
                     stateManager.setState(state, for: viewId)
                     
                     Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(state.wasInTriggerZone), id: \(viewId.prefix(8))")
+                    
+                    // If view starts in trigger zone AND is visible, animate immediately
+                    if isNowInTriggerZone && isInViewport {
+                        state.hasAppeared = true
+                        stateManager.setState(state, for: viewId)
+                        Logger.debug("🎬 [SCROLL] Animation triggered immediately! View started in trigger zone and is visible, id: \(viewId.prefix(8))")
+                        onAppear()
+                    }
                     return
                 }
-                
-                // Check if view is in visible viewport (not scrolled off top or bottom)
-                let isInViewport = minY > -100 && minY < screenHeight
                 
                 // Debug logging
                 if !state.hasAppeared && isInViewport {
