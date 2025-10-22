@@ -102,7 +102,7 @@ struct SleepDetailView: View {
                     getData: { period in getHistoricalSleepData(for: period) },
                     chartType: .bar,
                     unit: "%",
-                    showProBadge: true,
+                    showProBadge: false,
                     dataType: .sleep
                 )
             }

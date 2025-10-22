@@ -51,7 +51,7 @@ struct StrainDetailView: View {
                     getData: { period in getHistoricalLoadData(for: period) },
                     chartType: .bar,
                     unit: "TSS",
-                    showProBadge: true
+                    showProBadge: false
                 )
             }
         }

@@ -195,24 +195,27 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content
-            Group {
-                switch selectedTab {
-                case 0:
-                    TodayView(showInitialSpinner: $showInitialSpinner)
-                case 1:
-                    ActivitiesView()
-                case 2:
-                    TrendsView()
-                case 3:
-                    SettingsView()
-                default:
-                    TodayView(showInitialSpinner: $showInitialSpinner)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .environmentObject(apiClient)
-            .environmentObject(athleteZoneService)
+            // Content - Keep all views in memory to prevent recreation
+            TodayView(showInitialSpinner: $showInitialSpinner)
+                .opacity(selectedTab == 0 ? 1 : 0)
+                .zIndex(selectedTab == 0 ? 1 : 0)
+            
+            ActivitiesView()
+                .opacity(selectedTab == 1 ? 1 : 0)
+                .zIndex(selectedTab == 1 ? 1 : 0)
+            
+            TrendsView()
+                .opacity(selectedTab == 2 ? 1 : 0)
+                .zIndex(selectedTab == 2 ? 1 : 0)
+            
+            SettingsView()
+                .opacity(selectedTab == 3 ? 1 : 0)
+                .zIndex(selectedTab == 3 ? 1 : 0)
+            
+            Color.clear
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .environmentObject(apiClient)
+                .environmentObject(athleteZoneService)
             
             // Floating Tab Bar - only show after initial spinner
             if !showInitialSpinner {
