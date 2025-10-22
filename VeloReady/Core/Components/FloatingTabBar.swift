@@ -30,23 +30,19 @@ struct FloatingTabBar: View {
         .padding(.horizontal, 4)
         .padding(.vertical, 8)
         .background(
-            ZStack {
-                // Dark base for contrast (like Apple Fitness)
-                RoundedRectangle(cornerRadius: 32)
-                    .fill(Color.black.opacity(0.6))
-                
-                // Liquid glass blur/refraction
-                RoundedRectangle(cornerRadius: 32)
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.8)
-                
-                // Subtle edge highlight
-                RoundedRectangle(cornerRadius: 32)
-                    .stroke(
-                        Color.white.opacity(0.15),
-                        lineWidth: 0.5
-                    )
-            }
+            // Liquid glass with visible refraction (Apple Fitness style)
+            RoundedRectangle(cornerRadius: 32)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    // Dark tint for better contrast
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(Color.black.opacity(0.3))
+                )
+                .overlay(
+                    // Edge definition
+                    RoundedRectangle(cornerRadius: 32)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                )
         )
         .shadow(
             color: Color.black.opacity(colorScheme == .dark ? 0.6 : 0.15),
