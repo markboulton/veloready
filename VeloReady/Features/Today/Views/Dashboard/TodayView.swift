@@ -25,12 +25,12 @@ struct TodayView: View {
     @State private var showingIllnessDetailSheet = false
     @State private var missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
     @State private var showMissingSleepInfo = false
-    @State private var showMainSpinner = true
+    @AppStorage("hasCompletedInitialLoad") private var hasCompletedInitialLoad = false
+    @State private var showMainSpinner = false
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
-    @State private var hasAppeared = false
     @State private var hasLoadedData = false
     @Binding var showInitialSpinner: Bool
     @ObservedObject private var proConfig = ProFeatureConfig.shared
@@ -39,9 +39,6 @@ struct TodayView: View {
     
     init(showInitialSpinner: Binding<Bool> = .constant(true)) {
         self._showInitialSpinner = showInitialSpinner
-        
-        // Set main spinner to show immediately on app launch
-        self.showMainSpinner = true
     }
     
     var body: some View {
@@ -128,6 +125,18 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .onAppear {
+                // Handle initial spinner (only on very first app launch)
+                if !hasCompletedInitialLoad {
+                    showMainSpinner = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            showMainSpinner = false
+                            showInitialSpinner = false
+                            hasCompletedInitialLoad = true
+                        }
+                    }
+                }
+                
                 handleViewAppear()
             }
             .onChange(of: healthKitManager.isAuthorized) { _, newValue in
@@ -214,18 +223,6 @@ struct TodayView: View {
         .background(Color.background.primary)
         .ignoresSafeArea(.all)
         .zIndex(999)
-        .onAppear {
-            // Only show spinner on first app launch, not when navigating back
-            if !hasAppeared {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        showMainSpinner = false
-                        showInitialSpinner = false
-                        hasAppeared = true
-                    }
-                }
-            }
-        }
     }
     
     // MARK: - View Sections

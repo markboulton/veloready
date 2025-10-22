@@ -82,8 +82,19 @@ struct RHRCandlestickChart: View {
                     yStart: .value("Low", animateChart ? point.low : point.average),
                     yEnd: .value("High", animateChart ? point.high : point.average)
                 )
-                .lineStyle(StrokeStyle(lineWidth: 3))
-                .foregroundStyle(isTodayPoint ? Color.white : Color(.systemGray6))
+                .lineStyle(StrokeStyle(lineWidth: isTodayPoint ? 2 : 1))
+                .foregroundStyle(isTodayPoint ? 
+                    LinearGradient(
+                        colors: [colorForRHRValue(point.high), colorForRHRValue(point.low)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ) : 
+                    LinearGradient(
+                        colors: [Color.white, Color.white],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 
                 // For 7-day view: Annotate high and low values
                 if selectedPeriod == .sevenDays && animateChart {
@@ -96,7 +107,7 @@ struct RHRCandlestickChart: View {
                     .annotation(position: .top, spacing: 2) {
                         Text("\(Int(point.high))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.high) : Color(.systemGray5))
+                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.high) : Color.white)
                     }
                     
                     // Low value annotation
@@ -108,7 +119,7 @@ struct RHRCandlestickChart: View {
                     .annotation(position: .bottom, spacing: 2) {
                         Text("\(Int(point.low))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.low) : Color(.systemGray3))
+                            .foregroundColor(isTodayPoint ? colorForRHRValue(point.low) : Color.white)
                     }
                 }
             }
