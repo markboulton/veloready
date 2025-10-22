@@ -31,6 +31,7 @@ struct TodayView: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
     @State private var hasAppeared = false
+    @State private var hasLoadedData = false
     @Binding var showInitialSpinner: Bool
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
@@ -567,8 +568,8 @@ struct TodayView: View {
         sectionOrder = TodaySectionOrder.load()
         
         // Only do full refresh on first appear
-        guard !hasAppeared else { return }
-        hasAppeared = true
+        guard !hasLoadedData else { return }
+        hasLoadedData = true
         
         Task {
             await viewModel.loadInitialUI()
