@@ -12,42 +12,45 @@ struct RecoveryDetailView: View {
             VStack(spacing: 0) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
-                        .padding()
+                        .padding(.horizontal)
+                        .padding(.top)
                     
                     // Illness indicator alert
                     IllnessAlertBanner()
+                        .padding(.horizontal)
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // HRV Line Chart (Pro)
                     hrvLineSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // RHR Candlestick Chart (Pro)
                     rhrCandlestickSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // Sub-scores breakdown
                     subScoresSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // Recovery Debt
                     recoveryDebtSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // Readiness Score
                     readinessSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // Resilience Score
                     resilienceSection
-                        .padding()
+                        .padding(.horizontal)
                     
                     // Apple Health metrics
                     healthMetricsSection
-                        .padding()
+                        .padding(.horizontal)
+                        .padding(.bottom, 100)
                 }
             }
             .refreshable {
@@ -97,15 +100,17 @@ struct RecoveryDetailView: View {
     // MARK: - RHR Candlestick Section (Pro)
     
     private var rhrCandlestickSection: some View {
-        ProFeatureGate(
-            upgradeContent: .weeklyRecoveryTrend,
-            isEnabled: proConfig.canViewWeeklyTrends,
-            showBenefits: true
-        ) {
-            RHRCandlestickChart(
-                getData: { period in getHistoricalRHRData(for: period) },
-                baseline: recoveryScore.inputs.rhrBaseline
-            )
+        StandardCard {
+            ProFeatureGate(
+                upgradeContent: .weeklyRecoveryTrend,
+                isEnabled: proConfig.canViewWeeklyTrends,
+                showBenefits: true
+            ) {
+                RHRCandlestickChart(
+                    getData: { period in getHistoricalRHRData(for: period) },
+                    baseline: recoveryScore.inputs.rhrBaseline
+                )
+            }
         }
     }
     

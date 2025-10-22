@@ -45,7 +45,6 @@ struct RHRCandlestickChart: View {
                 summaryStats
             }
         }
-        .background(Color(.systemBackground))
         .onAppear {
             loadData()
         }

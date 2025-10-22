@@ -64,7 +64,6 @@ struct TrendChart: View {
                 }
             }
         }
-        .background(Color(.systemBackground))
         .onAppear {
             loadData()
         }

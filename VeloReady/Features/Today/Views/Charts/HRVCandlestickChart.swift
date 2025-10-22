@@ -45,7 +45,6 @@ struct HRVCandlestickChart: View {
                 summaryStats
             }
         }
-        .background(Color(.systemBackground))
         .onAppear {
             loadData()
         }

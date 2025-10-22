@@ -63,6 +63,7 @@ struct SleepDetailView: View {
                     recommendationsSection
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.md)
+                        .padding(.bottom, 100)
                 }
             }
             .refreshable {
