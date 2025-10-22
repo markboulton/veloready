@@ -4,6 +4,8 @@ import HealthKit
 /// Service for managing live activity data (calories and steps)
 @MainActor
 class LiveActivityService: ObservableObject {
+    static let shared = LiveActivityService()
+    
     @Published var dailySteps: Int = 0
     @Published var walkingDistance: Double = 0  // in kilometers
     @Published var dailyCalories: Double = 0
@@ -22,13 +24,13 @@ class LiveActivityService: ObservableObject {
     private var updateTask: Task<Void, Never>?
     private var updateTimer: Timer?
     
-    init(oauthManager: IntervalsOAuthManager) {
-        self.intervalsAPIClient = IntervalsAPIClient(oauthManager: oauthManager)
+    private init() {
+        self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
         
-        // Start in loading state to show spinners immediately
-        // Don't load cached data here - let the UI show spinners first
-        self.isLoading = true
-        Logger.debug("🎯 DEBUG: LiveActivityService initialized with isLoading = true (no cached data loaded)")
+        // Load cached data immediately on init
+        loadCachedDataSync()
+        
+        Logger.debug("🎯 LiveActivityService singleton initialized with cached data")
     }
     
     /// Load cached data synchronously during initialization

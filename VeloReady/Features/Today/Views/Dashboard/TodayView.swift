@@ -18,7 +18,7 @@ struct TodayView: View {
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var wellnessService = WellnessDetectionService.shared
     @StateObject private var illnessService = IllnessDetectionService.shared
-    @StateObject private var liveActivityService: LiveActivityService
+    @ObservedObject private var liveActivityService = LiveActivityService.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
@@ -37,8 +37,6 @@ struct TodayView: View {
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
     
     init(showInitialSpinner: Binding<Bool> = .constant(true)) {
-        // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
-        self._liveActivityService = StateObject(wrappedValue: LiveActivityService(oauthManager: IntervalsOAuthManager.shared))
         self._showInitialSpinner = showInitialSpinner
         
         // Set main spinner to show immediately on app launch

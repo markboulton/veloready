@@ -127,10 +127,10 @@ struct LiveStepsPanel: View {
 #Preview {
     VStack(spacing: 16) {
         HStack(spacing: 12) {
-            LiveCaloriesPanel(liveActivityService: LiveActivityService(oauthManager: IntervalsOAuthManager()))
+            LiveCaloriesPanel(liveActivityService: LiveActivityService.shared)
                 .frame(maxWidth: .infinity)
             
-            LiveStepsPanel(liveActivityService: LiveActivityService(oauthManager: IntervalsOAuthManager()))
+            LiveStepsPanel(liveActivityService: LiveActivityService.shared)
                 .frame(maxWidth: .infinity)
         }
     }

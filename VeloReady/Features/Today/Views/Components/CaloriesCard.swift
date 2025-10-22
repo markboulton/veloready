@@ -2,12 +2,8 @@ import SwiftUI
 
 /// Individual Calories card for Today view
 struct CaloriesCard: View {
-    @ObservedObject private var liveActivityService: LiveActivityService
+    @ObservedObject private var liveActivityService = LiveActivityService.shared
     @StateObject private var userSettings = UserSettings.shared
-    
-    init() {
-        self.liveActivityService = LiveActivityService(oauthManager: IntervalsOAuthManager.shared)
-    }
     
     var body: some View {
         StandardCard(

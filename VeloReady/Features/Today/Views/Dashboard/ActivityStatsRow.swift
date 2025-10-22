@@ -100,6 +100,6 @@ struct ActivityStatsRow: View {
 }
 
 #Preview {
-    ActivityStatsRow(liveActivityService: LiveActivityService(oauthManager: IntervalsOAuthManager()))
+    ActivityStatsRow(liveActivityService: LiveActivityService.shared)
         .padding()
 }

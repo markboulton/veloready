@@ -89,12 +89,13 @@ struct DetailedCaloriePanel: View {
 }
 
 #Preview {
-    let service = LiveActivityService(oauthManager: IntervalsOAuthManager())
-    service.bmrCalories = 1200
-    service.activeCalories = 350
-    service.dailyCalories = 1550
-    service.lastUpdated = Date()
-    
-    return DetailedCaloriePanel(liveActivityService: service)
+    DetailedCaloriePanel(liveActivityService: LiveActivityService.shared)
         .padding()
+        .onAppear {
+            let service = LiveActivityService.shared
+            service.bmrCalories = 1200
+            service.activeCalories = 350
+            service.dailyCalories = 1550
+            service.lastUpdated = Date()
+        }
 }

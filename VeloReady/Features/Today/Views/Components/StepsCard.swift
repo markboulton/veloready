@@ -2,12 +2,8 @@ import SwiftUI
 
 /// Individual Steps card for Today view
 struct StepsCard: View {
-    @ObservedObject private var liveActivityService: LiveActivityService
+    @ObservedObject private var liveActivityService = LiveActivityService.shared
     @State private var hourlySteps: [HourlyStepData] = []
-    
-    init() {
-        self.liveActivityService = LiveActivityService(oauthManager: IntervalsOAuthManager.shared)
-    }
     
     var body: some View {
         StandardCard(
