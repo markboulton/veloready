@@ -29,7 +29,7 @@ struct TodayView: View {
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
-    @State private var hasLoadedData = false
+    @AppStorage("hasCompletedInitialLoad") private var hasCompletedInitialLoad = false
     @Binding var showInitialSpinner: Bool
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
@@ -533,22 +533,22 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
-        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedData=\(hasLoadedData), isInitializing=\(viewModel.isInitializing)")
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasCompletedInitialLoad=\(hasCompletedInitialLoad), isInitializing=\(viewModel.isInitializing)")
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
         // If returning to page (not initial load), trigger ring animations
-        if hasLoadedData && !viewModel.isInitializing {
+        if hasCompletedInitialLoad && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page - triggering ring animations")
             viewModel.animationTrigger = UUID()
         }
         
         // Only do full refresh on first appear
-        guard !hasLoadedData else {
+        guard !hasCompletedInitialLoad else {
             Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
             return
         }
-        hasLoadedData = true
+        hasCompletedInitialLoad = true
         Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
         
         Task {

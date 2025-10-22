@@ -6,6 +6,8 @@ struct ScrollPositionModifier: ViewModifier {
     let onAppear: () -> Void
     
     @State private var hasAppeared = false
+    @State private var hasRecordedInitialPosition = false
+    @State private var initialMinY: CGFloat = 0
     
     init(threshold: CGFloat = 200, onAppear: @escaping () -> Void) {
         self.threshold = threshold
@@ -24,32 +26,34 @@ struct ScrollPositionModifier: ViewModifier {
                 }
             )
             .onPreferenceChange(ScrollPositionPreferenceKey.self) { minY in
+                // Record initial position on first frame
+                if !hasRecordedInitialPosition {
+                    initialMinY = minY
+                    hasRecordedInitialPosition = true
+                    return
+                }
+                
                 // Get screen height and calculate floating tab bar position
                 let screenHeight = UIScreen.main.bounds.height
                 let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
                 let tabBarTop = screenHeight - tabBarHeight
                 let triggerPoint = tabBarTop - threshold
                 
+                // Only trigger if user has scrolled (minY changed from initial)
+                let hasScrolled = abs(minY - initialMinY) > 10
+                
                 // Debug logging
                 if !hasAppeared {
-                    Logger.debug("📍 [SCROLL] View minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), diff: \(Int(minY - triggerPoint))")
+                    Logger.debug("📍 [SCROLL] View minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), hasScrolled: \(hasScrolled)")
                 }
                 
-                // Trigger animation when view is within threshold distance above tab bar
-                // For views at top (minY=0), use a small delay to ensure they're visible
-                if !hasAppeared && minY < triggerPoint {
+                // Trigger animation when:
+                // 1. User has scrolled (not initial render)
+                // 2. View is within trigger zone
+                if !hasAppeared && hasScrolled && minY < triggerPoint && minY > 0 {
                     hasAppeared = true
-                    
-                    // If view is at very top (minY < 100), add tiny delay for layout
-                    if minY < 100 {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            Logger.debug("🎬 [SCROLL] Animation triggered! (delayed for top view)")
-                            onAppear()
-                        }
-                    } else {
-                        Logger.debug("🎬 [SCROLL] Animation triggered! View reached scroll threshold")
-                        onAppear()
-                    }
+                    Logger.debug("🎬 [SCROLL] Animation triggered! View scrolled into trigger zone")
+                    onAppear()
                 }
             }
     }
