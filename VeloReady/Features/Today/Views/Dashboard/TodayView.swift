@@ -537,6 +537,12 @@ struct TodayView: View {
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
+        // If returning to page (not initial load), trigger ring animations
+        if hasLoadedData && !viewModel.isInitializing {
+            Logger.debug("🔄 [ANIMATION] Returning to Today page - triggering ring animations")
+            viewModel.animationTrigger = UUID()
+        }
+        
         // Only do full refresh on first appear
         guard !hasLoadedData else {
             Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
