@@ -11,44 +11,52 @@ struct RecoveryMetricsSection: View {
     var hideBottomDivider: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Show empty state rings when HealthKit is not authorized
-            if !isHealthKitAuthorized {
-                HStack(spacing: 12) {
-                    // Recovery (left)
-                    EmptyStateRingView(
-                        title: TodayContent.recoverySection,
-                        icon: "heart.fill",
-                        animationDelay: 0.0
-                    )
-                    .frame(maxWidth: .infinity)
-                    
-                    // Sleep (center)
-                    EmptyStateRingView(
-                        title: TodayContent.sleepSection,
-                        icon: "moon.fill",
-                        animationDelay: 0.1
-                    )
-                    .frame(maxWidth: .infinity)
-                    
-                    // Load (right)
-                    EmptyStateRingView(
-                        title: TodayContent.loadSection,
-                        icon: "figure.walk",
-                        animationDelay: 0.2
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-            } else {
-                // Show actual data when HealthKit is authorized
-                HStack(spacing: 12) {
-                    recoveryScoreView
-                    sleepScoreView
-                    loadScoreView
+        ZStack {
+            // Transparent background to match StandardCard structure but without the grey
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.clear)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                // Show empty state rings when HealthKit is not authorized
+                if !isHealthKitAuthorized {
+                    HStack(spacing: 12) {
+                        // Recovery (left)
+                        EmptyStateRingView(
+                            title: TodayContent.recoverySection,
+                            icon: "heart.fill",
+                            animationDelay: 0.0
+                        )
+                        .frame(maxWidth: .infinity)
+                        
+                        // Sleep (center)
+                        EmptyStateRingView(
+                            title: TodayContent.sleepSection,
+                            icon: "moon.fill",
+                            animationDelay: 0.1
+                        )
+                        .frame(maxWidth: .infinity)
+                        
+                        // Load (right)
+                        EmptyStateRingView(
+                            title: TodayContent.loadSection,
+                            icon: "figure.walk",
+                            animationDelay: 0.2
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    // Show actual data when HealthKit is authorized
+                    HStack(spacing: 12) {
+                        recoveryScoreView
+                        sleepScoreView
+                        loadScoreView
+                    }
                 }
             }
-            
+            .padding(Spacing.md)
         }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xxl / 2)
     }
     
     // MARK: - Recovery Score

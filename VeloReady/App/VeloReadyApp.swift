@@ -184,6 +184,7 @@ struct MainTabView: View {
     @StateObject private var athleteZoneService = AthleteZoneService()
     @State private var selectedTab = 0
     @State private var previousTab = 0
+    @State private var showInitialSpinner = true
     
     private let tabs = [
         TabItem(title: CommonContent.TabLabels.today, icon: "house.fill"),
@@ -198,7 +199,7 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    TodayView()
+                    TodayView(hideInitialSpinner: $showInitialSpinner)
                 case 1:
                     ActivitiesView()
                 case 2:
@@ -206,16 +207,18 @@ struct MainTabView: View {
                 case 3:
                     SettingsView()
                 default:
-                    TodayView()
+                    TodayView(hideInitialSpinner: $showInitialSpinner)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .environmentObject(apiClient)
             .environmentObject(athleteZoneService)
             
-            // Floating Tab Bar
-            FloatingTabBar(selectedTab: $selectedTab, tabs: tabs)
-                .animation(FluidAnimation.flow, value: selectedTab)
+            // Floating Tab Bar - only show after initial spinner
+            if !showInitialSpinner {
+                FloatingTabBar(selectedTab: $selectedTab, tabs: tabs)
+                    .animation(FluidAnimation.flow, value: selectedTab)
+            }
         }
         .ignoresSafeArea(.keyboard) // Allow tab bar to stay on screen with keyboard
         .onChange(of: selectedTab) { oldValue, newValue in

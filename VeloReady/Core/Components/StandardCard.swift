@@ -69,7 +69,7 @@ struct StandardCard<Content: View>: View {
                 .fill(Color.primary.opacity(0.08))
         )
         .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm / 2)
+        .padding(.vertical, Spacing.xxl / 2) // controls spacing top and bottom of card 
     }
     
     private var header: some View {

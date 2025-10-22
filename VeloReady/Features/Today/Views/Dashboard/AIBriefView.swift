@@ -80,7 +80,7 @@ struct AIBriefView: View {
                 .fill(Color.primary.opacity(0.08))
         )
         .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm / 2)
+        .padding(.vertical, Spacing.xxl / 2)
             .onAppear {
             // Fetch brief on appear if not already loaded
             // Note: If sleep data is missing, the recovery refresh will trigger AI brief update

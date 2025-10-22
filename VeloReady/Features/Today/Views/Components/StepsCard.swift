@@ -20,7 +20,7 @@ struct StepsCard: View {
                     HStack {
                         Spacer()
                         StepsSparkline(hourlySteps: hourlySteps)
-                            .frame(width: 80)
+                            .frame(width: 160)
                     }
                 }
                 

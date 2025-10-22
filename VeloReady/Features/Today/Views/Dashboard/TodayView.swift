@@ -31,13 +31,15 @@ struct TodayView: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
     @State private var hasAppeared = false
+    @Binding var hideInitialSpinner: Bool
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
     
-    init() {
+    init(hideInitialSpinner: Binding<Bool> = .constant(false)) {
         // Initialize LiveActivityService with shared OAuth manager to avoid creating new instances
         self._liveActivityService = StateObject(wrappedValue: LiveActivityService(oauthManager: IntervalsOAuthManager.shared))
+        self._hideInitialSpinner = hideInitialSpinner
         
         // Set main spinner to show immediately on app launch
         self.showMainSpinner = true
@@ -246,9 +248,14 @@ struct TodayView: View {
         .ignoresSafeArea(.all)
         .zIndex(999)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    showMainSpinner = false
+            // Only show spinner on first app launch, not when navigating back
+            if !hasAppeared {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        showMainSpinner = false
+                        hideInitialSpinner = false
+                        hasAppeared = true
+                    }
                 }
             }
         }
