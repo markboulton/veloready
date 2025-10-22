@@ -32,7 +32,7 @@ struct ActivitySparkline: View {
         .chartYAxis(.hidden)
         .chartXScale(domain: (dailyActivities.first?.dayOffset ?? 0)...(dailyActivities.last?.dayOffset ?? 0))
         .frame(height: height)
-        .onAppear {
+        .onScrollAppear {
             animateBars()
         }
     }
@@ -40,11 +40,11 @@ struct ActivitySparkline: View {
     private func animateBars() {
         // Animate bars one by one from left to right
         let sortedDays = dailyActivities.map { $0.dayOffset }.sorted()
-        let delayPerBar = 0.84 / Double(max(sortedDays.count, 1)) // Total animation time matches compact rings
+        let delayPerBar = 0.65 / Double(max(sortedDays.count, 1)) // Faster animation (0.65s total)
         
         for (index, dayOffset) in sortedDays.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * delayPerBar) {
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(.easeOut(duration: 0.15)) {
                     _ = animatedBars.insert(dayOffset)
                 }
             }

@@ -23,16 +23,15 @@ struct StepsSparkline: View {
         .chartXScale(domain: 0...23)
         .frame(height: 20)
         .mask(
-            // Pulse wave animation from left to right
+            // Draw line from left to right (no fade on left)
             GeometryReader { geometry in
                 Rectangle()
                     .fill(
                         LinearGradient(
                             gradient: Gradient(stops: [
-                                .init(color: .clear, location: 0),
-                                .init(color: .white, location: animationProgress - 0.1),
+                                .init(color: .white, location: 0),
                                 .init(color: .white, location: animationProgress),
-                                .init(color: .clear, location: animationProgress + 0.1)
+                                .init(color: .clear, location: animationProgress)
                             ]),
                             startPoint: .leading,
                             endPoint: .trailing
@@ -40,10 +39,10 @@ struct StepsSparkline: View {
                     )
             }
         )
-        .onAppear {
-            // Pulse wave animation - same duration as compact rings
-            withAnimation(.easeOut(duration: 0.84)) {
-                animationProgress = 1.1
+        .onScrollAppear {
+            // Draw animation from left to right - faster speed
+            withAnimation(.easeOut(duration: 0.65)) {
+                animationProgress = 1.0
             }
         }
     }

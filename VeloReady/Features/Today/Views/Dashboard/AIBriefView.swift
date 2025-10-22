@@ -193,9 +193,9 @@ private struct MLDataCollectionView: View {
                 }
             }
             .frame(height: 2)
-            .onAppear {
-                // Animate progress bar from left with same timing as compact rings
-                withAnimation(.easeOut(duration: 0.84)) {
+            .onScrollAppear {
+                // Animate progress bar from left - faster speed
+                withAnimation(.easeOut(duration: 0.65)) {
                     animatedProgress = progress
                 }
             }
