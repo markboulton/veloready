@@ -37,6 +37,9 @@ struct DebugSettingsView: View {
                 // 2. API Debug Inspector
                 apiDebugSection
                 
+                // 2.5. Activity Card Examples
+                activityCardsSection
+                
                 // 3. Pro Toggle, Mock Data, Subscription Status
                 testingFeaturesSection
                 
@@ -251,6 +254,31 @@ struct DebugSettingsView: View {
             }
         } header: {
             Label(DebugSettingsContent.SectionHeaders.authStatus, systemImage: Icons.System.shield)
+        }
+    }
+    
+    // MARK: - Activity Cards Section
+    
+    private var activityCardsSection: some View {
+        Section {
+            NavigationLink(destination: ActivityCardGalleryView()) {
+                HStack {
+                    Image(systemName: Icons.System.grid2x2)
+                        .foregroundColor(Color.button.primary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Activity Card Gallery")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("View all activity card variations")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Label("UI Components", systemImage: Icons.System.eye)
+        } footer: {
+            Text("Preview activity card designs for rides, strength, and walking workouts")
         }
     }
     
