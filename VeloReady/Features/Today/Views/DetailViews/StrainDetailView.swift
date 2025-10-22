@@ -15,27 +15,21 @@ struct StrainDetailView: View {
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding(.top, Spacing.md)
                     
                     // Score breakdown
                     scoreBreakdownSection
-                        .padding(.top, Spacing.md)
                     
                     // Load components
                     loadComponentsSection
-                        .padding(.top, Spacing.md)
                     
                     // Activity summary
                     Text(StrainContent.noData)
-                        .padding(.top, Spacing.md)
                     
                     // Recovery modulation
                     recoveryModulationSection
-                        .padding(.top, Spacing.md)
                     
                     // Recommendations
                     recommendationsSection
-                        .padding(.top, Spacing.md)
                         .padding(.bottom, 100)
                 }
             }
