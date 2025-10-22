@@ -5,12 +5,11 @@ struct RecoveryCapacityComponent: View {
     let metrics: WeeklyReportViewModel.WeeklyMetrics
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text(TrendsContent.WeeklyReport.recoveryCapacity)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            HStack(alignment: .top, spacing: Spacing.lg) {
+        StandardCard(
+            title: TrendsContent.WeeklyReport.recoveryCapacity
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(alignment: .top, spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TrendsContent.WeeklyReport.avgRecovery)
                         .metricLabel()
@@ -46,9 +45,10 @@ struct RecoveryCapacityComponent: View {
                 }
             }
             
-            Text(recoveryCapacityMessage(metrics: metrics))
-                .font(.caption)
-                .foregroundColor(.text.secondary)
+                Text(recoveryCapacityMessage(metrics: metrics))
+                    .font(.caption)
+                    .foregroundColor(.text.secondary)
+            }
         }
     }
     

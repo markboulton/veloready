@@ -6,12 +6,11 @@ struct TrainingLoadComponent: View {
     let zones: WeeklyReportViewModel.TrainingZoneDistribution?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(TrendsContent.WeeklyReport.trainingLoadSummary)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            if let metrics = metrics {
+        StandardCard(
+            title: TrendsContent.WeeklyReport.trainingLoadSummary
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                if let metrics = metrics {
                 // Weekly totals
                 HStack(spacing: Spacing.xl) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -105,6 +104,7 @@ struct TrainingLoadComponent: View {
                             .foregroundColor(.text.secondary)
                     }
                 }
+            }
             }
         }
     }

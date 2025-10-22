@@ -6,12 +6,11 @@ struct FitnessTrajectoryComponent: View {
     let ctlData: [FitnessTrajectoryChart.DataPoint]?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(TrendsContent.WeeklyReport.fitnessTrajectory)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            if let metrics = metrics, let ctlData = ctlData {
+        StandardCard(
+            title: TrendsContent.WeeklyReport.fitnessTrajectory
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                if let metrics = metrics, let ctlData = ctlData {
                 // Chart showing CTL, ATL, TSB over 7 days
                 FitnessTrajectoryChart(data: ctlData)
                     .frame(height: 200)
@@ -35,10 +34,11 @@ struct FitnessTrajectoryComponent: View {
                 Text(tsbInterpretation(metrics.tsb))
                     .font(.caption)
                     .foregroundColor(.text.secondary)
-            } else {
-                Text(TrendsContent.WeeklyReport.noTrainingData)
-                    .font(.caption)
-                    .foregroundColor(.text.secondary)
+                } else {
+                    Text(TrendsContent.WeeklyReport.noTrainingData)
+                        .font(.caption)
+                        .foregroundColor(.text.secondary)
+                }
             }
         }
     }

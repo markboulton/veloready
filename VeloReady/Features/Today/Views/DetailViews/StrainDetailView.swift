@@ -51,18 +51,20 @@ struct StrainDetailView: View {
     // MARK: - View Sections
     
     private var weeklyTrendSection: some View {
-        ProFeatureGate(
-            upgradeContent: .weeklyLoadTrend,
-            isEnabled: proConfig.canView7DayLoad,
-            showBenefits: true
-        ) {
-            TrendChart(
-                title: StrainContent.trendTitle,
-                getData: { period in getHistoricalLoadData(for: period) },
-                chartType: .bar,
-                unit: "TSS",
-                showProBadge: true
-            )
+        StandardCard {
+            ProFeatureGate(
+                upgradeContent: .weeklyLoadTrend,
+                isEnabled: proConfig.canView7DayLoad,
+                showBenefits: true
+            ) {
+                TrendChart(
+                    title: StrainContent.trendTitle,
+                    getData: { period in getHistoricalLoadData(for: period) },
+                    chartType: .bar,
+                    unit: "TSS",
+                    showProBadge: true
+                )
+            }
         }
     }
     

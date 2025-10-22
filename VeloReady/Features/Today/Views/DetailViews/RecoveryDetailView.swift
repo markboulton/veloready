@@ -60,33 +60,37 @@ struct RecoveryDetailView: View {
     // MARK: - Weekly Trend Section (Pro)
     
     private var weeklyTrendSection: some View {
-        ProFeatureGate(
-            upgradeContent: .weeklyRecoveryTrend,
-            isEnabled: proConfig.canViewWeeklyTrends,
-            showBenefits: true
-        ) {
-            TrendChart(
-                title: RecoveryContent.trendTitle,
-                getData: { period in getHistoricalRecoveryData(for: period) },
-                chartType: .bar,
-                unit: "%",
-                showProBadge: true
-            )
+        StandardCard {
+            ProFeatureGate(
+                upgradeContent: .weeklyRecoveryTrend,
+                isEnabled: proConfig.canViewWeeklyTrends,
+                showBenefits: true
+            ) {
+                TrendChart(
+                    title: RecoveryContent.trendTitle,
+                    getData: { period in getHistoricalRecoveryData(for: period) },
+                    chartType: .bar,
+                    unit: "%",
+                    showProBadge: true
+                )
+            }
         }
     }
     
     // MARK: - HRV Line Section (Pro)
     
     private var hrvLineSection: some View {
-        ProFeatureGate(
-            upgradeContent: .weeklyRecoveryTrend,
-            isEnabled: proConfig.canViewWeeklyTrends,
-            showBenefits: true
-        ) {
-            HRVCandlestickChart(
-                getData: { period in getHistoricalHRVCandlestickData(for: period) },
-                baseline: recoveryScore.inputs.hrvBaseline
-            )
+        StandardCard {
+            ProFeatureGate(
+                upgradeContent: .weeklyRecoveryTrend,
+                isEnabled: proConfig.canViewWeeklyTrends,
+                showBenefits: true
+            ) {
+                HRVCandlestickChart(
+                    getData: { period in getHistoricalHRVCandlestickData(for: period) },
+                    baseline: recoveryScore.inputs.hrvBaseline
+                )
+            }
         }
     }
     

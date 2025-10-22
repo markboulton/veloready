@@ -74,7 +74,7 @@ struct TrendChart: View {
     }
     
     private var periodSelector: some View {
-        SegmentedControl(
+        LiquidGlassSegmentedControl(
             segments: TrendPeriod.allCases.map { period in
                 SegmentItem(value: period, label: period.label)
             },

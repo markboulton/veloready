@@ -5,12 +5,11 @@ struct WellnessFoundationComponent: View {
     let wellness: WeeklyReportViewModel.WellnessFoundation
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(TrendsContent.WeeklyReport.wellnessFoundation)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            // Use single color - health purple with minimal fill
+        StandardCard(
+            title: TrendsContent.WeeklyReport.wellnessFoundation
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                // Use single color - health purple with minimal fill
             RadarChart(
                 dataPoints: [
                     .init(label: TrendsContent.WeeklyReport.sleepMetric, value: wellness.sleepQuality, icon: "moon.fill"),
@@ -34,6 +33,7 @@ struct WellnessFoundationComponent: View {
                 Text(wellnessInterpretation(wellness: wellness))
                     .font(.caption)
                     .foregroundColor(.text.secondary)
+                }
             }
         }
     }

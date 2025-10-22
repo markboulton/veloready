@@ -71,7 +71,8 @@ struct WeeklyReportView: View {
                 if let metrics = viewModel.weeklyMetrics {
                     WeekOverWeekComponent(metrics: metrics)
                         .padding(.horizontal, Spacing.lg)
-                        .padding(.bottom, Spacing.lg)
+                        .padding(.top, Spacing.md)
+                        .padding(.bottom, 100) // Extra padding so content isn't hidden behind navigation
                 }
             }
         }

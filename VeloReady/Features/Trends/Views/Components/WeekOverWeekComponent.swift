@@ -5,12 +5,11 @@ struct WeekOverWeekComponent: View {
     let metrics: WeeklyReportViewModel.WeeklyMetrics
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(TrendsContent.WeeklyReport.weekOverWeek)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            VStack(spacing: 8) {
+        StandardCard(
+            title: TrendsContent.WeeklyReport.weekOverWeek
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                VStack(spacing: 8) {
                 changeRow(
                     label: TrendsContent.WeeklyReport.recoveryLabel,
                     value: "\(Int(metrics.avgRecovery))%",
@@ -31,6 +30,7 @@ struct WeekOverWeekComponent: View {
                     value: "\(Int(metrics.ctlEnd))",
                     change: metrics.ctlEnd - metrics.ctlStart
                 )
+                }
             }
         }
     }

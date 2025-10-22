@@ -6,19 +6,18 @@ struct SleepHypnogramComponent: View {
     @Binding var selectedDay: Int
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(TrendsContent.WeeklyReport.weeklySleep)
-                .font(.heading)
-                .padding(.top, Spacing.xxl)
-            
-            if hypnograms.isEmpty {
+        StandardCard(
+            title: TrendsContent.WeeklyReport.weeklySleep
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                if hypnograms.isEmpty {
                 Text(TrendsContent.WeeklyReport.noSleepData)
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             } else {
                 // Segmented control for day selection
                 if hypnograms.count > 1 {
-                    SegmentedControl(
+                    LiquidGlassSegmentedControl(
                         segments: hypnograms.indices.map { index in
                             SegmentItem(
                                 value: index,
@@ -55,6 +54,7 @@ struct SleepHypnogramComponent: View {
                     }
                     .animation(.easeInOut(duration: 0.25), value: selectedDay)
                 }
+            }
             }
         }
     }

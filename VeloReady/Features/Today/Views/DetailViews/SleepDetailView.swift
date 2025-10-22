@@ -106,19 +106,21 @@ struct SleepDetailView: View {
     }
     
     private var weeklyTrendSection: some View {
-        ProFeatureGate(
-            upgradeContent: .weeklySleepTrend,
-            isEnabled: proConfig.canViewWeeklyTrends,
-            showBenefits: true
-        ) {
-            TrendChart(
-                title: SleepContent.trendTitle,
-                getData: { period in getHistoricalSleepData(for: period) },
-                chartType: .bar,
-                unit: "%",
-                showProBadge: true,
-                dataType: .sleep
-            )
+        StandardCard {
+            ProFeatureGate(
+                upgradeContent: .weeklySleepTrend,
+                isEnabled: proConfig.canViewWeeklyTrends,
+                showBenefits: true
+            ) {
+                TrendChart(
+                    title: SleepContent.trendTitle,
+                    getData: { period in getHistoricalSleepData(for: period) },
+                    chartType: .bar,
+                    unit: "%",
+                    showProBadge: true,
+                    dataType: .sleep
+                )
+            }
         }
     }
     

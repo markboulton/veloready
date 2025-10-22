@@ -29,7 +29,7 @@ struct HRVCandlestickChart: View {
             }
             
             // Period selector
-            SegmentedControl(
+            LiquidGlassSegmentedControl(
                 segments: TrendPeriod.allCases.map { period in
                     SegmentItem(value: period, label: period.label)
                 },
