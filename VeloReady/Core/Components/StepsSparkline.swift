@@ -5,6 +5,8 @@ import Charts
 struct StepsSparkline: View {
     let hourlySteps: [HourlyStepData]
     
+    @State private var animationProgress: Double = 0.0
+    
     var body: some View {
         Chart {
             ForEach(hourlySteps) { data in
@@ -20,6 +22,30 @@ struct StepsSparkline: View {
         .chartYAxis(.hidden)
         .chartXScale(domain: 0...23)
         .frame(height: 20)
+        .mask(
+            // Pulse wave animation from left to right
+            GeometryReader { geometry in
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: .clear, location: 0),
+                                .init(color: .white, location: animationProgress - 0.1),
+                                .init(color: .white, location: animationProgress),
+                                .init(color: .clear, location: animationProgress + 0.1)
+                            ]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            }
+        )
+        .onAppear {
+            // Pulse wave animation - same duration as compact rings
+            withAnimation(.easeOut(duration: 0.84)) {
+                animationProgress = 1.1
+            }
+        }
     }
 }
 

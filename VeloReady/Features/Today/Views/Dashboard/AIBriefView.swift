@@ -147,6 +147,8 @@ private struct MLDataCollectionView: View {
     
     let showInfoSheet: () -> Void
     
+    @State private var animatedProgress: Double = 0.0
+    
     private var daysRemaining: Int {
         max(0, totalDays - currentDays)
     }
@@ -184,13 +186,19 @@ private struct MLDataCollectionView: View {
                         .fill(Color(.systemGray5))
                         .frame(height: 2)
                     
-                    // Progress (blue)
+                    // Progress (blue) - animates from left
                     Rectangle()
                         .fill(Color.blue)
-                        .frame(width: geometry.size.width * progress, height: 2)
+                        .frame(width: geometry.size.width * animatedProgress, height: 2)
                 }
             }
             .frame(height: 2)
+            .onAppear {
+                // Animate progress bar from left with same timing as compact rings
+                withAnimation(.easeOut(duration: 0.84)) {
+                    animatedProgress = progress
+                }
+            }
             
             HStack {
                 Text("\(currentDays) days")

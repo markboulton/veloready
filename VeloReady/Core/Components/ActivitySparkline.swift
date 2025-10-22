@@ -7,6 +7,8 @@ struct ActivitySparkline: View {
     let alignment: HorizontalAlignment
     let height: CGFloat
     
+    @State private var animatedBars: Set<Int> = []
+    
     init(dailyActivities: [DailyActivityData], alignment: HorizontalAlignment = .trailing, height: CGFloat = 24) {
         self.dailyActivities = dailyActivities
         self.alignment = alignment
@@ -19,7 +21,7 @@ struct ActivitySparkline: View {
                 ForEach(dayData.activities) { activity in
                     BarMark(
                         x: .value("Day", dayData.dayOffset),
-                        y: .value("Duration", activity.duration),
+                        y: .value("Duration", animatedBars.contains(dayData.dayOffset) ? activity.duration : 0),
                         stacking: .standard
                     )
                     .foregroundStyle(colorForActivityType(activity.type))
@@ -30,6 +32,23 @@ struct ActivitySparkline: View {
         .chartYAxis(.hidden)
         .chartXScale(domain: (dailyActivities.first?.dayOffset ?? 0)...(dailyActivities.last?.dayOffset ?? 0))
         .frame(height: height)
+        .onAppear {
+            animateBars()
+        }
+    }
+    
+    private func animateBars() {
+        // Animate bars one by one from left to right
+        let sortedDays = dailyActivities.map { $0.dayOffset }.sorted()
+        let delayPerBar = 0.84 / Double(max(sortedDays.count, 1)) // Total animation time matches compact rings
+        
+        for (index, dayOffset) in sortedDays.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * delayPerBar) {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    _ = animatedBars.insert(dayOffset)
+                }
+            }
+        }
     }
     
     private func colorForActivityType(_ type: SparklineActivityType) -> Color {
