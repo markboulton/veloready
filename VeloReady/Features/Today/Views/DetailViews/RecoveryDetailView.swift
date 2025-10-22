@@ -17,49 +17,33 @@ struct RecoveryDetailView: View {
                     // Illness indicator alert
                     IllnessAlertBanner()
                     
-                    SectionDivider()
-                    
                     // Weekly Trend (Pro)
                     weeklyTrendSection
                         .padding()
-                    
-                    SectionDivider()
                     
                     // HRV Line Chart (Pro)
                     hrvLineSection
                         .padding()
                     
-                    SectionDivider()
-                    
                     // RHR Candlestick Chart (Pro)
                     rhrCandlestickSection
                         .padding()
-                    
-                    SectionDivider()
                     
                     // Sub-scores breakdown
                     subScoresSection
                         .padding()
                     
-                    SectionDivider()
-                    
                     // Recovery Debt
                     recoveryDebtSection
                         .padding()
-                    
-                    SectionDivider()
                     
                     // Readiness Score
                     readinessSection
                         .padding()
                     
-                    SectionDivider()
-                    
                     // Resilience Score
                     resilienceSection
                         .padding()
-                    
-                    SectionDivider()
                     
                     // Apple Health metrics
                     healthMetricsSection
@@ -124,11 +108,9 @@ struct RecoveryDetailView: View {
     // MARK: - Sub-Scores Section
     
     private var subScoresSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(RecoveryContent.factorsTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
+        StandardCard(
+            title: RecoveryContent.factorsTitle
+        ) {
             VStack(spacing: 12) {
                 subScoreRow(
                     title: RecoveryContent.Metrics.hrv,
@@ -204,11 +186,9 @@ struct RecoveryDetailView: View {
     // MARK: - Health Metrics Section
     
     private var healthMetricsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(RecoveryContent.appleHealthTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
+        StandardCard(
+            title: RecoveryContent.appleHealthTitle
+        ) {
             VStack(spacing: 12) {
                 if let hrv = recoveryScore.inputs.hrv {
                     if let hrvBaseline = recoveryScore.inputs.hrvBaseline {
@@ -553,12 +533,11 @@ struct RecoveryDetailView: View {
     
     @ViewBuilder
     private var recoveryDebtSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(RecoveryContent.NewMetrics.recoveryDebt)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
+        StandardCard(
+            title: RecoveryContent.NewMetrics.recoveryDebt
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let debt = RecoveryScoreService.shared.currentRecoveryDebt {
                 HStack(spacing: 12) {
                     Image(systemName: Icons.Health.boltHeart)
                         .font(.title2)
@@ -599,17 +578,17 @@ struct RecoveryDetailView: View {
                     description: RecoveryContent.RecoveryDebt.description
                 )
             }
+            }
         }
     }
     
     @ViewBuilder
     private var readinessSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(ReadinessContent.title)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let readiness = RecoveryScoreService.shared.currentReadinessScore {
+        StandardCard(
+            title: ReadinessContent.title
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let readiness = RecoveryScoreService.shared.currentReadinessScore {
                 
                 HStack(spacing: 12) {
                     Image(systemName: Icons.Activity.running)
@@ -650,17 +629,17 @@ struct RecoveryDetailView: View {
                     description: RecoveryContent.Readiness.description
                 )
             }
+            }
         }
     }
     
     @ViewBuilder
     private var resilienceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(RecoveryContent.NewMetrics.resilience)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let resilience = RecoveryScoreService.shared.currentResilienceScore {
+        StandardCard(
+            title: RecoveryContent.NewMetrics.resilience
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let resilience = RecoveryScoreService.shared.currentResilienceScore {
                 
                 HStack(spacing: 12) {
                     Image(systemName: Icons.Activity.strength)
@@ -705,6 +684,7 @@ struct RecoveryDetailView: View {
                     metricName: RecoveryContent.NewMetrics.resilience,
                     description: RecoveryContent.Resilience.description
                 )
+            }
             }
         }
     }
