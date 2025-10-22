@@ -40,10 +40,19 @@ struct TodayView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack(alignment: .top) {
-                // Gradient background
-                GradientBackground()
+                // Gradient background masked to black
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.black,
+                        Color.black.opacity(0.95),
+                        Color.black.opacity(0.9)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 ScrollView {
                     // Use LazyVStack as main container for better performance
@@ -125,18 +134,10 @@ struct TodayView: View {
             }
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.thinMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
-            .toolbar {
-                // This forces SwiftUI to track scroll for title collapse
-                ToolbarItem(placement: .principal) {
-                    Text(scrollOffset < -50 ? TodayContent.title : "")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                }
-            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {

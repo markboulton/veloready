@@ -44,10 +44,19 @@ struct ActivitiesView: View {
     @State private var lastStravaConnectionState: StravaConnectionState = .disconnected
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack(alignment: .top) {
-                // Gradient background
-                GradientBackground()
+                // Gradient background masked to black
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.black,
+                        Color.black.opacity(0.95),
+                        Color.black.opacity(0.9)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 Group {
                     if viewModel.isLoading && viewModel.groupedActivities.isEmpty {
@@ -66,8 +75,9 @@ struct ActivitiesView: View {
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.thinMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingFilterSheet = true }) {

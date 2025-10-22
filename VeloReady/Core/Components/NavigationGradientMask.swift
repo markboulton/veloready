@@ -3,26 +3,21 @@ import SwiftUI
 /// Gradient mask that appears below navigation bar
 /// Matches iOS Mail's behavior - ensures content remains legible when scrolling
 struct NavigationGradientMask: View {
-    @Environment(\.colorScheme) var colorScheme
-    
     var body: some View {
         LinearGradient(
             gradient: Gradient(stops: [
-                .init(color: backgroundColor.opacity(0.95), location: 0.0),
-                .init(color: backgroundColor.opacity(0.7), location: 0.3),
-                .init(color: backgroundColor.opacity(0.4), location: 0.6),
-                .init(color: backgroundColor.opacity(0.0), location: 1.0)
+                .init(color: Color.black.opacity(1.0), location: 0.0),
+                .init(color: Color.black.opacity(0.8), location: 0.25),
+                .init(color: Color.black.opacity(0.5), location: 0.5),
+                .init(color: Color.black.opacity(0.2), location: 0.75),
+                .init(color: Color.black.opacity(0.0), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
         )
-        .frame(height: 120)
+        .frame(height: 140)
         .allowsHitTesting(false)
         .ignoresSafeArea(edges: .top)
-    }
-    
-    private var backgroundColor: Color {
-        colorScheme == .dark ? Color.black : Color.white
     }
 }
 

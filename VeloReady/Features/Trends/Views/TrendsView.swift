@@ -9,10 +9,19 @@ struct TrendsView: View {
     @State private var showPaywall = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack(alignment: .top) {
-                // Gradient background
-                GradientBackground()
+                // Gradient background masked to black
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.black,
+                        Color.black.opacity(0.95),
+                        Color.black.opacity(0.9)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 Group {
                     if proConfig.hasProAccess {
@@ -27,8 +36,9 @@ struct TrendsView: View {
             }
             .navigationTitle(TrendsContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.thinMaterial, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }

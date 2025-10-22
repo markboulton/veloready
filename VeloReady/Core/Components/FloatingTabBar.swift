@@ -31,25 +31,41 @@ struct FloatingTabBar: View {
         .padding(.vertical, 8)
         .background(
             ZStack {
-                // Primary glass material - iOS native
+                // Primary glass material with refraction
                 RoundedRectangle(cornerRadius: 32)
-                    .fill(.ultraThinMaterial)
+                    .fill(.thinMaterial)
                 
-                // Enhanced depth layer
+                // Refraction layer - adds glass-like distortion
+                RoundedRectangle(cornerRadius: 32)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .blendMode(.overlay)
+                
+                // Depth layer
                 RoundedRectangle(cornerRadius: 32)
                     .fill(
                         LinearGradient(
                             colors: colorScheme == .dark ? [
-                                Color.black.opacity(0.4),
-                                Color.black.opacity(0.2)
+                                Color.black.opacity(0.3),
+                                Color.black.opacity(0.1)
                             ] : [
-                                Color.white.opacity(0.6),
-                                Color.white.opacity(0.3)
+                                Color.white.opacity(0.4),
+                                Color.white.opacity(0.2)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
+                    .blendMode(.multiply)
             }
         )
         .overlay(
