@@ -182,6 +182,11 @@ struct TodayView: View {
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
+            // Synchronize with MainTabView's showInitialSpinner to control FloatingTabBar
+            if !newValue {
+                Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
+                showInitialSpinner = false
+            }
         }
     }
     
