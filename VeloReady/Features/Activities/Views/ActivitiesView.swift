@@ -35,7 +35,7 @@ struct ShimmerActivityListModifier: ViewModifier {
 }
 
 struct ActivitiesView: View {
-    @StateObject private var viewModel = ActivitiesViewModel()
+    @ObservedObject private var viewModel = ActivitiesViewModel.shared
     @EnvironmentObject var apiClient: IntervalsAPIClient
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuthService = StravaAuthService.shared
@@ -302,6 +302,8 @@ struct ActivitiesView: View {
 
 @MainActor
 class ActivitiesViewModel: ObservableObject {
+    static let shared = ActivitiesViewModel()
+    
     @Published var groupedActivities: [String: [UnifiedActivity]] = [:]
     @Published var isLoading = false
     @Published var isLoadingMore = false
@@ -312,6 +314,8 @@ class ActivitiesViewModel: ObservableObject {
     var allActivities: [UnifiedActivity] = []
     private var proConfig = ProFeatureConfig.shared
     private var hasLoadedInitialData = false
+    
+    private init() {} // Private init for singleton
     
     var sortedMonthKeys: [String] {
         // Sort month keys chronologically (newest first)
