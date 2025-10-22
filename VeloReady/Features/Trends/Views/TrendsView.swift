@@ -41,12 +41,11 @@ struct TrendsView: View {
     // MARK: - Quick Stats
     
     private var quickStats: some View {
-        Card(style: .flat) {
+        StandardCard(
+            icon: "chart.bar.fill",
+            title: oauthManager.isAuthenticated ? "Performance Summary" : "Health Summary"
+        ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                Text(oauthManager.isAuthenticated ? "Performance Summary" : "Health Summary")
-                    .font(.heading)
-                    .foregroundColor(.text.primary)
-                
                 HStack(spacing: Spacing.lg) {
                     // Show FTP only when Intervals connected (cycling-specific)
                     if oauthManager.isAuthenticated, let ftp = viewModel.ftpTrendData.last?.value {
