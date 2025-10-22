@@ -29,7 +29,8 @@ struct TodayView: View {
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
-    @AppStorage("hasCompletedInitialLoad") private var hasCompletedInitialLoad = false
+    @State private var hasLoadedInitialData = false
+    @State private var isViewActive = false
     @Binding var showInitialSpinner: Bool
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
@@ -142,6 +143,10 @@ struct TodayView: View {
         .onAppear {
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             handleViewAppear()
+        }
+        .onDisappear {
+            Logger.debug("👋 [SPINNER] TodayView.onDisappear called - marking view as inactive")
+            isViewActive = false
         }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
@@ -533,22 +538,24 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
-        Logger.debug("👁 [SPINNER] handleViewAppear - hasCompletedInitialLoad=\(hasCompletedInitialLoad), isInitializing=\(viewModel.isInitializing)")
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(hasLoadedInitialData), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
-        // If returning to page (not initial load), trigger ring animations
-        if hasCompletedInitialLoad && !viewModel.isInitializing {
+        // If returning to page (not initial load and was previously active), trigger ring animations
+        if hasLoadedInitialData && isViewActive && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page - triggering ring animations")
             viewModel.animationTrigger = UUID()
         }
         
+        isViewActive = true
+        
         // Only do full refresh on first appear
-        guard !hasCompletedInitialLoad else {
+        guard !hasLoadedInitialData else {
             Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
             return
         }
-        hasCompletedInitialLoad = true
+        hasLoadedInitialData = true
         Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
         
         Task {
