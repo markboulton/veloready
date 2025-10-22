@@ -10,7 +10,7 @@ struct LatestActivityCard: View {
     @State private var isLoadingMap = false
     
     var body: some View {
-        NavigationLink(destination: destinationView) {
+        HapticNavigationLink(destination: destinationView) {
             StandardCard(
                 icon: activity.type.icon,
                 title: activity.name,

@@ -64,7 +64,7 @@ struct RecoveryMetricsSection: View {
     @ViewBuilder
     private var recoveryScoreView: some View {
             if let recoveryScore = recoveryScoreService.currentRecoveryScore {
-                NavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
+                HapticNavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.recoveryScore)
@@ -152,8 +152,8 @@ struct RecoveryMetricsSection: View {
                     }
                     .frame(maxWidth: .infinity)
                 } else {
-                    // Normal NavigationLink when we have sleep data
-                    NavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
+                    // Normal HapticNavigationLink when we have sleep data
+                    HapticNavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
                         VStack(spacing: 12) {
                             HStack(spacing: 4) {
                                 Text(TodayContent.Scores.sleepScore)
@@ -224,7 +224,7 @@ struct RecoveryMetricsSection: View {
     @ViewBuilder
     private var loadScoreView: some View {
             if let strainScore = strainScoreService.currentStrainScore {
-                NavigationLink(destination: StrainDetailView(strainScore: strainScore)) {
+                HapticNavigationLink(destination: StrainDetailView(strainScore: strainScore)) {
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.loadScore)
