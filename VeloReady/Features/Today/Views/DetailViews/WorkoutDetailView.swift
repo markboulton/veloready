@@ -81,8 +81,6 @@ struct WorkoutDetailView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 24)
                     
-                    SectionDivider()
-                    
                     // Show loading skeleton while fetching data
                     if viewModel.isLoading {
                     VStack(spacing: 20) {
@@ -117,8 +115,6 @@ struct WorkoutDetailView: View {
                             .padding(.top, 20)
                             .padding(.bottom, 12)
                         
-                        SectionDivider()
-                        
                         // Training Load Chart - PRO feature (has its own margins)
                         // Shows CTL/ATL/TSB trend over time with 3 intersecting lines
                         // Only show divider if chart has TSS data
@@ -126,8 +122,6 @@ struct WorkoutDetailView: View {
                             TrainingLoadChart(activity: displayActivity)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 20)
-                            
-                            SectionDivider()
                         }
                         
                         // Intensity Chart - PRO feature (has its own margins)
@@ -136,8 +130,6 @@ struct WorkoutDetailView: View {
                             IntensityChart(activity: displayActivity)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 20)
-                            
-                            SectionDivider()
                         }
                     } else {
                         // Single combined Pro upgrade card for free users
@@ -147,8 +139,6 @@ struct WorkoutDetailView: View {
                             learnMore: .advancedRideAnalytics
                         )
                         .padding(.horizontal, 16)
-                        
-                        SectionDivider()
                     }
                     
                     // Charts Section - always show, charts handle empty data
@@ -159,15 +149,11 @@ struct WorkoutDetailView: View {
                     )
                 }
                 
-                SectionDivider()
-                
                 // Zone Pie Charts Section - Free and Pro versions (has its own margins)
                 ZonePieChartSection(activity: displayActivity)
                 
                 // Interactive Map - only show if GPS data exists AND not a virtual ride
                 if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
-                    SectionDivider()
-                    
                     WorkoutMapSection(
                         coordinates: routeCoordinates,
                         isLoading: isLoadingMap
@@ -175,8 +161,6 @@ struct WorkoutDetailView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 24)
                 }
-                
-                SectionDivider()
                 
                 // Additional Data Section - use enriched activity
                 AdditionalDataSection(activity: displayActivity)

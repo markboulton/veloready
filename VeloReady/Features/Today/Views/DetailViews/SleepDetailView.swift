@@ -24,53 +24,45 @@ struct SleepDetailView: View {
                     // Illness indicator alert
                     IllnessAlertBanner()
                     
-                    SectionDivider()
-                    
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Score breakdown
                     scoreBreakdownSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Sleep hypnogram
                     hypnogramSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Sleep metrics
                     sleepMetricsSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Sleep stages
                     sleepStagesSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Sleep Debt
                     sleepDebtSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Sleep Consistency
                     sleepConsistencySection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Recommendations
                     recommendationsSection
-                        .padding()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                 }
             }
             .refreshable {
@@ -132,70 +124,70 @@ struct SleepDetailView: View {
     
     
     private var scoreBreakdownSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.breakdownTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 12) {
-                ScoreBreakdownRow(
-                    title: SleepContent.Components.performance,
-                    score: sleepScore.subScores.performance,
-                    weight: SleepContent.Weights.performance,
-                    description: SleepContent.ComponentDescriptions.performance
-                )
-                
-                ScoreBreakdownRow(
-                    title: SleepContent.Components.efficiency,
-                    score: sleepScore.subScores.efficiency,
-                    weight: SleepContent.Weights.efficiency,
-                    description: SleepContent.ComponentDescriptions.efficiency
-                )
-                
-                ScoreBreakdownRow(
-                    title: SleepContent.Components.stageQuality,
-                    score: sleepScore.subScores.stageQuality,
-                    weight: SleepContent.Weights.stageQuality,
-                    description: SleepContent.ComponentDescriptions.stageQuality
-                )
-                
-                ScoreBreakdownRow(
-                    title: SleepContent.Components.disturbances,
-                    score: sleepScore.subScores.disturbances,
-                    weight: SleepContent.Weights.disturbances,
-                    description: SleepContent.ComponentDescriptions.disturbances
-                )
-                
-                ScoreBreakdownRow(
-                    title: SleepContent.Components.timing,
-                    score: sleepScore.subScores.timing,
-                    weight: SleepContent.Weights.timing,
-                    description: SleepContent.ComponentDescriptions.timing
-                )
-                
+        StandardCard(
+            title: SleepContent.breakdownTitle
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 12) {
+                    ScoreBreakdownRow(
+                        title: SleepContent.Components.performance,
+                        score: sleepScore.subScores.performance,
+                        weight: SleepContent.Weights.performance,
+                        description: SleepContent.ComponentDescriptions.performance
+                    )
+                    
+                    ScoreBreakdownRow(
+                        title: SleepContent.Components.efficiency,
+                        score: sleepScore.subScores.efficiency,
+                        weight: SleepContent.Weights.efficiency,
+                        description: SleepContent.ComponentDescriptions.efficiency
+                    )
+                    
+                    ScoreBreakdownRow(
+                        title: SleepContent.Components.stageQuality,
+                        score: sleepScore.subScores.stageQuality,
+                        weight: SleepContent.Weights.stageQuality,
+                        description: SleepContent.ComponentDescriptions.stageQuality
+                    )
+                    
+                    ScoreBreakdownRow(
+                        title: SleepContent.Components.disturbances,
+                        score: sleepScore.subScores.disturbances,
+                        weight: SleepContent.Weights.disturbances,
+                        description: SleepContent.ComponentDescriptions.disturbances
+                    )
+                    
+                    ScoreBreakdownRow(
+                        title: SleepContent.Components.timing,
+                        score: sleepScore.subScores.timing,
+                        weight: SleepContent.Weights.timing,
+                        description: SleepContent.ComponentDescriptions.timing
+                    )
+                    
+                }
             }
         }
     }
     
     private var hypnogramSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.hypnogramTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if !sleepSamples.isEmpty,
-               let bedtime = sleepScore.inputs.bedtime,
-               let wakeTime = sleepScore.inputs.wakeTime {
-                SleepHypnogramChart(
-                    sleepSamples: sleepSamples,
-                    nightStart: bedtime,
-                    nightEnd: wakeTime
-                )
-            } else {
-                Text(SleepContent.Warnings.noDetailedData)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 20)
+        StandardCard(
+            title: SleepContent.hypnogramTitle
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if !sleepSamples.isEmpty,
+                   let bedtime = sleepScore.inputs.bedtime,
+                   let wakeTime = sleepScore.inputs.wakeTime {
+                    SleepHypnogramChart(
+                        sleepSamples: sleepSamples,
+                        nightStart: bedtime,
+                        nightEnd: wakeTime
+                    )
+                } else {
+                    Text(SleepContent.Warnings.noDetailedData)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
+                }
             }
         }
         .task {
@@ -233,123 +225,123 @@ struct SleepDetailView: View {
     }
     
     private var sleepMetricsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.metricsTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
-                SleepMetricCard(
-                    title: SleepContent.Metrics.duration,
-                    value: sleepScore.formattedSleepDuration,
-                    icon: Icons.Health.sleepFill,
-                    color: ColorScale.sleepCore
-                )
-                
-                SleepMetricCard(
-                    title: SleepContent.Metrics.sleepNeed,
-                    value: sleepScore.formattedSleepNeed,
-                    icon: Icons.System.target,
-                    color: ColorScale.sleepDeep
-                )
-                
-                SleepMetricCard(
-                    title: SleepContent.Metrics.efficiency,
-                    value: sleepScore.formattedSleepEfficiency,
-                    icon: Icons.System.percent,
-                    color: ColorScale.sleepREM
-                )
-                
-                SleepMetricCard(
-                    title: SleepContent.Metrics.wakeEvents,
-                    value: sleepScore.formattedWakeEvents,
-                    icon: Icons.Status.warningFill,
-                    color: .red  // Keep red as RAG status indicator
-                )
-                
-                SleepMetricCard(
-                    title: SleepContent.Metrics.deepSleep,
-                    value: sleepScore.formattedDeepSleepPercentage,
-                    icon: Icons.Health.heartRate,
-                    color: ColorScale.sleepDeep
-                )
+        StandardCard(
+            title: SleepContent.metricsTitle
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 16) {
+                    SleepMetricCard(
+                        title: SleepContent.Metrics.duration,
+                        value: sleepScore.formattedSleepDuration,
+                        icon: Icons.Health.sleepFill,
+                        color: ColorScale.sleepCore
+                    )
+                    
+                    SleepMetricCard(
+                        title: SleepContent.Metrics.sleepNeed,
+                        value: sleepScore.formattedSleepNeed,
+                        icon: Icons.System.target,
+                        color: ColorScale.sleepDeep
+                    )
+                    
+                    SleepMetricCard(
+                        title: SleepContent.Metrics.efficiency,
+                        value: sleepScore.formattedSleepEfficiency,
+                        icon: Icons.System.percent,
+                        color: ColorScale.sleepREM
+                    )
+                    
+                    SleepMetricCard(
+                        title: SleepContent.Metrics.wakeEvents,
+                        value: sleepScore.formattedWakeEvents,
+                        icon: Icons.Status.warningFill,
+                        color: .red  // Keep red as RAG status indicator
+                    )
+                    
+                    SleepMetricCard(
+                        title: SleepContent.Metrics.deepSleep,
+                        value: sleepScore.formattedDeepSleepPercentage,
+                        icon: Icons.Health.heartRate,
+                        color: ColorScale.sleepDeep
+                    )
+                }
             }
         }
     }
     
     private var sleepStagesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.stagesTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let sleepDuration = sleepScore.inputs.sleepDuration, sleepDuration > 0 {
-                VStack(spacing: 12) {
-                    if let deepDuration = sleepScore.inputs.deepSleepDuration {
-                        SleepStageRow(
-                            title: SleepContent.Stages.deep,
-                            duration: deepDuration,
-                            totalDuration: sleepDuration,
-                            color: ColorScale.sleepDeep
-                        )
+        StandardCard(
+            title: SleepContent.stagesTitle
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let sleepDuration = sleepScore.inputs.sleepDuration, sleepDuration > 0 {
+                    VStack(spacing: 12) {
+                        if let deepDuration = sleepScore.inputs.deepSleepDuration {
+                            SleepStageRow(
+                                title: SleepContent.Stages.deep,
+                                duration: deepDuration,
+                                totalDuration: sleepDuration,
+                                color: ColorScale.sleepDeep
+                            )
+                        }
+                        
+                        if let remDuration = sleepScore.inputs.remSleepDuration {
+                            SleepStageRow(
+                                title: SleepContent.Stages.rem,
+                                duration: remDuration,
+                                totalDuration: sleepDuration,
+                                color: ColorScale.sleepREM
+                            )
+                        }
+                        
+                        if let coreDuration = sleepScore.inputs.coreSleepDuration {
+                            SleepStageRow(
+                                title: SleepContent.Stages.core,
+                                duration: coreDuration,
+                                totalDuration: sleepDuration,
+                                color: ColorScale.sleepCore
+                            )
+                        }
+                        
+                        if let awakeDuration = sleepScore.inputs.awakeDuration {
+                            SleepStageRow(
+                                title: SleepContent.Stages.awake,
+                                duration: awakeDuration,
+                                totalDuration: sleepDuration,
+                                color: ColorScale.sleepAwake
+                            )
+                        }
                     }
-                    
-                    if let remDuration = sleepScore.inputs.remSleepDuration {
-                        SleepStageRow(
-                            title: SleepContent.Stages.rem,
-                            duration: remDuration,
-                            totalDuration: sleepDuration,
-                            color: ColorScale.sleepREM
-                        )
-                    }
-                    
-                    if let coreDuration = sleepScore.inputs.coreSleepDuration {
-                        SleepStageRow(
-                            title: SleepContent.Stages.core,
-                            duration: coreDuration,
-                            totalDuration: sleepDuration,
-                            color: ColorScale.sleepCore
-                        )
-                    }
-                    
-                    if let awakeDuration = sleepScore.inputs.awakeDuration {
-                        SleepStageRow(
-                            title: SleepContent.Stages.awake,
-                            duration: awakeDuration,
-                            totalDuration: sleepDuration,
-                            color: ColorScale.sleepAwake
-                        )
-                    }
+                } else {
+                    Text(SleepContent.Warnings.noStageData)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 20)
                 }
-            } else {
-                Text(SleepContent.Warnings.noStageData)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 20)
             }
         }
     }
     
     private var recommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.recommendationsTitle)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(generateRecommendations(), id: \.self) { recommendation in
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: Icons.System.lightbulb)
-                            .foregroundColor(ColorScale.sleepAwake)
-                            .font(.caption)
-                            .padding(.top, 2)
-                        
-                        Text(recommendation)
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
+        StandardCard(
+            title: SleepContent.recommendationsTitle
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(generateRecommendations(), id: \.self) { recommendation in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: Icons.System.lightbulb)
+                                .foregroundColor(ColorScale.sleepAwake)
+                                .font(.caption)
+                                .padding(.top, 2)
+                            
+                            Text(recommendation)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                        }
                     }
                 }
             }
@@ -457,12 +449,11 @@ struct SleepDetailView: View {
     
     @ViewBuilder
     private var sleepDebtSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.NewMetrics.sleepDebt)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let debt = SleepScoreService.shared.currentSleepDebt {
+        StandardCard(
+            title: SleepContent.NewMetrics.sleepDebt
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let debt = SleepScoreService.shared.currentSleepDebt {
                 HStack(spacing: 12) {
                     Image(systemName: Icons.Health.sleepZzzFill)
                         .font(.title2)
@@ -505,23 +496,23 @@ struct SleepDetailView: View {
                 sleepDebtTrendChart()
                     .padding(.top, 12)
             } else {
-                sleepDataAvailabilityMessage(
-                    requiredDays: 7,
-                    metricName: SleepContent.NewMetrics.sleepDebt,
-                    description: SleepContent.DataAvailability.sleepDebtDescription
-                )
+                    sleepDataAvailabilityMessage(
+                        requiredDays: 7,
+                        metricName: SleepContent.NewMetrics.sleepDebt,
+                        description: SleepContent.DataAvailability.sleepDebtDescription
+                    )
+                }
             }
         }
     }
     
     @ViewBuilder
     private var sleepConsistencySection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(SleepContent.NewMetrics.consistency)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if let consistency = SleepScoreService.shared.currentSleepConsistency {
+        StandardCard(
+            title: SleepContent.NewMetrics.consistency
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let consistency = SleepScoreService.shared.currentSleepConsistency {
                 HStack(spacing: 12) {
                     Image(systemName: Icons.System.clock)
                         .font(.title2)
@@ -564,11 +555,12 @@ struct SleepDetailView: View {
                 sleepConsistencyTrendChart()
                     .padding(.top, 12)
             } else {
-                sleepDataAvailabilityMessage(
-                    requiredDays: 7,
-                    metricName: SleepContent.NewMetrics.consistency,
-                    description: SleepContent.DataAvailability.consistencyDescription
-                )
+                    sleepDataAvailabilityMessage(
+                        requiredDays: 7,
+                        metricName: SleepContent.NewMetrics.consistency,
+                        description: SleepContent.DataAvailability.consistencyDescription
+                    )
+                }
             }
         }
     }

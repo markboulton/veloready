@@ -13,41 +13,35 @@ struct StrainDetailView: View {
                     StrainHeaderSection(strainScore: strainScore)
                         .padding()
                     
-                    SectionDivider()
-                    
                     // Weekly Trend (Pro)
                     weeklyTrendSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Score breakdown
                     scoreBreakdownSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Load components
                     loadComponentsSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Activity summary
                     Text(StrainContent.noData)
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Recovery modulation
                     recoveryModulationSection
-                        .padding()
-                    
-                    SectionDivider()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                     
                     // Recommendations
                     recommendationsSection
-                        .padding()
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.md)
                 }
             }
         .navigationTitle(StrainContent.title)
@@ -74,98 +68,98 @@ struct StrainDetailView: View {
     
     
     private var scoreBreakdownSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(StrainContent.loadComponents)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 12) {
-                LoadComponentRow(
-                    title: "Cardio",
-                    score: strainScore.subScores.cardioLoad,
-                    weight: "50%",
-                    description: "Cycling TRIMP-based load"
-                )
-                
-                LoadComponentRow(
-                    title: "Strength",
-                    score: strainScore.subScores.strengthLoad,
-                    weight: "25%",
-                    description: "Resistance training load"
-                )
-                
-                LoadComponentRow(
-                    title: "Daily Activity",
-                    score: strainScore.subScores.nonExerciseLoad,
-                    weight: "25%",
-                    description: "Non-workout activity"
-                )
+        StandardCard(
+            title: StrainContent.loadComponents
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 12) {
+                    LoadComponentRow(
+                        title: "Cardio",
+                        score: strainScore.subScores.cardioLoad,
+                        weight: "50%",
+                        description: "Cycling TRIMP-based load"
+                    )
+                    
+                    LoadComponentRow(
+                        title: "Strength",
+                        score: strainScore.subScores.strengthLoad,
+                        weight: "25%",
+                        description: "Resistance training load"
+                    )
+                    
+                    LoadComponentRow(
+                        title: "Daily Activity",
+                        score: strainScore.subScores.nonExerciseLoad,
+                        weight: "25%",
+                        description: "Non-workout activity"
+                    )
+                }
             }
         }
     }
     
     private var loadComponentsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(StrainContent.activitySummary)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
-                if let cardioDuration = strainScore.inputs.cardioDurationMinutes {
-                    LoadMetricCard(
-                        title: "Cardio Time",
-                        value: formatDuration(cardioDuration),
-                        icon: "bicycle",
-                        color: .blue
-                    )
-                }
-                
-                if let avgIF = strainScore.inputs.averageIntensityFactor {
-                    LoadMetricCard(
-                        title: "Avg Intensity",
-                        value: String(format: "%.2f IF", avgIF),
-                        icon: "speedometer",
-                        color: .orange
-                    )
-                }
-                
-                if let steps = strainScore.inputs.dailySteps {
-                    LoadMetricCard(
-                        title: "Daily Steps",
-                        value: "\(steps)",
-                        icon: "figure.run",
-                        color: .green
-                    )
-                }
-                
-                if let calories = strainScore.inputs.activeEnergyCalories {
-                    LoadMetricCard(
-                        title: "Active Calories",
-                        value: String(format: "%.0f", calories),
-                        icon: "flame.fill",
-                        color: .red
-                    )
-                }
-                
-                if let strengthRPE = strainScore.inputs.strengthSessionRPE {
-                    LoadMetricCard(
-                        title: "Strength RPE",
-                        value: String(format: "%.1f", strengthRPE),
-                        icon: "dumbbell.fill",
-                        color: .purple
-                    )
-                }
-                
-                if let strengthDuration = strainScore.inputs.strengthDurationMinutes {
-                    LoadMetricCard(
-                        title: "Strength Time",
-                        value: formatDuration(strengthDuration),
-                        icon: "clock.fill",
-                        color: .purple
-                    )
+        StandardCard(
+            title: StrainContent.activitySummary
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 16) {
+                    if let cardioDuration = strainScore.inputs.cardioDurationMinutes {
+                        LoadMetricCard(
+                            title: "Cardio Time",
+                            value: formatDuration(cardioDuration),
+                            icon: "bicycle",
+                            color: .blue
+                        )
+                    }
+                    
+                    if let avgIF = strainScore.inputs.averageIntensityFactor {
+                        LoadMetricCard(
+                            title: "Avg Intensity",
+                            value: String(format: "%.2f IF", avgIF),
+                            icon: "speedometer",
+                            color: .orange
+                        )
+                    }
+                    
+                    if let steps = strainScore.inputs.dailySteps {
+                        LoadMetricCard(
+                            title: "Daily Steps",
+                            value: "\(steps)",
+                            icon: "figure.run",
+                            color: .green
+                        )
+                    }
+                    
+                    if let calories = strainScore.inputs.activeEnergyCalories {
+                        LoadMetricCard(
+                            title: "Active Calories",
+                            value: String(format: "%.0f", calories),
+                            icon: "flame.fill",
+                            color: .red
+                        )
+                    }
+                    
+                    if let strengthRPE = strainScore.inputs.strengthSessionRPE {
+                        LoadMetricCard(
+                            title: "Strength RPE",
+                            value: String(format: "%.1f", strengthRPE),
+                            icon: "dumbbell.fill",
+                            color: .purple
+                        )
+                    }
+                    
+                    if let strengthDuration = strainScore.inputs.strengthDurationMinutes {
+                        LoadMetricCard(
+                            title: "Strength Time",
+                            value: formatDuration(strengthDuration),
+                            icon: "clock.fill",
+                            color: .purple
+                        )
+                    }
                 }
             }
         }
@@ -209,50 +203,50 @@ struct StrainDetailView: View {
     }
     
     private var recoveryModulationSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(StrainContent.recoveryModulation)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(StrainContent.RecoveryModulation.recoveryFactor)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+        StandardCard(
+            title: StrainContent.recoveryModulation
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(StrainContent.RecoveryModulation.recoveryFactor)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text(StrainContent.RecoveryModulation.adjustsLoad)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                     
-                    Text(StrainContent.RecoveryModulation.adjustsLoad)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Spacer()
+                    
+                    Text(String(format: "%.2fx", strainScore.subScores.recoveryFactor))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(recoveryFactorColor)
                 }
-                
-                Spacer()
-                
-                Text(String(format: "%.2fx", strainScore.subScores.recoveryFactor))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(recoveryFactorColor)
+                .padding(.vertical, 8)
             }
-            .padding(.vertical, 8)
         }
     }
     
     private var recommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(StrainContent.recommendations)
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(generateRecommendations(), id: \.self) { recommendation in
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: Icons.System.lightbulb)
-                            .foregroundColor(ColorPalette.yellow)
-                            .font(.caption)
-                            .padding(.top, 2)
-                        
-                        Text(recommendation)
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
+        StandardCard(
+            title: StrainContent.recommendations
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(generateRecommendations(), id: \.self) { recommendation in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: Icons.System.lightbulb)
+                                .foregroundColor(ColorPalette.yellow)
+                                .font(.caption)
+                                .padding(.top, 2)
+                            
+                            Text(recommendation)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                        }
                     }
                 }
             }
