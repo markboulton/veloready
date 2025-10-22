@@ -24,10 +24,6 @@ struct ActivityStatsRow: View {
                                 .frame(width: 50)
                         }
                     }
-                    .task {
-                        // Fetch real hourly steps from HealthKit
-                        await loadHourlySteps()
-                    }
                     .onChange(of: hourlySteps.count) { _, count in
                         Logger.debug("📊 [SPARKLINE] hourlySteps count changed: \(count), isLoading: \(liveActivityService.isLoading)")
                     }
@@ -59,6 +55,11 @@ struct ActivityStatsRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cardStyle(leading: 0)
+                .task {
+                    // Fetch real hourly steps from HealthKit
+                    Logger.debug("📊 [SPARKLINE] .task triggered on VStack")
+                    await loadHourlySteps()
+                }
                 
                 // 2px Vertical Divider
                 Rectangle()
