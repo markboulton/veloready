@@ -11,7 +11,11 @@ class TodayViewModel: ObservableObject {
     @Published var unifiedActivities: [UnifiedActivity] = [] // New unified list
     @Published var wellnessData: [IntervalsWellness] = []
     @Published var isLoading = false
-    @Published var isInitializing = true
+    @Published var isInitializing = true {
+        didSet {
+            Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(isInitializing)")
+        }
+    }
     @Published var isDataLoaded = false // Track when all initial data is ready
     @Published var errorMessage: String?
     @Published var animationTrigger = UUID() // Triggers ring animations on refresh
@@ -64,6 +68,8 @@ class TodayViewModel: ObservableObject {
         self.sleepScoreService = container.sleepScoreService
         self.strainScoreService = container.strainScoreService
         
+        Logger.debug("🎬 [SPINNER] TodayViewModel init - isInitializing=\(isInitializing)")
+        
         // Setup HealthKit observer
         healthKitObserver = container.healthKitManager.$isAuthorized
             .sink { [weak self] isAuthorized in
@@ -74,6 +80,7 @@ class TodayViewModel: ObservableObject {
         
         // ULTRA-FAST initialization - no expensive operations
         loadInitialDataFast()
+        Logger.debug("✅ [SPINNER] TodayViewModel init complete - isInitializing=\(isInitializing)")
     }
     
     func refreshData(forceRecoveryRecalculation: Bool = false) async {
@@ -260,8 +267,10 @@ class TodayViewModel: ObservableObject {
     
     /// PHASE 2: Load UI framework only (skeleton/empty state) - no heavy operations
     func loadInitialUI() async {
+        Logger.debug("🔄 [SPINNER] loadInitialUI called - hasLoadedInitialUI=\(hasLoadedInitialUI), isInitializing=\(isInitializing)")
         // Guard against multiple calls
         guard !hasLoadedInitialUI else {
+            Logger.debug("⏭️ [SPINNER] Skipping loadInitialUI - already loaded")
             return
         }
         hasLoadedInitialUI = true
@@ -281,18 +290,21 @@ class TodayViewModel: ObservableObject {
         
         // PHASE 3: Defer ALL heavy operations to background
         Task {
+            Logger.debug("⏰ [SPINNER] Starting 1-second delay before data refresh")
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
             Logger.debug("🎯 PHASE 3: Starting background data refresh...")
             await refreshData()
             
             // Mark as initialized and data loaded with smooth transition
+            Logger.debug("🎬 [SPINNER] About to set isInitializing = false")
             await MainActor.run {
                 withAnimation(.easeOut(duration: 0.3)) {
+                    Logger.debug("🔄 [SPINNER] Setting isInitializing = false NOW")
                     isInitializing = false
                     isDataLoaded = true
                 }
             }
-            Logger.debug("✅ PHASE 3: Background data refresh completed")
+            Logger.debug("✅ PHASE 3: Background data refresh completed - isInitializing=\(self.isInitializing)")
         }
     }
     

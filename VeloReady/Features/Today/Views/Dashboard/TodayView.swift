@@ -117,6 +117,7 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.automatic, for: .navigationBar)
             .onAppear {
+                Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
                 handleViewAppear()
             }
             .onChange(of: healthKitManager.isAuthorized) { _, newValue in
@@ -169,10 +170,19 @@ struct TodayView: View {
                 .background(Color(.systemBackground))
                 .ignoresSafeArea(.all) // Cover everything including nav bar and tab bar
                 .transition(.opacity)
+                .onAppear {
+                    Logger.debug("🔵 [SPINNER] Spinner SHOWING - isInitializing=true")
+                }
+                .onDisappear {
+                    Logger.debug("🟢 [SPINNER] Spinner HIDDEN - isInitializing=false")
+                }
             }
             }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
+        .onChange(of: viewModel.isInitializing) { oldValue, newValue in
+            Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
+        }
     }
     
     // MARK: - Loading Spinner
@@ -508,15 +518,21 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedData=\(hasLoadedData), isInitializing=\(viewModel.isInitializing)")
         // Reload section order in case it changed in settings
         sectionOrder = TodaySectionOrder.load()
         
         // Only do full refresh on first appear
-        guard !hasLoadedData else { return }
+        guard !hasLoadedData else {
+            Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
+            return
+        }
         hasLoadedData = true
+        Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
         
         Task {
             await viewModel.loadInitialUI()
+            Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
             Task {
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 liveActivityService.startAutoUpdates()
