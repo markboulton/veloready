@@ -34,6 +34,7 @@ struct RecentActivitiesSection: View {
                         UnifiedActivityCard(activity: activity)
                     }
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(Spacing.md)
