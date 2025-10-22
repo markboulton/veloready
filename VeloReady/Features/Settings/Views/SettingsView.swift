@@ -626,8 +626,11 @@ struct DisplaySettingsView: View {
             Form {
                 Section {
                     Toggle(SettingsContent.Display.showSleepScore, isOn: $userSettings.showSleepScore)
+                        .onChange(of: userSettings.showSleepScore) { _, _ in HapticFeedback.selection() }
                     Toggle(SettingsContent.Display.showRecoveryScore, isOn: $userSettings.showRecoveryScore)
+                        .onChange(of: userSettings.showRecoveryScore) { _, _ in HapticFeedback.selection() }
                     Toggle(SettingsContent.Display.showHealthData, isOn: $userSettings.showHealthData)
+                        .onChange(of: userSettings.showHealthData) { _, _ in HapticFeedback.selection() }
                 } header: {
                     Text(SettingsContent.Display.visibilityTitle)
                 } footer: {
@@ -636,7 +639,9 @@ struct DisplaySettingsView: View {
                 
                 Section {
                     Toggle(SettingsContent.Display.metricUnits, isOn: $userSettings.useMetricUnits)
+                        .onChange(of: userSettings.useMetricUnits) { _, _ in HapticFeedback.selection() }
                     Toggle(SettingsContent.Display.use24Hour, isOn: $userSettings.use24HourTime)
+                        .onChange(of: userSettings.use24HourTime) { _, _ in HapticFeedback.selection() }
                 } header: {
                     Text(SettingsContent.Display.unitsTitle)
                 } footer: {
@@ -705,6 +710,7 @@ struct NotificationSettingsView: View {
                 Section {
                     Toggle(SettingsContent.Notifications.sleepReminders, isOn: $userSettings.sleepReminders)
                         .disabled(!notificationManager.isAuthorized)
+                        .onChange(of: userSettings.sleepReminders) { _, _ in HapticFeedback.selection() }
                     
                     if userSettings.sleepReminders {
                         DatePicker(SettingsContent.Notifications.reminderTime, selection: $userSettings.sleepReminderTime, displayedComponents: .hourAndMinute)
@@ -719,6 +725,7 @@ struct NotificationSettingsView: View {
                 Section {
                     Toggle(SettingsContent.Notifications.recoveryAlerts, isOn: $userSettings.recoveryAlerts)
                         .disabled(!notificationManager.isAuthorized)
+                        .onChange(of: userSettings.recoveryAlerts) { _, _ in HapticFeedback.selection() }
                 } header: {
                     Text(SettingsContent.Notifications.recoveryAlerts)
                 } footer: {

@@ -9,14 +9,17 @@ struct WeeklyReportView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // 1. AI Summary Header
-                WeeklyReportHeaderComponent(
-                    aiSummary: viewModel.aiSummary,
-                    aiError: viewModel.aiError,
-                    isLoading: viewModel.isLoadingAI,
-                    weekStartDate: viewModel.weekStartDate,
-                    daysUntilNextReport: viewModel.daysUntilNextReport
-                )
+                // 1. AI Summary Header (in transparent card)
+                StandardCard {
+                    WeeklyReportHeaderComponent(
+                        aiSummary: viewModel.aiSummary,
+                        aiError: viewModel.aiError,
+                        isLoading: viewModel.isLoadingAI,
+                        weekStartDate: viewModel.weekStartDate,
+                        daysUntilNextReport: viewModel.daysUntilNextReport
+                    )
+                }
+                .background(Color.clear)
                 
                 // 2. Fitness Trajectory (CTL/ATL/Form)
                 FitnessTrajectoryComponent(
