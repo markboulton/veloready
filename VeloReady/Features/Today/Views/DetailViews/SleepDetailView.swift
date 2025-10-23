@@ -2,9 +2,11 @@ import SwiftUI
 import HealthKit
 
 /// Detailed view showing sleep score breakdown and analysis
+/// Uses MVVM pattern with SleepDetailViewModel for data fetching
 struct SleepDetailView: View {
     let sleepScore: SleepScore
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = SleepDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     @State private var sleepSamples: [SleepHypnogramChart.SleepStageSample] = []
     
@@ -57,7 +59,7 @@ struct SleepDetailView: View {
                 }
             }
             .refreshable {
-                await SleepScoreService.shared.calculateSleepScore()
+                await viewModel.refreshData()
             }
             
             // Navigation gradient mask
@@ -117,7 +119,7 @@ struct SleepDetailView: View {
             ) {
                 TrendChart(
                     title: SleepContent.trendTitle,
-                    getData: { period in getHistoricalSleepData(for: period) },
+                    getData: { period in viewModel.getHistoricalSleepData(for: period) },
                     chartType: .bar,
                     unit: "%",
                     showProBadge: false,
@@ -391,64 +393,8 @@ struct SleepDetailView: View {
         return recommendations
     }
     
-    // MARK: - Mock Data Generator
-    
-    private func getHistoricalSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Check if mock data is enabled for testing
-        #if DEBUG
-        if ProFeatureConfig.shared.showMockDataForTesting {
-            return generateMockSleepData(for: period)
-        }
-        #endif
-        
-        // Fetch real data from Core Data
-        let persistenceController = PersistenceController.shared
-        let context = persistenceController.container.viewContext
-        
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("💤 [SLEEP CHART] Failed to calculate start date")
-            return []
-        }
-        
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("💤 [SLEEP CHART] Core Data fetch failed")
-            return []
-        }
-        
-        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
-            guard let date = dailyScore.date else { return nil }
-            return TrendDataPoint(
-                date: date,
-                value: dailyScore.sleepScore
-            )
-        }
-        
-        Logger.debug("💤 [SLEEP CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
-        if dataPoints.isEmpty {
-            Logger.warning("💤 [SLEEP CHART] No data available for \(period.days)d period")
-        } else if dataPoints.count < period.days {
-            Logger.data("💤 [SLEEP CHART] Showing \(dataPoints.count)/\(period.days) days - sleep scores accumulate daily (not backfilled)")
-        }
-        
-        return dataPoints
-    }
-    
-    private func generateMockSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Generate realistic mock sleep data (oldest to newest)
-        return (0..<period.days).map { dayIndex in
-            let daysAgo = period.days - 1 - dayIndex
-            return TrendDataPoint(
-                date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
-                value: Double.random(in: 70...95)
-            )
-        }
-    }
+    // MARK: - Data Fetching
+    // All data fetching logic moved to SleepDetailViewModel
     
     // MARK: - New Metrics Sections
     
