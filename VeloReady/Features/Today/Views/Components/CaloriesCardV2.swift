@@ -1,43 +1,16 @@
 import SwiftUI
 
-/// Calories card using atomic components
-/// Shows goal, active energy, and total with clear breakdown
+/// Calories card using atomic components with MVVM architecture
+/// ViewModel handles all business logic and calculations
 struct CaloriesCardV2: View {
-    @ObservedObject private var liveActivityService = LiveActivityService.shared
-    @StateObject private var userSettings = UserSettings.shared
-    
-    private var effectiveGoal: Double {
-        if userSettings.useBMRAsGoal {
-            return liveActivityService.bmrCalories
-        } else {
-            return userSettings.calorieGoal
-        }
-    }
-    
-    private var totalCalories: Double {
-        return liveActivityService.bmrCalories + Double(liveActivityService.activeCalories)
-    }
-    
-    private var progress: Double {
-        guard effectiveGoal > 0 else { return 0 }
-        return min(totalCalories / effectiveGoal, 1.0)
-    }
-    
-    private var badge: CardHeader.Badge? {
-        if totalCalories >= effectiveGoal {
-            return .init(text: "GOAL MET", style: .success)
-        } else if progress >= 0.8 {
-            return .init(text: "CLOSE", style: .info)
-        }
-        return nil
-    }
+    @StateObject private var viewModel = CaloriesCardViewModel()
     
     var body: some View {
         CardContainer(
             header: CardHeader(
                 title: "Calories",
-                subtitle: String(format: "%.0f%% of goal", progress * 100),
-                badge: badge
+                subtitle: viewModel.progressPercentage,
+                badge: viewModel.badge
             ),
             style: .standard
         ) {
@@ -49,7 +22,7 @@ struct CaloriesCardV2: View {
                         .foregroundColor(Color.text.secondary)
                     
                     CardMetric(
-                        value: "\(Int(totalCalories))",
+                        value: viewModel.formattedTotal,
                         label: "Total burned",
                         size: .large
                     )
@@ -64,21 +37,21 @@ struct CaloriesCardV2: View {
                     HStack {
                         VRText("Goal", style: .body, color: Color.text.secondary)
                         Spacer()
-                        VRText("\(Int(effectiveGoal))", style: .headline)
+                        VRText(viewModel.formattedGoal, style: .headline)
                     }
                     
                     // Active Energy
                     HStack {
                         VRText("Active Energy", style: .body, color: Color.text.secondary)
                         Spacer()
-                        VRText("\(Int(liveActivityService.activeCalories))", style: .headline, color: ColorScale.amberAccent)
+                        VRText(viewModel.formattedActive, style: .headline, color: ColorScale.amberAccent)
                     }
                     
                     // BMR/Resting
                     HStack {
                         VRText("Resting (BMR)", style: .body, color: Color.text.secondary)
                         Spacer()
-                        VRText("\(Int(liveActivityService.bmrCalories))", style: .caption, color: Color.text.secondary)
+                        VRText(viewModel.formattedBMR, style: .caption, color: Color.text.secondary)
                     }
                 }
             }
