@@ -71,10 +71,10 @@ struct ChartStyle {
     static let chartStrokeWidth: CGFloat = 1
     static let chartPadding: CGFloat = 64
     
-    static let backgroundColor = Color(.systemBackground)
-    static let foregroundColor = Color(.label)
-    static let gridColor = Color(.systemGray5)
-    static let axisColor = Color(.systemGray3)
+    static let backgroundColor = Color.background.primary
+    static let foregroundColor = Color.text.primary
+    static let gridColor = ColorPalette.neutral200
+    static let axisColor = ColorPalette.neutral400
     
     static let powerColor = Color.workout.power
     static let heartRateColor = Color.workout.heartRate
@@ -345,9 +345,9 @@ struct MetricChartView: View {
         .chartXAxis {
             AxisMarks(position: .bottom, values: .stride(by: timeStride())) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisTick()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
                     if let timeValue = value.as(Double.self) {
                         Text(formatTime(timeValue))
@@ -359,9 +359,9 @@ struct MetricChartView: View {
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisTick()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)")
@@ -526,7 +526,7 @@ struct ElevationChartView: View {
         .chartXAxis {
             AxisMarks(position: .bottom, values: .stride(by: timeStride())) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisTick()
                 AxisValueLabel {
                     if let timeValue = value.as(Double.self) {
@@ -539,7 +539,7 @@ struct ElevationChartView: View {
         .chartYAxis {
             AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisTick()
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {

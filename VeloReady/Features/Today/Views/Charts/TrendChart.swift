@@ -103,7 +103,7 @@ struct TrendChart: View {
                         x: .value("Day", point.date, unit: .day),
                         y: .value("Value", animateChart ? point.value : 0)
                     )
-                    .foregroundStyle(Color(.systemGray2))
+                    .foregroundStyle(ColorPalette.neutral300)
                     
                     // Top 2px colored indicator
                     BarMark(
@@ -153,7 +153,7 @@ struct TrendChart: View {
                 // 7 days: Show all weekday abbreviations, aligned to center of bars
                 AxisMarks { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -162,7 +162,7 @@ struct TrendChart: View {
                 // 30 days: Show ~5 date labels (every 6 days)
                 AxisMarks(values: .stride(by: .day, count: 6)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -171,7 +171,7 @@ struct TrendChart: View {
                 // 60 days: Show ~5 date labels (every 12 days)
                 AxisMarks(values: .stride(by: .day, count: 12)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -181,7 +181,7 @@ struct TrendChart: View {
         .chartYAxis {
             AxisMarks(position: .leading, values: [0, 25, 50, 75, 100]) { value in
                 AxisGridLine()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)\(CommonContent.Units.percent))")
@@ -335,7 +335,7 @@ struct TrendChart: View {
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(Color(.systemGray5))
+                                .fill(ColorPalette.neutral200)
                                 .frame(height: 2)
                             
                             RoundedRectangle(cornerRadius: 2)

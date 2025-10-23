@@ -65,7 +65,7 @@ struct HRVCandlestickChart: View {
         return Chart {
             ForEach(data) { point in
                 let isTodayPoint = isToday(point)
-                let color = isTodayPoint ? ColorScale.redAccent : Color(.systemGray5)
+                let color = isTodayPoint ? ColorScale.redAccent : ColorPalette.neutral200
                 
                 // Candlestick body (open to close)
                 RectangleMark(
@@ -139,7 +139,7 @@ struct HRVCandlestickChart: View {
                 // Show all 7 days with grid lines
                 AxisMarks(values: .stride(by: .day)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -147,7 +147,7 @@ struct HRVCandlestickChart: View {
             } else if selectedPeriod == .thirtyDays {
                 AxisMarks(values: .stride(by: .day, count: 6)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -155,7 +155,7 @@ struct HRVCandlestickChart: View {
             } else {
                 AxisMarks(values: .stride(by: .day, count: 12)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -165,7 +165,7 @@ struct HRVCandlestickChart: View {
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)\(ChartContent.HRV.msUnit))")
