@@ -46,7 +46,7 @@ struct WeeklyTrendChart_Legacy: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.background.primary)
     }
     
     private var periodSelector: some View {
@@ -54,12 +54,12 @@ struct WeeklyTrendChart_Legacy: View {
             ZStack(alignment: .leading) {
                 // Background container
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemGray5))
+                    .fill(ColorPalette.neutral200)
                     .frame(height: 36)
                 
                 // Animated selection indicator
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(.systemBackground))
+                    .fill(Color.background.card)
                     .frame(width: geometry.size.width / 3 - 4, height: 32)
                     .offset(x: selectedPeriodOffset(containerWidth: geometry.size.width))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedPeriod)

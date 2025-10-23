@@ -40,7 +40,7 @@ struct HRVLineChart: View {
                 summaryStats
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.background.primary)
         .onAppear {
             loadData()
         }
@@ -70,7 +70,7 @@ struct HRVLineChart: View {
                     .symbol {
                         Circle()
                             .strokeBorder(Color.red, lineWidth: 1.5)
-                            .background(Circle().fill(Color(.systemBackground)))
+                            .background(Circle().fill(Color.background.primary))
                             .frame(width: 6, height: 6)
                     }
                     .annotation(position: .top, spacing: 2) {
@@ -93,7 +93,7 @@ struct HRVLineChart: View {
             if selectedPeriod == .sevenDays {
                 AxisMarks { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -101,7 +101,7 @@ struct HRVLineChart: View {
             } else if selectedPeriod == .thirtyDays {
                 AxisMarks(values: .stride(by: .day, count: 6)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -109,7 +109,7 @@ struct HRVLineChart: View {
             } else {
                 AxisMarks(values: .stride(by: .day, count: 12)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.day().month(.abbreviated))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -119,7 +119,7 @@ struct HRVLineChart: View {
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
                         Text("\(intValue)\(ChartContent.HRV.msUnit))")
