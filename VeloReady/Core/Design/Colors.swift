@@ -59,7 +59,7 @@ extension Color {
         static let primary = ColorPalette.backgroundPrimary  /// Primary background
         static let secondary = ColorPalette.backgroundSecondary  /// Secondary background
         static let tertiary = ColorPalette.backgroundTertiary  /// Tertiary background
-        static let card = ColorPalette.neutral100  /// Card background
+        static let card = ColorPalette.backgroundTertiary  /// Card background (white in light, elevated grey in dark)
         static let elevated = ColorPalette.backgroundPrimary  /// Elevated background
     }
     

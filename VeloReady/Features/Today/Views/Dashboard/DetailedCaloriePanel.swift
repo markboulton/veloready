@@ -44,7 +44,7 @@ struct DetailedCaloriePanel: View {
                 
                 Text("\(Int(totalCalories))")
                     .font(.heading)
-                    .foregroundColor(totalCalories > effectiveGoal ? .white : .primary)
+                    .foregroundColor(Color.text.primary)
                     .opacity(dataOpacity)
             }
             

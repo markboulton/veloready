@@ -43,7 +43,7 @@ struct CompactRingView: View {
                     // Fades in as animation completes
                     Text(centerText ?? "\(score)")
                         .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.text.primary)
                         .opacity(numberOpacity)
                 } else {
                     // Missing data indicator
@@ -53,11 +53,11 @@ struct CompactRingView: View {
                 }
             }
             
-            // Title - lowercase + white for better readability
+            // Title - adaptive color for light/dark mode
             Text(title)
                 .font(.caption) // Increased from size 11
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundColor(Color.text.primary)
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
         }

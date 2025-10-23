@@ -16,7 +16,7 @@ struct AIBriefView: View {
                 
                 Text(TodayContent.AIBrief.title)
                     .font(.heading)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.text.primary)
                 
                 Spacer()
             }
@@ -249,7 +249,7 @@ struct TrainingMetricsView: View {
                             Text(String(format: "%.1f", tsb))
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.text.primary)
                         }
                         
                         Text(descriptionForTSB(tsb))
@@ -282,7 +282,7 @@ struct TrainingMetricsView: View {
                             Text("\(tssLow)-\(tssHigh)")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.text.primary)
                         }
                         
                         Text(TodayContent.AIBrief.tssDescription)
