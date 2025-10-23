@@ -1,9 +1,11 @@
 import SwiftUI
 
 /// Detailed view showing load score breakdown and analysis
+/// Uses MVVM pattern with StrainDetailViewModel for data fetching
 struct StrainDetailView: View {
     let strainScore: StrainScore
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = StrainDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     
     var body: some View {
@@ -66,7 +68,7 @@ struct StrainDetailView: View {
             ) {
                 TrendChart(
                     title: StrainContent.trendTitle,
-                    getData: { period in getHistoricalLoadData(for: period) },
+                    getData: { period in viewModel.getHistoricalLoadData(for: period) },
                     chartType: .bar,
                     unit: "TSS",
                     showProBadge: false
@@ -331,63 +333,8 @@ struct StrainDetailView: View {
         }
     }
     
-    // MARK: - Mock Data Generator
-    
-    private func getHistoricalLoadData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Check if mock data is enabled for testing
-        #if DEBUG
-        if ProFeatureConfig.shared.showMockDataForTesting {
-            return generateMockLoadData(for: period)
-        }
-        #endif
-        
-        // Fetch real TSS data from DailyLoad (not strainScore from DailyScores)
-        let persistenceController = PersistenceController.shared
-        let context = persistenceController.container.viewContext
-        
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("📊 [LOAD CHART] Failed to calculate start date")
-            return []
-        }
-        
-        let fetchRequest = DailyLoad.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("📊 [LOAD CHART] Core Data fetch failed")
-            return []
-        }
-        
-        let dataPoints = results.compactMap { dailyLoad -> TrendDataPoint? in
-            guard let date = dailyLoad.date else { return nil }
-            // TSS can be 0 for rest days, so include all records
-            return TrendDataPoint(
-                date: date,
-                value: dailyLoad.tss
-            )
-        }
-        
-        Logger.debug("📊 [LOAD CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
-        if dataPoints.isEmpty {
-            Logger.warning("📊 [LOAD CHART] No data available for \(period.days)d period")
-        }
-        
-        return dataPoints
-    }
-    
-    private func generateMockLoadData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Generate realistic mock load data (oldest to newest)
-        return (0..<period.days).map { dayIndex in
-            let daysAgo = period.days - 1 - dayIndex
-            return TrendDataPoint(
-                date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
-                value: Double.random(in: 60...95)  // Realistic range matching recovery/sleep
-            )
-        }
-    }
+    // MARK: - Data Fetching
+    // All data fetching logic moved to StrainDetailViewModel
 }
 
 // MARK: - Supporting Views
