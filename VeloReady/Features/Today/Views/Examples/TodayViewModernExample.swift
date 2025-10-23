@@ -18,7 +18,7 @@ struct TodayViewModernExample: View {
                 ScoreCard(
                     config: .recovery(
                         score: recoveryScore,
-                        band: .optimal,
+                        band: RecoveryScore.RecoveryBand.optimal,
                         change: .init(value: "+5", direction: .up),
                         footerText: "Updated 5 min ago"
                     ),
@@ -29,7 +29,7 @@ struct TodayViewModernExample: View {
                 ScoreCard(
                     config: .sleep(
                         score: sleepScore,
-                        band: .good,
+                        band: SleepScore.SleepBand.good,
                         change: .init(value: "-3", direction: .down),
                         footerText: "From Apple Health"
                     ),

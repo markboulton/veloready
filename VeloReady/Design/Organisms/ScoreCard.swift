@@ -24,12 +24,12 @@ struct ScoreCard: View {
         /// Recovery Score configuration
         static func recovery(
             score: Int,
-            band: RecoveryBand,
+            band: RecoveryScore.RecoveryBand,
             change: CardMetric.Change? = nil,
             footerText: String? = "Updated recently"
         ) -> Configuration {
             Configuration(
-                title: CommonContent.recovery.title,
+                title: "Recovery Score",
                 subtitle: "Based on HRV, RHR, Sleep",
                 score: score,
                 label: band.rawValue,
@@ -45,12 +45,12 @@ struct ScoreCard: View {
         /// Sleep Score configuration
         static func sleep(
             score: Int,
-            band: SleepBand,
+            band: SleepScore.SleepBand,
             change: CardMetric.Change? = nil,
             footerText: String? = "From Apple Health"
         ) -> Configuration {
             Configuration(
-                title: CommonContent.sleep.title,
+                title: "Sleep Quality",
                 subtitle: "Quality, Duration, Consistency",
                 score: score,
                 label: band.rawValue,
@@ -68,9 +68,9 @@ struct ScoreCard: View {
             score: Double,
             footerText: String? = "Today's training load"
         ) -> Configuration {
-            let band = StrainBand.fromScore(score)
+            let band = StrainScore.StrainBand.fromScore(score)
             return Configuration(
-                title: CommonContent.strain.title,
+                title: "Strain Score",
                 subtitle: "Training Load",
                 score: Int(score),
                 label: band.rawValue,
@@ -128,44 +128,43 @@ struct ScoreCard: View {
 
 // MARK: - Band Extensions
 
-extension RecoveryBand {
+extension RecoveryScore.RecoveryBand {
     var badgeStyle: VRBadge.Style {
         switch self {
         case .optimal: return .success
         case .good: return .info
         case .fair: return .warning
-        case .poor: return .error
+        case .payAttention: return .error
         }
     }
 }
 
-extension SleepBand {
+extension SleepScore.SleepBand {
     var badgeStyle: VRBadge.Style {
         switch self {
         case .optimal: return .success
         case .good: return .info
         case .fair: return .warning
-        case .poor: return .error
+        case .payAttention: return .error
         }
     }
 }
 
-extension StrainBand {
+extension StrainScore.StrainBand {
     var badgeStyle: VRBadge.Style {
         switch self {
-        case .veryLow, .low: return .success
+        case .light: return .success
         case .moderate: return .info
-        case .high: return .warning
-        case .veryHigh: return .error
+        case .hard: return .warning
+        case .veryHard: return .error
         }
     }
     
-    static func fromScore(_ score: Double) -> StrainBand {
-        if score >= 18 { return .veryHigh }
-        if score >= 14 { return .high }
+    static func fromScore(_ score: Double) -> StrainScore.StrainBand {
+        if score >= 18 { return .veryHard }
+        if score >= 14 { return .hard }
         if score >= 10 { return .moderate }
-        if score >= 5 { return .low }
-        return .veryLow
+        return .light
     }
 }
 

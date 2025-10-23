@@ -8,11 +8,11 @@ struct ReadinessCardViewV2: View {
     
     private var badgeStyle: VRBadge.Style {
         switch readinessScore.band {
-        case .fullyReady, .veryReady:
+        case .fullyReady:
             return .success
         case .ready:
             return .info
-        case .limited:
+        case .compromised:
             return .warning
         case .notReady:
             return .error
@@ -116,7 +116,7 @@ private struct ComponentPill: View {
         calculatedAt: Date()
     )
     
-    return ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
+    ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
         .padding()
 }
 
@@ -135,14 +135,14 @@ private struct ComponentPill: View {
         calculatedAt: Date()
     )
     
-    return ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
+    ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
         .padding()
 }
 
-#Preview("Limited") {
+#Preview("Compromised") {
     let mockReadiness = ReadinessScore(
         score: 58,
-        band: .limited,
+        band: .compromised,
         components: ReadinessScore.Components(
             recoveryScore: 65,
             sleepScore: 55,
@@ -154,6 +154,6 @@ private struct ComponentPill: View {
         calculatedAt: Date()
     )
     
-    return ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
+    ReadinessCardViewV2(readinessScore: mockReadiness, onTap: {})
         .padding()
 }
