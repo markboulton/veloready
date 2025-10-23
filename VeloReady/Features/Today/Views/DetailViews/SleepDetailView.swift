@@ -28,7 +28,7 @@ struct SleepDetailView: View {
                     }
                     
                     // Health warnings card
-                    HealthWarningsCard()
+                    HealthWarningsCardV2()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection

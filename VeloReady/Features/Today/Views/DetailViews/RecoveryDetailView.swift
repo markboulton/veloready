@@ -20,7 +20,7 @@ struct RecoveryDetailView: View {
                         .padding(.top, 60)
                     
                     // Health warnings card
-                    HealthWarningsCard()
+                    HealthWarningsCardV2()
                     
                     // Weekly Trend (Pro)
                     weeklyTrendSection
