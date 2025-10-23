@@ -22,105 +22,96 @@ struct IntensityChart: View {
         let intensityFactor = intensityFactorRaw > 10.0 ? intensityFactorRaw / 100.0 : intensityFactorRaw
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 16) {
-                // Header
-                HStack(spacing: 8) {
-                    Text(TrainingLoadContent.Metrics.rideIntensity)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                }
-                
-                // Intensity Factor gauge with explanation
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(TrainingLoadContent.Metrics.intensityFactor)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    HStack(alignment: .top, spacing: 20) {
-                        // Circular gauge
-                        ZStack {
-                            // Background circle
-                            Circle()
-                                .stroke(ColorScale.gray200, lineWidth: 12)
-                                .frame(width: 100, height: 100)
-                            
-                            // Progress circle
-                            Circle()
-                                .trim(from: 0, to: min(intensityFactor, 1.0))
-                                .stroke(intensityColor(intensityFactor), style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                                .frame(width: 100, height: 100)
-                                .rotationEffect(.degrees(-90))
-                            
-                            // Value and label
-                            VStack(spacing: 2) {
-                                Text(String(format: "%.2f", intensityFactor))
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(intensityColor(intensityFactor))
-                                Text("of 1.0")
-                                    .font(.caption)
-                                    .foregroundColor(Color.text.secondary)
-                            }
-                        }
-                        
-                        // Explanation and comparison
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(intensityLabel(intensityFactor))
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(intensityColor(intensityFactor))
-                            
-                            Text(TrainingLoadContent.Descriptions.weightedAveragePower)
-                                .font(.caption)
-                                .foregroundColor(Color.text.secondary)
-                            
-                            Text("This ride had an IF of \(String(format: "%.2f", intensityFactor)), meaning varied efforts averaged to this intensity.")
-                                .font(.caption)
-                                .foregroundColor(Color.text.secondary)
-                                .padding(.top, 2)
-                        }
-                    }
-                }
-                
-                Divider()
-                    .padding(.vertical, 8)
-                
-                // TSS with explanation
-                VStack(alignment: .leading, spacing: 8) {
-                    
-                    HStack {
-                        Text(TrainingLoadContent.Metrics.tss)
+            ChartCard(
+                title: TrainingLoadContent.Metrics.rideIntensity,
+                subtitle: TrainingLoadContent.Descriptions.weightedAveragePower
+            ) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Intensity Factor gauge with explanation
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text(TrainingLoadContent.Metrics.intensityFactor)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Spacer()
+                        HStack(alignment: .top, spacing: Spacing.lg) {
+                            // Circular gauge
+                            ZStack {
+                                // Background circle
+                                Circle()
+                                    .stroke(ColorScale.gray200, lineWidth: 12)
+                                    .frame(width: 100, height: 100)
+                                
+                                // Progress circle
+                                Circle()
+                                    .trim(from: 0, to: min(intensityFactor, 1.0))
+                                    .stroke(intensityColor(intensityFactor), style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                    .frame(width: 100, height: 100)
+                                    .rotationEffect(.degrees(-90))
+                                
+                                // Value and label
+                                VStack(spacing: 2) {
+                                    Text(String(format: "%.2f", intensityFactor))
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(intensityColor(intensityFactor))
+                                    Text("of 1.0")
+                                        .font(.caption)
+                                        .foregroundColor(Color.text.secondary)
+                                }
+                            }
+                            
+                            // Explanation and comparison
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text(intensityLabel(intensityFactor))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(intensityColor(intensityFactor))
+                                
+                                Text("This ride had an IF of \(String(format: "%.2f", intensityFactor)), meaning varied efforts averaged to this intensity.")
+                                    .font(.caption)
+                                    .foregroundColor(Color.text.secondary)
+                                    .padding(.top, Spacing.xs)
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                        .padding(.vertical, Spacing.sm)
+                    
+                    // TSS with explanation
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        HStack {
+                            Text(TrainingLoadContent.Metrics.tss)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            
+                            Spacer()
+                            
+                            Text(String(format: "%.0f", tss))
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(tssColor(tss))
+                        }
                         
-                        Text(String(format: "%.0f", tss))
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(tssColor(tss))
+                        Text(TrainingLoadContent.Descriptions.totalTrainingLoad)
+                            .font(.caption)
+                            .foregroundColor(Color.text.secondary)
+                        
+                        // TSS category bar
+                        HStack(spacing: 4) {
+                            tssSegment(label: "Light", range: 0..<50, value: tss, color: Color.semantic.success)
+                            tssSegment(label: "Moderate", range: 50..<90, value: tss, color: Color.button.primary)
+                            tssSegment(label: "Hard", range: 90..<120, value: tss, color: Color.semantic.warning)
+                            tssSegment(label: "Very Hard", range: 120..<200, value: tss, color: Color.semantic.error)
+                        }
+                        .frame(height: 24)
+                        .padding(.top, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
+                        
+                        Text(tssDescription(tss))
+                            .font(.caption)
+                            .foregroundColor(Color.text.secondary)
                     }
-                    
-                    Text(TrainingLoadContent.Descriptions.totalTrainingLoad)
-                        .font(.caption)
-                        .foregroundColor(Color.text.secondary)
-                    
-                    // TSS category bar
-                    HStack(spacing: 4) {
-                        tssSegment(label: "Light", range: 0..<50, value: tss, color: Color.semantic.success)
-                        tssSegment(label: "Moderate", range: 50..<90, value: tss, color: Color.button.primary)
-                        tssSegment(label: "Hard", range: 90..<120, value: tss, color: Color.semantic.warning)
-                        tssSegment(label: "Very Hard", range: 120..<200, value: tss, color: Color.semantic.error)
-                    }
-                    .frame(height: 24)
-                    .padding(.top, 12)
-                    .padding(.bottom, 12)
-                    
-                    Text(tssDescription(tss))
-                        .font(.caption)
-                        .foregroundColor(Color.text.secondary)
                 }
             }
         )
