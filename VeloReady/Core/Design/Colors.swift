@@ -57,10 +57,10 @@ extension Color {
     
     struct background {
         static let primary = ColorPalette.backgroundPrimary  /// Primary background
-        static let secondary = ColorPalette.backgroundSecondary  /// Secondary background
+        static let secondary = ColorPalette.backgroundSecondary  /// Secondary background (list items, cards)
         static let tertiary = ColorPalette.backgroundTertiary  /// Tertiary background
-        static let card = ColorPalette.backgroundTertiary  /// Card background (white in light, elevated grey in dark)
-        static let elevated = ColorPalette.backgroundPrimary  /// Elevated background
+        static let card = ColorPalette.backgroundSecondary  /// Card background (white in light, elevated grey in dark)
+        static let elevated = ColorPalette.backgroundSecondary  /// Elevated background
     }
     
     // MARK: - Text Colors

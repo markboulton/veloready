@@ -28,14 +28,9 @@ struct LiquidGlassSegmentedControl<T: Hashable>: View {
                     )
                     .frame(height: 40)
                 
-                // Animated selection indicator with grey background
+                // Animated selection indicator - elevated background
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(colorScheme == .dark ? Color.white.opacity(0.15) : ColorPalette.neutral200)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(.ultraThinMaterial)
-                            .opacity(colorScheme == .dark ? 0.5 : 0.3)
-                    )
+                    .fill(Color.background.elevated)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 36)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
                     .animation(FluidAnimation.bouncy, value: selection)

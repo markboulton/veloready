@@ -74,10 +74,10 @@ struct TabBarButton: View {
         }) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Selection pill background - very light grey
+                    // Selection pill background - elevated
                     if isSelected {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(colorScheme == .dark ? Color.white.opacity(0.15) : ColorPalette.neutral200)
+                            .fill(Color.background.elevated)
                             .matchedGeometryEffect(id: "tab_background", in: namespace)
                             .frame(width: 60, height: 36)
                     }
@@ -91,7 +91,7 @@ struct TabBarButton: View {
                                 .foregroundStyle(
                                     isSelected
                                         ? ColorScale.blueAccent
-                                        : Color.text.secondary
+                                        : Color.text.primary
                                 )
                                 .scaleEffect(isPressed ? 0.85 : 1.0)
                                 .symbolEffect(.bounce, value: isSelected)
@@ -102,7 +102,7 @@ struct TabBarButton: View {
                                 .foregroundStyle(
                                     isSelected
                                         ? ColorScale.blueAccent
-                                        : Color.text.secondary
+                                        : Color.text.primary
                                 )
                                 .scaleEffect(isPressed ? 0.85 : 1.0)
                         }
@@ -112,11 +112,7 @@ struct TabBarButton: View {
                 // Label
                 Text(tab.title)
                     .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(
-                        isSelected
-                            ? Color.text.primary
-                            : Color.text.secondary
-                    )
+                    .foregroundColor(Color.text.primary)
             }
             .frame(height: 60)
             .contentShape(Rectangle())

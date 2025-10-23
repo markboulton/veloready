@@ -15,9 +15,9 @@ struct SegmentedControl<T: Hashable>: View {
                     .fill(Color.background.tertiary)
                     .frame(height: 36)
                 
-                // Animated selection indicator (grey background)
+                // Animated selection indicator - elevated background
                 RoundedRectangle(cornerRadius: Spacing.sm - 2)
-                    .fill(colorScheme == .dark ? Color.white.opacity(0.15) : ColorPalette.neutral200)
+                    .fill(Color.background.elevated)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 32)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
                     .animation(FluidAnimation.bouncy, value: selection)
