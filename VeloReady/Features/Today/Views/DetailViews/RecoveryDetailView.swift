@@ -2,9 +2,11 @@ import SwiftUI
 import HealthKit
 
 /// Detailed recovery view with large graph and Apple Health metrics breakdown
+/// Uses MVVM pattern with RecoveryDetailViewModel for data fetching
 struct RecoveryDetailView: View {
     let recoveryScore: RecoveryScore
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = RecoveryDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     
     var body: some View {
@@ -49,7 +51,7 @@ struct RecoveryDetailView: View {
                 }
             }
             .refreshable {
-                await RecoveryScoreService.shared.forceRefreshRecoveryScore()
+                await viewModel.refreshData()
             }
             
             // Navigation gradient mask
@@ -78,7 +80,7 @@ struct RecoveryDetailView: View {
             ) {
                 TrendChart(
                     title: RecoveryContent.trendTitle,
-                    getData: { period in getHistoricalRecoveryData(for: period) },
+                    getData: { period in viewModel.getHistoricalRecoveryData(for: period) },
                     chartType: .bar,
                     unit: "%",
                     showProBadge: true
@@ -97,7 +99,7 @@ struct RecoveryDetailView: View {
                 showBenefits: true
             ) {
                 HRVCandlestickChart(
-                    getData: { period in getHistoricalHRVCandlestickData(for: period) },
+                    getData: { period in viewModel.getHistoricalHRVCandlestickData(for: period) },
                     baseline: recoveryScore.inputs.hrvBaseline
                 )
             }
@@ -114,7 +116,7 @@ struct RecoveryDetailView: View {
                 showBenefits: true
             ) {
                 RHRCandlestickChart(
-                    getData: { period in getHistoricalRHRData(for: period) },
+                    getData: { period in viewModel.getHistoricalRHRData(for: period) },
                     baseline: recoveryScore.inputs.rhrBaseline
                 )
             }
@@ -376,165 +378,8 @@ struct RecoveryDetailView: View {
         return "\(hours)h \(minutes)m"
     }
     
-    // MARK: - Mock Data Generator
-    
-    private func getHistoricalRecoveryData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Check if mock data is enabled for testing
-        #if DEBUG
-        if ProFeatureConfig.shared.showMockDataForTesting {
-            return generateMockRecoveryData(for: period)
-        }
-        #endif
-        
-        // Fetch real data from Core Data
-        let persistenceController = PersistenceController.shared
-        let context = persistenceController.container.viewContext
-        
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("📊 [RECOVERY CHART] Failed to calculate start date")
-            return []
-        }
-        
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("📊 [RECOVERY CHART] Core Data fetch failed")
-            return []
-        }
-        
-        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
-            guard let date = dailyScore.date else { return nil }
-            return TrendDataPoint(
-                date: date,
-                value: dailyScore.recoveryScore
-            )
-        }
-        
-        Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
-        if dataPoints.isEmpty {
-            Logger.warning("📊 [RECOVERY CHART] No data available for \(period.days)d period")
-        } else if dataPoints.count < period.days {
-            Logger.data("📊 [RECOVERY CHART] Showing \(dataPoints.count)/\(period.days) days - recovery scores accumulate daily (not backfilled)")
-        }
-        
-        return dataPoints
-    }
-    
-    private func generateMockRecoveryData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Generate realistic mock recovery data (oldest to newest)
-        return (0..<period.days).map { dayIndex in
-            let daysAgo = period.days - 1 - dayIndex
-            return TrendDataPoint(
-                date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
-                value: Double.random(in: 60...85)
-            )
-        }
-    }
-    
-    // MARK: - HRV Data
-    
-    private func getHistoricalHRVCandlestickData(for period: TrendPeriod) -> [HRVDataPoint] {
-        let persistenceController = PersistenceController.shared
-        let context = persistenceController.container.viewContext
-        
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("❤️ [HRV CHART] Failed to calculate start date")
-            return []
-        }
-        
-        let fetchRequest = DailyPhysio.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND hrv > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("❤️ [HRV CHART] Core Data fetch failed")
-            return []
-        }
-        
-        // Group by day to avoid duplicates
-        var dailyData: [Date: [Double]] = [:]
-        
-        for record in results {
-            guard let date = record.date, record.hrv > 0 else { continue }
-            let dayStart = calendar.startOfDay(for: date)
-            dailyData[dayStart, default: []].append(record.hrv)
-        }
-        
-        // Convert to HRVDataPoint (one per day)
-        let dataPoints = dailyData.map { (date, values) -> HRVDataPoint in
-            let avgHRV = values.reduce(0, +) / Double(values.count)
-            return HRVDataPoint(
-                date: date,
-                open: avgHRV,
-                close: avgHRV,
-                high: avgHRV + 3, // Add small visual variation
-                low: avgHRV - 3,
-                average: avgHRV
-            )
-        }.sorted { $0.date < $1.date }
-        
-        Logger.debug("❤️ [HRV CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view (grouped by day)")
-        if dataPoints.isEmpty {
-            Logger.warning("❤️ [HRV CHART] No data available")
-        }
-        
-        return dataPoints
-    }
-    
-    // MARK: - RHR Data
-    
-    private func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("💔 [RHR CHART] Failed to calculate start date")
-            return []
-        }
-        
-        // Fetch from Core Data (DailyPhysio) - MUCH faster than HealthKit
-        let context = PersistenceController.shared.container.viewContext
-        let request = DailyPhysio.fetchRequest()
-        request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startDate as NSDate, endDate as NSDate)
-        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let physioRecords = try? context.fetch(request) else {
-            Logger.error("💔 [RHR CHART] Failed to fetch from Core Data")
-            return []
-        }
-        
-        Logger.debug("💔 [RHR CHART] \(physioRecords.count) records → \(physioRecords.filter { $0.rhr > 0 }.count) points for \(period.days)d view")
-        
-        // Group by day to avoid duplicates
-        var dailyData: [Date: [Double]] = [:]
-        
-        for record in physioRecords {
-            guard let date = record.date, record.rhr > 0 else { continue }
-            let dayStart = calendar.startOfDay(for: date)
-            dailyData[dayStart, default: []].append(record.rhr)
-        }
-        
-        // Convert to RHRDataPoint (one per day)
-        let dataPoints = dailyData.map { (date, values) -> RHRDataPoint in
-            let avgRHR = values.reduce(0, +) / Double(values.count)
-            return RHRDataPoint(
-                date: date,
-                open: avgRHR,
-                close: avgRHR,
-                high: avgRHR + 2, // Add small visual variation
-                low: avgRHR - 2,
-                average: avgRHR
-            )
-        }.sorted { $0.date < $1.date }
-        
-        Logger.debug("💔 [RHR CHART] Loaded \(dataPoints.count) data points (grouped by day)")
-        return dataPoints
-    }
+    // MARK: - Data Fetching
+    // All data fetching logic moved to RecoveryDetailViewModel
     
     // MARK: - New Metrics Sections
     
