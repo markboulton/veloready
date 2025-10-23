@@ -9,7 +9,7 @@ struct StrainHeaderSection: View {
             // Main score ring
             ZStack {
                 Circle()
-                    .stroke(Color(.systemGray5), lineWidth: 12)
+                    .stroke(ColorPalette.neutral200, lineWidth: 12)
                     .frame(width: 160, height: 160)
                 
                 // Convert 0-18 score to 0-100 percentage for ring display

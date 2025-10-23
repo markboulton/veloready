@@ -81,7 +81,7 @@ struct SleepHypnogramChart: View {
                             path.move(to: CGPoint(x: 60, y: y))  // Start after labels
                             path.addLine(to: CGPoint(x: geometry.size.width, y: y))
                         }
-                        .stroke(Color(.systemGray4), lineWidth: 1)
+                        .stroke(ColorPalette.neutral300, lineWidth: 1)
                     }
                     
                     // Sleep stage segments - offset to start after labels

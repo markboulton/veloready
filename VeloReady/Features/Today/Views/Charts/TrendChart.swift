@@ -398,7 +398,7 @@ struct TrendChart: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Color(.systemGray5))
+                            .fill(ColorPalette.neutral200)
                             .frame(height: 2)
                         
                         RoundedRectangle(cornerRadius: 2)

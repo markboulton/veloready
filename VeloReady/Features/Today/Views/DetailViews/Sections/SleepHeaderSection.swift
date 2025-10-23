@@ -9,7 +9,7 @@ struct SleepHeaderSection: View {
             // Main score ring
             ZStack {
                 Circle()
-                    .stroke(Color(.systemGray5), lineWidth: 12)
+                    .stroke(ColorPalette.neutral200, lineWidth: 12)
                     .frame(width: 160, height: 160)
                 
                 Circle()

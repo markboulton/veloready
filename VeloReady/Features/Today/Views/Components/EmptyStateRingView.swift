@@ -15,7 +15,7 @@ struct EmptyStateRingView: View {
             ZStack {
                 // Background ring - grey
                 Circle()
-                    .stroke(Color(.systemGray4), lineWidth: ringWidth)
+                    .stroke(ColorPalette.neutral300, lineWidth: ringWidth)
                     .frame(width: size, height: size)
                 
                 // Center icon

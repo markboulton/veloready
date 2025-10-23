@@ -140,7 +140,7 @@ struct TrainingLoadComponent: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color(.systemGray5))
+                        .fill(ColorPalette.neutral200)
                     
                     Rectangle()
                         .fill(color.opacity(0.6))

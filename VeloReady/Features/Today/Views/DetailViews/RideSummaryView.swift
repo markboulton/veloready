@@ -262,7 +262,7 @@ private struct ExecutionScoreView: View {
             // Circular gauge
             ZStack {
                 Circle()
-                    .stroke(Color(.systemGray5), lineWidth: 6)
+                    .stroke(ColorPalette.neutral200, lineWidth: 6)
                     .frame(width: 60, height: 60)
                 
                 Circle()

@@ -458,7 +458,7 @@ struct LoadMetricCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.background.card)
     }
 }
 

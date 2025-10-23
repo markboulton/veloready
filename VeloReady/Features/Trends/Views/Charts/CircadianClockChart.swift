@@ -34,7 +34,7 @@ struct CircadianClockChart: View {
             ZStack {
                 // Clock circle
                 Circle()
-                    .stroke(Color(.systemGray4), lineWidth: 2)
+                    .stroke(ColorPalette.neutral300, lineWidth: 2)
                     .frame(width: radius * 2, height: radius * 2)
                 
                 // Hour markers

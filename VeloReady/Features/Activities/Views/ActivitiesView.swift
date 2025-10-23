@@ -168,7 +168,7 @@ struct ActivitiesView: View {
                     .buttonStyle(PlainButtonStyle())
                     .foregroundColor(Color.button.primary)
                     .listRowBackground(
-                        Color(.systemBackground).opacity(0.6)
+                        Color.background.card.opacity(0.6)
                     )
                 }
             }
@@ -205,7 +205,7 @@ struct ActivitiesView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .listRowBackground(
-                        Color(.systemBackground).opacity(0.6)
+                        Color.background.card.opacity(0.6)
                     )
                 }
             }

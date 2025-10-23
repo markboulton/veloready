@@ -4,7 +4,7 @@ import SwiftUI
 struct LoadingOverlay: View {
     var body: some View {
         ZStack {
-            Color(.systemBackground)
+            Color.background.primary
                 .ignoresSafeArea()
             
             VStack(spacing: 20) {

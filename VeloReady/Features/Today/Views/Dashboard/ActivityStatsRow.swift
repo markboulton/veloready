@@ -64,7 +64,7 @@ struct ActivityStatsRow: View {
                 
                 // 2px Vertical Divider
                 Rectangle()
-                    .fill(Color(.systemGray3))
+                    .fill(ColorPalette.neutral400)
                     .frame(width: 2)
                 
                 // Detailed Calories Panel

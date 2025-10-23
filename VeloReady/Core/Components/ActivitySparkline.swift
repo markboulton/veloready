@@ -130,7 +130,7 @@ enum SparklineActivityType {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
         
         // Preview: Full-width (for Activities list page)

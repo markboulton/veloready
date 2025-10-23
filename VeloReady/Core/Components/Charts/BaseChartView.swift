@@ -50,7 +50,7 @@ struct BaseChartView<Content: View>: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.background.primary)
     }
 }
 

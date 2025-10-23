@@ -43,7 +43,7 @@ struct HealthKitPermissionsSheet: View {
                         HealthKitDataRow(icon: "figure.walk", title: TodayContent.HealthKit.stepsActivity, color: Color.health.activity)
                     }
                     .padding(Spacing.lg)
-                    .background(Color(.systemGray6))
+                    .background(Color.background.secondary)
                     .cornerRadius(Spacing.md)
                     
                     // Benefits
@@ -71,7 +71,7 @@ struct HealthKitPermissionsSheet: View {
                         )
                     }
                     .padding(Spacing.lg)
-                    .background(Color(.systemGray6))
+                    .background(Color.background.secondary)
                     .cornerRadius(Spacing.md)
                     
                     Spacer(minLength: 20)
