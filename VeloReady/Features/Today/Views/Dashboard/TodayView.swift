@@ -44,17 +44,9 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Gradient background masked to black
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.black,
-                        Color.black.opacity(0.95),
-                        Color.black.opacity(0.9)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Adaptive background (light grey in light mode, black in dark mode)
+                Color.background.secondary
+                    .ignoresSafeArea()
                 
                 ScrollView {
                     // Use LazyVStack as main container for better performance

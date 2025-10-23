@@ -10,17 +10,9 @@ struct SleepDetailView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            // Black gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.black,
-                    Color.black.opacity(0.95),
-                    Color.black.opacity(0.9)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Adaptive background (light grey in light mode, black in dark mode)
+            Color.background.secondary
+                .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 0) {
