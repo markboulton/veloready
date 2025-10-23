@@ -87,7 +87,7 @@ struct TodayView: View {
                         
                         // Health Warnings (Illness & Wellness alerts)
                         if healthKitManager.isAuthorized {
-                            HealthWarningsCard()
+                            HealthWarningsCardV2()
                         }
                         
                         // Movable sections (ordered by user preference)
@@ -471,7 +471,7 @@ struct TodayView: View {
         case .latestActivity:
             if hasConnectedDataSource {
                 if let latestActivity = getLatestActivity() {
-                    LatestActivityCard(activity: latestActivity)
+                    LatestActivityCardV2(activity: latestActivity)
                 } else if viewModel.isLoading {
                     SkeletonActivityCard()
                 }

@@ -109,22 +109,22 @@ struct TrendsView: View {
                 color: .health.heartRate
             )
             
-            RecoveryTrendCard(
+            RecoveryTrendCardV2(
                 data: viewModel.recoveryTrendData,
                 timeRange: viewModel.selectedTimeRange
             )
             
-            HRVTrendCard(
+            HRVTrendCardV2(
                 data: viewModel.hrvTrendData,
                 timeRange: viewModel.selectedTimeRange
             )
             
-            RestingHRCard(
+            RestingHRCardV2(
                 data: viewModel.restingHRData,
                 timeRange: viewModel.selectedTimeRange
             )
             
-            StressLevelCard(
+            StressLevelCardV2(
                 data: viewModel.stressData,
                 timeRange: viewModel.selectedTimeRange
             )
@@ -145,8 +145,8 @@ struct TrendsView: View {
                     timeRange: viewModel.selectedTimeRange
                 )
                 
-                TrainingLoadTrendCard(
-                    activities: viewModel.activitiesForLoad,
+                TrainingLoadTrendCardV2(
+                    data: viewModel.dailyLoadData,
                     timeRange: viewModel.selectedTimeRange
                 )
                 
@@ -157,7 +157,7 @@ struct TrendsView: View {
                     color: .workout.power
                 )
                 
-                FTPTrendCard(
+                FTPTrendCardV2(
                     data: viewModel.ftpTrendData,
                     timeRange: viewModel.selectedTimeRange
                 )
