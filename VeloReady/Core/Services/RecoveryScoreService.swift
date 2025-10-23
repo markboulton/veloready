@@ -19,6 +19,7 @@ class RecoveryScoreService: ObservableObject {
     private let intervalsAPIClient: IntervalsAPIClient
     private let intervalsCache = IntervalsCache.shared
     private let sleepScoreService = SleepScoreService.shared
+    private let cache = UnifiedCacheManager.shared
     
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
@@ -27,8 +28,6 @@ class RecoveryScoreService: ObservableObject {
     private var lastRecoveryCalculationDate: Date?
     private let userDefaults = UserDefaults.standard
     private let recoveryScoreKey = "lastRecoveryCalculationDate"
-    private let cachedRecoveryScoreKey = "cachedRecoveryScore"
-    private let cachedRecoveryScoreDateKey = "cachedRecoveryScoreDate"
     
     init() {
         self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
@@ -38,7 +37,9 @@ class RecoveryScoreService: ObservableObject {
         }
         
         // Load cached recovery score immediately for instant display
-        loadCachedRecoveryScore()
+        Task {
+            await loadCachedRecoveryScore()
+        }
     }
     
     /// Calculate today's recovery score (only once per day, like Whoop)
@@ -169,13 +170,13 @@ class RecoveryScoreService: ObservableObject {
         // Mark that we've calculated today's recovery score and save to cache
         if let score = currentRecoveryScore {
             // Check if recovery score actually changed
-            let previousScore = loadCachedRecoveryScoreData()
+            let previousScore = await loadCachedRecoveryScoreData()
             let scoreChanged = previousScore?.score != score.score
             
             if !ignoreDailyLimit {
                 markAsCalculatedToday()
             }
-            saveRecoveryScoreToCache(score)
+            await saveRecoveryScoreToCache(score)
             
             // Only refresh AI brief if recovery score actually changed (avoids unnecessary API calls)
             if scoreChanged {
@@ -571,7 +572,8 @@ class RecoveryScoreService: ObservableObject {
         Logger.debug("🍷 Testing alcohol detection algorithm...")
         
         // Clear cached recovery score first
-        clearCachedRecoveryScore()
+        let cacheKey = CacheKey.recoveryScore(date: Date())
+        await cache.invalidate(key: cacheKey)
         
         // Force recalculation with new algorithm
         await forceRefreshRecoveryScoreIgnoringDailyLimit()
@@ -633,86 +635,73 @@ extension RecoveryScore {
 extension RecoveryScoreService {
     
     /// Load cached recovery score for instant display
-    private func loadCachedRecoveryScore() {
-        guard let cachedData = userDefaults.data(forKey: cachedRecoveryScoreKey),
-              let cachedDate = userDefaults.object(forKey: cachedRecoveryScoreDateKey) as? Date else {
-            Logger.debug("📦 No cached recovery score found")
-            return
-        }
+    private func loadCachedRecoveryScore() async {
+        let cacheKey = CacheKey.recoveryScore(date: Date())
         
-        // Check if cache is from today
-        let calendar = Calendar.current
-        if calendar.isDate(cachedDate, inSameDayAs: Date()) {
-            do {
-                let decoder = JSONDecoder()
-                let cachedScore = try decoder.decode(RecoveryScore.self, from: cachedData)
-                currentRecoveryScore = cachedScore
-                Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
-                
-                // Also save to shared UserDefaults for widget/watch
-                if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
-                    sharedDefaults.set(cachedScore.score, forKey: "cachedRecoveryScore")
-                    sharedDefaults.set(cachedScore.band.rawValue, forKey: "cachedRecoveryBand")
-                    sharedDefaults.set(cachedScore.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
-                    Logger.debug("⌚ Synced cached recovery score to shared defaults for widget/watch")
-                    
-                    // Reload widgets to show cached data
-                    WidgetCenter.shared.reloadAllTimelines()
-                }
-            } catch {
-                Logger.error("Failed to decode cached recovery score: \(error)")
-                Logger.warning("️ Clearing invalid cache - will recalculate")
-                clearCachedRecoveryScore()
+        // Try to get cached score - wrap in do-catch since we're checking if it exists
+        do {
+            let cachedScore: RecoveryScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                // If no cache, return nil to skip
+                throw NSError(domain: "RecoveryScore", code: 404)
             }
-        } else {
-            Logger.debug("📦 Cached recovery score is outdated, clearing cache")
-            clearCachedRecoveryScore()
+            
+            currentRecoveryScore = cachedScore
+            Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
+            
+            // Also save to shared UserDefaults for widget/watch
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+                sharedDefaults.set(cachedScore.score, forKey: "cachedRecoveryScore")
+                sharedDefaults.set(cachedScore.band.rawValue, forKey: "cachedRecoveryBand")
+                sharedDefaults.set(cachedScore.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
+                Logger.debug("⌚ Synced cached recovery score to shared defaults for widget/watch")
+                
+                // Reload widgets to show cached data
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        } catch {
+            // No cached score or error - this is fine on first launch
+            Logger.debug("📦 No cached recovery score found")
         }
     }
     
     /// Load cached recovery score data (for comparison)
-    private func loadCachedRecoveryScoreData() -> RecoveryScore? {
-        guard let cachedData = userDefaults.data(forKey: cachedRecoveryScoreKey) else {
-            return nil
-        }
+    private func loadCachedRecoveryScoreData() async -> RecoveryScore? {
+        let cacheKey = CacheKey.recoveryScore(date: Date())
         
         do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(RecoveryScore.self, from: cachedData)
+            return try await cache.fetch(key: cacheKey, ttl: 86400) {
+                throw NSError(domain: "RecoveryScore", code: 404)
+            }
         } catch {
             return nil
         }
     }
     
     /// Save recovery score to persistent cache
-    private func saveRecoveryScoreToCache(_ score: RecoveryScore) {
+    private func saveRecoveryScoreToCache(_ score: RecoveryScore) async {
+        let cacheKey = CacheKey.recoveryScore(date: Date())
+        
+        // Store in UnifiedCacheManager - use fetch with immediate return
         do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(score)
-            userDefaults.set(data, forKey: cachedRecoveryScoreKey)
-            userDefaults.set(Date(), forKey: cachedRecoveryScoreDateKey)
-            Logger.debug("💾 Saved recovery score to cache: \(score.score)")
-            
-            // Also save to shared UserDefaults for widget/watch
-            if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
-                sharedDefaults.set(score.score, forKey: "cachedRecoveryScore")
-                sharedDefaults.set(score.band.rawValue, forKey: "cachedRecoveryBand")
-                sharedDefaults.set(score.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
-                Logger.debug("⌚ Saved recovery score to shared defaults for widget/watch")
-                
-                // Reload widgets to show new data immediately
-                WidgetCenter.shared.reloadAllTimelines()
-                Logger.debug("🔄 Reloaded widget timelines")
+            let _ = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                return score
             }
+            Logger.debug("💾 Saved recovery score to cache: \(score.score)")
         } catch {
             Logger.error("Failed to save recovery score to cache: \(error)")
         }
-    }
-    
-    /// Clear cached recovery score
-    private func clearCachedRecoveryScore() {
-        userDefaults.removeObject(forKey: cachedRecoveryScoreKey)
-        userDefaults.removeObject(forKey: cachedRecoveryScoreDateKey)
+        
+        // Also save to shared UserDefaults for widget/watch
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+            sharedDefaults.set(score.score, forKey: "cachedRecoveryScore")
+            sharedDefaults.set(score.band.rawValue, forKey: "cachedRecoveryBand")
+            sharedDefaults.set(score.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
+            Logger.debug("⌚ Saved recovery score to shared defaults for widget/watch")
+            
+            // Reload widgets to show new data immediately
+            WidgetCenter.shared.reloadAllTimelines()
+            Logger.debug("🔄 Reloaded widget timelines")
+        }
     }
     
     /// Clear baseline cache to force fresh calculation from HealthKit
