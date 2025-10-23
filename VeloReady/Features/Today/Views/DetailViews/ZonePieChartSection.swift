@@ -9,7 +9,7 @@ struct ZonePieChartSection: View {
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: Spacing.lg) {
             // Heart Rate Zone Pie Chart
             heartRateZoneChart
             
@@ -25,7 +25,7 @@ struct ZonePieChartSection: View {
                     showBenefits: true,
                     learnMore: .adaptiveZones
                 )
-                .padding(.horizontal)
+                .padding(.horizontal, Spacing.md)
             }
         }
     }
@@ -33,15 +33,10 @@ struct ZonePieChartSection: View {
     // MARK: - Heart Rate Zone Chart
     
     private var heartRateZoneChart: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Text(proConfig.hasProAccess ? "Adaptive HR Zones" : "Heart Rate Zones")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-            }
-            
+        ChartCard(
+            title: proConfig.hasProAccess ? "Adaptive HR Zones" : "Heart Rate Zones",
+            subtitle: "Time spent in each heart rate zone"
+        ) {
             if proConfig.hasProAccess {
                 // Pro version: Adaptive zones
                 adaptiveHRZoneChart
@@ -50,8 +45,6 @@ struct ZonePieChartSection: View {
                 freeHRZoneChart
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
     }
     
     private var adaptiveHRZoneChart: some View {
@@ -195,15 +188,10 @@ struct ZonePieChartSection: View {
     // MARK: - Power Zone Chart
     
     private var powerZoneChart: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Text(proConfig.hasProAccess ? "Adaptive Power Zones" : "Power Zones")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-            }
-            
+        ChartCard(
+            title: proConfig.hasProAccess ? "Adaptive Power Zones" : "Power Zones",
+            subtitle: "Time spent in each power zone"
+        ) {
             if proConfig.hasProAccess {
                 // Pro version: Adaptive zones
                 adaptivePowerZoneChart
@@ -212,8 +200,6 @@ struct ZonePieChartSection: View {
                 freePowerZoneChart
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
     }
     
     private var adaptivePowerZoneChart: some View {
