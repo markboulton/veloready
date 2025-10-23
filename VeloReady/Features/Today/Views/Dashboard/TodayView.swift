@@ -669,7 +669,7 @@ struct StatCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .overlay(
             Rectangle()
                 .stroke(Color.primary.opacity(0.1), lineWidth: 1)
