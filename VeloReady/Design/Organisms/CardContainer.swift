@@ -74,7 +74,7 @@ struct CardContainer<Content: View>: View {
         .padding(style.padding)
         .background(
             RoundedRectangle(cornerRadius: style.cornerRadius)
-                .fill(Color(uiColor: .systemBackground))
+                .fill(Color.background.card)
                 .shadow(
                     color: .black.opacity(0.05),
                     radius: style.shadowRadius,
