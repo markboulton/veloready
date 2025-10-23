@@ -15,18 +15,30 @@ struct SleepHypnogramComponent: View {
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             } else {
-                // Segmented control for day selection
+                // Segmented control for day selection (limit to last 3 days to avoid overflow)
                 if hypnograms.count > 1 {
+                    let displayedHypnograms = Array(hypnograms.suffix(min(3, hypnograms.count)))
+                    let startIndex = hypnograms.count - displayedHypnograms.count
+                    
                     LiquidGlassSegmentedControl(
-                        segments: hypnograms.indices.map { index in
-                            SegmentItem(
-                                value: index,
-                                label: dayLabel(for: hypnograms[index].date)
+                        segments: displayedHypnograms.indices.map { localIndex in
+                            let globalIndex = startIndex + localIndex
+                            return SegmentItem(
+                                value: globalIndex,
+                                label: dayLabel(for: hypnograms[globalIndex].date)
                             )
                         },
                         selection: $selectedDay
                     )
                     .padding(.bottom, 8)
+                    
+                    // Show indicator if there are more days available
+                    if hypnograms.count > 3 {
+                        Text("\(hypnograms.count) days available")
+                            .font(.caption2)
+                            .foregroundColor(.text.tertiary)
+                            .padding(.bottom, 4)
+                    }
                 }
                 
                 // Selected hypnogram with animation

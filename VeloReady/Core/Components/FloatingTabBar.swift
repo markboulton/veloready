@@ -30,18 +30,13 @@ struct FloatingTabBar: View {
         .padding(.horizontal, 4)
         .padding(.vertical, 8)
         .background(
-            // Liquid glass with visible refraction (Apple Fitness style)
+            // White thin material background
             RoundedRectangle(cornerRadius: 32)
-                .fill(.ultraThinMaterial)
+                .fill(.thinMaterial)
                 .overlay(
-                    // Dark tint for better contrast
+                    // Very subtle edge definition
                     RoundedRectangle(cornerRadius: 32)
-                        .fill(Color.black.opacity(0.3))
-                )
-                .overlay(
-                    // Edge definition
-                    RoundedRectangle(cornerRadius: 32)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
                 )
         )
         .shadow(
@@ -79,15 +74,10 @@ struct TabBarButton: View {
         }) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Selection pill background (like Apple Fitness)
+                    // Selection pill background - very light grey
                     if isSelected {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white.opacity(colorScheme == .dark ? 0.15 : 0.2))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(.ultraThinMaterial)
-                                    .opacity(0.5)
-                            )
+                            .fill(colorScheme == .dark ? Color.white.opacity(0.15) : ColorPalette.neutral200)
                             .matchedGeometryEffect(id: "tab_background", in: namespace)
                             .frame(width: 60, height: 36)
                     }
@@ -100,8 +90,8 @@ struct TabBarButton: View {
                                 .symbolRenderingMode(.hierarchical)
                                 .foregroundStyle(
                                     isSelected
-                                        ? Color.primary
-                                        : Color.primary.opacity(0.5)
+                                        ? ColorScale.blueAccent
+                                        : Color.text.secondary
                                 )
                                 .scaleEffect(isPressed ? 0.85 : 1.0)
                                 .symbolEffect(.bounce, value: isSelected)
@@ -111,8 +101,8 @@ struct TabBarButton: View {
                                 .symbolRenderingMode(.hierarchical)
                                 .foregroundStyle(
                                     isSelected
-                                        ? Color.primary
-                                        : Color.primary.opacity(0.5)
+                                        ? ColorScale.blueAccent
+                                        : Color.text.secondary
                                 )
                                 .scaleEffect(isPressed ? 0.85 : 1.0)
                         }
@@ -124,8 +114,8 @@ struct TabBarButton: View {
                     .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
                     .foregroundColor(
                         isSelected
-                            ? Color.primary
-                            : Color.primary.opacity(0.5)
+                            ? Color.text.primary
+                            : Color.text.secondary
                     )
             }
             .frame(height: 60)

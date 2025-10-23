@@ -17,7 +17,7 @@ struct RecoveryCapacityComponent: View {
                         Text("\(Int(metrics.avgRecovery))\(TrendsContent.Units.percent)")
                             .font(.title)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.text.primary)
                         if metrics.recoveryChange != 0 {
                             Image(systemName: metrics.recoveryChange > 0 ? "arrow.up" : "arrow.down")
                                 .foregroundColor(metrics.recoveryChange > 0 ? ColorScale.greenAccent : ColorScale.redAccent)
