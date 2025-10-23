@@ -1,117 +1,325 @@
 import SwiftUI
 import Charts
 
-/// Recovery vs Power card using atomic ChartCard wrapper  
+/// Recovery vs Power card using atomic ChartCard wrapper
+/// Unique VeloReady feature: correlates health (recovery) with performance (power)
+/// Shows scatter plot with correlation coefficient, trend line, and significance analysis
 struct RecoveryVsPowerCardV2: View {
-    let data: [(recovery: Double, power: Double, date: Date)]
+    let data: [TrendsViewModel.CorrelationDataPoint]
+    let correlation: CorrelationCalculator.CorrelationResult?
     let timeRange: TrendsViewModel.TimeRange
     
     private var badge: CardHeader.Badge? {
-        guard !data.isEmpty else { return nil }
-        let avgRecovery = data.map(\.recovery).reduce(0, +) / Double(data.count)
-        let avgPower = data.map(\.power).reduce(0, +) / Double(data.count)
+        guard let correlation = correlation else { return nil }
         
-        if avgRecovery > 70 && avgPower > 250 {
-            return .init(text: "OPTIMAL", style: .success)
-        } else if avgRecovery < 50 && avgPower > 250 {
-            return .init(text: "OVERREACHING", style: .warning)
-        } else {
-            return .init(text: "BALANCED", style: .info)
+        switch correlation.significance {
+        case .strong:
+            return .init(text: "STRONG", style: .success)
+        case .moderate:
+            return .init(text: "MODERATE", style: .info)
+        case .weak:
+            return .init(text: "WEAK", style: .warning)
+        case .none:
+            return .init(text: "NONE", style: .error)
         }
     }
     
     var body: some View {
         ChartCard(
             title: TrendsContent.Cards.recoveryVsPower,
-            subtitle: data.isEmpty ? TrendsContent.noDataFound : "Training balance analysis",
+            subtitle: correlation.map { 
+                "\($0.significance.description) correlation (r=\(CorrelationCalculator.formatCoefficient($0.coefficient)))" 
+            } ?? CommonContent.States.noDataFound,
             badge: badge,
-            footerText: data.isEmpty ? nil : "High power with low recovery may indicate overtraining"
+            footerText: correlation.map { generateInsight($0) }
         ) {
             if data.isEmpty {
                 emptyStateView
             } else {
-                chartView
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    chartView
+                    
+                    if let correlation = correlation {
+                        correlationStatsView(correlation)
+                    }
+                }
             }
         }
     }
+    
+    // MARK: - Empty State
     
     private var emptyStateView: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "chart.bar.xaxis")
+            Image(systemName: Icons.Feature.trends)
                 .font(.system(size: 40))
                 .foregroundColor(Color.text.tertiary)
             
-            VRText("No correlation data", style: .body, color: Color.text.secondary)
-            VRText("Requires both recovery scores and power data", style: .caption, color: Color.text.tertiary)
+            VStack(spacing: Spacing.xs) {
+                VRText(
+                    TrendsContent.RecoveryVsPower.noData,
+                    style: .body,
+                    color: Color.text.secondary
+                )
                 .multilineTextAlignment(.center)
+                
+                VRText(
+                    TrendsContent.RecoveryVsPower.requires,
+                    style: .caption,
+                    color: Color.text.tertiary
+                )
+                .padding(.top, Spacing.sm)
+                
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack {
+                        VRText(CommonContent.Formatting.bulletPoint, style: .caption, color: Color.text.tertiary)
+                        VRText(TrendsContent.RecoveryVsPower.threeWeeks, style: .caption, color: Color.text.tertiary)
+                    }
+                    HStack {
+                        VRText(CommonContent.Formatting.bulletPoint, style: .caption, color: Color.text.tertiary)
+                        VRText(TrendsContent.RecoveryVsPower.powerData, style: .caption, color: Color.text.tertiary)
+                    }
+                    HStack {
+                        VRText(CommonContent.Formatting.bulletPoint, style: .caption, color: Color.text.tertiary)
+                        VRText(TrendsContent.RecoveryVsPower.dailyRecovery, style: .caption, color: Color.text.tertiary)
+                    }
+                    HStack {
+                        VRText(CommonContent.Formatting.bulletPoint, style: .caption, color: Color.text.tertiary)
+                        VRText(TrendsContent.RecoveryVsPower.hrvSleep, style: .caption, color: Color.text.tertiary)
+                    }
+                }
+                
+                VRText(
+                    TrendsContent.RecoveryVsPower.unique,
+                    style: .caption,
+                    color: Color.chart.primary
+                )
+                .fontWeight(.medium)
+                .padding(.top, Spacing.sm)
+            }
         }
-        .frame(height: 120)
+        .frame(height: 260)
         .frame(maxWidth: .infinity)
     }
     
+    // MARK: - Chart
+    
     private var chartView: some View {
-        Chart {
-            ForEach(Array(data.enumerated()), id: \.offset) { index, point in
-                PointMark(
-                    x: .value("Recovery", point.recovery),
-                    y: .value("Power", point.power)
+        Chart(data) { point in
+            // Scatter points
+            PointMark(
+                x: .value("Recovery %", point.x),
+                y: .value("Avg Power (W)", point.y)
+            )
+            .foregroundStyle(ColorScale.blueAccent.opacity(0.7))
+            .symbolSize(60)
+            
+            // Trend line if correlation exists and is meaningful (>0.3)
+            if let correlation = correlation, abs(correlation.coefficient) > 0.3 {
+                LineMark(
+                    x: .value("Recovery %", point.x),
+                    y: .value("Power", trendLineY(x: point.x))
                 )
-                .foregroundStyle(pointColor(recovery: point.recovery, power: point.power))
-                .symbolSize(60)
+                .foregroundStyle(correlationColor(correlation))
+                .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
             }
         }
-        .chartXScale(domain: 0...100)
+        .chartXScale(domain: .automatic(includesZero: false))
         .chartYScale(domain: .automatic(includesZero: false))
         .chartXAxis {
-            AxisMarks { value in
+            AxisMarks(position: .bottom) { value in
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)%")
+                        Text("\(intValue)\(TrendsContent.Units.percent)")
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
-                AxisGridLine()
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(Color.text.tertiary.opacity(0.3))
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text("\(intValue)W")
+                        Text("\(intValue)\(TrendsContent.Units.watts)")
                             .font(.caption)
                             .foregroundStyle(Color.text.tertiary)
                     }
                 }
-                AxisGridLine()
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(Color.text.tertiary.opacity(0.3))
             }
         }
-        .frame(height: 180)
+        .frame(height: 220)
     }
     
-    private func pointColor(recovery: Double, power: Double) -> Color {
-        if recovery > 70 && power > 250 {
-            return ColorScale.greenAccent
-        } else if recovery < 50 && power > 250 {
-            return ColorScale.redAccent
-        } else if power > 250 {
-            return ColorScale.amberAccent
-        } else {
-            return ColorScale.blueAccent
+    // MARK: - Correlation Stats
+    
+    private func correlationStatsView(_ correlation: CorrelationCalculator.CorrelationResult) -> some View {
+        HStack(spacing: Spacing.lg) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                VRText(TrendsContent.Metrics.correlation, style: .caption, color: Color.text.secondary)
+                
+                VRText(
+                    CorrelationCalculator.formatCoefficient(correlation.coefficient),
+                    style: .headline,
+                    color: correlationColor(correlation)
+                )
+            }
+            
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                VRText(TrendsContent.Metrics.rSquared, style: .caption, color: Color.text.secondary)
+                
+                VRText(
+                    "\(Int(correlation.rSquared * 100))%",
+                    style: .headline,
+                    color: Color.text.primary
+                )
+            }
+            
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                VRText(TrendsContent.Metrics.activities, style: .caption, color: Color.text.secondary)
+                
+                VRText(
+                    "\(correlation.sampleSize)",
+                    style: .headline,
+                    color: Color.text.primary
+                )
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, Spacing.md)
+        .background(Color.background.secondary)
+        .cornerRadius(Spacing.buttonCornerRadius)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func correlationColor(_ correlation: CorrelationCalculator.CorrelationResult) -> Color {
+        switch correlation.significance {
+        case .strong:
+            return Color.semantic.success
+        case .moderate:
+            return Color.chart.primary
+        case .weak:
+            return Color.semantic.warning
+        case .none:
+            return Color.text.tertiary
+        }
+    }
+    
+    /// Calculate trend line Y value using linear regression
+    private func trendLineY(x: Double) -> Double {
+        guard correlation != nil, data.count >= 2 else { return 0 }
+        
+        let xValues = data.map(\.x)
+        let yValues = data.map(\.y)
+        
+        let meanX = xValues.reduce(0, +) / Double(xValues.count)
+        let meanY = yValues.reduce(0, +) / Double(yValues.count)
+        
+        var numerator = 0.0
+        var denominator = 0.0
+        
+        for i in 0..<data.count {
+            numerator += (xValues[i] - meanX) * (yValues[i] - meanY)
+            denominator += (xValues[i] - meanX) * (xValues[i] - meanX)
+        }
+        
+        let slope = denominator != 0 ? numerator / denominator : 0
+        let intercept = meanY - slope * meanX
+        
+        return slope * x + intercept
+    }
+    
+    private func generateInsight(_ correlation: CorrelationCalculator.CorrelationResult) -> String {
+        let r = correlation.coefficient
+        let rSquared = correlation.rSquared
+        let variancePercent = Int(rSquared * 100)
+        
+        switch correlation.significance {
+        case .strong:
+            if r > 0 {
+                return "Strong positive correlation (r=\(CorrelationCalculator.formatCoefficient(r))). Recovery explains \(variancePercent)% of your power variability. Train hard on high-recovery days!"
+            } else {
+                return "Strong negative correlation. This is unusual - check if data is accurate."
+            }
+            
+        case .moderate:
+            if r > 0 {
+                return "Moderate correlation (r=\(CorrelationCalculator.formatCoefficient(r))). Recovery accounts for \(variancePercent)% of power variance. Schedule key workouts when recovered."
+            } else {
+                return "Moderate negative correlation. Consider other factors affecting performance."
+            }
+            
+        case .weak:
+            return "Weak correlation (r=\(CorrelationCalculator.formatCoefficient(r))). Recovery has minimal impact on your power. Other factors like sleep, nutrition, or training may be more important."
+            
+        case .none:
+            return "No significant correlation found. Your power output appears independent of recovery score. This could indicate consistent performance or data quality issues."
         }
     }
 }
 
+// MARK: - Preview
+
 #Preview {
-    RecoveryVsPowerCardV2(
-        data: (0..<30).map { _ in
-            (
-                recovery: Double.random(in: 30...95),
-                power: Double.random(in: 180...320),
-                date: Date()
+    ScrollView {
+        VStack(spacing: Spacing.lg) {
+            // With strong positive correlation
+            RecoveryVsPowerCardV2(
+                data: (0..<30).map { i in
+                    let recovery = Double.random(in: 50...95)
+                    let power = 150 + (recovery - 70) * 2 + Double.random(in: -20...20)
+                    return TrendsViewModel.CorrelationDataPoint(
+                        date: Date().addingTimeInterval(Double(-i) * 24 * 60 * 60),
+                        x: recovery,
+                        y: power
+                    )
+                },
+                correlation: CorrelationCalculator.CorrelationResult(
+                    coefficient: 0.72,
+                    rSquared: 0.52,
+                    sampleSize: 30,
+                    significance: .strong,
+                    trend: .positive
+                ),
+                timeRange: .days90
             )
-        },
-        timeRange: .days30
-    )
-    .padding()
+            
+            // Weak correlation
+            RecoveryVsPowerCardV2(
+                data: (0..<30).map { i in
+                    let recovery = Double.random(in: 50...95)
+                    let power = Double.random(in: 180...280)
+                    return TrendsViewModel.CorrelationDataPoint(
+                        date: Date().addingTimeInterval(Double(-i) * 24 * 60 * 60),
+                        x: recovery,
+                        y: power
+                    )
+                },
+                correlation: CorrelationCalculator.CorrelationResult(
+                    coefficient: 0.18,
+                    rSquared: 0.03,
+                    sampleSize: 30,
+                    significance: .weak,
+                    trend: .positive
+                ),
+                timeRange: .days90
+            )
+            
+            // Empty
+            RecoveryVsPowerCardV2(
+                data: [],
+                correlation: nil,
+                timeRange: .days90
+            )
+        }
+        .padding()
+    }
+    .background(Color.background.primary)
 }
