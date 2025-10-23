@@ -110,6 +110,21 @@ struct DebugSettingsView: View {
                     }
                 }
             }
+            
+            NavigationLink(destination: ColorPaletteDebugView()) {
+                HStack {
+                    Image(systemName: "eyedropper")
+                        .foregroundColor(ColorScale.blueAccent)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Color Palette")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("All colors with swatches and adaptive labels")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             Label("UI Components", systemImage: "paintbrush.fill")
         } footer: {
