@@ -131,7 +131,7 @@ private struct ErrorView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(8)
-                    .background(Color(.systemGray5))
+                    .background(ColorPalette.neutral200)
                     .cornerRadius(8)
             }
             #endif
@@ -183,7 +183,7 @@ private struct MLDataCollectionView: View {
                 ZStack(alignment: .leading) {
                     // Background (grey)
                     Rectangle()
-                        .fill(Color(.systemGray5))
+                        .fill(ColorPalette.neutral200)
                         .frame(height: 2)
                     
                     // Progress (blue) - animates from left

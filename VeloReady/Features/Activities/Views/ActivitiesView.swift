@@ -132,7 +132,7 @@ struct ActivitiesView: View {
                         }
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
                         .listRowBackground(
-                            Color(.systemBackground).opacity(0.6)
+                            Color.background.card.opacity(0.6)
                         )
                     }
                 } header: {

@@ -30,7 +30,7 @@ struct FitnessTrajectoryChart: View {
                     yStart: .value(TrendsContent.ChartAxis.bottom, 0),
                     yEnd: .value(TrendsContent.ChartAxis.top, maxValue * 1.1)
                 )
-                .foregroundStyle(Color(.systemGray6).opacity(0.5))
+                .foregroundStyle(Color.background.secondary.opacity(0.5))
             }
             
             // Today marker
@@ -89,7 +89,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.blueAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemGray6))
+                                .background(Color.background.secondary)
                                 .cornerRadius(4)
                         }
                     }
@@ -145,7 +145,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.amberAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemGray6))
+                                .background(Color.background.secondary)
                                 .cornerRadius(4)
                         }
                     }
@@ -201,7 +201,7 @@ struct FitnessTrajectoryChart: View {
                                 .foregroundColor(ColorScale.greenAccent)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(.systemGray6))
+                                .background(Color.background.secondary)
                                 .cornerRadius(4)
                         }
                     }
@@ -218,13 +218,13 @@ struct FitnessTrajectoryChart: View {
                     .foregroundStyle(Color.text.secondary)
                 }
                 AxisGridLine()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { value in
                 AxisGridLine()
-                    .foregroundStyle(Color(.systemGray4))
+                    .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel()
                     .font(.caption2)
             }
