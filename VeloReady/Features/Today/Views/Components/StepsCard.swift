@@ -7,59 +7,53 @@ struct StepsCard: View {
     @State private var hourlySteps: [HourlyStepData] = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Custom header with sparkline
-            HStack(alignment: .center, spacing: Spacing.sm) {
-                Image(systemName: Icons.Health.steps)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color.text.secondary)
-                
-                Text("Steps")
-                    .font(.heading)
-                    .foregroundColor(Color.text.primary)
-                
-                Spacer()
-                
-                // Sparkline aligned with header
-                if !hourlySteps.isEmpty {
-                    StepsSparkline(hourlySteps: hourlySteps)
-                        .frame(width: 160, height: 24)
-                }
-            }
-            .padding(.bottom, Spacing.md)
-            
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                // Steps count with goal - current bold, target regular grey
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text(formatSteps(liveActivityService.dailySteps))
-                        .font(.system(size: 32, weight: .bold))
+        StandardCard {
+            VStack(alignment: .leading, spacing: 0) {
+                // Custom header with sparkline
+                HStack(alignment: .center, spacing: Spacing.sm) {
+                    Image(systemName: Icons.Health.steps)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color.text.secondary)
+                    
+                    Text("Steps")
+                        .font(.heading)
                         .foregroundColor(Color.text.primary)
                     
-                    Text(" / ")
-                        .font(.system(size: 32, weight: .regular))
-                        .foregroundColor(.secondary)
+                    Spacer()
                     
-                    Text(formatSteps(userSettings.stepGoal))
-                        .font(.system(size: 32, weight: .regular))
-                        .foregroundColor(.secondary)
+                    // Sparkline aligned with header
+                    if !hourlySteps.isEmpty {
+                        StepsSparkline(hourlySteps: hourlySteps)
+                            .frame(width: 160, height: 24)
+                    }
                 }
+                .padding(.bottom, Spacing.md)
                 
-                // Distance label
-                if liveActivityService.walkingDistance > 0 {
-                    Text(formatDistance(liveActivityService.walkingDistance))
-                        .font(.subheadline)
-                        .foregroundColor(Color.text.secondary)
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    // Steps count with goal - current bold, target regular grey
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        Text(formatSteps(liveActivityService.dailySteps))
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color.text.primary)
+                        
+                        Text(" / ")
+                            .font(.system(size: 32, weight: .regular))
+                            .foregroundColor(.secondary)
+                        
+                        Text(formatSteps(userSettings.stepGoal))
+                            .font(.system(size: 32, weight: .regular))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Distance label
+                    if liveActivityService.walkingDistance > 0 {
+                        Text(formatDistance(liveActivityService.walkingDistance))
+                            .font(.subheadline)
+                            .foregroundColor(Color.text.secondary)
+                    }
                 }
             }
         }
-        .padding(Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.primary.opacity(0.08))
-        )
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xxl / 2)
         .onAppear {
             Logger.debug("📊 [SPARKLINE] StepsCard .onAppear triggered")
             Task {

@@ -10,55 +10,49 @@ struct HealthWarningsCard: View {
     var body: some View {
         // Only show if there's an illness indicator or wellness alert
         if hasWarnings {
-            VStack(alignment: .leading, spacing: 0) {
-                // Custom header with red styling for illness
-                HStack(alignment: .top, spacing: Spacing.sm) {
-                    Image(systemName: warningIcon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.secondary)
-                    
-                    Text(hasIllnessWarning ? "Body Stress Detected" : "Health Alerts")
-                        .font(.heading)
-                        .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.primary)
-                    
-                    Spacer()
-                }
-                .padding(.bottom, Spacing.md)
-                
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Illness indicator (higher priority)
-                    if let indicator = illnessService.currentIndicator, indicator.isSignificant {
-                        illnessWarningContent(indicator)
-                            .onTapGesture {
-                                HapticFeedback.light()
-                                showingIllnessDetail = true
-                            }
+            StandardCard {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Custom header with red styling for illness
+                    HStack(alignment: .top, spacing: Spacing.sm) {
+                        Image(systemName: warningIcon)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.secondary)
+                        
+                        Text(hasIllnessWarning ? "Body Stress Detected" : "Health Alerts")
+                            .font(.heading)
+                            .foregroundColor(hasIllnessWarning ? ColorScale.redAccent : Color.text.primary)
+                        
+                        Spacer()
                     }
+                    .padding(.bottom, Spacing.md)
                     
-                    // Wellness alert
-                    if let alert = wellnessService.currentAlert {
-                        // Add divider if both are present
-                        if illnessService.currentIndicator?.isSignificant == true {
-                            Divider()
-                                .padding(.vertical, Spacing.xs)
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        // Illness indicator (higher priority)
+                        if let indicator = illnessService.currentIndicator, indicator.isSignificant {
+                            illnessWarningContent(indicator)
+                                .onTapGesture {
+                                    HapticFeedback.light()
+                                    showingIllnessDetail = true
+                                }
                         }
                         
-                        wellnessWarningContent(alert)
-                            .onTapGesture {
-                                HapticFeedback.light()
-                                showingWellnessDetail = true
+                        // Wellness alert
+                        if let alert = wellnessService.currentAlert {
+                            // Add divider if both are present
+                            if illnessService.currentIndicator?.isSignificant == true {
+                                Divider()
+                                    .padding(.vertical, Spacing.xs)
                             }
+                            
+                            wellnessWarningContent(alert)
+                                .onTapGesture {
+                                    HapticFeedback.light()
+                                    showingWellnessDetail = true
+                                }
+                        }
                     }
                 }
             }
-            .padding(Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
-            )
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xxl / 2)
             .sheet(isPresented: $showingIllnessDetail) {
                 if let indicator = illnessService.currentIndicator {
                     IllnessDetailSheet(indicator: indicator)
