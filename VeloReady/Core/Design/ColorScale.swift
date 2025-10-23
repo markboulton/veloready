@@ -23,6 +23,7 @@ enum ColorScale {
     static let backgroundPrimary = Color(.systemBackground)             /// Primary background (white/black)
     static let backgroundSecondary = Color(.secondarySystemBackground)  /// Secondary background (light grey/dark grey)
     static let backgroundTertiary = Color(.tertiarySystemBackground)    /// Tertiary background (white/elevated dark grey)
+    static let backgroundListItem = Color(.secondarySystemBackground)   /// List item background (matches Settings section items)
     
     /// Custom app background: light grey in light mode, BLACK in dark mode
     static var appBackground: Color {
