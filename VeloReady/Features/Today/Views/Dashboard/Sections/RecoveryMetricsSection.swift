@@ -1,14 +1,20 @@
 import SwiftUI
 
-/// Recovery metrics section showing Recovery, Sleep, and Load scores
+/// Recovery metrics section showing Recovery, Sleep, and Load scores with MVVM
+/// ViewModel handles all score state management and calculations
 struct RecoveryMetricsSection: View {
-    @ObservedObject var recoveryScoreService: RecoveryScoreService
-    @ObservedObject var sleepScoreService: SleepScoreService
-    @ObservedObject var strainScoreService: StrainScoreService
+    @StateObject private var viewModel = RecoveryMetricsSectionViewModel()
     let isHealthKitAuthorized: Bool
-    @Binding var missingSleepBannerDismissed: Bool
     let animationTrigger: UUID // Triggers animations on change
     var hideBottomDivider: Bool = false
+    
+    // Binding for parent view coordination
+    var missingSleepBannerDismissed: Binding<Bool> {
+        Binding(
+            get: { viewModel.missingSleepBannerDismissed },
+            set: { viewModel.missingSleepBannerDismissed = $0 }
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -63,7 +69,7 @@ struct RecoveryMetricsSection: View {
     
     @ViewBuilder
     private var recoveryScoreView: some View {
-            if let recoveryScore = recoveryScoreService.currentRecoveryScore {
+            if let recoveryScore = viewModel.recoveryScore {
                 HapticNavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
@@ -75,15 +81,10 @@ struct RecoveryMetricsSection: View {
                                 .foregroundColor(Color.text.secondary)
                         }
                         
-                        // Show "Limited Data" label if sleep data is missing
-                        let title = recoveryScore.inputs.sleepDuration == nil
-                            ? TodayContent.limitedData
-                            : recoveryScore.bandDescription
-                        
                         CompactRingView(
-                            score: recoveryScore.score,
-                            title: title,
-                            band: recoveryScore.band,
+                            score: viewModel.recoveryScoreValue,
+                            title: viewModel.recoveryTitle,
+                            band: viewModel.recoveryBand ?? .optimal,
                             animationDelay: 0.0,
                             action: {
                                 // Empty action - navigation handled by parent NavigationLink
@@ -117,9 +118,9 @@ struct RecoveryMetricsSection: View {
     
     private var sleepScoreView: some View {
         Group {
-            if let sleepScore = sleepScoreService.currentSleepScore {
+            if let sleepScore = viewModel.sleepScore {
                 // Show ? if no sleep data
-                if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
+                if !viewModel.hasSleepData {
                     // No NavigationLink when no data - make entire ring tappable to reinstate banner
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
@@ -130,15 +131,14 @@ struct RecoveryMetricsSection: View {
                         }
                         
                         Button(action: {
-                            if missingSleepBannerDismissed {
-                                missingSleepBannerDismissed = false
-                                UserDefaults.standard.set(false, forKey: "missingSleepBannerDismissed")
+                            if viewModel.missingSleepBannerDismissed {
+                                viewModel.reinstateSleepBanner()
                             }
                         }) {
                             CompactRingView(
                                 score: nil,
-                                title: missingSleepBannerDismissed ? TodayContent.noDataInfo : TodayContent.noData,
-                                band: SleepScore.SleepBand.payAttention,
+                                title: viewModel.sleepTitle,
+                                band: viewModel.sleepBand,
                                 animationDelay: 0.1,
                                 action: {
                                     // Action handled by button wrapper
@@ -164,9 +164,9 @@ struct RecoveryMetricsSection: View {
                             }
                             
                             CompactRingView(
-                                score: sleepScore.score,
-                                title: sleepScore.bandDescription,
-                                band: sleepScore.band,
+                                score: viewModel.sleepScoreValue,
+                                title: viewModel.sleepTitle,
+                                band: viewModel.sleepBand,
                                 animationDelay: 0.1,
                                 action: {
                                     // Empty action - navigation handled by parent NavigationLink
@@ -185,7 +185,7 @@ struct RecoveryMetricsSection: View {
                         Text(TodayContent.Scores.sleepScore)
                             .font(.headline)
                             .fontWeight(.semibold)
-                        if !missingSleepBannerDismissed {
+                        if viewModel.shouldShowSleepChevron {
                             Image(systemName: Icons.System.chevronRight)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -193,15 +193,14 @@ struct RecoveryMetricsSection: View {
                     }
                     
                     Button(action: {
-                        if missingSleepBannerDismissed {
-                            missingSleepBannerDismissed = false
-                            UserDefaults.standard.set(false, forKey: "missingSleepBannerDismissed")
+                        if viewModel.missingSleepBannerDismissed {
+                            viewModel.reinstateSleepBanner()
                         }
                     }) {
                         CompactRingView(
                             score: nil,
-                            title: missingSleepBannerDismissed ? TodayContent.noDataInfo : TodayContent.noData,
-                            band: SleepScore.SleepBand.payAttention,
+                            title: viewModel.sleepTitle,
+                            band: viewModel.sleepBand,
                             animationDelay: 0.1,
                             action: {
                                 // Action handled by button wrapper
@@ -221,8 +220,8 @@ struct RecoveryMetricsSection: View {
     
     @ViewBuilder
     private var loadScoreView: some View {
-            if let strainScore = strainScoreService.currentStrainScore {
-                HapticNavigationLink(destination: StrainDetailView(strainScore: strainScore)) {
+            if viewModel.hasStrainScore {
+                HapticNavigationLink(destination: StrainDetailView(strainScore: viewModel.strainScore!)) {
                     VStack(spacing: 12) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.loadScore)
@@ -233,17 +232,15 @@ struct RecoveryMetricsSection: View {
                                 .foregroundColor(Color.text.secondary)
                         }
                         
-                        // Convert 0-18 score to 0-100 for ring display
-                        let ringScore = Int((strainScore.score / 18.0) * 100.0)
                         CompactRingView(
-                            score: ringScore,
-                            title: strainScore.bandDescription,
-                            band: strainScore.band,
+                            score: viewModel.strainRingScore,
+                            title: viewModel.strainTitle,
+                            band: viewModel.strainBand ?? .moderate,
                             animationDelay: 0.2,
                             action: {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
-                            centerText: strainScore.formattedScore,
+                            centerText: viewModel.strainFormattedScore,
                             animationTrigger: animationTrigger
                         )
                     }
@@ -274,11 +271,7 @@ struct RecoveryMetricsSection: View {
 struct RecoveryMetricsSection_Previews: PreviewProvider {
     static var previews: some View {
         RecoveryMetricsSection(
-            recoveryScoreService: RecoveryScoreService.shared,
-            sleepScoreService: SleepScoreService.shared,
-            strainScoreService: StrainScoreService.shared,
             isHealthKitAuthorized: true,
-            missingSleepBannerDismissed: .constant(false),
             animationTrigger: UUID()
         )
         .padding()

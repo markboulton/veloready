@@ -23,7 +23,6 @@ struct TodayView: View {
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
     @State private var showingIllnessDetailSheet = false
-    @State private var missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
     @State private var showMissingSleepInfo = false
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
@@ -69,11 +68,7 @@ struct TodayView: View {
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
-                            recoveryScoreService: viewModel.recoveryScoreService,
-                            sleepScoreService: viewModel.sleepScoreService,
-                            strainScoreService: viewModel.strainScoreService,
                             isHealthKitAuthorized: healthKitManager.isAuthorized,
-                            missingSleepBannerDismissed: $missingSleepBannerDismissed,
                             animationTrigger: viewModel.animationTrigger,
                             hideBottomDivider: true
                         )
