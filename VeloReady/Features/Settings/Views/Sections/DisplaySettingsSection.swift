@@ -8,37 +8,61 @@ struct DisplaySettingsSection: View {
         Section {
             // Theme settings
             HapticNavigationLink(destination: ThemeSettingsView()) {
-                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                    Text(SettingsContent.Appearance.theme)
-                        .font(TypeScale.font(size: TypeScale.md))
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Appearance.theme)
+                            .font(TypeScale.font(size: TypeScale.md))
+                        
+                        Text(themeManager.currentTheme.rawValue + " mode")
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
+                    }
                     
-                    Text(themeManager.currentTheme.rawValue + " mode")
-                        .font(TypeScale.font(size: TypeScale.xs))
-                        .foregroundColor(ColorPalette.labelSecondary)
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
             
             // Display preferences
             HapticNavigationLink(destination: DisplaySettingsView()) {
-                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                    Text(SettingsContent.Appearance.displayPreferences)
-                        .font(TypeScale.font(size: TypeScale.md))
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text(SettingsContent.Appearance.displayPreferences)
+                            .font(TypeScale.font(size: TypeScale.md))
+                        
+                        Text(SettingsContent.Appearance.unitsTimeFormat)
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
+                    }
                     
-                    Text(SettingsContent.Appearance.unitsTimeFormat)
-                        .font(TypeScale.font(size: TypeScale.xs))
-                        .foregroundColor(ColorPalette.labelSecondary)
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
             
             // Today page layout
             HapticNavigationLink(destination: TodaySectionOrderView()) {
-                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                    Text("Today Page Layout")
-                        .font(TypeScale.font(size: TypeScale.md))
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                        Text("Today Page Layout")
+                            .font(TypeScale.font(size: TypeScale.md))
+                        
+                        Text("Customize section order")
+                            .font(TypeScale.font(size: TypeScale.xs))
+                            .foregroundColor(ColorPalette.labelSecondary)
+                    }
                     
-                    Text("Customize section order")
-                        .font(TypeScale.font(size: TypeScale.xs))
-                        .foregroundColor(ColorPalette.labelSecondary)
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.secondary.opacity(0.5))
                 }
             }
         } header: {
