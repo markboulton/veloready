@@ -140,7 +140,7 @@ struct RideDetailSheet: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
     }
     
@@ -256,11 +256,11 @@ struct RideDetailSheet: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.background.card)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(ColorPalette.neutral300, lineWidth: 1)
             )
         }
     }
@@ -338,7 +338,7 @@ struct RideDetailSheet: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color(.systemGray6))
+                        .background(Color.background.secondary)
                         .cornerRadius(8)
                         
                         if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
@@ -355,11 +355,11 @@ struct RideDetailSheet: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.background.card)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(ColorPalette.neutral300, lineWidth: 1)
             )
         }
     }
@@ -434,11 +434,11 @@ struct RideDetailSheet: View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.background.card)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(ColorPalette.neutral300, lineWidth: 1)
             )
         }
     }
