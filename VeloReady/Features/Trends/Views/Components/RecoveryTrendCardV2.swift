@@ -6,6 +6,8 @@ struct RecoveryTrendCardV2: View {
     let data: [TrendsViewModel.TrendDataPoint]
     let timeRange: TrendsViewModel.TimeRange
     
+    @StateObject private var viewModel = RecoveryTrendCardViewModel()
+    
     private var averageRecovery: Double {
         guard !data.isEmpty else { return 0 }
         return data.map(\.value).reduce(0, +) / Double(data.count)
@@ -33,7 +35,7 @@ struct RecoveryTrendCardV2: View {
     
     private var footerText: String? {
         guard !data.isEmpty else { return nil }
-        return generateInsight()
+        return viewModel.generateInsight(data: data)
     }
     
     var body: some View {
@@ -154,21 +156,6 @@ struct RecoveryTrendCardV2: View {
         .frame(height: 180)
     }
     
-    private func generateInsight() -> String {
-        guard !data.isEmpty else { return "No data available" }
-        
-        let avg = averageRecovery
-        
-        if avg >= 75 {
-            return "Excellent recovery average (\(Int(avg))%). Your body is responding well to training."
-        } else if avg >= 60 {
-            return "Good recovery average (\(Int(avg))%). You're maintaining solid readiness."
-        } else if avg >= 50 {
-            return "Moderate recovery average (\(Int(avg))%). Consider more rest or easier training."
-        } else {
-            return "Low recovery average (\(Int(avg))%). Increase rest days and prioritize sleep."
-        }
-    }
     
     private func recoveryColor(_ value: Double) -> Color {
         if value >= 70 {
