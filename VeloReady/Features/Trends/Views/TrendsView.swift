@@ -138,7 +138,7 @@ struct TrendsView: View {
                     color: .chart.primary
                 )
                 
-                PerformanceOverviewCard(
+                PerformanceOverviewCardV2(
                     recoveryData: viewModel.recoveryTrendData,
                     loadData: viewModel.dailyLoadData,
                     sleepData: viewModel.sleepData,
@@ -169,7 +169,7 @@ struct TrendsView: View {
                     color: .workout.tss
                 )
                 
-                WeeklyTSSTrendCard(
+                WeeklyTSSTrendCardV2(
                     data: viewModel.weeklyTSSData,
                     timeRange: viewModel.selectedTimeRange
                 )
@@ -181,7 +181,7 @@ struct TrendsView: View {
                     color: .yellow
                 )
                 
-                RecoveryVsPowerCard(
+                RecoveryVsPowerCardV2(
                     data: viewModel.recoveryVsPowerData,
                     correlation: viewModel.recoveryVsPowerCorrelation,
                     timeRange: viewModel.selectedTimeRange
@@ -194,11 +194,11 @@ struct TrendsView: View {
                     color: .purple
                 )
                 
-                TrainingPhaseCard(
+                TrainingPhaseCardV2(
                     phase: viewModel.currentTrainingPhase
                 )
                 
-                OvertrainingRiskCard(
+                OvertrainingRiskCardV2(
                     risk: viewModel.overtrainingRisk
                 )
             }
