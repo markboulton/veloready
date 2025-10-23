@@ -87,31 +87,23 @@ struct WalkingDetailView: View {
     // MARK: - Heart Rate Chart
     
     private var heartRateChartSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: Icons.Health.heart)
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                
-                Text(ActivityContent.HeartRate.heartRate)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
+        ChartCard(
+            title: ActivityContent.HeartRate.heartRate
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 if let avg = viewModel.averageHeartRate, let max = viewModel.maxHeartRate {
-                    HStack(spacing: 12) {
-                        Text("\(ActivityContent.HeartRate.avg) \(Int(avg))")
-                        Text("\(ActivityContent.HeartRate.max) \(Int(max))")
+                    HStack(spacing: Spacing.sm) {
+                        Text("\(ActivityContent.HeartRate.avg) \(Int(avg)) \(CommonContent.Units.bpm)")
+                        Text("\(ActivityContent.HeartRate.max) \(Int(max)) \(CommonContent.Units.bpm)")
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                
+                HeartRateChart(samples: viewModel.heartRateSamples)
+                    .frame(height: 200)
             }
-            .padding(.horizontal, 16)
-            
-            HeartRateChart(samples: viewModel.heartRateSamples)
-                .frame(height: 200)
         }
     }
     
@@ -530,7 +522,6 @@ struct HeartRateChart: View {
             .chartBackground { _ in
                 Color.clear
             }
-            .padding(.horizontal, 16)
             .chartYScale(domain: yAxisRange)
             .chartXScale(domain: (samples.first?.time ?? 0)...(samples.last?.time ?? 0))
         }
