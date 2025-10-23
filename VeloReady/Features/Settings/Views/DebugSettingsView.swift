@@ -25,6 +25,9 @@ struct DebugSettingsView: View {
     
     var body: some View {
         Form {
+                // Component Gallery
+                componentGallerySection
+                
                 // Monitoring Dashboards
                 monitoringDashboardsSection
                 
@@ -87,6 +90,31 @@ struct DebugSettingsView: View {
             } message: {
                 Text(DebugSettingsContent.Alerts.clearCoreDataMessage)
             }
+    }
+    
+    // MARK: - Component Gallery Section
+    
+    private var componentGallerySection: some View {
+        Section {
+            NavigationLink(destination: CardGalleryDebugView()) {
+                HStack {
+                    Image(systemName: Icons.System.grid2x2)
+                        .foregroundColor(ColorScale.purpleAccent)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Card Component Gallery")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Preview all 16 V2 cards with dummy data")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Label("UI Components", systemImage: "paintbrush.fill")
+        } footer: {
+            Text("Visual showcase of all atomic card components organized by category. Use this to understand which card to use for your use case.")
+        }
     }
     
     // MARK: - Logging Section
