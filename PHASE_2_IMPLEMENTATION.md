@@ -1,7 +1,8 @@
 # Phase 2: Service Consolidation & Clean Architecture
 
-**Status:** IN PROGRESS  
+**Status:** ✅ COMPLETE  
 **Started:** October 23, 2025  
+**Completed:** October 23, 2025  
 **Goal:** Consolidate health metric services and standardize caching
 
 ---
@@ -135,6 +136,57 @@ private func saveScoreToCache(_ score: Score) {
 
 ---
 
-## Next Action
+---
 
-Start with **RecoveryScoreService** - replace manual caching with UnifiedCacheManager.
+## Implementation Summary
+
+### Work Completed
+
+**1. Migrated RecoveryScoreService** ✅
+- Removed manual UserDefaults caching (~66 lines)
+- Replaced with UnifiedCacheManager.fetch()
+- Uses CacheKey.recoveryScore() for consistency
+
+**2. Migrated SleepScoreService** ✅
+- Removed manual UserDefaults caching (~54 lines)
+- Replaced with UnifiedCacheManager.fetch()
+- Uses CacheKey.sleepScore() for consistency
+
+**3. Migrated StrainScoreService** ✅
+- Removed manual UserDefaults caching (~56 lines)
+- Replaced with UnifiedCacheManager.fetch()
+- Uses day-specific cache keys
+
+**4. Fixed Actor Isolation Issues** ✅
+- Problem: UnifiedCacheManager was @MainActor but called from background Tasks
+- Solution: Made cache methods nonisolated with proper synchronization
+- Added NSLock for thread-safe dictionary access
+- Kept @Published stats MainActor-isolated
+
+### Code Metrics
+
+- **Total lines removed:** ~176 lines of duplicate cache code
+- **Builds:** ✅ All succeeded
+- **Runtime errors:** ✅ Fixed (UTF-8 marshal error resolved)
+
+### Key Improvements
+
+1. **Consistency:** All services use same caching mechanism
+2. **Thread-Safety:** Proper synchronization with NSLock
+3. **Simplicity:** No manual encode/decode/expiry logic
+4. **Memory Management:** NSCache handles eviction automatically
+5. **Deduplication:** Built-in request deduplication
+
+---
+
+## Next Steps
+
+✅ **Phase 2 Complete** - Ready for device testing
+
+**Testing Checklist:**
+- [ ] Verify cache hits in logs
+- [ ] Test recovery score calculation
+- [ ] Test sleep score calculation
+- [ ] Test strain score calculation
+- [ ] Verify widget updates work correctly
+- [ ] Check memory usage under load
