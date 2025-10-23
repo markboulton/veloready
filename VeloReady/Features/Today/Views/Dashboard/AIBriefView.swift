@@ -1,36 +1,46 @@
 import SwiftUI
 
-/// View displaying AI-generated daily brief
+/// View displaying AI-generated daily brief (Pro) or computed brief (Free)
 struct AIBriefView: View {
     @ObservedObject var service = AIBriefService.shared
     @ObservedObject var mlService = MLTrainingDataService.shared
+    @ObservedObject var proConfig = ProFeatureConfig.shared
+    @ObservedObject var recoveryScoreService = RecoveryScoreService.shared
+    @ObservedObject var strainScoreService = StrainScoreService.shared
+    @ObservedObject var profileManager = AthleteProfileManager.shared
     @State private var showingMLInfoSheet = false
+    @State private var showingUpgradeSheet = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Custom header with rainbow gradient (StandardCard doesn't support this)
-            HStack(spacing: 8) {
-                Image(systemName: Icons.System.sparkles)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.secondary)
-                
-                Text(TodayContent.AIBrief.title)
-                    .font(.heading)
-                    .foregroundColor(Color.text.primary)
-                
-                Spacer()
+        StandardCard(
+            icon: Icons.System.sparkles,
+            title: proConfig.hasProAccess ? TodayContent.AIBrief.title : DailyBriefContent.title
+        ) {
+            if proConfig.hasProAccess {
+                proContent
+            } else {
+                freeContent
             }
-            .padding(.bottom, Spacing.md)
+        }
+        .sheet(isPresented: $showingMLInfoSheet) {
+            MLPersonalizationInfoSheet()
+        }
+        .sheet(isPresented: $showingUpgradeSheet) {
+            PaywallView()
+        }
+    }
+    
+    // MARK: - Pro Content
+    
+    private var proContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
             
-            // Content with fixed height to prevent layout shifts
             ZStack(alignment: .topLeading) {
-                // Invisible placeholder to maintain height
                 Text(CommonContent.Preview.placeholderText)
                     .bodyStyle()
                     .fixedSize(horizontal: false, vertical: true)
                     .opacity(0)
                 
-                // Actual content
                 if service.isLoading {
                     HStack(spacing: Spacing.sm) {
                         ProgressView()
@@ -73,15 +83,7 @@ struct AIBriefView: View {
                 }
             }
         }
-        .padding(Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.primary.opacity(0.08))
-        )
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xxl / 2)
-            .onAppear {
+        .onAppear {
             // Fetch brief on appear if not already loaded
             // Note: If sleep data is missing, the recovery refresh will trigger AI brief update
             if service.briefText == nil && !service.isLoading {
@@ -95,8 +97,78 @@ struct AIBriefView: View {
                 await mlService.refreshTrainingDataCount()
             }
         }
-        .sheet(isPresented: $showingMLInfoSheet) {
-            MLPersonalizationInfoSheet()
+    }
+    
+    // MARK: - Free Content
+    
+    private var freeContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(generateBriefText())
+                .bodyStyle()
+                .fixedSize(horizontal: false, vertical: true)
+            
+            TrainingMetricsView()
+            
+            Button(action: {
+                showingUpgradeSheet = true
+            }) {
+                Text(DailyBriefContent.upgradePrompt)
+                    .font(.subheadline)
+                    .foregroundColor(ColorScale.blueAccent)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+    }
+    
+    // MARK: - Free Brief Generation
+    
+    private func generateBriefText() -> String {
+        guard let recoveryScore = recoveryScoreService.currentRecoveryScore else {
+            return "Calculating your daily brief..."
+        }
+        
+        var brief = recoveryMessage(recoveryScore.score)
+        
+        if let ctl = recoveryScore.inputs.ctl,
+           let atl = recoveryScore.inputs.atl {
+            let tsb = ctl - atl
+            brief += " Your training stress balance is \(tsbLabel(tsb).lowercased()) (\(String(format: "%.0f", tsb))). "
+        }
+        
+        brief += trainingRecommendation(recoveryScore.score) + "."
+        
+        return brief
+    }
+    
+    private func recoveryMessage(_ score: Int) -> String {
+        if score >= 80 {
+            return DailyBriefContent.Recovery.optimal
+        } else if score >= 60 {
+            return DailyBriefContent.Recovery.moderate
+        } else {
+            return DailyBriefContent.Recovery.low
+        }
+    }
+    
+    private func tsbLabel(_ tsb: Double) -> String {
+        if tsb < -10 {
+            return DailyBriefContent.TSB.fatigued
+        } else if tsb < 5 {
+            return DailyBriefContent.TSB.optimal
+        } else if tsb < 15 {
+            return DailyBriefContent.TSB.fresh
+        } else {
+            return DailyBriefContent.TSB.veryFresh
+        }
+    }
+    
+    private func trainingRecommendation(_ recoveryScore: Int) -> String {
+        if recoveryScore >= 80 {
+            return DailyBriefContent.TrainingRecommendation.highIntensity
+        } else if recoveryScore >= 60 {
+            return DailyBriefContent.TrainingRecommendation.moderate
+        } else {
+            return DailyBriefContent.TrainingRecommendation.easy
         }
     }
 }

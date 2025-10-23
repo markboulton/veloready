@@ -7,20 +7,20 @@ struct NavigationGradientMask: View {
         VStack(spacing: 0) {
             // Solid background area for navigation bar (adaptive to theme)
             Color.background.app
-                .frame(height: 96)
+                .frame(height: 76)
             
             // Gradient fade to transparent (adaptive to theme)
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color.background.app.opacity(0.95), location: 0.0),
-                    .init(color: Color.background.app.opacity(0.7), location: 0.3),
-                    .init(color: Color.background.app.opacity(0.4), location: 0.6),
+                    .init(color: Color.background.app.opacity(0.7), location: 0.0),
+                    .init(color: Color.background.app.opacity(0.5), location: 0.3),
+                    .init(color: Color.background.app.opacity(0.3), location: 0.6),
                     .init(color: Color.background.app.opacity(0.0), location: 1.0)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 60)
+            .frame(height: 40)
             
             Spacer()
         }

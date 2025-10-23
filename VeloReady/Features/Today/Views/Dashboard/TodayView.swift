@@ -465,14 +465,9 @@ struct TodayView: View {
     @ViewBuilder
     private func movableSection(_ section: TodaySection) -> some View {
         switch section {
-        case .veloAI:
-            if proConfig.hasProAccess {
-                AIBriefView()
-            }
-        case .dailyBrief:
-            if !proConfig.hasProAccess {
-                DailyBriefCard()
-            }
+        case .veloAI, .dailyBrief:
+            // Unified component handles both Pro (AI) and Free (computed) briefs
+            AIBriefView()
         case .latestActivity:
             if hasConnectedDataSource {
                 if let latestActivity = getLatestActivity() {
