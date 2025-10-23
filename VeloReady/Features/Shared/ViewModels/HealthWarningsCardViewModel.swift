@@ -73,7 +73,9 @@ class HealthWarningsCardViewModel: ObservableObject {
     }
     
     var hasIllnessWarning: Bool {
-        illnessIndicator?.isSignificant ?? false
+        guard let indicator = illnessIndicator else { return false }
+        // Only show if significant AND recent (within last 24 hours)
+        return indicator.isSignificant && indicator.isRecent
     }
     
     var hasWellnessAlert: Bool {
@@ -89,7 +91,7 @@ class HealthWarningsCardViewModel: ObservableObject {
     }
     
     var severityBadge: CardHeader.Badge? {
-        if let indicator = illnessIndicator, indicator.isSignificant {
+        if let indicator = illnessIndicator, indicator.isSignificant && indicator.isRecent {
             let style: VRBadge.Style = indicator.severity == .high ? .error : 
                                         indicator.severity == .moderate ? .warning : .info
             return .init(text: indicator.severity.rawValue.uppercased(), style: style)
@@ -100,7 +102,7 @@ class HealthWarningsCardViewModel: ObservableObject {
     }
     
     var warningIcon: String {
-        if let indicator = illnessIndicator, indicator.isSignificant {
+        if let indicator = illnessIndicator, indicator.isSignificant && indicator.isRecent {
             return indicator.severity.icon
         } else if let alert = wellnessAlert {
             return alert.severity.icon

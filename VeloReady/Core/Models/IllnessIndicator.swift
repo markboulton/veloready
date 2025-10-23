@@ -85,6 +85,13 @@ struct IllnessIndicator: Codable, Equatable {
         severity != .low && confidence >= 0.5
     }
     
+    /// Check if indicator is recent (within last 24 hours)
+    /// Old indicators should not be shown even if they were significant
+    var isRecent: Bool {
+        let hoursSinceDetection = Date().timeIntervalSince(date) / 3600
+        return hoursSinceDetection < 24
+    }
+    
     var primarySignal: Signal? {
         signals.max(by: { abs($0.deviation) < abs($1.deviation) })
     }

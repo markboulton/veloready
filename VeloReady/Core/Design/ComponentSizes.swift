@@ -11,13 +11,13 @@ enum ComponentSizes {
     static let ringWidthLarge: CGFloat = 12
     
     /// Ring width for compact rings (e.g., CompactRingView)
-    static let ringWidthSmall: CGFloat = 8
+    static let ringWidthSmall: CGFloat = 5
     
     /// Diameter for large recovery/score rings
     static let ringDiameterLarge: CGFloat = 160
     
     /// Diameter for compact rings
-    static let ringDiameterSmall: CGFloat = 80
+    static let ringDiameterSmall: CGFloat = 100
     
     /// Diameter for empty state rings
     static let ringDiameterEmpty: CGFloat = 100
