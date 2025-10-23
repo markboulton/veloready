@@ -35,17 +35,17 @@ extension View {
         self.padding(Spacing.cardPadding)
     }
     
-    /// Apply standard card styling with 8% opacity background
+    /// Apply standard card styling with adaptive card background
     func cardStyle() -> some View {
         self
             .padding(Spacing.cardPadding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
+                    .fill(Color.background.card)
             )
     }
     
-    /// Apply card styling with custom padding per edge and 8% opacity background
+    /// Apply card styling with custom padding per edge and adaptive card background
     func cardStyle(leading: CGFloat? = nil, trailing: CGFloat? = nil, top: CGFloat? = nil, bottom: CGFloat? = nil) -> some View {
         self
             .padding(.leading, leading ?? Spacing.cardPadding)
@@ -54,7 +54,7 @@ extension View {
             .padding(.bottom, bottom ?? Spacing.cardPadding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
+                    .fill(Color.background.card)
             )
     }
 }
