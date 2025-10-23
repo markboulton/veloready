@@ -141,7 +141,6 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.hrv,
                     weight: RecoveryContent.Weights.hrvWeight,
                     icon: Icons.Health.heartFill,
-                    color: ColorScale.greenAccent,
                     hasBaseline: recoveryScore.inputs.hrvBaseline != nil
                 )
                 
@@ -150,7 +149,6 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.rhr,
                     weight: RecoveryContent.Weights.rhrWeight,
                     icon: Icons.Health.heartCircle,
-                    color: ColorScale.redAccent,
                     hasBaseline: recoveryScore.inputs.rhrBaseline != nil
                 )
                 
@@ -159,7 +157,6 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.sleep,
                     weight: RecoveryContent.Weights.sleepWeight,
                     icon: Icons.Health.sleepFill,
-                    color: recoveryScore.inputs.sleepScore?.band.colorToken ?? ColorScale.yellowAccent,
                     hasBaseline: recoveryScore.inputs.sleepBaseline != nil
                 )
                 
@@ -168,14 +165,13 @@ struct RecoveryDetailView: View {
                     score: recoveryScore.subScores.form,
                     weight: RecoveryContent.Weights.loadWeight,
                     icon: Icons.Activity.cycling,
-                    color: ColorScale.amberAccent,
                     hasBaseline: true
                 )
             }
         }
     }
     
-    private func subScoreRow(title: String, score: Int, weight: String, icon: String, color: Color, hasBaseline: Bool) -> some View {
+    private func subScoreRow(title: String, score: Int, weight: String, icon: String, hasBaseline: Bool) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
