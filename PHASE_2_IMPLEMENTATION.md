@@ -112,9 +112,9 @@ private func saveScoreToCache(_ score: Score) {
 ## Files to Modify
 
 ### Phase 2A: Standardize Caching
-- [ ] `RecoveryScoreService.swift` - Replace manual caching
-- [ ] `SleepScoreService.swift` - Replace manual caching
-- [ ] `StrainScoreService.swift` - Replace manual caching
+- [x] `RecoveryScoreService.swift` - Replace manual caching ✅
+- [x] `SleepScoreService.swift` - Replace manual caching ✅
+- [x] `StrainScoreService.swift` - Replace manual caching ✅
 
 ### No Changes Needed
 - ✅ `RecoveryScore.swift` - Calculator already pure
@@ -126,12 +126,12 @@ private func saveScoreToCache(_ score: Score) {
 
 ## Success Metrics
 
-- [ ] ~180 lines of duplicate code removed
-- [ ] All services use UnifiedCacheManager
-- [ ] No manual `UserDefaults` cache management
-- [ ] Build succeeds
-- [ ] All tests pass
-- [ ] Cache hits verified in logs
+- [x] ~180 lines of duplicate code removed ✅
+- [x] All services use UnifiedCacheManager ✅
+- [x] No manual `UserDefaults` cache management ✅
+- [x] Build succeeds ✅
+- [ ] All tests pass (manual testing required)
+- [ ] Cache hits verified in logs (device testing required)
 
 ---
 

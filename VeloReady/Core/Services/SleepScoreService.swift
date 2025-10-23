@@ -16,14 +16,10 @@ class SleepScoreService: ObservableObject {
     private let healthKitManager = HealthKitManager.shared
     private let baselineCalculator = BaselineCalculator()
     private let userSettings = UserSettings.shared
+    private let cache = UnifiedCacheManager.shared
     
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
-    
-    // Persistent caching
-    private let userDefaults = UserDefaults.standard
-    private let cachedSleepScoreKey = "cachedSleepScore"
-    private let cachedSleepScoreDateKey = "cachedSleepScoreDate"
     
     // Track if we've already triggered recovery refresh for missing sleep
     private var hasTriggeredRecoveryRefresh = false
@@ -417,37 +413,37 @@ extension SleepScoreService {
     
     /// Load cached sleep score for instant display
     private func loadCachedSleepScore() {
-        guard let cachedData = userDefaults.data(forKey: cachedSleepScoreKey),
-              let cachedDate = userDefaults.object(forKey: cachedSleepScoreDateKey) as? Date else {
-            Logger.debug("📦 No cached sleep score found")
-            return
-        }
-        
-        // Check if cache is from today
-        let calendar = Calendar.current
-        if calendar.isDate(cachedDate, inSameDayAs: Date()) {
+        Task {
+            let cacheKey = CacheKey.sleepScore(date: Date())
+            
             do {
-                let decoder = JSONDecoder()
-                let cachedScore = try decoder.decode(SleepScore.self, from: cachedData)
-                currentSleepScore = cachedScore
-                Logger.debug("⚡ Loaded cached sleep score: \(cachedScore.score)")
+                let cachedScore: SleepScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                    throw NSError(domain: "SleepScore", code: 404)
+                }
+                
+                await MainActor.run {
+                    currentSleepScore = cachedScore
+                    Logger.debug("⚡ Loaded cached sleep score: \(cachedScore.score)")
+                }
             } catch {
-                Logger.error("Failed to decode cached sleep score: \(error)")
+                Logger.debug("📦 No cached sleep score found")
             }
-        } else {
-            Logger.debug("📦 Cached sleep score is outdated, clearing cache")
-            clearSleepScoreCache()
         }
     }
     
     /// Save sleep score to persistent cache
     private func saveSleepScoreToCache(_ score: SleepScore) {
-        do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(score)
-            userDefaults.set(data, forKey: cachedSleepScoreKey)
-            userDefaults.set(Date(), forKey: cachedSleepScoreDateKey)
-            Logger.debug("💾 Saved sleep score to cache: \(score.score)")
+        Task {
+            let cacheKey = CacheKey.sleepScore(date: Date())
+            
+            do {
+                let _ = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                    return score
+                }
+                Logger.debug("💾 Saved sleep score to cache: \(score.score)")
+            } catch {
+                Logger.error("Failed to save sleep score to cache: \(error)")
+            }
             
             // Also save to shared UserDefaults for widget
             if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
@@ -457,15 +453,15 @@ extension SleepScoreService {
                 // Reload widgets to show new data
                 WidgetCenter.shared.reloadAllTimelines()
             }
-        } catch {
-            Logger.error("Failed to save sleep score to cache: \(error)")
         }
     }
     
     /// Clear sleep score cache
     private func clearSleepScoreCache() {
-        userDefaults.removeObject(forKey: cachedSleepScoreKey)
-        userDefaults.removeObject(forKey: cachedSleepScoreDateKey)
+        Task {
+            let cacheKey = CacheKey.sleepScore(date: Date())
+            await cache.invalidate(key: cacheKey)
+        }
     }
     
     // MARK: - Additional Sleep Metrics

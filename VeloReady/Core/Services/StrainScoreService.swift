@@ -18,14 +18,10 @@ class StrainScoreService: ObservableObject {
     private let userSettings = UserSettings.shared
     private let sleepScoreService = SleepScoreService.shared
     private let athleteZoneService = AthleteZoneService.shared
+    private let cache = UnifiedCacheManager.shared
     
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
-    
-    // Persistent caching
-    private let userDefaults = UserDefaults.standard
-    private let cachedStrainScoreKey = "cachedStrainScore"
-    private let cachedStrainScoreDateKey = "cachedStrainScoreDate"
     
     init() {
         self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
@@ -498,39 +494,42 @@ extension StrainScoreService {
     
     /// Load cached strain score for instant display
     private func loadCachedStrainScore() {
-        guard let cachedData = userDefaults.data(forKey: cachedStrainScoreKey),
-              let cachedDate = userDefaults.object(forKey: cachedStrainScoreDateKey) as? Date else {
-            Logger.debug("📦 No cached strain score found")
-            return
-        }
-        
-        // Check if cache is from today
-        let calendar = Calendar.current
-        if calendar.isDate(cachedDate, inSameDayAs: Date()) {
+        Task {
+            // Use day-specific cache key for strain scores
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let cacheKey = "strain:\(today.timeIntervalSince1970)"
+            
             do {
-                let decoder = JSONDecoder()
-                let cachedScore = try decoder.decode(StrainScore.self, from: cachedData)
-                currentStrainScore = cachedScore
-                Logger.debug("⚡ Loaded cached strain score: \(cachedScore.score)")
+                let cachedScore: StrainScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                    throw NSError(domain: "StrainScore", code: 404)
+                }
+                
+                await MainActor.run {
+                    currentStrainScore = cachedScore
+                    Logger.debug("⚡ Loaded cached strain score: \(cachedScore.score)")
+                }
             } catch {
-                Logger.error("Failed to decode cached strain score: \(error)")
-                Logger.warning("️ Clearing invalid cache - will recalculate")
-                clearCachedStrainScore()
+                Logger.debug("📦 No cached strain score found")
             }
-        } else {
-            Logger.debug("📦 Cached strain score is outdated, clearing cache")
-            clearCachedStrainScore()
         }
     }
     
     /// Save strain score to persistent cache
     private func saveStrainScoreToCache(_ score: StrainScore) {
-        do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(score)
-            userDefaults.set(data, forKey: cachedStrainScoreKey)
-            userDefaults.set(Date(), forKey: cachedStrainScoreDateKey)
-            Logger.debug("💾 Saved strain score to cache: \(score.score)")
+        Task {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let cacheKey = "strain:\(today.timeIntervalSince1970)"
+            
+            do {
+                let _ = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                    return score
+                }
+                Logger.debug("💾 Saved strain score to cache: \(score.score)")
+            } catch {
+                Logger.error("Failed to save strain score to cache: \(error)")
+            }
             
             // Also save to shared UserDefaults for widget
             if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
@@ -540,14 +539,6 @@ extension StrainScoreService {
                 // Reload widgets to show new data
                 WidgetCenter.shared.reloadAllTimelines()
             }
-        } catch {
-            Logger.error("Failed to save strain score to cache: \(error)")
         }
-    }
-    
-    /// Clear cached strain score
-    private func clearCachedStrainScore() {
-        userDefaults.removeObject(forKey: cachedStrainScoreKey)
-        userDefaults.removeObject(forKey: cachedStrainScoreDateKey)
     }
 }
