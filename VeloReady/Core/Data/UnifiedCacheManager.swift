@@ -7,7 +7,6 @@ import Foundation
 /// - Automatic request deduplication
 /// - Memory-efficient (NSCache auto-evicts under pressure)
 /// - Simple invalidation (clear by key pattern)
-@MainActor
 class UnifiedCacheManager: ObservableObject {
     
     // MARK: - Singleton
@@ -23,14 +22,15 @@ class UnifiedCacheManager: ObservableObject {
     }
     
     // MARK: - Storage
-    private var memoryCache = NSCache<NSString, CachedValue>()
-    private var inflightRequests: [String: Task<Any, Error>] = [:]
+    private nonisolated(unsafe) var memoryCache = NSCache<NSString, CachedValue>()
+    private nonisolated(unsafe) var inflightRequests: [String: Task<Any, Error>] = [:]
+    private let inflightLock = NSLock()
     private let coreData = PersistenceController.shared
     
     // MARK: - Statistics
-    @Published private(set) var cacheHits: Int = 0
-    @Published private(set) var cacheMisses: Int = 0
-    @Published private(set) var deduplicatedRequests: Int = 0
+    @MainActor @Published private(set) var cacheHits: Int = 0
+    @MainActor @Published private(set) var cacheMisses: Int = 0
+    @MainActor @Published private(set) var deduplicatedRequests: Int = 0
     
     // MARK: - Initialization
     private init() {
@@ -49,7 +49,7 @@ class UnifiedCacheManager: ObservableObject {
     ///   - ttl: Time-to-live in seconds
     ///   - fetchOperation: Async operation to fetch data if cache miss
     /// - Returns: Cached or freshly fetched data
-    func fetch<T>(
+    nonisolated func fetch<T>(
         key: String,
         ttl: TimeInterval,
         fetchOperation: @escaping () async throws -> T
@@ -58,14 +58,18 @@ class UnifiedCacheManager: ObservableObject {
         if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
-            cacheHits += 1
+            await MainActor.run { cacheHits += 1 }
             Logger.debug("⚡ [Cache HIT] \(key) (age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)")
             return value
         }
         
         // 2. Check if request is already in-flight (deduplication)
-        if let existingTask = inflightRequests[key] as? Task<T, Error> {
-            deduplicatedRequests += 1
+        inflightLock.lock()
+        let existingTask = inflightRequests[key] as? Task<T, Error>
+        inflightLock.unlock()
+        
+        if let existingTask = existingTask {
+            await MainActor.run { deduplicatedRequests += 1 }
             Logger.debug("🔄 [Cache DEDUPE] \(key) - reusing existing request")
             return try await existingTask.value
         }
@@ -73,7 +77,7 @@ class UnifiedCacheManager: ObservableObject {
         // 3. Create new task and track it
         let task = Task<T, Error> {
             Logger.debug("🌐 [Cache MISS] \(key) - fetching...")
-            cacheMisses += 1
+            await MainActor.run { cacheMisses += 1 }
             
             let value = try await fetchOperation()
             
@@ -88,11 +92,15 @@ class UnifiedCacheManager: ObservableObject {
         }
         
         // Store the task for deduplication
+        inflightLock.lock()
         inflightRequests[key] = task as? Task<Any, Error>
+        inflightLock.unlock()
         
         // Clean up after completion
         defer {
+            inflightLock.lock()
             inflightRequests.removeValue(forKey: key)
+            inflightLock.unlock()
         }
         
         return try await task.value
@@ -107,7 +115,7 @@ class UnifiedCacheManager: ObservableObject {
     ///   - fetchFromCoreData: Fetch from Core Data
     ///   - fetchFromNetwork: Fetch from network if Core Data miss
     /// - Returns: Cached or fresh data
-    func fetchWithPersistence<T>(
+    nonisolated func fetchWithPersistence<T>(
         key: String,
         ttl: TimeInterval,
         fetchFromCoreData: () -> T?,
@@ -118,7 +126,7 @@ class UnifiedCacheManager: ObservableObject {
         if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
-            cacheHits += 1
+            await MainActor.run { cacheHits += 1 }
             return value
         }
         
@@ -130,7 +138,7 @@ class UnifiedCacheManager: ObservableObject {
             let cached = CachedValue(value: coreDataValue, cachedAt: Date())
             memoryCache.setObject(cached, forKey: key as NSString)
             
-            cacheHits += 1
+            await MainActor.run { cacheHits += 1 }
             return coreDataValue
         }
         
@@ -148,13 +156,13 @@ class UnifiedCacheManager: ObservableObject {
     // MARK: - Cache Management
     
     /// Invalidate specific cache entry
-    func invalidate(key: String) {
+    nonisolated func invalidate(key: String) {
         memoryCache.removeObject(forKey: key as NSString)
         Logger.debug("🗑️ [Cache INVALIDATE] \(key)")
     }
     
     /// Invalidate all entries matching pattern
-    func invalidate(matching pattern: String) {
+    nonisolated func invalidate(matching pattern: String) {
         // Note: NSCache doesn't support enumeration
         // For pattern matching, we'd need to track keys separately
         // For now, clear all if pattern is "*"
@@ -165,7 +173,7 @@ class UnifiedCacheManager: ObservableObject {
     }
     
     /// Get cache statistics
-    func getStatistics() -> CacheStatistics {
+    @MainActor func getStatistics() -> CacheStatistics {
         let totalRequests = cacheHits + cacheMisses
         let hitRate = totalRequests > 0 ? Double(cacheHits) / Double(totalRequests) : 0.0
         
@@ -179,7 +187,7 @@ class UnifiedCacheManager: ObservableObject {
     }
     
     /// Reset statistics
-    func resetStatistics() {
+    @MainActor func resetStatistics() {
         cacheHits = 0
         cacheMisses = 0
         deduplicatedRequests = 0
