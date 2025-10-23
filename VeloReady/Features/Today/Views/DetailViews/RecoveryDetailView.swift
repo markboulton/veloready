@@ -221,15 +221,13 @@ struct RecoveryDetailView: View {
                             current: String(format: "%.1f ms", hrv),
                             baseline: String(format: "%.1f ms", hrvBaseline),
                             change: calculatePercentageChange(current: hrv, baseline: hrvBaseline),
-                            icon: Icons.Health.heartFill,
-                            color: ColorScale.greenAccent
+                            icon: Icons.Health.heartFill
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: RecoveryContent.HealthMetrics.hrvRMSSD,
                             current: String(format: "%.1f ms", hrv),
-                            icon: Icons.Health.heartFill,
-                            color: ColorScale.greenAccent
+                            icon: Icons.Health.heartFill
                         )
                     }
                 }
@@ -241,15 +239,13 @@ struct RecoveryDetailView: View {
                             current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
                             baseline: String(format: "%.0f \(CommonContent.Units.bpm)", rhrBaseline),
                             change: calculatePercentageChange(current: rhr, baseline: rhrBaseline),
-                            icon: Icons.Health.heartCircle,
-                            color: ColorScale.redAccent
+                            icon: Icons.Health.heartCircle
                         )
                     } else {
                         healthMetricRowWithoutBaseline(
                             title: RecoveryContent.HealthMetrics.restingHeartRate,
                             current: String(format: "%.0f \(CommonContent.Units.bpm)", rhr),
-                            icon: Icons.Health.heartCircle,
-                            color: ColorScale.redAccent
+                            icon: Icons.Health.heartCircle
                         )
                     }
                 }
@@ -260,8 +256,7 @@ struct RecoveryDetailView: View {
                         current: formatDuration(sleep),
                         baseline: formatDuration(sleepBaseline),
                         change: calculatePercentageChange(current: sleep, baseline: sleepBaseline),
-                        icon: Icons.Health.sleepFill,
-                        color: .blue
+                        icon: Icons.Health.sleepFill
                     )
                 }
                 
@@ -272,7 +267,7 @@ struct RecoveryDetailView: View {
         }
     }
     
-    private func healthMetricRow(title: String, current: String, baseline: String, change: Double, icon: String, color: Color) -> some View {
+    private func healthMetricRow(title: String, current: String, baseline: String, change: Double, icon: String) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
@@ -304,7 +299,7 @@ struct RecoveryDetailView: View {
         .padding(.vertical, 4)
     }
     
-    private func healthMetricRowWithoutBaseline(title: String, current: String, icon: String, color: Color) -> some View {
+    private func healthMetricRowWithoutBaseline(title: String, current: String, icon: String) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
@@ -330,7 +325,7 @@ struct RecoveryDetailView: View {
             Text(current)
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(color)
+                .foregroundColor(Color.text.primary)
         }
         .padding(.vertical, 4)
     }
