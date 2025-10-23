@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Standardized card component with consistent styling across the app
-/// - 8% opacity background
+/// - Adaptive card background (white in light mode, dark grey in dark mode)
 /// - Rounded corners (16px)
 /// - Full width with sm spacing (8px margins)
 /// - md internal padding (16px)
@@ -17,8 +17,6 @@ struct StandardCard<Content: View>: View {
     
     // Content
     let content: Content
-    
-    @Environment(\.colorScheme) var colorScheme
     
     init(
         icon: String? = nil,
@@ -66,7 +64,7 @@ struct StandardCard<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.primary.opacity(0.08))
+                .fill(Color.background.card)
         )
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xxl / 2) // controls spacing top and bottom of card 
