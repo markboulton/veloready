@@ -27,7 +27,7 @@ struct DevelopmentCertificateBypass: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.background.secondary)
                 .cornerRadius(12)
                 
                 // Toggle
@@ -54,7 +54,7 @@ struct DevelopmentCertificateBypass: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.background.secondary)
                 .cornerRadius(12)
                 
                 // Instructions
@@ -72,7 +72,7 @@ struct DevelopmentCertificateBypass: View {
                     .font(.body)
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.background.secondary)
                 .cornerRadius(12)
                 
                 Spacer()

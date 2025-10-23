@@ -24,7 +24,7 @@ struct OAuthDebugView: View {
                             Text(OnboardingContent.OAuthDebug.scopes)
                         }
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.background.secondary)
                         .cornerRadius(8)
                         
                         // Test OAuth URL
@@ -55,7 +55,7 @@ struct OAuthDebugView: View {
                             }
                         }
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.background.secondary)
                         .cornerRadius(8)
                         
                         // Debug Information
@@ -70,7 +70,7 @@ struct OAuthDebugView: View {
                                 .textSelection(.enabled)
                         }
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.background.secondary)
                         .cornerRadius(8)
                         
                         // Test API Connection
@@ -97,7 +97,7 @@ struct OAuthDebugView: View {
                             .foregroundColor(Color.button.danger)
                         }
                         .padding()
-                        .background(Color(.systemGray6))
+                        .background(Color.background.secondary)
                         .cornerRadius(8)
                     }
                 }

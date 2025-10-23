@@ -137,7 +137,7 @@ struct PreferencesStepView: View {
                         .background(
                             selectedUnit == unit
                                 ? Color.blue
-                                : Color(.systemGray6)
+                                : Color.background.secondary
                         )
                         .cornerRadius(12)
                     }
@@ -188,7 +188,7 @@ struct PreferencesStepView: View {
                         .background(
                             selectedActivities.contains(activity)
                                 ? Color.blue
-                                : Color(.systemGray6)
+                                : Color.background.secondary
                         )
                         .cornerRadius(10)
                     }
@@ -216,7 +216,7 @@ struct PreferencesStepView: View {
                 }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.background.secondary)
             .cornerRadius(10)
         }
     }

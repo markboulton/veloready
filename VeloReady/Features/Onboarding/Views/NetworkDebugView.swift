@@ -39,7 +39,7 @@ struct NetworkDebugView: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
     }
     
@@ -77,7 +77,7 @@ struct NetworkDebugView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
     }
     
@@ -100,7 +100,7 @@ struct NetworkDebugView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
     }
     

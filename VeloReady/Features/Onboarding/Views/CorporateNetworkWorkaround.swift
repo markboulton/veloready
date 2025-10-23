@@ -58,7 +58,7 @@ struct CorporateNetworkWorkaround: View {
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.background.secondary)
                 .cornerRadius(12)
                 
                 Spacer()
@@ -128,7 +128,7 @@ struct WorkaroundInstructions: View {
             }
             .font(.body)
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.background.secondary)
             .cornerRadius(8)
             
             Text(OnboardingContent.CorporateNetwork.hotspotPros)
@@ -155,7 +155,7 @@ struct WorkaroundInstructions: View {
             }
             .font(.body)
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.background.secondary)
             .cornerRadius(8)
             
             Text(OnboardingContent.CorporateNetwork.vpnPros)
@@ -182,7 +182,7 @@ struct WorkaroundInstructions: View {
             }
             .font(.body)
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.background.secondary)
             .cornerRadius(8)
             
             Text(OnboardingContent.CorporateNetwork.networkPros)
@@ -209,7 +209,7 @@ struct WorkaroundInstructions: View {
             }
             .font(.body)
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.background.secondary)
             .cornerRadius(8)
             
             Text(OnboardingContent.CorporateNetwork.certificateWarning)

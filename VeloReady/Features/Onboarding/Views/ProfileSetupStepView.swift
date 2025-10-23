@@ -88,11 +88,11 @@ struct ProfileSetupStepView: View {
                                     .foregroundColor(.primary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
-                                    .background(Color(.systemBackground))
+                                    .background(Color.background.card)
                                     .cornerRadius(8)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8)
-                                            .stroke(selectedUnit == unit ? Color.blue : Color(.systemGray4), lineWidth: selectedUnit == unit ? 2 : 1)
+                                            .stroke(selectedUnit == unit ? Color.blue : ColorPalette.neutral300, lineWidth: selectedUnit == unit ? 2 : 1)
                                     )
                             }
                             .buttonStyle(PlainButtonStyle())

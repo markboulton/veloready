@@ -40,7 +40,7 @@ struct HealthPermissionsView: View {
                     HealthDataRow(icon: "figure.walk", title: "Steps & Activity", color: Color.health.activity)
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.background.secondary)
                 .cornerRadius(12)
                 
                 Spacer()

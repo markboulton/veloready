@@ -121,11 +121,11 @@ struct SubscriptionStepView: View {
                                 .foregroundColor(selectedPlan == plan ? .blue : .secondary)
                         }
                         .padding()
-                        .background(Color(.systemBackground))
+                        .background(Color.background.card)
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedPlan == plan ? Color.blue : Color(.systemGray4), lineWidth: selectedPlan == plan ? 2 : 1)
+                                .stroke(selectedPlan == plan ? Color.blue : ColorPalette.neutral300, lineWidth: selectedPlan == plan ? 2 : 1)
                         )
                     }
                     .buttonStyle(PlainButtonStyle())

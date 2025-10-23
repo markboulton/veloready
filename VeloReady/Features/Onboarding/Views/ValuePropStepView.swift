@@ -77,7 +77,7 @@ struct ValuePropStepView: View {
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
         }
-        .background(Color(.systemBackground))
+        .background(Color.background.primary)
     }
 }
 

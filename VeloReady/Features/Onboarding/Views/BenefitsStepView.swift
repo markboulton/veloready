@@ -95,7 +95,7 @@ struct BenefitCard: View {
             Spacer(minLength: 0)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.background.card)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
