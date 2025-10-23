@@ -477,7 +477,7 @@ struct TodayView: View {
                 }
             }
         case .steps:
-            StepsCard()
+            StepsCardV2()
                 .opacity(liveActivityService.isLoading ? 0 : 1)
                 .overlay {
                     if liveActivityService.isLoading {
@@ -488,7 +488,7 @@ struct TodayView: View {
             if liveActivityService.isLoading {
                 SkeletonStatsCard()
             } else {
-                CaloriesCard()
+                CaloriesCardV2()
             }
         case .stepsAndCalories:
             // Legacy - no longer used
