@@ -266,40 +266,19 @@ struct MetricChartView: View {
         return Swift.stride(from: 0, to: samples.count, by: max(step, 1)).map { samples[$0] }
     }
     
-    private var iconForMetric: String {
-        switch title.lowercased() {
-        case "power":
-            return "bolt.fill"
-        case "heart rate":
-            return "heart"
-        case "speed":
-            return "speedometer"
-        case "cadence":
-            return "arrow.clockwise"
-        default:
-            return "chart.line.uptrend.xyaxis"
-        }
-    }
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header with icon
-            HStack {
-                Image(systemName: iconForMetric)
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                
-                Text(title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Spacer()
+        ChartCard(
+            title: title
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                // Summary
                 summaryText
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Chart
+                chartContent
+                    .frame(height: 200)
             }
-            
-            // Chart
-            chartContent
-                .frame(height: 200)
         }
     }
     
