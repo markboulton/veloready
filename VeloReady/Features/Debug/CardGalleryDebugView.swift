@@ -147,6 +147,54 @@ struct CardGalleryDebugView: View {
                     )
                     .annotated("OvertrainingRiskCardV2", "Overtraining risk with factors")
                     
+                    // MARK: - Trend Charts with Segmented Control
+                    
+                    sectionHeader("Trend Charts (Segmented)", subtitle: "7/30/60 day charts with period selector")
+                    
+                    StandardCard {
+                        TrendChart(
+                            title: "Recovery Score",
+                            getData: { period in sampleTrendDataForPeriod(period, baseline: 72, range: -10...10) },
+                            chartType: .bar,
+                            unit: "%",
+                            showProBadge: true,
+                            dataType: .recovery
+                        )
+                    }
+                    .annotated("TrendChart (Bar)", "Recovery/Sleep trend with segmented control")
+                    
+                    StandardCard {
+                        TrendChart(
+                            title: "Sleep Score",
+                            getData: { period in sampleTrendDataForPeriod(period, baseline: 78, range: -12...8) },
+                            chartType: .bar,
+                            unit: "%",
+                            showProBadge: false,
+                            dataType: .sleep
+                        )
+                    }
+                    .annotated("TrendChart (Sleep)", "Sleep trend with period selector")
+                    
+                    // MARK: - Candlestick Charts
+                    
+                    sectionHeader("Candlestick Charts", subtitle: "HRV/RHR variability with high/low/open/close")
+                    
+                    StandardCard {
+                        HRVCandlestickChart(
+                            getData: { period in sampleHRVCandlestickData(period) },
+                            baseline: 65
+                        )
+                    }
+                    .annotated("HRVCandlestickChart", "HRV candlestick with baseline and zones")
+                    
+                    StandardCard {
+                        RHRCandlestickChart(
+                            getData: { period in sampleRHRCandlestickData(period) },
+                            baseline: 52
+                        )
+                    }
+                    .annotated("RHRCandlestickChart", "Resting HR candlestick with baseline")
+                    
                     // MARK: - Sleep Detail Cards
                     
                     sectionHeader("Sleep Detail Cards", subtitle: "Sleep metrics and breakdown")
@@ -172,6 +220,57 @@ struct CardGalleryDebugView: View {
                         .annotated("SleepMetricCard", "Sleep metric variant")
                     }
                     
+                    StandardCard(
+                        title: "Sleep Stages"
+                    ) {
+                        VStack(spacing: 16) {
+                            if let bedtime = Calendar.current.date(bySettingHour: 22, minute: 30, second: 0, of: Date()),
+                               let wakeTime = Calendar.current.date(bySettingHour: 6, minute: 45, second: 0, of: Date()) {
+                                SleepHypnogramChart(
+                                    sleepSamples: sampleSleepStages,
+                                    nightStart: bedtime,
+                                    nightEnd: wakeTime
+                                )
+                            }
+                        }
+                    }
+                    .annotated("SleepHypnogramChart", "Sleep stage visualization over night")
+                    
+                    StandardCard(
+                        title: "Sleep Consistency"
+                    ) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack(spacing: 12) {
+                                Image(systemName: Icons.System.clock)
+                                    .font(.title2)
+                                    .foregroundColor(ColorScale.greenAccent)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Excellent")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(ColorScale.greenAccent)
+                                    
+                                    Text("Circadian health")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("92")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(ColorScale.greenAccent)
+                            }
+                            
+                            Text("Schedule variability ±12min • Wake ±8min")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .annotated("Sleep Consistency Card", "Circadian rhythm consistency metric")
+                    
                     // MARK: - Load Detail Cards
                     
                     sectionHeader("Load Detail Cards", subtitle: "Training load breakdown")
@@ -196,6 +295,29 @@ struct CardGalleryDebugView: View {
                         )
                         .annotated("LoadMetricCard", "Intensity factor display")
                     }
+                    
+                    // MARK: - Workout/Ride Charts
+                    
+                    sectionHeader("Workout Charts", subtitle: "Power, HR, Cadence, Elevation charts")
+                    
+                    WorkoutChartsSection(
+                        samples: sampleWorkoutData,
+                        ftp: 285,
+                        maxHR: 185
+                    )
+                    .annotated("WorkoutChartsSection", "Complete workout analysis with all metrics")
+                    
+                    // MARK: - Trends Page Components
+                    
+                    sectionHeader("Trends Components", subtitle: "Advanced analytics from Trends page")
+                    
+                    Text("Note: Fitness Trajectory, Wellness Foundation, and Recovery Capacity components require complex data structures from WeeklyReportViewModel")
+                        .font(.caption)
+                        .foregroundColor(.text.secondary)
+                        .italic()
+                        .padding()
+                        .background(Color.background.secondary)
+                        .cornerRadius(8)
                     
                     // MARK: - Empty States
                     
@@ -344,6 +466,112 @@ struct CardGalleryDebugView: View {
             icuZoneTimes: [600, 900, 1200, 600, 300, 0, 0],
             icuHrZoneTimes: [800, 1600, 1000, 200, 0, 0, 0]
         )
+    }
+    
+    // MARK: - New Sample Data Generators
+    
+    private func sampleTrendDataForPeriod(_ period: TrendPeriod, baseline: Double, range: ClosedRange<Double>) -> [TrendDataPoint] {
+        (0..<period.days).map { day in
+            TrendDataPoint(
+                date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
+                value: baseline + Double.random(in: range)
+            )
+        }.reversed()
+    }
+    
+    private func sampleHRVCandlestickData(_ period: TrendPeriod) -> [HRVDataPoint] {
+        (0..<period.days).map { day in
+            let avg = 65.0 + Double.random(in: -8...8)
+            let high = avg + Double.random(in: 5...15)
+            let low = avg - Double.random(in: 5...15)
+            return HRVDataPoint(
+                date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
+                open: avg + Double.random(in: -3...3),
+                close: avg + Double.random(in: -3...3),
+                high: high,
+                low: low,
+                average: avg
+            )
+        }.reversed()
+    }
+    
+    private func sampleRHRCandlestickData(_ period: TrendPeriod) -> [RHRDataPoint] {
+        (0..<period.days).map { day in
+            let avg = 52.0 + Double.random(in: -3...3)
+            let high = avg + Double.random(in: 2...6)
+            let low = avg - Double.random(in: 2...6)
+            return RHRDataPoint(
+                date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
+                open: avg + Double.random(in: -1...1),
+                close: avg + Double.random(in: -1...1),
+                high: high,
+                low: low,
+                average: avg
+            )
+        }.reversed()
+    }
+    
+    private var sampleSleepStages: [SleepHypnogramChart.SleepStageSample] {
+        var samples: [SleepHypnogramChart.SleepStageSample] = []
+        let bedtime = Calendar.current.date(bySettingHour: 22, minute: 30, second: 0, of: Date())!
+        var currentTime = bedtime
+        
+        // Generate realistic sleep stages over 8 hours
+        let stages: [SleepHypnogramChart.SleepStage] = [.awake, .core, .deep, .rem]
+        for _ in 0..<40 {
+            let stage = stages.randomElement()!
+            let duration = TimeInterval.random(in: 600...2400) // 10-40 minutes
+            samples.append(SleepHypnogramChart.SleepStageSample(
+                startDate: currentTime,
+                endDate: currentTime.addingTimeInterval(duration),
+                stage: stage
+            ))
+            currentTime = currentTime.addingTimeInterval(duration)
+        }
+        return samples
+    }
+    
+    private var sampleWorkoutData: [WorkoutSample] {
+        let duration: TimeInterval = 3600 // 1 hour
+        let sampleCount = 360 // One sample every 10 seconds
+        
+        return (0..<sampleCount).map { index in
+            let time = Double(index) * (duration / Double(sampleCount))
+            let progress = Double(index) / Double(sampleCount)
+            
+            // Simulate workout with warmup, intervals, and cooldown
+            let power: Double
+            let heartRate: Double
+            let cadence: Double
+            
+            if progress < 0.15 { // Warmup
+                power = 120 + (progress / 0.15) * 80
+                heartRate = 110 + (progress / 0.15) * 30
+                cadence = 70 + (progress / 0.15) * 15
+            } else if progress < 0.85 { // Main set with intervals
+                let intervalProgress = (progress - 0.15) / 0.7
+                let intervalPhase = sin(intervalProgress * .pi * 8) // 4 intervals
+                power = 200 + intervalPhase * 80
+                heartRate = 145 + intervalPhase * 20
+                cadence = 85 + intervalPhase * 10
+            } else { // Cooldown
+                let cooldownProgress = (progress - 0.85) / 0.15
+                power = 200 - cooldownProgress * 100
+                heartRate = 165 - cooldownProgress * 45
+                cadence = 95 - cooldownProgress * 25
+            }
+            
+            return WorkoutSample(
+                time: time,
+                power: power + Double.random(in: -10...10),
+                heartRate: heartRate + Double.random(in: -3...3),
+                speed: 25 + Double.random(in: -2...2),
+                cadence: cadence + Double.random(in: -5...5),
+                elevation: 100 + sin(progress * .pi * 2) * 50,
+                latitude: nil,
+                longitude: nil
+            )
+        }
     }
 }
 
