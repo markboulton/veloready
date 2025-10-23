@@ -140,7 +140,7 @@ class IllnessDetectionService: ObservableObject {
         // Calculate baselines
         let hrvBaseline = await baselineCalculator.calculateHRVBaseline()
         let rhrBaseline = await baselineCalculator.calculateRHRBaseline()
-        let sleepBaseline = await baselineCalculator.calculateSleepBaseline()
+        let sleepBaseline = await baselineCalculator.calculateSleepScoreBaseline()  // Use SCORE baseline, not duration
         let respiratoryBaseline = await baselineCalculator.calculateRespiratoryBaseline()
         let activityBaseline = await calculateActivityBaseline()
         

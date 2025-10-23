@@ -167,6 +167,45 @@ final class BaselineCalculator: @unchecked Sendable {
         }
     }
     
+    /// Calculate 7-day sleep SCORE baseline (rolling average of 0-100 scores)
+    /// This is different from calculateSleepBaseline() which returns duration in seconds
+    func calculateSleepScoreBaseline() async -> Double? {
+        let endDate = Date()
+        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
+        
+        // Fetch sleep scores from cache (0-100 values)
+        var scores: [Int] = []
+        let calendar = Calendar.current
+        let cacheManager = UnifiedCacheManager.shared
+        
+        for dayOffset in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: endDate) else { continue }
+            
+            let cacheKey = CacheKey.sleepScore(date: date)
+            
+            do {
+                let score = try await cacheManager.fetch(
+                    key: cacheKey,
+                    ttl: UnifiedCacheManager.CacheTTL.dailyScores
+                ) {
+                    return await SleepScoreService.shared.currentSleepScore?.score
+                }
+                
+                if let score = score {
+                    scores.append(score)
+                }
+            } catch {
+                Logger.debug("⚠️ Failed to fetch sleep score for baseline: \(error)")
+            }
+        }
+        
+        // Calculate average of sleep scores
+        guard !scores.isEmpty else { return nil }
+        let avg = Double(scores.reduce(0, +)) / Double(scores.count)
+        Logger.data("Sleep Score Baseline (7-day avg): \(avg) from \(scores.count) days")
+        return avg
+    }
+    
     /// Calculate 7-day respiratory rate baseline (rolling average)
     func calculateRespiratoryBaseline() async -> Double? {
         let endDate = Date()
