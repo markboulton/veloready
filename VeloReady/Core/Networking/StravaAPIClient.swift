@@ -6,7 +6,7 @@ class StravaAPIClient: ObservableObject {
     // MARK: - Singleton
     static let shared = StravaAPIClient()
     
-    private let baseURL = "https://www.strava.com/api/v3"
+    let baseURL = "https://www.strava.com/api/v3"
     
     // MARK: - Published State
     @Published var isLoading = false
@@ -17,50 +17,33 @@ class StravaAPIClient: ObservableObject {
     
     // MARK: - API Calls
     
-    /// Fetch athlete profile from Strava
+    /// Fetch athlete profile from Strava (uses NetworkClient + UnifiedCacheManager)
     func fetchAthlete() async throws -> StravaAthlete {
-        let endpoint = "\(baseURL)/athlete"
-        return try await makeRequest(endpoint: endpoint)
+        return try await fetchAthleteNew()
     }
     
-    /// Fetch activities from Strava
+    /// Fetch activities from Strava (uses NetworkClient + UnifiedCacheManager)
     /// - Parameters:
     ///   - page: Page number (starts at 1)
     ///   - perPage: Number of activities per page (max 200)
     ///   - after: Only return activities after this timestamp
     ///   - before: Only return activities before this timestamp
     func fetchActivities(page: Int = 1, perPage: Int = 50, after: Date? = nil, before: Date? = nil) async throws -> [StravaActivity] {
-        var components = URLComponents(string: "\(baseURL)/athlete/activities")!
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "page", value: "\(page)"),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
-        
-        if let after = after {
-            queryItems.append(URLQueryItem(name: "after", value: "\(Int(after.timeIntervalSince1970))"))
-        }
-        
-        if let before = before {
-            queryItems.append(URLQueryItem(name: "before", value: "\(Int(before.timeIntervalSince1970))"))
-        }
-        
-        components.queryItems = queryItems
-        
-        guard let url = components.url else {
-            throw StravaAPIError.invalidURL
-        }
-        
-        return try await makeRequest(endpoint: url.absoluteString)
+        return try await fetchActivitiesNew(page: page, perPage: perPage, after: after, before: before)
     }
     
-    /// Fetch detailed activity data including streams
+    /// Fetch detailed activity data (uses NetworkClient + UnifiedCacheManager)
     func fetchActivityDetail(id: String) async throws -> StravaActivityDetail {
-        let endpoint = "\(baseURL)/activities/\(id)"
-        return try await makeRequest(endpoint: endpoint)
+        return try await fetchActivityDetailNew(id: id)
     }
     
-    /// Fetch activity streams (power, HR, cadence, etc.)
+    /// Fetch activity streams (uses NetworkClient + UnifiedCacheManager)
     func fetchActivityStreams(id: String, types: [String] = ["time", "watts", "heartrate", "cadence"]) async throws -> [StravaStream] {
+        return try await fetchActivityStreamsNew(id: id, types: types)
+    }
+    
+    /// OLD: Legacy method kept for reference (will be removed after testing)
+    func fetchActivityStreamsOld(id: String, types: [String] = ["time", "watts", "heartrate", "cadence"]) async throws -> [StravaStream] {
         let streamTypes = types.joined(separator: ",")
         let endpoint = "\(baseURL)/activities/\(id)/streams?keys=\(streamTypes)&key_by_type=true"
         
@@ -202,8 +185,8 @@ class StravaAPIClient: ObservableObject {
         }
     }
     
-    /// Get access token from backend
-    private func getAccessToken() async throws -> String? {
+    /// Get access token from backend (internal for extension access)
+    func getAccessToken() async throws -> String? {
         // Query backend for token
         let backendURL = "https://veloready.app/api/me/strava/token"
         
