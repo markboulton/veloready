@@ -1,58 +1,53 @@
 import SwiftUI
 
-/// Health Warnings card using atomic CardContainer wrapper
-/// Shows illness indicators and wellness alerts
+/// Health Warnings card using atomic CardContainer wrapper with MVVM
+/// ViewModel handles all alert filtering and state management
 struct HealthWarningsCardV2: View {
-    @ObservedObject private var illnessService = IllnessDetectionService.shared
-    @ObservedObject private var wellnessService = WellnessDetectionService.shared
-    @State private var showingIllnessDetail = false
-    @State private var showingWellnessDetail = false
+    @StateObject private var viewModel = HealthWarningsCardViewModel()
     
     var body: some View {
-        if hasWarnings {
+        if viewModel.hasWarnings {
             CardContainer(
                 header: CardHeader(
-                    title: hasIllnessWarning ? "Body Stress Detected" : "Health Alerts",
+                    title: viewModel.title,
                     subtitle: nil,
-                    badge: severityBadge
+                    badge: viewModel.severityBadge
                 ),
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     // Illness indicator (higher priority)
-                    if let indicator = illnessService.currentIndicator, indicator.isSignificant {
+                    if let indicator = viewModel.illnessIndicator, indicator.isSignificant {
                         illnessWarningContent(indicator)
                             .onTapGesture {
-                                HapticFeedback.light()
-                                showingIllnessDetail = true
+                                viewModel.showIllnessDetail()
                             }
                     }
                     
                     // Wellness alert
-                    if let alert = wellnessService.currentAlert {
+                    if let alert = viewModel.wellnessAlert {
                         // Add divider if both are present
-                        if illnessService.currentIndicator?.isSignificant == true {
+                        if viewModel.hasBothWarnings {
                             Divider()
                                 .padding(.vertical, Spacing.xs)
                         }
                         
                         wellnessWarningContent(alert)
                             .onTapGesture {
-                                HapticFeedback.light()
-                                showingWellnessDetail = true
+                                viewModel.showWellnessDetail()
                             }
                     }
                 }
             }
-            .sheet(isPresented: $showingIllnessDetail) {
-                if let indicator = illnessService.currentIndicator {
+            .sheet(isPresented: $viewModel.showingIllnessDetail) {
+                if let indicator = viewModel.illnessIndicator {
                     IllnessDetailSheet(indicator: indicator)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
                 }
             }
-            .sheet(isPresented: $showingWellnessDetail) {
-                if let alert = wellnessService.currentAlert {
+            .sheet(isPresented: $viewModel.showingWellnessDetail) {
+                if let alert = viewModel.wellnessAlert {
                     WellnessDetailSheet(alert: alert)
                         .presentationDetents([.medium, .large])
                         .presentationDragIndicator(.visible)
@@ -61,34 +56,6 @@ struct HealthWarningsCardV2: View {
         }
     }
     
-    private var hasWarnings: Bool {
-        (illnessService.currentIndicator?.isSignificant ?? false) || 
-        (wellnessService.currentAlert != nil)
-    }
-    
-    private var hasIllnessWarning: Bool {
-        illnessService.currentIndicator?.isSignificant ?? false
-    }
-    
-    private var warningIcon: String {
-        if let indicator = illnessService.currentIndicator, indicator.isSignificant {
-            return indicator.severity.icon
-        } else if let alert = wellnessService.currentAlert {
-            return alert.severity.icon
-        }
-        return Icons.Status.warningFill
-    }
-    
-    private var severityBadge: CardHeader.Badge? {
-        if let indicator = illnessService.currentIndicator, indicator.isSignificant {
-            let style: VRBadge.Style = indicator.severity == .high ? .error : 
-                                        indicator.severity == .moderate ? .warning : .info
-            return .init(text: indicator.severity.rawValue.uppercased(), style: style)
-        } else if let alert = wellnessService.currentAlert {
-            return .init(text: alert.severity.rawValue.uppercased(), style: .warning)
-        }
-        return nil
-    }
     
     @ViewBuilder
     private func illnessWarningContent(_ indicator: IllnessIndicator) -> some View {
