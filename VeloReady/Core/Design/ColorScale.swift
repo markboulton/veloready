@@ -20,9 +20,18 @@ enum ColorScale {
     
     // MARK: - Background Colors (Adaptive)
     
-    static let backgroundPrimary = Color(.systemBackground)             /// Primary background
-    static let backgroundSecondary = Color(.secondarySystemBackground)  /// Secondary background
-    static let backgroundTertiary = Color(.tertiarySystemBackground)    /// Tertiary background
+    static let backgroundPrimary = Color(.systemBackground)             /// Primary background (white/black)
+    static let backgroundSecondary = Color(.secondarySystemBackground)  /// Secondary background (light grey/dark grey)
+    static let backgroundTertiary = Color(.tertiarySystemBackground)    /// Tertiary background (white/elevated dark grey)
+    
+    /// Custom app background: light grey in light mode, BLACK in dark mode
+    static var appBackground: Color {
+        Color(UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor.systemBackground  // Black in dark mode
+                : UIColor.secondarySystemBackground  // Light grey in light mode
+        })
+    }
     
     // MARK: - Label Colors (Adaptive)
     

@@ -41,7 +41,7 @@ struct RecentActivitiesSection: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.primary.opacity(0.08))
+                .fill(Color.background.card)
                 .allowsHitTesting(false)
         )
         .padding(.horizontal, Spacing.sm)

@@ -35,6 +35,7 @@ enum ColorPalette {
     static let backgroundPrimary = ColorScale.backgroundPrimary
     static let backgroundSecondary = ColorScale.backgroundSecondary
     static let backgroundTertiary = ColorScale.backgroundTertiary
+    static let appBackground = ColorScale.appBackground
     
     // MARK: - Label Colors
     

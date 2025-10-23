@@ -56,11 +56,12 @@ extension Color {
     // MARK: - Background Colors
     
     struct background {
-        static let primary = ColorPalette.backgroundPrimary  /// Primary background
-        static let secondary = ColorPalette.backgroundSecondary  /// Secondary background
-        static let tertiary = ColorPalette.backgroundTertiary  /// Tertiary background
-        static let card = ColorPalette.backgroundTertiary  /// Card background (WHITE in light, DARK GREY in dark - matches Settings)
-        static let elevated = ColorPalette.backgroundTertiary  /// Elevated background (matches Settings cards)
+        static let primary = ColorPalette.backgroundPrimary  /// Primary background (WHITE in light, BLACK in dark)
+        static let secondary = ColorPalette.backgroundSecondary  /// Secondary background (light grey in light, dark grey in dark)
+        static let tertiary = ColorPalette.backgroundTertiary  /// Tertiary background (white in light, elevated dark grey in dark)
+        static let card = ColorPalette.backgroundSecondary  /// Card background (WHITE in light, DARK GREY in dark - matches Settings)
+        static let elevated = ColorPalette.backgroundSecondary  /// Elevated background (matches Settings cards)
+        static let app = ColorPalette.appBackground  /// App background (light grey in light, BLACK in dark)
     }
     
     // MARK: - Text Colors

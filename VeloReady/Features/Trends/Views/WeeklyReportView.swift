@@ -61,7 +61,7 @@ struct WeeklyReportView: View {
             .padding(.top, Spacing.md)
             .padding(.bottom, 100) // Extra padding so content isn't hidden behind navigation
         }
-        .background(Color.background.secondary)
+        .background(Color.background.app)
         .task {
             await viewModel.loadWeeklyReport()
         }
