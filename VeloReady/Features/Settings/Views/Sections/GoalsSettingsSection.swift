@@ -7,21 +7,13 @@ struct GoalsSettingsSection: View {
     var body: some View {
         Section {
             HapticNavigationLink(destination: GoalsSettingsView()) {
-                HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                        Text("Daily Goals")
-                            .font(TypeScale.font(size: TypeScale.md))
-                        
-                        Text("Steps: \(userSettings.stepGoal) • Calories: \(Int(userSettings.calorieGoal)) • Sleep: \(userSettings.formattedSleepTarget)")
-                            .font(TypeScale.font(size: TypeScale.xs))
-                            .foregroundColor(ColorPalette.labelSecondary)
-                    }
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                    Text("Daily Goals")
+                        .font(TypeScale.font(size: TypeScale.md))
                     
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color.secondary.opacity(0.5))
+                    Text("Steps: \(userSettings.stepGoal) • Calories: \(Int(userSettings.calorieGoal)) • Sleep: \(userSettings.formattedSleepTarget)")
+                        .font(TypeScale.font(size: TypeScale.xs))
+                        .foregroundColor(ColorPalette.labelSecondary)
                 }
             }
         } header: {
