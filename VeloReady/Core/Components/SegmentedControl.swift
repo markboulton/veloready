@@ -5,6 +5,7 @@ import SwiftUI
 struct SegmentedControl<T: Hashable>: View {
     let segments: [SegmentItem<T>]
     @Binding var selection: T
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         GeometryReader { geometry in
@@ -16,7 +17,7 @@ struct SegmentedControl<T: Hashable>: View {
                 
                 // Animated selection indicator (grey background)
                 RoundedRectangle(cornerRadius: Spacing.sm - 2)
-                    .fill(Color.white.opacity(0.15))
+                    .fill(colorScheme == .dark ? Color.white.opacity(0.15) : ColorPalette.neutral200)
                     .frame(width: segmentWidth(containerWidth: geometry.size.width), height: 32)
                     .offset(x: selectedOffset(containerWidth: geometry.size.width))
                     .animation(FluidAnimation.bouncy, value: selection)

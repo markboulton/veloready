@@ -13,7 +13,7 @@ struct HRVLineChart: View {
             // Header
             HStack {
                 Image(systemName: Icons.Health.heartRate)
-                    .foregroundColor(.red)
+                    .foregroundColor(.secondary)
                     .font(.system(size: TypeScale.xs))
                 
                 Text(ChartContent.HRV.hrvTrend)

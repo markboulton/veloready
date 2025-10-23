@@ -17,7 +17,7 @@ struct HRVCandlestickChart: View {
             // Header
             HStack {
                 Image(systemName: Icons.Health.heartRate)
-                    .foregroundColor(.red)
+                    .foregroundColor(.secondary)
                     .font(.system(size: TypeScale.xs))
                 
                 Text(ChartContent.HRV.hrvTrend)
@@ -90,7 +90,7 @@ struct HRVCandlestickChart: View {
                         endPoint: .bottom
                     ) : 
                     LinearGradient(
-                        colors: [Color.white, Color.white],
+                        colors: [Color.text.primary, Color.text.primary],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -107,7 +107,7 @@ struct HRVCandlestickChart: View {
                     .annotation(position: .top, spacing: 2) {
                         Text("\(Int(point.high))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.high) : Color.white)
+                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.high) : Color.text.primary)
                     }
                     
                     // Low value annotation
@@ -119,7 +119,7 @@ struct HRVCandlestickChart: View {
                     .annotation(position: .bottom, spacing: 2) {
                         Text("\(Int(point.low))")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.low) : Color.white)
+                            .foregroundColor(isTodayPoint ? colorForHRVValue(point.low) : Color.text.primary)
                     }
                 }
             }
@@ -130,7 +130,7 @@ struct HRVCandlestickChart: View {
                     yStart: .value("Baseline Low", baseline - 5),
                     yEnd: .value("Baseline High", baseline + 5)
                 )
-                .foregroundStyle(Color(white: 0.5).opacity(0.15))
+                .foregroundStyle(ColorPalette.neutral300.opacity(0.15))
             }
         }
         .frame(height: 225)
