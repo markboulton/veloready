@@ -5,17 +5,17 @@ import SwiftUI
 struct NavigationGradientMask: View {
     var body: some View {
         VStack(spacing: 0) {
-            // Solid dark area for navigation bar (collapsed state)
-            Color.black
+            // Solid background area for navigation bar (adaptive to theme)
+            Color.background.secondary
                 .frame(height: 96)
             
-            // Gradient fade to transparent
+            // Gradient fade to transparent (adaptive to theme)
             LinearGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color.black.opacity(0.95), location: 0.0),
-                    .init(color: Color.black.opacity(0.7), location: 0.3),
-                    .init(color: Color.black.opacity(0.4), location: 0.6),
-                    .init(color: Color.black.opacity(0.0), location: 1.0)
+                    .init(color: Color.background.secondary.opacity(0.95), location: 0.0),
+                    .init(color: Color.background.secondary.opacity(0.7), location: 0.3),
+                    .init(color: Color.background.secondary.opacity(0.4), location: 0.6),
+                    .init(color: Color.background.secondary.opacity(0.0), location: 1.0)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
