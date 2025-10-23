@@ -6,7 +6,7 @@ struct GoalsSettingsSection: View {
     
     var body: some View {
         Section {
-            HapticNavigationLink(destination: GoalsSettingsView()) {
+            NavigationLink(destination: GoalsSettingsView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text("Daily Goals")
                         .font(TypeScale.font(size: TypeScale.md))

@@ -4,7 +4,7 @@ import SwiftUI
 struct DataSourcesSection: View {
     var body: some View {
         Section {
-            HapticNavigationLink(destination: DataSourcesSettingsView()) {
+            NavigationLink(destination: DataSourcesSettingsView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(SettingsContent.DataSources.title)
                         .font(TypeScale.font(size: TypeScale.md))

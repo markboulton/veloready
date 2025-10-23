@@ -7,7 +7,7 @@ struct DisplaySettingsSection: View {
     var body: some View {
         Section {
             // Theme settings
-            HapticNavigationLink(destination: ThemeSettingsView()) {
+            NavigationLink(destination: ThemeSettingsView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(SettingsContent.Appearance.theme)
                         .font(TypeScale.font(size: TypeScale.md))
@@ -19,7 +19,7 @@ struct DisplaySettingsSection: View {
             }
             
             // Display preferences
-            HapticNavigationLink(destination: DisplaySettingsView()) {
+            NavigationLink(destination: DisplaySettingsView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(SettingsContent.Appearance.displayPreferences)
                         .font(TypeScale.font(size: TypeScale.md))
@@ -31,7 +31,7 @@ struct DisplaySettingsSection: View {
             }
             
             // Today page layout
-            HapticNavigationLink(destination: TodaySectionOrderView()) {
+            NavigationLink(destination: TodaySectionOrderView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text("Today Page Layout")
                         .font(TypeScale.font(size: TypeScale.md))
