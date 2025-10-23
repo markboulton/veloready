@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reusable card container with 8% opacity background
+/// Reusable card container with elevated background (matching Settings section items)
 /// Consistent spacing and padding across the app
 struct Card<Content: View>: View {
     let style: CardStyle
@@ -24,7 +24,7 @@ struct Card<Content: View>: View {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.08))
+                    .fill(Color.background.card)
             )
             .padding(.horizontal, 8)
             .padding(.vertical, Spacing.md / 2)
@@ -48,7 +48,7 @@ enum CardStyle {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Card Title")
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text("Card content with 5% opacity background, md padding, and md spacing")
+                    Text("Card content with elevated background, md padding, and md spacing")
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }
@@ -67,7 +67,7 @@ enum CardStyle {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Third Card")
                         .font(.system(size: TypeScale.md, weight: .semibold))
-                    Text("Notice the consistent md spacing between cards")
+                    Text("All cards now match Settings section item styling")
                         .font(.system(size: TypeScale.sm))
                         .foregroundColor(Color.text.secondary)
                 }

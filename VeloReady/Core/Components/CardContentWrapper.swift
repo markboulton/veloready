@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// Extension to ensure all card content uses standardized padding and styling
-/// This wrapper enforces the 5% opacity card design system across the entire app
+/// This wrapper enforces the elevated background color (matching Settings section items) across the entire app
 extension View {
-    /// Wraps content in a standardized card with 5% opacity background
+    /// Wraps content in a standardized card with elevated background (matching Settings)
     /// - Parameters:
     ///   - padding: Content padding (default: Spacing.md)
     ///   - horizontalSpacing: Horizontal margin (default: Spacing.md)
@@ -18,7 +18,7 @@ extension View {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.primary.opacity(0.05))
+                    .fill(Color.background.card)
             )
             .padding(.horizontal, horizontalSpacing)
             .padding(.vertical, verticalSpacing)
