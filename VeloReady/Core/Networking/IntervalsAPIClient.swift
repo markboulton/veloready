@@ -355,64 +355,56 @@ class IntervalsAPIClient: ObservableObject {
     // MARK: - Athlete Data
     
     /// Fetch athlete information including zone definitions and sportsSettings
-    /// Cached for 24 hours to avoid unnecessary API calls
+    /// Cached for 24 hours via UnifiedCacheManager
     func fetchAthleteData() async throws -> IntervalsAthlete {
+        // Use NetworkClient with UnifiedCacheManager for consistent caching
+        return try await fetchAthleteDataNew()
+    }
+    
+    /// NEW: Refactored version using NetworkClient + UnifiedCacheManager
+    /// Benefits: Automatic request deduplication, memory management, metrics
+    private func fetchAthleteDataNew() async throws -> IntervalsAthlete {
         guard await ensureAuthenticated() else {
             throw IntervalsAPIError.notAuthenticated
         }
         
         let athleteId = oauthManager.user?.id ?? "0"
-        let cacheKey = "cached_athlete_\(athleteId)"
-        let cacheTimestampKey = "cached_athlete_timestamp_\(athleteId)"
-        
-        // Check cache first (24 hour expiry)
-        if let cachedData = UserDefaults.standard.data(forKey: cacheKey),
-           let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date,
-           Date().timeIntervalSince(cachedTimestamp) < 86400 { // 24 hours
-            do {
-                let athlete = try JSONDecoder().decode(IntervalsAthlete.self, from: cachedData)
-                Logger.debug("📦 Using cached athlete data: \(athlete.name ?? "Unknown") (age: \(String(format: "%.1f", Date().timeIntervalSince(cachedTimestamp) / 3600))h)")
-                return athlete
-            } catch {
-                Logger.warning("️ Failed to decode cached athlete data, fetching fresh")
-            }
-        }
-        
-        // Fetch from API - using /profile endpoint to get zones and detailed metrics
+        let cacheKey = "intervals_athlete_\(athleteId)"
         let endpoint = "\(baseURL)/api/v1/athlete/\(athleteId)/profile"
         
+        guard let url = URL(string: endpoint) else {
+            throw IntervalsAPIError.invalidURL
+        }
+        
+        // Build request with auth
+        let request = NetworkClient.buildGETRequest(
+            url: url,
+            authToken: await getAuthToken()
+        )
+        
+        // Use NetworkClient with automatic caching
+        let networkClient = await NetworkClient()
+        
         do {
-            let url = URL(string: endpoint)!
-            let data = try await makeRequest(url: url, authHeader: getAuthHeader())
+            // UnifiedCacheManager handles all caching logic
+            let profile: IntervalsAthleteProfile = try await networkClient.executeWithCache(
+                request,
+                cacheKey: cacheKey,
+                ttl: 86400 // 24 hours
+            )
             
-            // The /profile endpoint returns a wrapper object with athlete nested inside
-            let profile = try JSONDecoder().decode(IntervalsAthleteProfile.self, from: data)
             let athlete = profile.athlete
             
-            Logger.debug("✅ Successfully fetched athlete profile data: \(athlete.name ?? "Unknown") (ID: \(athlete.id))")
+            Logger.debug("✅ [NetworkClient] Fetched athlete: \(athlete.name ?? "Unknown")")
             Logger.debug("🔍 Power Zones: \(athlete.powerZones != nil ? "Present (FTP: \(athlete.powerZones?.ftp ?? 0)W)" : "NIL")")
             Logger.debug("🔍 HR Zones: \(athlete.heartRateZones != nil ? "Present (Max HR: \(athlete.heartRateZones?.maxHr ?? 0)bpm)" : "NIL")")
             
-            // Cache the athlete data (not the wrapper)
-            if let athleteData = try? JSONEncoder().encode(athlete) {
-                UserDefaults.standard.set(athleteData, forKey: cacheKey)
-                UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
-                Logger.debug("💾 Cached athlete data for 24 hours")
-            }
-            
             return athlete
+            
         } catch {
-            Logger.error("Failed to fetch athlete data from \(endpoint): \(error)")
+            Logger.error("Failed to fetch athlete data: \(error)")
             
-            // Try to use stale cache if available
-            if let cachedData = UserDefaults.standard.data(forKey: cacheKey),
-               let athlete = try? JSONDecoder().decode(IntervalsAthlete.self, from: cachedData) {
-                Logger.debug("📦 Using stale cached athlete data as fallback")
-                return athlete
-            }
-            
-            // Return mock data - not critical for app functionality
-            // We get all needed data (CTL, ATL, TSS) from activities and wellness endpoints
+            // Return mock data as fallback
             Logger.debug("ℹ️ Using mock athlete data (ID: \(athleteId))")
             return IntervalsAthlete(
                 id: athleteId,
@@ -430,6 +422,11 @@ class IntervalsAPIClient: ObservableObject {
                 heartRateZones: HeartRateZoneSettings(maxHr: 180, zones: [0, 120, 140, 160, 180, 200])
             )
         }
+    }
+    
+    /// Helper to get auth token safely
+    private func getAuthToken() async -> String? {
+        return await oauthManager.accessToken
     }
     
     // MARK: - Calendar API
