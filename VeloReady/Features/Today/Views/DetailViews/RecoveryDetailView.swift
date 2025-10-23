@@ -10,7 +10,7 @@ struct RecoveryDetailView: View {
     var body: some View {
         ZStack(alignment: .top) {
             // Adaptive background (light grey in light mode, black in dark mode)
-            Color.background.secondary
+            Color.background.app
                 .ignoresSafeArea()
             
             ScrollView {

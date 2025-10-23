@@ -131,9 +131,7 @@ struct ActivitiesView: View {
                             SharedActivityRowView(activity: activity)
                         }
                         .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                        .listRowBackground(
-                            Color.background.card.opacity(0.6)
-                        )
+                        .listRowBackground(Color.background.card)
                     }
                 } header: {
                     Text(monthKey)
@@ -167,9 +165,7 @@ struct ActivitiesView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .foregroundColor(Color.button.primary)
-                    .listRowBackground(
-                        Color.background.card.opacity(0.6)
-                    )
+                    .listRowBackground(Color.background.card)
                 }
             }
             
@@ -204,9 +200,7 @@ struct ActivitiesView: View {
                         .padding()
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(
-                        Color.background.card.opacity(0.6)
-                    )
+                    .listRowBackground(Color.background.card)
                 }
             }
         }
