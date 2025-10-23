@@ -193,9 +193,38 @@ class RecoveryScoreService: ObservableObject {
     private func calculateRealRecoveryScore(forceRefresh: Bool = false) async -> RecoveryScore? {
         Logger.debug("⚡ Starting parallel data fetching for recovery score...")
         
-        // Sleep score should be calculated first so we can use actual sleep times for overnight HRV
+        // CRITICAL: Sleep score MUST be calculated first for accurate recovery calculation
+        // If sleep score is being calculated, wait for it. If not started, start it.
         if sleepScoreService.currentSleepScore == nil {
-            await sleepScoreService.calculateSleepScore()
+            if sleepScoreService.isLoading {
+                // Sleep calculation already in progress - wait for it
+                Logger.debug("⏳ Sleep calculation in progress - waiting for completion...")
+                
+                // Poll until sleep score is available or loading completes
+                var attempts = 0
+                while sleepScoreService.isLoading && attempts < 50 { // Max 5 seconds
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+                    attempts += 1
+                }
+                
+                if sleepScoreService.currentSleepScore != nil {
+                    Logger.debug("✅ Sleep score now available after waiting: \(sleepScoreService.currentSleepScore!.score)")
+                } else {
+                    Logger.warning("⚠️ Sleep score still nil after waiting - recovery will show 'Limited Data'")
+                }
+            } else {
+                // Sleep not started yet - trigger it and wait
+                Logger.debug("⏳ Starting sleep score calculation...")
+                await sleepScoreService.calculateSleepScore()
+                
+                if sleepScoreService.currentSleepScore != nil {
+                    Logger.debug("✅ Sleep score now available: \(sleepScoreService.currentSleepScore!.score)")
+                } else {
+                    Logger.warning("⚠️ Sleep score still nil after calculation - recovery will show 'Limited Data'")
+                }
+            }
+        } else {
+            Logger.debug("✅ Sleep score already available: \(sleepScoreService.currentSleepScore!.score)")
         }
         
         // Get actual sleep times for overnight HRV window (physiologically correct)
@@ -213,7 +242,16 @@ class RecoveryScoreService: ObservableObject {
         
         // Wait for all parallel operations to complete
         let (hrv, overnightHrv, rhr, respiratoryRate) = await (latestHRV, overnightHRV, latestRHR, latestRespiratoryRate)
+        
+        // Get sleep score - should be available now since we waited for it
         let sleepScoreResult = sleepScoreService.currentSleepScore
+        
+        // Log if sleep data is still missing
+        if sleepScoreResult == nil {
+            Logger.warning("⚠️ Sleep score is nil - recovery will show 'Limited Data'")
+            Logger.warning("   This usually means: no sleep data in HealthKit for last night")
+        }
+        
         let (hrvBaseline, rhrBaseline, sleepBaseline, respiratoryBaseline) = await baselines
         let (atl, ctl) = await intervalsData
         let strain = await recentStrain
