@@ -10,6 +10,8 @@ struct PerformanceOverviewCardV2: View {
     let sleepData: [TrendsViewModel.TrendDataPoint]
     let timeRange: TrendsViewModel.TimeRange
     
+    @StateObject private var viewModel = PerformanceOverviewCardViewModel()
+    
     private var hasData: Bool {
         !recoveryData.isEmpty || !loadData.isEmpty || !sleepData.isEmpty
     }
@@ -23,7 +25,11 @@ struct PerformanceOverviewCardV2: View {
         ChartCard(
             title: TrendsContent.Cards.performanceOverview,
             subtitle: TrendsContent.PerformanceOverview.subtitle,
-            footerText: hasData ? generateInsight() : nil
+            footerText: hasData ? viewModel.generateInsight(
+                recoveryData: recoveryData,
+                loadData: loadData,
+                sleepData: sleepData
+            ) : nil
         ) {
             if hasData {
                 VStack(alignment: .leading, spacing: Spacing.md) {
@@ -250,28 +256,6 @@ struct PerformanceOverviewCardV2: View {
         .cornerRadius(Spacing.buttonCornerRadius)
     }
     
-    // MARK: - Insight Generation
-    
-    private func generateInsight() -> String {
-        guard let lastRecovery = recoveryData.last?.value,
-              let lastLoad = loadData.last?.value,
-              let lastSleep = sleepData.last?.value else {
-            return "Track consistently to see patterns between these key metrics."
-        }
-        
-        // Analyze balance between metrics
-        if lastRecovery > 75 && lastLoad < 50 && lastSleep > 75 {
-            return "You're well-recovered with light training load. Good opportunity for a hard session."
-        } else if lastRecovery < 60 && lastLoad > 70 {
-            return "High training load with low recovery. Consider reducing intensity or taking a rest day."
-        } else if lastSleep < 60 && lastRecovery < 70 {
-            return "Poor sleep is affecting recovery. Prioritize sleep to improve adaptation to training."
-        } else if lastLoad > 80 && lastRecovery > 70 {
-            return "High training load but maintaining good recovery. Your fitness is improving."
-        } else {
-            return "Monitor these three metrics daily to optimize your training balance."
-        }
-    }
 }
 
 // MARK: - Metric Legend Item

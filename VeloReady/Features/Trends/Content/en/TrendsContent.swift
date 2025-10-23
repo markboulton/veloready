@@ -441,5 +441,15 @@ enum TrendsContent {
         static let multipleMetrics = "Multiple performance metrics"  /// Multiple metrics
         static let historicalData = "Historical data (30+ days)"  /// Historical data
         static let overallScore = "Overall Score"  /// Overall score
+        static let trackConsistently = "Track consistently to see patterns between these key metrics."  /// Track consistently message
+        
+        /// Insights generated from analyzing metric balance
+        enum Insights {
+            static let wellRecovered = "You're well-recovered with light training load. Good opportunity for a hard session."  /// Well recovered insight
+            static let highLoadLowRecovery = "High training load with low recovery. Consider reducing intensity or taking a rest day."  /// High load low recovery insight
+            static let poorSleepAffecting = "Poor sleep is affecting recovery. Prioritize sleep to improve adaptation to training."  /// Poor sleep affecting insight
+            static let highLoadGoodRecovery = "High training load but maintaining good recovery. Your fitness is improving."  /// High load good recovery insight
+            static let monitorMetrics = "Monitor these three metrics daily to optimize your training balance."  /// Monitor metrics insight
+        }
     }
 }
