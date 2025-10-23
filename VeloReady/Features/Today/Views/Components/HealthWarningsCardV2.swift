@@ -17,7 +17,7 @@ struct HealthWarningsCardV2: View {
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     // Illness indicator (higher priority)
-                    if let indicator = viewModel.illnessIndicator, indicator.isSignificant {
+                    if let indicator = viewModel.illnessIndicator, indicator.isSignificant && indicator.isRecent {
                         illnessWarningContent(indicator)
                             .onTapGesture {
                                 viewModel.showIllnessDetail()
@@ -60,8 +60,6 @@ struct HealthWarningsCardV2: View {
     @ViewBuilder
     private func illnessWarningContent(_ indicator: IllnessIndicator) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            VRText("Body Stress Detected", style: .headline, color: Color.text.primary)
-            
             VRText(indicator.recommendation, style: .caption, color: Color.text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             

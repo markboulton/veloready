@@ -216,9 +216,11 @@ extension IllnessIndicator {
         }
         
         // Respiratory Rate Changes
+        // Only flag ELEVATED respiratory rate (illness/stress)
+        // Lower respiratory rate is actually good (relaxation/recovery)
         if let respiratoryRate = respiratoryRate, let respiratoryBaseline = respiratoryBaseline, respiratoryBaseline > 0 {
             let deviation = ((respiratoryRate - respiratoryBaseline) / respiratoryBaseline) * 100
-            if abs(deviation) > 8 {  // 8% change threshold (lowered for sensitivity)
+            if deviation > 8 {  // 8% elevation threshold (removed abs() - only flag increases)
                 signals.append(Signal(
                     type: .respiratoryRate,
                     deviation: deviation,
