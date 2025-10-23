@@ -9,7 +9,6 @@ struct TodaySectionOrder: Codable {
     static let defaultOrder = TodaySectionOrder(
         movableSections: [
             .veloAI,
-            .dailyBrief,
             .latestActivity,
             .steps,
             .calories,
@@ -40,16 +39,10 @@ struct TodaySectionOrder: Codable {
         var sections = order.movableSections
         var needsSave = false
         
-        // Check if dailyBrief is missing (old version)
-        if !sections.contains(.dailyBrief) {
-            // Add dailyBrief after veloAI (or at the beginning if veloAI not found)
-            if let veloAIIndex = sections.firstIndex(of: .veloAI) {
-                sections.insert(.dailyBrief, at: veloAIIndex + 1)
-            } else {
-                sections.insert(.dailyBrief, at: 0)
-            }
-            
-            Logger.debug("☁️ Migrated section order to include Daily Brief")
+        // Remove dailyBrief if present (now unified with veloAI)
+        if let dailyBriefIndex = sections.firstIndex(of: .dailyBrief) {
+            sections.remove(at: dailyBriefIndex)
+            Logger.debug("☁️ Migrated section order - removed duplicate Daily Brief (unified with VeloAI)")
             needsSave = true
         }
         

@@ -382,21 +382,6 @@ struct TodayView: View {
     private var healthKitStatusDescription: String {
         switch healthKitManager.authorizationState {
         case .authorized:
-            return "Connected"
-        case .denied:
-            return "Access Denied"
-        case .notDetermined:
-            return "Not Enabled"
-        case .partial:
-            return "Partial Access"
-        case .notAvailable:
-            return "Not Available"
-        }
-    }
-    
-    private var healthKitStatusIcon: String {
-        switch healthKitManager.authorizationState {
-        case .authorized:
             return "checkmark.circle.fill"
         case .denied:
             return "exclamationmark.triangle.fill"
@@ -460,7 +445,7 @@ struct TodayView: View {
     @ViewBuilder
     private func movableSection(_ section: TodaySection) -> some View {
         switch section {
-        case .veloAI, .dailyBrief:
+        case .veloAI:
             // Unified component handles both Pro (AI) and Free (computed) briefs
             AIBriefView()
         case .latestActivity:
@@ -485,8 +470,8 @@ struct TodayView: View {
             } else {
                 CaloriesCardV2()
             }
-        case .stepsAndCalories:
-            // Legacy - no longer used
+        case .stepsAndCalories, .dailyBrief:
+            // Legacy - no longer used (dailyBrief unified with veloAI)
             EmptyView()
         case .recentActivities:
             if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
