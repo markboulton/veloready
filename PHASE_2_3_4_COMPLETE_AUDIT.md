@@ -97,13 +97,15 @@ struct TrainingLoadComponent: View {
 ### Today Section - Detail Views ✅ DONE
 
 **Detail Views (Phase 4C Complete):**
-1. ✅ **RecoveryDetailView** → RecoveryDetailViewModel (240 lines)
-2. ✅ **SleepDetailView** → SleepDetailViewModel (122 lines)
-3. ✅ **StrainDetailView** → StrainDetailViewModel (110 lines)
-4. ✅ **ActivityDetailView** → ActivityDetailViewModel (existing)
-5. ✅ **WalkingDetailView** → WalkingDetailViewModel (existing)
-6. ✅ **RideDetailSheet** → RideDetailViewModel (existing)
-7. ✅ **WorkoutDetailView** → Uses ActivityDetailViewModel
+1. ✅ **RecoveryDetailView** (803 lines) → RecoveryDetailViewModel (240 lines) - NEW
+2. ✅ **SleepDetailView** (946 lines) → SleepDetailViewModel (122 lines) - NEW
+3. ✅ **StrainDetailView** (542 lines) → StrainDetailViewModel (110 lines) - NEW
+4. ✅ **ActivityDetailView** (430 lines) → ActivityDetailViewModel (430 lines) - EXISTING ✨
+5. ✅ **WalkingDetailView** (556 lines) → WalkingDetailViewModel (395 lines) - EXISTING ✨
+6. ✅ **RideDetailSheet** (655 lines) → RideDetailViewModel (902 lines) - EXISTING ✨
+7. ✅ **WorkoutDetailView** (680 lines) → Uses RideDetailViewModel - EXISTING ✨
+
+**Total ViewModel Lines:** 2,199 lines!
 
 **Status:** ✅ 100% Complete - All have ViewModels
 
@@ -193,12 +195,12 @@ struct PerformanceOverviewCardV2: View {
 | **TOTAL** | **28 components** | **✅ 100% Complete** |
 
 ### Phase 4: Cards with ViewModels
-| Section | Cards | ViewModels Created | Status |
-|---------|-------|-------------------|--------|
-| Today Cards | 4 | 4 | ✅ 100% |
-| Today Details | 7 | 7 | ✅ 100% |
-| Trends Cards | 11 | 0 | ❌ 0% |
-| **TOTAL** | **22 cards** | **11/22 (50%)** | **⚠️ 50% Complete** |
+| Section | Cards/Views | ViewModels Created | ViewModel Lines | Status |
+|---------|-------------|-------------------|-----------------|--------|
+| Today Cards | 4 | 4 | ~350 | ✅ 100% |
+| Today Details | 7 | 7 | ~2,200 ✨ | ✅ 100% |
+| Trends Cards | 11 | 0 | 0 | ❌ 0% |
+| **TOTAL** | **22** | **11/22 (50%)** | **~2,550** | **⚠️ 50% Complete** |
 
 ---
 
@@ -366,9 +368,12 @@ These are **NOT atomic components** - they're cards with:
 - Already perfect
 
 **Phase 4 Card ViewModels:** ⚠️ **50% COMPLETE** (11/22 ViewModels)
-- Today: ✅ 100% done
-- Trends: ❌ 0% done
+- Today Cards: ✅ 100% done (4 ViewModels, ~350 lines)
+- Today Details: ✅ 100% done (7 ViewModels, ~2,200 lines) ✨
+- Trends Cards: ❌ 0% done (11 ViewModels needed)
 - **Action needed:** Create 11 Trends ViewModels
+
+**Key Finding:** Activity detail ViewModels are MASSIVE (902 lines for RideDetailViewModel!) and already complete. This shows the value of ViewModels for complex views.
 
 **Recommendation:** Complete Trends section for true app-wide MVVM architecture.
 
