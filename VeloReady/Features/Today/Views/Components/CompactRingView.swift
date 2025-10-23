@@ -14,14 +14,14 @@ struct CompactRingView: View {
     @State private var animatedProgress: Double = 0.0
     @State private var numberOpacity: Double = 0.0
     
-    private let ringWidth: CGFloat = 5
-    private let size: CGFloat = 100
+    private let ringWidth: CGFloat = ComponentSizes.ringWidthSmall
+    private let size: CGFloat = ComponentSizes.ringDiameterSmall
     private let initialDelay: Double = 0.14 // Global delay before animations start (30% faster)
     private let animationDuration: Double = 0.84 // Ring animation duration (30% faster than 1.2s)
     private let numberFadeDuration: Double = 0.28 // Number fade duration (30% faster than 0.4s)
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             ZStack {
                 // Background ring - very subtle
                 Circle()
@@ -106,7 +106,7 @@ struct CompactRingView: View {
 
 struct CompactRingView_Previews: PreviewProvider {
     static var previews: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.lg) {
             CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.optimal, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID())
             CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil, animationTrigger: UUID())
             CompactRingView(score: 70, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: "12.5", animationTrigger: UUID())

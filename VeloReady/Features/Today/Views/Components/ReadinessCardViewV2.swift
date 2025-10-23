@@ -32,9 +32,9 @@ struct ReadinessCardViewV2: View {
                     action: .init(icon: Icons.System.chevronRight, action: onTap)
                 )
             ) {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     // Main score with icon
-                    HStack(alignment: .center, spacing: 12) {
+                    HStack(alignment: .center, spacing: Spacing.sm) {
                         Image(systemName: Icons.Activity.running)
                             .font(.title)
                             .foregroundColor(readinessScore.band.colorToken)
@@ -49,7 +49,7 @@ struct ReadinessCardViewV2: View {
                     Divider()
                     
                     // Component breakdown
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.md) {
                         ComponentPill(
                             label: TodayContent.ReadinessComponents.recovery,
                             value: readinessScore.components.recoveryScore,

@@ -8,7 +8,7 @@ struct WellnessIndicator: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 4) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: Icons.Status.warningFill)
                     .font(.caption)
                     .foregroundColor(alert.severity.color)
@@ -39,7 +39,7 @@ struct WellnessIndicator: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.md) {
         // Yellow severity
         WellnessIndicator(
             alert: WellnessAlert(

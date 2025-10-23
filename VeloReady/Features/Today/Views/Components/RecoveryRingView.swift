@@ -7,8 +7,8 @@ struct RecoveryRingView: View {
     let band: RecoveryScore.RecoveryBand
     let isPersonalized: Bool // Whether ML was used
     
-    private let ringWidth: CGFloat = 12
-    private let size: CGFloat = 160
+    private let ringWidth: CGFloat = ComponentSizes.ringWidthLarge
+    private let size: CGFloat = ComponentSizes.ringDiameterLarge
     
     var body: some View {
         ZStack {
@@ -29,12 +29,12 @@ struct RecoveryRingView: View {
                 .animation(.easeOut(duration: 0.8), value: score) // Smooth animation when score changes
             
             // Center content
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs) {
                 Text("\(score)")
                     .font(.system(size: 48, weight: .bold))
                     .foregroundColor(ColorPalette.recoveryColor(for: Double(score)))
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text(CommonContent.ReadinessComponents.recoveryUpper)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(ColorPalette.labelSecondary)
@@ -68,7 +68,7 @@ struct RecoveryRingView: View {
 
 struct RecoveryRingView_Previews: PreviewProvider {
     static var previews: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: Spacing.xxl) {
             RecoveryRingView(score: 90, band: .optimal, isPersonalized: true)
             RecoveryRingView(score: 75, band: .good, isPersonalized: false)
             RecoveryRingView(score: 55, band: .fair, isPersonalized: true)

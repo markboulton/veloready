@@ -89,9 +89,9 @@ struct SimpleMetricCardV2: View {
                 ),
                 footer: CardFooter(text: metricType.detailText)
             ) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     // Score with icon
-                    HStack(alignment: .center, spacing: 12) {
+                    HStack(alignment: .center, spacing: Spacing.sm) {
                         Image(systemName: metricType.icon)
                             .font(.title)
                             .foregroundColor(metricType.color)
@@ -145,7 +145,7 @@ struct SimpleMetricCardV2: View {
 }
 
 #Preview("Both Metrics") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.lg) {
         let consistency = SleepConsistency(
             score: 85,
             band: .excellent,

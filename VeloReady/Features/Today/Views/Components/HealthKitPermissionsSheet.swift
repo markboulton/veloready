@@ -12,7 +12,7 @@ struct HealthKitPermissionsSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 30) {
+                VStack(spacing: Spacing.xxl) {
                     // Header
                     VStack(spacing: Spacing.xl) {
                         Image(systemName: Icons.Health.heartFill)
@@ -80,7 +80,7 @@ struct HealthKitPermissionsSheet: View {
                     VStack(spacing: Spacing.md) {
                         // Enable button
                         Button(action: requestPermissions) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Spacing.sm) {
                                 if isRequesting {
                                     ProgressView()
                                         .scaleEffect(0.8)

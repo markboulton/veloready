@@ -59,7 +59,7 @@ struct SkeletonActivityCard: View {
 /// Skeleton for recent activities section
 struct SkeletonRecentActivities: View {
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             SkeletonCard(height: 120)
             SkeletonCard(height: 120)
             SkeletonCard(height: 120)

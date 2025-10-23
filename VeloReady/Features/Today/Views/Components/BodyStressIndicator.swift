@@ -9,7 +9,7 @@ struct BodyStressIndicator: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 4) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: Icons.Status.warningFill)
                     .font(.caption)
                     .foregroundColor(severityColor)
@@ -53,7 +53,7 @@ struct BodyStressIndicator: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.md) {
         // Low severity
         BodyStressIndicator(
             indicator: IllnessIndicator(

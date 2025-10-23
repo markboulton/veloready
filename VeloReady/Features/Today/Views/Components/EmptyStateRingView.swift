@@ -7,11 +7,11 @@ struct EmptyStateRingView: View {
     let icon: String
     let animationDelay: Double
     
-    private let ringWidth: CGFloat = 5
-    private let size: CGFloat = 100
+    private let ringWidth: CGFloat = ComponentSizes.ringWidthSmall
+    private let size: CGFloat = ComponentSizes.ringDiameterEmpty
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             ZStack {
                 // Background ring - grey
                 Circle()
@@ -38,7 +38,7 @@ struct EmptyStateRingView: View {
 
 struct EmptyStateRingView_Previews: PreviewProvider {
     static var previews: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.lg) {
             EmptyStateRingView(title: "Recovery", icon: "heart.fill", animationDelay: 0.0)
             EmptyStateRingView(title: "Sleep", icon: "moon.fill", animationDelay: 0.1)
             EmptyStateRingView(title: "Load", icon: "figure.walk", animationDelay: 0.2)

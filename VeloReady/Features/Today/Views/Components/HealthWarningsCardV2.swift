@@ -69,7 +69,7 @@ struct HealthWarningsCardV2: View {
             if !indicator.signals.isEmpty {
                 HStack(spacing: Spacing.xs) {
                     ForEach(indicator.signals.prefix(3)) { signal in
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Image(systemName: signal.type.icon)
                                 .font(.caption2)
                             Text(signal.type.rawValue)
@@ -120,7 +120,7 @@ struct HealthWarningsCardV2: View {
     
     @ViewBuilder
     private func metricBadge(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: icon)
                 .font(.caption2)
             Text(text)
