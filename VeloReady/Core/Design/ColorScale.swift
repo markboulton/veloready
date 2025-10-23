@@ -23,7 +23,15 @@ enum ColorScale {
     static let backgroundPrimary = Color(.systemBackground)             /// Primary background (white/black)
     static let backgroundSecondary = Color(.secondarySystemBackground)  /// Secondary background (light grey/dark grey)
     static let backgroundTertiary = Color(.tertiarySystemBackground)    /// Tertiary background (white/elevated dark grey)
-    static let backgroundListItem = Color(.secondarySystemBackground)   /// List item background (matches Settings section items)
+    
+    /// List item background (matches Settings section items: white in light mode, grey in dark mode)
+    static var backgroundListItem: Color {
+        Color(UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor.secondarySystemBackground  // Grey in dark mode
+                : UIColor.white  // White in light mode
+        })
+    }
     
     /// Custom app background: light grey in light mode, BLACK in dark mode
     static var appBackground: Color {
