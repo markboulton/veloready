@@ -288,7 +288,9 @@ struct ActivityCard: View {
         Image(uiImage: image)
             .resizable()
             .aspectRatio(contentMode: .fill)
-            .frame(height: 120)
+            .frame(maxWidth: .infinity)
+            .frame(height: 240)
+            .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     

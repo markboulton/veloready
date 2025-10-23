@@ -13,7 +13,7 @@ class MockMapGenerator {
     func generateMockMap(
         center: CLLocationCoordinate2D,
         routeCoordinates: [CLLocationCoordinate2D],
-        size: CGSize = CGSize(width: 400, height: 120)
+        size: CGSize = CGSize(width: 400, height: 240)
     ) async -> UIImage? {
         let mapSnapshotOptions = MKMapSnapshotter.Options()
         
