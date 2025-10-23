@@ -61,7 +61,7 @@ struct TrainingLoadSummaryView: View {
             .padding(.top, 4)
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.background.secondary)
         .cornerRadius(12)
     }
     
@@ -118,7 +118,7 @@ struct TrainingLoadMetric: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color(.systemBackground))
+        .background(Color.background.card)
         .cornerRadius(8)
     }
 }

@@ -241,13 +241,13 @@ struct TrainingLoadChart: View {
                             .foregroundStyle(Color.text.secondary)
                         }
                         AxisGridLine()
-                            .foregroundStyle(Color(.systemGray4))
+                            .foregroundStyle(ColorPalette.neutral300)
                     }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                         AxisGridLine()
-                            .foregroundStyle(Color(.systemGray4))
+                            .foregroundStyle(ColorPalette.neutral300)
                         AxisValueLabel()
                             .font(.caption2)
                             .foregroundStyle(Color.text.tertiary)

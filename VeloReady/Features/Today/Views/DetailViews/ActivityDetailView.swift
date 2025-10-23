@@ -397,7 +397,7 @@ struct InteractiveWorkoutMapSection: View {
         VStack(alignment: .leading, spacing: 0) {
             if isLoading {
                 ZStack {
-                    Color(.systemGray6)
+                    Color.background.secondary
                         .frame(height: UIScreen.main.bounds.width - 32) // Square
                     ProgressView()
                 }
@@ -406,7 +406,7 @@ struct InteractiveWorkoutMapSection: View {
                     .frame(height: UIScreen.main.bounds.width - 32) // Square
             } else {
                 ZStack {
-                    Color(.systemGray6)
+                    Color.background.secondary
                         .frame(height: UIScreen.main.bounds.width - 32) // Square
                     VStack(spacing: 8) {
                         Image(systemName: Icons.System.map)

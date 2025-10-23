@@ -81,7 +81,7 @@ struct SleepDetailView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color(.systemGray5))
+                    .fill(ColorPalette.neutral200)
                     .frame(width: 40, height: 40)
                 Image(systemName: Icons.Health.sleepZzz)
                     .foregroundColor(.secondary)
@@ -104,7 +104,7 @@ struct SleepDetailView: View {
         .padding()
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(.systemOrange).opacity(0.3), lineWidth: 1)
+                .stroke(ColorPalette.warning.opacity(0.3), lineWidth: 1)
         )
     }
     
@@ -779,7 +779,7 @@ struct SleepDetailView: View {
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(Color(.systemGray5))
+                                .fill(ColorPalette.neutral200)
                                 .frame(height: 2)
                             
                             RoundedRectangle(cornerRadius: 2)
@@ -859,7 +859,7 @@ struct SleepMetricCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.background.card)
     }
 }
 

@@ -487,7 +487,7 @@ struct HeartRateChart: View {
     var body: some View {
         if samples.isEmpty {
             ZStack {
-                Color(.systemGray6)
+                Color.background.secondary
                 Text(ActivityContent.HeartRate.noHeartRateData)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -506,7 +506,7 @@ struct HeartRateChart: View {
             .chartXAxis {
                 AxisMarks(position: .bottom, values: .stride(by: timeStride())) { value in
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel {
                         if let timeValue = value.as(Double.self) {
                             Text(formatChartTime(timeValue))
@@ -518,7 +518,7 @@ struct HeartRateChart: View {
             .chartYAxis {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
                     AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                        .foregroundStyle(Color(.systemGray4))
+                        .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
                             Text("\(intValue) \(CommonContent.Units.bpm))")
