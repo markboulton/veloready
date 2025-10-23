@@ -72,16 +72,11 @@ struct TrainingLoadChart: View {
         )
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 16) {
-                // Header
-                HStack(spacing: 8) {
-                    Text(TrainingLoadContent.title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                }
-                
+            ChartCard(
+                title: TrainingLoadContent.title,
+                subtitle: "21-day CTL/ATL/TSB trend"
+            ) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                 // 37-day line chart with ride impact zone
                 Chart {
                     // Ride impact zone (highlighting this ride)
@@ -256,8 +251,8 @@ struct TrainingLoadChart: View {
                 .frame(height: 200)
                 
                 // Legend and metrics
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.md) {
                         HStack(spacing: 4) {
                             Circle()
                                 .fill(Color.button.primary)
@@ -312,6 +307,7 @@ struct TrainingLoadChart: View {
                     Text(tsbDescription(tsbAfter))
                         .font(.caption)
                         .foregroundColor(Color.text.secondary)
+                }
                 }
             }
             .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
