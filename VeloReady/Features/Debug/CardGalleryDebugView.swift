@@ -147,6 +147,56 @@ struct CardGalleryDebugView: View {
                     )
                     .annotated("OvertrainingRiskCardV2", "Overtraining risk with factors")
                     
+                    // MARK: - Sleep Detail Cards
+                    
+                    sectionHeader("Sleep Detail Cards", subtitle: "Sleep metrics and breakdown")
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: Spacing.md) {
+                        SleepMetricCard(
+                            title: "Duration",
+                            value: "7h 24m",
+                            icon: Icons.Health.sleepFill,
+                            color: ColorScale.sleepCore
+                        )
+                        .annotated("SleepMetricCard", "Sleep metric with icon and color")
+                        
+                        SleepMetricCard(
+                            title: "Efficiency",
+                            value: "92%",
+                            icon: Icons.System.percent,
+                            color: ColorScale.sleepREM
+                        )
+                        .annotated("SleepMetricCard", "Sleep metric variant")
+                    }
+                    
+                    // MARK: - Load Detail Cards
+                    
+                    sectionHeader("Load Detail Cards", subtitle: "Training load breakdown")
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: Spacing.md) {
+                        LoadMetricCard(
+                            title: "Cardio Time",
+                            value: "1h 15m",
+                            icon: "bicycle",
+                            color: .blue
+                        )
+                        .annotated("LoadMetricCard", "Training load metric card")
+                        
+                        LoadMetricCard(
+                            title: "Avg Intensity",
+                            value: "0.87 IF",
+                            icon: "speedometer",
+                            color: .orange
+                        )
+                        .annotated("LoadMetricCard", "Intensity factor display")
+                    }
+                    
                     // MARK: - Empty States
                     
                     sectionHeader("Empty States", subtitle: "Cards with no data")
