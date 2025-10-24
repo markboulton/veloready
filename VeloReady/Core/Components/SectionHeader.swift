@@ -17,7 +17,17 @@ struct SectionHeader: View {
             case .standard:
                 return .heading
             case .monthYear:
-                return .subheadline
+                // Use caption typography: 15pt, regular weight
+                return TypeScale.font(size: TypeScale.sm, weight: .regular)
+            }
+        }
+        
+        var fontWeight: Font.Weight {
+            switch self {
+            case .standard:
+                return .semibold
+            case .monthYear:
+                return .semibold
             }
         }
         
@@ -126,7 +136,7 @@ struct SectionHeader: View {
             // Text content on top
             Text(title)
                 .font(style.font)
-                .fontWeight(.semibold)
+                .fontWeight(style.fontWeight)
                 .foregroundColor(style.color)
                 .textCase(style.textCase)
                 .tracking(style.tracking)
