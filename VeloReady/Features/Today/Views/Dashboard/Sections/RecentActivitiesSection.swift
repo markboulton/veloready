@@ -45,7 +45,7 @@ struct RecentActivitiesSection: View {
                 .allowsHitTesting(false)
         )
         .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm / 2)
+        .padding(.vertical, Spacing.xxl / 2)
     }
 }
 
