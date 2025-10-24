@@ -5,12 +5,34 @@ import MapKit
 /// ViewModel handles all async operations (GPS, geocoding, map snapshots)
 struct LatestActivityCardV2: View {
     @StateObject private var viewModel: LatestActivityCardViewModel
+    @State private var isInitialLoad = true
     
     init(activity: UnifiedActivity) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
     }
     
     var body: some View {
+        Group {
+            if isInitialLoad && viewModel.shouldShowMap {
+                // Show skeleton while initial data loads to prevent layout bounce
+                SkeletonActivityCard()
+            } else {
+                cardContent
+            }
+        }
+        .onAppear {
+            Task {
+                await viewModel.loadData()
+                // Mark initial load complete after data is ready
+                withAnimation(.easeOut(duration: 0.2)) {
+                    isInitialLoad = false
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var cardContent: some View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
@@ -97,11 +119,6 @@ struct LatestActivityCardV2: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .onAppear {
-            Task {
-                await viewModel.loadData()
-            }
-        }
     }
     
     @ViewBuilder

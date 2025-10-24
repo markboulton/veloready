@@ -50,9 +50,10 @@ struct SkeletonStatsCard: View {
 }
 
 /// Skeleton for activity card
+/// Height matches LatestActivityCardV2 with map (~400px total)
 struct SkeletonActivityCard: View {
     var body: some View {
-        SkeletonCard(height: 140)
+        SkeletonCard(height: 400)
     }
 }
 
