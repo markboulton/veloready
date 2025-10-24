@@ -36,12 +36,16 @@ struct VeloReadyApp: App {
         }
         
         // Backfill historical physio data for charts (one-time on first launch)
-        Task {
+        // Run in detached task so it doesn't block app startup
+        Task.detached {
             let hasBackfilled = UserDefaults.standard.bool(forKey: "hasBackfilledPhysioData")
             if !hasBackfilled {
-                Logger.data("📊 [PHYSIO BACKFILL] First launch - backfilling historical data...")
+                Logger.data("📊 [PHYSIO BACKFILL] First launch - backfilling historical data in background...")
                 await CacheManager.shared.backfillHistoricalPhysioData(days: 60)
-                UserDefaults.standard.set(true, forKey: "hasBackfilledPhysioData")
+                await MainActor.run {
+                    UserDefaults.standard.set(true, forKey: "hasBackfilledPhysioData")
+                    Logger.debug("✅ [PHYSIO BACKFILL] Completed in background")
+                }
             }
         }
         

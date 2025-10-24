@@ -295,9 +295,7 @@ class TodayViewModel: ObservableObject {
         
         // PHASE 3: Defer ALL heavy operations to background
         Task {
-            Logger.debug("⏰ [SPINNER] Starting 1-second delay before data refresh")
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
-            Logger.debug("🎯 PHASE 3: Starting background data refresh...")
+            Logger.debug("🎯 PHASE 3: Starting background data refresh immediately...")
             await refreshData()
             
             // Mark as initialized and data loaded with smooth transition

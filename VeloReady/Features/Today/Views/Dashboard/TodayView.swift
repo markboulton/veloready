@@ -543,9 +543,10 @@ struct TodayView: View {
             await viewModel.loadInitialUI()
             Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
             Task {
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                // Start live activity updates immediately
                 liveActivityService.startAutoUpdates()
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                // Short delay before wellness analysis to avoid blocking UI
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
                 await wellnessService.analyzeHealthTrends()
                 // Run illness detection after wellness analysis
                 await illnessService.analyzeHealthTrends()
