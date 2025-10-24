@@ -14,6 +14,14 @@ struct InteractiveMapView: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> UIView {
+        print("🗺️ [InteractiveMapView] makeUIView called")
+        print("🗺️ [InteractiveMapView] Coordinates count: \(coordinates.count)")
+        print("🗺️ [InteractiveMapView] Heart rates count: \(heartRates?.count ?? 0)")
+        if let hrs = heartRates, !hrs.isEmpty {
+            let avgHR = hrs.reduce(0, +) / Double(hrs.count)
+            print("🗺️ [InteractiveMapView] Average HR: \(avgHR) bpm")
+        }
+        
         let containerView = UIView()
         
         let mapView = MKMapView()
@@ -145,17 +153,25 @@ struct InteractiveMapView: UIViewRepresentable {
         }
         
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            print("🗺️ [Coordinator] rendererFor overlay called")
+            
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
+                
+                print("🗺️ [Coordinator] Heart rates available: \(heartRates != nil)")
+                print("🗺️ [Coordinator] Heart rates count: \(heartRates?.count ?? 0)")
                 
                 // If we have heart rate data, use gradient coloring
                 if let heartRates = heartRates, !heartRates.isEmpty {
                     // Use gradient from green (low HR) to red (high HR)
                     // For now, use average HR to determine color
                     let avgHR = heartRates.reduce(0, +) / Double(heartRates.count)
-                    renderer.strokeColor = colorForHeartRate(avgHR)
+                    let color = colorForHeartRate(avgHR)
+                    print("🗺️ [Coordinator] ✅ Using HR gradient - Avg HR: \(avgHR) bpm, Color: \(color)")
+                    renderer.strokeColor = color
                 } else {
                     // Default blue color
+                    print("🗺️ [Coordinator] ❌ No HR data - using default blue")
                     renderer.strokeColor = .systemBlue
                 }
                 
