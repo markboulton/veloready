@@ -16,15 +16,33 @@ struct InteractiveMapView: UIViewRepresentable {
     @State private var isLocked: Bool = true  // Start locked
     
     init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil, paces: [Double]? = nil) {
-        self.coordinates = coordinates
-        
-        // Determine gradient type
-        if let paces = paces, !paces.isEmpty {
-            self.gradientData = .pace(paces)
-        } else if let hrs = heartRates, !hrs.isEmpty {
-            self.gradientData = .heartRate(hrs)
+        // Downsample for performance if needed (max 500 segments)
+        let maxSegments = 500
+        if coordinates.count > maxSegments {
+            let step = coordinates.count / maxSegments
+            self.coordinates = stride(from: 0, to: coordinates.count, by: max(step, 1)).map { coordinates[$0] }
+            
+            // Downsample gradient data to match
+            if let unwrappedPaces = paces, !unwrappedPaces.isEmpty {
+                let downsampledPaces = stride(from: 0, to: unwrappedPaces.count, by: max(step, 1)).map { unwrappedPaces[$0] }
+                self.gradientData = .pace(downsampledPaces)
+            } else if let unwrappedHRs = heartRates, !unwrappedHRs.isEmpty {
+                let downsampledHRs = stride(from: 0, to: unwrappedHRs.count, by: max(step, 1)).map { unwrappedHRs[$0] }
+                self.gradientData = .heartRate(downsampledHRs)
+            } else {
+                self.gradientData = .none
+            }
+            
+            print("🗺️ [Performance] Downsampled \(coordinates.count) → \(self.coordinates.count) coordinates for map rendering")
         } else {
-            self.gradientData = .none
+            self.coordinates = coordinates
+            if let paces = paces, !paces.isEmpty {
+                self.gradientData = .pace(paces)
+            } else if let hrs = heartRates, !hrs.isEmpty {
+                self.gradientData = .heartRate(hrs)
+            } else {
+                self.gradientData = .none
+            }
         }
     }
     
