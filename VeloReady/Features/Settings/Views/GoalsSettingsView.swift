@@ -6,10 +6,9 @@ struct GoalsSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            Form {
-                // Step Goals
-                Section {
+        Form {
+            // Step Goals
+            Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Daily Step Target")
                             .font(.subheadline)
@@ -112,17 +111,9 @@ struct GoalsSettingsView: View {
                 } footer: {
                     Text("Set your nightly sleep target. This is used to calculate your sleep performance score.")
                 }
-            }
-            .navigationTitle("Goals")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(CommonContent.done) {
-                        dismiss()
-                    }
-                }
-            }
         }
+        .navigationTitle("Goals")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

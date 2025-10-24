@@ -60,14 +60,8 @@ struct RecoveryDetailView: View {
         }
         .navigationTitle(RecoveryContent.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                CircularBackButton(action: { dismiss() })
-            }
-        }
+        .adaptiveToolbarBackground(.hidden, for: .navigationBar)
+        .adaptiveToolbarColorScheme(.dark, for: .navigationBar)
     }
     
     // MARK: - Weekly Trend Section (Pro)

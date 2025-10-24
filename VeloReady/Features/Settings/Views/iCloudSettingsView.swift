@@ -10,8 +10,7 @@ struct iCloudSettingsView: View {
     @State private var showingRestoreError = false
     
     var body: some View {
-        NavigationView {
-            List {
+        List {
                 // iCloud Status Section
                 Section {
                     HStack {
@@ -176,16 +175,9 @@ struct iCloudSettingsView: View {
                         .padding(.vertical, 8)
                     }
                 }
-            }
-            .navigationTitle(iCloudSyncContent.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(CommonContent.Actions.done) {
-                        dismiss()
-                    }
-                }
-            }
+        }
+        .navigationTitle(iCloudSyncContent.title)
+        .navigationBarTitleDisplayMode(.inline)
             .alert(iCloudSyncContent.Alerts.restoreTitle, isPresented: $showingRestoreConfirmation) {
                 Button(iCloudSyncContent.Alerts.cancel, role: .cancel) { }
                 Button(iCloudSyncContent.Alerts.restoreConfirm, role: .destructive) {
@@ -211,7 +203,6 @@ struct iCloudSettingsView: View {
             } message: {
                 Text(syncService.syncError ?? "Failed to restore data from iCloud. Please try again.")
             }
-        }
     }
 }
 
