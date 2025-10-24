@@ -50,12 +50,15 @@ struct TodayView: View {
                 ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
-                        // Invisible geometry reader to track scroll offset
+                        // Invisible geometry reader to track scroll offset and parent width
                         GeometryReader { geometry in
                             Color.clear.preference(
                                 key: ScrollOffsetPreferenceKey.self,
                                 value: geometry.frame(in: .named("scroll")).minY
                             )
+                            .onAppear {
+                                Logger.debug("📱 TodayView - LazyVStack parent width: \(geometry.size.width)")
+                            }
                         }
                         .frame(height: 0)
                         
