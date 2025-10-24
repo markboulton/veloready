@@ -25,7 +25,7 @@ struct RecoveryMetricsSection: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Show empty state rings when HealthKit is not authorized
                 if !isHealthKitAuthorized {
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.lg) {
                         // Recovery (left)
                         EmptyStateRingView(
                             title: TodayContent.recoverySection,
@@ -52,7 +52,7 @@ struct RecoveryMetricsSection: View {
                     }
                 } else {
                     // Show actual data when HealthKit is authorized
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.lg) {
                         recoveryScoreView
                         sleepScoreView
                         loadScoreView
