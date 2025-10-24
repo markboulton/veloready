@@ -5,7 +5,8 @@ import SwiftUI
 /// - Outer circle: pulses (scales 1.0 → 1.2 → 1.0)
 /// - Inner circle: scales up (0 → 1)
 struct PulseScaleLoader: View {
-    @State private var animationPhase: Double = 0
+    @State private var outerScale: CGFloat = 1.0
+    @State private var innerScale: CGFloat = 0.0
     
     let size: CGFloat = 48
     let borderWidth: CGFloat = 5
@@ -17,50 +18,60 @@ struct PulseScaleLoader: View {
             Circle()
                 .stroke(color, lineWidth: borderWidth)
                 .frame(width: size, height: size)
-                .scaleEffect(outerCircleScale)
+                .scaleEffect(outerScale)
             
             // Inner circle - scale up animation
             Circle()
                 .stroke(color, lineWidth: borderWidth)
                 .frame(width: size, height: size)
-                .scaleEffect(innerCircleScale)
+                .scaleEffect(innerScale)
         }
         .onAppear {
             startAnimation()
         }
     }
     
-    // Outer circle: pulse animation
-    // 0-60%: scale 1.0, 60-80%: scale 1.2, 80-100%: scale 1.0
-    private var outerCircleScale: CGFloat {
-        let normalized = animationPhase.truncatingRemainder(dividingBy: 1.0)
-        
-        if normalized < 0.6 || normalized >= 0.8 {
-            return 1.0
-        } else {
-            // 60-80%: interpolate from 1.0 to 1.2 to 1.0
-            let localProgress = (normalized - 0.6) / 0.2
-            return 1.0 + (0.2 * sin(localProgress * .pi))
-        }
-    }
-    
-    // Inner circle: scale up animation
-    // 0-60%: scale 0, 60-100%: scale 1
-    private var innerCircleScale: CGFloat {
-        let normalized = animationPhase.truncatingRemainder(dividingBy: 1.0)
-        
-        if normalized < 0.6 {
-            return 0.0
-        } else {
-            // 60-100%: interpolate from 0 to 1
-            let localProgress = (normalized - 0.6) / 0.4
-            return localProgress
-        }
-    }
-    
     private func startAnimation() {
-        withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
-            animationPhase = 1.0
+        // Outer circle animation: pulse
+        // 0-60%: 1.0, 60-80%: 1.2, 80-100%: 1.0
+        let outerSequence: [(duration: Double, scale: CGFloat)] = [
+            (duration: 0.6, scale: 1.0),
+            (duration: 0.2, scale: 1.2),
+            (duration: 0.2, scale: 1.0)
+        ]
+        
+        // Inner circle animation: scale up
+        // 0-60%: 0, 60-100%: 1
+        let innerSequence: [(duration: Double, scale: CGFloat)] = [
+            (duration: 0.6, scale: 0.0),
+            (duration: 0.4, scale: 1.0)
+        ]
+        
+        animateOuter(sequence: outerSequence, index: 0)
+        animateInner(sequence: innerSequence, index: 0)
+    }
+    
+    private func animateOuter(sequence: [(duration: Double, scale: CGFloat)], index: Int) {
+        let current = sequence[index % sequence.count]
+        
+        withAnimation(.linear(duration: current.duration)) {
+            outerScale = current.scale
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + current.duration) {
+            animateOuter(sequence: sequence, index: index + 1)
+        }
+    }
+    
+    private func animateInner(sequence: [(duration: Double, scale: CGFloat)], index: Int) {
+        let current = sequence[index % sequence.count]
+        
+        withAnimation(.linear(duration: current.duration)) {
+            innerScale = current.scale
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + current.duration) {
+            animateInner(sequence: sequence, index: index + 1)
         }
     }
 }
