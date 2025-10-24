@@ -270,7 +270,7 @@ class TodayViewModel: ObservableObject {
         await healthKitManager.refreshAuthorizationStatus()
     }
     
-    /// PHASE 2: Load UI framework only (skeleton/empty state) - no heavy operations
+    /// PHASE 1: 2-second branded loading - load critical data for rings
     func loadInitialUI() async {
         Logger.debug("🔄 [SPINNER] loadInitialUI called - hasLoadedInitialUI=\(hasLoadedInitialUI), isInitializing=\(isInitializing)")
         // Guard against multiple calls
@@ -281,35 +281,119 @@ class TodayViewModel: ObservableObject {
         hasLoadedInitialUI = true
         
         let startTime = CFAbsoluteTimeGetCurrent()
-        Logger.debug("🎯 PHASE 2: Loading UI framework (skeleton/empty state)")
+        Logger.debug("🎯 PHASE 1: 2-second branded loading - loading critical data for rings")
         
-        // Set HealthKit status immediately (lightweight)
+        // Set HealthKit status immediately
         isHealthKitAuthorized = healthKitManager.isAuthorized
         
-        // Load only cached data for instant UI (no network calls)
+        // Load cached data first (instant)
         loadCachedDataOnly()
         
-        let endTime = CFAbsoluteTimeGetCurrent()
-        let startupTime = endTime - startTime
-        Logger.debug("⚡ PHASE 2: UI framework loaded in \(String(format: "%.3f", startupTime))s")
+        // Calculate ONLY the critical scores for the rings (recovery, sleep, strain)
+        // This should be fast if data is cached
+        Logger.debug("⚡ Loading critical scores for rings...")
+        async let sleepTask: Void = sleepScoreService.calculateSleepScore()
+        async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
+        async let strainTask: Void = strainScoreService.calculateStrainScore()
         
-        // PHASE 3: Show UI immediately, then refresh in background
-        // Mark as initialized FIRST to show UI fast
-        Logger.debug("🎬 [SPINNER] Setting isInitializing = false for fast UI display")
+        // Wait for all three to complete
+        _ = await sleepTask
+        _ = await recoveryTask
+        _ = await strainTask
+        Logger.debug("✅ Critical scores loaded for rings")
+        
+        // Ensure minimum 2-second branded loading experience
+        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+        let remainingTime = max(0, 2.0 - elapsed)
+        if remainingTime > 0 {
+            Logger.debug("⏰ Waiting \(String(format: "%.2f", remainingTime))s to complete 2-second branded loading")
+            try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
+        }
+        
+        let totalTime = CFAbsoluteTimeGetCurrent() - startTime
+        Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.2f", totalTime))s")
+        
+        // PHASE 2: Show UI with rings populated, skeletons for rest
+        Logger.debug("🎬 [SPINNER] PHASE 2: Showing UI with rings populated")
         await MainActor.run {
             withAnimation(.easeOut(duration: 0.3)) {
                 isInitializing = false
                 isDataLoaded = true
             }
         }
-        Logger.debug("✅ PHASE 3: UI displayed - starting background refresh...")
+        Logger.debug("✅ PHASE 2: UI displayed with rings")
         
-        // PHASE 4: Background refresh (doesn't block UI)
+        // PHASE 3: Background refresh for everything else (activities, etc.)
         Task {
-            Logger.debug("🎯 PHASE 4: Background data refresh starting...")
-            await refreshData()
-            Logger.debug("✅ PHASE 4: Background data refresh completed")
+            Logger.debug("🎯 PHASE 3: Background refresh for activities and other data...")
+            await refreshActivitiesAndOtherData()
+            Logger.debug("✅ PHASE 3: Background refresh completed")
         }
+    }
+    
+    /// Load activities and other non-critical data in background
+    private func refreshActivitiesAndOtherData() async {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // Fetch activities from all connected sources
+        var intervalsActivities: [IntervalsActivity] = []
+        var wellness: [IntervalsWellness] = []
+        do {
+            intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: false)
+            wellness = try await intervalsCache.getCachedWellness(apiClient: apiClient, forceRefresh: false)
+            Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
+        } catch {
+            Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
+        }
+        
+        // Fetch Strava activities
+        await stravaDataService.fetchActivitiesIfNeeded()
+        let stravaActivities = stravaDataService.activities
+        
+        // Fetch Apple Health workouts
+        let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
+        Logger.debug("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
+        
+        // Update activities
+        recentActivities = Array(intervalsActivities.prefix(15))
+        wellnessData = wellness
+        
+        // Convert to unified format
+        var intervalsUnified: [UnifiedActivity] = []
+        var stravaFilteredCount = 0
+        
+        for intervalsActivity in intervalsActivities {
+            if let source = intervalsActivity.source, source.uppercased() == "STRAVA" {
+                stravaFilteredCount += 1
+                continue
+            }
+            intervalsUnified.append(UnifiedActivity(from: intervalsActivity))
+        }
+        
+        let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
+        let healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
+        
+        // Deduplicate activities
+        let deduplicated = deduplicationService.deduplicateActivities(
+            intervalsActivities: intervalsUnified,
+            stravaActivities: stravaUnified,
+            appleHealthActivities: healthUnified
+        )
+        
+        // Sort and update
+        unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
+        
+        // Save to Core Data cache
+        do {
+            try await cacheManager.refreshToday()
+            await cacheManager.calculateMissingCTLATL()
+        } catch {
+            Logger.error("Failed to save to Core Data cache: \(error)")
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let totalTime = endTime - startTime
+        Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")
     }
     
     /// Load only cached data without any network calls or heavy calculations
