@@ -459,7 +459,6 @@ struct WorkoutChartsSection: View {
                 maxHR: maxHR
             )
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 20)
     }
 }

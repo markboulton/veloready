@@ -69,7 +69,7 @@ struct ChartStyle {
     static let chartHeight: CGFloat = 160
     static let chartCornerRadius: CGFloat = 0
     static let chartStrokeWidth: CGFloat = 1
-    static let chartPadding: CGFloat = 64
+    static let chartPadding: CGFloat = 32  // Reduced from 64 for tighter spacing
     
     static let backgroundColor = Color.background.primary
     static let foregroundColor = Color.text.primary
