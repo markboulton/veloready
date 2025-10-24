@@ -35,11 +35,20 @@ struct ActivitiesView: View {
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .adaptiveToolbarBackground(.hidden, for: .navigationBar)
+            .adaptiveToolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    CircularFilterButton(action: { showingFilterSheet = true })
+                    if #available(iOS 26.0, *) {
+                        // iOS 26+ - Native toolbar button like Apple Mail
+                        Button(action: { showingFilterSheet = true }) {
+                            Label(ActivitiesContent.filterButton, systemImage: Icons.System.menuDecrease)
+                        }
+                        .labelStyle(.iconOnly)
+                    } else {
+                        // iOS 25 and earlier - Custom circular button
+                        CircularFilterButton(action: { showingFilterSheet = true })
+                    }
                 }
             }
             .sheet(isPresented: $showingFilterSheet) {
