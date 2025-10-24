@@ -16,6 +16,7 @@ class ActivityDetailViewModel: ObservableObject {
     @Published var chartSamples: [Any] = []
     @Published var workoutSamples: [WorkoutSample] = []
     @Published var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
+    @Published var paceSamples: [Double] = []  // Pace in min/km for walking workouts
     
     // Cache for raw (non-downsampled) data
     private var rawWorkoutSamples: [WorkoutSample] = []
@@ -234,6 +235,7 @@ class ActivityDetailViewModel: ObservableObject {
     private func loadRouteLocations(route: HKWorkoutRoute) async {
         await withCheckedContinuation { continuation in
             var coordinates: [CLLocationCoordinate2D] = []
+            var paces: [Double] = []
             
             let query = HKWorkoutRouteQuery(route: route) { [weak self] _, locations, done, error in
                 guard let self = self else {
@@ -249,13 +251,26 @@ class ActivityDetailViewModel: ObservableObject {
                 
                 if let locations = locations {
                     coordinates.append(contentsOf: locations.map { $0.coordinate })
+                    
+                    // Calculate pace from speed for walking workouts
+                    for location in locations {
+                        let speedMps = location.speed  // meters per second
+                        if speedMps > 0 {
+                            // Convert m/s to min/km
+                            let paceMinPerKm = (1000.0 / speedMps) / 60.0
+                            paces.append(paceMinPerKm)
+                        } else {
+                            paces.append(10.0)  // Default pace
+                        }
+                    }
                 }
                 
                 if done {
                     Task { @MainActor in
                         if !coordinates.isEmpty {
-                            Logger.debug("✅ Loaded \(coordinates.count) route points")
+                            Logger.debug("✅ Loaded \(coordinates.count) route points with pace data")
                             self.routeCoordinates = coordinates
+                            self.paceSamples = paces
                         }
                         continuation.resume()
                     }

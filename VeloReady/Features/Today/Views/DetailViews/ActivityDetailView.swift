@@ -34,6 +34,8 @@ struct ActivityDetailView: View {
                         VStack(spacing: 0) {
                             InteractiveWorkoutMapSection(
                                 coordinates: viewModel.routeCoordinates,
+                                heartRates: activityData.type == .walking ? nil : viewModel.heartRateSamples.map { $0.heartRate },
+                                paces: activityData.type == .walking ? viewModel.paceSamples : nil,
                                 isLoading: viewModel.isLoadingMap
                             )
                         }
@@ -378,7 +380,16 @@ struct ActivityInfoHeader: View {
 
 struct InteractiveWorkoutMapSection: View {
     let coordinates: [CLLocationCoordinate2D]
+    let heartRates: [Double]?
+    let paces: [Double]?
     let isLoading: Bool
+    
+    init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil, paces: [Double]? = nil, isLoading: Bool) {
+        self.coordinates = coordinates
+        self.heartRates = heartRates
+        self.paces = paces
+        self.isLoading = isLoading
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -389,7 +400,7 @@ struct InteractiveWorkoutMapSection: View {
                     ProgressView()
                 }
             } else if !coordinates.isEmpty {
-                InteractiveMapView(coordinates: coordinates)
+                InteractiveMapView(coordinates: coordinates, heartRates: heartRates, paces: paces)
                     .frame(height: UIScreen.main.bounds.width - 32) // Square
             } else {
                 ZStack {

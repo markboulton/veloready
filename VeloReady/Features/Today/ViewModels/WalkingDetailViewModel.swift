@@ -7,6 +7,7 @@ import SwiftUI
 class WalkingDetailViewModel: ObservableObject {
     @Published var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
     @Published var routeCoordinates: [CLLocationCoordinate2D]?
+    @Published var paceSamples: [Double] = []  // Pace in min/km for each GPS point
     @Published var hasRoute = false
     @Published var mapSnapshot: UIImage?
     @Published var isLoadingMap = false
@@ -161,6 +162,7 @@ class WalkingDetailViewModel: ObservableObject {
     private func loadRouteLocations(route: HKWorkoutRoute) async {
         await withCheckedContinuation { continuation in
             var coordinates: [CLLocationCoordinate2D] = []
+            var paces: [Double] = []
             
             let query = HKWorkoutRouteQuery(route: route) { [weak self] _, locations, done, error in
                 guard let self = self else {
@@ -176,11 +178,25 @@ class WalkingDetailViewModel: ObservableObject {
                 
                 if let locations = locations {
                     coordinates.append(contentsOf: locations.map { $0.coordinate })
+                    
+                    // Calculate pace from speed (m/s to min/km)
+                    for location in locations {
+                        let speedMps = location.speed  // meters per second
+                        if speedMps > 0 {
+                            // Convert m/s to min/km: (1000m / speed) / 60s
+                            let paceMinPerKm = (1000.0 / speedMps) / 60.0
+                            paces.append(paceMinPerKm)
+                        } else {
+                            // Default to 10 min/km if speed is 0 or negative
+                            paces.append(10.0)
+                        }
+                    }
                 }
                 
                 if done {
                     Task { @MainActor in
                         self.routeCoordinates = coordinates
+                        self.paceSamples = paces
                         self.hasRoute = !coordinates.isEmpty
                         
                         if let first = coordinates.first {
@@ -190,7 +206,11 @@ class WalkingDetailViewModel: ObservableObject {
                             )
                         }
                         
-                        Logger.debug("✅ Loaded \(coordinates.count) route points")
+                        Logger.debug("✅ Loaded \(coordinates.count) route points with pace data")
+                        if !paces.isEmpty {
+                            let avgPace = paces.reduce(0, +) / Double(paces.count)
+                            Logger.debug("   Average pace: \(String(format: "%.2f", avgPace)) min/km")
+                        }
                         continuation.resume()
                     }
                 }

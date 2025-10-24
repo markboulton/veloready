@@ -472,8 +472,16 @@ struct WorkoutChartsSection: View {
 
 struct WorkoutMapSection: View {
     let coordinates: [CLLocationCoordinate2D]
-    let heartRates: [Double]
+    let heartRates: [Double]?
+    let paces: [Double]?
     let isLoading: Bool
+    
+    init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil, paces: [Double]? = nil, isLoading: Bool) {
+        self.coordinates = coordinates
+        self.heartRates = heartRates
+        self.paces = paces
+        self.isLoading = isLoading
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -486,7 +494,7 @@ struct WorkoutMapSection: View {
                         .tint(Color.button.primary)
                 }
             } else if !coordinates.isEmpty {
-                InteractiveMapView(coordinates: coordinates, heartRates: heartRates)
+                InteractiveMapView(coordinates: coordinates, heartRates: heartRates, paces: paces)
                     .frame(height: 300)
             } else {
                 ZStack {

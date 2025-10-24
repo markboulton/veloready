@@ -1,25 +1,46 @@
 import SwiftUI
 import MapKit
 
-/// Interactive map view that allows pinch-to-zoom and panning
+/// Data type for gradient coloring
+enum GradientDataType {
+    case heartRate([Double])  // HR values in bpm
+    case pace([Double])       // Pace values in min/km
+    case none
+}
+
+/// Interactive map view that allows pinch-to-zoom and panning with gradient coloring
 struct InteractiveMapView: UIViewRepresentable {
     let coordinates: [CLLocationCoordinate2D]
-    let heartRates: [Double]?  // Optional heart rate data for gradient
+    let gradientData: GradientDataType
     @Environment(\.colorScheme) var colorScheme
     @State private var isLocked: Bool = true  // Start locked
     
-    init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil) {
+    init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil, paces: [Double]? = nil) {
         self.coordinates = coordinates
-        self.heartRates = heartRates
+        
+        // Determine gradient type
+        if let paces = paces, !paces.isEmpty {
+            self.gradientData = .pace(paces)
+        } else if let hrs = heartRates, !hrs.isEmpty {
+            self.gradientData = .heartRate(hrs)
+        } else {
+            self.gradientData = .none
+        }
     }
     
     func makeUIView(context: Context) -> UIView {
         print("🗺️ [InteractiveMapView] makeUIView called")
         print("🗺️ [InteractiveMapView] Coordinates count: \(coordinates.count)")
-        print("🗺️ [InteractiveMapView] Heart rates count: \(heartRates?.count ?? 0)")
-        if let hrs = heartRates, !hrs.isEmpty {
+        
+        switch gradientData {
+        case .heartRate(let hrs):
             let avgHR = hrs.reduce(0, +) / Double(hrs.count)
-            print("🗺️ [InteractiveMapView] Average HR: \(avgHR) bpm")
+            print("🗺️ [InteractiveMapView] Using HR gradient: \(hrs.count) samples, avg \(avgHR) bpm")
+        case .pace(let paces):
+            let avgPace = paces.reduce(0, +) / Double(paces.count)
+            print("🗺️ [InteractiveMapView] Using pace gradient: \(paces.count) samples, avg \(avgPace) min/km")
+        case .none:
+            print("🗺️ [InteractiveMapView] No gradient data - using default blue")
         }
         
         let containerView = UIView()
@@ -39,10 +60,10 @@ struct InteractiveMapView: UIViewRepresentable {
             mapView.preferredConfiguration = config
         }
         
-        // Add route overlay
+        // Add route overlay(s) - segmented for gradient
         if !coordinates.isEmpty {
-            let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
-            mapView.addOverlay(polyline)
+            let overlays = createGradientOverlays(coordinates: coordinates, gradientData: gradientData)
+            mapView.addOverlays(overlays)
             
             // Fit region to show entire route
             let region = regionForCoordinates(coordinates)
@@ -127,7 +148,7 @@ struct InteractiveMapView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(heartRates: heartRates)
+        Coordinator(gradientData: gradientData)
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
@@ -135,10 +156,10 @@ struct InteractiveMapView: UIViewRepresentable {
         weak var lockButton: UIButton?
         var isLocked = true
         var currentColorScheme: ColorScheme = .light
-        let heartRates: [Double]?
+        let gradientData: GradientDataType
         
-        init(heartRates: [Double]?) {
-            self.heartRates = heartRates
+        init(gradientData: GradientDataType) {
+            self.gradientData = gradientData
             super.init()
         }
         
@@ -153,28 +174,9 @@ struct InteractiveMapView: UIViewRepresentable {
         }
         
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            print("🗺️ [Coordinator] rendererFor overlay called")
-            
-            if let polyline = overlay as? MKPolyline {
-                let renderer = MKPolylineRenderer(polyline: polyline)
-                
-                print("🗺️ [Coordinator] Heart rates available: \(heartRates != nil)")
-                print("🗺️ [Coordinator] Heart rates count: \(heartRates?.count ?? 0)")
-                
-                // If we have heart rate data, use gradient coloring
-                if let heartRates = heartRates, !heartRates.isEmpty {
-                    // Use gradient from green (low HR) to red (high HR)
-                    // For now, use average HR to determine color
-                    let avgHR = heartRates.reduce(0, +) / Double(heartRates.count)
-                    let color = colorForHeartRate(avgHR)
-                    print("🗺️ [Coordinator] ✅ Using HR gradient - Avg HR: \(avgHR) bpm, Color: \(color)")
-                    renderer.strokeColor = color
-                } else {
-                    // Default blue color
-                    print("🗺️ [Coordinator] ❌ No HR data - using default blue")
-                    renderer.strokeColor = .systemBlue
-                }
-                
+            if let coloredPolyline = overlay as? ColoredPolyline {
+                let renderer = MKPolylineRenderer(polyline: coloredPolyline)
+                renderer.strokeColor = coloredPolyline.color
                 renderer.lineWidth = 4.0
                 renderer.lineCap = .round
                 renderer.lineJoin = .round
@@ -183,30 +185,6 @@ struct InteractiveMapView: UIViewRepresentable {
             return MKOverlayRenderer(overlay: overlay)
         }
         
-        /// Get color for heart rate value (green → yellow → amber → red)
-        /// Uses standard HR zones: Z1-Z2 green, Z3 yellow, Z4 orange, Z5 red
-        private func colorForHeartRate(_ hr: Double) -> UIColor {
-            // Estimate max HR if not known (220 - age, assume age 35 = 185 max HR)
-            let estimatedMaxHR = 185.0
-            let hrPercent = (hr / estimatedMaxHR) * 100
-            
-            // HR Zones based on % of max HR:
-            // Z1-Z2 (50-70%): Green (easy/recovery)
-            // Z3 (70-80%): Yellow (tempo)
-            // Z4 (80-90%): Orange (threshold)
-            // Z5 (90-100%): Red (VO2 max)
-            
-            switch hrPercent {
-            case ..<70:
-                return UIColor.systemGreen
-            case 70..<80:
-                return UIColor.systemYellow
-            case 80..<90:
-                return UIColor.systemOrange
-            default:
-                return UIColor.systemRed
-            }
-        }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             let identifier = CommonContent.MapAnnotations.routePoint
@@ -288,4 +266,103 @@ struct InteractiveMapView: UIViewRepresentable {
         
         return MKCoordinateRegion(center: center, span: span)
     }
+    
+    /// Create gradient overlays by segmenting the route
+    private func createGradientOverlays(coordinates: [CLLocationCoordinate2D], gradientData: GradientDataType) -> [MKOverlay] {
+        guard coordinates.count > 1 else { return [] }
+        
+        switch gradientData {
+        case .heartRate(let hrs):
+            return createHRGradientSegments(coordinates: coordinates, heartRates: hrs)
+        case .pace(let paces):
+            return createPaceGradientSegments(coordinates: coordinates, paces: paces)
+        case .none:
+            // Single blue polyline
+            return [MKPolyline(coordinates: coordinates, count: coordinates.count)]
+        }
+    }
+    
+    /// Create HR gradient segments
+    private func createHRGradientSegments(coordinates: [CLLocationCoordinate2D], heartRates: [Double]) -> [MKOverlay] {
+        guard coordinates.count == heartRates.count, coordinates.count > 1 else {
+            return [MKPolyline(coordinates: coordinates, count: coordinates.count)]
+        }
+        
+        var segments: [MKOverlay] = []
+        
+        // Create segments between each pair of points
+        for i in 0..<(coordinates.count - 1) {
+            let segmentCoords = [coordinates[i], coordinates[i + 1]]
+            let avgHR = (heartRates[i] + heartRates[i + 1]) / 2
+            let color = colorForHeartRate(avgHR)
+            
+            let polyline = ColoredPolyline(coordinates: segmentCoords, count: 2)
+            polyline.color = color
+            segments.append(polyline)
+        }
+        
+        print("🗺️ [Gradient] Created \(segments.count) HR gradient segments")
+        return segments
+    }
+    
+    /// Create pace gradient segments
+    private func createPaceGradientSegments(coordinates: [CLLocationCoordinate2D], paces: [Double]) -> [MKOverlay] {
+        guard coordinates.count == paces.count, coordinates.count > 1 else {
+            return [MKPolyline(coordinates: coordinates, count: coordinates.count)]
+        }
+        
+        var segments: [MKOverlay] = []
+        
+        // Create segments between each pair of points
+        for i in 0..<(coordinates.count - 1) {
+            let segmentCoords = [coordinates[i], coordinates[i + 1]]
+            let avgPace = (paces[i] + paces[i + 1]) / 2
+            let color = colorForPace(avgPace)
+            
+            let polyline = ColoredPolyline(coordinates: segmentCoords, count: 2)
+            polyline.color = color
+            segments.append(polyline)
+        }
+        
+        print("🗺️ [Gradient] Created \(segments.count) pace gradient segments")
+        return segments
+    }
+    
+    /// Get color for heart rate value (green → yellow → orange → red)
+    private func colorForHeartRate(_ hr: Double) -> UIColor {
+        let estimatedMaxHR = 185.0
+        let hrPercent = (hr / estimatedMaxHR) * 100
+        
+        switch hrPercent {
+        case ..<70:
+            return UIColor.systemGreen
+        case 70..<80:
+            return UIColor.systemYellow
+        case 80..<90:
+            return UIColor.systemOrange
+        default:
+            return UIColor.systemRed
+        }
+    }
+    
+    /// Get color for pace value (green = fast → red = slow)
+    private func colorForPace(_ pace: Double) -> UIColor {
+        // Pace in min/km
+        // Fast: <5:00/km, Medium: 5:00-6:30/km, Slow: >6:30/km
+        switch pace {
+        case ..<5.0:
+            return UIColor.systemGreen  // Fast
+        case 5.0..<5.75:
+            return UIColor.systemYellow  // Medium-fast
+        case 5.75..<6.5:
+            return UIColor.systemOrange  // Medium-slow
+        default:
+            return UIColor.systemRed  // Slow
+        }
+    }
+}
+
+/// Custom polyline that stores its color
+class ColoredPolyline: MKPolyline {
+    var color: UIColor = .systemBlue
 }
