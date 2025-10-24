@@ -33,6 +33,7 @@ struct WalkingDetailView: View {
                 if !isStrengthWorkout {
                     WorkoutMapSection(
                         coordinates: viewModel.routeCoordinates ?? [],
+                        heartRates: [],  // Walking workouts don't have HR data in this view
                         isLoading: viewModel.isLoadingMap
                     )
                 }

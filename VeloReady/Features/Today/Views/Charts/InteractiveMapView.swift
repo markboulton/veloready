@@ -4,7 +4,14 @@ import MapKit
 /// Interactive map view that allows pinch-to-zoom and panning
 struct InteractiveMapView: UIViewRepresentable {
     let coordinates: [CLLocationCoordinate2D]
+    let heartRates: [Double]?  // Optional heart rate data for gradient
+    @Environment(\.colorScheme) var colorScheme
     @State private var isLocked: Bool = true  // Start locked
+    
+    init(coordinates: [CLLocationCoordinate2D], heartRates: [Double]? = nil) {
+        self.coordinates = coordinates
+        self.heartRates = heartRates
+    }
     
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -95,17 +102,37 @@ struct InteractiveMapView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
-        // No updates needed
+        // Update map configuration when color scheme changes
+        guard let mapView = context.coordinator.mapView else { return }
+        
+        let config = MKStandardMapConfiguration()
+        mapView.preferredConfiguration = config
+        
+        // Update lock button colors
+        if let button = context.coordinator.lockButton {
+            button.tintColor = colorScheme == .dark ? .white : .black
+            button.backgroundColor = colorScheme == .dark ? .black : .white
+        }
+        
+        // Store current color scheme in coordinator
+        context.coordinator.currentColorScheme = colorScheme
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(heartRates: heartRates)
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
         weak var mapView: MKMapView?
         weak var lockButton: UIButton?
         var isLocked = true
+        var currentColorScheme: ColorScheme = .light
+        let heartRates: [Double]?
+        
+        init(heartRates: [Double]?) {
+            self.heartRates = heartRates
+            super.init()
+        }
         
         @objc func toggleLock() {
             isLocked.toggle()
@@ -120,13 +147,39 @@ struct InteractiveMapView: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = .systemBlue
-                renderer.lineWidth = 3.0
+                
+                // If we have heart rate data, use gradient coloring
+                if let heartRates = heartRates, !heartRates.isEmpty {
+                    // Use gradient from green (low HR) to red (high HR)
+                    // For now, use average HR to determine color
+                    let avgHR = heartRates.reduce(0, +) / Double(heartRates.count)
+                    renderer.strokeColor = colorForHeartRate(avgHR)
+                } else {
+                    // Default blue color
+                    renderer.strokeColor = .systemBlue
+                }
+                
+                renderer.lineWidth = 4.0
                 renderer.lineCap = .round
                 renderer.lineJoin = .round
                 return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
+        }
+        
+        /// Get color for heart rate value (green → yellow → amber → red)
+        private func colorForHeartRate(_ hr: Double) -> UIColor {
+            // Assume HR zones: <120 green, 120-140 yellow, 140-160 amber, >160 red
+            switch hr {
+            case ..<120:
+                return UIColor.systemGreen
+            case 120..<140:
+                return UIColor.systemYellow
+            case 140..<160:
+                return UIColor.systemOrange
+            default:
+                return UIColor.systemRed
+            }
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

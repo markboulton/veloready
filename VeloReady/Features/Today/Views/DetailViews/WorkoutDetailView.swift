@@ -142,6 +142,7 @@ struct WorkoutDetailView: View {
                     if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
                         WorkoutMapSection(
                             coordinates: routeCoordinates,
+                            heartRates: samples.map { $0.heartRate },
                             isLoading: isLoadingMap
                         )
                     }
@@ -467,6 +468,7 @@ struct WorkoutChartsSection: View {
 
 struct WorkoutMapSection: View {
     let coordinates: [CLLocationCoordinate2D]
+    let heartRates: [Double]
     let isLoading: Bool
     
     var body: some View {
@@ -480,7 +482,7 @@ struct WorkoutMapSection: View {
                         .tint(Color.button.primary)
                 }
             } else if !coordinates.isEmpty {
-                InteractiveMapView(coordinates: coordinates)
+                InteractiveMapView(coordinates: coordinates, heartRates: heartRates)
                     .frame(height: 300)
             } else {
                 ZStack {
