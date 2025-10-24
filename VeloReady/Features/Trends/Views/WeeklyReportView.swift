@@ -73,11 +73,16 @@ struct WeeklyReportView: View {
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
+        .scrollDisabled(false) // Ensure vertical scrolling works
         .background(Color.background.app)
-        .gesture(
-            DragGesture()
-                .onChanged { _ in }
-                .onEnded { _ in }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onChanged { value in
+                    // Block horizontal scrolling by only allowing vertical
+                    if abs(value.translation.width) > abs(value.translation.height) {
+                        // Horizontal drag detected - do nothing to block it
+                    }
+                }
         )
         .task {
             await viewModel.loadWeeklyReport()

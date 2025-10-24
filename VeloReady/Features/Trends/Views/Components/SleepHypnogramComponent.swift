@@ -15,9 +15,9 @@ struct SleepHypnogramComponent: View {
                     .font(.caption)
                     .foregroundColor(.text.secondary)
             } else {
-                // Segmented control for day selection (limit to last 3 days to avoid overflow)
+                // Segmented control for day selection (limit to last 7 days to avoid overflow)
                 if hypnograms.count > 1 {
-                    let displayedHypnograms = Array(hypnograms.suffix(min(3, hypnograms.count)))
+                    let displayedHypnograms = Array(hypnograms.suffix(min(7, hypnograms.count)))
                     let startIndex = hypnograms.count - displayedHypnograms.count
                     
                     LiquidGlassSegmentedControl(
@@ -33,7 +33,7 @@ struct SleepHypnogramComponent: View {
                     .padding(.bottom, 8)
                     
                     // Show indicator if there are more days available
-                    if hypnograms.count > 3 {
+                    if hypnograms.count > 7 {
                         Text("\(hypnograms.count) days available")
                             .font(.caption2)
                             .foregroundColor(.text.tertiary)
