@@ -86,7 +86,6 @@ struct WalkingDetailView: View {
                     .frame(height: 200)
             }
         }
-        .padding(.horizontal, -Spacing.xl)
     }
     
     // MARK: - Workout Type Section

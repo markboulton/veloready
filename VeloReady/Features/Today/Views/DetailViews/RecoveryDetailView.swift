@@ -88,7 +88,6 @@ struct RecoveryDetailView: View {
                 )
             }
         }
-        .padding(.horizontal, -Spacing.xl)
     }
     
     // MARK: - HRV Line Section (Pro)

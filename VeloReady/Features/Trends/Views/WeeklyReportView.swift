@@ -8,7 +8,7 @@ struct WeeklyReportView: View {
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: 0) {
+            VStack(spacing: Spacing.md) {
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(
                     aiSummary: viewModel.aiSummary,
@@ -58,8 +58,8 @@ struct WeeklyReportView: View {
                     WeekOverWeekComponent(metrics: metrics)
                 }
             }
-            .padding(.top, Spacing.md)
-            .padding(.bottom, 100) // Extra padding so content isn't hidden behind navigation
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, 120)
         }
         .background(Color.background.app)
         .task {
