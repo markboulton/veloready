@@ -37,6 +37,29 @@ class ActivitiesViewModel: ObservableObject {
         }
     }
     
+    /// Grouped activities from displayedActivities (respects progressive loading)
+    var displayedGroupedActivities: [(key: String, value: [UnifiedActivity])] {
+        // Group displayed activities by month
+        let grouped = Dictionary(grouping: displayedActivities) { activity in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: activity.startDate)
+        }
+        
+        // Sort by month (newest first)
+        return grouped.sorted { month1, month2 in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            
+            guard let date1 = formatter.date(from: month1.key),
+                  let date2 = formatter.date(from: month2.key) else {
+                return month1.key > month2.key
+            }
+            
+            return date1 > date2
+        }
+    }
+    
     func loadActivitiesIfNeeded(apiClient: IntervalsAPIClient) async {
         // Only load if we haven't loaded before
         guard !hasLoadedInitialData else {

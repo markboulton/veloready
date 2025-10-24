@@ -71,74 +71,48 @@ struct ActivitiesView: View {
     
     private var activitiesScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: Spacing.md) {
-                // Sparkline header
+            LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                // Sparkline header (outside of sections)
                 sparklineHeader
+                    .padding(.horizontal, Spacing.xl)
                 
-                // Activities list (no monthly grouping)
-                ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
-                    LatestActivityCardV2(activity: activity)
-                        .onAppear {
-                            // Progressive loading: when user scrolls near the end, load more
-                            if index == viewModel.displayedActivities.count - 3 {
-                                Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
-                                viewModel.loadMoreActivitiesIfNeeded()
-                            }
+                // Activities grouped by month with sticky headers
+                ForEach(viewModel.displayedGroupedActivities, id: \.key) { monthGroup in
+                    Section {
+                        ForEach(Array(monthGroup.value.enumerated()), id: \.element.id) { index, activity in
+                            LatestActivityCardV2(activity: activity)
+                                .padding(.horizontal, Spacing.xl)
+                                .padding(.vertical, Spacing.xs)
+                                .onAppear {
+                                    // Progressive loading: when user scrolls near the end, load more
+                                    let totalDisplayed = viewModel.displayedActivities.count
+                                    let activityIndex = viewModel.displayedActivities.firstIndex(where: { $0.id == activity.id }) ?? 0
+                                    
+                                    if activityIndex == totalDisplayed - 3 {
+                                        Logger.debug("📊 [Activities] Near end of list (index \(activityIndex)/\(totalDisplayed)) - loading more")
+                                        viewModel.loadMoreActivitiesIfNeeded()
+                                    }
+                                }
                         }
+                    } header: {
+                        SectionHeader(monthGroup.key, style: .monthYear)
+                    }
                 }
                 
                 // Load more indicator
                 if viewModel.hasMoreToLoad {
                     loadMoreIndicator
+                        .padding(.horizontal, Spacing.xl)
                 }
                 
                 // Pro upgrade CTA for FREE users
                 if !proConfig.hasProAccess && !viewModel.allActivities.isEmpty {
                     proUpgradeSection
+                        .padding(.horizontal, Spacing.xl)
                 }
             }
-            .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
-    }
-    
-    // MARK: - Monthly Grouping
-    
-    private var groupedByMonth: [String: [UnifiedActivity]] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        formatter.locale = Locale.current
-        formatter.timeZone = TimeZone.current
-        formatter.calendar = Calendar.current
-        
-        let grouped = Dictionary(grouping: viewModel.displayedActivities) { activity in
-            let monthString = formatter.string(from: activity.startDate)
-            Logger.debug("📅 [MonthlyGrouping] Activity '\(activity.name)' date: \(activity.startDate) → month: \(monthString)")
-            return monthString
-        }
-        Logger.debug("📅 [MonthlyGrouping] Grouped \(viewModel.displayedActivities.count) activities into \(grouped.count) months: \(grouped.keys.sorted(by: >).joined(separator: ", "))")
-        return grouped
-    }
-    
-    private func monthSectionHeader(for monthKey: String) -> some View {
-        Logger.debug("📄 [SectionHeader] Rendering sticky header for \(monthKey)")
-        return ZStack(alignment: .topLeading) {
-            // Gradient background (extends behind text)
-            NavigationGradientMask()
-                .frame(height: 60)
-            
-            // Month text (on top of gradient)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(monthKey)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.text.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, Spacing.sm)
-                    .padding(.horizontal, Spacing.xl)
-            }
-        }
-        .background(Color.background.app)
     }
     
     // MARK: - Sparkline Header

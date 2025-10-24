@@ -15,6 +15,14 @@ enum ActivitiesContent {
     static let recentActivities = "Recent Activities"
     static let activitiesByMonth = "Activities by Month"
     
+    /// Format a date as a month/year section header (e.g., "October 2024")
+    static func monthYearHeader(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        formatter.locale = Locale.current
+        return formatter.string(from: date)
+    }
+    
     // MARK: - Loading
     static let loadingActivities = "Loading activities..."
     
