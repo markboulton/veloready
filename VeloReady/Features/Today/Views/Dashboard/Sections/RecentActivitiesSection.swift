@@ -47,8 +47,6 @@ struct RecentActivitiesSection: View {
                 .fill(Color.background.card)
                 .allowsHitTesting(false)
         )
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xxl / 2)
     }
 }
 

@@ -61,8 +61,6 @@ struct RecoveryMetricsSection: View {
             }
             .padding(Spacing.md)
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xxl / 2)
     }
     
     // MARK: - Recovery Score
