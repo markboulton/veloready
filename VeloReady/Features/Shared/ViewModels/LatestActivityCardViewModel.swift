@@ -153,16 +153,21 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     var stepsCount: String? {
-        guard let workout = activity.healthKitWorkout else { return nil }
+        guard let workout = activity.healthKitWorkout else {
+            Logger.debug("❌ [StepsCount] No HealthKit workout for \(activity.name)")
+            return nil
+        }
         
         // Query steps from HealthKit statistics
         if let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount),
            let statistics = workout.statistics(for: stepsType),
            let sum = statistics.sumQuantity() {
             let steps = Int(sum.doubleValue(for: .count()))
+            Logger.debug("✅ [StepsCount] Retrieved \(steps) steps for \(activity.name)")
             return "\(steps)"
         }
         
+        Logger.debug("❌ [StepsCount] No step data available for \(activity.name)")
         return nil
     }
 }

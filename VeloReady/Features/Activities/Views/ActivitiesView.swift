@@ -113,13 +113,16 @@ struct ActivitiesView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
         
-        return Dictionary(grouping: viewModel.displayedActivities) { activity in
+        let grouped = Dictionary(grouping: viewModel.displayedActivities) { activity in
             formatter.string(from: activity.startDate)
         }
+        Logger.debug("📅 [MonthlyGrouping] Grouped \(viewModel.displayedActivities.count) activities into \(grouped.count) months: \(grouped.keys.sorted(by: >).joined(separator: ", "))")
+        return grouped
     }
     
     private func monthSectionHeader(for monthKey: String) -> some View {
-        Text(monthKey)
+        Logger.debug("📄 [SectionHeader] Rendering sticky header for \(monthKey)")
+        return Text(monthKey)
             .font(.headline)
             .fontWeight(.semibold)
             .foregroundColor(.text.primary)

@@ -77,7 +77,6 @@ struct LatestActivityCardV2: View {
         .sensoryFeedback(.impact(flexibility: .soft), trigger: isInitialLoad)
     }
     
-    
     // MARK: - Metadata Grid (4 Columns - Activity Type Specific)
     
     private var metadataGrid: some View {
@@ -179,7 +178,6 @@ struct LatestActivityCardV2: View {
         }
     }
     
-    
     // MARK: - Formatted Date (matching SharedActivityRowView)
     
     private var formattedDateAndTime: String {
@@ -203,9 +201,14 @@ struct LatestActivityCardV2: View {
     // MARK: - RPE Section
     
     private var shouldShowRPEButton: Bool {
-        guard let workout = viewModel.activity.healthKitWorkout else { return false }
-        return workout.workoutActivityType == .traditionalStrengthTraining ||
-               workout.workoutActivityType == .functionalStrengthTraining
+        guard let workout = viewModel.activity.healthKitWorkout else {
+            Logger.debug("❌ [RPE] No HealthKit workout for \(viewModel.activity.name)")
+            return false
+        }
+        let isStrength = workout.workoutActivityType == .traditionalStrengthTraining ||
+                        workout.workoutActivityType == .functionalStrengthTraining
+        Logger.debug("✅ [RPE] \(isStrength ? "Showing" : "Hiding") RPE for \(viewModel.activity.name) - type: \(workout.workoutActivityType)")
+        return isStrength
     }
     
     private var rpeSection: some View {
@@ -225,7 +228,7 @@ struct LatestActivityCardV2: View {
                     .overlay(ProgressView())
                     .cornerRadius(12)
                     .onAppear {
-                        Logger.debug("🗺️ [Activity Card] Map loading started")
+                        Logger.debug("🗺️ [MapSection] Loading map (height: 360px) for \(viewModel.activity.name)")
                     }
             } else if let snapshot = viewModel.mapSnapshot {
                 Image(uiImage: snapshot)
@@ -235,12 +238,11 @@ struct LatestActivityCardV2: View {
                     .clipped()
                     .cornerRadius(12)
                     .onAppear {
-                        Logger.debug("🗺️ [Activity Card] Map snapshot loaded, size: \(snapshot.size)")
+                        Logger.debug("🗺️ [MapSection] Map loaded (height: 360px, size: \(snapshot.size)) for \(viewModel.activity.name)")
                     }
             }
         }
     }
-    
     
     // MARK: - RPE Helpers
     
