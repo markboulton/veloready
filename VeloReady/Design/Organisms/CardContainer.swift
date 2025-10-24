@@ -72,6 +72,7 @@ struct CardContainer<Content: View>: View {
             }
         }
         .padding(style.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: style.cornerRadius)
                 .fill(Color.background.card)
