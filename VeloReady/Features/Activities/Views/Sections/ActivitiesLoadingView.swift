@@ -4,42 +4,14 @@ import SwiftUI
 struct ActivitiesLoadingView: View {
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Color.clear.frame(height: 0)
-                Text(ActivitiesContent.loadingActivities)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 20)
-                
+            LazyVStack(spacing: Spacing.md) {
                 // Skeleton activity cards
-                ForEach(0..<8, id: \.self) { _ in
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Title skeleton
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(width: 200, height: 16)
-                        
-                        // Date/stats skeleton
-                        HStack(spacing: 12) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.15))
-                                .frame(width: 80, height: 12)
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.15))
-                                .frame(width: 60, height: 12)
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.15))
-                                .frame(width: 70, height: 12)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .shimmerActivityList()
+                ForEach(0..<5, id: \.self) { _ in
+                    SkeletonActivityCard()
                 }
             }
+            .padding(.horizontal, Spacing.xl)
+            .padding(.top, Spacing.xxl)
         }
     }
 }
