@@ -14,6 +14,7 @@ struct CardContainer<Content: View>: View {
         case compact
         case hero
         case fullWidth  // For workout charts: 100% width, no corners, app background
+        case blended    // For charts: rounded corners with app background (blends into background)
         
         var padding: EdgeInsets {
             switch self {
@@ -21,6 +22,7 @@ struct CardContainer<Content: View>: View {
             case .compact: return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
             case .hero: return EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20)
             case .fullWidth: return EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
+            case .blended: return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
             }
         }
         
@@ -30,6 +32,7 @@ struct CardContainer<Content: View>: View {
             case .compact: return 12
             case .hero: return 20
             case .fullWidth: return 0  // No rounded corners
+            case .blended: return 16   // Rounded corners like standard
             }
         }
         
@@ -37,7 +40,7 @@ struct CardContainer<Content: View>: View {
             switch self {
             case .standard, .compact, .hero:
                 return Color.background.card
-            case .fullWidth:
+            case .fullWidth, .blended:
                 return Color.background.app  // App background color
             }
         }
