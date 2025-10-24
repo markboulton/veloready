@@ -42,9 +42,9 @@ struct CardMetric: View {
         
         var valueFont: Font {
             switch self {
-            case .large: return .system(size: 48, weight: .bold, design: .rounded)
-            case .medium: return .system(size: 32, weight: .bold, design: .rounded)
-            case .small: return .system(size: 24, weight: .semibold, design: .rounded)
+            case .large: return .system(size: 48, weight: .bold, design: .default)
+            case .medium: return .system(size: 32, weight: .bold, design: .default)
+            case .small: return .system(size: 24, weight: .semibold, design: .default)
             }
         }
         
