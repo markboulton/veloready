@@ -293,21 +293,22 @@ class TodayViewModel: ObservableObject {
         let startupTime = endTime - startTime
         Logger.debug("⚡ PHASE 2: UI framework loaded in \(String(format: "%.3f", startupTime))s")
         
-        // PHASE 3: Defer ALL heavy operations to background
-        Task {
-            Logger.debug("🎯 PHASE 3: Starting background data refresh immediately...")
-            await refreshData()
-            
-            // Mark as initialized and data loaded with smooth transition
-            Logger.debug("🎬 [SPINNER] About to set isInitializing = false")
-            await MainActor.run {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    Logger.debug("🔄 [SPINNER] Setting isInitializing = false NOW")
-                    isInitializing = false
-                    isDataLoaded = true
-                }
+        // PHASE 3: Show UI immediately, then refresh in background
+        // Mark as initialized FIRST to show UI fast
+        Logger.debug("🎬 [SPINNER] Setting isInitializing = false for fast UI display")
+        await MainActor.run {
+            withAnimation(.easeOut(duration: 0.3)) {
+                isInitializing = false
+                isDataLoaded = true
             }
-            Logger.debug("✅ PHASE 3: Background data refresh completed - isInitializing=\(self.isInitializing)")
+        }
+        Logger.debug("✅ PHASE 3: UI displayed - starting background refresh...")
+        
+        // PHASE 4: Background refresh (doesn't block UI)
+        Task {
+            Logger.debug("🎯 PHASE 4: Background data refresh starting...")
+            await refreshData()
+            Logger.debug("✅ PHASE 4: Background data refresh completed")
         }
     }
     
