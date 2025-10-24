@@ -150,17 +150,4 @@ class LatestActivityCardViewModel: ObservableObject {
     var hasMapSnapshot: Bool {
         mapSnapshot != nil
     }
-    
-    var isVirtualRide: Bool {
-        // Check if activity type indicates virtual/indoor ride
-        if let intervalsType = activity.intervalsActivity?.type {
-            let lower = intervalsType.lowercased()
-            return lower.contains("virtual") || lower.contains("indoor")
-        }
-        if let stravaType = activity.stravaActivity?.type {
-            let lower = stravaType.lowercased()
-            return lower.contains("virtual") || lower.contains("indoor")
-        }
-        return false
-    }
 }

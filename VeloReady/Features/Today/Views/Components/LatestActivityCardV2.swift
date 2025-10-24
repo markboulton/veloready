@@ -1,11 +1,14 @@
 import SwiftUI
 import MapKit
+import HealthKit
 
 /// Latest Activity card using atomic CardContainer wrapper with MVVM
 /// ViewModel handles all async operations (GPS, geocoding, map snapshots)
 struct LatestActivityCardV2: View {
     @StateObject private var viewModel: LatestActivityCardViewModel
     @State private var isInitialLoad = true
+    @State private var showingRPESheet = false
+    @State private var hasRPE = false
     
     init(activity: UnifiedActivity) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
@@ -28,6 +31,14 @@ struct LatestActivityCardV2: View {
                     isInitialLoad = false
                 }
             }
+            checkRPEStatus()
+        }
+        .sheet(isPresented: $showingRPESheet) {
+            if let workout = viewModel.activity.healthKitWorkout {
+                RPEInputSheet(workout: workout) {
+                    hasRPE = true
+                }
+            }
         }
     }
     
@@ -37,14 +48,19 @@ struct LatestActivityCardV2: View {
             CardContainer(
                 header: CardHeader(
                     title: titleWithIcon,
-                    subtitle: viewModel.formattedDateAndTimeWithLocation,
+                    subtitle: formattedDateAndTime,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Single metadata row with equal spacing
-                    metadataRow
+                    // 4-column metadata grid
+                    metadataGrid
+                    
+                    // RPE badge for strength workouts
+                    if shouldShowRPEButton {
+                        rpeSection
+                    }
                     
                     // Map (if outdoor activity with GPS data or walking)
                     if viewModel.shouldShowMap || viewModel.activity.type == .walking {
@@ -52,13 +68,14 @@ struct LatestActivityCardV2: View {
                     }
                     
                     // Virtual badge for indoor rides
-                    if viewModel.isVirtualRide {
+                    if viewModel.activity.isIndoorRide {
                         virtualBadge
                     }
                 }
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: isInitialLoad)
     }
     
     // MARK: - Title with Activity Icon
@@ -85,31 +102,33 @@ struct LatestActivityCardV2: View {
         }
     }
     
-    // MARK: - Metadata Row (Single Line with Equal Spacing)
+    // MARK: - Metadata Grid (4 Columns)
     
-    private var metadataRow: some View {
-        HStack(spacing: 0) {
+    private var metadataGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
+            // Column 1: Duration
             metricItem(
                 label: ActivityContent.Metrics.duration,
                 value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
             )
             
-            Spacer()
-            
+            // Column 2: Distance
             metricItem(
                 label: ActivityContent.Metrics.distance,
                 value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
             )
             
-            Spacer()
+            // Column 3: TSS or empty
+            if let tss = viewModel.activity.tss {
+                metricItem(
+                    label: ActivityContent.Metrics.tss,
+                    value: "\(Int(tss))"
+                )
+            } else {
+                Color.clear.frame(height: 0)
+            }
             
-            metricItem(
-                label: ActivityContent.Metrics.tss,
-                value: viewModel.activity.tss.map { "\(Int($0))" } ?? "—"
-            )
-            
-            Spacer()
-            
+            // Column 4: Norm Power / Avg HR / Intensity or empty
             if let np = viewModel.activity.normalizedPower {
                 metricItem(
                     label: "NORM PWR",
@@ -125,6 +144,8 @@ struct LatestActivityCardV2: View {
                     label: "INTENSITY",
                     value: String(format: "%.2f", intensity)
                 )
+            } else {
+                Color.clear.frame(height: 0)
             }
         }
     }
@@ -146,6 +167,40 @@ struct LatestActivityCardV2: View {
     }
     
     
+    // MARK: - Formatted Date (matching SharedActivityRowView)
+    
+    private var formattedDateAndTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy 'at' HH:mm"
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(viewModel.activity.startDate) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            return "Today at \(timeFormatter.string(from: viewModel.activity.startDate))"
+        } else if calendar.isDateInYesterday(viewModel.activity.startDate) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            return "Yesterday at \(timeFormatter.string(from: viewModel.activity.startDate))"
+        } else {
+            return formatter.string(from: viewModel.activity.startDate)
+        }
+    }
+    
+    // MARK: - RPE Section
+    
+    private var shouldShowRPEButton: Bool {
+        guard let workout = viewModel.activity.healthKitWorkout else { return false }
+        return workout.workoutActivityType == .traditionalStrengthTraining ||
+               workout.workoutActivityType == .functionalStrengthTraining
+    }
+    
+    private var rpeSection: some View {
+        RPEBadge(hasRPE: hasRPE) {
+            showingRPESheet = true
+        }
+    }
+    
     // MARK: - Map Section
     
     private var mapSection: some View {
@@ -153,7 +208,7 @@ struct LatestActivityCardV2: View {
             if viewModel.isLoadingMap {
                 Rectangle()
                     .fill(Color.text.tertiary.opacity(0.1))
-                    .frame(height: 180)
+                    .frame(height: 120)
                     .overlay(ProgressView())
                     .cornerRadius(12)
                     .onAppear {
@@ -163,7 +218,7 @@ struct LatestActivityCardV2: View {
                 Image(uiImage: snapshot)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: 180)
+                    .frame(maxWidth: .infinity, maxHeight: 120)
                     .clipped()
                     .cornerRadius(12)
                     .onAppear {
@@ -176,17 +231,28 @@ struct LatestActivityCardV2: View {
     // MARK: - Virtual Badge
     
     private var virtualBadge: some View {
-        HStack {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: Icons.System.waveform)
                 .font(.caption)
-            VRText("VIRTUAL", style: .caption, color: Color.text.primary)
+                .foregroundColor(ColorScale.amberAccent)
+            
+            Text("VIRTUAL")
                 .metricLabel()
+                .foregroundColor(ColorScale.amberAccent)
+            
             Spacer()
         }
         .padding(.vertical, Spacing.sm)
         .padding(.horizontal, Spacing.md)
         .background(ColorScale.amberAccent.opacity(0.1))
-        .cornerRadius(Spacing.cardCornerRadius)
+        .cornerRadius(Spacing.md)
+    }
+    
+    // MARK: - RPE Helpers
+    
+    private func checkRPEStatus() {
+        guard let workout = viewModel.activity.healthKitWorkout else { return }
+        hasRPE = WorkoutMetadataService.shared.hasMetadata(for: workout)
     }
     
     @ViewBuilder
