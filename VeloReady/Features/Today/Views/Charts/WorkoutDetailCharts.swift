@@ -269,7 +269,7 @@ struct MetricChartView: View {
     var body: some View {
         ChartCard(
             title: title,
-            cardStyle: .fullWidth
+            cardStyle: .standard
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Summary
@@ -321,6 +321,9 @@ struct MetricChartView: View {
             }
             .foregroundStyle(color.opacity(0.7))
             .lineStyle(StrokeStyle(lineWidth: ChartStyle.chartStrokeWidth))
+        }
+        .onAppear {
+            print("📊 [MetricChartView] Chart rendered: \(title)")
         }
         .chartXAxis {
             AxisMarks(position: .bottom, values: .stride(by: timeStride())) { value in
