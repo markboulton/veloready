@@ -17,9 +17,15 @@ struct ActivitiesView: View {
                 // Adaptive background
                 Color.background.app
                     .ignoresSafeArea()
+                    .onAppear {
+                        Logger.debug("🎨 [ActivitiesView] ZStack Layer 1: Background rendered")
+                    }
                 
                 // Navigation gradient mask (iOS Mail style) - rendered first so sticky headers appear on top
                 NavigationGradientMask()
+                    .onAppear {
+                        Logger.debug("🎨 [ActivitiesView] ZStack Layer 2: NavigationGradientMask rendered (height: \(Spacing.navigationBarHeight + Spacing.navigationGradientHeight))")
+                    }
                 
                 Group {
                     if viewModel.isLoading && viewModel.allActivities.isEmpty {
@@ -30,7 +36,13 @@ struct ActivitiesView: View {
                         })
                     } else {
                         activitiesScrollView
+                            .onAppear {
+                                Logger.debug("🎨 [ActivitiesView] ZStack Layer 3: ScrollView content rendered (sticky headers on top)")
+                            }
                     }
+                }
+                .onAppear {
+                    Logger.debug("🎨 [ActivitiesView] ZStack complete - layer order: Background → Gradient → ScrollView")
                 }
             }
             .navigationTitle(ActivitiesContent.title)

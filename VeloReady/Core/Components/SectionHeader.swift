@@ -120,6 +120,9 @@ struct SectionHeader: View {
                 // Solid background area (matches navigation bar area)
                 style.backgroundColor
                     .frame(height: Spacing.sectionHeaderHeight)
+                    .onAppear {
+                        Logger.debug("📌 [SectionHeader] Solid background rendered - height: \(Spacing.sectionHeaderHeight)")
+                    }
                 
                 // Gradient fade (matches NavigationGradientMask)
                 LinearGradient(
@@ -131,6 +134,9 @@ struct SectionHeader: View {
                     endPoint: .bottom
                 )
                 .frame(height: Spacing.sectionHeaderGradientHeight)
+                .onAppear {
+                    Logger.debug("📌 [SectionHeader] Gradient fade rendered - height: \(Spacing.sectionHeaderGradientHeight), opacity: \(Opacity.gradientFull) → \(Opacity.gradientLow)")
+                }
             }
             
             // Text content on top
@@ -143,8 +149,14 @@ struct SectionHeader: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.xl)
+                .onAppear {
+                    Logger.debug("📌 [SectionHeader] Month/year header rendered: '\(title)' - style: monthYear")
+                }
         }
         .frame(height: Spacing.sectionHeaderHeight)
+        .onAppear {
+            Logger.debug("📌 [SectionHeader] Complete sticky header rendered - total height: \(Spacing.sectionHeaderHeight)")
+        }
     }
 }
 
