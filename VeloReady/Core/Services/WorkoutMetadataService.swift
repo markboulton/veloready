@@ -149,6 +149,12 @@ class WorkoutMetadataService {
     
     /// Get all workout metadata within a date range
     func fetchMetadata(from startDate: Date, to endDate: Date) -> [WorkoutMetadata] {
+        // Safety check: ensure dates are valid
+        guard startDate <= endDate else {
+            Logger.error("❌ Invalid date range: startDate (\(startDate)) > endDate (\(endDate))")
+            return []
+        }
+        
         let fetchRequest = WorkoutMetadata.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "workoutDate >= %@ AND workoutDate <= %@", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "workoutDate", ascending: false)]
