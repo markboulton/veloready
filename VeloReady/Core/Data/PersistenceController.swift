@@ -119,15 +119,13 @@ final class PersistenceController {
             return
         }
         
-        if event.type == .import {
-            Logger.debug("☁️ CloudKit import completed")
-        } else if event.type == .export {
-            Logger.debug("☁️ CloudKit export completed")
-        }
-        
+        // Only log errors or significant events (reduce noise)
         if let error = event.error {
-            Logger.error("CloudKit sync error: \(error.localizedDescription)")
+            Logger.error("☁️ CloudKit sync error: \(error.localizedDescription)")
+        } else if event.type == .setup {
+            Logger.debug("☁️ CloudKit setup completed")
         }
+        // Removed noisy import/export completion logs
     }
     
     // MARK: - Background Context

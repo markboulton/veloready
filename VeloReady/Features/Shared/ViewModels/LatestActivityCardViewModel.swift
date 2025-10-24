@@ -14,6 +14,7 @@ class LatestActivityCardViewModel: ObservableObject {
     // MARK: - Properties
     
     let activity: UnifiedActivity
+    private var hasLoadedData = false
     
     // MARK: - Dependencies
     
@@ -41,6 +42,13 @@ class LatestActivityCardViewModel: ObservableObject {
     // MARK: - Public Methods
     
     func loadData() async {
+        // Prevent loading data multiple times (onAppear can fire repeatedly)
+        guard !hasLoadedData else {
+            Logger.debug("⏭️ LatestActivityCardV2 - Data already loaded, skipping")
+            return
+        }
+        
+        hasLoadedData = true
         await loadLocation()
         if activity.shouldShowMap {
             await loadMapSnapshot()

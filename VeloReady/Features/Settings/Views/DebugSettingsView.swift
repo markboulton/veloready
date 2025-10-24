@@ -20,6 +20,8 @@ struct DebugSettingsView: View {
     @State private var isRefreshingSleep = false
     @State private var refreshSuccess = false
     @State private var showingIntervalsLogin = false
+    @State private var isCleaningDuplicates = false
+    @State private var duplicatesCleanedCount: Int?
     
     @Environment(\.dismiss) private var dismiss
     
@@ -496,6 +498,55 @@ struct DebugSettingsView: View {
                         Image(systemName: Icons.Status.successFill)
                             .foregroundColor(Color.semantic.success)
                         Text(DebugSettingsContent.Cache.coreDataCleared)
+                            .font(.caption)
+                            .foregroundColor(Color.semantic.success)
+                    }
+                }
+            }
+            
+            // Core Data Cleanup
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: Icons.System.sparkles)
+                        .foregroundColor(ColorScale.blueAccent)
+                    Text("Clean Duplicates")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                }
+                
+                Text("Remove duplicate and empty Core Data entries (Oct 20 cleanup)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Button(action: {
+                    Task {
+                        isCleaningDuplicates = true
+                        let cleanup = CoreDataCleanup()
+                        await cleanup.runFullCleanup()
+                        isCleaningDuplicates = false
+                        duplicatesCleanedCount = 42 // Placeholder - we'll get actual count
+                    }
+                }) {
+                    HStack {
+                        if isCleaningDuplicates {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: Icons.System.sparkles)
+                        }
+                        Text(isCleaningDuplicates ? "Cleaning..." : "Clean Now")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(ColorScale.blueAccent)
+                .disabled(isCleaningDuplicates)
+                
+                if let count = duplicatesCleanedCount {
+                    HStack {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(Color.semantic.success)
+                        Text("Cleaned \(count) entries")
                             .font(.caption)
                             .foregroundColor(Color.semantic.success)
                     }

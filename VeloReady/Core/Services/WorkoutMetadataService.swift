@@ -12,6 +12,12 @@ class WorkoutMetadataService {
     
     private var hasAttemptedMigration = false
     
+    // MARK: - In-Memory Cache
+    
+    /// Cache to prevent repeated Core Data fetches during view rendering
+    private var metadataCache: [String: WorkoutMetadata?] = [:]
+    private let cacheQueue = DispatchQueue(label: "com.veloready.metadata.cache")
+    
     private init() {}
     
     // MARK: - Save/Update
@@ -43,6 +49,11 @@ class WorkoutMetadataService {
         metadata.updatedAt = Date()
         
         persistenceController.save(context: context)
+        
+        // Invalidate cache for this workout
+        cacheQueue.sync {
+            metadataCache[workout.uuid.uuidString] = metadata
+        }
         
         Logger.debug("💪 Saved workout metadata for \(workout.uuid)")
         Logger.debug("💪 RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
@@ -100,22 +111,38 @@ class WorkoutMetadataService {
         return getRPE(for: workout) != nil || getMuscleGroups(for: workout) != nil
     }
     
-    /// Fetch full metadata object
+    /// Fetch full metadata object (with caching to prevent render loops)
     func fetchMetadata(for workout: HKWorkout) -> WorkoutMetadata? {
+        let uuidString = workout.uuid.uuidString
+        
+        // Check cache first
+        let cached = cacheQueue.sync { metadataCache[uuidString] }
+        if let cachedValue = cached {
+            return cachedValue // Returns nil if cached as "not found"
+        }
+        
+        // Not in cache - fetch from Core Data
         let fetchRequest = WorkoutMetadata.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "workoutUUID == %@", workout.uuid.uuidString)
+        fetchRequest.predicate = NSPredicate(format: "workoutUUID == %@", uuidString)
         fetchRequest.fetchLimit = 1
         
-        Logger.debug("🔎 Fetching metadata for UUID: \(workout.uuid.uuidString)")
+        Logger.debug("🔎 Fetching metadata for UUID: \(uuidString)")
         let results = persistenceController.fetch(fetchRequest)
         
-        if let metadata = results.first {
+        let metadata = results.first
+        
+        // Cache the result (even if nil)
+        cacheQueue.sync {
+            metadataCache[uuidString] = metadata
+        }
+        
+        if let metadata = metadata {
             Logger.debug("🔎 Found metadata - RPE: \(metadata.rpe), Muscle Groups: \(metadata.muscleGroupStrings ?? [])")
         } else {
             Logger.debug("🔎 No metadata found in Core Data")
         }
         
-        return results.first
+        return metadata
     }
     
     // MARK: - Query/Analytics
@@ -292,10 +319,23 @@ class WorkoutMetadataService {
         guard let metadata = fetchMetadata(for: workout) else { return }
         persistenceController.delete(metadata)
         
+        // Remove from cache
+        cacheQueue.sync {
+            metadataCache.removeValue(forKey: workout.uuid.uuidString)
+        }
+        
         // Also delete from legacy storage
         legacyRPEService.deleteRPE(for: workout)
         
         Logger.debug("🗑️ Deleted metadata for workout \(workout.uuid)")
+    }
+    
+    /// Clear the in-memory cache (useful after bulk operations)
+    func clearCache() {
+        cacheQueue.sync {
+            metadataCache.removeAll()
+        }
+        Logger.debug("🧹 Cleared workout metadata cache")
     }
     
     /// Prune old workout metadata

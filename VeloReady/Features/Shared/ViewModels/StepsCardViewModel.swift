@@ -20,6 +20,11 @@ class StepsCardViewModel: ObservableObject {
     private let healthKitManager: HealthKitManager
     private var cancellables = Set<AnyCancellable>()
     
+    // MARK: - Cache
+    
+    private var cachedHourlySteps: [HourlyStepData]?
+    private var cacheDate: Date?
+    
     // MARK: - Initialization
     
     init(
@@ -69,6 +74,15 @@ class StepsCardViewModel: ObservableObject {
     }
     
     func loadHourlySteps() async {
+        // Check cache first (valid for 5 minutes)
+        if let cached = cachedHourlySteps,
+           let cacheDate = cacheDate,
+           Date().timeIntervalSince(cacheDate) < 300 {
+            Logger.debug("📊 [SPARKLINE] Using cached hourly steps (age: \(Int(Date().timeIntervalSince(cacheDate)))s)")
+            self.hourlySteps = cached
+            return
+        }
+        
         isLoadingHourly = true
         Logger.debug("📊 [SPARKLINE] StepsCardViewModel: Loading hourly steps...")
         
@@ -79,6 +93,10 @@ class StepsCardViewModel: ObservableObject {
         for (hour, stepCount) in steps.enumerated() {
             hourlyData.append(HourlyStepData(hour: hour, steps: stepCount))
         }
+        
+        // Cache the result
+        self.cachedHourlySteps = hourlyData
+        self.cacheDate = Date()
         
         self.hourlySteps = hourlyData
         self.isLoadingHourly = false

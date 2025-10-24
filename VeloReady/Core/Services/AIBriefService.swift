@@ -80,8 +80,15 @@ class AIBriefService: ObservableObject {
         }
     }
     
-    /// Refresh brief (bypass cache)
+    /// Refresh brief (only if not already generated today)
     func refresh() async {
+        // Check if we already have a brief from today in Core Data
+        if let cachedBrief = loadFromCoreData(), !cachedBrief.isEmpty {
+            Logger.debug("🔄 AI brief already generated today - using cached version")
+            await fetchBrief(bypassCache: false) // Use cache
+            return
+        }
+        
         Logger.debug("🔄 Refreshing AI brief (bypass cache)")
         await fetchBrief(bypassCache: true)
     }
