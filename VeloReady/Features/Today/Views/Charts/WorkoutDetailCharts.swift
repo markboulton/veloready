@@ -254,6 +254,7 @@ struct MetricChartView: View {
     var maxReference: Double? = nil
     let summary: MetricSummary
     var useDynamicYAxis: Bool = false
+    var useBlendedStyle: Bool = true  // Use .blended style (app background) instead of .standard (white)
     
     @Environment(\.accessibilityReduceMotion) var reduceMotion
     
@@ -269,7 +270,7 @@ struct MetricChartView: View {
     var body: some View {
         ChartCard(
             title: title,
-            cardStyle: .standard
+            cardStyle: useBlendedStyle ? .blended : .standard
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Summary

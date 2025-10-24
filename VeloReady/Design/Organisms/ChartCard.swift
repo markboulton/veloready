@@ -25,7 +25,7 @@ struct ChartCard<Content: View>: View {
         footerText: String? = nil,
         action: (() -> Void)? = nil,
         style: StyleType = .standard,
-        cardStyle: CardContainer<Content>.Style = .blended,
+        cardStyle: CardContainer<Content>.Style = .standard,
         @ViewBuilder chart: @escaping () -> Content
     ) {
         self.title = title
