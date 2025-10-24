@@ -66,8 +66,6 @@ struct StandardCard<Content: View>: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.background.card)
         )
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xxl / 2) // controls spacing top and bottom of card 
     }
     
     private var header: some View {
