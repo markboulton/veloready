@@ -1,5 +1,17 @@
 import SwiftUI
 
+// MARK: - Gesture Modifier to Constrain Scrolling
+extension View {
+    /// Constrains scrolling to vertical only by intercepting horizontal drag gestures
+    func verticalScrollOnly() -> some View {
+        self.gesture(
+            DragGesture()
+                .onChanged { _ in }
+                .onEnded { _ in }
+        )
+    }
+}
+
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
     @StateObject private var viewModel = WeeklyReportViewModel()
@@ -62,6 +74,11 @@ struct WeeklyReportView: View {
             .padding(.bottom, 120)
         }
         .background(Color.background.app)
+        .gesture(
+            DragGesture()
+                .onChanged { _ in }
+                .onEnded { _ in }
+        )
         .task {
             await viewModel.loadWeeklyReport()
         }
