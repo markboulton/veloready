@@ -93,7 +93,7 @@ struct LatestActivityCardV2: View {
                             Image(uiImage: snapshot)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(height: 180)
+                                .frame(maxWidth: .infinity, maxHeight: 180)
                                 .clipped()
                                 .cornerRadius(12)
                                 .onAppear {
