@@ -18,6 +18,12 @@ struct InteractiveMapView: UIViewRepresentable {
         mapView.showsScale = true
         mapView.translatesAutoresizingMaskIntoConstraints = false
         
+        // Use adaptive color scheme (light/dark based on system appearance)
+        if #available(iOS 13.0, *) {
+            let config = MKStandardMapConfiguration()
+            mapView.preferredConfiguration = config
+        }
+        
         // Add route overlay
         if !coordinates.isEmpty {
             let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)

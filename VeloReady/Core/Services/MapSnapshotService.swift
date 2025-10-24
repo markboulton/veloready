@@ -16,7 +16,7 @@ class MapSnapshotService {
     /// - Returns: UIImage of the map snapshot, or nil if generation fails
     func generateSnapshot(
         from coordinates: [CLLocationCoordinate2D],
-        size: CGSize = CGSize(width: 400, height: 200)
+        size: CGSize = CGSize(width: 400, height: 300)
     ) async -> UIImage? {
         guard !coordinates.isEmpty else {
             Logger.debug("🗺️ No coordinates provided for map snapshot")
@@ -38,6 +38,12 @@ class MapSnapshotService {
         options.scale = UIScreen.main.scale
         options.mapType = .standard
         options.showsBuildings = true
+        
+        // Use adaptive color scheme (light/dark based on system appearance)
+        if #available(iOS 13.0, *) {
+            let config = MKStandardMapConfiguration()
+            options.preferredConfiguration = config
+        }
         
         // Create snapshotter
         let snapshotter = MKMapSnapshotter(options: options)

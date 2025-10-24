@@ -71,24 +71,20 @@ struct ActivitiesView: View {
     
     private var activitiesScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: Spacing.md, pinnedViews: [.sectionHeaders]) {
+            LazyVStack(spacing: Spacing.md) {
                 // Sparkline header
                 sparklineHeader
                 
-                // Group activities by month
-                ForEach(groupedByMonth.keys.sorted(by: >), id: \.self) { monthKey in
-                    Section(header: monthSectionHeader(for: monthKey)) {
-                        ForEach(Array(groupedByMonth[monthKey]!.enumerated()), id: \.element.id) { index, activity in
-                            LatestActivityCardV2(activity: activity)
-                                .onAppear {
-                                    // Progressive loading: when user scrolls near the end, load more
-                                    if index == viewModel.displayedActivities.count - 3 {
-                                        Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
-                                        viewModel.loadMoreActivitiesIfNeeded()
-                                    }
-                                }
+                // Activities list (no monthly grouping)
+                ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
+                    LatestActivityCardV2(activity: activity)
+                        .onAppear {
+                            // Progressive loading: when user scrolls near the end, load more
+                            if index == viewModel.displayedActivities.count - 3 {
+                                Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
+                                viewModel.loadMoreActivitiesIfNeeded()
+                            }
                         }
-                    }
                 }
                 
                 // Load more indicator
@@ -109,12 +105,16 @@ struct ActivitiesView: View {
     // MARK: - Monthly Grouping
     
     private var groupedByMonth: [String: [UnifiedActivity]] {
-        let calendar = Calendar.current
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
+        formatter.locale = Locale.current
+        formatter.timeZone = TimeZone.current
+        formatter.calendar = Calendar.current
         
         let grouped = Dictionary(grouping: viewModel.displayedActivities) { activity in
-            formatter.string(from: activity.startDate)
+            let monthString = formatter.string(from: activity.startDate)
+            Logger.debug("📅 [MonthlyGrouping] Activity '\(activity.name)' date: \(activity.startDate) → month: \(monthString)")
+            return monthString
         }
         Logger.debug("📅 [MonthlyGrouping] Grouped \(viewModel.displayedActivities.count) activities into \(grouped.count) months: \(grouped.keys.sorted(by: >).joined(separator: ", "))")
         return grouped
@@ -122,14 +122,23 @@ struct ActivitiesView: View {
     
     private func monthSectionHeader(for monthKey: String) -> some View {
         Logger.debug("📄 [SectionHeader] Rendering sticky header for \(monthKey)")
-        return Text(monthKey)
-            .font(.headline)
-            .fontWeight(.semibold)
-            .foregroundColor(.text.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, Spacing.sm)
-            .padding(.horizontal, Spacing.xl)
-            .background(Color.background.app)
+        return ZStack(alignment: .topLeading) {
+            // Gradient background (extends behind text)
+            NavigationGradientMask()
+                .frame(height: 60)
+            
+            // Month text (on top of gradient)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(monthKey)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.text.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, Spacing.sm)
+                    .padding(.horizontal, Spacing.xl)
+            }
+        }
+        .background(Color.background.app)
     }
     
     // MARK: - Sparkline Header

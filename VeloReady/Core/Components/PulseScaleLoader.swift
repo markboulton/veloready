@@ -12,9 +12,9 @@ struct PulseScaleLoader: View {
     
     var body: some View {
         ZStack {
-            // Outer circle - pulse animation (white)
+            // Outer circle - pulse animation (adaptive: black in light mode, white in dark mode)
             Circle()
-                .stroke(Color.white, lineWidth: borderWidth)
+                .stroke(Color.text.primary, lineWidth: borderWidth)
                 .frame(width: size, height: size)
                 .scaleEffect(outerScale)
             

@@ -29,22 +29,6 @@ struct CardContainer<Content: View>: View {
             case .hero: return 20
             }
         }
-        
-        var shadowRadius: CGFloat {
-            switch self {
-            case .standard: return 8
-            case .compact: return 4
-            case .hero: return 12
-            }
-        }
-        
-        var shadowY: CGFloat {
-            switch self {
-            case .standard: return 2
-            case .compact: return 1
-            case .hero: return 4
-            }
-        }
     }
     
     init(
@@ -76,11 +60,6 @@ struct CardContainer<Content: View>: View {
         .background(
             RoundedRectangle(cornerRadius: style.cornerRadius)
                 .fill(Color.background.card)
-                .shadow(
-                    color: .black.opacity(0.05),
-                    radius: style.shadowRadius,
-                    y: style.shadowY
-                )
         )
     }
 }

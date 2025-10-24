@@ -40,6 +40,12 @@ class MockMapGenerator {
         mapSnapshotOptions.size = size
         mapSnapshotOptions.scale = UIScreen.main.scale
         
+        // Use adaptive color scheme (light/dark based on system appearance)
+        if #available(iOS 13.0, *) {
+            let config = MKStandardMapConfiguration()
+            mapSnapshotOptions.preferredConfiguration = config
+        }
+        
         let snapshotter = MKMapSnapshotter(options: mapSnapshotOptions)
         
         do {

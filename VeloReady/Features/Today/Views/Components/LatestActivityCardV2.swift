@@ -80,84 +80,93 @@ struct LatestActivityCardV2: View {
     // MARK: - Metadata Grid (4 Columns - Activity Type Specific)
     
     private var metadataGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: Spacing.md) {
+        Group {
             // Customize metrics based on activity type
             switch viewModel.activity.type {
             case .strength:
-                // Strength: Duration, Calories, Avg HR (3 columns aligned to grid)
-                metricItem(
-                    label: ActivityContent.Metrics.duration,
-                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
-                )
-                metricItem(
-                    label: "CALORIES",
-                    value: viewModel.activity.calories.map { "\($0)" } ?? "—"
-                )
-                metricItem(
-                    label: "AVG HR",
-                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
-                )
+                // Strength: Duration, Calories, Avg HR (3 columns)
+                HStack(spacing: Spacing.md) {
+                    metricItem(
+                        label: ActivityContent.Metrics.duration,
+                        value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                    )
+                    metricItem(
+                        label: "CALORIES",
+                        value: viewModel.activity.calories.map { "\($0)" } ?? "—"
+                    )
+                    metricItem(
+                        label: "AVG HR",
+                        value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
+                    )
+                    Spacer()
+                }
                 
             case .walking:
-                // Walking: Duration, Distance, Steps, Avg HR
-                metricItem(
-                    label: ActivityContent.Metrics.duration,
-                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
-                )
-                metricItem(
-                    label: ActivityContent.Metrics.distance,
-                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
-                )
-                metricItem(
-                    label: "STEPS",
-                    value: viewModel.stepsCount ?? "—"
-                )
-                metricItem(
-                    label: "AVG HR",
-                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
-                )
+                // Walking: Duration, Distance, Steps, Avg HR (4 columns)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: Spacing.md) {
+                    metricItem(
+                        label: ActivityContent.Metrics.duration,
+                        value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                    )
+                    metricItem(
+                        label: ActivityContent.Metrics.distance,
+                        value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                    )
+                    metricItem(
+                        label: "STEPS",
+                        value: viewModel.stepsData ?? "—"
+                    )
+                    metricItem(
+                        label: "AVG HR",
+                        value: viewModel.averageHRData ?? viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
+                    )
+                }
                 
             case .cycling:
-                // Cycling: Duration, Distance, TSS, Norm Power
-                metricItem(
-                    label: ActivityContent.Metrics.duration,
-                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
-                )
-                metricItem(
-                    label: ActivityContent.Metrics.distance,
-                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
-                )
-                metricItem(
-                    label: ActivityContent.Metrics.tss,
-                    value: viewModel.activity.tss.map { "\(Int($0))" } ?? "—"
-                )
-                metricItem(
-                    label: "NORM PWR",
-                    value: viewModel.activity.normalizedPower.map { "\(Int($0))W" } ?? "—"
-                )
-                
-            default:
-                // Default: Duration, Distance, TSS, Avg HR
-                metricItem(
-                    label: ActivityContent.Metrics.duration,
-                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
-                )
-                metricItem(
-                    label: ActivityContent.Metrics.distance,
-                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
-                )
-                if let tss = viewModel.activity.tss {
+                // Cycling: Duration, Distance, TSS, Norm Power (4 columns)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: Spacing.md) {
+                    metricItem(
+                        label: ActivityContent.Metrics.duration,
+                        value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                    )
+                    metricItem(
+                        label: ActivityContent.Metrics.distance,
+                        value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                    )
                     metricItem(
                         label: ActivityContent.Metrics.tss,
-                        value: "\(Int(tss))"
+                        value: viewModel.activity.tss.map { "\(Int($0))" } ?? "—"
                     )
-                } else {
-                    Color.clear.frame(height: 0)
+                    metricItem(
+                        label: "NORM PWR",
+                        value: viewModel.activity.normalizedPower.map { "\(Int($0))W" } ?? "—"
+                    )
                 }
-                metricItem(
-                    label: "AVG HR",
-                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
-                )
+                
+            default:
+                // Default: Duration, Distance, TSS, Avg HR (4 columns)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: Spacing.md) {
+                    metricItem(
+                        label: ActivityContent.Metrics.duration,
+                        value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                    )
+                    metricItem(
+                        label: ActivityContent.Metrics.distance,
+                        value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                    )
+                    if let tss = viewModel.activity.tss {
+                        metricItem(
+                            label: ActivityContent.Metrics.tss,
+                            value: "\(Int(tss))"
+                        )
+                    } else {
+                        Color.clear.frame(height: 0)
+                    }
+                    metricItem(
+                        label: "AVG HR",
+                        value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
+                    )
+                }
             }
         }
     }
@@ -224,22 +233,16 @@ struct LatestActivityCardV2: View {
             if viewModel.isLoadingMap {
                 Rectangle()
                     .fill(Color.text.tertiary.opacity(0.1))
-                    .frame(height: 360)
+                    .frame(height: 300)
                     .overlay(ProgressView())
                     .cornerRadius(12)
-                    .onAppear {
-                        Logger.debug("🗺️ [MapSection] Loading map (height: 360px) for \(viewModel.activity.name)")
-                    }
             } else if let snapshot = viewModel.mapSnapshot {
                 Image(uiImage: snapshot)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: 360)
+                    .frame(maxWidth: .infinity, maxHeight: 300)
                     .clipped()
                     .cornerRadius(12)
-                    .onAppear {
-                        Logger.debug("🗺️ [MapSection] Map loaded (height: 360px, size: \(snapshot.size)) for \(viewModel.activity.name)")
-                    }
             }
         }
     }

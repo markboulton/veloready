@@ -82,7 +82,7 @@ struct SkeletonActivityCard: View {
             // Map skeleton
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.gray.opacity(0.15))
-                .frame(height: 360)
+                .frame(height: 300)
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity)
