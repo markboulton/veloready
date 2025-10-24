@@ -198,6 +198,65 @@ struct MainTabView: View {
     ]
     
     var body: some View {
+        Group {
+            if #available(iOS 26.0, *) {
+                // iOS 26+ - Use native TabView with automatic Liquid Glass
+                nativeTabView
+                    .onAppear {
+                        print("🎨 [MainTabView] Using iOS 26+ native TabView with Liquid Glass")
+                    }
+            } else {
+                // iOS 25 and earlier - Use custom FloatingTabBar
+                customTabView
+                    .onAppear {
+                        print("🎨 [MainTabView] Using custom FloatingTabBar (iOS < 26)")
+                    }
+            }
+        }
+    }
+    
+    // MARK: - iOS 26+ Native TabView
+    
+    @available(iOS 26.0, *)
+    private var nativeTabView: some View {
+        TabView(selection: $selectedTab) {
+            TodayView(showInitialSpinner: $showInitialSpinner)
+                .tabItem {
+                    Label(CommonContent.TabLabels.today, systemImage: "house.fill")
+                }
+                .tag(0)
+            
+            ActivitiesView()
+                .tabItem {
+                    Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
+                }
+                .tag(1)
+            
+            TrendsView()
+                .tabItem {
+                    Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
+                }
+                .tag(2)
+            
+            SettingsView()
+                .tabItem {
+                    Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
+                }
+                .tag(3)
+        }
+        .environmentObject(apiClient)
+        .environmentObject(athleteZoneService)
+        .onChange(of: selectedTab) { oldValue, newValue in
+            if oldValue == newValue {
+                NotificationCenter.default.post(name: .popToRootView, object: nil)
+            }
+            previousTab = oldValue
+        }
+    }
+    
+    // MARK: - Custom FloatingTabBar (iOS < 26)
+    
+    private var customTabView: some View {
         ZStack(alignment: .bottom) {
             // Content
             Group {
@@ -224,9 +283,8 @@ struct MainTabView: View {
                     .animation(FluidAnimation.flow, value: selectedTab)
             }
         }
-        .ignoresSafeArea(.keyboard) // Allow tab bar to stay on screen with keyboard
+        .ignoresSafeArea(.keyboard)
         .onChange(of: selectedTab) { oldValue, newValue in
-            // When tapping the same tab again, post notification to pop to root
             if oldValue == newValue {
                 NotificationCenter.default.post(name: .popToRootView, object: nil)
             }
