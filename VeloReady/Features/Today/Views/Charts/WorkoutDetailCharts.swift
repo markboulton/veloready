@@ -355,6 +355,9 @@ struct MetricChartView: View {
         }
         .chartXScale(domain: (samples.first?.time ?? 0)...(samples.last?.time ?? 0))
         .chartYScale(domain: yAxisRange)
+        .chartBackground { _ in
+            Color.clear
+        }
         .clipped()
     }
     
@@ -534,6 +537,9 @@ struct ElevationChartView: View {
         }
         .chartXScale(domain: (samples.first?.time ?? 0)...(samples.last?.time ?? 0))
         .chartYScale(domain: yAxisRange)
+        .chartBackground { _ in
+            Color.clear
+        }
     }
     
     private var summaryText: some View {
