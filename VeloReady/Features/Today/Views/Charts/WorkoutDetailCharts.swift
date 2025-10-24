@@ -268,7 +268,8 @@ struct MetricChartView: View {
     
     var body: some View {
         ChartCard(
-            title: title
+            title: title,
+            cardStyle: .fullWidth
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Summary

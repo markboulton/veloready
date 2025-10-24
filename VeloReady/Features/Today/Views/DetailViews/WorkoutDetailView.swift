@@ -135,9 +135,8 @@ struct WorkoutDetailView: View {
                     )
                 }
                 
-                    // Zone Pie Charts Section - Free and Pro versions (has its own margins)
+                    // Zone Pie Charts Section - Free and Pro versions
                     ZonePieChartSection(activity: displayActivity)
-                        .padding(.horizontal, -Spacing.xl)
                     
                     // Interactive Map - only show if GPS data exists AND not a virtual ride
                     if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
@@ -145,7 +144,6 @@ struct WorkoutDetailView: View {
                             coordinates: routeCoordinates,
                             isLoading: isLoadingMap
                         )
-                        .padding(.horizontal, -Spacing.xl)
                     }
                     
                     // Additional Data Section - use enriched activity
@@ -477,18 +475,18 @@ struct WorkoutMapSection: View {
             if isLoading {
                 ZStack {
                     Color.background.secondary
-                        .frame(height: UIScreen.main.bounds.width)
+                        .frame(height: 300)
                     ProgressView()
                         .scaleEffect(1.2)
                         .tint(Color.button.primary)
                 }
             } else if !coordinates.isEmpty {
                 InteractiveMapView(coordinates: coordinates)
-                    .frame(height: UIScreen.main.bounds.width)
+                    .frame(height: 300)
             } else {
                 ZStack {
                     Color.background.secondary
-                        .frame(height: UIScreen.main.bounds.width)
+                        .frame(height: 300)
                     VStack(spacing: 8) {
                         Image(systemName: Icons.System.map)
                             .font(.title2)
@@ -500,6 +498,7 @@ struct WorkoutMapSection: View {
                 }
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: Spacing.cardCornerRadius))
     }
 }
 

@@ -9,6 +9,7 @@ struct ChartCard<Content: View>: View {
     let footerText: String?
     let action: (() -> Void)?
     let styleType: StyleType
+    let cardStyle: CardContainer<Content>.Style
     let chart: () -> Content
     
     enum StyleType {
@@ -24,6 +25,7 @@ struct ChartCard<Content: View>: View {
         footerText: String? = nil,
         action: (() -> Void)? = nil,
         style: StyleType = .standard,
+        cardStyle: CardContainer<Content>.Style = .standard,
         @ViewBuilder chart: @escaping () -> Content
     ) {
         self.title = title
@@ -32,6 +34,7 @@ struct ChartCard<Content: View>: View {
         self.footerText = footerText
         self.action = action
         self.styleType = style
+        self.cardStyle = cardStyle
         self.chart = chart
     }
     
@@ -55,17 +58,9 @@ struct ChartCard<Content: View>: View {
                 action: action != nil ? .init(icon: "chevron.right", action: action!) : nil
             ),
             footer: footerText != nil ? CardFooter(text: footerText) : nil,
-            style: cardContainerStyle
+            style: cardStyle
         ) {
             chart()
-        }
-    }
-    
-    private var cardContainerStyle: CardContainer<Content>.Style {
-        switch styleType {
-        case .standard: return .standard
-        case .compact: return .compact
-        case .hero: return .hero
         }
     }
 }

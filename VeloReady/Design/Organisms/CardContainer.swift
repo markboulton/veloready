@@ -13,12 +13,14 @@ struct CardContainer<Content: View>: View {
         case standard
         case compact
         case hero
+        case fullWidth  // For workout charts: 100% width, no corners, app background
         
         var padding: EdgeInsets {
             switch self {
             case .standard: return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
             case .compact: return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
             case .hero: return EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20)
+            case .fullWidth: return EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
             }
         }
         
@@ -27,6 +29,16 @@ struct CardContainer<Content: View>: View {
             case .standard: return 16
             case .compact: return 12
             case .hero: return 20
+            case .fullWidth: return 0  // No rounded corners
+            }
+        }
+        
+        var backgroundColor: Color {
+            switch self {
+            case .standard, .compact, .hero:
+                return Color.background.card
+            case .fullWidth:
+                return Color.background.app  // App background color
             }
         }
     }
@@ -59,7 +71,7 @@ struct CardContainer<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: style.cornerRadius)
-                .fill(Color.background.card)
+                .fill(style.backgroundColor)
         )
     }
 }

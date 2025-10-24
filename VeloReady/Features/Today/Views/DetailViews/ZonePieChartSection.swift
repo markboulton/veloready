@@ -25,7 +25,6 @@ struct ZonePieChartSection: View {
                     showBenefits: true,
                     learnMore: .adaptiveZones
                 )
-                .padding(.horizontal, Spacing.md)
             }
         }
     }
