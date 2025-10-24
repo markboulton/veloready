@@ -30,20 +30,43 @@ struct FloatingTabBar: View {
         .padding(.horizontal, 4)
         .padding(.vertical, 8)
         .background(
-            // White thin material background
-            RoundedRectangle(cornerRadius: 32)
-                .fill(.thinMaterial)
-                .overlay(
-                    // Very subtle edge definition
-                    RoundedRectangle(cornerRadius: 32)
-                        .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                )
+            // iOS 18 Liquid Glass material with depth-based compositing
+            ZStack {
+                // Base material layer - automatically uses Liquid Glass on iOS 18
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                
+                // Subtle inner highlight for depth (sits "inside" the surface)
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(colorScheme == .dark ? 0.15 : 0.3),
+                                Color.white.opacity(0.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+                    .blendMode(.overlay)
+                
+                // Edge definition with adaptive chroma
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+            }
         )
         .shadow(
-            color: Color.black.opacity(colorScheme == .dark ? 0.6 : 0.15),
-            radius: 20,
+            color: Color.black.opacity(colorScheme == .dark ? 0.5 : 0.12),
+            radius: 24,
             x: 0,
-            y: 8
+            y: 10
+        )
+        .shadow(
+            color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06),
+            radius: 8,
+            x: 0,
+            y: 4
         )
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
