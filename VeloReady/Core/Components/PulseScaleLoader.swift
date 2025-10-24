@@ -1,47 +1,30 @@
 import SwiftUI
 
-/// SVG-based pulse and scale loader animation
-/// Translates CSS animation into SwiftUI with two concentric circles
+/// Pulse-scale loader animation matching CSS
 /// - Outer circle: pulses (scales 1.0 → 1.2 → 1.0)
 /// - Inner circle: scales up (0 → 1)
 struct PulseScaleLoader: View {
-    @State private var animationProgress: CGFloat = 0
+    @State private var outerScale: CGFloat = 1.0
+    @State private var innerScale: CGFloat = 0.0
     
-    let size: CGFloat = 120
+    let size: CGFloat = 80
     let borderWidth: CGFloat = 5
-    let outerColor: Color = .white
-    let innerColor: Color = Color(white: 0.5)
-    
-    var outerScale: CGFloat {
-        let normalized = animationProgress.truncatingRemainder(dividingBy: 1.0)
-        if normalized < 0.6 || normalized >= 0.8 {
-            return 1.0
-        } else {
-            let localProgress = (normalized - 0.6) / 0.2
-            return 1.0 + (0.2 * sin(localProgress * .pi))
-        }
-    }
-    
-    var innerScale: CGFloat {
-        let normalized = animationProgress.truncatingRemainder(dividingBy: 1.0)
-        return normalized < 0.6 ? 0.0 : (normalized - 0.6) / 0.4
-    }
     
     var body: some View {
         ZStack {
-            // Outer circle - pulse animation
+            // Outer circle - pulse animation (white)
             Circle()
-                .stroke(outerColor, lineWidth: borderWidth)
+                .stroke(Color.white, lineWidth: borderWidth)
                 .frame(width: size, height: size)
                 .scaleEffect(outerScale)
             
             // Inner circle - scale up animation (grey)
             Circle()
-                .stroke(innerColor, lineWidth: borderWidth)
+                .stroke(Color(white: 0.5), lineWidth: borderWidth)
                 .frame(width: size, height: size)
                 .scaleEffect(innerScale)
             
-            // VeloReady icon in the center (300% larger = 120pt)
+            // VeloReady icon in the center
             VeloReadyIcon()
                 .frame(width: 120, height: 120)
                 .foregroundColor(.white)
@@ -52,9 +35,57 @@ struct PulseScaleLoader: View {
     }
     
     private func startAnimation() {
-        // Use continuous smooth animation like CSS
-        withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
-            animationProgress = 1.0
+        // Outer circle: pulse animation
+        // 0-60%: 1.0, 80%: 1.2, 100%: 1.0
+        animateOuterCircle()
+        
+        // Inner circle: scale up animation
+        // 0-60%: 0, 60-100%: 1
+        animateInnerCircle()
+    }
+    
+    private func animateOuterCircle() {
+        // 0-600ms: scale 1.0
+        withAnimation(.linear(duration: 0.6)) {
+            outerScale = 1.0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            // 600-800ms: scale 1.2
+            withAnimation(.linear(duration: 0.2)) {
+                outerScale = 1.2
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                // 800-1000ms: scale 1.0
+                withAnimation(.linear(duration: 0.2)) {
+                    outerScale = 1.0
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    // Loop
+                    animateOuterCircle()
+                }
+            }
+        }
+    }
+    
+    private func animateInnerCircle() {
+        // 0-600ms: scale 0
+        withAnimation(.linear(duration: 0.6)) {
+            innerScale = 0.0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            // 600-1000ms: scale 1
+            withAnimation(.linear(duration: 0.4)) {
+                innerScale = 1.0
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                // Loop
+                animateInnerCircle()
+            }
         }
     }
 }
