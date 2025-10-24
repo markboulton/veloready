@@ -4,11 +4,16 @@ import Foundation
 enum ActivitiesContent {
     // MARK: - Navigation
     static let title = "Activities"
+    static let filterButton = "Filter"
     
     // MARK: - Empty States
     static let noActivities = "No Activities"
     static let noActivitiesMessage = "Your activities from the last 60 days will appear here."
     static let refreshButton = "Refresh"
+    
+    // MARK: - Section Headers
+    static let recentActivities = "Recent Activities"
+    static let activitiesByMonth = "Activities by Month"
     
     // MARK: - Loading
     static let loadingActivities = "Loading activities..."
