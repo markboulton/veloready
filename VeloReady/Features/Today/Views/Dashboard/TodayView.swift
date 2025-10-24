@@ -49,7 +49,7 @@ struct TodayView: View {
                 
                 ScrollView {
                     // Use LazyVStack as main container for better performance
-                    LazyVStack(spacing: 0) {
+                    LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
                         GeometryReader { geometry in
                             Color.clear.preference(
@@ -98,9 +98,10 @@ struct TodayView: View {
                                 content: .unlockProFeatures,
                                 showBenefits: true
                             )
-                            .padding(.top, 8)
                         }
                     }
+                    .padding(.horizontal, Spacing.xl)
+                    .padding(.bottom, 120)
                 }
                 .coordinateSpace(name: "scroll")
                 .refreshable {

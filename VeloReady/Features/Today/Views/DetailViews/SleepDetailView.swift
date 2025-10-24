@@ -17,16 +17,14 @@ struct SleepDetailView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.md) {
                     // Header with main score
                     SleepHeaderSection(sleepScore: sleepScore)
-                        .padding()
                         .padding(.top, 60)
                     
                     // Missing data warning if no sleep duration
                     if sleepScore.inputs.sleepDuration == nil || sleepScore.inputs.sleepDuration == 0 {
                         missingSleepDataWarning
-                            .padding()
                     }
                     
                     // Health warnings card
@@ -55,8 +53,9 @@ struct SleepDetailView: View {
                     
                     // Recommendations
                     recommendationsSection
-                        .padding(.bottom, 100)
                 }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 120)
             }
             .refreshable {
                 await viewModel.refreshData()
@@ -103,7 +102,7 @@ struct SleepDetailView: View {
             
             Spacer()
         }
-        .padding()
+        .padding(Spacing.md)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(ColorPalette.warning.opacity(0.3), lineWidth: 1)

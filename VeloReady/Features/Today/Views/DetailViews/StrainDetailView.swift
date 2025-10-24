@@ -15,10 +15,9 @@ struct StrainDetailView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.md) {
                     // Header with main score
                     StrainHeaderSection(strainScore: strainScore)
-                        .padding()
                         .padding(.top, 60)
                     
                     // Weekly Trend (Pro)
@@ -38,8 +37,9 @@ struct StrainDetailView: View {
                     
                     // Recommendations
                     recommendationsSection
-                        .padding(.bottom, 100)
                 }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 120)
             }
             
             // Navigation gradient mask

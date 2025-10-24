@@ -75,11 +75,10 @@ struct WorkoutDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.md) {
                     // Compact Info Header - use enriched activity
                     WorkoutInfoHeader(activity: displayActivity)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 24)
+                        .padding(.top, 60)
                     
                     // Show loading skeleton while fetching data
                     if viewModel.isLoading {
@@ -111,25 +110,20 @@ struct WorkoutDetailView: View {
                     if proConfig.hasProAccess {
                         // AI Ride Summary - PRO feature (below metadata, before charts)
                         RideSummaryView(activity: displayActivity)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 20)
-                            .padding(.bottom, 12)
                         
                         // Training Load Chart - PRO feature (has its own margins)
                         // Shows CTL/ATL/TSB trend over time with 3 intersecting lines
                         // Only show divider if chart has TSS data
                         if displayActivity.tss != nil {
                             TrainingLoadChart(activity: displayActivity)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 20)
+                                .padding(.horizontal, -Spacing.xl)
                         }
                         
                         // Intensity Chart - PRO feature (has its own margins)
                         // Only show divider if chart has TSS/IF data
                         if displayActivity.tss != nil && displayActivity.intensityFactor != nil {
                             IntensityChart(activity: displayActivity)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 20)
+                                .padding(.horizontal, -Spacing.xl)
                         }
                     } else {
                         // Single combined Pro upgrade card for free users
@@ -138,7 +132,6 @@ struct WorkoutDetailView: View {
                             showBenefits: true,
                             learnMore: .advancedRideAnalytics
                         )
-                        .padding(.horizontal, 16)
                     }
                     
                     // Charts Section - always show, charts handle empty data
@@ -149,25 +142,24 @@ struct WorkoutDetailView: View {
                     )
                 }
                 
-                // Zone Pie Charts Section - Free and Pro versions (has its own margins)
-                ZonePieChartSection(activity: displayActivity)
-                
-                // Interactive Map - only show if GPS data exists AND not a virtual ride
-                if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
-                    WorkoutMapSection(
-                        coordinates: routeCoordinates,
-                        isLoading: isLoadingMap
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
+                    // Zone Pie Charts Section - Free and Pro versions (has its own margins)
+                    ZonePieChartSection(activity: displayActivity)
+                        .padding(.horizontal, -Spacing.xl)
+                    
+                    // Interactive Map - only show if GPS data exists AND not a virtual ride
+                    if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
+                        WorkoutMapSection(
+                            coordinates: routeCoordinates,
+                            isLoading: isLoadingMap
+                        )
+                        .padding(.horizontal, -Spacing.xl)
+                    }
+                    
+                    // Additional Data Section - use enriched activity
+                    AdditionalDataSection(activity: displayActivity)
                 }
-                
-                // Additional Data Section - use enriched activity
-                AdditionalDataSection(activity: displayActivity)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
-                    .padding(.bottom, 80)  // Extra padding to lift above tab bar
-                }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 120)
             }
         .background(Color.background.primary)
         .navigationTitle(activity.name ?? ActivityContent.WorkoutTypes.workout)

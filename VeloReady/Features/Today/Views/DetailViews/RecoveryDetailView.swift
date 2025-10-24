@@ -16,7 +16,7 @@ struct RecoveryDetailView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.md) {
                     // Large recovery ring
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
                         .padding(.top, 60)
@@ -47,8 +47,9 @@ struct RecoveryDetailView: View {
                     
                     // Apple Health metrics
                     healthMetricsSection
-                        .padding(.bottom, 100)
                 }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 120)
             }
             .refreshable {
                 await viewModel.refreshData()
@@ -87,6 +88,7 @@ struct RecoveryDetailView: View {
                 )
             }
         }
+        .padding(.horizontal, -Spacing.xl)
     }
     
     // MARK: - HRV Line Section (Pro)

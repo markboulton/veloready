@@ -15,24 +15,17 @@ struct ActivityDetailView: View {
     
     var body: some View {
         ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.md) {
                     // Header with key metrics - gradient shows through
                     ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 20)
+                        .padding(.top, 60)
                     
                     // Charts Section with solid background
                     if !viewModel.chartSamples.isEmpty {
                         VStack(spacing: 0) {
                             chartsSection
                         }
-                        .padding(.top, 20)
-                        .padding(.bottom, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            Color.black
-                                .ignoresSafeArea(edges: .horizontal)
-                        )
+                        .padding(.horizontal, -Spacing.xl)
                     }
                     
                     // Map Section - Interactive with solid background
@@ -43,18 +36,12 @@ struct ActivityDetailView: View {
                                 coordinates: viewModel.routeCoordinates,
                                 isLoading: viewModel.isLoadingMap
                             )
-                            .padding(.horizontal, 16)
                         }
-                        .padding(.bottom, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            Color.black
-                                .ignoresSafeArea(edges: .horizontal)
-                        )
+                        .padding(.horizontal, -Spacing.xl)
                     }
-                    
-                    Spacer(minLength: 30)
                 }
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, 120)
             }
         .background(Color.background.primary)
         .navigationTitle(activityData.title)

@@ -14,37 +14,19 @@ struct WalkingDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            VStack(spacing: Spacing.md) {
                 // Header with key metrics - using shared component
                 WalkingWorkoutInfoHeader(workout: workout, viewModel: viewModel)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
-                
-                // Full-width divider
-                Rectangle()
-                    .fill(ColorScale.divider)
-                    .frame(height: 1)
-                    .padding(.bottom, 24)
+                    .padding(.top, 60)
                 
                 // Heart Rate Chart
                 if !viewModel.heartRateSamples.isEmpty {
                     heartRateChartSection
                 }
                 
-                // Divider between HR chart and workout type (only for strength workouts)
-                if isStrengthWorkout && !viewModel.heartRateSamples.isEmpty {
-                    Rectangle()
-                        .fill(ColorScale.divider)
-                        .frame(height: 1)
-                        .padding(.top, 24)
-                        .padding(.bottom, 24)
-                }
-                
                 // Workout Type section - only for strength workouts
                 if isStrengthWorkout {
                     workoutTypeSection
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 20)
                 }
                 
                 // Map - only for walking workouts
@@ -53,11 +35,10 @@ struct WalkingDetailView: View {
                         coordinates: viewModel.routeCoordinates ?? [],
                         isLoading: viewModel.isLoadingMap
                     )
-                    .padding(.top, 24)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
                 }
             }
+            .padding(.horizontal, Spacing.xl)
+            .padding(.bottom, 120)
         }
         .background(Color.background.primary)
         .navigationTitle(workoutTitle)
@@ -105,6 +86,7 @@ struct WalkingDetailView: View {
                     .frame(height: 200)
             }
         }
+        .padding(.horizontal, -Spacing.xl)
     }
     
     // MARK: - Workout Type Section
