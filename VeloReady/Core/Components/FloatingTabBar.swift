@@ -13,7 +13,9 @@ struct FloatingTabBar: View {
     @State private var previousSelection: Int = 0
     
     var body: some View {
-        HStack(spacing: 0) {
+        let _ = print("🎨 [FloatingTabBar] Rendering with colorScheme: \(colorScheme)")
+        
+        return HStack(spacing: 0) {
             ForEach(Array(tabs.enumerated()), id: \.offset) { index, tab in
                 TabBarButton(
                     tab: tab,
@@ -30,22 +32,28 @@ struct FloatingTabBar: View {
         .padding(.horizontal, 4)
         .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 32, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(colorScheme == .dark ? 0.2 : 0.4),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
+            ZStack {
+                // Try bar material instead of ultraThinMaterial
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .fill(.bar)
+                    .onAppear {
+                        print("🎨 [FloatingTabBar] Using .bar material")
+                    }
+                
+                // Gradient border
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(colorScheme == .dark ? 0.3 : 0.5),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            }
         )
         .shadow(
             color: Color.black.opacity(colorScheme == .dark ? 0.6 : 0.15),
