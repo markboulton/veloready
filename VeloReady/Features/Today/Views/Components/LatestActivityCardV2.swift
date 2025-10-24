@@ -55,12 +55,14 @@ struct LatestActivityCardV2: View {
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // 4-column metadata grid
-                    metadataGrid
-                    
-                    // RPE badge for strength workouts
-                    if shouldShowRPEButton {
-                        rpeSection
+                    // Metadata row with RPE badge on right
+                    HStack(alignment: .top, spacing: Spacing.md) {
+                        metadataGrid
+                        
+                        if shouldShowRPEButton {
+                            Spacer()
+                            rpeSection
+                        }
                     }
                     
                     // Map (if outdoor activity with GPS data or walking)
@@ -80,50 +82,88 @@ struct LatestActivityCardV2: View {
     }
     
     
-    // MARK: - Metadata Grid (4 Columns)
+    // MARK: - Metadata Grid (4 Columns - Activity Type Specific)
     
     private var metadataGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
-            // Column 1: Duration
-            metricItem(
-                label: ActivityContent.Metrics.duration,
-                value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
-            )
-            
-            // Column 2: Distance
-            metricItem(
-                label: ActivityContent.Metrics.distance,
-                value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
-            )
-            
-            // Column 3: TSS or empty
-            if let tss = viewModel.activity.tss {
+            // Customize metrics based on activity type
+            switch viewModel.activity.type {
+            case .strength:
+                // Strength: Duration, Calories, Avg HR, (empty)
                 metricItem(
-                    label: ActivityContent.Metrics.tss,
-                    value: "\(Int(tss))"
+                    label: ActivityContent.Metrics.duration,
+                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
                 )
-            } else {
-                Color.clear.frame(height: 0)
-            }
-            
-            // Column 4: Norm Power / Avg HR / Intensity or empty
-            if let np = viewModel.activity.normalizedPower {
                 metricItem(
-                    label: "NORM PWR",
-                    value: "\(Int(np))W"
+                    label: "CALORIES",
+                    value: viewModel.activity.calories.map { "\($0)" } ?? "—"
                 )
-            } else if let avgHR = viewModel.activity.averageHeartRate {
                 metricItem(
                     label: "AVG HR",
-                    value: "\(Int(avgHR)) bpm"
+                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
                 )
-            } else if let intensity = viewModel.activity.intensityFactor {
-                metricItem(
-                    label: "INTENSITY",
-                    value: String(format: "%.2f", intensity)
-                )
-            } else {
                 Color.clear.frame(height: 0)
+                
+            case .walking:
+                // Walking: Duration, Distance, Steps, Avg HR
+                metricItem(
+                    label: ActivityContent.Metrics.duration,
+                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                )
+                metricItem(
+                    label: ActivityContent.Metrics.distance,
+                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                )
+                metricItem(
+                    label: "STEPS",
+                    value: "—" // TODO: Add steps data to UnifiedActivity
+                )
+                metricItem(
+                    label: "AVG HR",
+                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
+                )
+                
+            case .cycling:
+                // Cycling: Duration, Distance, TSS, Norm Power
+                metricItem(
+                    label: ActivityContent.Metrics.duration,
+                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                )
+                metricItem(
+                    label: ActivityContent.Metrics.distance,
+                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                )
+                metricItem(
+                    label: ActivityContent.Metrics.tss,
+                    value: viewModel.activity.tss.map { "\(Int($0))" } ?? "—"
+                )
+                metricItem(
+                    label: "NORM PWR",
+                    value: viewModel.activity.normalizedPower.map { "\(Int($0))W" } ?? "—"
+                )
+                
+            default:
+                // Default: Duration, Distance, TSS, Avg HR
+                metricItem(
+                    label: ActivityContent.Metrics.duration,
+                    value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+                )
+                metricItem(
+                    label: ActivityContent.Metrics.distance,
+                    value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+                )
+                if let tss = viewModel.activity.tss {
+                    metricItem(
+                        label: ActivityContent.Metrics.tss,
+                        value: "\(Int(tss))"
+                    )
+                } else {
+                    Color.clear.frame(height: 0)
+                }
+                metricItem(
+                    label: "AVG HR",
+                    value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
+                )
             }
         }
     }
@@ -186,7 +226,7 @@ struct LatestActivityCardV2: View {
             if viewModel.isLoadingMap {
                 Rectangle()
                     .fill(Color.text.tertiary.opacity(0.1))
-                    .frame(height: 120)
+                    .frame(height: 240)
                     .overlay(ProgressView())
                     .cornerRadius(12)
                     .onAppear {
@@ -196,7 +236,7 @@ struct LatestActivityCardV2: View {
                 Image(uiImage: snapshot)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: 120)
+                    .frame(maxWidth: .infinity, maxHeight: 240)
                     .clipped()
                     .cornerRadius(12)
                     .onAppear {
