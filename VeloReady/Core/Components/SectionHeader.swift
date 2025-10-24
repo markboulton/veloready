@@ -109,18 +109,18 @@ struct SectionHeader: View {
             VStack(spacing: 0) {
                 // Solid background area (matches navigation bar area)
                 style.backgroundColor
-                    .frame(height: 40)
+                    .frame(height: Spacing.sectionHeaderHeight)
                 
                 // Gradient fade (matches NavigationGradientMask)
                 LinearGradient(
                     gradient: Gradient(stops: [
-                        .init(color: style.backgroundColor.opacity(0.95), location: 0.0),
-                        .init(color: style.backgroundColor.opacity(0.0), location: 1.0)
+                        .init(color: style.backgroundColor.opacity(Opacity.gradientFull), location: 0.0),
+                        .init(color: style.backgroundColor.opacity(Opacity.gradientLow), location: 1.0)
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 20)
+                .frame(height: Spacing.sectionHeaderGradientHeight)
             }
             
             // Text content on top
@@ -134,7 +134,7 @@ struct SectionHeader: View {
                 .padding(.vertical, Spacing.sm)
                 .padding(.horizontal, Spacing.xl)
         }
-        .frame(height: 40) // Fixed height for consistent sticky behavior
+        .frame(height: Spacing.sectionHeaderHeight)
     }
 }
 
