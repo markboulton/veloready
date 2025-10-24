@@ -29,7 +29,7 @@ enum ColorScale {
         Color(UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
                 ? UIColor.secondarySystemBackground  // Grey in dark mode
-                : UIColor.white  // White in light mode
+                : UIColor.systemBackground  // White in light mode (proper system white)
         })
     }
     

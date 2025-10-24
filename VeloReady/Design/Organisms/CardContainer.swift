@@ -55,6 +55,8 @@ struct CardContainer<Content: View>: View {
         self.content = content
     }
     
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let header = header {
@@ -74,7 +76,7 @@ struct CardContainer<Content: View>: View {
                 .fill(style.backgroundColor)
         )
         .onAppear {
-            print("🎨 [CardContainer] Style: \(style), BG Color: \(style.backgroundColor)")
+            print("🎨 [CardContainer] Style: \(style), ColorScheme: \(colorScheme), BG: \(style.backgroundColor)")
         }
     }
 }
