@@ -82,17 +82,17 @@ struct WorkoutDetailView: View {
                     
                     // Show loading skeleton while fetching data
                     if viewModel.isLoading {
-                    VStack(spacing: 20) {
+                    VStack(spacing: Spacing.lg) {
                         ProgressView()
                             .scaleEffect(1.5)
-                            .padding(.top, 40)
+                            .padding(.top, Spacing.lg)
                         
                         Text(CommonContent.States.loadingActivityData)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
                         // Skeleton placeholders
-                        VStack(spacing: 16) {
+                        VStack(spacing: Spacing.md) {
                             ForEach(0..<3, id: \.self) { _ in
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.gray.opacity(0.2))
@@ -100,11 +100,8 @@ struct WorkoutDetailView: View {
                                     .shimmer()
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 20)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom, 40)
                 } else {
                     // Pro features section
                     if proConfig.hasProAccess {

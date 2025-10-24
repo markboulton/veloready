@@ -75,6 +75,7 @@ struct StrainDetailView: View {
                 )
             }
         }
+        .padding(.horizontal, -Spacing.xl)
     }
     
     

@@ -126,6 +126,7 @@ struct SleepDetailView: View {
                 )
             }
         }
+        .padding(.horizontal, -Spacing.xl)
     }
     
     
