@@ -157,7 +157,7 @@ struct WorkoutDetailView: View {
                 .padding(.horizontal, Spacing.xl)
                 .padding(.bottom, 120)
             }
-        .background(Color.background.primary)
+        .background(Color.background.app)
         .navigationTitle(activity.name ?? ActivityContent.WorkoutTypes.workout)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
