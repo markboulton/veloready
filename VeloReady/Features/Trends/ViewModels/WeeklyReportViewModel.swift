@@ -1101,9 +1101,13 @@ class WeeklyReportViewModel: ObservableObject {
             Logger.debug("💾 [WEEKLY CACHE] Found existing DailyScores entry")
             scores = existing
         } else {
-            Logger.debug("💾 [WEEKLY CACHE] Creating new DailyScores entry")
+            Logger.debug("💾 [WEEKLY CACHE] Creating new DailyScores entry for Monday")
             scores = DailyScores(context: persistence.container.viewContext)
             scores.date = monday
+            // Initialize with default values so the entry is valid
+            scores.recoveryScore = 0
+            scores.sleepScore = 0
+            scores.strainScore = 0
         }
         
         // Store weekly summary in aiBriefText field (reusing existing field)
