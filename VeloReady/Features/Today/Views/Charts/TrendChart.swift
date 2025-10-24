@@ -9,6 +9,7 @@ struct TrendChart: View {
     let unit: String
     let showProBadge: Bool
     var dataType: DataType = .recovery // Default to recovery for backward compatibility
+    var useAdaptiveYAxis: Bool = false // Use adaptive y-axis for non-percentage data (e.g., TSS)
     
     enum DataType {
         case recovery
@@ -27,6 +28,37 @@ struct TrendChart: View {
         let maxValue = data.map(\.value).max() ?? 100
         return data.map { point in
             min(max(point.value / maxValue, 0), 1)
+        }
+    }
+    
+    // Adaptive y-axis range
+    private var yAxisRange: ClosedRange<Double> {
+        guard useAdaptiveYAxis, !data.isEmpty else { return 0...100 }
+        
+        let values = data.map(\.value)
+        let minValue = values.min() ?? 0
+        let maxValue = values.max() ?? 100
+        
+        // Add 10% padding above and below
+        let range = maxValue - minValue
+        let padding = max(range * 0.1, 5.0)
+        
+        let lowerBound = max(0, minValue - padding)
+        let upperBound = maxValue + padding
+        
+        return lowerBound...upperBound
+    }
+    
+    // Y-axis values for adaptive axis
+    private var yAxisValues: [Double] {
+        guard useAdaptiveYAxis else { return [0, 25, 50, 75, 100] }
+        
+        let range = yAxisRange
+        let span = range.upperBound - range.lowerBound
+        let step = span / 4 // 5 values (0, 25%, 50%, 75%, 100%)
+        
+        return (0...4).map { i in
+            range.lowerBound + (Double(i) * step)
         }
     }
     
@@ -179,19 +211,26 @@ struct TrendChart: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading, values: [0, 25, 50, 75, 100]) { value in
+            AxisMarks(position: .leading, values: yAxisValues) { value in
                 AxisGridLine()
                     .foregroundStyle(ColorPalette.neutral300)
                 AxisValueLabel {
-                    if let intValue = value.as(Int.self) {
-                        Text("\(intValue)\(CommonContent.Units.percent))")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(ColorPalette.chartAxisLabel)
+                    if let doubleValue = value.as(Double.self) {
+                        let intValue = Int(doubleValue)
+                        if useAdaptiveYAxis {
+                            Text("\(intValue)")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(ColorPalette.chartAxisLabel)
+                        } else {
+                            Text("\(intValue)\(CommonContent.Units.percent))")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(ColorPalette.chartAxisLabel)
+                        }
                     }
                 }
             }
         }
-        .chartYScale(domain: 0...100)
+        .chartYScale(domain: yAxisRange)
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
         }
