@@ -1,9 +1,28 @@
 import SwiftUI
 
 /// Gradient mask that appears below navigation bar
-/// Matches Apple Fitness behavior - ensures content remains legible when scrolling
+/// iOS 26+: Uses native Liquid Glass toolbar (no custom gradient needed)
+/// iOS 25 and earlier: Custom gradient for content legibility
 struct NavigationGradientMask: View {
     var body: some View {
+        if #available(iOS 26.0, *) {
+            // iOS 26+ - No custom gradient needed
+            // Toolbars automatically get Liquid Glass effect
+            // System handles the blur and transparency
+            EmptyView()
+                .onAppear {
+                    print("🎨 [NavigationGradientMask] iOS 26+ detected - using native toolbar (no custom gradient)")
+                }
+        } else {
+            // iOS 25 and earlier - Custom gradient mask
+            customGradientMask
+                .onAppear {
+                    print("🎨 [NavigationGradientMask] iOS < 26 - using custom gradient mask")
+                }
+        }
+    }
+    
+    private var customGradientMask: some View {
         VStack(spacing: 0) {
             // Solid background area for navigation bar (adaptive to theme)
             Color.background.app
