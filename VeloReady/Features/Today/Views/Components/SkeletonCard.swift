@@ -51,9 +51,48 @@ struct SkeletonStatsCard: View {
 
 /// Skeleton for activity card
 /// Height matches LatestActivityCardV2 with map (~400px total)
+/// Width matches CardContainer constraints (no external padding)
 struct SkeletonActivityCard: View {
     var body: some View {
-        SkeletonCard(height: 400)
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Header skeleton
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.gray.opacity(0.2))
+                .frame(height: 20)
+            
+            // Metadata row skeleton
+            HStack(spacing: 0) {
+                ForEach(0..<4, id: \.self) { index in
+                    VStack(alignment: .leading, spacing: 4) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(height: 8)
+                        
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 12)
+                    }
+                    
+                    if index != 3 {
+                        Spacer()
+                    }
+                }
+            }
+            
+            // Map skeleton
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(0.15))
+                .frame(height: 180)
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.background.card)
+        )
+        .onAppear {
+            Logger.debug("🖥️ [Skeleton] Activity card skeleton rendered")
+        }
     }
 }
 

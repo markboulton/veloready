@@ -36,89 +36,157 @@ struct LatestActivityCardV2: View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
-                    title: viewModel.activity.name,
+                    title: titleWithIcon,
                     subtitle: viewModel.formattedDateAndTimeWithLocation,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Metadata Row 1
-                    HStack(spacing: Spacing.md) {
-                        if let duration = viewModel.activity.duration {
-                            metricColumn(
-                                label: ActivityContent.Metrics.duration,
-                                value: ActivityFormatters.formatDurationDetailed(duration)
-                            )
-                        }
-                        
-                        if let distance = viewModel.activity.distance {
-                            metricColumn(
-                                label: ActivityContent.Metrics.distance,
-                                value: ActivityFormatters.formatDistance(distance)
-                            )
-                        }
-                        
-                        if let tss = viewModel.activity.tss {
-                            metricColumn(
-                                label: ActivityContent.Metrics.tss,
-                                value: "\(Int(tss))"
-                            )
-                        }
-                        
-                        Spacer()
+                    // Single metadata row with equal spacing
+                    metadataRow
+                    
+                    // Map (if outdoor activity with GPS data or walking)
+                    if viewModel.shouldShowMap || viewModel.activity.type == .walking {
+                        mapSection
                     }
                     
-                    // Metadata Row 2
-                    HStack(spacing: Spacing.md) {
-                        if let np = viewModel.activity.normalizedPower {
-                            metricColumn(
-                                label: "Norm Power",
-                                value: "\(Int(np))W"
-                            )
-                        }
-                        
-                        if let intensity = viewModel.activity.intensityFactor {
-                            metricColumn(
-                                label: "Intensity",
-                                value: String(format: "%.2f", intensity)
-                            )
-                        }
-                        
-                        if let avgHR = viewModel.activity.averageHeartRate {
-                            metricColumn(
-                                label: "Avg HR",
-                                value: "\(Int(avgHR)) bpm"
-                            )
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    // Map (if outdoor activity with GPS data)
-                    if viewModel.shouldShowMap {
-                        if viewModel.isLoadingMap {
-                            Rectangle()
-                                .fill(Color.text.tertiary.opacity(0.1))
-                                .frame(height: 180)
-                                .overlay(ProgressView())
-                                .cornerRadius(12)
-                        } else if let snapshot = viewModel.mapSnapshot {
-                            Image(uiImage: snapshot)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(maxWidth: .infinity, maxHeight: 180)
-                                .clipped()
-                                .cornerRadius(12)
-                                .onAppear {
-                                    Logger.debug("🗺️ LatestActivityCardV2 - Map snapshot loaded, size: \(snapshot.size)")
-                                }
-                        }
+                    // Virtual badge for indoor rides
+                    if viewModel.isVirtualRide {
+                        virtualBadge
                     }
                 }
             }
         }
         .buttonStyle(PlainButtonStyle())
+    }
+    
+    // MARK: - Title with Activity Icon
+    
+    private var titleWithIcon: String {
+        let icon = activityTypeIcon
+        return "\(icon) \(viewModel.activity.name)"
+    }
+    
+    private var activityTypeIcon: String {
+        switch viewModel.activity.type {
+        case .cycling:
+            return "🚴"
+        case .running:
+            return "🏃"
+        case .walking:
+            return "🚶"
+        case .swimming:
+            return "🏊"
+        case .strength:
+            return "💪"
+        default:
+            return "⚽"
+        }
+    }
+    
+    // MARK: - Metadata Row (Single Line with Equal Spacing)
+    
+    private var metadataRow: some View {
+        HStack(spacing: 0) {
+            metricItem(
+                label: ActivityContent.Metrics.duration,
+                value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
+            )
+            
+            Spacer()
+            
+            metricItem(
+                label: ActivityContent.Metrics.distance,
+                value: viewModel.activity.distance.map { ActivityFormatters.formatDistance($0) } ?? "—"
+            )
+            
+            Spacer()
+            
+            metricItem(
+                label: ActivityContent.Metrics.tss,
+                value: viewModel.activity.tss.map { "\(Int($0))" } ?? "—"
+            )
+            
+            Spacer()
+            
+            if let np = viewModel.activity.normalizedPower {
+                metricItem(
+                    label: "NORM PWR",
+                    value: "\(Int(np))W"
+                )
+            } else if let avgHR = viewModel.activity.averageHeartRate {
+                metricItem(
+                    label: "AVG HR",
+                    value: "\(Int(avgHR)) bpm"
+                )
+            } else if let intensity = viewModel.activity.intensityFactor {
+                metricItem(
+                    label: "INTENSITY",
+                    value: String(format: "%.2f", intensity)
+                )
+            }
+        }
+    }
+    
+    // MARK: - Single Metric Item (Matching Ride Detail Style)
+    
+    private func metricItem(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .metricLabel()
+                .lineLimit(1)
+            
+            Text(value)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.text.primary)
+                .lineLimit(1)
+        }
+    }
+    
+    
+    // MARK: - Map Section
+    
+    private var mapSection: some View {
+        Group {
+            if viewModel.isLoadingMap {
+                Rectangle()
+                    .fill(Color.text.tertiary.opacity(0.1))
+                    .frame(height: 180)
+                    .overlay(ProgressView())
+                    .cornerRadius(12)
+                    .onAppear {
+                        Logger.debug("🗺️ [Activity Card] Map loading started")
+                    }
+            } else if let snapshot = viewModel.mapSnapshot {
+                Image(uiImage: snapshot)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity, maxHeight: 180)
+                    .clipped()
+                    .cornerRadius(12)
+                    .onAppear {
+                        Logger.debug("🗺️ [Activity Card] Map snapshot loaded, size: \(snapshot.size)")
+                    }
+            }
+        }
+    }
+    
+    // MARK: - Virtual Badge
+    
+    private var virtualBadge: some View {
+        HStack {
+            Image(systemName: Icons.System.waveform)
+                .font(.caption)
+            VRText("VIRTUAL", style: .caption, color: Color.text.primary)
+                .metricLabel()
+            Spacer()
+        }
+        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, Spacing.md)
+        .background(ColorScale.amberAccent.opacity(0.1))
+        .cornerRadius(Spacing.cardCornerRadius)
     }
     
     @ViewBuilder
