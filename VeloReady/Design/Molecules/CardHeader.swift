@@ -5,6 +5,7 @@ import SwiftUI
 struct CardHeader: View {
     let title: String
     let subtitle: String?
+    let subtitleIcon: String? // SF Symbol name for icon before subtitle
     let badge: Badge?
     let action: Action?
     
@@ -21,11 +22,13 @@ struct CardHeader: View {
     init(
         title: String,
         subtitle: String? = nil,
+        subtitleIcon: String? = nil,
         badge: Badge? = nil,
         action: Action? = nil
     ) {
         self.title = title
         self.subtitle = subtitle
+        self.subtitleIcon = subtitleIcon
         self.badge = badge
         self.action = action
     }
@@ -42,7 +45,14 @@ struct CardHeader: View {
                 }
                 
                 if let subtitle = subtitle {
-                    VRText(subtitle, style: .caption, color: .secondary)
+                    HStack(spacing: 4) {
+                        if let icon = subtitleIcon {
+                            Image(systemName: icon)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        VRText(subtitle, style: .caption, color: .secondary)
+                    }
                 }
             }
             

@@ -47,8 +47,9 @@ struct LatestActivityCardV2: View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
-                    title: titleWithIcon,
+                    title: viewModel.activity.name,
                     subtitle: formattedDateAndTime,
+                    subtitleIcon: viewModel.activity.type.icon,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),
                 style: .standard
@@ -78,29 +79,6 @@ struct LatestActivityCardV2: View {
         .sensoryFeedback(.impact(flexibility: .soft), trigger: isInitialLoad)
     }
     
-    // MARK: - Title with Activity Icon
-    
-    private var titleWithIcon: String {
-        let icon = activityTypeIcon
-        return "\(icon) \(viewModel.activity.name)"
-    }
-    
-    private var activityTypeIcon: String {
-        switch viewModel.activity.type {
-        case .cycling:
-            return "🚴"
-        case .running:
-            return "🏃"
-        case .walking:
-            return "🚶"
-        case .swimming:
-            return "🏊"
-        case .strength:
-            return "💪"
-        default:
-            return "⚽"
-        }
-    }
     
     // MARK: - Metadata Grid (4 Columns)
     
