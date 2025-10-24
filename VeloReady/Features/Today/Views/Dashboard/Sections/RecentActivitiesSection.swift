@@ -38,6 +38,9 @@ struct RecentActivitiesSection: View {
         }
         .padding(Spacing.md)
         .padding(.bottom, 100) // Extra space for tab bar
+        .onAppear {
+            Logger.debug("📊 RecentActivitiesSection - padding(Spacing.md=\(Spacing.md)) + padding(.bottom, 100)")
+        }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)

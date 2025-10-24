@@ -130,6 +130,10 @@ struct TodayView: View {
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
+            Logger.debug("📋 SPACING DEBUG:")
+            Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
+            Logger.debug("📋   Each card .padding(.vertical, Spacing.xxl / 2) = \(Spacing.xxl / 2)pt")
+            Logger.debug("📋   Total between cards: \(Spacing.md) + \(Spacing.xxl / 2) + \(Spacing.xxl / 2) = \(Spacing.md + Spacing.xxl)pt")
             handleViewAppear()
         }
         .onDisappear {
