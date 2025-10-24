@@ -198,18 +198,37 @@ struct MainTabView: View {
     ]
     
     var body: some View {
-        Group {
+        let systemVersion = UIDevice.current.systemVersion
+        let versionComponents = systemVersion.split(separator: ".").compactMap { Int($0) }
+        let majorVersion = versionComponents.first ?? 0
+        
+        let _ = print("🎨 [MainTabView] ========== TAB VIEW INITIALIZATION ==========")
+        let _ = print("🎨 [MainTabView] iOS Version String: \(systemVersion)")
+        let _ = print("🎨 [MainTabView] Parsed Major Version: \(majorVersion)")
+        let _ = print("🎨 [MainTabView] Device Model: \(UIDevice.current.model)")
+        let _ = print("🎨 [MainTabView] ProcessInfo OS Version: \(ProcessInfo.processInfo.operatingSystemVersion)")
+        
+        // Check if iOS 26 is available at compile time
+        if #available(iOS 26.0, *) {
+            let _ = print("🎨 [MainTabView] #available(iOS 26.0, *) = TRUE")
+        } else {
+            let _ = print("🎨 [MainTabView] #available(iOS 26.0, *) = FALSE")
+        }
+        
+        return Group {
             if #available(iOS 26.0, *) {
                 // iOS 26+ - Use native TabView with automatic Liquid Glass
+                let _ = print("🎨 [MainTabView] ✅ Taking iOS 26+ code path")
                 nativeTabView
                     .onAppear {
-                        print("🎨 [MainTabView] Using iOS 26+ native TabView with Liquid Glass")
+                        print("🎨 [MainTabView] ✅ Native TabView DID APPEAR")
                     }
             } else {
                 // iOS 25 and earlier - Use custom FloatingTabBar
+                let _ = print("🎨 [MainTabView] ❌ Taking iOS < 26 code path (fallback)")
                 customTabView
                     .onAppear {
-                        print("🎨 [MainTabView] Using custom FloatingTabBar (iOS < 26)")
+                        print("🎨 [MainTabView] Custom FloatingTabBar appeared")
                     }
             }
         }
