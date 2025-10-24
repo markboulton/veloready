@@ -184,14 +184,24 @@ struct InteractiveMapView: UIViewRepresentable {
         }
         
         /// Get color for heart rate value (green → yellow → amber → red)
+        /// Uses standard HR zones: Z1-Z2 green, Z3 yellow, Z4 orange, Z5 red
         private func colorForHeartRate(_ hr: Double) -> UIColor {
-            // Assume HR zones: <120 green, 120-140 yellow, 140-160 amber, >160 red
-            switch hr {
-            case ..<120:
+            // Estimate max HR if not known (220 - age, assume age 35 = 185 max HR)
+            let estimatedMaxHR = 185.0
+            let hrPercent = (hr / estimatedMaxHR) * 100
+            
+            // HR Zones based on % of max HR:
+            // Z1-Z2 (50-70%): Green (easy/recovery)
+            // Z3 (70-80%): Yellow (tempo)
+            // Z4 (80-90%): Orange (threshold)
+            // Z5 (90-100%): Red (VO2 max)
+            
+            switch hrPercent {
+            case ..<70:
                 return UIColor.systemGreen
-            case 120..<140:
+            case 70..<80:
                 return UIColor.systemYellow
-            case 140..<160:
+            case 80..<90:
                 return UIColor.systemOrange
             default:
                 return UIColor.systemRed
