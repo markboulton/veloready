@@ -556,6 +556,12 @@ struct TodayView: View {
     }
     
     private func handleHealthKitAuthChange(_ newValue: Bool) {
+        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
+        guard viewState.hasCompletedTodayInitialLoad else {
+            Logger.debug("⏭️ [SPINNER] Skipping HealthKit auth change handler - initial load not complete")
+            return
+        }
+        
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
             Task {
@@ -579,6 +585,12 @@ struct TodayView: View {
     }
     
     private func handleIntervalsConnection() {
+        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
+        guard viewState.hasCompletedTodayInitialLoad else {
+            Logger.debug("⏭️ [SPINNER] Skipping Intervals connection handler - initial load not complete")
+            return
+        }
+        
         Task {
             await viewModel.refreshData()
             liveActivityService.startAutoUpdates()
