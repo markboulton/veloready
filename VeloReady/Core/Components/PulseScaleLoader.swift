@@ -5,30 +5,45 @@ import SwiftUI
 /// - Outer circle: pulses (scales 1.0 → 1.2 → 1.0)
 /// - Inner circle: scales up (0 → 1)
 struct PulseScaleLoader: View {
-    @State private var outerScale: CGFloat = 1.0
-    @State private var innerScale: CGFloat = 0.0
+    @State private var animationProgress: CGFloat = 0
     
     let size: CGFloat = 120
     let borderWidth: CGFloat = 5
-    let color: Color
+    let outerColor: Color = .white
+    let innerColor: Color = Color(white: 0.5)
+    
+    var outerScale: CGFloat {
+        let normalized = animationProgress.truncatingRemainder(dividingBy: 1.0)
+        if normalized < 0.6 || normalized >= 0.8 {
+            return 1.0
+        } else {
+            let localProgress = (normalized - 0.6) / 0.2
+            return 1.0 + (0.2 * sin(localProgress * .pi))
+        }
+    }
+    
+    var innerScale: CGFloat {
+        let normalized = animationProgress.truncatingRemainder(dividingBy: 1.0)
+        return normalized < 0.6 ? 0.0 : (normalized - 0.6) / 0.4
+    }
     
     var body: some View {
         ZStack {
             // Outer circle - pulse animation
             Circle()
-                .stroke(color, lineWidth: borderWidth)
+                .stroke(outerColor, lineWidth: borderWidth)
                 .frame(width: size, height: size)
                 .scaleEffect(outerScale)
             
-            // Inner circle - scale up animation
+            // Inner circle - scale up animation (grey)
             Circle()
-                .stroke(color, lineWidth: borderWidth)
+                .stroke(innerColor, lineWidth: borderWidth)
                 .frame(width: size, height: size)
                 .scaleEffect(innerScale)
             
-            // VeloReady icon in the center
+            // VeloReady icon in the center (300% larger = 120pt)
             VeloReadyIcon()
-                .frame(width: 40, height: 40)
+                .frame(width: 120, height: 120)
                 .foregroundColor(.white)
         }
         .onAppear {
@@ -37,46 +52,9 @@ struct PulseScaleLoader: View {
     }
     
     private func startAnimation() {
-        // Outer circle animation: pulse
-        // 0-60%: 1.0, 60-80%: 1.2, 80-100%: 1.0
-        let outerSequence: [(duration: Double, scale: CGFloat)] = [
-            (duration: 0.6, scale: 1.0),
-            (duration: 0.2, scale: 1.2),
-            (duration: 0.2, scale: 1.0)
-        ]
-        
-        // Inner circle animation: scale up
-        // 0-60%: 0, 60-100%: 1
-        let innerSequence: [(duration: Double, scale: CGFloat)] = [
-            (duration: 0.6, scale: 0.0),
-            (duration: 0.4, scale: 1.0)
-        ]
-        
-        animateOuter(sequence: outerSequence, index: 0)
-        animateInner(sequence: innerSequence, index: 0)
-    }
-    
-    private func animateOuter(sequence: [(duration: Double, scale: CGFloat)], index: Int) {
-        let current = sequence[index % sequence.count]
-        
-        withAnimation(.linear(duration: current.duration)) {
-            outerScale = current.scale
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + current.duration) {
-            animateOuter(sequence: sequence, index: index + 1)
-        }
-    }
-    
-    private func animateInner(sequence: [(duration: Double, scale: CGFloat)], index: Int) {
-        let current = sequence[index % sequence.count]
-        
-        withAnimation(.linear(duration: current.duration)) {
-            innerScale = current.scale
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + current.duration) {
-            animateInner(sequence: sequence, index: index + 1)
+        // Use continuous smooth animation like CSS
+        withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
+            animationProgress = 1.0
         }
     }
 }
@@ -87,7 +65,7 @@ struct VeloReadyIcon: View {
     var body: some View {
         Canvas { context, size in
             // Scale the SVG paths to fit the canvas
-            let scale = size.width / 80
+            let scale = size.width / 80.0
             
             // First path (left arrow)
             var path1 = Path()
@@ -154,8 +132,7 @@ struct VeloReadyIcon: View {
 
 #Preview {
     VStack(spacing: 40) {
-        PulseScaleLoader(color: .white)
-        PulseScaleLoader(color: ColorPalette.blue)
+        PulseScaleLoader()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color.background.primary)

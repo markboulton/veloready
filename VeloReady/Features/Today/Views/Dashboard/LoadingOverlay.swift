@@ -9,7 +9,7 @@ struct LoadingOverlay: View {
             
             VStack(spacing: 32) {
                 // Pulse-scale loader animation
-                PulseScaleLoader(color: .white)
+                PulseScaleLoader()
             }
         }
         .onAppear {
