@@ -74,18 +74,13 @@ struct CardContainer<Content: View>: View {
         .padding(style.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            GeometryReader { geometry in
-                RoundedRectangle(cornerRadius: style.cornerRadius)
-                    .fill(Color.background.card)
-                    .shadow(
-                        color: .black.opacity(0.05),
-                        radius: style.shadowRadius,
-                        y: style.shadowY
-                    )
-                    .onAppear {
-                        Logger.debug("🎨 CardContainer - Final width: \(geometry.size.width), style: \(style)")
-                    }
-            }
+            RoundedRectangle(cornerRadius: style.cornerRadius)
+                .fill(Color.background.card)
+                .shadow(
+                    color: .black.opacity(0.05),
+                    radius: style.shadowRadius,
+                    y: style.shadowY
+                )
         )
     }
 }

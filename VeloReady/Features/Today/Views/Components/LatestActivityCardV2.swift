@@ -21,14 +21,6 @@ struct LatestActivityCardV2: View {
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // DEBUG: Log card content start
-                    GeometryReader { geometry in
-                        Color.clear
-                            .onAppear {
-                                Logger.debug("📍 LatestActivityCardV2 - CardContainer content width: \(geometry.size.width)")
-                            }
-                    }
-                    .frame(height: 0)
                     // Metadata Row 1
                     HStack(spacing: Spacing.md) {
                         if let duration = viewModel.activity.duration {
@@ -105,16 +97,7 @@ struct LatestActivityCardV2: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .onAppear {
-                        Logger.debug("📦 LatestActivityCardV2 - HapticNavigationLink outer width: \(geometry.size.width)")
-                    }
-            }
-        )
         .onAppear {
-            Logger.debug("🎬 LatestActivityCardV2 - onAppear called")
             Task {
                 await viewModel.loadData()
             }
