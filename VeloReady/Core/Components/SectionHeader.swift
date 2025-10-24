@@ -104,16 +104,37 @@ struct SectionHeader: View {
     }
     
     private var monthYearHeader: some View {
-        Text(title)
-            .font(style.font)
-            .fontWeight(.semibold)
-            .foregroundColor(style.color)
-            .textCase(style.textCase)
-            .tracking(style.tracking)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, Spacing.sm)
-            .padding(.horizontal, Spacing.xl)
-            .background(style.backgroundColor)
+        ZStack(alignment: .leading) {
+            // Multi-layer background to properly mask navigation gradient
+            VStack(spacing: 0) {
+                // Solid background area (matches navigation bar area)
+                style.backgroundColor
+                    .frame(height: 40)
+                
+                // Gradient fade (matches NavigationGradientMask)
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: style.backgroundColor.opacity(0.95), location: 0.0),
+                        .init(color: style.backgroundColor.opacity(0.0), location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 20)
+            }
+            
+            // Text content on top
+            Text(title)
+                .font(style.font)
+                .fontWeight(.semibold)
+                .foregroundColor(style.color)
+                .textCase(style.textCase)
+                .tracking(style.tracking)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, Spacing.sm)
+                .padding(.horizontal, Spacing.xl)
+        }
+        .frame(height: 40) // Fixed height for consistent sticky behavior
     }
 }
 
