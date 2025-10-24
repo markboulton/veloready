@@ -50,13 +50,14 @@ struct LatestActivityCardV2: View {
                     title: viewModel.activity.name,
                     subtitle: formattedDateAndTime,
                     subtitleIcon: viewModel.activity.type.icon,
+                    badge: viewModel.activity.isIndoorRide ? .init(text: "VIRTUAL", style: .info) : nil,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     // Metadata row with RPE badge on right
-                    HStack(alignment: .top, spacing: Spacing.md) {
+                    HStack(alignment: .top, spacing: 0) {
                         metadataGrid
                         
                         if shouldShowRPEButton {
@@ -69,11 +70,6 @@ struct LatestActivityCardV2: View {
                     if viewModel.shouldShowMap || viewModel.activity.type == .walking {
                         mapSection
                     }
-                    
-                    // Virtual badge for indoor rides
-                    if viewModel.activity.isIndoorRide {
-                        virtualBadge
-                    }
                 }
             }
         }
@@ -85,11 +81,11 @@ struct LatestActivityCardV2: View {
     // MARK: - Metadata Grid (4 Columns - Activity Type Specific)
     
     private var metadataGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: Spacing.md) {
             // Customize metrics based on activity type
             switch viewModel.activity.type {
             case .strength:
-                // Strength: Duration, Calories, Avg HR, (empty)
+                // Strength: Duration, Calories, Avg HR (3 columns aligned to grid)
                 metricItem(
                     label: ActivityContent.Metrics.duration,
                     value: viewModel.activity.duration.map { ActivityFormatters.formatDurationDetailed($0) } ?? "—"
@@ -102,7 +98,6 @@ struct LatestActivityCardV2: View {
                     label: "AVG HR",
                     value: viewModel.activity.averageHeartRate.map { "\(Int($0)) bpm" } ?? "—"
                 )
-                Color.clear.frame(height: 0)
                 
             case .walking:
                 // Walking: Duration, Distance, Steps, Avg HR
@@ -116,7 +111,7 @@ struct LatestActivityCardV2: View {
                 )
                 metricItem(
                     label: "STEPS",
-                    value: "—" // TODO: Add steps data to UnifiedActivity
+                    value: viewModel.stepsCount ?? "—"
                 )
                 metricItem(
                     label: "AVG HR",
@@ -226,7 +221,7 @@ struct LatestActivityCardV2: View {
             if viewModel.isLoadingMap {
                 Rectangle()
                     .fill(Color.text.tertiary.opacity(0.1))
-                    .frame(height: 240)
+                    .frame(height: 360)
                     .overlay(ProgressView())
                     .cornerRadius(12)
                     .onAppear {
@@ -236,7 +231,7 @@ struct LatestActivityCardV2: View {
                 Image(uiImage: snapshot)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: 240)
+                    .frame(maxWidth: .infinity, maxHeight: 360)
                     .clipped()
                     .cornerRadius(12)
                     .onAppear {
@@ -246,25 +241,6 @@ struct LatestActivityCardV2: View {
         }
     }
     
-    // MARK: - Virtual Badge
-    
-    private var virtualBadge: some View {
-        HStack(spacing: Spacing.xs) {
-            Image(systemName: Icons.System.waveform)
-                .font(.caption)
-                .foregroundColor(ColorScale.amberAccent)
-            
-            Text("VIRTUAL")
-                .metricLabel()
-                .foregroundColor(ColorScale.amberAccent)
-            
-            Spacer()
-        }
-        .padding(.vertical, Spacing.sm)
-        .padding(.horizontal, Spacing.md)
-        .background(ColorScale.amberAccent.opacity(0.1))
-        .cornerRadius(Spacing.md)
-    }
     
     // MARK: - RPE Helpers
     

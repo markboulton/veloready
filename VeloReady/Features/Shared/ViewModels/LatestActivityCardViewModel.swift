@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import HealthKit
 
 /// ViewModel for LatestActivityCardV2
 /// Handles async GPS loading, map snapshot generation, and location geocoding
@@ -149,5 +150,19 @@ class LatestActivityCardViewModel: ObservableObject {
     
     var hasMapSnapshot: Bool {
         mapSnapshot != nil
+    }
+    
+    var stepsCount: String? {
+        guard let workout = activity.healthKitWorkout else { return nil }
+        
+        // Query steps from HealthKit statistics
+        if let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount),
+           let statistics = workout.statistics(for: stepsType),
+           let sum = statistics.sumQuantity() {
+            let steps = Int(sum.doubleValue(for: .count()))
+            return "\(steps)"
+        }
+        
+        return nil
     }
 }

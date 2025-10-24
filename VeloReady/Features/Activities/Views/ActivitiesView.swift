@@ -71,20 +71,24 @@ struct ActivitiesView: View {
     
     private var activitiesScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: Spacing.md, pinnedViews: []) {
+            LazyVStack(spacing: Spacing.md, pinnedViews: [.sectionHeaders]) {
                 // Sparkline header
                 sparklineHeader
                 
-                // Activity cards
-                ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
-                    LatestActivityCardV2(activity: activity)
-                        .onAppear {
-                            // Progressive loading: when user scrolls near the end, load more
-                            if index == viewModel.displayedActivities.count - 3 {
-                                Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
-                                viewModel.loadMoreActivitiesIfNeeded()
-                            }
+                // Group activities by month
+                ForEach(groupedByMonth.keys.sorted(by: >), id: \.self) { monthKey in
+                    Section(header: monthSectionHeader(for: monthKey)) {
+                        ForEach(Array(groupedByMonth[monthKey]!.enumerated()), id: \.element.id) { index, activity in
+                            LatestActivityCardV2(activity: activity)
+                                .onAppear {
+                                    // Progressive loading: when user scrolls near the end, load more
+                                    if index == viewModel.displayedActivities.count - 3 {
+                                        Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
+                                        viewModel.loadMoreActivitiesIfNeeded()
+                                    }
+                                }
                         }
+                    }
                 }
                 
                 // Load more indicator
@@ -100,6 +104,29 @@ struct ActivitiesView: View {
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
+    }
+    
+    // MARK: - Monthly Grouping
+    
+    private var groupedByMonth: [String: [UnifiedActivity]] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        
+        return Dictionary(grouping: viewModel.displayedActivities) { activity in
+            formatter.string(from: activity.startDate)
+        }
+    }
+    
+    private func monthSectionHeader(for monthKey: String) -> some View {
+        Text(monthKey)
+            .font(.headline)
+            .fontWeight(.semibold)
+            .foregroundColor(.text.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Spacing.sm)
+            .padding(.horizontal, Spacing.xl)
+            .background(Color.background.app)
     }
     
     // MARK: - Sparkline Header
