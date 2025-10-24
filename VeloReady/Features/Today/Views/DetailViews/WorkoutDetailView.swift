@@ -54,6 +54,10 @@ struct WorkoutDetailView: View {
         viewModel.samples
     }
     
+    private var heartRates: [Double] {
+        samples.filter { $0.heartRate > 0 }.map { $0.heartRate }
+    }
+    
     // Use enriched activity if available, otherwise use original
     private var displayActivity: IntervalsActivity {
         viewModel.enrichedActivity ?? activity
@@ -142,7 +146,7 @@ struct WorkoutDetailView: View {
                     if !isVirtualRide && (!routeCoordinates.isEmpty || isLoadingMap) {
                         WorkoutMapSection(
                             coordinates: routeCoordinates,
-                            heartRates: samples.map { $0.heartRate },
+                            heartRates: heartRates,
                             isLoading: isLoadingMap
                         )
                     }
