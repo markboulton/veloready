@@ -191,7 +191,7 @@ struct LatestActivityCardV2: View {
     
     private var formattedDateAndTime: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM yyyy 'at' HH:mm"
+        formatter.dateFormat = "d MMMM yyyy 'at' HH:mm"  // Full month name (October instead of Oct)
         let calendar = Calendar.current
         
         if calendar.isDateInToday(viewModel.activity.startDate) {

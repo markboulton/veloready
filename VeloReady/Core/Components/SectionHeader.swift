@@ -114,49 +114,16 @@ struct SectionHeader: View {
     }
     
     private var monthYearHeader: some View {
-        ZStack(alignment: .leading) {
-            // Multi-layer background to properly mask navigation gradient
-            VStack(spacing: 0) {
-                // Solid background area (matches navigation bar area)
-                style.backgroundColor
-                    .frame(height: Spacing.sectionHeaderHeight)
-                    .onAppear {
-                        Logger.debug("📌 [SectionHeader] Solid background rendered - height: \(Spacing.sectionHeaderHeight)")
-                    }
-                
-                // Gradient fade (matches NavigationGradientMask)
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: style.backgroundColor.opacity(Opacity.gradientFull), location: 0.0),
-                        .init(color: style.backgroundColor.opacity(Opacity.gradientLow), location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Spacing.sectionHeaderGradientHeight)
-                .onAppear {
-                    Logger.debug("📌 [SectionHeader] Gradient fade rendered - height: \(Spacing.sectionHeaderGradientHeight), opacity: \(Opacity.gradientFull) → \(Opacity.gradientLow)")
-                }
-            }
-            
-            // Text content on top
-            Text(title)
-                .font(style.font)
-                .fontWeight(style.fontWeight)
-                .foregroundColor(style.color)
-                .textCase(style.textCase)
-                .tracking(style.tracking)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, Spacing.sm)
-                .padding(.horizontal, Spacing.xl)
-                .onAppear {
-                    Logger.debug("📌 [SectionHeader] Month/year header rendered: '\(title)' - style: monthYear")
-                }
-        }
-        .frame(height: Spacing.sectionHeaderHeight)
-        .onAppear {
-            Logger.debug("📌 [SectionHeader] Complete sticky header rendered - total height: \(Spacing.sectionHeaderHeight)")
-        }
+        Text(title)
+            .font(style.font)
+            .fontWeight(style.fontWeight)
+            .foregroundColor(style.color)
+            .textCase(style.textCase)
+            .tracking(style.tracking)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Spacing.sm)
+            .padding(.horizontal, Spacing.xl)
+            .background(style.backgroundColor)
     }
 }
 

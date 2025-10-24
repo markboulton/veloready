@@ -17,15 +17,6 @@ struct ActivitiesView: View {
                 // Adaptive background
                 Color.background.app
                     .ignoresSafeArea()
-                    .onAppear {
-                        Logger.debug("🎨 [ActivitiesView] ZStack Layer 1: Background rendered")
-                    }
-                
-                // Navigation gradient mask (iOS Mail style) - rendered first so sticky headers appear on top
-                NavigationGradientMask()
-                    .onAppear {
-                        Logger.debug("🎨 [ActivitiesView] ZStack Layer 2: NavigationGradientMask rendered (height: \(Spacing.navigationBarHeight + Spacing.navigationGradientHeight))")
-                    }
                 
                 Group {
                     if viewModel.isLoading && viewModel.allActivities.isEmpty {
@@ -36,14 +27,11 @@ struct ActivitiesView: View {
                         })
                     } else {
                         activitiesScrollView
-                            .onAppear {
-                                Logger.debug("🎨 [ActivitiesView] ZStack Layer 3: ScrollView content rendered (sticky headers on top)")
-                            }
                     }
                 }
-                .onAppear {
-                    Logger.debug("🎨 [ActivitiesView] ZStack complete - layer order: Background → Gradient → ScrollView")
-                }
+                
+                // Navigation gradient mask (iOS Mail style)
+                NavigationGradientMask()
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
@@ -83,46 +71,33 @@ struct ActivitiesView: View {
     
     private var activitiesScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                // Sparkline header (outside of sections)
+            LazyVStack(spacing: Spacing.md) {
+                // Sparkline header
                 sparklineHeader
-                    .padding(.horizontal, Spacing.xl)
                 
-                // Activities grouped by month with sticky headers
-                ForEach(viewModel.displayedGroupedActivities, id: \.key) { monthGroup in
-                    Section {
-                        ForEach(Array(monthGroup.value.enumerated()), id: \.element.id) { index, activity in
-                            LatestActivityCardV2(activity: activity)
-                                .padding(.horizontal, Spacing.xl)
-                                .padding(.vertical, Spacing.xs)
-                                .onAppear {
-                                    // Progressive loading: when user scrolls near the end, load more
-                                    let totalDisplayed = viewModel.displayedActivities.count
-                                    let activityIndex = viewModel.displayedActivities.firstIndex(where: { $0.id == activity.id }) ?? 0
-                                    
-                                    if activityIndex == totalDisplayed - 3 {
-                                        Logger.debug("📊 [Activities] Near end of list (index \(activityIndex)/\(totalDisplayed)) - loading more")
-                                        viewModel.loadMoreActivitiesIfNeeded()
-                                    }
-                                }
+                // Activities list (flat, no grouping - month shown in card date)
+                ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
+                    LatestActivityCardV2(activity: activity)
+                        .onAppear {
+                            // Progressive loading: when user scrolls near the end, load more
+                            if index == viewModel.displayedActivities.count - 3 {
+                                Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
+                                viewModel.loadMoreActivitiesIfNeeded()
+                            }
                         }
-                    } header: {
-                        SectionHeader(monthGroup.key, style: .monthYear)
-                    }
                 }
                 
                 // Load more indicator
                 if viewModel.hasMoreToLoad {
                     loadMoreIndicator
-                        .padding(.horizontal, Spacing.xl)
                 }
                 
                 // Pro upgrade CTA for FREE users
                 if !proConfig.hasProAccess && !viewModel.allActivities.isEmpty {
                     proUpgradeSection
-                        .padding(.horizontal, Spacing.xl)
                 }
             }
+            .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
     }
