@@ -18,6 +18,9 @@ struct ActivitiesView: View {
                 Color.background.app
                     .ignoresSafeArea()
                 
+                // Navigation gradient mask (iOS Mail style) - rendered first so sticky headers appear on top
+                NavigationGradientMask()
+                
                 Group {
                     if viewModel.isLoading && viewModel.allActivities.isEmpty {
                         ActivitiesLoadingView()
@@ -29,9 +32,6 @@ struct ActivitiesView: View {
                         activitiesScrollView
                     }
                 }
-                
-                // Navigation gradient mask (iOS Mail style)
-                NavigationGradientMask()
             }
             .navigationTitle(ActivitiesContent.title)
             .navigationBarTitleDisplayMode(.large)
