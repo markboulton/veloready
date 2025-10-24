@@ -815,11 +815,13 @@ class WeeklyReportViewModel: ObservableObject {
         }
         
         // Check Core Data cache first (same week)
+        Logger.debug("🤖 [AI SUMMARY] Checking for cached weekly summary...")
         if let cachedSummary = loadWeeklySummaryFromCoreData() {
             aiSummary = cachedSummary
-            Logger.debug("📦 Using cached AI weekly summary from Core Data")
+            Logger.debug("✅ [AI SUMMARY] Using cached weekly summary from Core Data")
             return
         }
+        Logger.debug("🔄 [AI SUMMARY] No cache found - generating fresh summary")
         
         isLoadingAI = true
         aiError = nil
@@ -1037,31 +1039,57 @@ class WeeklyReportViewModel: ObservableObject {
         let monday = weekStartDate
         let now = Date()
         
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM dd, yyyy"
+        
+        Logger.debug("📅 [WEEKLY CACHE] Checking cache for week starting: \(dateFormatter.string(from: monday))")
+        Logger.debug("📅 [WEEKLY CACHE] Current date: \(dateFormatter.string(from: now))")
+        
         // Ensure we're still in the same week (Monday to Sunday)
         let calendar = Calendar.current
         guard let nextMonday = calendar.date(byAdding: .day, value: 7, to: monday),
               now < nextMonday else {
-            Logger.debug("📅 Cache expired - new week started")
+            let expiredDate = calendar.date(byAdding: .day, value: 7, to: monday) ?? monday
+            Logger.debug("📅 [WEEKLY CACHE] ❌ Cache expired - new week started (next Monday: \(dateFormatter.string(from: expiredDate)))")
             return nil
         }
+        
+        Logger.debug("📅 [WEEKLY CACHE] ✅ Still in same week (expires: \(dateFormatter.string(from: nextMonday)))")
         
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date == %@", monday as NSDate)
         request.fetchLimit = 1
         
-        guard let scores = persistence.fetch(request).first,
-              let summaryText = scores.aiBriefText,
-              !summaryText.isEmpty,
-              summaryText.count > 100 else { // Weekly summaries are longer than daily briefs
+        guard let scores = persistence.fetch(request).first else {
+            Logger.debug("📅 [WEEKLY CACHE] ❌ No DailyScores entry found for Monday")
             return nil
         }
         
+        guard let summaryText = scores.aiBriefText, !summaryText.isEmpty else {
+            Logger.debug("📅 [WEEKLY CACHE] ❌ aiBriefText is nil or empty")
+            return nil
+        }
+        
+        Logger.debug("📅 [WEEKLY CACHE] Found text with length: \(summaryText.count) characters")
+        
+        guard summaryText.count > 100 else {
+            Logger.debug("📅 [WEEKLY CACHE] ❌ Text too short (\(summaryText.count) chars) - likely daily brief, not weekly")
+            return nil
+        }
+        
+        Logger.debug("📅 [WEEKLY CACHE] ✅ Using cached weekly summary (\(summaryText.count) chars)")
         return summaryText
     }
     
     /// Save weekly AI summary to Core Data for current week (Monday)
     private func saveWeeklySummaryToCoreData(text: String) {
         let monday = weekStartDate
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM dd, yyyy HH:mm"
+        
+        Logger.debug("💾 [WEEKLY CACHE] Saving weekly summary for Monday: \(dateFormatter.string(from: monday))")
+        Logger.debug("💾 [WEEKLY CACHE] Summary length: \(text.count) characters")
         
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date == %@", monday as NSDate)
@@ -1070,8 +1098,10 @@ class WeeklyReportViewModel: ObservableObject {
         // Get or create DailyScores for Monday
         let scores: DailyScores
         if let existing = persistence.fetch(request).first {
+            Logger.debug("💾 [WEEKLY CACHE] Found existing DailyScores entry")
             scores = existing
         } else {
+            Logger.debug("💾 [WEEKLY CACHE] Creating new DailyScores entry")
             scores = DailyScores(context: persistence.container.viewContext)
             scores.date = monday
         }
@@ -1079,6 +1109,6 @@ class WeeklyReportViewModel: ObservableObject {
         // Store weekly summary in aiBriefText field (reusing existing field)
         scores.aiBriefText = text
         persistence.save()
-        Logger.debug("💾 Saved weekly AI summary to Core Data (Monday: \(monday))")
+        Logger.debug("✅ [WEEKLY CACHE] Saved weekly AI summary to Core Data")
     }
 }
