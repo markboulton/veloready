@@ -7,7 +7,7 @@ struct WeeklyReportView: View {
     @State private var selectedSleepDay = 0 // For segmented control
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: true) {
+        ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: Spacing.md) {
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(

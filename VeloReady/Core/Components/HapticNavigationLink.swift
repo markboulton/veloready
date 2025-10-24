@@ -16,6 +16,7 @@ struct HapticNavigationLink<Label: View, Destination: View>: View {
             label()
         }
         .buttonStyle(PlainButtonStyle())
+        .frame(maxWidth: .infinity, alignment: .leading)
         .simultaneousGesture(TapGesture().onEnded {
             Logger.debug("🔘 HapticNavigationLink tapped - firing haptic")
             HapticFeedback.light()
