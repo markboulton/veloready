@@ -74,16 +74,14 @@ struct DebtMetricCardV2: View {
     let onTap: () -> Void
     
     var body: some View {
-        Button(action: onTap) {
-            CardContainer(
-                header: CardHeader(
-                    title: debtType.title,
-                    subtitle: debtType.description,
-                    badge: .init(text: debtType.bandName.uppercased(), style: debtType.badgeStyle),
-                    action: .init(icon: Icons.System.chevronRight, action: onTap)
-                ),
-                style: .compact
-            ) {
+        CardContainer(
+            header: CardHeader(
+                title: debtType.title,
+                subtitle: debtType.description,
+                badge: .init(text: debtType.bandName.uppercased(), style: debtType.badgeStyle)
+            ),
+            style: .compact
+        ) {
                 HStack(spacing: Spacing.md) {
                     // Icon
                     Image(systemName: debtType.icon)
@@ -103,8 +101,6 @@ struct DebtMetricCardV2: View {
                     Spacer()
                 }
             }
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 

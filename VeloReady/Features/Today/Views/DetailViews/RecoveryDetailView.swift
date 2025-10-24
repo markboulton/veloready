@@ -441,53 +441,47 @@ struct RecoveryDetailView: View {
     
     @ViewBuilder
     private var resilienceSection: some View {
-        if let resilience = RecoveryScoreService.shared.currentResilienceScore {
-            CardContainer(
-                header: CardHeader(
-                    title: RecoveryContent.NewMetrics.resilience,
-                    subtitle: resilience.band.description,
-                    badge: .init(text: resilience.band.rawValue.uppercased(), style: resilience.band == .high ? .success : resilience.band == .good ? .info : .warning)
-                ),
-                style: .standard
-            ) {
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Main metric
-                    HStack(spacing: Spacing.sm) {
-                        Image(systemName: Icons.Activity.strength)
-                            .font(.title)
-                            .foregroundColor(Color.text.secondary)
+        StandardCard(
+            title: RecoveryContent.NewMetrics.resilience
+        ) {
+            VStack(alignment: .leading, spacing: 16) {
+                if let resilience = RecoveryScoreService.shared.currentResilienceScore {
+                
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(resilience.band.rawValue)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(resilience.band.colorToken)
                         
-                        CardMetric(
-                            value: "\(resilience.score)",
-                            label: RecoveryContent.Resilience.capacityLabel,
-                            size: .large
-                        )
+                        Text("\(RecoveryContent.Resilience.avgRecovery) \(String(format: "%.0f", resilience.averageRecovery)) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Resilience.avgLoad) \(String(format: "%.1f", resilience.averageLoad))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                     
-                    Divider()
-                        .padding(.vertical, Spacing.xs)
+                    Spacer()
                     
-                    // Breakdown
-                    VStack(spacing: Spacing.sm) {
-                        HStack {
-                            VRText(RecoveryContent.Resilience.avgRecovery, style: .body, color: Color.text.secondary)
-                            Spacer()
-                            VRText(String(format: "%.0f", resilience.averageRecovery), style: .headline)
-                        }
-                        
-                        HStack {
-                            VRText(RecoveryContent.Resilience.avgLoad, style: .body, color: Color.text.secondary)
-                            Spacer()
-                            VRText(String(format: "%.1f", resilience.averageLoad), style: .headline)
-                        }
-                    }
-                    
-                    // Recommendation
-                    Text(resilience.band.recommendation)
-                        .font(.caption)
-                        .foregroundColor(.primary)
-                        .padding(.top, Spacing.xs)
+                    Text("\(resilience.score)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(resilience.band.colorToken)
                 }
+                
+                Text(resilience.band.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text(resilience.band.recommendation)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(.top, 4)
+            } else {
+                dataAvailabilityMessage(
+                    requiredDays: 30,
+                    metricName: RecoveryContent.NewMetrics.resilience,
+                    description: RecoveryContent.Resilience.description
+                )
+            }
             }
         }
     }
