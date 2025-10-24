@@ -6,6 +6,9 @@ struct CardHeader: View {
     let title: String
     let subtitle: String?
     let subtitleIcon: String? // SF Symbol name for icon before subtitle
+    let titleIcon: String? // SF Symbol name for icon before title
+    let titleIconColor: Color? // Color for title icon
+    let applyRainbowGradient: Bool // Apply rainbow gradient to title
     let badge: Badge?
     let action: Action?
     
@@ -23,12 +26,18 @@ struct CardHeader: View {
         title: String,
         subtitle: String? = nil,
         subtitleIcon: String? = nil,
+        titleIcon: String? = nil,
+        titleIconColor: Color? = nil,
+        applyRainbowGradient: Bool = false,
         badge: Badge? = nil,
         action: Action? = nil
     ) {
         self.title = title
         self.subtitle = subtitle
         self.subtitleIcon = subtitleIcon
+        self.titleIcon = titleIcon
+        self.titleIconColor = titleIconColor
+        self.applyRainbowGradient = applyRainbowGradient
         self.badge = badge
         self.action = action
     }
@@ -37,7 +46,21 @@ struct CardHeader: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    VRText(title, style: .headline)
+                    // Title icon (optional)
+                    if let titleIcon = titleIcon {
+                        Image(systemName: titleIcon)
+                            .font(.heading)
+                            .foregroundColor(titleIconColor ?? .primary)
+                    }
+                    
+                    // Title with optional rainbow gradient
+                    if applyRainbowGradient {
+                        Text(title)
+                            .font(.heading)
+                            .rainbowGradient()
+                    } else {
+                        VRText(title, style: .headline)
+                    }
                     
                     if let badge = badge {
                         VRBadge(badge.text, style: badge.style)

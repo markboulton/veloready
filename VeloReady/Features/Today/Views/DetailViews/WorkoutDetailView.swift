@@ -108,19 +108,15 @@ struct WorkoutDetailView: View {
                         // AI Ride Summary - PRO feature (below metadata, before charts)
                         RideSummaryView(activity: displayActivity)
                         
-                        // Training Load Chart - PRO feature (has its own margins)
+                        // Training Load Chart - PRO feature
                         // Shows CTL/ATL/TSB trend over time with 3 intersecting lines
-                        // Only show divider if chart has TSS data
                         if displayActivity.tss != nil {
                             TrainingLoadChart(activity: displayActivity)
-                                .padding(.horizontal, -Spacing.xl)
                         }
                         
-                        // Intensity Chart - PRO feature (has its own margins)
-                        // Only show divider if chart has TSS/IF data
+                        // Intensity Chart - PRO feature
                         if displayActivity.tss != nil && displayActivity.intensityFactor != nil {
                             IntensityChart(activity: displayActivity)
-                                .padding(.horizontal, -Spacing.xl)
                         }
                     } else {
                         // Single combined Pro upgrade card for free users

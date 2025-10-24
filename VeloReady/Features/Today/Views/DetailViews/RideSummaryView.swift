@@ -14,21 +14,16 @@ struct RideSummaryView: View {
         }
         
         return AnyView(
-            VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Header with rainbow gradient
-                    HStack(spacing: 8) {
-                        Image(systemName: Icons.System.sparkles)
-                            .font(.heading)
-                            .foregroundColor(ColorPalette.aiIconColor)
-                        
-                        Text(RideSummaryContent.title)
-                            .font(.heading)
-                            .rainbowGradient()
-                        
-                        Spacer()
-                    }
-                    
+            CardContainer(
+                header: CardHeader(
+                    title: RideSummaryContent.title,
+                    titleIcon: Icons.System.sparkles,
+                    titleIconColor: ColorPalette.aiIconColor,
+                    applyRainbowGradient: true
+                ),
+                style: .standard
+            ) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     // Content
                     if service.isLoading {
                         LoadingView()
@@ -43,20 +38,20 @@ struct RideSummaryView: View {
                             .italic()
                     }
                 }
-                .onAppear {
-                    // Fetch summary on appear if not already loaded
-                    if !hasLoaded && service.currentSummary == nil && !service.isLoading {
-                        hasLoaded = true
-                        Task {
-                            await service.fetchSummary(for: activity)
-                        }
+            }
+            .onAppear {
+                // Fetch summary on appear if not already loaded
+                if !hasLoaded && service.currentSummary == nil && !service.isLoading {
+                    hasLoaded = true
+                    Task {
+                        await service.fetchSummary(for: activity)
                     }
                 }
-                .onDisappear {
-                    // Clear summary when leaving the screen
-                    service.clearSummary()
-                    hasLoaded = false
-                }
+            }
+            .onDisappear {
+                // Clear summary when leaving the screen
+                service.clearSummary()
+                hasLoaded = false
             }
         )
     }
