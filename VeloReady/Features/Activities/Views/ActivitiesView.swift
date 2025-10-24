@@ -309,10 +309,13 @@ class ActivitiesViewModel: ObservableObject {
     @Published var hasLoadedExtended = false
     @Published var error: String?
     @Published var selectedFilters: Set<UnifiedActivity.ActivityType> = []
+    @Published var displayedActivities: [UnifiedActivity] = []
     
     var allActivities: [UnifiedActivity] = []
     private var proConfig = ProFeatureConfig.shared
     private var hasLoadedInitialData = false
+    private let batchSize = 10 // Progressive loading: show 10 activities at a time
+    private var currentBatchIndex = 0
     
     private init() {} // Private init for singleton
     
@@ -519,6 +522,48 @@ class ActivitiesViewModel: ObservableObject {
             formatter.dateFormat = "MMMM yyyy"
             return formatter.string(from: activity.startDate)
         }
+        
+        // Reset progressive loading when filters change
+        currentBatchIndex = 0
+        loadInitialBatch()
+        Logger.debug("📊 [Activities] Filters applied - showing \(displayedActivities.count)/\(filtered.count) activities")
+    }
+    
+    // MARK: - Progressive Loading
+    
+    /// Check if there are more activities to load
+    var hasMoreToLoad: Bool {
+        let filteredActivities = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        return displayedActivities.count < filteredActivities.count
+    }
+    
+    /// Load initial batch of activities
+    private func loadInitialBatch() {
+        let filteredActivities = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        let endIndex = min(batchSize, filteredActivities.count)
+        displayedActivities = Array(filteredActivities.prefix(endIndex))
+        currentBatchIndex = 1
+        Logger.debug("📊 [Activities] Initial batch loaded - \(displayedActivities.count)/\(filteredActivities.count) activities")
+    }
+    
+    /// Load more activities when user scrolls (progressive loading)
+    func loadMoreActivitiesIfNeeded() {
+        guard hasMoreToLoad else {
+            Logger.debug("📊 [Activities] No more activities to load")
+            return
+        }
+        
+        let filteredActivities = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        let startIndex = currentBatchIndex * batchSize
+        let endIndex = min(startIndex + batchSize, filteredActivities.count)
+        
+        guard startIndex < filteredActivities.count else { return }
+        
+        let newBatch = Array(filteredActivities[startIndex..<endIndex])
+        displayedActivities.append(contentsOf: newBatch)
+        currentBatchIndex += 1
+        
+        Logger.debug("📊 [Activities] Loaded batch \(currentBatchIndex) - now showing \(displayedActivities.count)/\(filteredActivities.count)")
     }
 }
 
