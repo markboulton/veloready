@@ -84,7 +84,9 @@ class CaloriesCardViewModel: ObservableObject {
     
     var progress: Double {
         guard effectiveGoal > 0 else { return 0 }
-        return min(totalCalories / effectiveGoal, 1.0)
+        // Compare active calories against goal, not total
+        // BMR is baseline metabolism, only active calories count toward goal
+        return min(activeCalories / effectiveGoal, 1.0)
     }
     
     var progressPercentage: String {
@@ -108,7 +110,9 @@ class CaloriesCardViewModel: ObservableObject {
     }
     
     var badge: CardHeader.Badge? {
-        if totalCalories >= effectiveGoal {
+        // Compare active calories against goal, not total
+        // BMR is baseline metabolism, only active calories count toward goal
+        if activeCalories >= effectiveGoal {
             return .init(text: "GOAL MET", style: .success)
         } else if progress >= 0.8 {
             return .init(text: "CLOSE", style: .info)
