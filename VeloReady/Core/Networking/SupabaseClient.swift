@@ -102,21 +102,54 @@ class SupabaseClient: ObservableObject {
         }
     }
     
-    /// Refresh the access token
-    /// Note: In production, this should call your backend to refresh the token
-    /// For now, we'll just log and throw an error - user will need to re-authenticate
+    /// Refresh the access token via backend
     private func refreshToken() async throws {
         guard let session = session else {
             throw SupabaseError.notAuthenticated
         }
         
-        Logger.warning("⚠️ [Supabase] Token refresh not implemented - user needs to re-authenticate")
-        Logger.debug("   Current token expires at: \(session.expiresAt)")
+        Logger.debug("🔄 [Supabase] Refreshing access token...")
         
-        // TODO: Implement token refresh via backend endpoint
-        // For now, clear the session so user will re-authenticate
-        clearSession()
-        throw SupabaseError.refreshFailed
+        // Call backend to refresh the token
+        guard let url = URL(string: "https://api.veloready.app/.netlify/functions/auth-refresh-token") else {
+            throw SupabaseError.invalidResponse
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = ["refresh_token": session.refreshToken]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            Logger.error("[Supabase] Token refresh failed - clearing session")
+            clearSession()
+            throw SupabaseError.refreshFailed
+        }
+        
+        // Parse response
+        struct RefreshResponse: Codable {
+            let access_token: String
+            let refresh_token: String
+            let expires_in: Int
+        }
+        
+        let refreshResponse = try JSONDecoder().decode(RefreshResponse.self, from: data)
+        
+        // Create new session with refreshed tokens
+        let newSession = SupabaseSession(
+            accessToken: refreshResponse.access_token,
+            refreshToken: refreshResponse.refresh_token,
+            expiresAt: Date().addingTimeInterval(TimeInterval(refreshResponse.expires_in)),
+            user: session.user
+        )
+        
+        saveSession(newSession)
+        Logger.debug("✅ [Supabase] Token refreshed successfully (expires: \(newSession.expiresAt))")
     }
 }
 
