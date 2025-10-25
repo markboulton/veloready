@@ -149,6 +149,22 @@ class StravaAuthService: NSObject, ObservableObject {
         // Save connection state
         saveConnection(athleteId: athleteId)
         
+        // Create Supabase session for API authentication
+        if let athleteIdStr = athleteId, let athleteIdInt = Int(athleteIdStr) {
+            do {
+                // For now, we use a simple session with the athlete ID
+                // In production, you'd want to call your backend to create a proper Supabase user
+                try await SupabaseClient.shared.exchangeStravaTokens(
+                    stravaAccessToken: "temp_token_\(athleteIdInt)",
+                    stravaRefreshToken: "temp_refresh_\(athleteIdInt)",
+                    athleteId: athleteIdInt
+                )
+                Logger.debug("✅ [Supabase] Session created for athlete \(athleteIdInt)")
+            } catch {
+                Logger.error("[Supabase] Failed to create session: \(error)")
+            }
+        }
+        
         // Sync athlete info (name, photo) from Strava
         await AthleteProfileManager.shared.syncFromStrava()
         
@@ -166,6 +182,9 @@ class StravaAuthService: NSObject, ObservableObject {
         
         // Clear stored state
         clearStoredConnection()
+        
+        // Clear Supabase session
+        SupabaseClient.shared.clearSession()
         
         // Update state
         connectionState = .disconnected

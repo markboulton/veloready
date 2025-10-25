@@ -118,8 +118,13 @@ class VeloReadyAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
         
-        // TODO: Add authentication header when backend implements session auth
-        // request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        // Add Supabase authentication header
+        if let accessToken = SupabaseClient.shared.accessToken {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            Logger.debug("🔐 [VeloReady API] Added auth header")
+        } else {
+            Logger.warning("⚠️ [VeloReady API] No auth token available - request may fail")
+        }
         
         do {
             isLoading = true
