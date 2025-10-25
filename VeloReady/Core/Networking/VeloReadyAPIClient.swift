@@ -118,6 +118,13 @@ class VeloReadyAPIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
         
+        // Refresh token if needed before making request
+        do {
+            try await SupabaseClient.shared.refreshTokenIfNeeded()
+        } catch {
+            Logger.warning("⚠️ [VeloReady API] Token refresh failed: \(error)")
+        }
+        
         // Add Supabase authentication header
         if let accessToken = SupabaseClient.shared.accessToken {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
