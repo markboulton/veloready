@@ -1,16 +1,11 @@
 import Foundation
 
 /// Supabase configuration for VeloReady
-/// Manages authentication and API communication with the backend
+/// 
+/// Note: The iOS app doesn't directly communicate with Supabase.
+/// All Supabase operations (user creation, token generation) are handled
+/// by the backend during OAuth. The app only stores and uses the JWT tokens
+/// returned by the backend.
 enum SupabaseConfig {
-    /// Supabase project URL
-    static let url = "https://your-project.supabase.co"
-    
-    /// Supabase anonymous key (public, safe to embed in app)
-    static let anonKey = "your-anon-key-here"
-    
-    /// Check if Supabase is configured
-    static var isConfigured: Bool {
-        return !url.contains("your-project") && !anonKey.contains("your-anon-key")
-    }
+    // No configuration needed - backend handles all Supabase operations
 }

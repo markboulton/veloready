@@ -9,13 +9,7 @@ class SupabaseClient: ObservableObject {
     @Published var session: SupabaseSession?
     @Published var isAuthenticated: Bool = false
     
-    private let baseURL: String
-    private let anonKey: String
-    
     private init() {
-        self.baseURL = SupabaseConfig.url
-        self.anonKey = SupabaseConfig.anonKey
-        
         // Load saved session from UserDefaults
         loadSession()
     }
@@ -109,40 +103,20 @@ class SupabaseClient: ObservableObject {
     }
     
     /// Refresh the access token
+    /// Note: In production, this should call your backend to refresh the token
+    /// For now, we'll just log and throw an error - user will need to re-authenticate
     private func refreshToken() async throws {
         guard let session = session else {
             throw SupabaseError.notAuthenticated
         }
         
-        Logger.debug("🔄 [Supabase] Refreshing access token...")
+        Logger.warning("⚠️ [Supabase] Token refresh not implemented - user needs to re-authenticate")
+        Logger.debug("   Current token expires at: \(session.expiresAt)")
         
-        let url = URL(string: "\(baseURL)/auth/v1/token?grant_type=refresh_token")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue(anonKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body = ["refresh_token": session.refreshToken]
-        request.httpBody = try JSONEncoder().encode(body)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw SupabaseError.refreshFailed
-        }
-        
-        let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-        
-        let newSession = SupabaseSession(
-            accessToken: tokenResponse.accessToken,
-            refreshToken: tokenResponse.refreshToken,
-            expiresAt: Date().addingTimeInterval(TimeInterval(tokenResponse.expiresIn)),
-            user: session.user
-        )
-        
-        saveSession(newSession)
-        Logger.debug("✅ [Supabase] Token refreshed successfully")
+        // TODO: Implement token refresh via backend endpoint
+        // For now, clear the session so user will re-authenticate
+        clearSession()
+        throw SupabaseError.refreshFailed
     }
 }
 
@@ -165,18 +139,6 @@ struct SupabaseSession: Codable {
 struct SupabaseUser: Codable {
     let id: String
     let email: String?
-}
-
-struct TokenResponse: Codable {
-    let accessToken: String
-    let refreshToken: String
-    let expiresIn: Int
-    
-    enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case refreshToken = "refresh_token"
-        case expiresIn = "expires_in"
-    }
 }
 
 // MARK: - Errors
