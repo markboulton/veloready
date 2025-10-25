@@ -81,30 +81,19 @@ class SupabaseClient: ObservableObject {
         Logger.debug("✅ [Supabase] OAuth session created")
     }
     
-    /// Exchange Strava tokens for Supabase session
-    /// This is called after Strava OAuth callback
-    func exchangeStravaTokens(stravaAccessToken: String, stravaRefreshToken: String, athleteId: Int) async throws {
-        // For now, we'll create a simple session
-        // In production, this should call your backend to create a proper Supabase user
-        
-        let url = URL(string: "\(baseURL)/auth/v1/token?grant_type=password")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue(anonKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Create a session with the Strava tokens
-        // This is a simplified version - in production you'd want proper user creation
-        let expiresAt = Date().addingTimeInterval(3600) // 1 hour
+    /// Create session from OAuth tokens received from backend
+    /// The backend already created the Supabase user and returned valid tokens
+    func createSession(accessToken: String, refreshToken: String, expiresIn: Int, userId: String) {
+        let expiresAt = Date().addingTimeInterval(TimeInterval(expiresIn))
         let session = SupabaseSession(
-            accessToken: stravaAccessToken,
-            refreshToken: stravaRefreshToken,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
             expiresAt: expiresAt,
-            user: SupabaseUser(id: String(athleteId), email: nil)
+            user: SupabaseUser(id: userId, email: nil)
         )
         
         saveSession(session)
-        Logger.debug("✅ [Supabase] Session created for athlete \(athleteId)")
+        Logger.debug("✅ [Supabase] Session created (user: \(userId), expires: \(expiresAt))")
     }
     
     /// Refresh access token if expired

@@ -139,30 +139,39 @@ class StravaAuthService: NSObject, ObservableObject {
             return
         }
         
-        // Extract athlete ID if provided
+        // Extract athlete ID and Supabase tokens
         let athleteId = queryDict["athlete_id"]
+        let accessToken = queryDict["access_token"]
+        let refreshToken = queryDict["refresh_token"]
+        let expiresInStr = queryDict["expires_in"]
+        let userId = queryDict["user_id"]
         
         #if DEBUG
-        Logger.debug("✅ Strava OAuth successful (athlete: \(athleteId ?? "none"))")
+        Logger.debug("✅ Strava OAuth successful")
+        Logger.debug("   Athlete ID: \(athleteId ?? "none")")
+        Logger.debug("   User ID: \(userId ?? "none")")
+        Logger.debug("   Access Token: \(accessToken != nil ? "present" : "missing")")
+        Logger.debug("   Refresh Token: \(refreshToken != nil ? "present" : "missing")")
         #endif
         
         // Save connection state
         saveConnection(athleteId: athleteId)
         
-        // Create Supabase session for API authentication
-        if let athleteIdStr = athleteId, let athleteIdInt = Int(athleteIdStr) {
-            do {
-                // For now, we use a simple session with the athlete ID
-                // In production, you'd want to call your backend to create a proper Supabase user
-                try await SupabaseClient.shared.exchangeStravaTokens(
-                    stravaAccessToken: "temp_token_\(athleteIdInt)",
-                    stravaRefreshToken: "temp_refresh_\(athleteIdInt)",
-                    athleteId: athleteIdInt
-                )
-                Logger.debug("✅ [Supabase] Session created for athlete \(athleteIdInt)")
-            } catch {
-                Logger.error("[Supabase] Failed to create session: \(error)")
-            }
+        // Create Supabase session with real tokens from backend
+        if let accessToken = accessToken,
+           let refreshToken = refreshToken,
+           let expiresInStr = expiresInStr,
+           let expiresIn = Int(expiresInStr),
+           let userId = userId {
+            // Create session with real Supabase JWT tokens
+            SupabaseClient.shared.createSession(
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                expiresIn: expiresIn,
+                userId: userId
+            )
+        } else {
+            Logger.warning("⚠️ [Supabase] No tokens received from backend - API requests may fail")
         }
         
         // Sync athlete info (name, photo) from Strava
