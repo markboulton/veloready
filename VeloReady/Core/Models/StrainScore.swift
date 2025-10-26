@@ -600,12 +600,40 @@ class StrainScoreCalculator {
             }
         }
         
-        // Apply concurrent training interference bonus
+        // Apply concurrent training interference bonus (intensity-weighted)
         // Research shows cardio + strength same day increases total stress
+        // BUT: Easy cardio + easy strength = minimal interference
+        //      Hard cardio + hard strength = significant interference
         if hasBothCardioAndStrength {
-            let interferenceFactor = 1.25  // 25% bonus for concurrent training (increased from 15%)
+            // Calculate cardio intensity (from IF or estimate from TRIMP)
+            let cardioIntensity: Double
+            if let avgIF = inputs.averageIntensityFactor {
+                cardioIntensity = avgIF
+            } else if let cardioTRIMP = inputs.cardioDailyTRIMP,
+                      let cardioDuration = inputs.cardioDurationMinutes,
+                      cardioDuration > 0 {
+                // Estimate intensity from TRIMP/duration ratio
+                // Moderate ride: ~1.5 TRIMP/min, hard ride: ~2.5+ TRIMP/min
+                let trimpPerMin = cardioTRIMP / cardioDuration
+                cardioIntensity = min(1.0, trimpPerMin / 2.5)
+            } else {
+                cardioIntensity = 0.7 // Default to moderate
+            }
+            
+            // Calculate strength intensity from RPE (0-1 scale)
+            let strengthIntensity = (inputs.strengthSessionRPE ?? 6.5) / 10.0
+            
+            // Average intensity of both sessions
+            let avgIntensity = (cardioIntensity + strengthIntensity) / 2.0
+            
+            // Scale interference from 1.0 (no penalty) to 1.20 (max 20% penalty)
+            // Easy sessions (avg 0.5): ~1.10 (10% penalty)
+            // Moderate sessions (avg 0.7): ~1.14 (14% penalty)
+            // Hard sessions (avg 0.9): ~1.18 (18% penalty)
+            let interferenceFactor = 1.0 + (avgIntensity * 0.20)
+            
             workoutTRIMP *= interferenceFactor
-            Logger.debug("   Concurrent training detected: +25% interference bonus")
+            Logger.debug("   Concurrent training detected: +\(Int((interferenceFactor - 1.0) * 100))% interference bonus")
         }
         
         // 2. Add daily activity with intelligent calorie-step blending
