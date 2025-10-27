@@ -123,6 +123,8 @@ class VeloReadyAPIClient: ObservableObject {
             try await SupabaseClient.shared.refreshTokenIfNeeded()
         } catch {
             Logger.warning("⚠️ [VeloReady API] Token refresh failed: \(error)")
+            // Throw authentication error so caller knows auth failed
+            throw VeloReadyAPIError.notAuthenticated
         }
         
         // Add Supabase authentication header
@@ -130,7 +132,8 @@ class VeloReadyAPIClient: ObservableObject {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             Logger.debug("🔐 [VeloReady API] Added auth header")
         } else {
-            Logger.warning("⚠️ [VeloReady API] No auth token available - request may fail")
+            Logger.warning("⚠️ [VeloReady API] No auth token available")
+            throw VeloReadyAPIError.notAuthenticated
         }
         
         do {

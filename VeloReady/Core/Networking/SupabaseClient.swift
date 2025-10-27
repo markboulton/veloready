@@ -34,8 +34,20 @@ class SupabaseClient: ObservableObject {
             self.isAuthenticated = true
             Logger.debug("✅ [Supabase] Loaded saved session (expires: \(session.expiresAt))")
         } else {
-            Logger.debug("⚠️ [Supabase] Saved session expired - clearing")
-            clearSession()
+            Logger.debug("⚠️ [Supabase] Saved session expired - attempting refresh...")
+            
+            // Try to refresh the token using the refresh token
+            Task {
+                do {
+                    // Temporarily set the session so refreshToken() can access it
+                    self.session = session
+                    try await refreshToken()
+                    Logger.debug("✅ [Supabase] Session refreshed on startup")
+                } catch {
+                    Logger.error("❌ [Supabase] Failed to refresh expired session: \(error)")
+                    clearSession()
+                }
+            }
         }
     }
     
