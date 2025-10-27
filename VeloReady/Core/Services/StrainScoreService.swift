@@ -20,6 +20,9 @@ class StrainScoreService: ObservableObject {
     private let athleteZoneService = AthleteZoneService.shared
     private let cache = UnifiedCacheManager.shared
     
+    // Algorithm version - increment to invalidate cache when algorithm changes
+    private let algorithmVersion = 3 // v3: adjusted band boundaries (Hard: 11-16, Very Hard: 16+)
+    
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
     
@@ -495,10 +498,10 @@ extension StrainScoreService {
     /// Load cached strain score for instant display
     private func loadCachedStrainScore() {
         Task {
-            // Use day-specific cache key for strain scores
+            // Use day-specific cache key for strain scores with algorithm version
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: Date())
-            let cacheKey = "strain:\(today.timeIntervalSince1970)"
+            let cacheKey = "strain:v\(algorithmVersion):\(today.timeIntervalSince1970)"
             
             do {
                 let cachedScore: StrainScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
@@ -520,7 +523,7 @@ extension StrainScoreService {
         Task {
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: Date())
-            let cacheKey = "strain:\(today.timeIntervalSince1970)"
+            let cacheKey = "strain:v\(algorithmVersion):\(today.timeIntervalSince1970)"
             
             do {
                 let _ = try await cache.fetch(key: cacheKey, ttl: 86400) {

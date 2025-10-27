@@ -736,13 +736,13 @@ class StrainScoreCalculator {
     // MARK: - Helper Functions
     
     private static func determineBand(score: Double) -> StrainScore.StrainBand {
-        // Data-driven thresholds based on 120 days of actual ride data (36 activities)
-        // Calibrated to user's TSS distribution: median=52, Q3=106, 90th=181, 99th=490
+        // Adjusted thresholds to better reflect real-world effort levels
+        // Accounts for concurrent training (cardio + strength) and daily activity
         switch score {
-        case 0..<5.5: return .light          // TSS 0-40 (recovery/easy - 36% of rides)
-        case 5.5..<9.0: return .moderate     // TSS 40-85 (normal training - 39% of rides)
-        case 9.0..<14.0: return .hard        // TSS 85-250 (hard sessions + weekend epics - 22% of rides)
-        default: return .veryHard            // TSS 250+ (ultra-endurance rides - 3% of rides)
+        case 0..<6.0: return .light          // Easy recovery days, light activity
+        case 6.0..<11.0: return .moderate    // Normal training days, single sessions
+        case 11.0..<16.0: return .hard       // Hard sessions, active days with multiple workouts
+        default: return .veryHard            // Ultra-endurance, very high volume concurrent training
         }
     }
     

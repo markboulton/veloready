@@ -90,15 +90,30 @@ The new algorithm better reflects this physiological reality.
 
 ## Files Modified
 
-- `VeloReady/Core/Models/StrainScore.swift` (lines 603-637)
-  - Replaced fixed 25% penalty with intensity-weighted calculation
+- `VeloReady/Core/Models/StrainScore.swift` (lines 603-637, 738-746)
+  - Replaced fixed 25% penalty with intensity-weighted calculation (max 20%)
   - Added cardio intensity estimation from TRIMP/duration ratio
   - Added strength intensity from RPE
   - Scaled penalty based on average intensity
+  - **Adjusted band boundaries:**
+    - Light: 0-6.0 (was 0-5.5)
+    - Moderate: 6.0-11.0 (was 5.5-9.0)
+    - Hard: 11.0-16.0 (was 9.0-14.0)
+    - Very Hard: 16.0+ (was 14.0+)
+- `VeloReady/Core/Services/StrainScoreService.swift` (lines 23-24, 504, 526)
+  - Added algorithmVersion = 3 to force cache invalidation
+  - Updated cache keys to include version number
+  - Ensures immediate recalculation with new algorithm
 
 ## Testing
 
 To verify the change works:
-1. Easy ride + easy strength → Should show ~12% penalty
-2. Hard ride + hard strength → Should show ~22-25% penalty
-3. User's case (moderate both) → Should show ~17% penalty and "Hard" band instead of "Very Hard"
+1. Easy ride + easy strength → Should show ~8% penalty, score ~8-10 = "Moderate"
+2. Hard ride + hard strength → Should show ~18-20% penalty, score ~16+ = "Very Hard"
+3. User's case (moderate both) → Should show ~8% penalty, score 17.5 = "Hard" ✅
+
+**Real-world validation (Oct 26):**
+- Easy bike (IF 0.72) + medium strength (42min) + lots of walking
+- Score: 17.5 with 8% concurrent penalty
+- Band: "Hard" (was "Very Hard" before boundary adjustment)
+- Result: Correctly reflects an active but not extreme day

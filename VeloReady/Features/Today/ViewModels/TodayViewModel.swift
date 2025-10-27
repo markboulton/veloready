@@ -289,18 +289,27 @@ class TodayViewModel: ObservableObject {
         // Load cached data first (instant)
         loadCachedDataOnly()
         
-        // Calculate ONLY the critical scores for the rings (recovery, sleep, strain)
-        // This should be fast if data is cached
-        Logger.debug("⚡ Loading critical scores for rings...")
-        async let sleepTask: Void = sleepScoreService.calculateSleepScore()
-        async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
-        async let strainTask: Void = strainScoreService.calculateStrainScore()
+        // Check if we already have cached scores - if so, skip calculation for instant display
+        let hasCachedScores = sleepScoreService.currentSleepScore != nil &&
+                              recoveryScoreService.currentRecoveryScore != nil &&
+                              strainScoreService.currentStrainScore != nil
         
-        // Wait for all three to complete
-        _ = await sleepTask
-        _ = await recoveryTask
-        _ = await strainTask
-        Logger.debug("✅ Critical scores loaded for rings")
+        if hasCachedScores {
+            Logger.debug("⚡ Using cached scores for instant display - skipping Phase 1 calculation")
+        } else {
+            // Calculate ONLY the critical scores for the rings (recovery, sleep, strain)
+            // This should be fast if data is cached
+            Logger.debug("⚡ Loading critical scores for rings...")
+            async let sleepTask: Void = sleepScoreService.calculateSleepScore()
+            async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
+            async let strainTask: Void = strainScoreService.calculateStrainScore()
+            
+            // Wait for all three to complete
+            _ = await sleepTask
+            _ = await recoveryTask
+            _ = await strainTask
+            Logger.debug("✅ Critical scores loaded for rings")
+        }
         
         // Ensure minimum 2-second branded loading experience
         let elapsed = CFAbsoluteTimeGetCurrent() - startTime
@@ -323,9 +332,23 @@ class TodayViewModel: ObservableObject {
         }
         Logger.debug("✅ PHASE 2: UI displayed with rings")
         
-        // PHASE 3: Background refresh for everything else (activities, etc.)
+        // PHASE 3: Background refresh for everything else (activities, scores if needed, etc.)
         Task {
             Logger.debug("🎯 PHASE 3: Background refresh for activities and other data...")
+            
+            // If we used cached scores in Phase 1, recalculate them now in background
+            if hasCachedScores {
+                Logger.debug("🔄 Recalculating scores in background for freshness...")
+                async let sleepTask: Void = sleepScoreService.calculateSleepScore()
+                async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
+                async let strainTask: Void = strainScoreService.calculateStrainScore()
+                
+                _ = await sleepTask
+                _ = await recoveryTask
+                _ = await strainTask
+                Logger.debug("✅ Background score recalculation complete")
+            }
+            
             await refreshActivitiesAndOtherData()
             Logger.debug("✅ PHASE 3: Background refresh completed")
         }
