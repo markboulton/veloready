@@ -54,7 +54,7 @@ class UnifiedCacheManager: ObservableObject {
         ttl: TimeInterval,
         fetchOperation: @escaping () async throws -> T
     ) async throws -> T {
-        // 1. Check memory cache
+        // 1. Check memory cache (valid data)
         if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
@@ -74,7 +74,15 @@ class UnifiedCacheManager: ObservableObject {
             return try await existingTask.value
         }
         
-        // 3. Create new task and track it
+        // 3. Check for expired cache data (offline fallback)
+        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
+           let value = cached.value as? T {
+            Logger.debug("📱 [Offline Fallback] \(key) (expired: \(Int(Date().timeIntervalSince(cached.cachedAt)))s ago)")
+            // Return expired data as fallback for offline scenarios
+            return value
+        }
+        
+        // 4. Create new task and track it
         let task = Task<T, Error> {
             Logger.debug("🌐 [Cache MISS] \(key) - fetching...")
             await MainActor.run { cacheMisses += 1 }
@@ -122,7 +130,7 @@ class UnifiedCacheManager: ObservableObject {
         fetchFromNetwork: @escaping () async throws -> T,
         saveToCoreData: @escaping (T) -> Void
     ) async throws -> T {
-        // 1. Check memory cache
+        // 1. Check memory cache (valid data)
         if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
@@ -142,7 +150,14 @@ class UnifiedCacheManager: ObservableObject {
             return coreDataValue
         }
         
-        // 3. Fetch from network (with deduplication)
+        // 3. Check for expired memory cache (offline fallback)
+        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
+           let value = cached.value as? T {
+            Logger.debug("📱 [Offline Fallback] \(key) (expired: \(Int(Date().timeIntervalSince(cached.cachedAt)))s ago)")
+            return value
+        }
+        
+        // 4. Fetch from network (with deduplication)
         return try await fetch(key: key, ttl: ttl) {
             let value = try await fetchFromNetwork()
             
@@ -170,6 +185,21 @@ class UnifiedCacheManager: ObservableObject {
             memoryCache.removeAllObjects()
             Logger.debug("🗑️ [Cache CLEAR] All entries")
         }
+    }
+    
+    /// Clear old cache keys during migration
+    nonisolated func clearLegacyCacheKeys() {
+        // Clear old Strava cache keys that used the old pattern
+        let legacyKeys = [
+            "strava_activities_90d",
+            "strava_activities_365d"
+        ]
+        
+        for key in legacyKeys {
+            memoryCache.removeObject(forKey: key as NSString)
+        }
+        
+        Logger.debug("🗑️ [Cache MIGRATION] Cleared \(legacyKeys.count) legacy cache keys")
     }
     
     /// Get cache statistics

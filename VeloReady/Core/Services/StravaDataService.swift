@@ -29,7 +29,7 @@ class StravaDataService: ObservableObject {
         
         // Determine days based on Pro status
         let days = proConfig.hasProAccess ? 365 : 90
-        let cacheKey = "strava_activities_\(days)d"
+        let cacheKey = CacheKey.stravaActivities(daysBack: days)
         let cacheTTL: TimeInterval = 3600 // 1 hour
         
         Logger.info("🟠 [Strava] Fetching activities (\(days) days, Pro: \(proConfig.hasProAccess))")
