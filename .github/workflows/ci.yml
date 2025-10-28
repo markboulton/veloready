@@ -29,86 +29,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Create and Boot Simulator
+      - name: List Available Simulators
         run: |
-          # List available runtimes and device types
-          echo "=== Available Runtimes ==="
-          xcrun simctl list runtimes
-          echo "=== Available iPhone Device Types ==="
-          xcrun simctl list devicetypes | grep iPhone
-          
-          # Try to create simulator with different approaches
-          echo "=== Creating Simulator ==="
-          SIMULATOR_ID=""
-          
-          # Try iPhone 15 with different iOS versions
-          if SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" 2>/dev/null); then
-            echo "Created simulator with iPhone 15 + iOS 18.2: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" 2>/dev/null); then
-            echo "Created simulator with iPhone 15 + iOS 17.5: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 14" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" 2>/dev/null); then
-            echo "Created simulator with iPhone 14 + iOS 18.2: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 14" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" 2>/dev/null); then
-            echo "Created simulator with iPhone 14 + iOS 17.5: $SIMULATOR_ID"
-          else
-            echo "Failed to create simulator, trying to use existing ones..."
-            # List existing simulators
-            xcrun simctl list devices | grep "Test Simulator" || echo "No Test Simulator found"
-          fi
-          
-          # Boot the simulator
-          echo "=== Booting Simulator ==="
-          xcrun simctl boot "Test Simulator" || echo "Failed to boot Test Simulator"
-          
-          # List all devices to see what's available
-          echo "=== Available Devices ==="
+          echo "=== Available Simulators ==="
           xcrun simctl list devices
           
       - name: Build Check
         run: |
-          # Try with Test Simulator first, fallback to generic if it doesn't exist
-          if xcrun simctl list devices | grep -q "Test Simulator"; then
-            echo "Using Test Simulator"
-            xcodebuild build \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,name=Test Simulator' \
-              -quiet \
-              -hideShellScriptEnvironment \
-              -skipPackagePluginValidation
-          else
-            echo "Test Simulator not found, using generic destination"
-            xcodebuild build \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,OS=latest' \
-              -quiet \
-              -hideShellScriptEnvironment \
-              -skipPackagePluginValidation
-          fi
+          echo "Using generic simulator destination"
+          xcodebuild build \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,OS=latest' \
+            -quiet \
+            -hideShellScriptEnvironment \
+            -skipPackagePluginValidation
             
       - name: Critical Unit Tests
         run: |
-          # Try with Test Simulator first, fallback to generic if it doesn't exist
-          if xcrun simctl list devices | grep -q "Test Simulator"; then
-            echo "Using Test Simulator for tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,name=Test Simulator' \
-              -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
-              -quiet \
-              -hideShellScriptEnvironment
-          else
-            echo "Test Simulator not found, using generic destination for tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,OS=latest' \
-              -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
-              -quiet \
-              -hideShellScriptEnvironment
-          fi
+          echo "Using generic simulator destination for tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,OS=latest' \
+            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+            -quiet \
+            -hideShellScriptEnvironment
             
       - name: Essential Lint
         run: |
@@ -118,11 +64,6 @@ jobs:
             echo "SwiftLint not available"
           fi
           
-      - name: Cleanup Simulator
-        if: always()
-        run: |
-          xcrun simctl shutdown "Test Simulator" || true
-          xcrun simctl delete "Test Simulator" || true
 
   # Tier 2: Full confidence before merging (10-15 minutes)
   full_validation:
@@ -145,86 +86,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Create and Boot Simulator
+      - name: List Available Simulators
         run: |
-          # List available runtimes and device types
-          echo "=== Available Runtimes ==="
-          xcrun simctl list runtimes
-          echo "=== Available iPhone Device Types ==="
-          xcrun simctl list devicetypes | grep iPhone
-          
-          # Try to create simulator with different approaches
-          echo "=== Creating Simulator ==="
-          SIMULATOR_ID=""
-          
-          # Try iPhone 15 with different iOS versions
-          if SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" 2>/dev/null); then
-            echo "Created simulator with iPhone 15 + iOS 18.2: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" 2>/dev/null); then
-            echo "Created simulator with iPhone 15 + iOS 17.5: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 14" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" 2>/dev/null); then
-            echo "Created simulator with iPhone 14 + iOS 18.2: $SIMULATOR_ID"
-          elif SIMULATOR_ID=$(xcrun simctl create "Test Simulator" "iPhone 14" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" 2>/dev/null); then
-            echo "Created simulator with iPhone 14 + iOS 17.5: $SIMULATOR_ID"
-          else
-            echo "Failed to create simulator, trying to use existing ones..."
-            # List existing simulators
-            xcrun simctl list devices | grep "Test Simulator" || echo "No Test Simulator found"
-          fi
-          
-          # Boot the simulator
-          echo "=== Booting Simulator ==="
-          xcrun simctl boot "Test Simulator" || echo "Failed to boot Test Simulator"
-          
-          # List all devices to see what's available
-          echo "=== Available Devices ==="
+          echo "=== Available Simulators ==="
           xcrun simctl list devices
           
       - name: All Unit Tests
         run: |
-          # Try with Test Simulator first, fallback to generic if it doesn't exist
-          if xcrun simctl list devices | grep -q "Test Simulator"; then
-            echo "Using Test Simulator for unit tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,name=Test Simulator' \
-              -only-testing:VeloReadyTests/Unit \
-              -quiet \
-              -hideShellScriptEnvironment
-          else
-            echo "Test Simulator not found, using generic destination for unit tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,OS=latest' \
-              -only-testing:VeloReadyTests/Unit \
-              -quiet \
-              -hideShellScriptEnvironment
-          fi
+          echo "Using generic simulator destination for unit tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,OS=latest' \
+            -only-testing:VeloReadyTests/Unit \
+            -quiet \
+            -hideShellScriptEnvironment
             
       - name: Integration Tests
         run: |
-          # Try with Test Simulator first, fallback to generic if it doesn't exist
-          if xcrun simctl list devices | grep -q "Test Simulator"; then
-            echo "Using Test Simulator for integration tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,name=Test Simulator' \
-              -only-testing:VeloReadyTests/Integration \
-              -quiet \
-              -hideShellScriptEnvironment
-          else
-            echo "Test Simulator not found, using generic destination for integration tests"
-            xcodebuild test \
-              -project VeloReady.xcodeproj \
-              -scheme VeloReady \
-              -destination 'platform=iOS Simulator,OS=latest' \
-              -only-testing:VeloReadyTests/Integration \
-              -quiet \
-              -hideShellScriptEnvironment
-          fi
+          echo "Using generic simulator destination for integration tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,OS=latest' \
+            -only-testing:VeloReadyTests/Integration \
+            -quiet \
+            -hideShellScriptEnvironment
             
       - name: E2E Smoke Test
         run: |
@@ -237,11 +124,6 @@ jobs:
             echo "E2E test files not found, skipping"
           fi
           
-      - name: Cleanup Simulator
-        if: always()
-        run: |
-          xcrun simctl shutdown "Test Simulator" || true
-          xcrun simctl delete "Test Simulator" || true
 
   # Tier 3: Backend validation (parallel with iOS)
   backend_validation:
