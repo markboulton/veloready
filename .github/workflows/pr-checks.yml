@@ -34,6 +34,65 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '15.0'
+          
+      - name: Verify Xcode Installation
+        run: |
+          echo "Xcode version:"
+          xcodebuild -version
+          echo "Xcode path:"
+          xcode-select -p
+          echo "Available simulators:"
+          xcrun simctl list devices | head -10
+          
+      - name: Validate Project File
+        run: |
+          echo "Checking project file integrity..."
+          file VeloReady.xcodeproj/project.pbxproj
+          echo "Project file size: $(wc -c < VeloReady.xcodeproj/project.pbxproj) bytes"
+          echo "Checking for malformed entries..."
+          grep -c "isa.*=" VeloReady.xcodeproj/project.pbxproj || echo "No isa entries found"
+          
+      - name: Fix Project File if Corrupted
+        run: |
+          echo "Attempting to fix project file if corrupted..."
+          # Check if project file is readable
+          if ! xcodebuild -list -project VeloReady.xcodeproj > /dev/null 2>&1; then
+            echo "Project file appears corrupted, attempting to fix..."
+            # Try to fix line endings
+            dos2unix VeloReady.xcodeproj/project.pbxproj 2>/dev/null || true
+            # Try to fix encoding
+            iconv -f UTF-8 -t UTF-8 VeloReady.xcodeproj/project.pbxproj > /tmp/project.pbxproj && mv /tmp/project.pbxproj VeloReady.xcodeproj/project.pbxproj
+            echo "Project file fix attempted"
+            
+            # If still corrupted, try to regenerate from source
+            if ! xcodebuild -list -project VeloReady.xcodeproj > /dev/null 2>&1; then
+              echo "Project file still corrupted, attempting to regenerate..."
+              # This is a last resort - we'll need to check if there are any source control issues
+              git status
+              git diff HEAD~1 VeloReady.xcodeproj/project.pbxproj || echo "No recent changes to project file"
+              
+              # Try to restore from git
+              echo "Attempting to restore project file from git..."
+              git checkout HEAD -- VeloReady.xcodeproj/project.pbxproj
+              
+              # Verify the restored file
+              if xcodebuild -list -project VeloReady.xcodeproj > /dev/null 2>&1; then
+                echo "Project file restored successfully"
+              else
+                echo "Project file restoration failed"
+                exit 1
+              fi
+            fi
+          else
+            echo "Project file appears to be valid"
+          fi
+          
+      - name: Clean and Prepare Build
+        run: |
+          echo "Cleaning build directory..."
+          rm -rf build/
+          mkdir -p build/
+          
       - name: Run Unit Tests
         run: |
           xcodebuild test \
