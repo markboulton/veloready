@@ -36,22 +36,22 @@ jobs:
           
       - name: Build Check
         run: |
-          echo "Using generic simulator destination"
+          echo "Building for generic iOS device (no simulator available)"
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'generic/platform=iOS' \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
             
       - name: Critical Unit Tests
         run: |
-          echo "Using generic simulator destination for tests"
+          echo "Running tests for generic iOS device (no simulator available)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'generic/platform=iOS' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -quiet \
             -hideShellScriptEnvironment
@@ -93,22 +93,22 @@ jobs:
           
       - name: All Unit Tests
         run: |
-          echo "Using generic simulator destination for unit tests"
+          echo "Running unit tests for generic iOS device (no simulator available)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'generic/platform=iOS' \
             -only-testing:VeloReadyTests/Unit \
             -quiet \
             -hideShellScriptEnvironment
             
       - name: Integration Tests
         run: |
-          echo "Using generic simulator destination for integration tests"
+          echo "Running integration tests for generic iOS device (no simulator available)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'generic/platform=iOS' \
             -only-testing:VeloReadyTests/Integration \
             -quiet \
             -hideShellScriptEnvironment
