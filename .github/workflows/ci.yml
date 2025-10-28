@@ -31,10 +31,14 @@ jobs:
             
       - name: Create and Boot Simulator
         run: |
-          # List available runtimes
+          # List available runtimes and device types
           xcrun simctl list runtimes
-          # Create a new simulator
-          xcrun simctl create "Test Simulator" "iPhone 15" "iOS-18-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-17-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-16-0"
+          xcrun simctl list devicetypes | grep iPhone
+          # Create a new simulator - try different iOS versions
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
           # Boot the simulator
           xcrun simctl boot "Test Simulator" || true
           # List devices to verify
@@ -97,10 +101,14 @@ jobs:
             
       - name: Create and Boot Simulator
         run: |
-          # List available runtimes
+          # List available runtimes and device types
           xcrun simctl list runtimes
-          # Create a new simulator
-          xcrun simctl create "Test Simulator" "iPhone 15" "iOS-18-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-17-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-16-0"
+          xcrun simctl list devicetypes | grep iPhone
+          # Create a new simulator - try different iOS versions
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
+          xcrun simctl create "Test Simulator" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
           # Boot the simulator
           xcrun simctl boot "Test Simulator" || true
           # List devices to verify
