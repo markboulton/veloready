@@ -33,15 +33,17 @@ git checkout main
 git pull
 git checkout -b feature/my-feature
 
-# Code and test locally
+# Code and test locally (Xcode 26 + iOS 26)
 ./scripts/local-test.sh  # Fast feedback
 
-# Push for CI
+# Push for CI (Xcode 16.0 + iOS 18.0/19.0)
 git push -u origin feature/my-feature
 
 # Open PR when ready (triggers Tier 2)
 # Merge when all checks pass (triggers Tier 3)
 ```
+
+**Note**: Local development uses Xcode 26 with iOS 26, while CI uses Xcode 16.0 with iOS 18.0/19.0 simulators for compatibility.
 
 ## 🛠️ Available Commands
 

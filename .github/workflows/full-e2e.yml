@@ -16,13 +16,13 @@ jobs:
       matrix:
         # Reduced matrix to prevent log explosion
         device: ['iPhone 15 Pro']  # Only test on one device for now
-        ios_version: ['18.0']      # Only test on latest iOS
+        ios_version: ['18.0']      # Test on iOS 18.0 (latest stable)
     steps:
       - uses: actions/checkout@v4
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.0'
+          xcode-version: '16.0'
       - name: Setup Java for Maestro
         uses: actions/setup-java@v4
         with:
