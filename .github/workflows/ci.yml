@@ -29,12 +29,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
+      - name: List Available Simulators
+        run: |
+          xcrun simctl list devices available
+          
       - name: Build Check
         run: |
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
@@ -44,7 +48,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -quiet \
             -hideShellScriptEnvironment
@@ -78,12 +82,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
+      - name: Boot Simulator
+        run: |
+          xcrun simctl list devices available
+          
       - name: All Unit Tests
         run: |
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -only-testing:VeloReadyTests/Unit \
             -quiet \
             -hideShellScriptEnvironment
@@ -93,7 +101,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -only-testing:VeloReadyTests/Integration \
             -quiet \
             -hideShellScriptEnvironment
