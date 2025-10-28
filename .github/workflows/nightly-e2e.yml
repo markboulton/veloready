@@ -1,22 +1,20 @@
-name: Full E2E Tests
+name: Nightly E2E Tests
 
 on:
-  push:
-    branches: [main]
   schedule:
-    # Run nightly at 2 AM UTC
-    - cron: '0 2 * * *'
+    # Run nightly at 3 AM UTC (after main E2E tests)
+    - cron: '0 3 * * *'
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  # Tier 3: Full E2E suite after merging to main
-  full_e2e:
+  # Comprehensive E2E testing across multiple devices and iOS versions
+  nightly_e2e:
     runs-on: macos-14
-    timeout-minutes: 60  # Prevent infinite runs
+    timeout-minutes: 120  # Longer timeout for comprehensive testing
     strategy:
       matrix:
-        # Reduced matrix to prevent log explosion
-        device: ['iPhone 15 Pro']  # Only test on one device for now
-        ios_version: ['18.0']      # Only test on latest iOS
+        device: ['iPhone 15 Pro', 'iPhone SE (3rd generation)']
+        ios_version: ['17.0', '18.0']
     steps:
       - uses: actions/checkout@v4
       - name: Setup Xcode
@@ -46,20 +44,30 @@ jobs:
       - name: Create Results Directory
         run: mkdir -p maestro-results/
         
-      - name: Run Full E2E Suite
+      - name: Run Comprehensive E2E Suite
         run: |
-          # Run all E2E test scenarios with controlled output
-          echo "Starting E2E tests on ${{ matrix.device }} iOS ${{ matrix.ios_version }}"
+          echo "Starting comprehensive E2E tests on ${{ matrix.device }} iOS ${{ matrix.ios_version }}"
           set -e  # Exit on any error
           maestro test tests/e2e/scenarios/ --format junit --output maestro-results/ || {
-            echo "E2E tests failed, but continuing to archive results"
+            echo "E2E tests failed on ${{ matrix.device }} iOS ${{ matrix.ios_version }}"
             exit 1
           }
         env:
           MAESTRO_LOG_LEVEL: WARN  # Reduce log verbosity
+          
       - name: Archive Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-results-${{ matrix.device }}-${{ matrix.ios_version }}
+          name: nightly-e2e-results-${{ matrix.device }}-${{ matrix.ios_version }}
           path: maestro-results/
+          
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-e2e-logs-${{ matrix.device }}-${{ matrix.ios_version }}
+          path: |
+            maestro-results/
+            *.log
+          retention-days: 7  # Keep logs for 7 days only

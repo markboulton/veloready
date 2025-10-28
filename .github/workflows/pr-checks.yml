@@ -40,7 +40,9 @@ jobs:
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
             -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
-            -only-testing:VeloReadyTests/Unit
+            -only-testing:VeloReadyTests/Unit \
+            -quiet \
+            -hideShellScriptEnvironment
 
   # Tier 2: Full confidence before merging (15-30+ minutes)
   integration_tests:
@@ -58,7 +60,9 @@ jobs:
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
             -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
-            -only-testing:VeloReadyTests/Integration
+            -only-testing:VeloReadyTests/Integration \
+            -quiet \
+            -hideShellScriptEnvironment
 
   backend_tests:
     runs-on: ubuntu-latest
@@ -79,6 +83,7 @@ jobs:
   # Tier 3: E2E smoke test (critical paths only)
   e2e_smoke:
     runs-on: macos-14
+    timeout-minutes: 30  # Prevent infinite runs
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
@@ -99,9 +104,24 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
             -configuration Debug \
             SKIP_INSTALL=NO \
-            BUILD_DIR=$(pwd)/build
+            BUILD_DIR=$(pwd)/build \
+            -quiet \
+            -hideShellScriptEnvironment
+      - name: Create Results Directory
+        run: mkdir -p maestro-results/
+        
       - name: Run E2E Smoke Tests
         run: |
           # Only run critical path tests for PRs
-          maestro test tests/e2e/scenarios/training-load.yaml
-          maestro test tests/e2e/scenarios/onboarding.yaml
+          echo "Starting E2E smoke tests"
+          set -e  # Exit on any error
+          maestro test tests/e2e/scenarios/training-load.yaml --format junit --output maestro-results/ || {
+            echo "Training load test failed"
+            exit 1
+          }
+          maestro test tests/e2e/scenarios/onboarding.yaml --format junit --output maestro-results/ || {
+            echo "Onboarding test failed"
+            exit 1
+          }
+        env:
+          MAESTRO_LOG_LEVEL: WARN  # Reduce log verbosity
