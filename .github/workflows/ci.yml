@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  # Tier 1: Fast feedback on every push (5-8 minutes)
+  # Tier 1: Fast feedback on every push (2-3 minutes) - macOS tests only
   quick_validation:
     runs-on: macos-14
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
@@ -29,42 +29,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Create and Boot Simulator
+      - name: Build Check (macOS)
         run: |
-          echo "=== Creating iPhone 15 Simulator ==="
-          # Create iPhone 15 simulator with latest iOS using correct runtime identifiers
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
-          
-          # Boot the simulator
-          xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
-          
-          # List devices to verify
-          echo "=== Available Devices ==="
-          xcrun simctl list devices
-          
-      - name: Build Check
-        run: |
-          echo "Building for iOS Simulator with provisioning updates"
+          echo "Building for macOS (no simulator needed)"
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -allowProvisioningUpdates \
+            -destination 'platform=macOS,arch=arm64' \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
             
-      - name: Critical Unit Tests
+      - name: Critical Unit Tests (macOS)
         run: |
-          echo "Running tests for iOS Simulator with provisioning updates"
+          echo "Running core logic tests on macOS (fast, no simulator)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -allowProvisioningUpdates \
+            -destination 'platform=macOS,arch=arm64' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -quiet \
             -hideShellScriptEnvironment
@@ -78,7 +60,7 @@ jobs:
           fi
           
 
-  # Tier 2: Full confidence before merging (10-15 minutes)
+  # Tier 2: Full confidence before merging (5-8 minutes) - macOS tests only
   full_validation:
     runs-on: macos-14
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
@@ -99,42 +81,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Create and Boot Simulator
+      - name: Core Unit Tests (macOS)
         run: |
-          echo "=== Creating iPhone 15 Simulator ==="
-          # Create iPhone 15 simulator with latest iOS using correct runtime identifiers
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
-          
-          # Boot the simulator
-          xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
-          
-          # List devices to verify
-          echo "=== Available Devices ==="
-          xcrun simctl list devices
-          
-      - name: All Unit Tests
-        run: |
-          echo "Running unit tests for iOS Simulator with provisioning updates"
+          echo "Running core logic tests on macOS (fast, no simulator)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -allowProvisioningUpdates \
+            -destination 'platform=macOS,arch=arm64' \
             -only-testing:VeloReadyTests/Unit \
             -quiet \
             -hideShellScriptEnvironment
             
-      - name: Integration Tests
+      - name: Integration Tests (macOS)
         run: |
-          echo "Running integration tests for iOS Simulator with provisioning updates"
+          echo "Running integration tests on macOS (fast, no simulator)"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -allowProvisioningUpdates \
+            -destination 'platform=macOS,arch=arm64' \
             -only-testing:VeloReadyTests/Integration \
             -quiet \
             -hideShellScriptEnvironment
