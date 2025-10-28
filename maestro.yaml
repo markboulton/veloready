@@ -1,0 +1,46 @@
+# Maestro Configuration for VeloReady E2E Tests
+# Phase 2: End-to-End Testing
+
+# Global configuration
+appId: com.markboulton.veloready
+timeout: 30000
+clearState: true
+
+# Test environment settings
+env:
+  TEST_MODE: "true"
+  MOCK_BACKEND: "false" # Set to true for mocked tests
+  LOG_LEVEL: "debug"
+
+# Test suites
+suites:
+  - name: "Critical User Flows"
+    tests:
+      - "tests/e2e/scenarios/training-load.yaml"
+      - "tests/e2e/scenarios/onboarding.yaml"
+      - "tests/e2e/scenarios/activity-sync.yaml"
+      - "tests/e2e/scenarios/ai-brief.yaml"
+      - "tests/e2e/scenarios/recovery-score.yaml"
+  
+  - name: "Smoke Tests"
+    tests:
+      - "tests/e2e/scenarios/training-load.yaml"
+
+# Test execution settings
+execution:
+  parallel: false
+  retries: 2
+  timeout: 300000 # 5 minutes per test
+  
+# Reporting
+reports:
+  format: "junit"
+  output: "tests/e2e/reports/"
+  screenshots: true
+  videos: true
+
+# Device settings
+device:
+  platform: "iOS"
+  version: "18.0"
+  name: "iPhone 17"
