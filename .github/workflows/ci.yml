@@ -1,0 +1,135 @@
+name: CI - Single Developer Optimized
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  # Tier 1: Fast feedback on every push (5-8 minutes)
+  quick_validation:
+    runs-on: macos-14
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-${{ hashFiles('**/*.xcodeproj') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+            
+      - name: Build Check
+        run: |
+          xcodebuild build \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -quiet \
+            -hideShellScriptEnvironment \
+            -skipPackagePluginValidation
+            
+      - name: Critical Unit Tests
+        run: |
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+            -quiet \
+            -hideShellScriptEnvironment
+            
+      - name: Essential Lint
+        run: |
+          if command -v swiftlint &> /dev/null; then
+            swiftlint --quiet --config .swiftlint-essential.yml || echo "Lint issues found (non-blocking)"
+          else
+            echo "SwiftLint not available"
+          fi
+
+  # Tier 2: Full confidence before merging (10-15 minutes)
+  full_validation:
+    runs-on: macos-14
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-${{ hashFiles('**/*.xcodeproj') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+            
+      - name: All Unit Tests
+        run: |
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -only-testing:VeloReadyTests/Unit \
+            -quiet \
+            -hideShellScriptEnvironment
+            
+      - name: Integration Tests
+        run: |
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -only-testing:VeloReadyTests/Integration \
+            -quiet \
+            -hideShellScriptEnvironment
+            
+      - name: E2E Smoke Test
+        run: |
+          # Only run critical path E2E test
+          if [ -f "tests/e2e/scenarios/training-load.yaml" ]; then
+            echo "Running E2E smoke test..."
+            # This would run Maestro if available
+            echo "E2E test would run here (Maestro not available in CI yet)"
+          else
+            echo "E2E test files not found, skipping"
+          fi
+
+  # Tier 3: Backend validation (parallel with iOS)
+  backend_validation:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: markboulton/veloready-website
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Backend Tests
+        run: npm test
+        env:
+          SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SUPABASE_KEY }}

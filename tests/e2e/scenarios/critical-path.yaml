@@ -1,0 +1,64 @@
+appId: com.markboulton.veloready
+---
+# Critical Path E2E Test - Single Developer Optimized
+# Tests the most important user flows that would catch real bugs
+# Focus: App launches, data loads, core features work
+
+- launchApp
+- tapOn: "Today"
+
+# CRITICAL: App doesn't crash on launch
+- assertVisible: "Today"
+
+# CRITICAL: Training Load data loads (would have caught the recent bug)
+- assertVisible: "Training Load"
+- assertVisible: 
+    id: "ctl-value"
+- assertVisible:
+    id: "atl-value"
+
+# CRITICAL: Activities are visible (tests Strava cache)
+- assertVisible: "Recent Activities"
+- assertVisible:
+    index: 0 # At least one activity
+
+# CRITICAL: Recovery score loads
+- assertVisible: "Recovery"
+- assertVisible:
+    id: "recovery-value"
+
+# CRITICAL: Sleep score loads  
+- assertVisible: "Sleep"
+- assertVisible:
+    id: "sleep-value"
+
+# CRITICAL: Strain score loads
+- assertVisible: "Strain"
+- assertVisible:
+    id: "strain-value"
+
+# Test pull-to-refresh (common user action)
+- swipe:
+    direction: DOWN
+    start: "50%,20%"
+    end: "50%,80%"
+
+# CRITICAL: Data still loads after refresh
+- assertVisible: "Training Load"
+- assertVisible: "Recent Activities"
+
+# Test navigation to activity detail
+- tapOn: "Recent Activities"
+- tapOn:
+    index: 0
+
+# CRITICAL: Activity detail loads
+- assertVisible: "Activity Details"
+- assertVisible: "Heart Rate" # Basic chart data
+
+# Go back to main screen
+- tapOn: "Back"
+- tapOn: "Today"
+
+# CRITICAL: App still responsive after navigation
+- assertVisible: "Today"
