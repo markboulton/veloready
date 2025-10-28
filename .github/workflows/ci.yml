@@ -32,11 +32,11 @@ jobs:
       - name: Create and Boot Simulator
         run: |
           echo "=== Creating iPhone 15 Simulator ==="
-          # Create iPhone 15 simulator with latest iOS
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-2" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-1" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-5" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-4"
+          # Create iPhone 15 simulator with latest iOS using correct runtime identifiers
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
           
           # Boot the simulator
           xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
@@ -102,11 +102,11 @@ jobs:
       - name: Create and Boot Simulator
         run: |
           echo "=== Creating iPhone 15 Simulator ==="
-          # Create iPhone 15 simulator with latest iOS
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-2" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-1" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-5" || \
-          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-4"
+          # Create iPhone 15 simulator with latest iOS using correct runtime identifiers
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-2" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-18-1" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-5" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "com.apple.CoreSimulator.SimRuntime.iOS-17-4"
           
           # Boot the simulator
           xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
