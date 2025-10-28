@@ -29,29 +29,42 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: List Available Simulators
+      - name: Create and Boot Simulator
         run: |
-          echo "=== Available Simulators ==="
+          echo "=== Creating iPhone 15 Simulator ==="
+          # Create iPhone 15 simulator with latest iOS
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-2" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-1" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-5" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-4"
+          
+          # Boot the simulator
+          xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
+          
+          # List devices to verify
+          echo "=== Available Devices ==="
           xcrun simctl list devices
           
       - name: Build Check
         run: |
-          echo "Building for generic iOS device (no simulator available)"
+          echo "Building for iOS Simulator with provisioning updates"
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -allowProvisioningUpdates \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
             
       - name: Critical Unit Tests
         run: |
-          echo "Running tests for generic iOS device (no simulator available)"
+          echo "Running tests for iOS Simulator with provisioning updates"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -allowProvisioningUpdates \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -quiet \
             -hideShellScriptEnvironment
@@ -86,29 +99,42 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: List Available Simulators
+      - name: Create and Boot Simulator
         run: |
-          echo "=== Available Simulators ==="
+          echo "=== Creating iPhone 15 Simulator ==="
+          # Create iPhone 15 simulator with latest iOS
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-2" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-18-1" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-5" || \
+          xcrun simctl create "iPhone 15" "iPhone 15" "iOS-17-4"
+          
+          # Boot the simulator
+          xcrun simctl boot "iPhone 15" || echo "Failed to boot iPhone 15"
+          
+          # List devices to verify
+          echo "=== Available Devices ==="
           xcrun simctl list devices
           
       - name: All Unit Tests
         run: |
-          echo "Running unit tests for generic iOS device (no simulator available)"
+          echo "Running unit tests for iOS Simulator with provisioning updates"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -allowProvisioningUpdates \
             -only-testing:VeloReadyTests/Unit \
             -quiet \
             -hideShellScriptEnvironment
             
       - name: Integration Tests
         run: |
-          echo "Running integration tests for generic iOS device (no simulator available)"
+          echo "Running integration tests for iOS Simulator with provisioning updates"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -allowProvisioningUpdates \
             -only-testing:VeloReadyTests/Integration \
             -quiet \
             -hideShellScriptEnvironment
