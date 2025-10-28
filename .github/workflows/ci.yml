@@ -29,16 +29,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: List Available Simulators
+      - name: Create and Boot Simulator
         run: |
-          xcrun simctl list devices available
+          # List available runtimes
+          xcrun simctl list runtimes
+          # Create a new simulator
+          xcrun simctl create "Test Simulator" "iPhone 15" "iOS-18-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-17-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-16-0"
+          # Boot the simulator
+          xcrun simctl boot "Test Simulator" || true
+          # List devices to verify
+          xcrun simctl list devices
           
       - name: Build Check
         run: |
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'platform=iOS Simulator,name=Test Simulator' \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
@@ -48,7 +55,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'platform=iOS Simulator,name=Test Simulator' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -quiet \
             -hideShellScriptEnvironment
@@ -60,6 +67,12 @@ jobs:
           else
             echo "SwiftLint not available"
           fi
+          
+      - name: Cleanup Simulator
+        if: always()
+        run: |
+          xcrun simctl shutdown "Test Simulator" || true
+          xcrun simctl delete "Test Simulator" || true
 
   # Tier 2: Full confidence before merging (10-15 minutes)
   full_validation:
@@ -82,16 +95,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Boot Simulator
+      - name: Create and Boot Simulator
         run: |
-          xcrun simctl list devices available
+          # List available runtimes
+          xcrun simctl list runtimes
+          # Create a new simulator
+          xcrun simctl create "Test Simulator" "iPhone 15" "iOS-18-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-17-0" || xcrun simctl create "Test Simulator" "iPhone 15" "iOS-16-0"
+          # Boot the simulator
+          xcrun simctl boot "Test Simulator" || true
+          # List devices to verify
+          xcrun simctl list devices
           
       - name: All Unit Tests
         run: |
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'platform=iOS Simulator,name=Test Simulator' \
             -only-testing:VeloReadyTests/Unit \
             -quiet \
             -hideShellScriptEnvironment
@@ -101,7 +121,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'platform=iOS Simulator,name=Test Simulator' \
             -only-testing:VeloReadyTests/Integration \
             -quiet \
             -hideShellScriptEnvironment
@@ -116,6 +136,12 @@ jobs:
           else
             echo "E2E test files not found, skipping"
           fi
+          
+      - name: Cleanup Simulator
+        if: always()
+        run: |
+          xcrun simctl shutdown "Test Simulator" || true
+          xcrun simctl delete "Test Simulator" || true
 
   # Tier 3: Backend validation (parallel with iOS)
   backend_validation:
