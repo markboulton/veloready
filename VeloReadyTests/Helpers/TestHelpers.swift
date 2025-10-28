@@ -37,7 +37,7 @@ class TestHelpers {
         // This would need to be implemented based on your actual auth flow
     }
     
-    func createMockStravaActivity() -> StravaActivity {
+    static func createMockStravaActivity() -> StravaActivity {
         let formatter = ISO8601DateFormatter()
         let now = Date()
         let startDateString = formatter.string(from: now)
@@ -73,7 +73,7 @@ class TestHelpers {
         )
     }
     
-    func createMockStreams() -> [String: [Double]] {
+    static func createMockStreams() -> [String: [Double]] {
         return [
             "power": [200, 210, 195, 205, 200],
             "heartrate": [150, 155, 148, 152, 150],
@@ -81,7 +81,7 @@ class TestHelpers {
         ]
     }
     
-    func createMockAIBrief() -> AIBriefResponse {
+    static func createMockAIBrief() -> AIBriefResponse {
         return AIBriefResponse(
             text: "Great recovery! Ready for 50 TSS Z2 ride today.",
             cached: false
