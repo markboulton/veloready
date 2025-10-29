@@ -267,22 +267,6 @@ public enum CacheKey {
 // MARK: - Example Business Logic (placeholder for demo)
 
 /// Training load calculator (placeholder - will be extracted later)
-public struct TrainingLoadCalculator {
-    public init() {}
-    
-    public func calculateCTL(activities: [ActivityData]) -> Double {
-        // Placeholder implementation
-        return 42.0
-    }
-}
-
-/// Activity data structure (placeholder)
-public struct ActivityData {
-    public let date: Date
-    public let tss: Double
-    
-    public init(date: Date, tss: Double) {
-        self.date = date
-        self.tss = tss
-    }
-}
+// Placeholder structs removed - see dedicated files:
+// - TrainingLoadCalculations.swift
+// - Models/ActivityData.swift

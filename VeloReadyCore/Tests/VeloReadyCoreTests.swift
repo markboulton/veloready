@@ -227,6 +227,55 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 32: Intervals Activity Parsing
+        if await testIntervalsActivityParsing() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 33: Activity Data Validation
+        if await testActivityDataValidation() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 34: Activity Parsing Errors
+        if await testActivityParsingErrors() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 35: Power Zone Calculations
+        if await testPowerZoneCalculations() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 36: Heart Rate Zone Calculations
+        if await testHRZoneCalculations() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 37: Health Data Validation
+        if await testHealthDataValidation() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 38: Data Outlier Detection
+        if await testOutlierDetection() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -2115,6 +2164,496 @@ struct VeloReadyCoreTests {
         print("      - Zero time in bed: ✓")
         print("      - Zero sleep: ✓")
         print("      - Extreme values clamped: ✓")
+        return true
+    }
+    
+    // MARK: - Data Models & Validation Tests
+    
+    static func testIntervalsActivityParsing() async -> Bool {
+        print("\n🧪 Test 32: Intervals.icu Activity Parsing")
+        print("   Testing JSON parsing for Intervals activities...")
+        
+        let json = """
+        {
+            "id": "12345",
+            "start_date_local": "2025-10-29T08:00:00Z",
+            "type": "Ride",
+            "moving_time": 3600,
+            "distance": 30000.0,
+            "average_heartrate": 145.0,
+            "average_watts": 200.0,
+            "weighted_average_watts": 210.0,
+            "icu_training_load": 85.5,
+            "intensity": 0.84,
+            "calories": 650
+        }
+        """
+        
+        do {
+            let activity = try ActivityParser.parseIntervalsActivity(json)
+            
+            guard activity.id == "12345" else {
+                print("   ❌ FAIL: ID mismatch")
+                print("      Expected: 12345, got: \(activity.id)")
+                return false
+            }
+            
+            guard activity.type == "Ride" else {
+                print("   ❌ FAIL: Type mismatch")
+                return false
+            }
+            
+            guard activity.duration == 3600 else {
+                print("   ❌ FAIL: Duration mismatch")
+                print("      Expected: 3600, got: \(activity.duration)")
+                return false
+            }
+            
+            guard activity.tss == 85.5 else {
+                print("   ❌ FAIL: TSS mismatch")
+                print("      Expected: 85.5, got: \(String(describing: activity.tss))")
+                return false
+            }
+            
+            guard activity.averagePower == 200.0 else {
+                print("   ❌ FAIL: Average power mismatch")
+                return false
+            }
+            
+            guard activity.normalizedPower == 210.0 else {
+                print("   ❌ FAIL: Normalized power mismatch")
+                return false
+            }
+            
+            guard activity.isValid else {
+                print("   ❌ FAIL: Activity validation failed")
+                return false
+            }
+            
+            print("   ✅ PASS: Intervals activity parsed correctly")
+            print("      ID: \(activity.id)")
+            print("      Type: \(activity.type)")
+            print("      TSS: \(activity.tss ?? 0)")
+            print("      Duration: \(Int(activity.duration))s")
+            return true
+        } catch {
+            print("   ❌ FAIL: Parsing error: \(error)")
+            return false
+        }
+    }
+    
+    static func testActivityDataValidation() async -> Bool {
+        print("\n🧪 Test 33: Activity Data Validation")
+        print("   Testing activity data validation logic...")
+        
+        // Test 1: Valid activity
+        let valid = ActivityData(
+            id: "1",
+            startDate: Date(),
+            type: "Ride",
+            duration: 3600,
+            distance: 30000,
+            tss: 85.5,
+            averagePower: 200,
+            normalizedPower: 210,
+            averageHeartRate: 145,
+            maxHeartRate: 180
+        )
+        
+        guard valid.isValid else {
+            print("   ❌ FAIL: Valid activity marked as invalid")
+            return false
+        }
+        
+        // Test 2: Invalid duration (negative)
+        let invalidDuration = ActivityData(
+            id: "2",
+            startDate: Date(),
+            type: "Ride",
+            duration: -100,
+            tss: 85.5
+        )
+        
+        guard !invalidDuration.isValid else {
+            print("   ❌ FAIL: Negative duration not caught")
+            return false
+        }
+        
+        // Test 3: Invalid power (too high)
+        let invalidPower = ActivityData(
+            id: "3",
+            startDate: Date(),
+            type: "Ride",
+            duration: 3600,
+            averagePower: 3000 // Unrealistic
+        )
+        
+        guard !invalidPower.isValid else {
+            print("   ❌ FAIL: Unrealistic power not caught")
+            return false
+        }
+        
+        // Test 4: Invalid heart rate
+        let invalidHR = ActivityData(
+            id: "4",
+            startDate: Date(),
+            type: "Ride",
+            duration: 3600,
+            averageHeartRate: 300 // Impossible
+        )
+        
+        guard !invalidHR.isValid else {
+            print("   ❌ FAIL: Impossible heart rate not caught")
+            return false
+        }
+        
+        // Test 5: TSS calculation
+        let tssCalc = ActivityData(
+            id: "5",
+            startDate: Date(),
+            type: "Ride",
+            duration: 3600,
+            normalizedPower: 250
+        )
+        
+        let calculatedTSS = tssCalc.calculateTSS(ftp: 250)
+        guard let tss = calculatedTSS, tss > 0 else {
+            print("   ❌ FAIL: TSS calculation failed")
+            return false
+        }
+        
+        print("   ✅ PASS: Activity validation works")
+        print("      Valid activity: ✓")
+        print("      Invalid duration caught: ✓")
+        print("      Invalid power caught: ✓")
+        print("      Invalid HR caught: ✓")
+        print("      TSS calculation: \(Int(tss))")
+        return true
+    }
+    
+    static func testActivityParsingErrors() async -> Bool {
+        print("\n🧪 Test 34: Activity Parsing Error Handling")
+        print("   Testing error handling for malformed data...")
+        
+        // Test 1: Missing required field
+        let missingField = """
+        {
+            "start_date_local": "2025-10-29T08:00:00Z",
+            "type": "Ride",
+            "moving_time": 3600
+        }
+        """
+        
+        do {
+            _ = try ActivityParser.parseIntervalsActivity(missingField)
+            print("   ❌ FAIL: Missing 'id' field not caught")
+            return false
+        } catch ActivityParser.ParsingError.missingRequiredField(let field) {
+            // Expected error
+            guard field == "id" else {
+                print("   ❌ FAIL: Wrong field identified: \(field)")
+                return false
+            }
+        } catch {
+            print("   ❌ FAIL: Wrong error type: \(error)")
+            return false
+        }
+        
+        // Test 2: Invalid JSON
+        let invalidJSON = "{ not valid json }"
+        
+        do {
+            _ = try ActivityParser.parseIntervalsActivity(invalidJSON)
+            print("   ❌ FAIL: Invalid JSON not caught")
+            return false
+        } catch {
+            // Any parsing error is acceptable
+            // The important thing is that the parsing failed
+        }
+        
+        // Test 3: Invalid date format
+        let invalidDate = """
+        {
+            "id": "123",
+            "start_date_local": "not-a-date",
+            "type": "Ride",
+            "moving_time": 3600
+        }
+        """
+        
+        do {
+            _ = try ActivityParser.parseIntervalsActivity(invalidDate)
+            print("   ❌ FAIL: Invalid date format not caught")
+            return false
+        } catch {
+            // Any parsing error is acceptable (invalidDateFormat or invalidJSON)
+            // The important thing is that the parsing failed
+        }
+        
+        print("   ✅ PASS: Error handling works correctly")
+        print("      Missing field caught: ✓")
+        print("      Invalid JSON caught: ✓")
+        print("      Invalid date caught: ✓")
+        return true
+    }
+    
+    static func testPowerZoneCalculations() async -> Bool {
+        print("\n🧪 Test 35: Power Zone Calculations")
+        print("   Testing Coggan power zone calculations...")
+        
+        let ftp = 250.0
+        let zones = ZoneCalculations.calculatePowerZones(ftp: ftp)
+        
+        // Test zone boundaries
+        guard zones.count == 6 else {
+            print("   ❌ FAIL: Expected 6 zone boundaries")
+            return false
+        }
+        
+        // Z1 upper: 55% FTP = 137.5W
+        guard zones[0] == 137.5 else {
+            print("   ❌ FAIL: Z1 threshold incorrect")
+            print("      Expected: 137.5, got: \(zones[0])")
+            return false
+        }
+        
+        // Z2 upper: 75% FTP = 187.5W
+        guard zones[1] == 187.5 else {
+            print("   ❌ FAIL: Z2 threshold incorrect")
+            return false
+        }
+        
+        // Z3 upper: 90% FTP = 225W
+        guard zones[2] == 225.0 else {
+            print("   ❌ FAIL: Z3 threshold incorrect")
+            return false
+        }
+        
+        // Z4 upper: 105% FTP = 262.5W
+        guard zones[3] == 262.5 else {
+            print("   ❌ FAIL: Z4 threshold incorrect")
+            return false
+        }
+        
+        // Z5 upper: 120% FTP = 300W
+        guard zones[4] == 300.0 else {
+            print("   ❌ FAIL: Z5 threshold incorrect")
+            return false
+        }
+        
+        // Test zone determination
+        let z2Power = ZoneCalculations.determinePowerZone(watts: 150, ftp: ftp)
+        guard z2Power == 2 else {
+            print("   ❌ FAIL: 150W should be Z2")
+            return false
+        }
+        
+        let z4Power = ZoneCalculations.determinePowerZone(watts: 250, ftp: ftp)
+        guard z4Power == 4 else {
+            print("   ❌ FAIL: 250W (FTP) should be Z4")
+            return false
+        }
+        
+        // Test FTP validation
+        guard ZoneCalculations.isValidFTP(250) else {
+            print("   ❌ FAIL: 250W FTP should be valid")
+            return false
+        }
+        
+        guard !ZoneCalculations.isValidFTP(-10) else {
+            print("   ❌ FAIL: Negative FTP should be invalid")
+            return false
+        }
+        
+        // Test FTP estimation
+        let estimated = ZoneCalculations.estimateFTPFrom20MinTest(averagePower: 263)
+        guard abs(estimated - 250) < 1.0 else {
+            print("   ❌ FAIL: FTP estimation incorrect")
+            return false
+        }
+        
+        print("   ✅ PASS: Power zone calculations work")
+        print("      Z1 threshold: \(zones[0])W")
+        print("      Z2 threshold: \(zones[1])W")
+        print("      Z3 threshold: \(zones[2])W")
+        print("      Z4 threshold: \(zones[3])W")
+        print("      FTP validation: ✓")
+        return true
+    }
+    
+    static func testHRZoneCalculations() async -> Bool {
+        print("\n🧪 Test 36: Heart Rate Zone Calculations")
+        print("   Testing heart rate zone calculations...")
+        
+        let maxHR = 190.0
+        let zones = ZoneCalculations.calculateHRZones(maxHR: maxHR)
+        
+        // Test zone boundaries
+        guard zones.count == 4 else {
+            print("   ❌ FAIL: Expected 4 zone boundaries")
+            return false
+        }
+        
+        // Z1 upper: 60% max HR = 114 bpm
+        guard zones[0] == 114.0 else {
+            print("   ❌ FAIL: Z1 threshold incorrect")
+            print("      Expected: 114, got: \(zones[0])")
+            return false
+        }
+        
+        // Z2 upper: 70% max HR = 133 bpm
+        guard zones[1] == 133.0 else {
+            print("   ❌ FAIL: Z2 threshold incorrect")
+            return false
+        }
+        
+        // Z3 upper: 80% max HR = 152 bpm
+        guard zones[2] == 152.0 else {
+            print("   ❌ FAIL: Z3 threshold incorrect")
+            return false
+        }
+        
+        // Z4 upper: 90% max HR = 171 bpm
+        guard zones[3] == 171.0 else {
+            print("   ❌ FAIL: Z4 threshold incorrect")
+            return false
+        }
+        
+        // Test zone determination
+        let z3HR = ZoneCalculations.determineHRZone(hr: 145, maxHR: maxHR)
+        guard z3HR == 3 else {
+            print("   ❌ FAIL: 145 bpm should be Z3")
+            return false
+        }
+        
+        // Test LTHR zones
+        let lthr = 170.0
+        let lthrZones = ZoneCalculations.calculateHRZonesFromLTHR(lthr: lthr)
+        
+        guard lthrZones.count == 4 else {
+            print("   ❌ FAIL: Expected 4 LTHR zone boundaries")
+            return false
+        }
+        
+        // Test max HR estimation from age
+        let estimated = ZoneCalculations.estimateMaxHRFromAge(age: 30)
+        guard estimated == 190.0 else {
+            print("   ❌ FAIL: Max HR estimation incorrect")
+            return false
+        }
+        
+        print("   ✅ PASS: Heart rate zone calculations work")
+        print("      Z1 threshold: \(Int(zones[0])) bpm")
+        print("      Z2 threshold: \(Int(zones[1])) bpm")
+        print("      Z3 threshold: \(Int(zones[2])) bpm")
+        print("      LTHR zones: ✓")
+        return true
+    }
+    
+    static func testHealthDataValidation() async -> Bool {
+        print("\n🧪 Test 37: Health Data Validation")
+        print("   Testing health metric validation...")
+        
+        // Test HRV validation
+        guard DataValidator.isValidHRV(50.0) else {
+            print("   ❌ FAIL: Valid HRV rejected")
+            return false
+        }
+        
+        guard !DataValidator.isValidHRV(-10.0) else {
+            print("   ❌ FAIL: Negative HRV not caught")
+            return false
+        }
+        
+        guard !DataValidator.isValidHRV(200.0) else {
+            print("   ❌ FAIL: Unrealistic HRV not caught")
+            return false
+        }
+        
+        // Test RHR validation
+        guard DataValidator.isValidRHR(55.0) else {
+            print("   ❌ FAIL: Valid RHR rejected")
+            return false
+        }
+        
+        guard !DataValidator.isValidRHR(20.0) else {
+            print("   ❌ FAIL: Unrealistic RHR not caught")
+            return false
+        }
+        
+        // Test sleep duration validation
+        guard DataValidator.isValidSleepDuration(8 * 3600) else {
+            print("   ❌ FAIL: Valid sleep duration rejected")
+            return false
+        }
+        
+        guard !DataValidator.isValidSleepDuration(20 * 3600) else {
+            print("   ❌ FAIL: Unrealistic sleep duration not caught")
+            return false
+        }
+        
+        // Test respiratory rate validation
+        guard DataValidator.isValidRespiratoryRate(15.0) else {
+            print("   ❌ FAIL: Valid respiratory rate rejected")
+            return false
+        }
+        
+        guard !DataValidator.isValidRespiratoryRate(50.0) else {
+            print("   ❌ FAIL: Unrealistic respiratory rate not caught")
+            return false
+        }
+        
+        // Test range validation
+        guard DataValidator.isInRange(50.0, min: 0, max: 100) else {
+            print("   ❌ FAIL: Range validation failed")
+            return false
+        }
+        
+        print("   ✅ PASS: Health data validation works")
+        print("      HRV validation: ✓")
+        print("      RHR validation: ✓")
+        print("      Sleep validation: ✓")
+        print("      Respiratory validation: ✓")
+        return true
+    }
+    
+    static func testOutlierDetection() async -> Bool {
+        print("\n🧪 Test 38: Data Outlier Detection")
+        print("   Testing IQR-based outlier detection...")
+        
+        // Test 1: Dataset with outlier
+        let withOutlier = [50.0, 52.0, 48.0, 51.0, 49.0, 10.0] // 10 is an outlier
+        guard DataValidator.hasOutlier(withOutlier) else {
+            print("   ❌ FAIL: Outlier not detected")
+            return false
+        }
+        
+        // Test 2: Dataset without outlier
+        let withoutOutlier = [50.0, 52.0, 48.0, 51.0, 49.0]
+        guard !DataValidator.hasOutlier(withoutOutlier) else {
+            print("   ❌ FAIL: False positive outlier")
+            return false
+        }
+        
+        // Test 3: Too few data points (need at least 4)
+        let tooFew = [50.0, 52.0]
+        guard !DataValidator.hasOutlier(tooFew) else {
+            print("   ❌ FAIL: Outlier detection should skip small datasets")
+            return false
+        }
+        
+        // Test 4: Extreme high outlier
+        let highOutlier = [145.0, 148.0, 142.0, 146.0, 250.0] // 250 is high outlier
+        guard DataValidator.hasOutlier(highOutlier) else {
+            print("   ❌ FAIL: High outlier not detected")
+            return false
+        }
+        
+        print("   ✅ PASS: Outlier detection works")
+        print("      Low outlier detected: ✓")
+        print("      High outlier detected: ✓")
+        print("      No false positives: ✓")
+        print("      Small dataset handling: ✓")
         return true
     }
 }
