@@ -59,6 +59,48 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 8: Training Load CTL
+        if await testTrainingLoadCTL() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 9: Training Load ATL
+        if await testTrainingLoadATL() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 10: Training Load TSB
+        if await testTrainingLoadTSB() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 11: Training Load Progressive
+        if await testTrainingLoadProgressive() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 12: Training Load Baseline
+        if await testTrainingLoadBaseline() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 13: Training Load Edge Cases
+        if await testTrainingLoadEdgeCases() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -429,5 +471,253 @@ struct VeloReadyCoreTests {
             print("   ❌ FAIL: \(error)")
             return false
         }
+    }
+    
+    // MARK: - Training Load Tests
+    
+    static func testTrainingLoadCTL() async -> Bool {
+        print("\n🧪 Test 8: Training Load CTL Calculation")
+        print("   Testing 42-day exponentially weighted average...")
+        
+        // Known test data: 42 days with TSS values
+        // Simulate realistic training: 3-4 rides per week
+        let dailyTSS: [Double] = [
+            0, 0, 100, 0, 80, 0, 0,  // Week 1
+            0, 0, 90, 0, 0, 120, 0,  // Week 2
+            0, 0, 0, 85, 0, 75, 0,   // Week 3
+            0, 95, 0, 0, 110, 0, 0,  // Week 4
+            0, 0, 105, 0, 90, 0, 0,  // Week 5
+            0, 0, 0, 95, 0, 100, 0   // Week 6
+        ]
+        
+        let ctl = TrainingLoadCalculations.calculateCTL(from: dailyTSS)
+        
+        // CTL should be a smoothed average, typically 20-30 for this pattern
+        // (EMA heavily weights recent values, so average is lower than simple mean)
+        guard ctl > 15 && ctl < 35 else {
+            print("   ❌ FAIL: CTL out of expected range")
+            print("      Expected: 15-35, got: \(String(format: "%.1f", ctl))")
+            return false
+        }
+        
+        print("   ✅ PASS: CTL calculation works (CTL=\(String(format: "%.1f", ctl)))")
+        return true
+    }
+    
+    static func testTrainingLoadATL() async -> Bool {
+        print("\n🧪 Test 9: Training Load ATL Calculation")
+        print("   Testing 7-day exponentially weighted average...")
+        
+        // Last 7 days with higher TSS (acute load)
+        let dailyTSS: [Double] = [
+            0, 0, 100, 0, 80, 0, 0,  // Week 1
+            0, 0, 90, 0, 0, 120, 0,  // Week 2
+            0, 0, 0, 85, 0, 75, 0,   // Week 3
+            0, 95, 0, 0, 110, 0, 0,  // Week 4
+            0, 0, 105, 0, 90, 0, 0,  // Week 5
+            120, 0, 0, 130, 0, 110, 0  // Week 6 (higher load)
+        ]
+        
+        let atl = TrainingLoadCalculations.calculateATL(from: dailyTSS)
+        
+        // ATL should be higher due to recent high load
+        guard atl > 50 && atl < 90 else {
+            print("   ❌ FAIL: ATL out of expected range")
+            print("      Expected: 50-90, got: \(String(format: "%.1f", atl))")
+            return false
+        }
+        
+        print("   ✅ PASS: ATL calculation works (ATL=\(String(format: "%.1f", atl)))")
+        return true
+    }
+    
+    static func testTrainingLoadTSB() async -> Bool {
+        print("\n🧪 Test 10: Training Load TSB Calculation")
+        print("   Testing Training Stress Balance (form)...")
+        
+        let ctl = 50.0  // Fitness
+        let atl = 45.0  // Fatigue
+        let tsb = TrainingLoadCalculations.calculateTSB(ctl: ctl, atl: atl)
+        
+        // TSB = CTL - ATL = 5 (positive = fresh)
+        guard abs(tsb - 5.0) < 0.01 else {
+            print("   ❌ FAIL: TSB calculation incorrect")
+            print("      Expected: 5.0, got: \(String(format: "%.1f", tsb))")
+            return false
+        }
+        
+        // Test negative TSB (fatigued state)
+        let fatiguedTSB = TrainingLoadCalculations.calculateTSB(ctl: 50.0, atl: 60.0)
+        guard abs(fatiguedTSB + 10.0) < 0.01 else {
+            print("   ❌ FAIL: Negative TSB calculation incorrect")
+            print("      Expected: -10.0, got: \(String(format: "%.1f", fatiguedTSB))")
+            return false
+        }
+        
+        print("   ✅ PASS: TSB calculation works")
+        print("      Fresh state (CTL>ATL): TSB=+\(String(format: "%.1f", tsb))")
+        print("      Fatigued state (ATL>CTL): TSB=\(String(format: "%.1f", fatiguedTSB))")
+        return true
+    }
+    
+    static func testTrainingLoadProgressive() async -> Bool {
+        print("\n🧪 Test 11: Training Load Progressive Calculation")
+        print("   Testing day-by-day CTL/ATL progression...")
+        
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: Date(timeIntervalSinceNow: -7 * 24 * 3600))
+        let endDate = calendar.startOfDay(for: Date())
+        
+        // Create test data: 100 TSS on days 1, 3, 5, 7
+        var dailyTSS: [Date: Double] = [:]
+        for i in 0..<8 {
+            if let date = calendar.date(byAdding: .day, value: i, to: startDate), i % 2 == 0 {
+                dailyTSS[date] = 100.0
+            }
+        }
+        
+        let progressiveLoad = TrainingLoadCalculations.calculateProgressiveLoad(
+            dailyTSS: dailyTSS,
+            startDate: startDate,
+            endDate: endDate,
+            calendar: calendar
+        )
+        
+        // Should have 8 days of data
+        guard progressiveLoad.count == 8 else {
+            print("   ❌ FAIL: Expected 8 days, got \(progressiveLoad.count)")
+            return false
+        }
+        
+        // Verify data exists for all days
+        let sortedDates = progressiveLoad.keys.sorted()
+        guard let firstDay = progressiveLoad[sortedDates[0]],
+              let lastDay = progressiveLoad[sortedDates[7]] else {
+            print("   ❌ FAIL: Missing load data for first or last day")
+            return false
+        }
+        
+        // CTL and ATL should be within reasonable ranges
+        // With baseline estimation, initial values will be high, then adjust
+        // The key test is that the calculation completes and produces reasonable values
+        guard firstDay.ctl > 0 && lastDay.ctl > 0 else {
+            print("   ❌ FAIL: CTL should be positive")
+            return false
+        }
+        
+        guard firstDay.atl > 0 && lastDay.atl > 0 else {
+            print("   ❌ FAIL: ATL should be positive")
+            return false
+        }
+        
+        // Verify that both values are reasonable (not extreme)
+        guard lastDay.ctl < 200 && lastDay.atl < 200 else {
+            print("   ❌ FAIL: CTL/ATL values are unreasonably high")
+            return false
+        }
+        
+        print("   ✅ PASS: Progressive load calculation works")
+        print("      Day 1: CTL=\(String(format: "%.1f", firstDay.ctl)), ATL=\(String(format: "%.1f", firstDay.atl))")
+        print("      Day 8: CTL=\(String(format: "%.1f", lastDay.ctl)), ATL=\(String(format: "%.1f", lastDay.atl))")
+        return true
+    }
+    
+    static func testTrainingLoadBaseline() async -> Bool {
+        print("\n🧪 Test 12: Training Load Baseline Estimation")
+        print("   Testing initial CTL/ATL estimation from early training...")
+        
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: Date(timeIntervalSinceNow: -14 * 24 * 3600))
+        
+        // Create 2 weeks of consistent training: 100 TSS every other day
+        var dailyTSS: [Date: Double] = [:]
+        for i in 0..<14 {
+            if let date = calendar.date(byAdding: .day, value: i, to: startDate), i % 2 == 0 {
+                dailyTSS[date] = 100.0
+            }
+        }
+        
+        let baseline = TrainingLoadCalculations.estimateBaseline(
+            dailyTSS: dailyTSS,
+            startDate: startDate,
+            calendar: calendar
+        )
+        
+        // Average TSS per activity = 100
+        // CTL baseline ≈ 100 * 0.7 = 70
+        // ATL baseline ≈ 100 * 0.4 = 40
+        
+        guard abs(baseline.ctl - 70.0) < 5.0 else {
+            print("   ❌ FAIL: CTL baseline out of expected range")
+            print("      Expected: ~70, got: \(String(format: "%.1f", baseline.ctl))")
+            return false
+        }
+        
+        guard abs(baseline.atl - 40.0) < 5.0 else {
+            print("   ❌ FAIL: ATL baseline out of expected range")
+            print("      Expected: ~40, got: \(String(format: "%.1f", baseline.atl))")
+            return false
+        }
+        
+        print("   ✅ PASS: Baseline estimation works")
+        print("      CTL baseline: \(String(format: "%.1f", baseline.ctl))")
+        print("      ATL baseline: \(String(format: "%.1f", baseline.atl))")
+        return true
+    }
+    
+    static func testTrainingLoadEdgeCases() async -> Bool {
+        print("\n🧪 Test 13: Training Load Edge Cases")
+        print("   Testing edge cases (empty data, single day, zeros)...")
+        
+        // Test 1: Empty data
+        let emptyResult = TrainingLoadCalculations.calculateCTL(from: [])
+        guard emptyResult == 0 else {
+            print("   ❌ FAIL: Empty data should return 0")
+            return false
+        }
+        
+        // Test 2: Single day
+        let singleDayResult = TrainingLoadCalculations.calculateCTL(from: [100.0])
+        guard singleDayResult == 100.0 else {
+            print("   ❌ FAIL: Single day should return that value")
+            return false
+        }
+        
+        // Test 3: All zeros
+        let allZerosResult = TrainingLoadCalculations.calculateCTL(from: Array(repeating: 0.0, count: 42))
+        guard allZerosResult == 0 else {
+            print("   ❌ FAIL: All zeros should return 0")
+            return false
+        }
+        
+        // Test 4: Negative TSB (fatigue)
+        let negativeTSB = TrainingLoadCalculations.calculateTSB(ctl: 40.0, atl: 60.0)
+        guard negativeTSB < 0 else {
+            print("   ❌ FAIL: High ATL should result in negative TSB")
+            return false
+        }
+        
+        // Test 5: Progressive load with no data
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: Date())
+        let endDate = calendar.startOfDay(for: Date())
+        let emptyProgressive = TrainingLoadCalculations.calculateProgressiveLoad(
+            dailyTSS: [:],
+            startDate: startDate,
+            endDate: endDate,
+            calendar: calendar
+        )
+        guard emptyProgressive.count == 1 else {
+            print("   ❌ FAIL: Empty progressive should have 1 day (start date)")
+            return false
+        }
+        
+        print("   ✅ PASS: All edge cases handled correctly")
+        print("      - Empty data: ✓")
+        print("      - Single day: ✓")
+        print("      - All zeros: ✓")
+        print("      - Negative TSB: ✓")
+        print("      - Empty progressive: ✓")
+        return true
     }
 }
