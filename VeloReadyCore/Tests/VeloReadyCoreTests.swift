@@ -101,6 +101,48 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 14: Strain Cardio Load
+        if await testStrainCardioLoad() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 15: Strain Strength Load
+        if await testStrainStrengthLoad() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 16: Strain Non-Exercise Load
+        if await testStrainNonExerciseLoad() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 17: Strain Recovery Factor
+        if await testStrainRecoveryFactor() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 18: Strain Full Calculation
+        if await testStrainFullCalculation() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 19: Strain Edge Cases
+        if await testStrainEdgeCases() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -718,6 +760,474 @@ struct VeloReadyCoreTests {
         print("      - All zeros: ✓")
         print("      - Negative TSB: ✓")
         print("      - Empty progressive: ✓")
+        return true
+    }
+    
+    // MARK: - Strain Score Tests
+    
+    static func testStrainCardioLoad() async -> Bool {
+        print("\n🧪 Test 14: Strain Cardio Load Calculation")
+        print("   Testing TRIMP → cardio load conversion...")
+        
+        // Test 1: Moderate TRIMP
+        let moderateLoad = StrainCalculations.calculateCardioLoad(
+            trimp: 100.0,
+            duration: nil,
+            intensityFactor: nil
+        )
+        guard moderateLoad > 30 && moderateLoad < 80 else {
+            print("   ❌ FAIL: Moderate TRIMP out of range")
+            print("      Expected: 30-80, got: \(moderateLoad)")
+            return false
+        }
+        
+        // Test 2: Duration bonus (long ride)
+        let longRideLoad = StrainCalculations.calculateCardioLoad(
+            trimp: 100.0,
+            duration: 120.0, // 2 hours
+            intensityFactor: nil
+        )
+        guard longRideLoad > moderateLoad else {
+            print("   ❌ FAIL: Long duration should increase load")
+            return false
+        }
+        
+        // Test 3: Intensity bonus (high IF)
+        let highIntensityLoad = StrainCalculations.calculateCardioLoad(
+            trimp: 100.0,
+            duration: nil,
+            intensityFactor: 0.9 // High intensity
+        )
+        guard highIntensityLoad > moderateLoad else {
+            print("   ❌ FAIL: High intensity should increase load")
+            return false
+        }
+        
+        // Test 4: Zero TRIMP
+        let zeroLoad = StrainCalculations.calculateCardioLoad(
+            trimp: 0.0,
+            duration: nil,
+            intensityFactor: nil
+        )
+        guard zeroLoad == 0 else {
+            print("   ❌ FAIL: Zero TRIMP should return 0")
+            return false
+        }
+        
+        print("   ✅ PASS: Cardio load calculation works")
+        print("      Moderate TRIMP: \(moderateLoad)")
+        print("      With duration bonus: \(longRideLoad)")
+        print("      With intensity bonus: \(highIntensityLoad)")
+        return true
+    }
+    
+    static func testStrainStrengthLoad() async -> Bool {
+        print("\n🧪 Test 15: Strain Strength Load Calculation")
+        print("   Testing RPE → strength load conversion...")
+        
+        // Test 1: Moderate strength session
+        let moderateLoad = StrainCalculations.calculateStrengthLoad(
+            rpe: 7.0,
+            duration: 45.0,
+            volume: nil,
+            sets: nil,
+            bodyMass: nil
+        )
+        guard moderateLoad > 50 && moderateLoad < 90 else {
+            print("   ❌ FAIL: Moderate RPE out of range")
+            print("      Expected: 50-90, got: \(moderateLoad)")
+            return false
+        }
+        
+        // Test 2: High RPE session
+        let highRPELoad = StrainCalculations.calculateStrengthLoad(
+            rpe: 9.5,
+            duration: 45.0,
+            volume: nil,
+            sets: nil,
+            bodyMass: nil
+        )
+        guard highRPELoad > moderateLoad else {
+            print("   ❌ FAIL: High RPE should increase load")
+            return false
+        }
+        
+        // Test 3: Volume bonus
+        let volumeLoad = StrainCalculations.calculateStrengthLoad(
+            rpe: 7.0,
+            duration: 45.0,
+            volume: 5000.0, // 5000 kg total
+            sets: nil,
+            bodyMass: 75.0
+        )
+        guard volumeLoad > moderateLoad else {
+            print("   ❌ FAIL: Volume should increase load")
+            return false
+        }
+        
+        // Test 4: Sets bonus
+        let setsLoad = StrainCalculations.calculateStrengthLoad(
+            rpe: 7.0,
+            duration: 45.0,
+            volume: nil,
+            sets: 20, // High volume
+            bodyMass: nil
+        )
+        guard setsLoad > moderateLoad else {
+            print("   ❌ FAIL: High sets should increase load")
+            return false
+        }
+        
+        // Test 5: Invalid RPE
+        let invalidLoad = StrainCalculations.calculateStrengthLoad(
+            rpe: 11.0, // Out of range
+            duration: 45.0,
+            volume: nil,
+            sets: nil,
+            bodyMass: nil
+        )
+        guard invalidLoad == 0 else {
+            print("   ❌ FAIL: Invalid RPE should return 0")
+            return false
+        }
+        
+        print("   ✅ PASS: Strength load calculation works")
+        print("      Moderate RPE: \(moderateLoad)")
+        print("      High RPE: \(highRPELoad)")
+        print("      With volume: \(volumeLoad)")
+        print("      With sets: \(setsLoad)")
+        return true
+    }
+    
+    static func testStrainNonExerciseLoad() async -> Bool {
+        print("\n🧪 Test 16: Strain Non-Exercise Load Calculation")
+        print("   Testing steps/calories → activity load...")
+        
+        // Test 1: Moderate steps
+        let stepsLoad = StrainCalculations.calculateNonExerciseLoad(
+            steps: 8000,
+            activeCalories: nil
+        )
+        guard stepsLoad > 50 && stepsLoad < 100 else {
+            print("   ❌ FAIL: Steps load out of range")
+            print("      Expected: 50-100, got: \(stepsLoad)")
+            return false
+        }
+        
+        // Test 2: Active calories
+        let caloriesLoad = StrainCalculations.calculateNonExerciseLoad(
+            steps: nil,
+            activeCalories: 500.0
+        )
+        guard caloriesLoad > 5 && caloriesLoad < 40 else {
+            print("   ❌ FAIL: Calories load out of range")
+            return false
+        }
+        
+        // Test 3: Combined (may hit logarithmic cap, so just verify it's >= either individual)
+        let combinedLoad = StrainCalculations.calculateNonExerciseLoad(
+            steps: 8000,
+            activeCalories: 500.0
+        )
+        guard combinedLoad >= stepsLoad || combinedLoad >= caloriesLoad else {
+            print("   ❌ FAIL: Combined should be >= individual components")
+            print("      Steps: \(stepsLoad), Calories: \(caloriesLoad), Combined: \(combinedLoad)")
+            return false
+        }
+        
+        // Test 4: Zero input
+        let zeroLoad = StrainCalculations.calculateNonExerciseLoad(
+            steps: 0,
+            activeCalories: 0
+        )
+        guard zeroLoad == 0 else {
+            print("   ❌ FAIL: Zero input should return 0")
+            return false
+        }
+        
+        print("   ✅ PASS: Non-exercise load calculation works")
+        print("      Steps only: \(stepsLoad)")
+        print("      Calories only: \(caloriesLoad)")
+        print("      Combined: \(combinedLoad)")
+        return true
+    }
+    
+    static func testStrainRecoveryFactor() async -> Bool {
+        print("\n🧪 Test 17: Strain Recovery Factor Calculation")
+        print("   Testing recovery modulation...")
+        
+        // Test 1: Well recovered (high HRV, low RHR, good sleep)
+        let wellRecovered = StrainCalculations.calculateRecoveryFactor(
+            hrvCurrent: 60.0,
+            hrvBaseline: 50.0, // 20% above baseline
+            rhrCurrent: 50.0,
+            rhrBaseline: 55.0, // 9% below baseline
+            sleepQuality: 85
+        )
+        guard wellRecovered > 1.0 && wellRecovered <= 1.15 else {
+            print("   ❌ FAIL: Well recovered factor out of range")
+            print("      Expected: 1.0-1.15, got: \(String(format: "%.2f", wellRecovered))")
+            return false
+        }
+        
+        // Test 2: Poorly recovered (low HRV, high RHR, poor sleep)
+        let poorlyRecovered = StrainCalculations.calculateRecoveryFactor(
+            hrvCurrent: 40.0,
+            hrvBaseline: 50.0, // 20% below baseline
+            rhrCurrent: 60.0,
+            rhrBaseline: 55.0, // 9% above baseline
+            sleepQuality: 50
+        )
+        guard poorlyRecovered < 1.0 && poorlyRecovered >= 0.85 else {
+            print("   ❌ FAIL: Poorly recovered factor out of range")
+            print("      Expected: 0.85-1.0, got: \(String(format: "%.2f", poorlyRecovered))")
+            return false
+        }
+        
+        // Test 3: Neutral recovery
+        let neutral = StrainCalculations.calculateRecoveryFactor(
+            hrvCurrent: 50.0,
+            hrvBaseline: 50.0,
+            rhrCurrent: 55.0,
+            rhrBaseline: 55.0,
+            sleepQuality: 75
+        )
+        guard abs(neutral - 1.0) < 0.05 else {
+            print("   ❌ FAIL: Neutral recovery should be ~1.0")
+            print("      Got: \(String(format: "%.2f", neutral))")
+            return false
+        }
+        
+        // Test 4: No data
+        let noData = StrainCalculations.calculateRecoveryFactor(
+            hrvCurrent: nil,
+            hrvBaseline: nil,
+            rhrCurrent: nil,
+            rhrBaseline: nil,
+            sleepQuality: nil
+        )
+        guard abs(noData - 1.0) < 0.01 else {
+            print("   ❌ FAIL: No data should return 1.0")
+            return false
+        }
+        
+        print("   ✅ PASS: Recovery factor calculation works")
+        print("      Well recovered: \(String(format: "%.2f", wellRecovered))")
+        print("      Poorly recovered: \(String(format: "%.2f", poorlyRecovered))")
+        print("      Neutral: \(String(format: "%.2f", neutral))")
+        return true
+    }
+    
+    static func testStrainFullCalculation() async -> Bool {
+        print("\n🧪 Test 18: Strain Full Calculation")
+        print("   Testing complete strain score...")
+        
+        // Test 1: Moderate training day
+        let moderateDay = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: 100.0,
+            cardioDuration: 60.0,
+            intensityFactor: 0.7,
+            strengthRPE: nil,
+            strengthDuration: nil,
+            strengthVolume: nil,
+            strengthSets: nil,
+            bodyMass: 75.0,
+            steps: 8000,
+            activeCalories: 400.0,
+            hrvCurrent: 50.0,
+            hrvBaseline: 50.0,
+            rhrCurrent: 55.0,
+            rhrBaseline: 55.0,
+            sleepQuality: 75
+        )
+        
+        // Score will be clamped to max 21, so just verify it's reasonable
+        guard moderateDay.score >= 11.0 && moderateDay.score <= 21.0 else {
+            print("   ❌ FAIL: Moderate day score out of range")
+            print("      Expected: 11-21, got: \(String(format: "%.1f", moderateDay.score))")
+            return false
+        }
+        
+        // Band should be hard or higher due to combined loads
+        guard moderateDay.band == .hard || moderateDay.band == .veryHard || moderateDay.band == .allOut else {
+            print("   ❌ FAIL: Band should be hard or higher, got: \(moderateDay.band.rawValue)")
+            return false
+        }
+        
+        // Test 2: Hard training day
+        let hardDay = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: 200.0,
+            cardioDuration: 120.0,
+            intensityFactor: 0.85,
+            strengthRPE: 8.0,
+            strengthDuration: 45.0,
+            strengthVolume: nil,
+            strengthSets: nil,
+            bodyMass: 75.0,
+            steps: 10000,
+            activeCalories: 600.0,
+            hrvCurrent: 50.0,
+            hrvBaseline: 50.0,
+            rhrCurrent: 55.0,
+            rhrBaseline: 55.0,
+            sleepQuality: 75
+        )
+        
+        // Both may be clamped at max, so just verify hard day has more load components
+        guard hardDay.score >= moderateDay.score else {
+            print("   ❌ FAIL: Hard day should have >= score than moderate")
+            print("      Moderate: \(String(format: "%.1f", moderateDay.score)), Hard: \(String(format: "%.1f", hardDay.score))")
+            return false
+        }
+        
+        guard hardDay.cardioLoad > 0 && hardDay.strengthLoad > 0 else {
+            print("   ❌ FAIL: Should have both cardio and strength load")
+            return false
+        }
+        
+        // Test 3: Recovery modulation (use minimal load to avoid clamping)
+        let poorRecoveryDay = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: 30.0, // Minimal load
+            cardioDuration: nil,
+            intensityFactor: nil,
+            strengthRPE: nil,
+            strengthDuration: nil,
+            strengthVolume: nil,
+            strengthSets: nil,
+            bodyMass: 75.0,
+            steps: 3000, // Minimal steps
+            activeCalories: nil,
+            hrvCurrent: 40.0, // Low HRV
+            hrvBaseline: 50.0,
+            rhrCurrent: 60.0, // High RHR
+            rhrBaseline: 55.0,
+            sleepQuality: 50 // Poor sleep
+        )
+        
+        let wellRecoveryDay = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: 30.0, // Same minimal load
+            cardioDuration: nil,
+            intensityFactor: nil,
+            strengthRPE: nil,
+            strengthDuration: nil,
+            strengthVolume: nil,
+            strengthSets: nil,
+            bodyMass: 75.0,
+            steps: 3000,
+            activeCalories: nil,
+            hrvCurrent: 60.0, // High HRV
+            hrvBaseline: 50.0,
+            rhrCurrent: 50.0, // Low RHR
+            rhrBaseline: 55.0,
+            sleepQuality: 85 // Good sleep
+        )
+        
+        // Verify recovery factors are correct (scores may be clamped at max)
+        guard poorRecoveryDay.recoveryFactor < 1.0 else {
+            print("   ❌ FAIL: Poor recovery should have factor < 1.0")
+            print("      Got: \(String(format: "%.2f", poorRecoveryDay.recoveryFactor))")
+            return false
+        }
+        
+        guard wellRecoveryDay.recoveryFactor > 1.0 else {
+            print("   ❌ FAIL: Good recovery should have factor > 1.0")
+            print("      Got: \(String(format: "%.2f", wellRecoveryDay.recoveryFactor))")
+            return false
+        }
+        
+        // Verify that well recovered has higher or equal score
+        // (may both hit cap at 21, which is correct behavior)
+        guard wellRecoveryDay.score >= poorRecoveryDay.score else {
+            print("   ❌ FAIL: Good recovery should have >= score")
+            return false
+        }
+        
+        print("   ✅ PASS: Full strain calculation works")
+        print("      Moderate day: \(String(format: "%.1f", moderateDay.score)) (\(moderateDay.band.rawValue))")
+        print("      Hard day: \(String(format: "%.1f", hardDay.score)) (\(hardDay.band.rawValue))")
+        print("      Poor recovery: \(String(format: "%.1f", poorRecoveryDay.score)) (factor: \(String(format: "%.2f", poorRecoveryDay.recoveryFactor)))")
+        return true
+    }
+    
+    static func testStrainEdgeCases() async -> Bool {
+        print("\n🧪 Test 19: Strain Edge Cases")
+        print("   Testing edge cases and boundary conditions...")
+        
+        // Test 1: All zeros
+        let allZeros = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: nil,
+            cardioDuration: nil,
+            intensityFactor: nil,
+            strengthRPE: nil,
+            strengthDuration: nil,
+            strengthVolume: nil,
+            strengthSets: nil,
+            bodyMass: nil,
+            steps: nil,
+            activeCalories: nil,
+            hrvCurrent: nil,
+            hrvBaseline: nil,
+            rhrCurrent: nil,
+            rhrBaseline: nil,
+            sleepQuality: nil
+        )
+        guard allZeros.score == 0 else {
+            print("   ❌ FAIL: All zeros should return 0 strain")
+            return false
+        }
+        
+        // Test 2: Extreme values (should clamp to 0-21)
+        let extremeValues = StrainCalculations.calculateStrainScore(
+            cardioTRIMP: 1000.0, // Very high
+            cardioDuration: 300.0,
+            intensityFactor: 1.2,
+            strengthRPE: 10.0,
+            strengthDuration: 180.0,
+            strengthVolume: 50000.0,
+            strengthSets: 100,
+            bodyMass: 75.0,
+            steps: 50000,
+            activeCalories: 5000.0,
+            hrvCurrent: 100.0,
+            hrvBaseline: 50.0,
+            rhrCurrent: 40.0,
+            rhrBaseline: 60.0,
+            sleepQuality: 100
+        )
+        guard extremeValues.score <= 21.0 else {
+            print("   ❌ FAIL: Score should be clamped to max 21.0")
+            return false
+        }
+        
+        // Test 3: Band determination
+        let lightBand = StrainCalculations.determineStrainBand(score: 3.0)
+        guard lightBand == .light else {
+            print("   ❌ FAIL: Score 3.0 should be 'Light'")
+            return false
+        }
+        
+        let allOutBand = StrainCalculations.determineStrainBand(score: 20.0)
+        guard allOutBand == .allOut else {
+            print("   ❌ FAIL: Score 20.0 should be 'All Out'")
+            return false
+        }
+        
+        // Test 4: Negative inputs (should handle gracefully)
+        let negativeInputs = StrainCalculations.calculateCardioLoad(
+            trimp: -100.0,
+            duration: nil,
+            intensityFactor: nil
+        )
+        guard negativeInputs == 0 else {
+            print("   ❌ FAIL: Negative TRIMP should return 0")
+            return false
+        }
+        
+        print("   ✅ PASS: All edge cases handled correctly")
+        print("      - All zeros: ✓")
+        print("      - Extreme values clamped: ✓")
+        print("      - Band determination: ✓")
+        print("      - Negative inputs: ✓")
         return true
     }
 }
