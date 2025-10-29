@@ -346,6 +346,7 @@ struct VeloReadyCoreTests {
             var count = 0
             func increment() { count += 1 }
             func get() -> Int { count }
+            func reset() { count = 0 }
         }
         let counter = FetchCounter()
         
@@ -377,27 +378,51 @@ struct VeloReadyCoreTests {
             // Clear only Strava cache
             await cache.invalidate(matching: "^strava:.*")
             
-            // Verify Strava is cleared but others remain
+            // Reset counter to track post-invalidation fetches
+            await counter.reset()
+            
+            // Test 1: Strava should be cleared (causes fetch)
             _ = try await cache.fetch(key: "strava:activities:90", ttl: 60) {
                 await counter.increment()
                 return "strava1-new"
             }
             
+            let stravaFetchCount = await counter.get()
+            guard stravaFetchCount == 1 else {
+                print("   ❌ FAIL: Strava should have been cleared (expected 1 fetch, got \(stravaFetchCount))")
+                return false
+            }
+            
+            // Test 2: Intervals should still be cached (no fetch)
             _ = try await cache.fetch(key: "intervals:activities:120", ttl: 60) {
                 await counter.increment()
                 return "intervals-new"
             }
             
-            let finalCount = await counter.get()
+            let totalPostInvalidation = await counter.get()
+            guard totalPostInvalidation == 1 else {
+                print("   ❌ FAIL: Intervals should have been cached")
+                print("      Expected 1 fetch (Strava only), got \(totalPostInvalidation)")
+                return false
+            }
             
-            // Should have re-fetched Strava (1 new) but not Intervals (0 new)
-            guard finalCount == 5 else {
-                print("   ❌ FAIL: Expected 5 total fetches, got \(finalCount)")
-                print("      (4 initial + 1 re-fetch of cleared Strava)")
+            // Test 3: HealthKit should also still be cached (no fetch)
+            _ = try await cache.fetch(key: "healthkit:hrv:today", ttl: 60) {
+                await counter.increment()
+                return "hrv-new"
+            }
+            
+            let finalCount = await counter.get()
+            guard finalCount == 1 else {
+                print("   ❌ FAIL: HealthKit should have been cached")
+                print("      Expected 1 fetch total, got \(finalCount)")
                 return false
             }
             
             print("   ✅ PASS: Pattern-based invalidation works")
+            print("      - Strava cleared: ✓")
+            print("      - Intervals cached: ✓")
+            print("      - HealthKit cached: ✓")
             return true
             
         } catch {
