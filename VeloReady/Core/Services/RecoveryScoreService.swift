@@ -418,10 +418,10 @@ class RecoveryScoreService: ObservableObject {
         Logger.warning("️ Calculating training loads from HealthKit")
         
         do {
-            // Fetch 42 days of HealthKit workouts
+            // Fetch 42 days of HealthKit workouts (all activity types)
             let calendar = Calendar.current
             let startDate = calendar.date(byAdding: .day, value: -42, to: Date())!
-            let workouts = try await healthKitManager.fetchWorkouts(from: startDate, to: Date(), limit: 500)
+            let workouts = await healthKitManager.fetchWorkouts(from: startDate, to: Date(), activityTypes: [])
             
             Logger.data("Calculating training load from HealthKit workouts...")
             Logger.data("Found \(workouts.count) workouts to analyze")
