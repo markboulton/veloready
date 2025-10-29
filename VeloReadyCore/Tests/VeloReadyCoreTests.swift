@@ -276,6 +276,20 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 39: Strava Activities Contract
+        if await testStravaActivitiesContract() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 40: Intervals.icu Contract
+        if await testIntervalsAPIContract() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -2655,5 +2669,179 @@ struct VeloReadyCoreTests {
         print("      No false positives: ✓")
         print("      Small dataset handling: ✓")
         return true
+    }
+    
+    // MARK: - API Contract Tests
+    
+    static func testStravaActivitiesContract() async -> Bool {
+        print("\n🧪 Test 39: Strava Activities API Contract")
+        print("   Testing against REAL Strava API response format...")
+        
+        // Load recorded response (zero API calls!)
+        guard let fixture = loadFixture("strava_activities_response.json") else {
+            print("   ❌ FAIL: Fixture not found")
+            print("      Run: ./Scripts/record-api-fixtures.sh")
+            return false
+        }
+        
+        // Parse as Strava activities
+        do {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            
+            // Parse the response structure
+            let jsonObject = try JSONSerialization.jsonObject(with: fixture) as! [[String: Any]]
+            
+            guard jsonObject.count > 0 else {
+                print("   ❌ FAIL: No activities in response")
+                return false
+            }
+            
+            // Verify critical fields exist in REAL API response
+            var activitiesChecked = 0
+            for (index, activity) in jsonObject.enumerated() {
+                // Required fields
+                guard activity["id"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].id missing")
+                    return false
+                }
+                
+                guard activity["name"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].name missing")
+                    return false
+                }
+                
+                guard activity["type"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].type missing")
+                    return false
+                }
+                
+                guard activity["start_date"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].start_date missing")
+                    return false
+                }
+                
+                guard activity["moving_time"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].moving_time missing")
+                    return false
+                }
+                
+                // Optional but expected fields for Ride activities
+                if let type = activity["type"] as? String, type == "Ride" {
+                    if activity["distance"] == nil {
+                        print("   ⚠️  WARNING: Ride[\(index)] missing distance")
+                    }
+                    if activity["average_watts"] == nil && activity["device_watts"] as? Bool == true {
+                        print("   ⚠️  WARNING: Ride[\(index)] has device_watts=true but no average_watts")
+                    }
+                }
+                
+                activitiesChecked += 1
+            }
+            
+            print("   ✅ PASS: Strava API contract verified")
+            print("      Activities checked: \(activitiesChecked)")
+            print("      All required fields present: ✓")
+            print("      API calls made: 0 ✅")
+            return true
+            
+        } catch {
+            print("   ❌ FAIL: Failed to parse Strava response")
+            print("      Error: \(error)")
+            print("      This means Strava API format has CHANGED!")
+            print("      Run: ./Scripts/record-api-fixtures.sh to update")
+            return false
+        }
+    }
+    
+    static func testIntervalsAPIContract() async -> Bool {
+        print("\n🧪 Test 40: Intervals.icu API Contract")
+        print("   Testing against REAL Intervals.icu response format...")
+        
+        guard let fixture = loadFixture("intervals_activities_response.json") else {
+            print("   ⚠️  SKIP: Fixture not found (optional)")
+            print("      Run: ./Scripts/record-api-fixtures.sh to record")
+            return true  // Skip test if fixture not available
+        }
+        
+        do {
+            // Parse the response
+            let jsonArray = try JSONSerialization.jsonObject(with: fixture) as! [[String: Any]]
+            
+            guard jsonArray.count > 0 else {
+                print("   ❌ FAIL: No activities in response")
+                return false
+            }
+            
+            var activitiesChecked = 0
+            for (index, activityDict) in jsonArray.enumerated() {
+                // Verify critical fields
+                guard activityDict["id"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].id missing")
+                    return false
+                }
+                
+                guard activityDict["start_date_local"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].start_date_local missing")
+                    return false
+                }
+                
+                guard activityDict["type"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].type missing")
+                    return false
+                }
+                
+                guard activityDict["moving_time"] != nil else {
+                    print("   ❌ FAIL: Activity[\(index)].moving_time missing")
+                    return false
+                }
+                
+                // Check for TSS field (CRITICAL for our calculations!)
+                // Intervals.icu uses "icu_training_load"
+                if activityDict["icu_training_load"] == nil {
+                    print("   ⚠️  WARNING: Activity[\(index)] missing icu_training_load (TSS)")
+                    print("      This field is critical for training load calculations!")
+                }
+                
+                // Check for power data
+                if activityDict["average_watts"] == nil {
+                    print("   ⚠️  WARNING: Activity[\(index)] missing average_watts")
+                }
+                
+                activitiesChecked += 1
+            }
+            
+            print("   ✅ PASS: Intervals.icu API contract verified")
+            print("      Activities checked: \(activitiesChecked)")
+            print("      All required fields present: ✓")
+            print("      API calls made: 0 ✅")
+            return true
+            
+        } catch {
+            print("   ❌ FAIL: Failed to parse Intervals.icu response")
+            print("      Error: \(error)")
+            print("      Run: ./Scripts/record-api-fixtures.sh to update")
+            return false
+        }
+    }
+    
+    // MARK: - Helper: Load Fixture
+    
+    static func loadFixture(_ filename: String) -> Data? {
+        // Try multiple paths to find the fixture
+        let possiblePaths = [
+            "../Tests/Fixtures/\(filename)",
+            "Tests/Fixtures/\(filename)",
+            "../../Tests/Fixtures/\(filename)",
+            "../../../Tests/Fixtures/\(filename)"
+        ]
+        
+        for path in possiblePaths {
+            if let data = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+                return data
+            }
+        }
+        
+        return nil
     }
 }
