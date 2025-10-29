@@ -1,747 +1,479 @@
-c# Phase 3 Implementation Guide: Component System Modernization
+# Phase 3: Data Models & Validation - Implementation Plan
 
-**Goal:** Create composable, reusable UI components  
-**Timeline:** Week 5-6 (2 weeks)  
-**Status:** Ready to implement  
-**Prerequisites:** Phase 1 & 2 complete
-
----
-
-## Executive Summary
-
-Currently VeloReady has **40+ card components** with significant duplication. Many follow the StandardCard pattern, but implementation varies. This phase consolidates components using **composition over inheritance** and creates a **component library**.
-
-### Current Issues
-- ❌ **40+ card components** with overlapping functionality
-- ❌ **Duplicate layouts** - Similar header/body/footer patterns
-- ❌ **Inconsistent spacing** - Some components bypass design tokens
-- ❌ **Hard to maintain** - Changes require updating multiple files
-- ❌ **No component docs** - Unclear which component to use
-
-### Phase 3 Goals
-✅ Reduce to **12-15 composable components**  
-✅ **50% code reduction** in component files  
-✅ **100% design token usage** - Zero hard-coded values  
-✅ **Component library** with usage examples  
-✅ **Unit tests** for all base components  
+**Date**: October 29, 2025  
+**Status**: Starting  
+**Goal**: Extract core data models to VeloReadyCore for platform independence and testability
 
 ---
 
-## Step 1: Atomic Design System
+## 🎯 Overview
 
-### File Structure
-```
-VeloReady/Design/
-├── Atoms/              ← NEW
-│   ├── VRText.swift
-│   ├── VRButton.swift
-│   ├── VRIcon.swift
-│   ├── VRBadge.swift
-│   └── VRDivider.swift
-├── Molecules/          ← NEW
-│   ├── CardHeader.swift
-│   ├── CardMetric.swift
-│   ├── CardFooter.swift
-│   └── StatRow.swift
-└── Organisms/          ← REFACTOR
-    ├── CardContainer.swift
-    ├── MetricCard.swift
-    ├── ChartCard.swift
-    └── ActivityCard.swift
-```
+Phase 3 focuses on extracting data models from the iOS app into `VeloReadyCore`. This ensures:
 
-### Implementation: Atomic Components
+1. **Platform Independence**: Models can be reused in iOS, watchOS, or backend
+2. **Validation Logic**: Data integrity is tested independently
+3. **Type Safety**: Compile-time guarantees for data structures
+4. **Testability**: Parse real API responses and test edge cases
 
-#### **Atoms/VRText.swift**
+---
+
+## 📊 Current State Analysis
+
+### What We Have (Phase 1 & 2)
+
+✅ **Calculation Functions** with result structs:
+- `TrainingLoadCalculations` - Returns raw `Double` values (CTL, ATL, TSB)
+- `StrainCalculations.StrainResult` - Returns `(score: Double, band: StrainBand)`
+- `RecoveryCalculations.RecoveryScore` - Returns struct with breakdown
+- `SleepCalculations.SleepScore` - Returns struct with breakdown
+
+✅ **Enums** already in VeloReadyCore:
+- `StrainBand`
+- `RecoveryBand`
+- `SleepBand`
+
+### What Phase 3 Needs
+
+The iOS app has several data models with platform dependencies (UIKit, SwiftUI, HealthKit) that need to be made platform-agnostic:
+
+1. **Activity Models** - `UnifiedActivity`, `IntervalsActivity`, `StravaActivity`
+2. **Score Models** - `RecoveryScore`, `SleepScore`, `StrainScore`, `ReadinessScore`
+3. **Profile Models** - `AthleteProfile`, `UserSettings`
+4. **Health Models** - `HealthMetric`, `SleepData`
+
+---
+
+## 🚧 Phase 3 Strategy: Incremental Approach
+
+Rather than extracting all models at once, let's use a **pragmatic, test-driven approach**:
+
+### Option A: Extract Only What's Needed for Testing
+**Focus**: Extract models needed to test data validation and parsing
+- Smaller scope
+- Faster to implement
+- Test real-world data (API responses, HealthKit data)
+
+### Option B: Full Model Extraction
+**Focus**: Move all data models to VeloReadyCore
+- Larger scope
+- More refactoring required
+- Full platform independence
+
+---
+
+## 🎯 Recommended Approach: Option A (Pragmatic)
+
+Let's focus on **data validation and parsing tests** for the most critical data sources:
+
+### Phase 3.1: Activity Data Validation (1-2 hours)
+
+**Goal**: Ensure activity data from Intervals.icu and Strava is parsed correctly
+
+#### Files to Extract:
+1. `ActivityData.swift` - Platform-agnostic activity representation
+2. `ActivityParser.swift` - Parsing logic for API responses
+
+#### Tests to Add:
 ```swift
-import SwiftUI
+// VeloReadyCore/Tests/ActivityDataTests.swift
 
-/// Atomic text component - all text should use this
-struct VRText: View {
-    let text: String
-    let style: Style
-    let color: Color?
-    
-    enum Style {
-        case largeTitle
-        case title
-        case title2
-        case title3
-        case headline
-        case body
-        case bodySecondary
-        case caption
-        case caption2
-        
-        var font: Font {
-            switch self {
-            case .largeTitle: return .system(size: 34, weight: .bold)
-            case .title: return .system(size: 28, weight: .bold)
-            case .title2: return .system(size: 22, weight: .bold)
-            case .title3: return .system(size: 20, weight: .semibold)
-            case .headline: return .system(size: 17, weight: .semibold)
-            case .body: return .system(size: 17, weight: .regular)
-            case .bodySecondary: return .system(size: 15, weight: .regular)
-            case .caption: return .system(size: 13, weight: .regular)
-            case .caption2: return .system(size: 11, weight: .regular)
-            }
-        }
-        
-        var defaultColor: Color {
-            switch self {
-            case .bodySecondary, .caption, .caption2:
-                return .secondary
-            default:
-                return .primary
-            }
-        }
+func testIntervalsActivityParsing() {
+    // Test parsing real Intervals.icu JSON
+    let json = """
+    {
+        "id": "12345",
+        "start_date_local": "2025-10-29T08:00:00",
+        "type": "Ride",
+        "moving_time": 3600,
+        "distance": 30000,
+        "average_heartrate": 145,
+        "average_watts": 200,
+        "icu_training_load": 85.5
     }
+    """
     
-    init(_ text: String, style: Style = .body, color: Color? = nil) {
-        self.text = text
-        self.style = style
-        self.color = color
-    }
-    
-    var body: some View {
-        Text(text)
-            .font(style.font)
-            .foregroundColor(color ?? style.defaultColor)
-    }
+    let activity = try ActivityParser.parseIntervals(json)
+    assert(activity.tss == 85.5)
+    assert(activity.duration == 3600)
 }
 
-// MARK: - Preview
-#Preview {
-    VStack(alignment: .leading, spacing: 16) {
-        VRText("Large Title", style: .largeTitle)
-        VRText("Title", style: .title)
-        VRText("Headline", style: .headline)
-        VRText("Body Text", style: .body)
-        VRText("Secondary Body", style: .bodySecondary)
-        VRText("Caption", style: .caption)
-    }
-    .padding()
+func testMissingOptionalFields() {
+    // Test that missing power/HR doesn't crash
 }
-```
 
-#### **Atoms/VRBadge.swift**
-```swift
-import SwiftUI
-
-/// Atomic badge component - consistent badge styling
-struct VRBadge: View {
-    let text: String
-    let style: Style
-    
-    enum Style {
-        case success
-        case warning
-        case error
-        case info
-        case neutral
-        
-        var backgroundColor: Color {
-            switch self {
-            case .success: return .green.opacity(0.2)
-            case .warning: return .orange.opacity(0.2)
-            case .error: return .red.opacity(0.2)
-            case .info: return .blue.opacity(0.2)
-            case .neutral: return .gray.opacity(0.2)
-            }
-        }
-        
-        var textColor: Color {
-            switch self {
-            case .success: return .green
-            case .warning: return .orange
-            case .error: return .red
-            case .info: return .blue
-            case .neutral: return .gray
-            }
-        }
-    }
-    
-    init(_ text: String, style: Style = .neutral) {
-        self.text = text
-        self.style = style
-    }
-    
-    var body: some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(style.textColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(style.backgroundColor)
-            )
-    }
+func testInvalidData() {
+    // Test that malformed JSON is handled gracefully
 }
 ```
 
 ---
 
-## Step 2: Molecular Components
+### Phase 3.2: Athlete Profile Validation (1 hour)
 
-### **Molecules/CardHeader.swift**
+**Goal**: Ensure FTP, zones, and profile data is validated correctly
+
+#### Files to Extract:
+1. `AthleteProfile.swift` - Athlete zones and metrics
+2. `ZoneCalculations.swift` - Power/HR zone calculations
+
+#### Tests to Add:
 ```swift
-import SwiftUI
+// VeloReadyCore/Tests/AthleteProfileTests.swift
 
-/// Composable card header - used by all cards
-struct CardHeader: View {
-    let title: String
-    let subtitle: String?
-    let badge: Badge?
-    let action: Action?
+func testPowerZoneCalculation() {
+    let ftp = 250.0
+    let zones = ZoneCalculations.calculatePowerZones(ftp: ftp)
     
-    struct Badge {
-        let text: String
-        let style: VRBadge.Style
-    }
+    // Coggan zones:
+    // Z1: < 55% FTP = <137.5W
+    // Z2: 56-75% FTP = 140-187.5W
+    // Z3: 76-90% FTP = 190-225W
+    // Z4: 91-105% FTP = 227.5-262.5W
+    // Z5: 106-120% FTP = 265-300W
+    // Z6: >121% FTP = >302.5W
     
-    struct Action {
-        let icon: String
-        let action: () -> Void
-    }
+    assert(zones[0] == 137.5, "Z1 threshold")
+    assert(zones[1] == 187.5, "Z2 threshold")
+    assert(zones[2] == 225.0, "Z3 threshold")
+}
+
+func testHeartRateZoneCalculation() {
+    let maxHR = 190.0
+    let zones = ZoneCalculations.calculateHRZones(maxHR: maxHR)
+    // Test zone boundaries
+}
+
+func testInvalidFTP() {
+    // Test that negative/zero FTP is handled
+}
+```
+
+---
+
+### Phase 3.3: Health Data Validation (1 hour)
+
+**Goal**: Ensure HealthKit data is processed correctly
+
+#### Files to Extract:
+1. `HealthMetric.swift` - Platform-agnostic health data
+2. `HealthDataValidator.swift` - Validation logic
+
+#### Tests to Add:
+```swift
+// VeloReadyCore/Tests/HealthDataTests.swift
+
+func testHRVValidation() {
+    // Test that HRV values are in valid range (20-100ms)
+    assert(HealthDataValidator.isValidHRV(50.0) == true)
+    assert(HealthDataValidator.isValidHRV(-10.0) == false)
+    assert(HealthDataValidator.isValidHRV(200.0) == false)
+}
+
+func testRHRValidation() {
+    // Test that RHR values are in valid range (30-120 bpm)
+}
+
+func testSleepDurationValidation() {
+    // Test that sleep duration is reasonable (0-16 hours)
+}
+
+func testOutlierDetection() {
+    // Test that extreme outliers are flagged
+    let hrv = [50, 52, 48, 51, 10] // 10 is an outlier
+    assert(HealthDataValidator.hasOutlier(hrv) == true)
+}
+```
+
+---
+
+## 📈 Success Metrics
+
+### Test Coverage Goals:
+- **Activity Parsing**: 6 tests (valid, missing fields, invalid, edge cases)
+- **Profile Validation**: 6 tests (zones, FTP, HR, invalid data)
+- **Health Data**: 6 tests (HRV, RHR, sleep, outliers)
+- **Total**: ~18 new tests
+
+### Performance:
+- Test execution: **<1 second** (pure data validation, no I/O)
+- Total VeloReadyCore tests: **31 + 18 = 49 tests**
+- Total time: **~8-9 seconds** (still <10s!)
+
+### Impact:
+- ✅ Catch data parsing bugs before they reach production
+- ✅ Validate API responses match expectations
+- ✅ Ensure health data is within reasonable ranges
+- ✅ Test zone calculations are correct
+
+---
+
+## 🛠 Implementation Steps
+
+### Step 1: Create Platform-Agnostic Activity Model (30 min)
+
+```swift
+// VeloReadyCore/Sources/Models/ActivityData.swift
+
+public struct ActivityData {
+    public let id: String
+    public let startDate: Date
+    public let type: String
+    public let duration: TimeInterval
+    public let distance: Double? // meters
+    public let tss: Double?
+    public let averagePower: Double?
+    public let normalizedPower: Double?
+    public let averageHeartRate: Double?
+    public let maxHeartRate: Double?
+    public let intensityFactor: Double?
+    public let calories: Int?
     
-    init(
-        title: String,
-        subtitle: String? = nil,
-        badge: Badge? = nil,
-        action: Action? = nil
+    public init(
+        id: String,
+        startDate: Date,
+        type: String,
+        duration: TimeInterval,
+        distance: Double? = nil,
+        tss: Double? = nil,
+        averagePower: Double? = nil,
+        normalizedPower: Double? = nil,
+        averageHeartRate: Double? = nil,
+        maxHeartRate: Double? = nil,
+        intensityFactor: Double? = nil,
+        calories: Int? = nil
     ) {
-        self.title = title
-        self.subtitle = subtitle
-        self.badge = badge
-        self.action = action
+        self.id = id
+        self.startDate = startDate
+        self.type = type
+        self.duration = duration
+        self.distance = distance
+        self.tss = tss
+        self.averagePower = averagePower
+        self.normalizedPower = normalizedPower
+        self.averageHeartRate = averageHeartRate
+        self.maxHeartRate = maxHeartRate
+        self.intensityFactor = intensityFactor
+        self.calories = calories
     }
-    
-    var body: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    VRText(title, style: .headline)
-                    
-                    if let badge = badge {
-                        VRBadge(badge.text, style: badge.style)
-                    }
-                }
-                
-                if let subtitle = subtitle {
-                    VRText(subtitle, style: .caption, color: .secondary)
-                }
-            }
-            
-            Spacer()
-            
-            if let action = action {
-                Button(action: action.action) {
-                    Image(systemName: action.icon)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
-}
-
-#Preview {
-    VStack(spacing: 20) {
-        CardHeader(title: "Recovery Score")
-        
-        CardHeader(
-            title: "Sleep Quality",
-            subtitle: "Last 7 days"
-        )
-        
-        CardHeader(
-            title: "Training Load",
-            badge: .init(text: "HIGH", style: .warning)
-        )
-        
-        CardHeader(
-            title: "Heart Rate",
-            subtitle: "Overnight average",
-            action: .init(icon: "chevron.right", action: {})
-        )
-    }
-    .padding()
 }
 ```
 
-### **Molecules/CardMetric.swift**
+### Step 2: Create Activity Parser (30 min)
+
 ```swift
-import SwiftUI
+// VeloReadyCore/Sources/Parsing/ActivityParser.swift
 
-/// Composable metric display - consistent across all cards
-struct CardMetric: View {
-    let value: String
-    let label: String
-    let change: Change?
-    let size: Size
-    
-    struct Change {
-        let value: String
-        let direction: Direction
-        
-        enum Direction {
-            case up
-            case down
-            case neutral
-            
-            var color: Color {
-                switch self {
-                case .up: return .green
-                case .down: return .red
-                case .neutral: return .gray
-                }
-            }
-            
-            var icon: String {
-                switch self {
-                case .up: return "arrow.up"
-                case .down: return "arrow.down"
-                case .neutral: return "minus"
-                }
-            }
-        }
-    }
-    
-    enum Size {
-        case large
-        case medium
-        case small
-        
-        var valueFont: Font {
-            switch self {
-            case .large: return .system(size: 48, weight: .bold, design: .rounded)
-            case .medium: return .system(size: 32, weight: .bold, design: .rounded)
-            case .small: return .system(size: 24, weight: .semibold, design: .rounded)
-            }
-        }
-        
-        var labelFont: Font {
-            switch self {
-            case .large: return .system(size: 15)
-            case .medium: return .system(size: 13)
-            case .small: return .system(size: 11)
-            }
-        }
-    }
-    
-    init(
-        value: String,
-        label: String,
-        change: Change? = nil,
-        size: Size = .medium
-    ) {
-        self.value = value
-        self.label = label
-        self.change = change
-        self.size = size
-    }
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(value)
-                    .font(size.valueFont)
-                    .foregroundColor(.primary)
-                
-                if let change = change {
-                    HStack(spacing: 2) {
-                        Image(systemName: change.direction.icon)
-                            .font(.system(size: 10, weight: .bold))
-                        Text(change.value)
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(change.direction.color)
-                }
-            }
-            
-            Text(label)
-                .font(size.labelFont)
-                .foregroundColor(.secondary)
-        }
-    }
-}
+import Foundation
 
-#Preview {
-    VStack(spacing: 30) {
-        CardMetric(
-            value: "92",
-            label: "Recovery Score",
-            change: .init(value: "+5", direction: .up),
-            size: .large
-        )
+public struct ActivityParser {
+    
+    public enum ParsingError: Error {
+        case invalidJSON
+        case missingRequiredField(String)
+        case invalidDateFormat
+    }
+    
+    /// Parse Intervals.icu activity JSON
+    public static func parseIntervalsActivity(_ json: String) throws -> ActivityData {
+        guard let data = json.data(using: .utf8) else {
+            throw ParsingError.invalidJSON
+        }
         
-        CardMetric(
-            value: "7.2h",
-            label: "Sleep Duration",
-            change: .init(value: "-0.3h", direction: .down),
-            size: .medium
-        )
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         
-        CardMetric(
-            value: "65 bpm",
-            label: "Resting Heart Rate",
-            size: .small
+        let response = try decoder.decode(IntervalsResponse.self, from: data)
+        
+        return ActivityData(
+            id: response.id,
+            startDate: response.start_date_local,
+            type: response.type,
+            duration: TimeInterval(response.moving_time),
+            distance: response.distance,
+            tss: response.icu_training_load,
+            averagePower: response.average_watts,
+            normalizedPower: response.weighted_average_watts,
+            averageHeartRate: response.average_heartrate,
+            maxHeartRate: response.max_heartrate
         )
     }
-    .padding()
+    
+    private struct IntervalsResponse: Codable {
+        let id: String
+        let start_date_local: Date
+        let type: String
+        let moving_time: Int
+        let distance: Double?
+        let icu_training_load: Double?
+        let average_watts: Double?
+        let weighted_average_watts: Double?
+        let average_heartrate: Double?
+        let max_heartrate: Double?
+    }
 }
 ```
 
----
+### Step 3: Add Tests (30 min)
 
-## Step 3: Organism Components
-
-### **Organisms/CardContainer.swift**
 ```swift
-import SwiftUI
+// VeloReadyCore/Tests/ActivityParsingTests.swift
 
-/// Universal card container - replaces StandardCard
-struct CardContainer<Content: View>: View {
-    let header: CardHeader?
-    let footer: CardFooter?
-    let style: Style
-    let content: () -> Content
-    
-    enum Style {
-        case standard
-        case compact
-        case hero
-        
-        var padding: EdgeInsets {
-            switch self {
-            case .standard: return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-            case .compact: return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-            case .hero: return EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20)
-            }
-        }
-        
-        var cornerRadius: CGFloat {
-            switch self {
-            case .standard: return 16
-            case .compact: return 12
-            case .hero: return 20
-            }
-        }
-    }
-    
-    init(
-        header: CardHeader? = nil,
-        footer: CardFooter? = nil,
-        style: Style = .standard,
-        @ViewBuilder content: @escaping () -> Content
-    ) {
-        self.header = header
-        self.footer = footer
-        self.style = style
-        self.content = content
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if let header = header {
-                header
-            }
-            
-            content()
-            
-            if let footer = footer {
-                footer
-            }
-        }
-        .padding(style.padding)
-        .background(
-            RoundedRectangle(cornerRadius: style.cornerRadius)
-                .fill(Color(uiColor: .systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
-        )
-    }
-}
+import Foundation
 
-struct CardFooter: View {
-    let text: String?
-    let action: Action?
+extension VeloReadyCoreTests {
     
-    struct Action {
-        let label: String
-        let action: () -> Void
-    }
-    
-    init(text: String? = nil, action: Action? = nil) {
-        self.text = text
-        self.action = action
-    }
-    
-    var body: some View {
-        HStack {
-            if let text = text {
-                VRText(text, style: .caption, color: .secondary)
+    static func testIntervalsActivityParsing() async -> Bool {
+        print("\n🧪 Test 32: Intervals.icu Activity Parsing")
+        print("   Testing JSON parsing for Intervals activities...")
+        
+        let json = """
+        {
+            "id": "12345",
+            "start_date_local": "2025-10-29T08:00:00Z",
+            "type": "Ride",
+            "moving_time": 3600,
+            "distance": 30000.0,
+            "average_heartrate": 145.0,
+            "average_watts": 200.0,
+            "weighted_average_watts": 210.0,
+            "icu_training_load": 85.5
+        }
+        """
+        
+        do {
+            let activity = try ActivityParser.parseIntervalsActivity(json)
+            
+            guard activity.id == "12345" else {
+                print("   ❌ FAIL: ID mismatch")
+                return false
             }
             
-            Spacer()
+            guard activity.tss == 85.5 else {
+                print("   ❌ FAIL: TSS mismatch")
+                return false
+            }
             
-            if let action = action {
-                Button(action: action.action) {
-                    Text(action.label)
-                        .font(.system(size: 14, weight: .semibold))
-                }
+            guard activity.duration == 3600 else {
+                print("   ❌ FAIL: Duration mismatch")
+                return false
             }
+            
+            guard activity.averagePower == 200.0 else {
+                print("   ❌ FAIL: Power mismatch")
+                return false
+            }
+            
+            print("   ✅ PASS: Intervals activity parsed correctly")
+            return true
+        } catch {
+            print("   ❌ FAIL: Parsing error: \(error)")
+            return false
         }
     }
-}
-
-#Preview {
-    VStack(spacing: 20) {
-        // Simple card
-        CardContainer {
-            VRText("Simple card content", style: .body)
-        }
-        
-        // Card with header
-        CardContainer(
-            header: CardHeader(title: "Recovery Score")
-        ) {
-            CardMetric(
-                value: "92",
-                label: "Optimal Recovery",
-                size: .large
-            )
-        }
-        
-        // Full card
-        CardContainer(
-            header: CardHeader(
-                title: "Training Load",
-                subtitle: "Last 7 days",
-                badge: .init(text: "HIGH", style: .warning)
-            ),
-            footer: CardFooter(
-                text: "Updated 5 min ago",
-                action: .init(label: "View Details", action: {})
-            )
-        ) {
-            HStack(spacing: 20) {
-                CardMetric(value: "245", label: "CTL", size: .medium)
-                CardMetric(value: "89", label: "ATL", size: .medium)
-                CardMetric(value: "+12", label: "TSB", size: .medium)
-            }
-        }
-    }
-    .padding()
+    
+    // More tests...
 }
 ```
 
----
+### Step 4: Add Zone Calculations (30 min)
 
-## Step 4: Migration Strategy
-
-### Phase 3A: Create Foundation (Week 5, Day 1-2)
-1. ✅ Create `Design/Atoms/` folder
-2. ✅ Implement VRText, VRButton, VRBadge, VRIcon
-3. ✅ Create `Design/Molecules/` folder
-4. ✅ Implement CardHeader, CardMetric, CardFooter
-5. ✅ Create `Design/Organisms/` folder
-6. ✅ Implement CardContainer
-7. ✅ Add unit tests for all components
-
-### Phase 3B: Migrate Cards (Week 5, Day 3-5)
-Pick **5 high-use cards** to migrate first:
-
-#### **Priority 1: RecoveryCard**
-**Before (current):**
 ```swift
-// RecoveryCard.swift - 120 lines
-struct RecoveryCard: View {
-    let score: Int
-    let trend: String
-    
-    var body: some View {
-        StandardCard {
-            VStack {
-                // Custom header implementation
-                HStack {
-                    Text("Recovery Score")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
-                // Custom metric display
-                Text("\(score)")
-                    .font(.system(size: 48))
-                // Custom footer
-                Text("Trend: \(trend)")
-            }
-        }
-    }
-}
-```
+// VeloReadyCore/Sources/Calculations/ZoneCalculations.swift
 
-**After (new):**
-```swift
-// RecoveryCard.swift - 30 lines
-struct RecoveryCard: View {
-    let score: Int
-    let trend: String
-    let change: Int
+public struct ZoneCalculations {
     
-    var body: some View {
-        CardContainer(
-            header: CardHeader(
-                title: CommonContent.recovery.title,
-                badge: badge(for: score)
-            ),
-            footer: CardFooter(
-                text: "Trend: \(trend)",
-                action: .init(label: "View Details", action: { })
-            )
-        ) {
-            CardMetric(
-                value: "\(score)",
-                label: band(for: score),
-                change: .init(
-                    value: formatChange(change),
-                    direction: changeDirection(change)
-                ),
-                size: .large
-            )
-        }
+    /// Calculate Coggan power zones from FTP
+    /// Returns zone boundaries: [Z1/Z2, Z2/Z3, Z3/Z4, Z4/Z5, Z5/Z6]
+    public static func calculatePowerZones(ftp: Double) -> [Double] {
+        return [
+            ftp * 0.55,  // Z1 upper bound (Active Recovery)
+            ftp * 0.75,  // Z2 upper bound (Endurance)
+            ftp * 0.90,  // Z3 upper bound (Tempo)
+            ftp * 1.05,  // Z4 upper bound (Threshold)
+            ftp * 1.20   // Z5 upper bound (VO2max)
+            // Z6 (Anaerobic) is > 1.20 * FTP
+        ]
     }
     
-    private func badge(for score: Int) -> CardHeader.Badge? {
-        if score >= 80 { return .init(text: "OPTIMAL", style: .success) }
-        if score >= 60 { return .init(text: "GOOD", style: .info) }
-        return .init(text: "LOW", style: .warning)
-    }
-}
-```
-
-**Result:** 75% code reduction, fully composable
-
-### Cards to Migrate (Priority Order):
-1. ✅ **RecoveryCard** - High visibility, simple structure
-2. ✅ **SleepCard** - Similar to RecoveryCard
-3. ✅ **StrainCard** - Metric + chart pattern
-4. ✅ **ActivityCard** - Complex layout, big impact
-5. ✅ **WellnessCard** - Multiple metrics pattern
-
-### Phase 3C: Delete Duplicates (Week 6, Day 1-2)
-After migration, delete old implementations:
-```bash
-# Example deletions
-rm RecoveryCardOld.swift
-rm SleepCardV1.swift
-rm CustomMetricDisplay.swift
-```
-
-**Expected Reductions:**
-- Delete 15-20 duplicate card files
-- Reduce component code by 50%
-- Consolidate to 12-15 composable components
-
----
-
-## Step 5: Component Library Documentation
-
-### File: `COMPONENT_LIBRARY.md`
-```markdown
-# VeloReady Component Library
-
-## Atoms
-- **VRText** - All text rendering
-- **VRButton** - All button interactions
-- **VRBadge** - Status badges
-- **VRIcon** - Icon rendering
-
-## Molecules
-- **CardHeader** - Card title + subtitle + badge
-- **CardMetric** - Value + label + change indicator
-- **CardFooter** - Caption + action button
-
-## Organisms
-- **CardContainer** - Universal card wrapper
-- **MetricCard** - Single metric display
-- **ChartCard** - Chart + header + footer
-- **ActivityCard** - Activity row with map
-
-## Usage Examples
-[Include screenshots and code samples]
-```
-
----
-
-## Step 6: Testing Strategy
-
-### Unit Tests: `Tests/ComponentTests/`
-```swift
-import XCTest
-@testable import VeloReady
-
-class CardMetricTests: XCTestCase {
-    func testMetricRendersValue() {
-        let metric = CardMetric(
-            value: "92",
-            label: "Score",
-            size: .large
-        )
-        // Assert value is displayed
+    /// Calculate heart rate zones from max HR
+    public static func calculateHRZones(maxHR: Double) -> [Double] {
+        return [
+            maxHR * 0.60,  // Z1 upper bound
+            maxHR * 0.70,  // Z2 upper bound
+            maxHR * 0.80,  // Z3 upper bound
+            maxHR * 0.90,  // Z4 upper bound
+            maxHR * 0.95   // Z5 upper bound
+        ]
     }
     
-    func testChangeIndicatorColor() {
-        let upChange = CardMetric.Change(value: "+5", direction: .up)
-        XCTAssertEqual(upChange.direction.color, .green)
-        
-        let downChange = CardMetric.Change(value: "-3", direction: .down)
-        XCTAssertEqual(downChange.direction.color, .red)
+    /// Validate FTP is within reasonable range
+    public static func isValidFTP(_ ftp: Double) -> Bool {
+        return ftp > 0 && ftp < 500 // Reasonable range for cyclists
     }
 }
 ```
 
 ---
 
-## Success Metrics
+## 🎯 Estimated Timeline
 
-### Code Reduction
-- [ ] **40 card files** → **15 composable components** (-62%)
-- [ ] **~8,000 lines** → **~4,000 lines** (-50%)
-- [ ] **Zero hard-coded backgrounds** (100% design tokens)
-
-### Quality Improvements
-- [ ] **100% component test coverage**
-- [ ] **Component library documented** with examples
-- [ ] **Figma alignment** - Components match design system
-- [ ] **Accessibility** - VoiceOver support for all components
-
-### Developer Experience
-- [ ] **New card in 20 lines** (vs 120 before)
-- [ ] **Consistent API** across all cards
-- [ ] **Easy to customize** via composition
-- [ ] **Type-safe** - Compiler catches issues
+| Task | Time | Tests Added |
+|------|------|-------------|
+| Activity model + parser | 1 hour | 6 tests |
+| Zone calculations | 30 min | 4 tests |
+| Health data validation | 1 hour | 6 tests |
+| Integration & verification | 30 min | - |
+| **Total** | **3 hours** | **16 tests** |
 
 ---
 
-## Timeline
+## 🔍 What This Phase DOESN'T Do
 
-**Week 5:**
-- Day 1-2: Create atomic/molecular components
-- Day 3-5: Migrate 5 priority cards
+To keep Phase 3 focused and fast, we're **NOT**:
 
-**Week 6:**
-- Day 1-2: Delete duplicates, consolidate
-- Day 3-4: Component tests + documentation
-- Day 5: Review, polish, deploy
+❌ Moving SwiftUI-specific models (`@Observable`, `@Published`)  
+❌ Moving CoreData entities  
+❌ Moving HealthKit-specific types (`HKWorkout`, `HKQuantity`)  
+❌ Refactoring the entire iOS app to use VeloReadyCore models  
+
+**Why**: These are platform-specific and tightly coupled to iOS. Moving them would require significant refactoring without adding test value.
 
 ---
 
-## Next Phase
+## ✅ Phase 3 Success Criteria
 
-After Phase 3 completes, move to **Phase 4: View Architecture** where we'll:
-- Extract view logic to view models
-- Slim down TodayView (814 lines → ~200 lines)
-- Make all business logic testable
-- Clear separation of concerns
+At the end of Phase 3, we should have:
 
-**Ready to implement Phase 3?** Start with Step 1: Create atomic components!
+1. ✅ **Activity parsing tests** - Catch API response changes
+2. ✅ **Zone calculation tests** - Ensure FTP/HR zones are correct
+3. ✅ **Health data validation** - Flag invalid/outlier data
+4. ✅ **~47-49 total tests** - Comprehensive coverage
+5. ✅ **<10 second test time** - Still fast feedback loop
+
+---
+
+## 🚀 Next Steps
+
+After completing Phase 3:
+
+### Phase 4: ML & Forecasting (Optional)
+- Extract ML model inference logic
+- Test personalization algorithms
+- Verify fallback behavior
+
+### Phase 5: Utilities (Optional)
+- Date/time utilities
+- Math/statistics utilities
+- Formatting utilities
+
+---
+
+## 📝 Notes
+
+**Key Insight**: Phase 3 is about **data integrity**, not architectural purity. We're adding tests to catch real-world bugs (API changes, invalid data, parsing errors), not creating a perfect abstraction layer.
+
+**Pragmatic Approach**: Extract only what provides test value. The iOS app can continue using its existing models; VeloReadyCore just needs enough structure to validate data.
+
+---
+
+*Next: Start with Step 1 - Create ActivityData model*
