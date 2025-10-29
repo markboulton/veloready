@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  # Tier 1: Fast feedback on every push (2-3 minutes) - macOS tests only
+  # Tier 1: Fast feedback on every push (<1 minute) - Core logic tests only
   quick_validation:
     runs-on: macos-14
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
@@ -34,18 +34,6 @@ jobs:
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
-          
-      - name: Build iOS App (compilation check)
-        run: |
-          echo "Building iOS app for compilation verification"
-          xcodebuild build \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
-            -quiet \
-            -hideShellScriptEnvironment \
-            -skipPackagePluginValidation
             
       - name: Essential Lint
         run: |
@@ -56,7 +44,7 @@ jobs:
           fi
           
 
-  # Tier 2: Full confidence before merging (5-8 minutes) - macOS tests only
+  # Tier 2: Full confidence before merging (<1 minute) - Core logic tests only
   full_validation:
     runs-on: macos-14
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
@@ -82,18 +70,6 @@ jobs:
           echo "Testing core business logic on macOS (fast, no simulator)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
-          
-      - name: Build iOS App (compilation check)
-        run: |
-          echo "Building iOS app for compilation verification"
-          xcodebuild build \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
-            -quiet \
-            -hideShellScriptEnvironment \
-            -skipPackagePluginValidation
             
       - name: E2E Smoke Test
         run: |

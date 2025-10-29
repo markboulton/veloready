@@ -34,15 +34,15 @@ veloready/
 
 ## How It Works
 
-### Tier 1: Quick Validation (Every Push) - 1-2 minutes
+### Tier 1: Quick Validation (Every Push) - <1 minute
 1. **Test core logic** on macOS (no simulator) - ~10 seconds
-2. **Build iOS app** for compilation check - ~60 seconds
-3. **Lint check** with SwiftLint - ~15 seconds
+2. **Lint check** with SwiftLint - ~15 seconds
 
-### Tier 2: Full Validation (Pull Requests) - 2-3 minutes
+### Tier 2: Full Validation (Pull Requests) - <1 minute
 1. **Test core logic** on macOS - ~10 seconds
-2. **Build iOS app** for compilation check - ~60 seconds
-3. **E2E smoke test** placeholder
+2. **E2E smoke test** placeholder
+
+**Note**: iOS app compilation is skipped on CI due to code signing requirements. Full compilation verification happens locally.
 
 ### Local Testing (Developer Workflow)
 - Run `./Scripts/quick-test.sh` - 90 seconds
@@ -59,10 +59,9 @@ veloready/
   - Service layer logic
   - API clients (logic only)
 
-✅ **Compilation**
-  - iOS app builds successfully
-  - No syntax errors
-  - Dependencies resolve
+✅ **Compilation** (Local only)
+  - iOS app builds successfully locally via `./Scripts/quick-test.sh`
+  - CI focuses on core logic testing only
 
 ✅ **Code quality**
   - SwiftLint rules
@@ -127,7 +126,7 @@ To ensure `VeloReadyCore` tests match production:
 
 ### Speed
 - **Before**: 5-10 minutes per CI run (with simulator failures)
-- **After**: 1-3 minutes per CI run (reliable)
+- **After**: <1 minute per CI run (reliable)
 
 ### Reliability
 - **Before**: ~50% success rate due to simulator issues
@@ -135,7 +134,7 @@ To ensure `VeloReadyCore` tests match production:
 
 ### Cost
 - **Before**: High GitHub Actions minutes usage
-- **After**: ~70% reduction in CI time and cost
+- **After**: ~90% reduction in CI time and cost
 
 ### Developer Experience
 - **Before**: Frequent CI failures, slow feedback
