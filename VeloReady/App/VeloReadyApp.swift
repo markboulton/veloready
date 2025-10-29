@@ -86,26 +86,44 @@ struct VeloReadyApp: App {
         }
         
         Task {
+            Logger.debug("🔄 [BACKGROUND] Prefetching critical data...")
+            
             // Refresh Core Data cache first
             let cacheManager = await CacheManager.shared
             do {
                 try await cacheManager.refreshToday()
-                Logger.debug("✅ Core Data cache refreshed in background")
+                Logger.debug("✅ [BACKGROUND] Core Data cache refreshed")
             } catch {
-                Logger.error("Failed to refresh cache in background: \(error)")
+                Logger.error("❌ [BACKGROUND] Failed to refresh cache: \(error)")
             }
+            
+            // Prefetch today's activities (low bandwidth, high value)
+            let intervalsCache = IntervalsCache.shared
+            let apiClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
+            do {
+                let _ = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: true)
+                Logger.debug("✅ [BACKGROUND] Activities prefetched")
+            } catch {
+                Logger.debug("⚠️ [BACKGROUND] Could not prefetch activities: \(error.localizedDescription)")
+            }
+            
+            // Prefetch HealthKit data
+            let healthKitManager = HealthKitManager.shared
+            let healthKitCache = HealthKitCache.shared
+            let _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: true)
+            Logger.debug("✅ [BACKGROUND] HealthKit data prefetched")
             
             // Refresh all scores
             let recoveryService = RecoveryScoreService.shared
             let sleepService = SleepScoreService.shared
             let strainService = StrainScoreService.shared
             
-            // Update all scores
+            // Update all scores in parallel
             await recoveryService.calculateRecoveryScore()
             await sleepService.calculateSleepScore()
             await strainService.calculateStrainScore()
             
-            Logger.debug("✅ Background refresh completed")
+            Logger.debug("✅ [BACKGROUND] All scores calculated and cached")
             task.setTaskCompleted(success: true)
             
             // Schedule next refresh

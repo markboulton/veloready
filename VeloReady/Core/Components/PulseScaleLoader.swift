@@ -7,8 +7,13 @@ struct PulseScaleLoader: View {
     @State private var outerScale: CGFloat = 1.0
     @State private var innerScale: CGFloat = 0.0
     
-    let size: CGFloat = 80
-    let borderWidth: CGFloat = 5
+    let size: CGFloat
+    let borderWidth: CGFloat
+    
+    init(size: CGFloat = 80, borderWidth: CGFloat = 5) {
+        self.size = size
+        self.borderWidth = borderWidth
+    }
     
     var body: some View {
         ZStack {

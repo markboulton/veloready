@@ -8,12 +8,18 @@ class ProFeatureConfig: ObservableObject {
     
     // MARK: - Subscription State
     
-    @Published var isProUser: Bool = false
-    @Published var isInTrialPeriod: Bool = false
-    @Published var trialDaysRemaining: Int = 0
+    // CRITICAL: Initialize with cached values to prevent flash during app startup
+    // These values must be read synchronously BEFORE any views are created
+    @Published var isProUser: Bool = UserDefaults.standard.bool(forKey: "isProUser")
+    @Published var isInTrialPeriod: Bool = UserDefaults.standard.bool(forKey: "isInTrialPeriod")
+    @Published var trialDaysRemaining: Int = UserDefaults.standard.integer(forKey: "trialDaysRemaining")
     
     // For development/testing: bypass subscription check
+    #if DEBUG
+    @Published var bypassSubscriptionForTesting: Bool = UserDefaults.standard.bool(forKey: "bypassProForTesting")
+    #else
     @Published var bypassSubscriptionForTesting: Bool = false
+    #endif
     
     // For development/testing: show mock data for features requiring historical data
     @Published var showMockDataForTesting: Bool = false
@@ -151,8 +157,8 @@ class ProFeatureConfig: ObservableObject {
     // MARK: - Subscription Management
     
     func loadSubscriptionState() {
-        // TODO: Integrate with RevenueCat
-        // For now, load from UserDefaults
+        // Values are already loaded inline during property initialization to prevent flash
+        // This method can be called to reload if needed (e.g., after purchase)
         isProUser = UserDefaults.standard.bool(forKey: "isProUser")
         isInTrialPeriod = UserDefaults.standard.bool(forKey: "isInTrialPeriod")
         trialDaysRemaining = UserDefaults.standard.integer(forKey: "trialDaysRemaining")
@@ -161,6 +167,8 @@ class ProFeatureConfig: ObservableObject {
         // In debug builds, check for testing bypass
         bypassSubscriptionForTesting = UserDefaults.standard.bool(forKey: "bypassProForTesting")
         #endif
+        
+        // TODO: Integrate with RevenueCat
     }
     
     func saveSubscriptionState() {

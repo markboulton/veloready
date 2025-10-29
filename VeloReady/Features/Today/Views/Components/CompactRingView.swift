@@ -45,12 +45,8 @@ struct CompactRingView: View {
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(Color.text.primary)
                         .opacity(numberOpacity)
-                } else {
-                    // Missing data indicator
-                    Text("?")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(ColorPalette.labelTertiary)
                 }
+                // Note: No "?" shown when score is nil - loading indicator is overlaid externally
             }
             
             // Title - adaptive color for light/dark mode

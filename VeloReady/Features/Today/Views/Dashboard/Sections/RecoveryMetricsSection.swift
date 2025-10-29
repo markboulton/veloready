@@ -69,7 +69,7 @@ struct RecoveryMetricsSection: View {
     private var recoveryScoreView: some View {
             if let recoveryScore = viewModel.recoveryScore {
                 HapticNavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.recoveryScore)
                                 .font(.headline)
@@ -94,19 +94,28 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Text(TodayContent.Scores.recoveryScore)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(spacing: 12) {
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack(alignment: .center) {
+                        CompactRingView(
+                            score: nil, // nil = shows background ring only
+                            title: "",
+                            band: RecoveryScore.RecoveryBand.optimal,
+                            animationDelay: 0.0,
+                            action: {},
+                            centerText: nil,
+                            animationTrigger: animationTrigger
+                        )
+                        
+                        // Standard iOS spinner centered in ring
                         ProgressView()
-                            .scaleEffect(0.8)
-                        Text(CommonContent.loading)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .scaleEffect(1.2)
+                            .offset(y: -8) // Offset to account for title below ring
                     }
-                    .frame(width: 80, height: 80)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -120,7 +129,7 @@ struct RecoveryMetricsSection: View {
                 // Show ? if no sleep data
                 if !viewModel.hasSleepData {
                     // No NavigationLink when no data - make entire ring tappable to reinstate banner
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.sleepScore)
                                 .font(.headline)
@@ -151,7 +160,7 @@ struct RecoveryMetricsSection: View {
                 } else {
                     // Normal HapticNavigationLink when we have sleep data
                     HapticNavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 16) {
                             HStack(spacing: 4) {
                                 Text(TodayContent.Scores.sleepScore)
                                     .font(.headline)
@@ -177,7 +186,7 @@ struct RecoveryMetricsSection: View {
                     }
                 }
             } else {
-                // No sleep data available - make entire ring tappable to reinstate banner
+                // No sleep data available - show background ring with spinner
                 VStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Text(TodayContent.Scores.sleepScore)
@@ -190,24 +199,34 @@ struct RecoveryMetricsSection: View {
                         }
                     }
                     
-                    Button(action: {
-                        if viewModel.missingSleepBannerDismissed {
-                            viewModel.reinstateSleepBanner()
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack(alignment: .center) {
+                        Button(action: {
+                            if viewModel.missingSleepBannerDismissed {
+                                viewModel.reinstateSleepBanner()
+                            }
+                        }) {
+                            CompactRingView(
+                                score: nil,
+                                title: "",
+                                band: viewModel.sleepBand,
+                                animationDelay: 0.1,
+                                action: {
+                                    // Action handled by button wrapper
+                                },
+                                centerText: nil,
+                                animationTrigger: animationTrigger
+                            )
                         }
-                    }) {
-                        CompactRingView(
-                            score: nil,
-                            title: viewModel.sleepTitle,
-                            band: viewModel.sleepBand,
-                            animationDelay: 0.1,
-                            action: {
-                                // Action handled by button wrapper
-                            },
-                            centerText: nil,
-                            animationTrigger: animationTrigger
-                        )
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Show standard iOS spinner when data is loading
+                        if viewModel.sleepScore == nil {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .offset(y: -8) // Offset to account for title below ring
+                        }
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -220,7 +239,7 @@ struct RecoveryMetricsSection: View {
     private var loadScoreView: some View {
             if viewModel.hasStrainScore {
                 HapticNavigationLink(destination: StrainDetailView(strainScore: viewModel.strainScore!)) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.loadScore)
                                 .font(.headline)
@@ -245,19 +264,28 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Text(TodayContent.Scores.loadScore)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(spacing: 12) {
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack(alignment: .center) {
+                        CompactRingView(
+                            score: nil, // nil = shows background ring only
+                            title: "",
+                            band: StrainScore.StrainBand.moderate,
+                            animationDelay: 0.2,
+                            action: {},
+                            centerText: nil,
+                            animationTrigger: animationTrigger
+                        )
+                        
+                        // Standard iOS spinner centered in ring
                         ProgressView()
-                            .scaleEffect(0.8)
-                        Text(CommonContent.loading)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .scaleEffect(1.2)
+                            .offset(y: -18) // Offset to account for title below ring
                     }
-                    .frame(width: 80, height: 80)
                 }
                 .frame(maxWidth: .infinity)
             }

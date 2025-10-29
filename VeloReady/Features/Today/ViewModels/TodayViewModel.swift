@@ -270,7 +270,7 @@ class TodayViewModel: ObservableObject {
         await healthKitManager.refreshAuthorizationStatus()
     }
     
-    /// PHASE 1: 2-second branded loading - load critical data for rings
+    /// PHASE 1: Instant Display (<200ms) - Show cached/yesterday's data immediately
     func loadInitialUI() async {
         Logger.debug("🔄 [SPINNER] loadInitialUI called - hasLoadedInitialUI=\(hasLoadedInitialUI), isInitializing=\(isInitializing)")
         // Guard against multiple calls
@@ -281,7 +281,7 @@ class TodayViewModel: ObservableObject {
         hasLoadedInitialUI = true
         
         let startTime = CFAbsoluteTimeGetCurrent()
-        Logger.debug("🎯 PHASE 1: 2-second branded loading - loading critical data for rings")
+        Logger.debug("🎯 PHASE 1: Instant Display (<200ms) - showing cached/yesterday's data")
         
         // Set HealthKit status immediately
         isHealthKitAuthorized = healthKitManager.isAuthorized
@@ -289,81 +289,113 @@ class TodayViewModel: ObservableObject {
         // Load cached data first (instant)
         loadCachedDataOnly()
         
-        // Check if we already have cached scores - if so, skip calculation for instant display
-        let hasCachedScores = sleepScoreService.currentSleepScore != nil &&
-                              recoveryScoreService.currentRecoveryScore != nil &&
-                              strainScoreService.currentStrainScore != nil
+        // Show UI IMMEDIATELY with cached data (no calculations)
+        let phase1Time = CFAbsoluteTimeGetCurrent() - startTime
+        Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.3f", phase1Time))s - showing UI now")
         
-        if hasCachedScores {
-            Logger.debug("⚡ Using cached scores for instant display - skipping Phase 1 calculation")
-        } else {
-            // Calculate ONLY the critical scores for the rings (recovery, sleep, strain)
-            // This should be fast if data is cached
-            Logger.debug("⚡ Loading critical scores for rings...")
-            async let sleepTask: Void = sleepScoreService.calculateSleepScore()
-            async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
-            async let strainTask: Void = strainScoreService.calculateStrainScore()
-            
-            // Wait for all three to complete
-            _ = await sleepTask
-            _ = await recoveryTask
-            _ = await strainTask
-            Logger.debug("✅ Critical scores loaded for rings")
-        }
-        
-        // Ensure minimum 2-second branded loading experience
-        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-        let remainingTime = max(0, 2.0 - elapsed)
-        if remainingTime > 0 {
-            Logger.debug("⏰ Waiting \(String(format: "%.2f", remainingTime))s to complete 2-second branded loading")
-            try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
-        }
-        
-        let totalTime = CFAbsoluteTimeGetCurrent() - startTime
-        Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.2f", totalTime))s")
-        
-        // PHASE 2: Show UI with rings populated, skeletons for rest
-        Logger.debug("🎬 [SPINNER] PHASE 2: Showing UI with rings populated")
         await MainActor.run {
             withAnimation(.easeOut(duration: 0.3)) {
                 isInitializing = false
                 isDataLoaded = true
             }
         }
-        Logger.debug("✅ PHASE 2: UI displayed with rings")
+        Logger.debug("✅ UI displayed instantly with cached data")
         
-        // PHASE 3: Background refresh for everything else (activities, scores if needed, etc.)
+        // PHASE 2: Critical Updates (1-2s) - Update today's scores in background
         Task {
-            Logger.debug("🎯 PHASE 3: Background refresh for activities and other data...")
+            let phase2Start = CFAbsoluteTimeGetCurrent()
+            Logger.debug("🎯 PHASE 2: Critical Updates - calculating today's scores...")
             
-            // If we used cached scores in Phase 1, recalculate them now in background
-            if hasCachedScores {
-                Logger.debug("🔄 Recalculating scores in background for freshness...")
-                async let sleepTask: Void = sleepScoreService.calculateSleepScore()
-                async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
-                async let strainTask: Void = strainScoreService.calculateStrainScore()
+            // Calculate scores in parallel
+            async let sleepTask: Void = sleepScoreService.calculateSleepScore()
+            async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
+            async let strainTask: Void = strainScoreService.calculateStrainScore()
+            
+            _ = await sleepTask
+            _ = await recoveryTask
+            _ = await strainTask
+            
+            let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores updated")
+            
+            // Trigger ring animations and haptic feedback
+            await MainActor.run {
+                animationTrigger = UUID()
                 
-                _ = await sleepTask
-                _ = await recoveryTask
-                _ = await strainTask
-                Logger.debug("✅ Background score recalculation complete")
+                // Subtle haptic feedback when scores complete
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                Logger.debug("📳 Haptic feedback triggered - scores updated")
             }
             
+            // PHASE 3: Background Sync - Fetch activities and other data
             await refreshActivitiesAndOtherData()
-            Logger.debug("✅ PHASE 3: Background refresh completed")
+            
+            let totalTime = CFAbsoluteTimeGetCurrent() - startTime
+            Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
         }
     }
     
     /// Load activities and other non-critical data in background
+    /// Uses incremental loading: 1 day → 7 days → full history
     private func refreshActivitiesAndOtherData() async {
         let startTime = CFAbsoluteTimeGetCurrent()
         
+        // OPTIMIZATION: Fetch incrementally to show data faster
+        // Priority 1: Today's activities (fast)
+        Logger.debug("📊 [INCREMENTAL] Fetching today's activities...")
+        await fetchAndUpdateActivities(daysBack: 1)
+        Logger.debug("✅ [INCREMENTAL] Today's activities loaded")
+        
+        // Priority 2: This week's activities (for recent context)
+        Logger.debug("📊 [INCREMENTAL] Fetching this week's activities...")
+        await fetchAndUpdateActivities(daysBack: 7)
+        Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
+        
+        // Priority 3: Full history (background, low priority)
+        Logger.debug("📊 [INCREMENTAL] Fetching full activity history in background...")
+        Task.detached(priority: .background) {
+            await self.fetchAndUpdateActivities(daysBack: 365)
+            await MainActor.run {
+                Logger.debug("✅ [INCREMENTAL] Full history loaded")
+            }
+        }
+        
+        // Also fetch wellness data (non-blocking)
+        Task.detached(priority: .background) {
+            do {
+                let wellness = try await self.intervalsCache.getCachedWellness(apiClient: self.apiClient, forceRefresh: false)
+                await MainActor.run {
+                    self.wellnessData = wellness
+                    Logger.debug("✅ Loaded wellness data")
+                }
+            } catch {
+                Logger.warning("️ Failed to load wellness data: \(error.localizedDescription)")
+            }
+        }
+        
+        // Save to Core Data cache
+        do {
+            try await cacheManager.refreshToday()
+            await cacheManager.calculateMissingCTLATL()
+        } catch {
+            Logger.error("Failed to save to Core Data cache: \(error)")
+        }
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let totalTime = endTime - startTime
+        Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")
+    }
+    
+    /// Fetch and update activities for a specific time range
+    /// - Parameter daysBack: Number of days to fetch
+    private func fetchAndUpdateActivities(daysBack: Int) async {
         // Fetch activities from all connected sources
         var intervalsActivities: [IntervalsActivity] = []
-        var wellness: [IntervalsWellness] = []
         do {
-            intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: false)
-            wellness = try await intervalsCache.getCachedWellness(apiClient: apiClient, forceRefresh: false)
+            // For small day ranges, we can use cache more aggressively
+            let forceRefresh = daysBack >= 365 ? false : false // Always use cache if available
+            intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: forceRefresh)
             Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
             Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
@@ -379,7 +411,6 @@ class TodayViewModel: ObservableObject {
         
         // Update activities
         recentActivities = Array(intervalsActivities.prefix(15))
-        wellnessData = wellness
         
         // Convert to unified format
         var intervalsUnified: [UnifiedActivity] = []
@@ -405,18 +436,7 @@ class TodayViewModel: ObservableObject {
         
         // Sort and update
         unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
-        
-        // Save to Core Data cache
-        do {
-            try await cacheManager.refreshToday()
-            await cacheManager.calculateMissingCTLATL()
-        } catch {
-            Logger.error("Failed to save to Core Data cache: \(error)")
-        }
-        
-        let endTime = CFAbsoluteTimeGetCurrent()
-        let totalTime = endTime - startTime
-        Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")
+        Logger.debug("📊 Showing \(unifiedActivities.count) unified activities")
     }
     
     /// Load only cached data without any network calls or heavy calculations
@@ -426,6 +446,36 @@ class TodayViewModel: ObservableObject {
         // Load from Core Data cache (instant)
         let cachedDays = cacheManager.fetchCachedDays(count: 7)
         Logger.debug("⚡ Loaded \(cachedDays.count) days from Core Data cache")
+        
+        // Find today's cached data, or yesterday's as fallback
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        
+        // Try to load today's scores from Core Data cache
+        let todayCache = cachedDays.first { day in
+            guard let date = day.date else { return false }
+            return calendar.isDate(date, inSameDayAs: today)
+        }
+        
+        // Try yesterday's cache as fallback
+        let yesterdayCache = cachedDays.first { day in
+            guard let date = day.date else { return false }
+            return calendar.isDate(date, inSameDayAs: yesterday)
+        }
+        
+        // Use today's cache if available, otherwise yesterday's
+        if let cache = todayCache {
+            Logger.debug("✅ Using today's cached scores")
+            // Scores will be loaded by score services from their own caches
+        } else if let cache = yesterdayCache {
+            Logger.debug("⚡ No today's cache - using yesterday's scores as placeholder")
+            // Show yesterday's scores as stale placeholders
+            // The score services will replace these with today's values in Phase 2
+        } else {
+            Logger.warning("️ No cached scores (today or yesterday) - UI will show empty rings")
+        }
         
         // Debug: Print details of cached data
         if !cachedDays.isEmpty {

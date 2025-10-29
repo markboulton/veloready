@@ -8,10 +8,10 @@ final class BaselineCalculator: @unchecked Sendable {
     // HealthKit types
     private let respiratoryRateType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate)!
     
-    // Cache baselines for 2 hours to improve performance
+    // Cache baselines for 1 hour to improve performance (balances freshness vs speed)
     private var cachedBaselines: (hrv: Double?, rhr: Double?, sleep: Double?, respiratory: Double?)?
     private var cacheTimestamp: Date?
-    private let cacheExpiryInterval: TimeInterval = 2 * 3600 // 2 hours
+    private let cacheExpiryInterval: TimeInterval = 3600 // 1 hour
     
     // MARK: - Public Methods
     
