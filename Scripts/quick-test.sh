@@ -52,7 +52,7 @@ echo "1️⃣  Building project..."
 if xcodebuild build \
     -project VeloReady.xcodeproj \
     -scheme VeloReady \
-    -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+    -destination 'platform=iOS Simulator,name=iPhone 17' \
     -quiet \
     -hideShellScriptEnvironment \
     -skipPackagePluginValidation; then
@@ -68,7 +68,7 @@ echo "2️⃣  Running critical unit tests..."
 if xcodebuild test \
     -project VeloReady.xcodeproj \
     -scheme VeloReady \
-    -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+    -destination 'platform=iOS Simulator,name=iPhone 17' \
     -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
     -quiet \
     -hideShellScriptEnvironment; then
