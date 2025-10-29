@@ -27,8 +27,22 @@ class HealthKitManager: ObservableObject {
     static let shared = HealthKitManager()
     
     // MARK: - Published Properties
-    @MainActor @Published var isAuthorized = false
-    @MainActor @Published var authorizationState: AuthorizationState = .notDetermined
+    // CRITICAL: Initialize with cached values to prevent flash during app startup
+    // These values must be loaded synchronously BEFORE any views are created
+    @MainActor @Published var isAuthorized: Bool = {
+        // Quick inline check - cache the result to prevent flash
+        let cached = UserDefaults.standard.bool(forKey: "healthKitAuthorized")
+        return cached
+    }()
+    
+    @MainActor @Published var authorizationState: AuthorizationState = {
+        // Quick inline check - cache the result to prevent flash
+        if let rawValue = UserDefaults.standard.string(forKey: "healthKitAuthState"),
+           let state = AuthorizationState(rawValue: rawValue) {
+            return state
+        }
+        return .notDetermined
+    }()
     
     // MARK: - Private Properties
     private let healthStore = HKHealthStore()
@@ -247,6 +261,10 @@ class HealthKitManager: ObservableObject {
             await MainActor.run {
                 self.authorizationState = .notAvailable
                 self.isAuthorized = false
+                
+                // Cache the values to prevent flash on next app startup
+                UserDefaults.standard.set(self.isAuthorized, forKey: "healthKitAuthorized")
+                UserDefaults.standard.set(self.authorizationState.rawValue, forKey: "healthKitAuthState")
             }
             return
         }
@@ -267,6 +285,10 @@ class HealthKitManager: ObservableObject {
         await MainActor.run {
             self.authorizationState = AuthorizationState.fromHKStatus(effectiveStatus)
             self.isAuthorized = effectiveStatus == .sharingAuthorized
+            
+            // Cache the values to prevent flash on next app startup
+            UserDefaults.standard.set(self.isAuthorized, forKey: "healthKitAuthorized")
+            UserDefaults.standard.set(self.authorizationState.rawValue, forKey: "healthKitAuthState")
         }
         
         Logger.debug("⚡ Fast HealthKit check completed: \(await authorizationState)")
@@ -358,6 +380,10 @@ class HealthKitManager: ObservableObject {
             isAuthorized = false
             Logger.warning("️ HealthKit authorization not determined")
         }
+        
+        // Cache the values to prevent flash on next app startup
+        UserDefaults.standard.set(isAuthorized, forKey: "healthKitAuthorized")
+        UserDefaults.standard.set(authorizationState.rawValue, forKey: "healthKitAuthState")
     }
     
     /// Test if we can actually access health data for a specific type

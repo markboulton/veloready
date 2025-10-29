@@ -318,9 +318,14 @@ class TodayViewModel: ObservableObject {
             let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
             Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores updated")
             
-            // Trigger ring animations
+            // Trigger ring animations and haptic feedback
             await MainActor.run {
                 animationTrigger = UUID()
+                
+                // Subtle haptic feedback when scores complete
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                Logger.debug("📳 Haptic feedback triggered - scores updated")
             }
             
             // PHASE 3: Background Sync - Fetch activities and other data

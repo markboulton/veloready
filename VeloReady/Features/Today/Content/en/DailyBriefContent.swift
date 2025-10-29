@@ -3,7 +3,7 @@ import Foundation
 /// Content strings for Daily Brief card (free users)
 enum DailyBriefContent {
     // MARK: - Header
-    static let title = "Daily Brief"  /// Card title
+    static let title = "Daily Focus"  /// Card title
     
     // MARK: - Sections
     static let trainingStressBalance = "Training Stress Balance"  /// TSB section label

@@ -19,7 +19,7 @@ struct RideSummaryView: View {
                     title: RideSummaryContent.title,
                     titleIcon: Icons.System.sparkles,
                     titleIconColor: ColorPalette.aiIconColor,
-                    applyRainbowGradient: true
+                    applyRainbowGradient: false
                 ),
                 style: .standard
             ) {

@@ -100,7 +100,7 @@ enum TodayContent {
     
     // MARK: - AI Brief
     enum AIBrief {
-        static let title = "VeloAI"  /// AI Brief section title
+        static let title = "Daily Focus"  /// AI Brief section title
         static let loading = "Loading your daily brief..."  /// Loading message
         static let analyzing = CommonContent.States.analyzing
         static let tsb = "Training Stress Balance:"  /// TSB label

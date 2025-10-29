@@ -6,7 +6,9 @@ import SwiftUI
 class OnboardingManager: ObservableObject {
     static let shared = OnboardingManager()
     
-    @Published var hasCompletedOnboarding: Bool {
+    // CRITICAL: Initialize with cached value to prevent flash during app startup
+    // This must be read synchronously BEFORE any views are created
+    @Published var hasCompletedOnboarding: Bool = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
         didSet {
             UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
         }
@@ -42,7 +44,7 @@ class OnboardingManager: ObservableObject {
     }
     
     private init() {
-        self.hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        // Value already loaded inline above to prevent flash
     }
     
     // MARK: - Sport Preferences

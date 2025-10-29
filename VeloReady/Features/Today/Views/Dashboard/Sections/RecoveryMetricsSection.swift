@@ -69,7 +69,7 @@ struct RecoveryMetricsSection: View {
     private var recoveryScoreView: some View {
             if let recoveryScore = viewModel.recoveryScore {
                 HapticNavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.recoveryScore)
                                 .font(.headline)
@@ -94,13 +94,13 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Text(TodayContent.Scores.recoveryScore)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     // Show background ring with loading spinner to prevent layout shift
-                    ZStack {
+                    ZStack(alignment: .center) {
                         CompactRingView(
                             score: nil, // nil = shows background ring only
                             title: "",
@@ -111,9 +111,10 @@ struct RecoveryMetricsSection: View {
                             animationTrigger: animationTrigger
                         )
                         
-                        // Overlay spinner on top of ring
+                        // Standard iOS spinner centered in ring
                         ProgressView()
-                            .scaleEffect(0.8)
+                            .scaleEffect(1.2)
+                            .offset(y: -8) // Offset to account for title below ring
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -128,7 +129,7 @@ struct RecoveryMetricsSection: View {
                 // Show ? if no sleep data
                 if !viewModel.hasSleepData {
                     // No NavigationLink when no data - make entire ring tappable to reinstate banner
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.sleepScore)
                                 .font(.headline)
@@ -159,7 +160,7 @@ struct RecoveryMetricsSection: View {
                 } else {
                     // Normal HapticNavigationLink when we have sleep data
                     HapticNavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 16) {
                             HStack(spacing: 4) {
                                 Text(TodayContent.Scores.sleepScore)
                                     .font(.headline)
@@ -199,7 +200,7 @@ struct RecoveryMetricsSection: View {
                     }
                     
                     // Show background ring with loading spinner to prevent layout shift
-                    ZStack {
+                    ZStack(alignment: .center) {
                         Button(action: {
                             if viewModel.missingSleepBannerDismissed {
                                 viewModel.reinstateSleepBanner()
@@ -219,10 +220,11 @@ struct RecoveryMetricsSection: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                         
-                        // Show spinner when data is loading
+                        // Show standard iOS spinner when data is loading
                         if viewModel.sleepScore == nil {
                             ProgressView()
-                                .scaleEffect(0.8)
+                                .scaleEffect(1.2)
+                                .offset(y: -8) // Offset to account for title below ring
                         }
                     }
                 }
@@ -237,7 +239,7 @@ struct RecoveryMetricsSection: View {
     private var loadScoreView: some View {
             if viewModel.hasStrainScore {
                 HapticNavigationLink(destination: StrainDetailView(strainScore: viewModel.strainScore!)) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 16) {
                         HStack(spacing: 4) {
                             Text(TodayContent.Scores.loadScore)
                                 .font(.headline)
@@ -262,13 +264,13 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Text(TodayContent.Scores.loadScore)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
                     // Show background ring with loading spinner to prevent layout shift
-                    ZStack {
+                    ZStack(alignment: .center) {
                         CompactRingView(
                             score: nil, // nil = shows background ring only
                             title: "",
@@ -279,9 +281,10 @@ struct RecoveryMetricsSection: View {
                             animationTrigger: animationTrigger
                         )
                         
-                        // Overlay spinner on top of ring
+                        // Standard iOS spinner centered in ring
                         ProgressView()
-                            .scaleEffect(0.8)
+                            .scaleEffect(1.2)
+                            .offset(y: -18) // Offset to account for title below ring
                     }
                 }
                 .frame(maxWidth: .infinity)

@@ -7,20 +7,85 @@ import UIKit
 class MapSnapshotService {
     static let shared = MapSnapshotService()
     
+    // MARK: - Cache
+    private var snapshotCache: [String: UIImage] = [:]
+    private let cacheLimit = 50 // Keep last 50 map snapshots in memory
+    
     private init() {}
     
-    /// Generate a map snapshot from GPS coordinates
+    /// Generate a placeholder map with activity info (fast, non-blocking)
+    /// Used during progressive loading to show immediate visual feedback
+    func generatePlaceholder(
+        activityType: String = "Activity",
+        size: CGSize = CGSize(width: 400, height: 300)
+    ) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+        guard let context = UIGraphicsGetCurrentContext() else {
+            UIGraphicsEndImageContext()
+            return nil
+        }
+        
+        // Draw a gradient background
+        let colors = [UIColor.systemGray5.cgColor, UIColor.systemGray6.cgColor]
+        guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: nil) else {
+            UIGraphicsEndImageContext()
+            return nil
+        }
+        context.drawLinearGradient(gradient, start: CGPoint.zero, end: CGPoint(x: 0, y: size.height), options: [])
+        
+        // Draw map icon placeholder
+        let iconSize: CGFloat = 40
+        let iconRect = CGRect(
+            x: (size.width - iconSize) / 2,
+            y: (size.height - iconSize) / 2 - 10,
+            width: iconSize,
+            height: iconSize
+        )
+        
+        // Draw a simple map icon shape
+        UIColor.systemGray3.setFill()
+        context.fillEllipse(in: iconRect)
+        
+        // Draw "Loading map..." text
+        let text = "Loading map..."
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 12, weight: .medium),
+            .foregroundColor: UIColor.systemGray
+        ]
+        let textSize = text.size(withAttributes: attributes)
+        let textRect = CGRect(
+            x: (size.width - textSize.width) / 2,
+            y: (size.height - textSize.height) / 2 + 30,
+            width: textSize.width,
+            height: textSize.height
+        )
+        text.draw(in: textRect, withAttributes: attributes)
+        
+        let placeholder = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return placeholder
+    }
+    
+    /// Generate a map snapshot from GPS coordinates with caching
     /// - Parameters:
     ///   - coordinates: Array of GPS coordinates for the route
+    ///   - activityId: Unique identifier for caching
     ///   - size: Size of the snapshot image
     /// - Returns: UIImage of the map snapshot, or nil if generation fails
     func generateSnapshot(
         from coordinates: [CLLocationCoordinate2D],
+        activityId: String? = nil,
         size: CGSize = CGSize(width: 400, height: 300)
     ) async -> UIImage? {
         guard !coordinates.isEmpty else {
             Logger.debug("🗺️ No coordinates provided for map snapshot")
             return nil
+        }
+        
+        // Check cache first (progressive loading optimization)
+        if let activityId = activityId, let cached = snapshotCache[activityId] {
+            Logger.debug("🗺️ ⚡ Using cached map snapshot for activity \(activityId)")
+            return cached
         }
         
         Logger.debug("🗺️ Generating map snapshot from \(coordinates.count) coordinates")
@@ -59,11 +124,30 @@ class MapSnapshotService {
             )
             
             Logger.debug("🗺️ ✅ Map snapshot generated successfully")
+            
+            // Cache the generated snapshot for future use
+            if let activityId = activityId {
+                snapshotCache[activityId] = image
+                // Enforce cache limit (LRU-style: keep most recent)
+                if snapshotCache.count > cacheLimit {
+                    // Remove oldest entries (simplified approach)
+                    let keysToRemove = Array(snapshotCache.keys.prefix(snapshotCache.count - cacheLimit))
+                    keysToRemove.forEach { snapshotCache.removeValue(forKey: $0) }
+                    Logger.debug("🗺️ 🧹 Pruned map cache - removed \(keysToRemove.count) old snapshots")
+                }
+            }
+            
             return image
         } catch {
             Logger.error("🗺️ Failed to generate map snapshot: \(error)")
             return nil
         }
+    }
+    
+    /// Clear the map snapshot cache
+    func clearCache() {
+        snapshotCache.removeAll()
+        Logger.debug("🗺️ 🗑️ Cleared map snapshot cache")
     }
     
     // MARK: - Private Helpers
