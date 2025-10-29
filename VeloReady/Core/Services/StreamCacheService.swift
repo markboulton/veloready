@@ -183,6 +183,57 @@ class StreamCacheService {
         Logger.data("   Hit Rate: \(Int(stats.hitRate * 100))%")
     }
     
+    // MARK: - One-Time Migration
+    
+    /// Migrate legacy UserDefaults-based streams to file-based storage
+    /// This runs once on first launch after update to free up UserDefaults space
+    func migrateLegacyStreamsToFileCache() {
+        let migrationKey = "stream_cache_migration_v2_complete"
+        
+        // Skip if already migrated
+        guard !UserDefaults.standard.bool(forKey: migrationKey) else {
+            return
+        }
+        
+        Logger.debug("🔄 [StreamCache] Starting one-time migration of legacy streams...")
+        
+        var migratedCount = 0
+        var deletedCount = 0
+        var deletedSize: Int64 = 0
+        
+        // Find all stream_* keys in UserDefaults
+        let allKeys = UserDefaults.standard.dictionaryRepresentation().keys
+        let streamKeys = allKeys.filter { $0.hasPrefix("stream_strava_") || $0.hasPrefix("stream_intervals_") }
+        
+        for key in streamKeys {
+            guard let data = UserDefaults.standard.data(forKey: key) else { continue }
+            
+            // Extract activity ID from key (e.g., "stream_strava_12345" → "strava_12345")
+            let activityId = String(key.dropFirst("stream_".count))
+            
+            // Migrate to file-based storage if large (>1MB)
+            if data.count > 1_000_000 {
+                saveToFile(data: data, activityId: activityId)
+                deletedSize += Int64(data.count)
+                migratedCount += 1
+                Logger.debug("   ✓ Migrated \(activityId) (\(String(format: "%.1f", Double(data.count)/1_000_000))MB) to file")
+            } else {
+                // For smaller streams, just track deletion
+                deletedSize += Int64(data.count)
+                deletedCount += 1
+            }
+            
+            // Always remove from UserDefaults to free up space
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+        
+        // Mark migration as complete
+        UserDefaults.standard.set(true, forKey: migrationKey)
+        UserDefaults.standard.synchronize()
+        
+        Logger.debug("✅ [StreamCache] Migration complete: \(migratedCount) streams migrated, \(deletedCount) deleted (\(String(format: "%.1f", Double(deletedSize)/1_000_000))MB freed)")
+    }
+    
     // MARK: - Private Methods
     
     private func getCacheMetadata() -> [String: StreamCacheMetadata] {

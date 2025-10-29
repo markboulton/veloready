@@ -29,6 +29,11 @@ struct VeloReadyApp: App {
             Self.cleanupLegacyStravaStreams()
         }
         
+        // Migrate large stream data from UserDefaults to file-based cache (one-time)
+        Task { @MainActor in
+            StreamCacheService.shared.migrateLegacyStreamsToFileCache()
+        }
+        
         // Enable automatic iCloud sync
         Task { @MainActor in
             iCloudSyncService.shared.enableAutomaticSync()

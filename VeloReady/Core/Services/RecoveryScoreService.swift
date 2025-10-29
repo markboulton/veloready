@@ -401,7 +401,64 @@ class RecoveryScoreService: ObservableObject {
         Logger.debug("   CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
         Logger.debug("   TSB=\(String(format: "%.1f", ctl - atl))")
         
+        // Sanity check: Validate CTL/ATL values
+        // If values are suspiciously low or equal, fall back to HealthKit calculation
+        if ctl < 10 || atl < 1 || abs(ctl - atl) < 0.5 {
+            Logger.warning("⚠️ Unified CTL/ATL looks suspicious (CTL:\(String(format: "%.1f", ctl)), ATL:\(String(format: "%.1f", atl))) - falling back to HealthKit")
+            
+            // Try HealthKit-only calculation as fallback
+            return await calculateTrainingLoadFromHealthKit()
+        }
+        
         return (atl, ctl)
+    }
+    
+    /// Calculate training load from HealthKit workouts only (fallback when unified data is incomplete)
+    private func calculateTrainingLoadFromHealthKit() async -> (atl: Double?, ctl: Double?) {
+        Logger.warning("️ Calculating training loads from HealthKit")
+        
+        do {
+            // Fetch 42 days of HealthKit workouts
+            let calendar = Calendar.current
+            let startDate = calendar.date(byAdding: .day, value: -42, to: Date())!
+            let workouts = try await healthKitManager.fetchWorkouts(from: startDate, to: Date(), limit: 500)
+            
+            Logger.data("Calculating training load from HealthKit workouts...")
+            Logger.data("Found \(workouts.count) workouts to analyze")
+            
+            guard !workouts.isEmpty else {
+                Logger.warning("No HealthKit workouts found - returning default values")
+                return (nil, nil)
+            }
+            
+            // Calculate daily TRIMP (Training Impulse) for each day
+            var dailyTRIMP: [Date: Double] = [:]
+            let trimpCalculator = TRIMPCalculator()
+            
+            for workout in workouts {
+                let day = calendar.startOfDay(for: workout.startDate)
+                let trimp = await trimpCalculator.calculateTRIMP(for: workout)
+                dailyTRIMP[day, default: 0] += trimp
+            }
+            
+            Logger.data("Found \(dailyTRIMP.count) days with workout data in last 42 days")
+            
+            // Calculate CTL and ATL from daily TRIMP
+            let today = calendar.startOfDay(for: Date())
+            let ctl = calculateCTL(from: dailyTRIMP, today: today)
+            let atl = calculateATL(from: dailyTRIMP, today: today)
+            let tsb = ctl - atl
+            
+            Logger.data("Training Load Results:")
+            Logger.debug("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
+            Logger.debug("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
+            Logger.debug("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
+            
+            return (atl, ctl)
+        } catch {
+            Logger.error("Failed to calculate training load from HealthKit: \(error)")
+            return (nil, nil)
+        }
     }
     
     /// Estimate TSS for a unified activity
