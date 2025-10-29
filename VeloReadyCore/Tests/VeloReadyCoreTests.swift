@@ -185,6 +185,48 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 26: Sleep Performance Score
+        if await testSleepPerformanceScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 27: Sleep Efficiency Score
+        if await testSleepEfficiencyScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 28: Sleep Stage Quality Score
+        if await testSleepStageQualityScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 29: Sleep Disturbances Score
+        if await testSleepDisturbancesScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 30: Sleep Full Calculation
+        if await testSleepFullCalculation() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 31: Sleep Edge Cases
+        if await testSleepEdgeCases() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -1678,6 +1720,400 @@ struct VeloReadyCoreTests {
         print("      - Band determination: ✓")
         print("      - Zero baseline: ✓")
         print("      - Negative values: ✓")
+        print("      - Extreme values clamped: ✓")
+        return true
+    }
+    
+    // MARK: - Sleep Score Tests
+    
+    static func testSleepPerformanceScore() async -> Bool {
+        print("\n🧪 Test 26: Sleep Performance Score Calculation")
+        print("   Testing sleep duration vs need → performance score...")
+        
+        // Test 1: Met sleep need exactly
+        let perfect = SleepCalculations.calculatePerformanceScore(
+            sleepDuration: 8 * 3600,
+            sleepNeed: 8 * 3600
+        )
+        guard perfect == 100 else {
+            print("   ❌ FAIL: Meeting sleep need should be 100")
+            print("      Got: \(perfect)")
+            return false
+        }
+        
+        // Test 2: Exceeded sleep need
+        let exceeded = SleepCalculations.calculatePerformanceScore(
+            sleepDuration: 9 * 3600,
+            sleepNeed: 8 * 3600
+        )
+        guard exceeded == 100 else {
+            print("   ❌ FAIL: Exceeding sleep need should be capped at 100")
+            print("      Got: \(exceeded)")
+            return false
+        }
+        
+        // Test 3: Sleep deficit (75% of need)
+        let deficit = SleepCalculations.calculatePerformanceScore(
+            sleepDuration: 6 * 3600,
+            sleepNeed: 8 * 3600
+        )
+        guard deficit == 75 else {
+            print("   ❌ FAIL: 6h / 8h should be 75")
+            print("      Got: \(deficit)")
+            return false
+        }
+        
+        // Test 4: Large deficit (50% of need)
+        let largeDeficit = SleepCalculations.calculatePerformanceScore(
+            sleepDuration: 4 * 3600,
+            sleepNeed: 8 * 3600
+        )
+        guard largeDeficit == 50 else {
+            print("   ❌ FAIL: 4h / 8h should be 50")
+            print("      Got: \(largeDeficit)")
+            return false
+        }
+        
+        print("   ✅ PASS: Performance score calculation works")
+        print("      Perfect: \(perfect)")
+        print("      Exceeded: \(exceeded)")
+        print("      Deficit: \(deficit)")
+        return true
+    }
+    
+    static func testSleepEfficiencyScore() async -> Bool {
+        print("\n🧪 Test 27: Sleep Efficiency Score Calculation")
+        print("   Testing time asleep vs time in bed → efficiency score...")
+        
+        // Test 1: Perfect efficiency
+        let perfect = SleepCalculations.calculateEfficiencyScore(
+            sleepDuration: 8 * 3600,
+            timeInBed: 8 * 3600
+        )
+        guard perfect == 100 else {
+            print("   ❌ FAIL: Perfect efficiency should be 100")
+            return false
+        }
+        
+        // Test 2: Good efficiency (90%)
+        let good = SleepCalculations.calculateEfficiencyScore(
+            sleepDuration: 7.2 * 3600,
+            timeInBed: 8 * 3600
+        )
+        guard good == 90 else {
+            print("   ❌ FAIL: 90% efficiency should be 90")
+            print("      Got: \(good)")
+            return false
+        }
+        
+        // Test 3: Fair efficiency (75%)
+        let fair = SleepCalculations.calculateEfficiencyScore(
+            sleepDuration: 6 * 3600,
+            timeInBed: 8 * 3600
+        )
+        guard fair == 75 else {
+            print("   ❌ FAIL: 75% efficiency should be 75")
+            print("      Got: \(fair)")
+            return false
+        }
+        
+        // Test 4: Poor efficiency (50%)
+        let poor = SleepCalculations.calculateEfficiencyScore(
+            sleepDuration: 4 * 3600,
+            timeInBed: 8 * 3600
+        )
+        guard poor == 50 else {
+            print("   ❌ FAIL: 50% efficiency should be 50")
+            print("      Got: \(poor)")
+            return false
+        }
+        
+        print("   ✅ PASS: Efficiency score calculation works")
+        print("      Perfect: \(perfect)")
+        print("      Good: \(good)")
+        print("      Fair: \(fair)")
+        return true
+    }
+    
+    static func testSleepStageQualityScore() async -> Bool {
+        print("\n🧪 Test 28: Sleep Stage Quality Score Calculation")
+        print("   Testing deep/REM percentage → stage quality score...")
+        
+        let totalSleep = 8.0 * 3600
+        
+        // Test 1: Excellent (45% deep+REM)
+        let excellent = SleepCalculations.calculateStageQualityScore(
+            sleepDuration: totalSleep,
+            deepSleep: 2.0 * 3600,
+            remSleep: 1.6 * 3600
+        )
+        guard excellent == 100 else {
+            print("   ❌ FAIL: 45% deep+REM should be 100")
+            print("      Got: \(excellent)")
+            return false
+        }
+        
+        // Test 2: Good (35% deep+REM)
+        let good = SleepCalculations.calculateStageQualityScore(
+            sleepDuration: totalSleep,
+            deepSleep: 1.6 * 3600,
+            remSleep: 1.2 * 3600
+        )
+        guard good >= 50 && good < 100 else {
+            print("   ❌ FAIL: 35% deep+REM should be 50-100")
+            print("      Got: \(good)")
+            return false
+        }
+        
+        // Test 3: Fair (25% deep+REM)
+        let fair = SleepCalculations.calculateStageQualityScore(
+            sleepDuration: totalSleep,
+            deepSleep: 1.2 * 3600,
+            remSleep: 0.8 * 3600
+        )
+        guard fair >= 0 && fair < 50 else {
+            print("   ❌ FAIL: 25% deep+REM should be 0-50")
+            print("      Got: \(fair)")
+            return false
+        }
+        
+        // Test 4: Poor (10% deep+REM)
+        let poor = SleepCalculations.calculateStageQualityScore(
+            sleepDuration: totalSleep,
+            deepSleep: 0.5 * 3600,
+            remSleep: 0.3 * 3600
+        )
+        guard poor >= 0 && poor < 20 else {
+            print("   ❌ FAIL: 10% deep+REM should be very low")
+            print("      Got: \(poor)")
+            return false
+        }
+        
+        print("   ✅ PASS: Stage quality score calculation works")
+        print("      Excellent (45%): \(excellent)")
+        print("      Good (35%): \(good)")
+        print("      Fair (25%): \(fair)")
+        return true
+    }
+    
+    static func testSleepDisturbancesScore() async -> Bool {
+        print("\n🧪 Test 29: Sleep Disturbances Score Calculation")
+        print("   Testing wake events → disturbances score...")
+        
+        // Test 1: No disturbances
+        let none = SleepCalculations.calculateDisturbancesScore(wakeEvents: 0)
+        guard none == 100 else {
+            print("   ❌ FAIL: No disturbances should be 100")
+            return false
+        }
+        
+        // Test 2: Minimal disturbances (2)
+        let minimal = SleepCalculations.calculateDisturbancesScore(wakeEvents: 2)
+        guard minimal == 100 else {
+            print("   ❌ FAIL: 2 disturbances should be 100")
+            return false
+        }
+        
+        // Test 3: Moderate disturbances (4)
+        let moderate = SleepCalculations.calculateDisturbancesScore(wakeEvents: 4)
+        guard moderate == 75 else {
+            print("   ❌ FAIL: 4 disturbances should be 75")
+            return false
+        }
+        
+        // Test 4: Many disturbances (7)
+        let many = SleepCalculations.calculateDisturbancesScore(wakeEvents: 7)
+        guard many == 50 else {
+            print("   ❌ FAIL: 7 disturbances should be 50")
+            return false
+        }
+        
+        // Test 5: Excessive disturbances (10)
+        let excessive = SleepCalculations.calculateDisturbancesScore(wakeEvents: 10)
+        guard excessive == 25 else {
+            print("   ❌ FAIL: 10 disturbances should be 25")
+            return false
+        }
+        
+        print("   ✅ PASS: Disturbances score calculation works")
+        print("      None: \(none)")
+        print("      Minimal: \(minimal)")
+        print("      Moderate: \(moderate)")
+        print("      Many: \(many)")
+        return true
+    }
+    
+    static func testSleepFullCalculation() async -> Bool {
+        print("\n🧪 Test 30: Sleep Full Calculation")
+        print("   Testing complete sleep score...")
+        
+        let baselineBedtime = Date(timeIntervalSinceNow: -8 * 3600)
+        let baselineWakeTime = Date()
+        
+        // Test 1: Optimal sleep
+        let optimal = SleepCalculations.calculateSleepScore(
+            sleepDuration: 8 * 3600,
+            sleepNeed: 8 * 3600,
+            timeInBed: 8.2 * 3600,
+            deepSleep: 2.0 * 3600,
+            remSleep: 1.6 * 3600,
+            wakeEvents: 1,
+            bedtime: baselineBedtime,
+            wakeTime: baselineWakeTime,
+            baselineBedtime: baselineBedtime,
+            baselineWakeTime: baselineWakeTime
+        )
+        
+        guard optimal.score >= 80 && optimal.score <= 100 else {
+            print("   ❌ FAIL: Optimal sleep should be 80-100")
+            print("      Got: \(optimal.score)")
+            return false
+        }
+        
+        guard optimal.band == .optimal else {
+            print("   ❌ FAIL: Band should be optimal")
+            return false
+        }
+        
+        // Test 2: Poor sleep
+        let poor = SleepCalculations.calculateSleepScore(
+            sleepDuration: 5 * 3600,
+            sleepNeed: 8 * 3600,
+            timeInBed: 8 * 3600,
+            deepSleep: 0.5 * 3600,
+            remSleep: 0.5 * 3600,
+            wakeEvents: 10,
+            bedtime: Date(timeIntervalSinceNow: -6 * 3600),
+            wakeTime: Date(timeIntervalSinceNow: 2 * 3600),
+            baselineBedtime: baselineBedtime,
+            baselineWakeTime: baselineWakeTime
+        )
+        
+        guard poor.score < 60 else {
+            print("   ❌ FAIL: Poor sleep should be < 60")
+            print("      Got: \(poor.score)")
+            return false
+        }
+        
+        // Test 3: Verify sub-scores
+        guard optimal.performanceScore == 100 else {
+            print("   ❌ FAIL: Performance should be 100")
+            return false
+        }
+        
+        guard optimal.efficiencyScore >= 95 else {
+            print("   ❌ FAIL: Efficiency should be high")
+            return false
+        }
+        
+        guard optimal.stageQualityScore == 100 else {
+            print("   ❌ FAIL: Stage quality should be 100")
+            return false
+        }
+        
+        guard optimal.disturbancesScore == 100 else {
+            print("   ❌ FAIL: Disturbances score should be 100")
+            return false
+        }
+        
+        // Test 4: Weighted combination
+        let performance = Double(optimal.performanceScore) * SleepCalculations.performanceWeight
+        let efficiency = Double(optimal.efficiencyScore) * SleepCalculations.efficiencyWeight
+        let stageQuality = Double(optimal.stageQualityScore) * SleepCalculations.stageQualityWeight
+        let disturbances = Double(optimal.disturbancesScore) * SleepCalculations.disturbancesWeight
+        let timing = Double(optimal.timingScore) * SleepCalculations.timingWeight
+        let expectedScore = performance + efficiency + stageQuality + disturbances + timing
+        
+        guard abs(Double(optimal.score) - expectedScore) < 2.0 else {
+            print("   ❌ FAIL: Weighted combination incorrect")
+            print("      Expected: ~\(Int(expectedScore)), got: \(optimal.score)")
+            return false
+        }
+        
+        print("   ✅ PASS: Full sleep calculation works")
+        print("      Optimal: \(optimal.score) (\(optimal.band.rawValue))")
+        print("      Poor: \(poor.score) (\(poor.band.rawValue))")
+        return true
+    }
+    
+    static func testSleepEdgeCases() async -> Bool {
+        print("\n🧪 Test 31: Sleep Edge Cases")
+        print("   Testing edge cases and boundary conditions...")
+        
+        // Test 1: No data (should return neutral)
+        let noData = SleepCalculations.calculateSleepScore(
+            sleepDuration: nil,
+            sleepNeed: nil,
+            timeInBed: nil,
+            deepSleep: nil,
+            remSleep: nil,
+            wakeEvents: nil,
+            bedtime: nil,
+            wakeTime: nil,
+            baselineBedtime: nil,
+            baselineWakeTime: nil
+        )
+        guard noData.score == 50 else {
+            print("   ❌ FAIL: No data should return 50")
+            print("      Got: \(noData.score)")
+            return false
+        }
+        
+        // Test 2: Band determination
+        let optimal = SleepCalculations.determineSleepBand(score: 85)
+        let good = SleepCalculations.determineSleepBand(score: 70)
+        let fair = SleepCalculations.determineSleepBand(score: 50)
+        let poor = SleepCalculations.determineSleepBand(score: 30)
+        
+        guard optimal == .optimal && good == .good && fair == .fair && poor == .payAttention else {
+            print("   ❌ FAIL: Band determination incorrect")
+            return false
+        }
+        
+        // Test 3: Zero time in bed (should handle gracefully)
+        let zeroTimeInBed = SleepCalculations.calculateEfficiencyScore(
+            sleepDuration: 8 * 3600,
+            timeInBed: 0
+        )
+        guard zeroTimeInBed == 50 else {
+            print("   ❌ FAIL: Zero time in bed should return 50")
+            return false
+        }
+        
+        // Test 4: Zero total sleep (should handle gracefully)
+        let zeroSleep = SleepCalculations.calculateStageQualityScore(
+            sleepDuration: 0,
+            deepSleep: 0,
+            remSleep: 0
+        )
+        guard zeroSleep == 50 else {
+            print("   ❌ FAIL: Zero sleep should return 50")
+            return false
+        }
+        
+        // Test 5: Extreme values (should clamp)
+        let extreme = SleepCalculations.calculateSleepScore(
+            sleepDuration: 12 * 3600,
+            sleepNeed: 8 * 3600,
+            timeInBed: 12 * 3600,
+            deepSleep: 5 * 3600,
+            remSleep: 4 * 3600,
+            wakeEvents: 0,
+            bedtime: Date(),
+            wakeTime: Date(),
+            baselineBedtime: Date(),
+            baselineWakeTime: Date()
+        )
+        guard extreme.score <= 100 else {
+            print("   ❌ FAIL: Score should be clamped to 100")
+            return false
+        }
+        
+        print("   ✅ PASS: All edge cases handled correctly")
+        print("      - No data: ✓")
+        print("      - Band determination: ✓")
+        print("      - Zero time in bed: ✓")
+        print("      - Zero sleep: ✓")
         print("      - Extreme values clamped: ✓")
         return true
     }
