@@ -143,6 +143,48 @@ struct VeloReadyCoreTests {
             failed += 1
         }
         
+        // Test 20: Recovery HRV Score
+        if await testRecoveryHRVScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 21: Recovery RHR Score
+        if await testRecoveryRHRScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 22: Recovery Sleep Score
+        if await testRecoverySleepScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 23: Recovery Form Score
+        if await testRecoveryFormScore() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 24: Recovery Full Calculation
+        if await testRecoveryFullCalculation() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
+        // Test 25: Recovery Edge Cases
+        if await testRecoveryEdgeCases() {
+            passed += 1
+        } else {
+            failed += 1
+        }
+        
         // Summary
         print("")
         print("=" + String(repeating: "=", count: 50))
@@ -1228,6 +1270,415 @@ struct VeloReadyCoreTests {
         print("      - Extreme values clamped: ✓")
         print("      - Band determination: ✓")
         print("      - Negative inputs: ✓")
+        return true
+    }
+    
+    // MARK: - Recovery Score Tests
+    
+    static func testRecoveryHRVScore() async -> Bool {
+        print("\n🧪 Test 20: Recovery HRV Score Calculation")
+        print("   Testing HRV deviation → recovery score...")
+        
+        // Test 1: At baseline
+        let baseline = RecoveryCalculations.calculateHRVScore(hrv: 50.0, baseline: 50.0)
+        guard baseline == 100 else {
+            print("   ❌ FAIL: At baseline should be 100")
+            print("      Got: \(baseline)")
+            return false
+        }
+        
+        // Test 2: Above baseline (good)
+        let above = RecoveryCalculations.calculateHRVScore(hrv: 55.0, baseline: 50.0)
+        guard above == 100 else {
+            print("   ❌ FAIL: Above baseline should be 100")
+            return false
+        }
+        
+        // Test 3: Small drop (5%)
+        let smallDrop = RecoveryCalculations.calculateHRVScore(hrv: 47.5, baseline: 50.0)
+        guard smallDrop >= 85 && smallDrop <= 100 else {
+            print("   ❌ FAIL: Small drop (5%) out of range")
+            print("      Expected: 85-100, got: \(smallDrop)")
+            return false
+        }
+        
+        // Test 4: Moderate drop (15%)
+        let moderateDrop = RecoveryCalculations.calculateHRVScore(hrv: 42.5, baseline: 50.0)
+        guard moderateDrop >= 60 && moderateDrop <= 85 else {
+            print("   ❌ FAIL: Moderate drop (15%) out of range")
+            print("      Expected: 60-85, got: \(moderateDrop)")
+            return false
+        }
+        
+        // Test 5: Large drop (30%)
+        let largeDrop = RecoveryCalculations.calculateHRVScore(hrv: 35.0, baseline: 50.0)
+        guard largeDrop >= 30 && largeDrop < 60 else {
+            print("   ❌ FAIL: Large drop (30%) out of range")
+            print("      Expected: 30-60, got: \(largeDrop)")
+            return false
+        }
+        
+        // Test 6: Extreme drop (50%)
+        let extremeDrop = RecoveryCalculations.calculateHRVScore(hrv: 25.0, baseline: 50.0)
+        guard extremeDrop < 30 else {
+            print("   ❌ FAIL: Extreme drop (50%) should be < 30")
+            print("      Got: \(extremeDrop)")
+            return false
+        }
+        
+        print("   ✅ PASS: HRV score calculation works")
+        print("      Baseline: \(baseline)")
+        print("      Above baseline: \(above)")
+        print("      Small drop: \(smallDrop)")
+        print("      Moderate drop: \(moderateDrop)")
+        print("      Large drop: \(largeDrop)")
+        return true
+    }
+    
+    static func testRecoveryRHRScore() async -> Bool {
+        print("\n🧪 Test 21: Recovery RHR Score Calculation")
+        print("   Testing RHR deviation → recovery score...")
+        
+        // Test 1: At baseline
+        let baseline = RecoveryCalculations.calculateRHRScore(rhr: 55.0, baseline: 55.0)
+        guard baseline == 100 else {
+            print("   ❌ FAIL: At baseline should be 100")
+            return false
+        }
+        
+        // Test 2: Below baseline (good)
+        let below = RecoveryCalculations.calculateRHRScore(rhr: 52.0, baseline: 55.0)
+        guard below == 100 else {
+            print("   ❌ FAIL: Below baseline should be 100")
+            return false
+        }
+        
+        // Test 3: Small increase (5%)
+        let smallIncrease = RecoveryCalculations.calculateRHRScore(rhr: 57.75, baseline: 55.0)
+        guard smallIncrease >= 88 && smallIncrease <= 100 else {
+            print("   ❌ FAIL: Small increase (5%) out of range")
+            print("      Expected: 88-100, got: \(smallIncrease)")
+            return false
+        }
+        
+        // Test 4: Moderate increase (12%)
+        let moderateIncrease = RecoveryCalculations.calculateRHRScore(rhr: 61.6, baseline: 55.0)
+        guard moderateIncrease >= 67 && moderateIncrease <= 88 else {
+            print("   ❌ FAIL: Moderate increase (12%) out of range")
+            print("      Expected: 67-88, got: \(moderateIncrease)")
+            return false
+        }
+        
+        // Test 5: Large increase (20%)
+        let largeIncrease = RecoveryCalculations.calculateRHRScore(rhr: 66.0, baseline: 55.0)
+        guard largeIncrease >= 37 && largeIncrease < 67 else {
+            print("   ❌ FAIL: Large increase (20%) out of range")
+            print("      Expected: 37-67, got: \(largeIncrease)")
+            return false
+        }
+        
+        print("   ✅ PASS: RHR score calculation works")
+        print("      Baseline: \(baseline)")
+        print("      Below baseline: \(below)")
+        print("      Small increase: \(smallIncrease)")
+        print("      Moderate increase: \(moderateIncrease)")
+        return true
+    }
+    
+    static func testRecoverySleepScore() async -> Bool {
+        print("\n🧪 Test 22: Recovery Sleep Score Calculation")
+        print("   Testing sleep duration/quality → recovery score...")
+        
+        // Test 1: Use quality score if available
+        let withQuality = RecoveryCalculations.calculateSleepScore(
+            sleepDuration: 7 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: 85
+        )
+        guard withQuality == 85 else {
+            print("   ❌ FAIL: Should use quality score when available")
+            print("      Expected: 85, got: \(withQuality)")
+            return false
+        }
+        
+        // Test 2: Duration-based (at baseline)
+        let atBaseline = RecoveryCalculations.calculateSleepScore(
+            sleepDuration: 8 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: nil
+        )
+        guard atBaseline == 100 else {
+            print("   ❌ FAIL: At baseline should be 100")
+            print("      Got: \(atBaseline)")
+            return false
+        }
+        
+        // Test 3: Duration-based (below baseline)
+        let belowBaseline = RecoveryCalculations.calculateSleepScore(
+            sleepDuration: 6 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: nil
+        )
+        guard belowBaseline == 75 else {
+            print("   ❌ FAIL: 6h / 8h should be 75")
+            print("      Got: \(belowBaseline)")
+            return false
+        }
+        
+        // Test 4: Duration-based (above baseline, capped at 100)
+        let aboveBaseline = RecoveryCalculations.calculateSleepScore(
+            sleepDuration: 9 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: nil
+        )
+        guard aboveBaseline == 100 else {
+            print("   ❌ FAIL: Above baseline should be capped at 100")
+            print("      Got: \(aboveBaseline)")
+            return false
+        }
+        
+        print("   ✅ PASS: Sleep score calculation works")
+        print("      With quality score: \(withQuality)")
+        print("      At baseline: \(atBaseline)")
+        print("      Below baseline: \(belowBaseline)")
+        return true
+    }
+    
+    static func testRecoveryFormScore() async -> Bool {
+        print("\n🧪 Test 23: Recovery Form Score Calculation")
+        print("   Testing training load → form score...")
+        
+        // Test 1: Fresh state (ATL < CTL)
+        let fresh = RecoveryCalculations.calculateFormScore(
+            atl: 40.0,
+            ctl: 50.0,
+            yesterdayTSS: nil
+        )
+        guard fresh == 100 else {
+            print("   ❌ FAIL: Fresh state (ATL<CTL) should be 100")
+            print("      Got: \(fresh)")
+            return false
+        }
+        
+        // Test 2: Moderate fatigue (ATL = 1.25 * CTL)
+        let moderate = RecoveryCalculations.calculateFormScore(
+            atl: 62.5,
+            ctl: 50.0,
+            yesterdayTSS: nil
+        )
+        guard moderate >= 50 && moderate < 100 else {
+            print("   ❌ FAIL: Moderate fatigue out of range")
+            print("      Expected: 50-100, got: \(moderate)")
+            return false
+        }
+        
+        // Test 3: High fatigue (ATL = 1.5 * CTL)
+        let highFatigue = RecoveryCalculations.calculateFormScore(
+            atl: 75.0,
+            ctl: 50.0,
+            yesterdayTSS: nil
+        )
+        guard highFatigue == 50 else {
+            print("   ❌ FAIL: High fatigue (ATL=1.5*CTL) should be 50")
+            print("      Got: \(highFatigue)")
+            return false
+        }
+        
+        // Test 4: Yesterday's TSS penalty
+        let withPenalty = RecoveryCalculations.calculateFormScore(
+            atl: 40.0,
+            ctl: 50.0,
+            yesterdayTSS: 120.0 // 100-150 range = 10 point penalty
+        )
+        guard withPenalty == 90 else {
+            print("   ❌ FAIL: TSS penalty not applied correctly")
+            print("      Expected: 90, got: \(withPenalty)")
+            return false
+        }
+        
+        // Test 5: TSS penalty calculation
+        let penalty50 = RecoveryCalculations.calculateTSSPenalty(yesterdayTSS: 50.0)
+        let penalty120 = RecoveryCalculations.calculateTSSPenalty(yesterdayTSS: 120.0)
+        let penalty250 = RecoveryCalculations.calculateTSSPenalty(yesterdayTSS: 250.0)
+        
+        guard penalty50 == 5 && penalty120 == 10 && penalty250 == 30 else {
+            print("   ❌ FAIL: TSS penalty tiers incorrect")
+            return false
+        }
+        
+        print("   ✅ PASS: Form score calculation works")
+        print("      Fresh state: \(fresh)")
+        print("      Moderate fatigue: \(moderate)")
+        print("      With TSS penalty: \(withPenalty)")
+        return true
+    }
+    
+    static func testRecoveryFullCalculation() async -> Bool {
+        print("\n🧪 Test 24: Recovery Full Calculation")
+        print("   Testing complete recovery score...")
+        
+        // Test 1: Optimal recovery
+        let optimal = RecoveryCalculations.calculateRecoveryScore(
+            hrv: 55.0,
+            hrvBaseline: 50.0,
+            rhr: 52.0,
+            rhrBaseline: 55.0,
+            sleepDuration: 8 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: 85,
+            respiratoryRate: 15.0,
+            respiratoryBaseline: 15.0,
+            atl: 40.0,
+            ctl: 50.0,
+            yesterdayTSS: nil
+        )
+        
+        guard optimal.score >= 80 && optimal.score <= 100 else {
+            print("   ❌ FAIL: Optimal recovery out of range")
+            print("      Expected: 80-100, got: \(optimal.score)")
+            return false
+        }
+        
+        guard optimal.band == .optimal else {
+            print("   ❌ FAIL: Band should be optimal")
+            return false
+        }
+        
+        // Test 2: Poor recovery
+        let poor = RecoveryCalculations.calculateRecoveryScore(
+            hrv: 35.0,
+            hrvBaseline: 50.0,
+            rhr: 66.0,
+            rhrBaseline: 55.0,
+            sleepDuration: 5 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: 40,
+            respiratoryRate: 18.0,
+            respiratoryBaseline: 15.0,
+            atl: 75.0,
+            ctl: 50.0,
+            yesterdayTSS: 180.0
+        )
+        
+        guard poor.score < 60 else {
+            print("   ❌ FAIL: Poor recovery should be < 60")
+            print("      Got: \(poor.score)")
+            return false
+        }
+        
+        // Test 3: Verify sub-scores
+        guard optimal.hrvScore == 100 else {
+            print("   ❌ FAIL: Optimal HRV should be 100")
+            return false
+        }
+        
+        guard optimal.rhrScore == 100 else {
+            print("   ❌ FAIL: Optimal RHR should be 100")
+            return false
+        }
+        
+        guard optimal.sleepScore == 85 else {
+            print("   ❌ FAIL: Sleep score should be 85")
+            return false
+        }
+        
+        // Test 4: Weighted combination
+        // HRV(100)*0.3 + RHR(100)*0.2 + Sleep(85)*0.3 + Resp(100)*0.1 + Form(100)*0.1
+        // = 30 + 20 + 25.5 + 10 + 10 = 95.5
+        let hrvContribution = 100.0 * 0.3
+        let rhrContribution = 100.0 * 0.2
+        let sleepContribution = 85.0 * 0.3
+        let respContribution = 100.0 * 0.1
+        let formContribution = 100.0 * 0.1
+        let expectedScore = hrvContribution + rhrContribution + sleepContribution + respContribution + formContribution
+        guard abs(Double(optimal.score) - expectedScore) < 1.0 else {
+            print("   ❌ FAIL: Weighted combination incorrect")
+            print("      Expected: ~\(Int(expectedScore)), got: \(optimal.score)")
+            return false
+        }
+        
+        print("   ✅ PASS: Full recovery calculation works")
+        print("      Optimal: \(optimal.score) (\(optimal.band.rawValue))")
+        print("      Poor: \(poor.score) (\(poor.band.rawValue))")
+        return true
+    }
+    
+    static func testRecoveryEdgeCases() async -> Bool {
+        print("\n🧪 Test 25: Recovery Edge Cases")
+        print("   Testing edge cases and boundary conditions...")
+        
+        // Test 1: No data (should return neutral)
+        let noData = RecoveryCalculations.calculateRecoveryScore(
+            hrv: nil,
+            hrvBaseline: nil,
+            rhr: nil,
+            rhrBaseline: nil,
+            sleepDuration: nil,
+            sleepBaseline: nil,
+            sleepQualityScore: nil,
+            respiratoryRate: nil,
+            respiratoryBaseline: nil,
+            atl: nil,
+            ctl: nil,
+            yesterdayTSS: nil
+        )
+        guard noData.score == 50 else {
+            print("   ❌ FAIL: No data should return 50")
+            print("      Got: \(noData.score)")
+            return false
+        }
+        
+        // Test 2: Band determination
+        let optimal = RecoveryCalculations.determineRecoveryBand(score: 85)
+        let good = RecoveryCalculations.determineRecoveryBand(score: 70)
+        let fair = RecoveryCalculations.determineRecoveryBand(score: 50)
+        let poor = RecoveryCalculations.determineRecoveryBand(score: 30)
+        
+        guard optimal == .optimal && good == .good && fair == .fair && poor == .poor else {
+            print("   ❌ FAIL: Band determination incorrect")
+            return false
+        }
+        
+        // Test 3: Zero baseline (should handle gracefully)
+        let zeroBaseline = RecoveryCalculations.calculateHRVScore(hrv: 50.0, baseline: 0.0)
+        guard zeroBaseline == 50 else {
+            print("   ❌ FAIL: Zero baseline should return 50")
+            return false
+        }
+        
+        // Test 4: Negative values (should handle gracefully)
+        let negativeHRV = RecoveryCalculations.calculateHRVScore(hrv: -10.0, baseline: 50.0)
+        guard negativeHRV >= 0 else {
+            print("   ❌ FAIL: Should handle negative HRV")
+            return false
+        }
+        
+        // Test 5: Extreme values (should clamp)
+        let extreme = RecoveryCalculations.calculateRecoveryScore(
+            hrv: 200.0,
+            hrvBaseline: 50.0,
+            rhr: 30.0,
+            rhrBaseline: 55.0,
+            sleepDuration: 12 * 3600,
+            sleepBaseline: 8 * 3600,
+            sleepQualityScore: 100,
+            respiratoryRate: 12.0,
+            respiratoryBaseline: 15.0,
+            atl: 20.0,
+            ctl: 50.0,
+            yesterdayTSS: 0.0
+        )
+        guard extreme.score <= 100 else {
+            print("   ❌ FAIL: Score should be clamped to 100")
+            return false
+        }
+        
+        print("   ✅ PASS: All edge cases handled correctly")
+        print("      - No data: ✓")
+        print("      - Band determination: ✓")
+        print("      - Zero baseline: ✓")
+        print("      - Negative values: ✓")
+        print("      - Extreme values clamped: ✓")
         return true
     }
 }
