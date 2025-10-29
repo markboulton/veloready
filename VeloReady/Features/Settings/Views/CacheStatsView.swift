@@ -2,18 +2,23 @@ import SwiftUI
 
 /// Developer view for monitoring cache performance
 struct CacheStatsView: View {
-    @StateObject private var cacheManager = UnifiedCacheManager.shared
+    private let cacheManager = UnifiedCacheManager.shared
     @State private var performanceStats: [PerformanceStats] = []
+    @State private var cacheStats: CacheStatistics?
     @State private var showingClearAlert = false
     
     var body: some View {
         List {
             // Unified Cache Section
             Section {
-                StatRow(label: SettingsContent.Cache.hitRate, value: hitRateText, valueColor: hitRateColor)
-                StatRow(label: SettingsContent.Cache.cacheHits, value: "\(cacheManager.cacheHits)")
-                StatRow(label: SettingsContent.Cache.cacheMisses, value: "\(cacheManager.cacheMisses)")
-                StatRow(label: SettingsContent.Cache.deduplicated, value: "\(cacheManager.deduplicatedRequests)")
+                if let stats = cacheStats {
+                    StatRow(label: SettingsContent.Cache.hitRate, value: hitRateText, valueColor: hitRateColor)
+                    StatRow(label: SettingsContent.Cache.cacheHits, value: "\(stats.hits)")
+                    StatRow(label: SettingsContent.Cache.cacheMisses, value: "\(stats.misses)")
+                    StatRow(label: SettingsContent.Cache.deduplicated, value: "\(stats.deduplicatedRequests)")
+                } else {
+                    ProgressView()
+                }
             } header: {
                 HStack {
                     Text(SettingsContent.Cache.itemsCached)
@@ -104,17 +109,19 @@ struct CacheStatsView: View {
         .navigationTitle(SettingsContent.Cache.statistics)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await loadPerformanceStats()
+            await loadStats()
         }
         .refreshable {
-            await loadPerformanceStats()
+            await loadStats()
         }
         .alert(SettingsContent.Cache.clearAll, isPresented: $showingClearAlert) {
             Button(SettingsContent.Cache.cancel, role: .cancel) {}
             Button(SettingsContent.Cache.clear, role: .destructive) {
-                cacheManager.invalidate(matching: "*")
-                StreamCacheService.shared.clearAllCaches()
-                Logger.debug("🗑️ All caches cleared")
+                Task {
+                    await cacheManager.invalidate(matching: "*")
+                    StreamCacheService.shared.clearAllCaches()
+                    Logger.debug("🗑️ All caches cleared")
+                }
             }
         } message: {
             Text(SettingsContent.Cache.clearMessage)
@@ -124,9 +131,8 @@ struct CacheStatsView: View {
     // MARK: - Computed Properties
     
     private var hitRatePercentage: Int {
-        let total = cacheManager.cacheHits + cacheManager.cacheMisses
-        guard total > 0 else { return 0 }
-        return Int(Double(cacheManager.cacheHits) / Double(total) * 100)
+        guard let stats = cacheStats else { return 0 }
+        return Int(stats.hitRate * 100)
     }
     
     private var hitRateText: String {
@@ -141,6 +147,14 @@ struct CacheStatsView: View {
     }
     
     // MARK: - Helpers
+    
+    private func loadStats() async {
+        // Load cache stats
+        cacheStats = await cacheManager.getStatistics()
+        
+        // Load performance stats
+        await loadPerformanceStats()
+    }
     
     private func loadPerformanceStats() async {
         let labels = await PerformanceMonitor.shared.getAllLabels()

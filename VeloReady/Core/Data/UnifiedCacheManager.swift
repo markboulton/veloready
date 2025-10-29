@@ -7,7 +7,8 @@ import Foundation
 /// - Automatic request deduplication
 /// - Memory-efficient (NSCache auto-evicts under pressure)
 /// - Simple invalidation (clear by key pattern)
-class UnifiedCacheManager: ObservableObject {
+/// - Thread-safe (actor-based)
+actor UnifiedCacheManager {
     
     // MARK: - Singleton
     static let shared = UnifiedCacheManager()
@@ -22,23 +23,27 @@ class UnifiedCacheManager: ObservableObject {
     }
     
     // MARK: - Storage
-    private nonisolated(unsafe) var memoryCache = NSCache<NSString, CachedValue>()
-    private nonisolated(unsafe) var inflightRequests: [String: Task<Any, Error>] = [:]
-    private let inflightLock = NSLock()
-    private let coreData = PersistenceController.shared
+    private var memoryCache: [String: CachedValue] = [:]
+    private var inflightRequests: [String: AnyTaskWrapper] = [:]
+    private var trackedKeys: Set<String> = []
     
     // MARK: - Statistics
-    @MainActor @Published private(set) var cacheHits: Int = 0
-    @MainActor @Published private(set) var cacheMisses: Int = 0
-    @MainActor @Published private(set) var deduplicatedRequests: Int = 0
+    private var cacheHits: Int = 0
+    private var cacheMisses: Int = 0
+    private var deduplicatedRequests: Int = 0
+    
+    // MARK: - Migration Tracking
+    private let migrationKey = "UnifiedCacheManager.MigrationVersion"
+    private let currentMigrationVersion = 2 // Increment when adding new migrations
     
     // MARK: - Initialization
     private init() {
-        // Configure NSCache
-        memoryCache.countLimit = 200 // Max 200 entries
-        memoryCache.totalCostLimit = 50 * 1024 * 1024 // 50MB max
+        Logger.debug("🗄️ [UnifiedCache] Initialized (actor-based, thread-safe)")
         
-        Logger.debug("🗄️ [UnifiedCache] Initialized (limit: 200 items, 50MB)")
+        // Run migrations if needed
+        Task {
+            await runMigrationsIfNeeded()
+        }
     }
     
     // MARK: - Smart Fetch with Deduplication
@@ -49,66 +54,58 @@ class UnifiedCacheManager: ObservableObject {
     ///   - ttl: Time-to-live in seconds
     ///   - fetchOperation: Async operation to fetch data if cache miss
     /// - Returns: Cached or freshly fetched data
-    nonisolated func fetch<T>(
+    func fetch<T: Sendable>(
         key: String,
         ttl: TimeInterval,
-        fetchOperation: @escaping () async throws -> T
+        fetchOperation: @Sendable @escaping () async throws -> T
     ) async throws -> T {
         // 1. Check memory cache (valid data)
-        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
+        if let cached = memoryCache[key],
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
-            await MainActor.run { cacheHits += 1 }
+            cacheHits += 1
             Logger.debug("⚡ [Cache HIT] \(key) (age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)")
             return value
         }
         
         // 2. Check if request is already in-flight (deduplication)
-        inflightLock.lock()
-        let existingTask = inflightRequests[key] as? Task<T, Error>
-        inflightLock.unlock()
-        
-        if let existingTask = existingTask {
-            await MainActor.run { deduplicatedRequests += 1 }
+        // FIX #1: Use type-safe wrapper for deduplication
+        if let existingTask = inflightRequests[key] {
+            deduplicatedRequests += 1
             Logger.debug("🔄 [Cache DEDUPE] \(key) - reusing existing request")
-            return try await existingTask.value
+            return try await existingTask.getValue(as: T.self)
         }
         
-        // 3. Check for expired cache data (offline fallback)
-        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
-           let value = cached.value as? T {
-            Logger.debug("📱 [Offline Fallback] \(key) (expired: \(Int(Date().timeIntervalSince(cached.cachedAt)))s ago)")
-            // Return expired data as fallback for offline scenarios
-            return value
-        }
+        // 3. Create new task and track it
+        Logger.debug("🌐 [Cache MISS] \(key) - fetching...")
+        cacheMisses += 1
         
-        // 4. Create new task and track it
         let task = Task<T, Error> {
-            Logger.debug("🌐 [Cache MISS] \(key) - fetching...")
-            await MainActor.run { cacheMisses += 1 }
-            
-            let value = try await fetchOperation()
-            
-            // Cache in memory
-            let cached = CachedValue(value: value, cachedAt: Date())
-            let cost = estimateCost(value)
-            memoryCache.setObject(cached, forKey: key as NSString, cost: cost)
-            
-            Logger.debug("💾 [Cache STORE] \(key) (cost: \(cost/1024)KB)")
-            
-            return value
+            do {
+                let value = try await fetchOperation()
+                
+                // Cache in memory
+                await self.storeInCache(key: key, value: value)
+                
+                return value
+            } catch {
+                // On network error, try to return expired cache as fallback
+                if let cached = await self.getExpiredCache(key: key, as: T.self) {
+                    Logger.debug("📱 [Offline Fallback] \(key) - returning expired cache after error")
+                    return cached
+                }
+                throw error
+            }
         }
         
-        // Store the task for deduplication
-        inflightLock.lock()
-        inflightRequests[key] = task as? Task<Any, Error>
-        inflightLock.unlock()
+        // FIX #1: Store task with type-safe wrapper
+        inflightRequests[key] = AnyTaskWrapper(task: task)
         
         // Clean up after completion
         defer {
-            inflightLock.lock()
-            inflightRequests.removeValue(forKey: key)
-            inflightLock.unlock()
+            Task {
+                await self.removeInflightRequest(key: key)
+            }
         }
         
         return try await task.value
@@ -123,46 +120,38 @@ class UnifiedCacheManager: ObservableObject {
     ///   - fetchFromCoreData: Fetch from Core Data
     ///   - fetchFromNetwork: Fetch from network if Core Data miss
     /// - Returns: Cached or fresh data
-    nonisolated func fetchWithPersistence<T>(
+    func fetchWithPersistence<T: Sendable>(
         key: String,
         ttl: TimeInterval,
-        fetchFromCoreData: () -> T?,
-        fetchFromNetwork: @escaping () async throws -> T,
-        saveToCoreData: @escaping (T) -> Void
+        fetchFromCoreData: @MainActor () -> T?,
+        fetchFromNetwork: @Sendable @escaping () async throws -> T,
+        saveToCoreData: @MainActor @escaping (T) -> Void
     ) async throws -> T {
         // 1. Check memory cache (valid data)
-        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
+        if let cached = memoryCache[key],
            cached.isValid(ttl: ttl),
            let value = cached.value as? T {
-            await MainActor.run { cacheHits += 1 }
+            cacheHits += 1
             return value
         }
         
         // 2. Check Core Data
-        if let coreDataValue = fetchFromCoreData() {
+        if let coreDataValue = await fetchFromCoreData() {
             Logger.debug("📀 [Core Data HIT] \(key)")
             
             // Store in memory cache
-            let cached = CachedValue(value: coreDataValue, cachedAt: Date())
-            memoryCache.setObject(cached, forKey: key as NSString)
+            await storeInCache(key: key, value: coreDataValue)
             
-            await MainActor.run { cacheHits += 1 }
+            cacheHits += 1
             return coreDataValue
         }
         
-        // 3. Check for expired memory cache (offline fallback)
-        if let cached = memoryCache.object(forKey: key as NSString) as? CachedValue,
-           let value = cached.value as? T {
-            Logger.debug("📱 [Offline Fallback] \(key) (expired: \(Int(Date().timeIntervalSince(cached.cachedAt)))s ago)")
-            return value
-        }
-        
-        // 4. Fetch from network (with deduplication)
+        // 3. Fetch from network (with deduplication and offline fallback)
         return try await fetch(key: key, ttl: ttl) {
             let value = try await fetchFromNetwork()
             
             // Save to Core Data for persistence
-            saveToCoreData(value)
+            await saveToCoreData(value)
             
             return value
         }
@@ -171,39 +160,62 @@ class UnifiedCacheManager: ObservableObject {
     // MARK: - Cache Management
     
     /// Invalidate specific cache entry
-    nonisolated func invalidate(key: String) {
-        memoryCache.removeObject(forKey: key as NSString)
+    func invalidate(key: String) {
+        memoryCache.removeValue(forKey: key)
+        trackedKeys.remove(key)
         Logger.debug("🗑️ [Cache INVALIDATE] \(key)")
     }
     
     /// Invalidate all entries matching pattern
-    nonisolated func invalidate(matching pattern: String) {
-        // Note: NSCache doesn't support enumeration
-        // For pattern matching, we'd need to track keys separately
-        // For now, clear all if pattern is "*"
+    /// FIX #3: Implement pattern-based invalidation with regex
+    func invalidate(matching pattern: String) {
         if pattern == "*" {
-            memoryCache.removeAllObjects()
-            Logger.debug("🗑️ [Cache CLEAR] All entries")
+            let count = memoryCache.count
+            memoryCache.removeAll()
+            trackedKeys.removeAll()
+            Logger.debug("🗑️ [Cache CLEAR] All \(count) entries")
+            return
         }
+        
+        // Use regex for pattern matching
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            Logger.warning("⚠️ [Cache] Invalid regex pattern: \(pattern)")
+            return
+        }
+        
+        var removedCount = 0
+        let keysToRemove = trackedKeys.filter { key in
+            let range = NSRange(key.startIndex..., in: key)
+            return regex.firstMatch(in: key, range: range) != nil
+        }
+        
+        for key in keysToRemove {
+            memoryCache.removeValue(forKey: key)
+            trackedKeys.remove(key)
+            removedCount += 1
+        }
+        
+        Logger.debug("🗑️ [Cache CLEAR] Removed \(removedCount) entries matching '\(pattern)'")
     }
     
     /// Clear old cache keys during migration
-    nonisolated func clearLegacyCacheKeys() {
-        // Clear old Strava cache keys that used the old pattern
+    /// FIX #5: Track migration version persistently
+    func clearLegacyCacheKeys() {
         let legacyKeys = [
             "strava_activities_90d",
             "strava_activities_365d"
         ]
         
         for key in legacyKeys {
-            memoryCache.removeObject(forKey: key as NSString)
+            memoryCache.removeValue(forKey: key)
+            trackedKeys.remove(key)
         }
         
         Logger.debug("🗑️ [Cache MIGRATION] Cleared \(legacyKeys.count) legacy cache keys")
     }
     
     /// Get cache statistics
-    @MainActor func getStatistics() -> CacheStatistics {
+    func getStatistics() -> CacheStatistics {
         let totalRequests = cacheHits + cacheMisses
         let hitRate = totalRequests > 0 ? Double(cacheHits) / Double(totalRequests) : 0.0
         
@@ -217,13 +229,33 @@ class UnifiedCacheManager: ObservableObject {
     }
     
     /// Reset statistics
-    @MainActor func resetStatistics() {
+    func resetStatistics() {
         cacheHits = 0
         cacheMisses = 0
         deduplicatedRequests = 0
     }
     
     // MARK: - Private Helpers
+    
+    /// Store value in cache
+    private func storeInCache(key: String, value: Any) {
+        let cached = CachedValue(value: value, cachedAt: Date())
+        memoryCache[key] = cached
+        trackedKeys.insert(key)
+        
+        let cost = estimateCost(value)
+        Logger.debug("💾 [Cache STORE] \(key) (cost: \(cost/1024)KB)")
+        
+        // Enforce memory limits (keep last 200 entries)
+        if memoryCache.count > 200 {
+            evictOldestEntries(count: 50)
+        }
+    }
+    
+    /// Remove inflight request
+    private func removeInflightRequest(key: String) {
+        inflightRequests.removeValue(forKey: key)
+    }
     
     /// Estimate memory cost of cached value
     private func estimateCost(_ value: Any) -> Int {
@@ -239,19 +271,55 @@ class UnifiedCacheManager: ObservableObject {
             return 1024 // Default 1KB
         }
     }
+    
+    /// Evict oldest cache entries
+    private func evictOldestEntries(count: Int) {
+        let sorted = memoryCache.sorted { $0.value.cachedAt < $1.value.cachedAt }
+        let toRemove = sorted.prefix(count)
+        
+        for (key, _) in toRemove {
+            memoryCache.removeValue(forKey: key)
+            trackedKeys.remove(key)
+        }
+        
+        Logger.debug("🗑️ [Cache EVICT] Removed \(toRemove.count) oldest entries")
+    }
+    
+    /// Run migrations if needed
+    /// FIX #5: Persistent migration tracking
+    private func runMigrationsIfNeeded() {
+        let lastVersion = UserDefaults.standard.integer(forKey: migrationKey)
+        
+        if lastVersion < currentMigrationVersion {
+            Logger.info("🔄 [Cache MIGRATION] Running migrations (v\(lastVersion) → v\(currentMigrationVersion))")
+            
+            // Migration v1 → v2: Clear legacy cache keys
+            if lastVersion < 2 {
+                clearLegacyCacheKeys()
+            }
+            
+            // Save new version
+            UserDefaults.standard.set(currentMigrationVersion, forKey: migrationKey)
+            Logger.info("✅ [Cache MIGRATION] Complete")
+        }
+    }
+    
+    /// Get expired cache for offline fallback
+    private func getExpiredCache<T>(key: String, as type: T.Type) -> T? {
+        guard let cached = memoryCache[key],
+              let value = cached.value as? T else {
+            return nil
+        }
+        return value
+    }
 }
 
 // MARK: - Supporting Types
 
 /// Cache entry with timestamp
-class CachedValue: NSObject {
+struct CachedValue {
     let value: Any
     let cachedAt: Date
-    
-    init(value: Any, cachedAt: Date) {
-        self.value = value
-        self.cachedAt = cachedAt
-    }
     
     /// Check if cache entry is still valid
     func isValid(ttl: TimeInterval) -> Bool {
@@ -277,6 +345,34 @@ struct CacheStatistics {
         - Total Requests: \(totalRequests)
         """
     }
+}
+
+/// Type-erased task wrapper for deduplication
+/// FIX #1: Enables type-safe task storage and retrieval
+private struct AnyTaskWrapper {
+    private let getValue: (Any.Type) async throws -> Any
+    
+    init<T: Sendable>(task: Task<T, Error>) {
+        self.getValue = { expectedType in
+            guard expectedType == T.self else {
+                throw CacheError.typeMismatch
+            }
+            return try await task.value
+        }
+    }
+    
+    func getValue<T>(as type: T.Type) async throws -> T {
+        let value = try await getValue(T.self)
+        guard let typedValue = value as? T else {
+            throw CacheError.typeMismatch
+        }
+        return typedValue
+    }
+}
+
+/// Cache-specific errors
+enum CacheError: Error {
+    case typeMismatch
 }
 
 // MARK: - Cache Keys
@@ -339,5 +435,11 @@ enum CacheKey {
         let dateString = ISO8601DateFormatter().string(from: startOfDay)
         // v3: Fixed respiratory rate false positive (only flag elevations, not drops)
         return "illness:detection:v3:\(dateString)"
+    }
+    
+    /// Validate cache key format
+    static func validate(_ key: String) -> Bool {
+        let pattern = "^[a-z]+:[a-z]+:[a-zA-Z0-9-:]+$"
+        return key.range(of: pattern, options: .regularExpression) != nil
     }
 }
