@@ -99,14 +99,22 @@ struct RecoveryMetricsSection: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(spacing: 12) {
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack {
+                        CompactRingView(
+                            score: nil, // nil = shows background ring only
+                            title: "",
+                            band: RecoveryScore.RecoveryBand.optimal,
+                            animationDelay: 0.0,
+                            action: {},
+                            centerText: nil,
+                            animationTrigger: animationTrigger
+                        )
+                        
+                        // Overlay spinner on top of ring
                         ProgressView()
                             .scaleEffect(0.8)
-                        Text(CommonContent.loading)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
-                    .frame(width: 80, height: 80)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -177,7 +185,7 @@ struct RecoveryMetricsSection: View {
                     }
                 }
             } else {
-                // No sleep data available - make entire ring tappable to reinstate banner
+                // No sleep data available - show background ring with spinner
                 VStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Text(TodayContent.Scores.sleepScore)
@@ -190,24 +198,33 @@ struct RecoveryMetricsSection: View {
                         }
                     }
                     
-                    Button(action: {
-                        if viewModel.missingSleepBannerDismissed {
-                            viewModel.reinstateSleepBanner()
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack {
+                        Button(action: {
+                            if viewModel.missingSleepBannerDismissed {
+                                viewModel.reinstateSleepBanner()
+                            }
+                        }) {
+                            CompactRingView(
+                                score: nil,
+                                title: "",
+                                band: viewModel.sleepBand,
+                                animationDelay: 0.1,
+                                action: {
+                                    // Action handled by button wrapper
+                                },
+                                centerText: nil,
+                                animationTrigger: animationTrigger
+                            )
                         }
-                    }) {
-                        CompactRingView(
-                            score: nil,
-                            title: viewModel.sleepTitle,
-                            band: viewModel.sleepBand,
-                            animationDelay: 0.1,
-                            action: {
-                                // Action handled by button wrapper
-                            },
-                            centerText: nil,
-                            animationTrigger: animationTrigger
-                        )
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Show spinner when data is loading
+                        if viewModel.sleepScore == nil {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -250,14 +267,22 @@ struct RecoveryMetricsSection: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(spacing: 12) {
+                    // Show background ring with loading spinner to prevent layout shift
+                    ZStack {
+                        CompactRingView(
+                            score: nil, // nil = shows background ring only
+                            title: "",
+                            band: StrainScore.StrainBand.moderate,
+                            animationDelay: 0.2,
+                            action: {},
+                            centerText: nil,
+                            animationTrigger: animationTrigger
+                        )
+                        
+                        // Overlay spinner on top of ring
                         ProgressView()
                             .scaleEffect(0.8)
-                        Text(CommonContent.loading)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
-                    .frame(width: 80, height: 80)
                 }
                 .frame(maxWidth: .infinity)
             }
