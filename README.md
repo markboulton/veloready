@@ -26,12 +26,17 @@ A comprehensive cycling performance and recovery tracking app for iOS.
 
 ## 📚 Documentation
 
-Active documentation for current work is in the root directory:
-- `API_AND_CACHE_STRATEGY_REVIEW.md` - API/cache strategy
-- `IMPLEMENTATION_STATUS.md` - Current status
-- `PHASE_1_2_TESTING_CHECKLIST.md` - Testing guide
+**Start here**: [`documentation/INDEX.md`](documentation/INDEX.md) - Complete documentation index
 
-Historical documentation is in the `documentation/` folder.
+All project documentation is organized in the [`documentation/`](documentation/) folder:
+- **implementation/** - Architecture, phases, and features (48 docs)
+- **testing/** - Testing strategies and guides (10 docs)
+- **fixes/** - Bug fixes and optimizations (21 docs)
+- **ui-ux/** - Design system and components (20 docs)
+- **sessions/** - Progress tracking and summaries (14 docs)
+- **guides/** - Development references (8 docs)
+
+See [`documentation/ORGANIZATION_SUMMARY.md`](documentation/ORGANIZATION_SUMMARY.md) for the complete structure.
 
 ## 🚀 Quick Start
 
