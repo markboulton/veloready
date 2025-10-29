@@ -29,27 +29,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Build Check (macOS)
+      - name: Test Core Logic (macOS)
         run: |
-          echo "Building for macOS (no simulator needed)"
+          echo "Testing core business logic on macOS (no simulator needed)"
+          cd VeloReadyCore
+          swift run VeloReadyCoreTests
+          
+      - name: Build iOS App (compilation check)
+        run: |
+          echo "Building iOS app for compilation verification"
           xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=macOS,arch=arm64' \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
             -quiet \
             -hideShellScriptEnvironment \
             -skipPackagePluginValidation
-            
-      - name: Critical Unit Tests (macOS)
-        run: |
-          echo "Running core logic tests on macOS (fast, no simulator)"
-          xcodebuild test \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'platform=macOS,arch=arm64' \
-            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
-            -quiet \
-            -hideShellScriptEnvironment
             
       - name: Essential Lint
         run: |
@@ -81,27 +77,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
             
-      - name: Core Unit Tests (macOS)
+      - name: Test Core Logic (macOS)
         run: |
-          echo "Running core logic tests on macOS (fast, no simulator)"
-          xcodebuild test \
+          echo "Testing core business logic on macOS (fast, no simulator)"
+          cd VeloReadyCore
+          swift run VeloReadyCoreTests
+          
+      - name: Build iOS App (compilation check)
+        run: |
+          echo "Building iOS app for compilation verification"
+          xcodebuild build \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=macOS,arch=arm64' \
-            -only-testing:VeloReadyTests/Unit \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
             -quiet \
-            -hideShellScriptEnvironment
-            
-      - name: Integration Tests (macOS)
-        run: |
-          echo "Running integration tests on macOS (fast, no simulator)"
-          xcodebuild test \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'platform=macOS,arch=arm64' \
-            -only-testing:VeloReadyTests/Integration \
-            -quiet \
-            -hideShellScriptEnvironment
+            -hideShellScriptEnvironment \
+            -skipPackagePluginValidation
             
       - name: E2E Smoke Test
         run: |
