@@ -1,0 +1,33 @@
+[
+  {
+    "id": "67890",
+    "start_date_local": "2025-10-29T08:00:00",
+    "type": "Ride",
+    "name": "Morning Ride",
+    "moving_time": 3612,
+    "distance": 30000.5,
+    "average_heartrate": 145.5,
+    "max_heartrate": 178.0,
+    "average_watts": 200.5,
+    "weighted_average_watts": 210.3,
+    "icu_training_load": 85.5,
+    "intensity": 0.84,
+    "calories": 650
+  },
+  {
+    "id": "67891",
+    "start_date_local": "2025-10-28T17:30:00",
+    "type": "Ride",
+    "name": "Recovery Spin",
+    "moving_time": 1800,
+    "distance": 15000.0,
+    "average_heartrate": 120.0,
+    "max_heartrate": 135.0,
+    "average_watts": 120.0,
+    "weighted_average_watts": 125.0,
+    "icu_training_load": 25.0,
+    "intensity": 0.50,
+    "calories": 250
+  }
+]
+
