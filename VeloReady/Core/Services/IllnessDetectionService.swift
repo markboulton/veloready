@@ -117,9 +117,9 @@ class IllnessDetectionService: ObservableObject {
     }
     
     /// Clear cached illness detection results
-    func clearCache() {
+    func clearCache() async {
         let cacheKey = CacheKey.illnessDetection(date: Date())
-        cacheManager.invalidate(key: cacheKey)
+        await cacheManager.invalidate(key: cacheKey)
         Logger.debug("🗑️ Cleared illness detection cache")
     }
     

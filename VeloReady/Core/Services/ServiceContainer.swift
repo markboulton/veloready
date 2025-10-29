@@ -82,8 +82,7 @@ final class ServiceContainer {
         
         Logger.debug("📦 ServiceContainer: Initializing...")
         
-        // Clear legacy cache keys during migration
-        UnifiedCacheManager.shared.clearLegacyCacheKeys()
+        // Note: Legacy cache cleanup happens automatically via UnifiedCacheManager migration system
         
         // Initialize core services that need early setup
         _ = healthKitManager
