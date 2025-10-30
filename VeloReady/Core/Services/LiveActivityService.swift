@@ -35,22 +35,29 @@ class LiveActivityService: ObservableObject {
     
     /// Load cached data synchronously during initialization
     private func loadCachedDataSync() {
-        // Load cached HealthKit data (if available)
+        // Check if cached data is from today
+        let cachedDate = UserDefaults.standard.object(forKey: "cached_date") as? Date
+        let calendar = Calendar.current
+        let isToday = cachedDate.map { calendar.isDateInToday($0) } ?? false
+        
+        if !isToday {
+            // Cached data is stale (from yesterday or earlier) - clear it
+            Logger.debug("🗑️ Cached data is stale (last cached: \(cachedDate?.description ?? "never")) - skipping cache load")
+            // Leave values at 0, fresh data will load shortly
+            bmrCalories = calculateTodayBMR()
+            dailyCalories = bmrCalories
+            return
+        }
+        
+        // Load cached HealthKit data (only if from today)
         let cachedSteps = UserDefaults.standard.integer(forKey: "cached_steps")
         let cachedWalkingDistance = UserDefaults.standard.double(forKey: "cached_walking_distance")
         let cachedActiveCalories = UserDefaults.standard.double(forKey: "cached_active_calories")
         
-        if cachedSteps > 0 {
-            dailySteps = cachedSteps
-        }
-        
-        if cachedWalkingDistance > 0 {
-            walkingDistance = cachedWalkingDistance
-        }
-        
-        if cachedActiveCalories > 0 {
-            activeCalories = cachedActiveCalories
-        }
+        // Load cached values even if 0 (user might have 0 steps early in the day)
+        dailySteps = cachedSteps
+        walkingDistance = cachedWalkingDistance
+        activeCalories = cachedActiveCalories
         
         // Calculate BMR (this is fast)
         let bmrCaloriesValue = calculateTodayBMR()
@@ -61,7 +68,7 @@ class LiveActivityService: ObservableObject {
         let activeCaloriesValue = activeCalories + intervalsCaloriesValue
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         
-        Logger.debug("📱 Loaded cached data during init - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
+        Logger.debug("📱 Loaded cached data during init (from today) - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
     }
     
     /// Clear cached data to force fresh loading
@@ -145,25 +152,29 @@ class LiveActivityService: ObservableObject {
     private func loadCachedData() async {
         Logger.debug("📱 Loading cached live activity data for immediate display")
         
-        // Load cached HealthKit data (if available)
+        // Check if cached data is from today
+        let cachedDate = UserDefaults.standard.object(forKey: "cached_date") as? Date
+        let calendar = Calendar.current
+        let isToday = cachedDate.map { calendar.isDateInToday($0) } ?? false
+        
+        if !isToday {
+            // Cached data is stale - skip loading
+            Logger.debug("🗑️ Cached data is stale (last cached: \(cachedDate?.description ?? "never")) - will fetch fresh")
+            return
+        }
+        
+        // Load cached HealthKit data (only if from today)
         let cachedSteps = UserDefaults.standard.integer(forKey: "cached_steps")
         let cachedWalkingDistance = UserDefaults.standard.double(forKey: "cached_walking_distance")
         let cachedActiveCalories = UserDefaults.standard.double(forKey: "cached_active_calories")
         
-        if cachedSteps > 0 {
-            dailySteps = cachedSteps
-            Logger.debug("📱 Loaded cached steps: \(cachedSteps)")
-        }
-        
-        if cachedWalkingDistance > 0 {
-            walkingDistance = cachedWalkingDistance
-            Logger.debug("📱 Loaded cached walking distance: \(cachedWalkingDistance)km")
-        }
-        
-        if cachedActiveCalories > 0 {
-            activeCalories = cachedActiveCalories
-            Logger.debug("📱 Loaded cached active calories: \(cachedActiveCalories)")
-        }
+        // Load cached values even if 0
+        dailySteps = cachedSteps
+        walkingDistance = cachedWalkingDistance
+        activeCalories = cachedActiveCalories
+        Logger.debug("📱 Loaded cached steps: \(cachedSteps)")
+        Logger.debug("📱 Loaded cached walking distance: \(cachedWalkingDistance)km")
+        Logger.debug("📱 Loaded cached active calories: \(cachedActiveCalories)")
         
         // Calculate BMR (this is fast)
         let bmrCaloriesValue = calculateTodayBMR()
@@ -205,11 +216,12 @@ class LiveActivityService: ObservableObject {
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         lastUpdated = Date()
         
-        // Cache the fresh data for next time
+        // Cache the fresh data for next time with today's date
         UserDefaults.standard.set(healthData.steps, forKey: "cached_steps")
         UserDefaults.standard.set(healthData.walkingDistance, forKey: "cached_walking_distance")
         UserDefaults.standard.set(activeCaloriesValue, forKey: "cached_active_calories")
         UserDefaults.standard.set(intervalsCaloriesValue, forKey: "cached_intervals_calories")
+        UserDefaults.standard.set(Date(), forKey: "cached_date") // Store timestamp to detect stale cache
         
         Logger.data("Live Activity Update:")
         Logger.debug("   Steps: \(dailySteps)")
