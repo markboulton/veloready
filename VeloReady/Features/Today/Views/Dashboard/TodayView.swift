@@ -457,7 +457,9 @@ struct TodayView: View {
             if hasConnectedDataSource {
                 if let latestActivity = getLatestActivity() {
                     LatestActivityCardV2(activity: latestActivity)
-                } else if viewModel.isLoading {
+                        .id(latestActivity.id) // Force new instance when activity changes
+                } else {
+                    // Always show skeleton while loading (no layout jump)
                     SkeletonActivityCard()
                 }
             }

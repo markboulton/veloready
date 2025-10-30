@@ -80,20 +80,37 @@ struct ActivitiesView: View {
     
     private var activitiesScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.md) {
                 // Sparkline header
                 sparklineHeader
                 
-                // Activities list (flat, no grouping - month shown in card date)
-                ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
+                // First 3 activities (non-lazy to prevent render delay)
+                ForEach(Array(viewModel.displayedActivities.prefix(3).enumerated()), id: \.element.id) { index, activity in
                     LatestActivityCardV2(activity: activity)
                         .onAppear {
-                            // Progressive loading: when user scrolls near the end, load more
+                            // Progressive loading trigger
                             if index == viewModel.displayedActivities.count - 3 {
                                 Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
                                 viewModel.loadMoreActivitiesIfNeeded()
                             }
                         }
+                }
+                
+                // Remaining activities (lazy loaded for performance)
+                if viewModel.displayedActivities.count > 3 {
+                    LazyVStack(spacing: Spacing.md) {
+                        ForEach(Array(viewModel.displayedActivities.dropFirst(3).enumerated()), id: \.element.id) { index, activity in
+                            LatestActivityCardV2(activity: activity)
+                                .onAppear {
+                                    // Adjust index to account for dropFirst(3)
+                                    let actualIndex = index + 3
+                                    if actualIndex == viewModel.displayedActivities.count - 3 {
+                                        Logger.debug("📊 [Activities] Near end of list (index \(actualIndex)/\(viewModel.displayedActivities.count)) - loading more")
+                                        viewModel.loadMoreActivitiesIfNeeded()
+                                    }
+                                }
+                        }
+                    }
                 }
                 
                 // Load more indicator
