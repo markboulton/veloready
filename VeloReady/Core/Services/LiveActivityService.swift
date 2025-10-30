@@ -90,7 +90,7 @@ class LiveActivityService: ObservableObject {
         await updateTask?.value
     }
     
-    /// Start automatic updates every 5 minutes
+    /// Start automatic updates every 1 minute
     func startAutoUpdates() {
         // Prevent starting multiple update cycles
         guard updateTimer == nil else {
@@ -107,12 +107,14 @@ class LiveActivityService: ObservableObject {
             await updateLiveDataImmediately()
         }
         
-        // Then update every 5 minutes
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+        // Then update every 1 minute (reduced from 5 minutes for better responsiveness)
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task { @MainActor in
                 await self.updateLiveDataImmediately()
             }
         }
+        
+        Logger.debug("🔄 LiveActivityService auto-updates started (60s intervals)")
     }
     
     /// Stop automatic updates
