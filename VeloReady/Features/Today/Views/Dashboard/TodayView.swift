@@ -577,15 +577,47 @@ struct TodayView: View {
     }
     
     private func handleAppForeground() {
+        Logger.debug("🔄 App entering foreground - preparing fresh data fetch")
+        
         Task {
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
-            liveActivityService.startAutoUpdates()
+            
             if healthKitManager.isAuthorized {
+                // Invalidate short-lived caches for fresh data
+                await invalidateShortLivedCaches()
+                
+                // Now refresh will get fresh data
+                liveActivityService.startAutoUpdates()
                 await viewModel.refreshData()
+                
                 // Re-analyze illness detection when app comes to foreground
                 await illnessService.analyzeHealthTrends()
             }
         }
+    }
+    
+    /// Invalidate short-lived caches when app returns to foreground
+    /// Only invalidates HealthKit caches (no API rate limit concerns)
+    private func invalidateShortLivedCaches() async {
+        let today = Calendar.current.startOfDay(for: Date())
+        let todayTimestamp = today.timeIntervalSince1970
+        
+        // ALWAYS invalidate HealthKit caches (no API cost, no rate limits)
+        let healthKitCaches = [
+            "healthkit:steps:\(todayTimestamp)",
+            "healthkit:active_calories:\(todayTimestamp)",
+            "healthkit:walking_distance:\(todayTimestamp)"
+        ]
+        
+        let cacheManager = UnifiedCacheManager.shared
+        for key in healthKitCaches {
+            cacheManager.invalidate(key: key)
+        }
+        
+        Logger.debug("🗑️ Invalidated HealthKit caches for foreground refresh")
+        
+        // NOTE: Strava cache kept at 1 hour to respect API rate limits
+        // Pull-to-refresh can force Strava refresh if needed
     }
     
     private func handleIntervalsConnection() {

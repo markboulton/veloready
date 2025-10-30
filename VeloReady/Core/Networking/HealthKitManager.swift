@@ -861,13 +861,13 @@ class HealthKitManager: ObservableObject {
         }
     }
     
-    /// Fetch daily steps (cached for 5 minutes)
+    /// Fetch daily steps (cached for 30 seconds for live updates)
     func fetchDailySteps() async -> Int? {
         let today = Calendar.current.startOfDay(for: Date())
         let cacheKey = "healthkit:steps:\(today.timeIntervalSince1970)"
         
         do {
-            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+            return try await cacheManager.fetch(key: cacheKey, ttl: 30) { // 30 sec cache (reduced from 300s for live updates)
                 return await self.fetchDailyStepsInternal()
             }
         } catch {
@@ -905,13 +905,13 @@ class HealthKitManager: ObservableObject {
         }
     }
     
-    /// Fetch daily active calories (cached for 5 minutes)
+    /// Fetch daily active calories (cached for 30 seconds for live updates)
     func fetchDailyActiveCalories() async -> Double? {
         let today = Calendar.current.startOfDay(for: Date())
         let cacheKey = "healthkit:active_calories:\(today.timeIntervalSince1970)"
         
         do {
-            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 min cache
+            return try await cacheManager.fetch(key: cacheKey, ttl: 30) { // 30 sec cache (reduced from 300s for live updates)
                 return await self.fetchDailyActiveCaloriesInternal()
             }
         } catch {
