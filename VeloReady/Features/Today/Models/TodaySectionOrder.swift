@@ -4,6 +4,7 @@ import Foundation
 /// Allows users to customize the order of movable sections
 struct TodaySectionOrder: Codable {
     var movableSections: [TodaySection]
+    var hiddenSections: [TodaySection]
     
     /// Default section order
     static let defaultOrder = TodaySectionOrder(
@@ -13,7 +14,8 @@ struct TodaySectionOrder: Codable {
             .steps,
             .calories,
             .recentActivities
-        ]
+        ],
+        hiddenSections: []
     )
     
     /// UserDefaults key for persistence
@@ -37,6 +39,7 @@ struct TodaySectionOrder: Codable {
     /// Migrate old section orders to include new sections
     private static func migrateIfNeeded(_ order: TodaySectionOrder) -> TodaySectionOrder {
         var sections = order.movableSections
+        let hidden = order.hiddenSections
         var needsSave = false
         
         // Remove dailyBrief if present (now unified with veloAI)
@@ -58,7 +61,7 @@ struct TodaySectionOrder: Codable {
         
         if needsSave {
             // Save the migrated order
-            let migratedOrder = TodaySectionOrder(movableSections: sections)
+            let migratedOrder = TodaySectionOrder(movableSections: sections, hiddenSections: hidden)
             migratedOrder.save()
             return migratedOrder
         }

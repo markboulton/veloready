@@ -85,9 +85,9 @@ struct TodayView: View {
                             HealthWarningsCardV2()
                         }
                         
-                        // Movable sections (ordered by user preference)
+                        // Movable sections (ordered by user preference, excluding hidden)
                         if healthKitManager.isAuthorized {
-                            ForEach(sectionOrder.movableSections) { section in
+                            ForEach(sectionOrder.movableSections.filter { !sectionOrder.hiddenSections.contains($0) }) { section in
                                 movableSection(section)
                             }
                         }

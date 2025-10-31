@@ -385,6 +385,9 @@ class TodayViewModel: ObservableObject {
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalTime = endTime - startTime
         Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")
+        
+        // Notify that Today data has been refreshed (for ML progress bar, etc.)
+        NotificationCenter.default.post(name: .todayDataRefreshed, object: nil)
     }
     
     /// Fetch and update activities for a specific time range

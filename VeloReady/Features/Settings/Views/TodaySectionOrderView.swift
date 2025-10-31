@@ -14,21 +14,64 @@ struct TodaySectionOrderView: View {
     var body: some View {
         List {
             Section {
-                Text("Customize the order of sections on your Today page. Drag to reorder.")
+                Text("Customize the order of sections on your Today page. Drag to reorder or move to hidden.")
                     .font(.subheadline)
                     .foregroundStyle(Color.text.secondary)
             }
             
             Section {
-                ForEach(sectionOrder.movableSections) { section in
-                    SectionRow(section: section, isPro: proConfig.hasProAccess)
+                ForEach(Array(sectionOrder.movableSections.enumerated()), id: \.element.id) { index, section in
+                    HStack {
+                        SectionRow(section: section, isPro: proConfig.hasProAccess)
+                        
+                        Spacer()
+                        
+                        // Hide button
+                        Button {
+                            hideSection(section)
+                        } label: {
+                            Image(systemName: "eye.slash")
+                                .foregroundStyle(Color.text.tertiary)
+                                .font(.system(size: 16))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .onMove(perform: moveSection)
             } header: {
-                Text("Movable Sections")
+                Text("Visible Sections")
             } footer: {
                 Text("Fixed sections (Recovery Metrics) always appear at the top")
                     .font(.caption)
+            }
+            
+            // Hidden sections
+            if !sectionOrder.hiddenSections.isEmpty {
+                Section {
+                    ForEach(Array(sectionOrder.hiddenSections.enumerated()), id: \.element.id) { index, section in
+                        HStack {
+                            SectionRow(section: section, isPro: proConfig.hasProAccess)
+                                .opacity(0.6)
+                            
+                            Spacer()
+                            
+                            // Show button
+                            Button {
+                                showSection(section)
+                            } label: {
+                                Image(systemName: "eye")
+                                    .foregroundStyle(ColorScale.blueAccent)
+                                    .font(.system(size: 16))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                } header: {
+                    Text("Hidden Sections")
+                } footer: {
+                    Text("Hidden sections won't appear on your Today page")
+                        .font(.caption)
+                }
             }
             
             Section {
@@ -58,6 +101,26 @@ struct TodaySectionOrderView: View {
     private func moveSection(from source: IndexSet, to destination: Int) {
         sectionOrder.movableSections.move(fromOffsets: source, toOffset: destination)
         hasChanges = true
+    }
+    
+    private func hideSection(_ section: TodaySection) {
+        withAnimation {
+            if let index = sectionOrder.movableSections.firstIndex(of: section) {
+                sectionOrder.movableSections.remove(at: index)
+                sectionOrder.hiddenSections.append(section)
+                hasChanges = true
+            }
+        }
+    }
+    
+    private func showSection(_ section: TodaySection) {
+        withAnimation {
+            if let index = sectionOrder.hiddenSections.firstIndex(of: section) {
+                sectionOrder.hiddenSections.remove(at: index)
+                sectionOrder.movableSections.append(section)
+                hasChanges = true
+            }
+        }
     }
     
     private func resetToDefault() {
