@@ -41,7 +41,7 @@ struct TodaySectionOrder: Codable {
     /// Migrate old section orders to include new sections
     private static func migrateIfNeeded(_ order: TodaySectionOrder) -> TodaySectionOrder {
         var sections = order.movableSections
-        let hidden = order.hiddenSections
+        var hidden = order.hiddenSections
         var needsSave = false
         
         // Remove dailyBrief if present (now unified with veloAI)
@@ -59,6 +59,39 @@ struct TodaySectionOrder: Codable {
             
             Logger.debug("☁️ Migrated stepsAndCalories to separate sections")
             needsSave = true
+        }
+        
+        // Add new chart sections if not present (performanceChart, fitnessTrajectory)
+        let allSections = sections + hidden
+        if !allSections.contains(.performanceChart) {
+            // Insert after calories or at end
+            if let caloriesIndex = sections.firstIndex(of: .calories) {
+                sections.insert(.performanceChart, at: caloriesIndex + 1)
+            } else {
+                sections.append(.performanceChart)
+            }
+            Logger.debug("☁️ Added performanceChart to section order")
+            needsSave = true
+        }
+        
+        if !allSections.contains(.fitnessTrajectory) {
+            // Insert after performanceChart or at end
+            if let perfIndex = sections.firstIndex(of: .performanceChart) {
+                sections.insert(.fitnessTrajectory, at: perfIndex + 1)
+            } else {
+                sections.append(.fitnessTrajectory)
+            }
+            Logger.debug("☁️ Added fitnessTrajectory to section order")
+            needsSave = true
+        }
+        
+        if !allSections.contains(.formChart) {
+            // FormChart can stay hidden by default or be added - let's add it hidden
+            if !hidden.contains(.formChart) {
+                hidden.append(.formChart)
+                Logger.debug("☁️ Added formChart to hidden sections")
+                needsSave = true
+            }
         }
         
         if needsSave {
