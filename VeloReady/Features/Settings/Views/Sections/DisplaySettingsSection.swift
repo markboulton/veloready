@@ -29,18 +29,6 @@ struct DisplaySettingsSection: View {
                         .foregroundColor(ColorPalette.labelSecondary)
                 }
             }
-            
-            // Today page layout
-            NavigationLink(destination: TodaySectionOrderView()) {
-                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                    Text("Today Page Layout")
-                        .font(TypeScale.font(size: TypeScale.md))
-                    
-                    Text("Customize section order")
-                        .font(TypeScale.font(size: TypeScale.xs))
-                        .foregroundColor(ColorPalette.labelSecondary)
-                }
-            }
         } header: {
             Text(SettingsContent.appearanceSection)
         } footer: {

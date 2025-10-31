@@ -27,7 +27,6 @@ struct TodayView: View {
     @State private var wasHealthKitAuthorized = false
     @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
-    @State private var sectionOrder: TodaySectionOrder = TodaySectionOrder.load()
     @State private var isViewActive = false
     @Binding var showInitialSpinner: Bool
     
@@ -85,10 +84,47 @@ struct TodayView: View {
                             HealthWarningsCardV2()
                         }
                         
-                        // Movable sections (ordered by user preference)
+                        // Fixed Today page sections
                         if healthKitManager.isAuthorized {
-                            ForEach(sectionOrder.movableSections) { section in
-                                movableSection(section)
+                            // Unified AI Brief (Pro) or Computed Brief (Free)
+                            AIBriefView()
+                            
+                            // Latest Activity from Strava/Intervals
+                            if hasConnectedDataSource {
+                                if let latestActivity = getLatestActivity() {
+                                    LatestActivityCardV2(activity: latestActivity)
+                                        .id(latestActivity.id)
+                                } else {
+                                    SkeletonActivityCard()
+                                }
+                            }
+                            
+                            // Steps
+                            StepsCardV2()
+                                .opacity(liveActivityService.isLoading ? 0 : 1)
+                                .overlay {
+                                    if liveActivityService.isLoading {
+                                        SkeletonStatsCard()
+                                    }
+                                }
+                            
+                            // Calories
+                            if liveActivityService.isLoading {
+                                SkeletonStatsCard()
+                            } else {
+                                CaloriesCardV2()
+                            }
+                            
+                            // Recent Activities
+                            if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
+                                SkeletonRecentActivities()
+                            } else {
+                                RecentActivitiesSection(
+                                    allActivities: viewModel.unifiedActivities.isEmpty ?
+                                        viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+                                        viewModel.unifiedActivities,
+                                    dailyActivityData: generateDailyActivityData()
+                                )
                             }
                         }
                         
@@ -155,9 +191,6 @@ struct TodayView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
             handleIntervalsConnection()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .todaySectionOrderChanged)) { _ in
-            sectionOrder = TodaySectionOrder.load()
         }
         .sheet(isPresented: $showingDebugView) {
             DebugDataView()
@@ -445,55 +478,6 @@ struct TodayView: View {
         .padding(.bottom, 4)
     }
     
-    // MARK: - Movable Sections
-    
-    @ViewBuilder
-    private func movableSection(_ section: TodaySection) -> some View {
-        switch section {
-        case .veloAI:
-            // Unified component handles both Pro (AI) and Free (computed) briefs
-            AIBriefView()
-        case .latestActivity:
-            if hasConnectedDataSource {
-                if let latestActivity = getLatestActivity() {
-                    LatestActivityCardV2(activity: latestActivity)
-                        .id(latestActivity.id) // Force new instance when activity changes
-                } else {
-                    // Always show skeleton while loading (no layout jump)
-                    SkeletonActivityCard()
-                }
-            }
-        case .steps:
-            StepsCardV2()
-                .opacity(liveActivityService.isLoading ? 0 : 1)
-                .overlay {
-                    if liveActivityService.isLoading {
-                        SkeletonStatsCard()
-                    }
-                }
-        case .calories:
-            if liveActivityService.isLoading {
-                SkeletonStatsCard()
-            } else {
-                CaloriesCardV2()
-            }
-        case .stepsAndCalories, .dailyBrief:
-            // Legacy - no longer used (dailyBrief unified with veloAI)
-            EmptyView()
-        case .recentActivities:
-            if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
-                SkeletonRecentActivities()
-            } else {
-                RecentActivitiesSection(
-                    allActivities: viewModel.unifiedActivities.isEmpty ?
-                        viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                        viewModel.unifiedActivities,
-                    dailyActivityData: generateDailyActivityData()
-                )
-            }
-        }
-    }
-    
     // MARK: - Helper Computed Properties
     
     private var hasConnectedDataSource: Bool {
@@ -515,8 +499,6 @@ struct TodayView: View {
     
     private func handleViewAppear() {
         Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(viewState.hasCompletedTodayInitialLoad), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
-        // Reload section order in case it changed in settings
-        sectionOrder = TodaySectionOrder.load()
         
         // Check if we're returning from navigation (was inactive, now becoming active)
         let wasInactive = !isViewActive

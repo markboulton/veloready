@@ -91,8 +91,9 @@ struct AIBriefView: View {
                     await service.fetchBrief()
                 }
             }
-            
-            // Refresh ML training data count to ensure progress bar updates
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .todayDataRefreshed)) { _ in
+            // Refresh ML training data count when Today data refreshes
             Task {
                 await mlService.refreshTrainingDataCount()
             }

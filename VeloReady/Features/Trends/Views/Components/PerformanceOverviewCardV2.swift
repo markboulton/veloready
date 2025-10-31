@@ -184,7 +184,7 @@ struct PerformanceOverviewCardV2: View {
                     y: .value("Load", point.value),
                     series: .value("Metric", "Load")
                 )
-                .foregroundStyle(Color.workout.tss)
+                .foregroundStyle(Color.orange)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.catmullRom)
             }
@@ -196,7 +196,7 @@ struct PerformanceOverviewCardV2: View {
                     y: .value("Sleep", point.value),
                     series: .value("Metric", "Sleep")
                 )
-                .foregroundStyle(Color.health.sleep)
+                .foregroundStyle(Color.blue)
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .interpolationMethod(.catmullRom)
             }
@@ -237,14 +237,14 @@ struct PerformanceOverviewCardV2: View {
             )
             
             MetricLegendItem(
-                color: Color.workout.tss,
+                color: Color.orange,
                 label: "Load",
                 value: loadData.last?.value,
                 unit: ""
             )
             
             MetricLegendItem(
-                color: Color.health.sleep,
+                color: Color.blue,
                 label: "Sleep",
                 value: sleepData.last?.value,
                 unit: "%"
