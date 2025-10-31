@@ -31,6 +31,14 @@ class TodayViewModel: ObservableObject {
     // Health Status
     @Published var isHealthKitAuthorized = false
     
+    // Chart data for performance cards (7-day view)
+    @Published var recoveryTrendData: [TrendsViewModel.TrendDataPoint] = []
+    @Published var loadTrendData: [TrendsViewModel.TrendDataPoint] = []
+    @Published var sleepTrendData: [TrendsViewModel.TrendDataPoint] = []
+    @Published var ctlData: [TrendsViewModel.TrendDataPoint] = []
+    @Published var atlData: [TrendsViewModel.TrendDataPoint] = []
+    @Published var tsbData: [TrendsViewModel.TrendDataPoint] = []
+    
     // MARK: - Dependencies (via ServiceContainer)
     
     private let services = ServiceContainer.shared
@@ -388,6 +396,76 @@ class TodayViewModel: ObservableObject {
         
         // Notify that Today data has been refreshed (for ML progress bar, etc.)
         NotificationCenter.default.post(name: .todayDataRefreshed, object: nil)
+        
+        // Fetch chart data in background
+        Task.detached(priority: .background) {
+            await self.fetchChartData()
+        }
+    }
+    
+    /// Fetch 7-day chart data for performance and form cards
+    private func fetchChartData() async {
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else { return }
+        
+        // Fetch from Core Data (DailyScores)
+        let context = PersistenceController.shared.container.viewContext
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "date >= %@ AND date <= %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        guard let dailyScores = try? context.fetch(request) else {
+            Logger.error("📊 [CHART DATA] Failed to fetch from Core Data")
+            return
+        }
+        
+        // Convert to trend data points
+        let recoveryPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, score.recoveryScore > 0 else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: score.recoveryScore)
+        }
+        
+        let loadPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, let load = score.load, load.tss > 0 else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: load.tss)
+        }
+        
+        let sleepPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, score.sleepScore > 0 else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: score.sleepScore)
+        }
+        
+        // CTL/ATL/TSB from DailyLoad relationship
+        let ctlPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, let load = score.load, load.ctl > 0 else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: load.ctl)
+        }
+        
+        let atlPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, let load = score.load, load.atl > 0 else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: load.atl)
+        }
+        
+        let tsbPoints = dailyScores.compactMap { score -> TrendsViewModel.TrendDataPoint? in
+            guard let date = score.date, let load = score.load else { return nil }
+            return TrendsViewModel.TrendDataPoint(date: date, value: load.tsb)
+        }
+        
+        // Update on main actor
+        await MainActor.run {
+            self.recoveryTrendData = recoveryPoints
+            self.loadTrendData = loadPoints
+            self.sleepTrendData = sleepPoints
+            self.ctlData = ctlPoints
+            self.atlData = atlPoints
+            self.tsbData = tsbPoints
+            Logger.debug("📊 Updated chart data: Recovery=\(recoveryPoints.count), Load=\(loadPoints.count), Sleep=\(sleepPoints.count), CTL=\(ctlPoints.count)")
+        }
     }
     
     /// Fetch and update activities for a specific time range

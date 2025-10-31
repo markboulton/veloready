@@ -99,6 +99,9 @@ struct TodayView: View {
                                 showBenefits: true
                             )
                         }
+                        
+                        // Customize view CTA
+                        CustomizeViewCTA()
                     }
                     .padding(.horizontal, Spacing.xl)
                     .padding(.bottom, 120)
@@ -480,6 +483,28 @@ struct TodayView: View {
         case .stepsAndCalories, .dailyBrief:
             // Legacy - no longer used (dailyBrief unified with veloAI)
             EmptyView()
+        case .performanceChart:
+            if ProFeatureConfig.shared.hasProAccess {
+                PerformanceOverviewCardV2(
+                    recoveryData: viewModel.recoveryTrendData,
+                    loadData: viewModel.loadTrendData,
+                    sleepData: viewModel.sleepTrendData,
+                    timeRange: .days30
+                )
+            } else {
+                ProUpgradeCard(content: .unlockProFeatures, showBenefits: false)
+            }
+        case .formChart:
+            if ProFeatureConfig.shared.hasProAccess {
+                FormChartCardV2(
+                    ctlData: viewModel.ctlData,
+                    atlData: viewModel.atlData,
+                    tsbData: viewModel.tsbData,
+                    timeRange: .days30
+                )
+            } else {
+                ProUpgradeCard(content: .unlockProFeatures, showBenefits: false)
+            }
         case .recentActivities:
             if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
                 SkeletonRecentActivities()

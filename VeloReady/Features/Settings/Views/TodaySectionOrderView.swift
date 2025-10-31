@@ -208,6 +208,10 @@ struct SectionRow: View {
             return Color.orange
         case .stepsAndCalories:
             return Color.text.secondary
+        case .performanceChart:
+            return Color.purple
+        case .formChart:
+            return Color.cyan
         case .recentActivities:
             return Color.text.secondary
         }

@@ -13,6 +13,7 @@ struct TodaySectionOrder: Codable {
             .latestActivity,
             .steps,
             .calories,
+            .performanceChart,
             .recentActivities
         ],
         hiddenSections: []
@@ -122,6 +123,8 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
     case steps = "Steps"
     case calories = "Calories"
     case stepsAndCalories = "Steps & Calories" // Legacy - kept for migration
+    case performanceChart = "Performance Chart"
+    case formChart = "Training Form (CTL/ATL)"
     case recentActivities = "Recent Activities"
     
     var id: String { rawValue }
@@ -141,6 +144,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return "Calories"
         case .stepsAndCalories:
             return "Steps & Calories"
+        case .performanceChart:
+            return "Performance Overview"
+        case .formChart:
+            return "Training Form"
         case .recentActivities:
             return TodayContent.activitiesSection
         }
@@ -161,6 +168,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return Icons.Health.caloriesFill
         case .stepsAndCalories:
             return Icons.Activity.walking
+        case .performanceChart:
+            return "chart.xyaxis.line"
+        case .formChart:
+            return "chart.line.uptrend.xyaxis"
         case .recentActivities:
             return Icons.System.chartDoc
         }
@@ -181,6 +192,10 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
             return "Active calories burned"
         case .stepsAndCalories:
             return "Daily step count and calorie tracking"
+        case .performanceChart:
+            return "7-day performance overlay: recovery, load & sleep"
+        case .formChart:
+            return "Training load balance (CTL, ATL & TSB)"
         case .recentActivities:
             return "List of your recent workouts"
         }
@@ -190,6 +205,8 @@ enum TodaySection: String, Codable, CaseIterable, Identifiable {
     var requiresPro: Bool {
         switch self {
         case .veloAI:
+            return true
+        case .performanceChart, .formChart:
             return true
         case .dailyBrief, .latestActivity, .steps, .calories, .stepsAndCalories, .recentActivities:
             return false
