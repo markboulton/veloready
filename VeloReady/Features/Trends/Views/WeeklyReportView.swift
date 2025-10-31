@@ -15,6 +15,7 @@ extension View {
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
     @StateObject private var viewModel = WeeklyReportViewModel()
+    @StateObject private var trendsViewModel = TrendsViewModel()
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var selectedSleepDay = 0 // For segmented control
     
@@ -30,7 +31,15 @@ struct WeeklyReportView: View {
                     daysUntilNextReport: viewModel.daysUntilNextReport
                 )
                 
-                // 2. Fitness Trajectory (CTL/ATL/Form)
+                // 2. Performance Overview (2-week trend)
+                PerformanceOverviewCardV2(
+                    recoveryData: trendsViewModel.recoveryTrendData,
+                    loadData: trendsViewModel.dailyLoadData,
+                    sleepData: trendsViewModel.sleepData,
+                    timeRange: .days30
+                )
+                
+                // 3. Fitness Trajectory (CTL/ATL/Form)
                 FitnessTrajectoryComponent(
                     metrics: viewModel.weeklyMetrics,
                     ctlData: viewModel.ctlHistoricalData
