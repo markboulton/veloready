@@ -382,6 +382,10 @@ class TodayViewModel: ObservableObject {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }
         
+        // Fetch training load data for all time ranges (week, month, 3 months)
+        // This data is used by the fitness trajectory chart
+        await TrainingLoadService.shared.fetchAllData()
+        
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalTime = endTime - startTime
         Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")

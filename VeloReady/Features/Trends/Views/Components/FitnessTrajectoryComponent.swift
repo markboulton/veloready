@@ -1,18 +1,58 @@
 import SwiftUI
 
-/// Fitness Trajectory component showing CTL/ATL/TSB over 7 days
+/// Fitness Trajectory component showing CTL/ATL/TSB with time range selection
 struct FitnessTrajectoryComponent: View {
     let metrics: WeeklyReportViewModel.WeeklyMetrics?
     let ctlData: [FitnessTrajectoryChart.DataPoint]?
+    
+    @State private var selectedTimeRange: FitnessTimeRange = .week
+    @StateObject private var trainingLoadService = TrainingLoadService.shared
+    
+    enum FitnessTimeRange: Int, CaseIterable {
+        case week = 0
+        case month = 1
+        case threeMonths = 2
+        
+        var label: String {
+            switch self {
+            case .week: return "Week"
+            case .month: return "Month"
+            case .threeMonths: return "3 Months"
+            }
+        }
+        
+        var days: Int {
+            switch self {
+            case .week: return 7
+            case .month: return 30
+            case .threeMonths: return 90
+            }
+        }
+    }
+    
+    private var displayData: [FitnessTrajectoryChart.DataPoint] {
+        trainingLoadService.getData(days: selectedTimeRange.days)
+    }
     
     var body: some View {
         StandardCard(
             title: TrendsContent.WeeklyReport.fitnessTrajectory
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                if let metrics = metrics, let ctlData = ctlData {
-                // Chart showing CTL, ATL, TSB over 7 days
-                FitnessTrajectoryChart(data: ctlData)
+                // Segmented control for time range
+                LiquidGlassSegmentedControl(
+                    segments: FitnessTimeRange.allCases.map { timeRange in
+                        SegmentItem(value: timeRange.rawValue, label: timeRange.label)
+                    },
+                    selection: Binding(
+                        get: { selectedTimeRange.rawValue },
+                        set: { if let range = FitnessTimeRange(rawValue: $0) { selectedTimeRange = range } }
+                    )
+                )
+                
+                if !displayData.isEmpty {
+                // Chart showing CTL, ATL, TSB for selected time range
+                FitnessTrajectoryChart(data: displayData)
                     .frame(height: 200)
                 
                 // Legend - colors match chart lines (values shown on last point)
@@ -31,9 +71,11 @@ struct FitnessTrajectoryComponent: View {
                     )
                 }
                 
-                Text(tsbInterpretation(metrics.tsb))
-                    .font(.caption)
-                    .foregroundColor(.text.secondary)
+                if let metrics = metrics {
+                    Text(tsbInterpretation(metrics.tsb))
+                        .font(.caption)
+                        .foregroundColor(.text.secondary)
+                }
                 } else {
                     Text(TrendsContent.WeeklyReport.noTrainingData)
                         .font(.caption)

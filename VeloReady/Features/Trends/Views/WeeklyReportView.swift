@@ -95,6 +95,7 @@ struct WeeklyReportView: View {
         )
         .task {
             await viewModel.loadWeeklyReport()
+            await trendsViewModel.loadTrendData()
         }
         .refreshable {
             await viewModel.loadWeeklyReport()

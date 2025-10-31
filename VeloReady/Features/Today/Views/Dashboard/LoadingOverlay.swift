@@ -1,30 +1,20 @@
 import SwiftUI
 
 /// Full-screen loading overlay with pulse-scale animation
-/// Positioned to align with compact rings section
+/// Centered horizontally and vertically during initial app load (Phase 1)
 struct LoadingOverlay: View {
     var body: some View {
-        ZStack {
-            Color.background.primary
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Add spacing from top to align with compact rings position
-                // Compact rings appear at ~140pt from top (after nav title)
-                Spacer()
-                    .frame(height: 140)
-                
-                // Pulse-scale loader animation
+        Color.background.primary
+            .ignoresSafeArea()
+            .overlay(
+                // Pulse-scale loader animation - centered in viewport
                 PulseScaleLoader()
-                
-                Spacer()
+            )
+            .onAppear {
+                Logger.debug("🔵 [SPINNER] LoadingOverlay SHOWING")
             }
-        }
-        .onAppear {
-            Logger.debug("🔵 [SPINNER] LoadingOverlay SHOWING")
-        }
-        .onDisappear {
-            Logger.debug("🟢 [SPINNER] LoadingOverlay HIDDEN")
-        }
+            .onDisappear {
+                Logger.debug("🟢 [SPINNER] LoadingOverlay HIDDEN")
+            }
     }
 }
