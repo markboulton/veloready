@@ -31,13 +31,16 @@ class TodayViewModel: ObservableObject {
     // Health Status
     @Published var isHealthKitAuthorized = false
     
-    // Chart data for performance cards (7-day view)
+    // Chart data for performance cards (14-day view)
     @Published var recoveryTrendData: [TrendsViewModel.TrendDataPoint] = []
     @Published var loadTrendData: [TrendsViewModel.TrendDataPoint] = []
     @Published var sleepTrendData: [TrendsViewModel.TrendDataPoint] = []
     @Published var ctlData: [TrendsViewModel.TrendDataPoint] = []
     @Published var atlData: [TrendsViewModel.TrendDataPoint] = []
     @Published var tsbData: [TrendsViewModel.TrendDataPoint] = []
+    
+    // Fitness trajectory data (2 weeks past + 1 week future)
+    @Published var fitnessTrajectoryData: [FitnessTrajectoryChart.DataPoint] = []
     
     // MARK: - Dependencies (via ServiceContainer)
     
@@ -403,11 +406,11 @@ class TodayViewModel: ObservableObject {
         }
     }
     
-    /// Fetch 7-day chart data for performance and form cards
+    /// Fetch 14-day (2 week) chart data for performance and form cards
     private func fetchChartData() async {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else { return }
+        guard let startDate = calendar.date(byAdding: .day, value: -13, to: endDate) else { return }
         
         // Fetch from Core Data (DailyScores)
         let context = PersistenceController.shared.container.viewContext
@@ -456,6 +459,9 @@ class TodayViewModel: ObservableObject {
             return TrendsViewModel.TrendDataPoint(date: date, value: load.tsb)
         }
         
+        // Build fitness trajectory with projections (2 weeks past + 1 week future)
+        let trajectoryData = buildFitnessTrajectory(from: dailyScores)
+        
         // Update on main actor
         await MainActor.run {
             self.recoveryTrendData = recoveryPoints
@@ -464,8 +470,55 @@ class TodayViewModel: ObservableObject {
             self.ctlData = ctlPoints
             self.atlData = atlPoints
             self.tsbData = tsbPoints
-            Logger.debug("📊 Updated chart data: Recovery=\(recoveryPoints.count), Load=\(loadPoints.count), Sleep=\(sleepPoints.count), CTL=\(ctlPoints.count)")
+            self.fitnessTrajectoryData = trajectoryData
+            Logger.debug("📊 Updated chart data: Recovery=\(recoveryPoints.count), Load=\(loadPoints.count), Sleep=\(sleepPoints.count), CTL=\(ctlPoints.count), Trajectory=\(trajectoryData.count)")
         }
+    }
+    
+    /// Build fitness trajectory with historical data + 7-day projection
+    private func buildFitnessTrajectory(from dailyScores: [DailyScores]) -> [FitnessTrajectoryChart.DataPoint] {
+        var points: [FitnessTrajectoryChart.DataPoint] = []
+        
+        // Historical data (2 weeks)
+        for score in dailyScores {
+            guard let date = score.date, let load = score.load else { continue }
+            points.append(FitnessTrajectoryChart.DataPoint(
+                date: date,
+                ctl: load.ctl,
+                atl: load.atl,
+                tsb: load.tsb,
+                isFuture: false
+            ))
+        }
+        
+        // Project 7 days into future using simple decay model
+        guard let lastPoint = points.last else { return points }
+        let calendar = Calendar.current
+        
+        for dayOffset in 1...7 {
+            guard let futureDate = calendar.date(byAdding: .day, value: dayOffset, to: lastPoint.date) else { continue }
+            
+            // Decay model: ATL decays faster than CTL
+            let ctlDecay = 1.0 / 42.0 // CTL time constant
+            let atlDecay = 1.0 / 7.0  // ATL time constant
+            
+            let previousCTL = points.last?.ctl ?? lastPoint.ctl
+            let previousATL = points.last?.atl ?? lastPoint.atl
+            
+            let projectedCTL = previousCTL * (1.0 - ctlDecay)
+            let projectedATL = previousATL * (1.0 - atlDecay)
+            let projectedTSB = projectedCTL - projectedATL
+            
+            points.append(FitnessTrajectoryChart.DataPoint(
+                date: futureDate,
+                ctl: projectedCTL,
+                atl: projectedATL,
+                tsb: projectedTSB,
+                isFuture: true
+            ))
+        }
+        
+        return points
     }
     
     /// Fetch and update activities for a specific time range

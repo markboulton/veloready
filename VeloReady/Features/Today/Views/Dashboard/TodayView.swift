@@ -505,6 +505,12 @@ struct TodayView: View {
             } else {
                 ProUpgradeCard(content: .unlockProFeatures, showBenefits: false)
             }
+        case .fitnessTrajectory:
+            if ProFeatureConfig.shared.hasProAccess {
+                FitnessTrajectoryCardV2(data: viewModel.fitnessTrajectoryData)
+            } else {
+                ProUpgradeCard(content: .unlockProFeatures, showBenefits: false)
+            }
         case .recentActivities:
             if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
                 SkeletonRecentActivities()

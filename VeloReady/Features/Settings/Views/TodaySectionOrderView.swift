@@ -212,6 +212,8 @@ struct SectionRow: View {
             return Color.purple
         case .formChart:
             return Color.cyan
+        case .fitnessTrajectory:
+            return Color.indigo
         case .recentActivities:
             return Color.text.secondary
         }
