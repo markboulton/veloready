@@ -22,13 +22,29 @@ class ProFeatureConfig: ObservableObject {
     #endif
     
     // For development/testing: show mock data for features requiring historical data
-    @Published var showMockDataForTesting: Bool = false
+    @Published var showMockDataForTesting: Bool = UserDefaults.standard.bool(forKey: "showMockDataForTesting") {
+        didSet { UserDefaults.standard.set(showMockDataForTesting, forKey: "showMockDataForTesting") }
+    }
     
     // For development/testing: force wellness warning to show
-    @Published var showWellnessWarningForTesting: Bool = false
+    @Published var showWellnessWarningForTesting: Bool = UserDefaults.standard.bool(forKey: "showWellnessWarningForTesting") {
+        didSet { UserDefaults.standard.set(showWellnessWarningForTesting, forKey: "showWellnessWarningForTesting") }
+    }
     
     // For development/testing: force illness indicator to show
-    @Published var showIllnessIndicatorForTesting: Bool = false
+    @Published var showIllnessIndicatorForTesting: Bool = UserDefaults.standard.bool(forKey: "showIllnessIndicatorForTesting") {
+        didSet { UserDefaults.standard.set(showIllnessIndicatorForTesting, forKey: "showIllnessIndicatorForTesting") }
+    }
+    
+    // For development/testing: simulate no sleep data
+    @Published var simulateNoSleepData: Bool = UserDefaults.standard.bool(forKey: "simulateNoSleepData") {
+        didSet { UserDefaults.standard.set(simulateNoSleepData, forKey: "simulateNoSleepData") }
+    }
+    
+    // For development/testing: simulate no network connection
+    @Published var simulateNoNetwork: Bool = UserDefaults.standard.bool(forKey: "simulateNoNetwork") {
+        didSet { UserDefaults.standard.set(simulateNoNetwork, forKey: "simulateNoNetwork") }
+    }
     
     private init() {
         // Load subscription state from UserDefaults or RevenueCat

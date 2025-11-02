@@ -9,6 +9,8 @@ class HealthWarningsCardViewModel: ObservableObject {
     
     @Published private(set) var illnessIndicator: IllnessIndicator?
     @Published private(set) var wellnessAlert: WellnessAlert?
+    @Published private(set) var hasSleepData: Bool = true
+    @Published private(set) var isNetworkOffline: Bool = false
     @Published var showingIllnessDetail: Bool = false
     @Published var showingWellnessDetail: Bool = false
     
@@ -16,16 +18,20 @@ class HealthWarningsCardViewModel: ObservableObject {
     
     private let illnessService: IllnessDetectionService
     private let wellnessService: WellnessDetectionService
+    private let sleepScoreService: SleepScoreService
+    private let proConfig = ProFeatureConfig.shared
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
     
     init(
         illnessService: IllnessDetectionService = .shared,
-        wellnessService: WellnessDetectionService = .shared
+        wellnessService: WellnessDetectionService = .shared,
+        sleepScoreService: SleepScoreService = .shared
     ) {
         self.illnessService = illnessService
         self.wellnessService = wellnessService
+        self.sleepScoreService = sleepScoreService
         
         setupObservers()
         refreshData()
@@ -47,6 +53,73 @@ class HealthWarningsCardViewModel: ObservableObject {
                 self?.wellnessAlert = alert
             }
             .store(in: &cancellables)
+        
+        // Observe sleep score to track if data is available
+        sleepScoreService.$currentSleepScore
+            .sink { [weak self] sleepScore in
+                #if DEBUG
+                // Check if we're simulating no sleep data
+                if ProFeatureConfig.shared.simulateNoSleepData {
+                    self?.hasSleepData = false
+                    return
+                }
+                #endif
+                
+                // Check if sleep score exists and has actual sleep data
+                if let score = sleepScore {
+                    self?.hasSleepData = score.inputs.sleepDuration != nil
+                } else {
+                    self?.hasSleepData = false
+                }
+            }
+            .store(in: &cancellables)
+        
+        #if DEBUG
+        // Observe simulateNoSleepData flag
+        proConfig.$simulateNoSleepData
+            .dropFirst()
+            .sink { [weak self] simulate in
+                if simulate {
+                    self?.hasSleepData = false
+                } else {
+                    // Refresh from actual sleep score
+                    if let score = self?.sleepScoreService.currentSleepScore {
+                        self?.hasSleepData = score.inputs.sleepDuration != nil
+                    } else {
+                        self?.hasSleepData = false
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Observe simulateNoNetwork flag
+        proConfig.$simulateNoNetwork
+            .sink { [weak self] simulate in
+                self?.isNetworkOffline = simulate
+            }
+            .store(in: &cancellables)
+        #endif
+        
+        #if DEBUG
+        // Observe testing feature flags and trigger analysis when they change
+        proConfig.$showWellnessWarningForTesting
+            .dropFirst() // Skip initial value
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    await self?.wellnessService.analyzeHealthTrends()
+                }
+            }
+            .store(in: &cancellables)
+        
+        proConfig.$showIllnessIndicatorForTesting
+            .dropFirst() // Skip initial value
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    await self?.illnessService.analyzeHealthTrends(forceRefresh: true)
+                }
+            }
+            .store(in: &cancellables)
+        #endif
     }
     
     // MARK: - Public Methods
@@ -54,6 +127,26 @@ class HealthWarningsCardViewModel: ObservableObject {
     func refreshData() {
         illnessIndicator = illnessService.currentIndicator
         wellnessAlert = wellnessService.currentAlert
+        
+        #if DEBUG
+        isNetworkOffline = proConfig.simulateNoNetwork
+        
+        if proConfig.simulateNoSleepData {
+            hasSleepData = false
+        } else {
+            if let score = sleepScoreService.currentSleepScore {
+                hasSleepData = score.inputs.sleepDuration != nil
+            } else {
+                hasSleepData = false
+            }
+        }
+        #else
+        if let score = sleepScoreService.currentSleepScore {
+            hasSleepData = score.inputs.sleepDuration != nil
+        } else {
+            hasSleepData = false
+        }
+        #endif
     }
     
     func showIllnessDetail() {
@@ -69,7 +162,7 @@ class HealthWarningsCardViewModel: ObservableObject {
     // MARK: - Computed Properties
     
     var hasWarnings: Bool {
-        hasIllnessWarning || hasWellnessAlert
+        hasIllnessWarning || hasWellnessAlert || !hasSleepData || isNetworkOffline
     }
     
     var hasIllnessWarning: Bool {

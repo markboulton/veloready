@@ -42,9 +42,6 @@ struct DebugSettingsView: View {
                 // 2. API Debug Inspector
                 apiDebugSection
                 
-                // 2.5. Activity Card Examples
-                activityCardsSection
-                
                 // 3. Pro Toggle, Mock Data, Subscription Status
                 testingFeaturesSection
                 
@@ -301,32 +298,6 @@ struct DebugSettingsView: View {
             Label(DebugSettingsContent.SectionHeaders.authStatus, systemImage: Icons.System.shield)
         }
     }
-    
-    // MARK: - Activity Cards Section
-    
-    private var activityCardsSection: some View {
-        Section {
-            NavigationLink(destination: ActivityCardGalleryView()) {
-                HStack {
-                    Image(systemName: Icons.System.grid2x2)
-                        .foregroundColor(Color.button.primary)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Activity Card Gallery")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Text("View all activity card variations")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-        } header: {
-            Label("UI Components", systemImage: Icons.System.eye)
-        } footer: {
-            Text("Preview activity card designs for rides, strength, and walking workouts")
-        }
-    }
-    
     // MARK: - Testing Features Section
     
     private var testingFeaturesSection: some View {
@@ -391,6 +362,34 @@ struct DebugSettingsView: View {
                     Text(DebugSettingsContent.TestingFeatures.illnessIndicatorEnabled)
                         .font(.caption)
                         .foregroundColor(ColorScale.redAccent)
+                }
+            }
+            
+            // No Sleep Data Toggle
+            Toggle(DebugSettingsContent.TestingFeatures.simulateNoSleepData, isOn: $config.simulateNoSleepData)
+            
+            if config.simulateNoSleepData {
+                HStack {
+                    Image(systemName: Icons.Health.sleepFill)
+                        .foregroundColor(ColorScale.purpleAccent)
+                        .font(.caption)
+                    Text(DebugSettingsContent.TestingFeatures.noSleepDataEnabled)
+                        .font(.caption)
+                        .foregroundColor(ColorScale.purpleAccent)
+                }
+            }
+            
+            // No Network Toggle
+            Toggle(DebugSettingsContent.TestingFeatures.simulateNoNetwork, isOn: $config.simulateNoNetwork)
+            
+            if config.simulateNoNetwork {
+                HStack {
+                    Image(systemName: Icons.System.network)
+                        .foregroundColor(Color.secondary)
+                        .font(.caption)
+                    Text(DebugSettingsContent.TestingFeatures.noNetworkEnabled)
+                        .font(.caption)
+                        .foregroundColor(Color.secondary)
                 }
             }
             

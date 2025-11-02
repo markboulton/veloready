@@ -10,6 +10,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var recoveryScore: RecoveryScore?
     @Published private(set) var sleepScore: SleepScore?
     @Published private(set) var strainScore: StrainScore?
+    @Published private(set) var isSleepLoading: Bool = false
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
@@ -58,6 +59,13 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Observe sleep loading state
+        sleepScoreService.$isLoading
+            .sink { [weak self] loading in
+                self?.isSleepLoading = loading
+            }
+            .store(in: &cancellables)
+        
         // Observe strain score
         strainScoreService.$currentStrainScore
             .sink { [weak self] score in
@@ -72,6 +80,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         recoveryScore = recoveryScoreService.currentRecoveryScore
         sleepScore = sleepScoreService.currentSleepScore
         strainScore = strainScoreService.currentStrainScore
+        isSleepLoading = sleepScoreService.isLoading
     }
     
     func reinstateSleepBanner() {

@@ -25,7 +25,6 @@ struct TodayView: View {
     @State private var showingIllnessDetailSheet = false
     @State private var showMissingSleepInfo = false
     @State private var wasHealthKitAuthorized = false
-    @State private var isSleepBannerExpanded = true
     @State private var scrollOffset: CGFloat = 0
     @State private var isViewActive = false
     @Binding var showInitialSpinner: Bool
@@ -57,13 +56,6 @@ struct TodayView: View {
                             )
                         }
                         .frame(height: 0)
-                        
-                        // Missing sleep data warning
-                        if healthKitManager.isAuthorized, 
-                           let recoveryScore = viewModel.recoveryScoreService.currentRecoveryScore,
-                           recoveryScore.inputs.sleepDuration == nil {
-                            missingSleepDataBanner
-                        }
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
@@ -431,53 +423,6 @@ struct TodayView: View {
             return "gear"
         }
     }
-    
-    // MARK: - Missing Sleep Data Banner
-    
-    private var missingSleepDataBanner: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header row - always visible
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isSleepBannerExpanded.toggle()
-                }
-            }) {
-                HStack(spacing: 12) {
-                    Image(systemName: Icons.Health.sleepFill)
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 16))
-                    
-                    Text(TodayContent.sleepDataMissing)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Image(systemName: Icons.System.chevronDown)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .rotationEffect(.degrees(isSleepBannerExpanded ? 0 : -90))
-                        .animation(.easeInOut(duration: 0.3), value: isSleepBannerExpanded)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            // Expandable content
-            if isSleepBannerExpanded {
-                Text(TodayContent.recoveryLimitedMessage)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 8)
-                    .padding(.leading, 28) // Align with text above (icon width + spacing)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-        .padding(.top, 12)
-        .padding(.bottom, 4)
-    }
-    
     // MARK: - Helper Computed Properties
     
     private var hasConnectedDataSource: Bool {

@@ -186,7 +186,7 @@ struct RecoveryMetricsSection: View {
                     }
                 }
             } else {
-                // No sleep data available - show background ring with spinner
+                // No sleep score calculated yet - show loading spinner or '?' if done loading
                 VStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Text(TodayContent.Scores.sleepScore)
@@ -199,7 +199,7 @@ struct RecoveryMetricsSection: View {
                         }
                     }
                     
-                    // Show background ring with loading spinner to prevent layout shift
+                    // Show background ring with loading spinner or '?' when no data
                     ZStack(alignment: .center) {
                         Button(action: {
                             if viewModel.missingSleepBannerDismissed {
@@ -220,11 +220,17 @@ struct RecoveryMetricsSection: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                         
-                        // Show standard iOS spinner when data is loading
-                        if viewModel.sleepScore == nil {
+                        // Show spinner when loading, '?' when done loading with no data
+                        if viewModel.isSleepLoading {
                             ProgressView()
                                 .scaleEffect(1.2)
                                 .offset(y: -8) // Offset to account for title below ring
+                        } else {
+                            // Show '?' when loading is done but no data available
+                            Text("?")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(Color.text.secondary)
+                                .offset(y: -16)
                         }
                     }
                 }
