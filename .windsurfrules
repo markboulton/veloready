@@ -1,0 +1,394 @@
+# VeloReady iOS App - Windsurf Rules
+
+## Project Context
+iOS cycling performance tracking app built with SwiftUI
+- Minimum iOS: 26.0
+- Language: Swift
+- Architecture: MVVM + Services
+- Testing: VeloReadyCore Swift Package (40 tests, 9s execution)
+
+## 🧪 Testing Architecture
+
+### VeloReadyCore Swift Package
+All business logic MUST be testable without iOS simulator.
+
+What belongs in VeloReadyCore:
+- Cache management (CacheManager actor)
+- Training load calculations (CTL/ATL/TSB)
+- Strain/Recovery/Sleep calculations
+- Data models and validation
+- NO SwiftUI views, NO UIKit, NO UI-dependent ViewModels
+
+Running Tests:
+cd VeloReadyCore && swift run VeloReadyCoreTests  # 9 seconds
+./Scripts/quick-test.sh  # Full suite, 90 seconds
+
+Contract Testing: Update fixtures quarterly with ./Scripts/record-api-fixtures.sh (3-5 API calls). Tests use fixtures (0 API calls).
+
+## ⚡ Performance Architecture
+
+### Startup: <2 Second Target
+
+3-Phase Loading:
+1. Phase 1 (0-200ms): Show cached data immediately, no blocking spinner
+2. Phase 2 (200ms-2s): Update scores in parallel, animate changes
+3. Phase 3 (2s-10s): Background sync, incremental loading
+
+ANTI-PATTERNS:
+// ❌ WRONG: Blocking full-screen spinner
+.overlay {
+    if isLoading { ProgressView() }  // Blocks for 8+ seconds!
+}
+
+// ✅ CORRECT: Show cached, update in background
+await showCachedScores()  // <100ms
+Task.detached { await updateCriticalScores() }
+
+### Cache Strategy
+
+UnifiedCacheManager (Actor-based):
+// ✅ CORRECT: Actor for thread safety
+public actor CacheManager {
+    func fetch<T>(key: String, ttl: TimeInterval, operation: () async throws -> T)
+}
+
+// ❌ WRONG: Non-thread-safe
+class CacheManager {
+    var cache: [String: Any] = [:]  // Race conditions!
+}
+
+Cache Key Format (STRICT):
+// ✅ CORRECT
+"strava:activities:365"
+"score:recovery:2025-10-29T00:00:00Z"
+"baselines:7day"
+"stream:strava_12345"
+
+// ❌ WRONG: Inconsistent formats cause cache misses
+"strava_activities_365d"
+"recovery-2025-10-29"
+
+Cache TTLs:
+- Stream data: 7 days
+- Training load: 1 hour
+- Baselines (HRV/RHR/Sleep 7-day avg): 1 hour
+- Activity list: 15 minutes
+- Scores: 48 hours
+
+### Deduplication Pattern
+
+// ✅ CORRECT: Deduplicate simultaneous requests
+private var calculationTasks: [String: Task<Int?, Never>] = [:]
+
+func calculateScore(type: String) async -> Int? {
+    if let existing = calculationTasks[type] {
+        return await existing.value
+    }
+    
+    let task = Task {
+        defer { calculationTasks[type] = nil }
+        return await performCalculation(type)
+    }
+    
+    calculationTasks[type] = task
+    return await task.value
+}
+
+// ❌ WRONG: Allow duplicate calculations
+func calculateScore() async {
+    await heavyCalculation()  // Multiple calls run in parallel!
+}
+
+### Race Condition Handling
+
+// ✅ CORRECT: Smart waiting for dependencies
+if sleepScoreService.currentSleepScore == nil {
+    if sleepScoreService.isLoading {
+        // Sleep already running - WAIT for it
+        var attempts = 0
+        while sleepScoreService.isLoading && attempts < 50 {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            attempts += 1
+        }
+    } else {
+        // Sleep not started - START it and wait
+        await sleepScoreService.calculateSleepScore()
+    }
+}
+
+// ❌ WRONG: Parallel execution without coordination
+async let recovery = calculateRecovery()  // Needs sleep score!
+async let sleep = calculateSleep()
+// Recovery proceeds without sleep → "Limited Data" bug
+
+## 🎨 Design System (STRICT)
+
+### Atomic Components
+Use existing components, DO NOT recreate:
+- CardContainer - Base card wrapper (NO external padding!)
+- CardHeader, CardMetric, CardFooter
+- ChartCard, ScoreCard, MetricStatCard
+- VRBadge, VRText
+- StandardCard - Detail view cards (NO external padding!)
+
+### Design Tokens (NO Hard-Coding)
+
+Spacing:
+// ✅ CORRECT
+.padding(Spacing.md)      // 12pt
+.padding(.horizontal, Spacing.xl)  // 24pt
+VStack(spacing: Spacing.sm)  // 8pt
+
+// ❌ WRONG
+.padding(12)
+.padding(.horizontal, 24)
+VStack(spacing: 8)
+
+Colors:
+// ✅ CORRECT
+ColorScale.greenAccent
+ColorScale.powerColor
+ColorScale.hrvColor
+
+// ❌ WRONG
+Color(red: 0.2, green: 0.8, blue: 0.3)
+Color.green
+
+Content (Localization-ready):
+// ✅ CORRECT
+VRText(CommonContent.loading, style: .body)
+TodayContent.recoveryTitle
+
+// ❌ WRONG
+Text("Loading...")
+Text("Recovery")
+
+### Card Spacing Pattern (CRITICAL)
+
+// ✅ CORRECT: Parent controls spacing, cards have NO external padding
+LazyVStack(spacing: Spacing.md) {  // 12pt between cards
+    MyCardV2()
+    AnotherCardV2()
+}
+.padding(.horizontal, Spacing.xl)  // 24pt on sides
+.padding(.bottom, 120)              // 120pt at bottom
+
+// Card implementation
+struct MyCardV2: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // content
+        }
+        .padding(Spacing.md)  // INTERNAL padding only
+        // ❌ NO .padding(.horizontal) or .padding(.vertical) here!
+    }
+}
+
+// ❌ WRONG: Card adds external padding (causes double spacing!)
+struct MyCard: View {
+    var body: some View {
+        VStack { ... }
+        .padding(Spacing.md)
+        .padding(.horizontal, Spacing.sm)  // ❌ WRONG!
+        .padding(.vertical, Spacing.xxl / 2)  // ❌ WRONG!
+    }
+}
+
+## 🔐 Authentication
+
+JWT-based authentication with backend:
+// ✅ CORRECT: Use SupabaseClient for JWT tokens
+let token = await supabaseClient.accessToken
+headers["Authorization"] = "Bearer \(token)"
+
+// ❌ WRONG: Hardcoded credentials
+let athleteId = 104662  // NEVER DO THIS
+
+Token refresh:
+- Automatic when token expires in <5 minutes
+- iOS calls backend /auth-refresh-token endpoint
+- New tokens stored in SupabaseClient
+
+## 🐛 Common Pitfalls
+
+1. Cache Key Inconsistency (Original Strava Bug)
+// ❌ WRONG: Different keys for same data
+let key1 = "strava_activities_365d"
+let key2 = "strava:activities:365"  // Cache miss!
+
+// ✅ CORRECT: Use consistent format
+extension CacheKey {
+    static func stravaActivities(days: Int) -> String {
+        "strava:activities:\(days)"
+    }
+}
+
+2. Non-Thread-Safe Cache
+// ❌ WRONG
+class CacheManager {
+    var cache: [String: Any] = [:]  // Race conditions!
+}
+
+// ✅ CORRECT
+public actor CacheManager {
+    private var cache: [String: Any] = [:]
+}
+
+3. Full-Screen Blocking Spinner
+// ❌ WRONG: Blocks UI for 8+ seconds
+.overlay {
+    if isLoading { ProgressView() }
+}
+
+// ✅ CORRECT: Show UI immediately
+await showCachedScores()
+Task.detached { await updateScores() }
+
+4. Duplicate Calculations
+// ❌ WRONG
+await calculateRecovery()  // Calculates TRIMP
+await calculateStrain()     // Calculates TRIMP again! (4-6s wasted)
+
+// ✅ CORRECT
+if !hasCalculatedToday {
+    await calculateRecovery()
+}
+
+5. Alcohol Detection During Illness
+// ❌ WRONG: Penalize for alcohol when sick
+let penalty = detectAlcohol(hrv, rhr, sleep)
+
+// ✅ CORRECT: Check illness first
+if let illness = illnessIndicator {
+    return baseScore  // Skip alcohol detection
+}
+
+6. Fetching Too Much Data on Startup
+// ❌ WRONG
+let activities = await fetchActivities(days: 365)  // 5+ seconds!
+
+// ✅ CORRECT: Fetch incrementally
+let today = await fetchActivities(days: 1)  // <1s
+Task.detached(priority: .background) {
+    await fetchActivities(days: 365)
+}
+
+7. Imports Not at Top
+// ❌ WRONG
+struct MyView: View {
+    import Foundation  // SYNTAX ERROR!
+}
+
+// ✅ CORRECT
+import SwiftUI
+import Foundation
+import VeloReadyCore
+
+struct MyView: View { ... }
+
+## 📝 File Organization
+
+VeloReadyCore/              # Testable business logic
+├── Sources/
+│   ├── VeloReadyCore.swift           # Cache manager (actor)
+│   ├── TrainingLoadCalculations.swift
+│   ├── StrainCalculations.swift
+│   ├── RecoveryCalculations.swift
+│   ├── SleepCalculations.swift
+│   ├── ZoneCalculations.swift
+│   └── Models/
+│       └── ActivityData.swift
+└── Tests/
+    └── VeloReadyCoreTests.swift      # 40 tests, 9s execution
+
+Core/
+├── Services/                         # Service layer
+│   ├── StreamCacheService.swift      # 7-day stream cache
+│   ├── RecoveryScoreService.swift
+│   ├── SleepScoreService.swift
+│   └── HealthKitManager.swift
+└── Networking/
+    ├── VeloReadyAPIClient.swift      # Backend API (JWT auth)
+    └── IntervalsAPIClient.swift
+
+DesignSystem/
+├── Tokens/                           # Design tokens
+│   ├── Spacing.swift
+│   ├── ColorScale.swift
+│   └── Icons.swift
+├── Components/                       # Atomic components
+│   ├── CardContainer.swift
+│   ├── VRText.swift
+│   └── VRBadge.swift
+└── Content/                          # Localized strings
+    ├── CommonContent.swift
+    └── TodayContent.swift
+
+Features/
+└── Today/
+    ├── Views/
+    ├── ViewModels/
+    └── Cards/                        # V2 migrated cards
+
+Scripts/
+├── quick-test.sh                     # Local full test suite
+└── record-api-fixtures.sh            # Update contract test fixtures
+
+Tests/
+└── Fixtures/                         # Contract test fixtures
+    ├── strava_activities_response.json
+    └── intervals_activities_response.json
+
+## 🚀 Development Workflow
+
+Before Committing:
+cd VeloReadyCore && swift run VeloReadyCoreTests  # 9 seconds
+./Scripts/quick-test.sh  # 90 seconds
+xcodebuild -scheme VeloReady build
+
+Adding New Features:
+1. Business logic → VeloReadyCore/Sources/
+2. Tests → VeloReadyCore/Tests/
+3. UI → Use atomic components from DesignSystem/
+4. Verify tests pass locally
+
+Quarterly Maintenance:
+export STRAVA_TOKEN="your_token"
+./Scripts/record-api-fixtures.sh  # 3-5 API calls
+swift run VeloReadyCoreTests
+git diff Tests/Fixtures/
+
+## ✅ Code Quality Checklist
+
+Before submitting PR:
+- [ ] Business logic added to VeloReadyCore (if applicable)
+- [ ] Tests added/updated in VeloReadyCore/Tests/
+- [ ] Used atomic components (no custom card implementations)
+- [ ] Used design tokens (NO hard-coded spacing/colors/strings)
+- [ ] Cards have NO external padding
+- [ ] Cache keys use consistent format
+- [ ] Actor isolation for shared state
+- [ ] Imports at top of file
+- [ ] Tests pass locally (./Scripts/quick-test.sh)
+
+## 📊 Performance Targets
+
+| Metric | Target | Current |
+|--------|--------|---------|
+| Startup (cached) | <200ms | ✅ ~150ms |
+| Startup (fresh) | <2s | ✅ ~1.8s |
+| Core tests | <10s | ✅ 9s |
+| Full tests | <120s | ✅ 90s |
+| API quota/test | 0 | ✅ 0 |
+| Cache hit rate | >80% | ✅ ~85% |
+| Stream load (cached) | <500ms | ✅ ~400ms |
+
+## 🎯 Key Principles
+
+1. Test business logic independently - VeloReadyCore enables this
+2. Progressive enhancement - Show UI fast, update in background
+3. Cache aggressively - But with proper TTLs and invalidation
+4. Deduplicate requests - No duplicate calculations
+5. Handle race conditions - Smart waiting for dependencies
+6. Design system compliance - Use tokens, atomic components
+7. Performance conscious - <2s startup, incremental loading
