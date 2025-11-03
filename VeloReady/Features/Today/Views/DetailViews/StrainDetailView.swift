@@ -64,7 +64,7 @@ struct StrainDetailView: View {
                     title: StrainContent.trendTitle,
                     getData: { period in viewModel.getHistoricalLoadData(for: period) },
                     chartType: .bar,
-                    unit: "TSS",
+                    unit: "",
                     showProBadge: false,
                     useAdaptiveYAxis: true
                 )
