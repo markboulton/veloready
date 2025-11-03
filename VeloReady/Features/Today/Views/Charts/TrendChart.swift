@@ -73,6 +73,23 @@ struct TrendChart: View {
         }
     }
     
+    // Height of colored top indicator in data units (represents ~2-3px visually)
+    private var topIndicatorHeight: Double {
+        // Chart height: 225pt
+        // Target visual height: 2.5pt (approximately 2-3px)
+        // Calculate data units needed for 2.5pt visual height
+        
+        if dataType == .strain {
+            // Strain: 0-18 scale, so 1 unit = 225/18 = 12.5pt
+            // 2.5pt / 12.5pt = 0.2 units
+            return 0.2
+        } else {
+            // Recovery/Sleep: 0-100 scale, so 1 unit = 225/100 = 2.25pt
+            // 2.5pt / 2.25pt = 1.1 units
+            return 1.1
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header with title and optional Pro badge
@@ -148,10 +165,10 @@ struct TrendChart: View {
                     )
                     .foregroundStyle(ColorPalette.neutral300)
                     
-                    // Top 2px colored indicator
+                    // Top 2-3px colored indicator (height adjusted per data scale)
                     BarMark(
                         x: .value("Day", point.date, unit: .day),
-                        yStart: .value("Start", max(0, point.value - 2)),
+                        yStart: .value("Start", max(0, point.value - topIndicatorHeight)),
                         yEnd: .value("End", point.value)
                     )
                     .foregroundStyle(colorForValue(point.value))
