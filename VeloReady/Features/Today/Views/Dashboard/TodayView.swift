@@ -475,17 +475,18 @@ struct TodayView: View {
         Task {
             await viewModel.loadInitialUI()
             Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
+            
             // Start live activity updates immediately
             liveActivityService.startAutoUpdates()
             
-            // PERFORMANCE: Move illness/wellness to background (Phase 3)
-            // These are expensive operations (~2.5s) that don't need to block Phase 2
+            // PERFORMANCE: Run illness/wellness AFTER Phase 2 completes
+            // Wait a moment to let Phase 2 finish, then run in background
             Task.detached(priority: .background) {
-                // Wait for Phase 2 scores to complete first
-                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
+                // Wait for Phase 2 to complete (it takes ~5-10s)
+                // This prevents resource contention with strain calculation
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 second delay
                 await Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
                 await wellnessService.analyzeHealthTrends()
-                // Run illness detection after wellness analysis
                 await illnessService.analyzeHealthTrends()
                 await Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
             }
