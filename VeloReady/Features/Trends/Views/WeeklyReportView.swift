@@ -8,12 +8,19 @@ struct WeeklyReportView: View {
     @State private var selectedSleepDay = 0 // For segmented control
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: Spacing.md) {
-                Color.clear.frame(height: 1)
-                    .onAppear {
-                        print("🔍 [WeeklyReport] ScrollView content appeared")
+        GeometryReader { geometry in
+            let screenWidth = geometry.size.width
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: Spacing.md) {
+                    Color.clear.frame(height: 1)
+                        .onAppear {
+                            print("🔍 [WeeklyReport] Screen width: \(screenWidth)")
+                        }
+
+                    GeometryReader { vStackGeo in
+                        Color.clear.preference(key: ViewWidthKey.self, value: vStackGeo.size.width)
                     }
+                    .frame(height: 0)
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(
                     aiSummary: viewModel.aiSummary,
@@ -22,6 +29,9 @@ struct WeeklyReportView: View {
                     weekStartDate: viewModel.weekStartDate,
                     daysUntilNextReport: viewModel.daysUntilNextReport
                 )
+                .background(GeometryReader { geo in
+                    Color.clear.preference(key: ComponentWidthKey.self, value: ComponentWidth(name: "Header", width: geo.size.width))
+                })
                 
                 // 2. Performance Overview (2-week trend)
                 PerformanceOverviewCardV2(
@@ -30,12 +40,18 @@ struct WeeklyReportView: View {
                     sleepData: trendsViewModel.sleepData,
                     timeRange: .days30
                 )
+                .background(GeometryReader { geo in
+                    Color.clear.preference(key: ComponentWidthKey.self, value: ComponentWidth(name: "PerformanceOverview", width: geo.size.width))
+                })
                 
                 // 3. Fitness Trajectory (CTL/ATL/Form)
                 FitnessTrajectoryComponent(
                     metrics: viewModel.weeklyMetrics,
                     ctlData: viewModel.ctlHistoricalData
                 )
+                .background(GeometryReader { geo in
+                    Color.clear.preference(key: ComponentWidthKey.self, value: ComponentWidth(name: "FitnessTrajectory", width: geo.size.width))
+                })
                 
                 // 3. Wellness Foundation
                 if let wellness = viewModel.wellnessFoundation {
@@ -76,6 +92,12 @@ struct WeeklyReportView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
+            .onPreferenceChange(ViewWidthKey.self) { width in
+                print("📏 [WeeklyReport] VStack width: \(width)")
+            }
+            .onPreferenceChange(ComponentWidthKey.self) { component in
+                print("📏 [WeeklyReport] \(component.name) width: \(component.width)")
+            }
         }
         .scrollDisabled(false) // Ensure vertical scrolling works
         .scrollBounceBehavior(.basedOnSize, axes: .vertical)
@@ -92,6 +114,30 @@ struct WeeklyReportView: View {
         }
         .refreshable {
             await viewModel.loadWeeklyReport()
+        }
+        }
+    }
+}
+
+// MARK: - PreferenceKeys for width debugging
+struct ViewWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+struct ComponentWidth: Equatable {
+    let name: String
+    let width: CGFloat
+}
+
+struct ComponentWidthKey: PreferenceKey {
+    static var defaultValue: ComponentWidth = ComponentWidth(name: "", width: 0)
+    static func reduce(value: inout ComponentWidth, nextValue: () -> ComponentWidth) {
+        let next = nextValue()
+        if next.width > 0 {
+            value = next
         }
     }
 }

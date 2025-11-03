@@ -82,20 +82,37 @@ class StrainDetailViewModel: ObservableObject {
         
         Logger.debug("📊 [LOAD CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
         
+        // Fill in missing days with 0 TSS for complete chart
+        var completeDataPoints: [TrendDataPoint] = []
+        let dataPointsByDate = Dictionary(uniqueKeysWithValues: dataPoints.map { ($0.date, $0) })
+        
+        for dayOffset in 0..<period.days {
+            guard let date = calendar.date(byAdding: .day, value: -period.days + dayOffset + 1, to: endDate) else { continue }
+            let startOfDay = calendar.startOfDay(for: date)
+            
+            if let existingPoint = dataPointsByDate[startOfDay] {
+                completeDataPoints.append(existingPoint)
+            } else {
+                // Fill missing day with 0 TSS (rest day)
+                completeDataPoints.append(TrendDataPoint(date: startOfDay, value: 0))
+            }
+        }
+        
         // Log TSS range for debugging
-        if !dataPoints.isEmpty {
-            let tssValues = dataPoints.map { $0.value }
+        if !completeDataPoints.isEmpty {
+            let tssValues = completeDataPoints.map { $0.value }
             let minTSS = tssValues.min() ?? 0
             let maxTSS = tssValues.max() ?? 0
             let avgTSS = tssValues.reduce(0, +) / Double(tssValues.count)
             Logger.debug("📊 [LOAD CHART] TSS range: min=\(Int(minTSS)), max=\(Int(maxTSS)), avg=\(Int(avgTSS))")
+            Logger.debug("📊 [LOAD CHART] Filled \(completeDataPoints.count - dataPoints.count) missing days with 0 TSS")
         }
         
-        if dataPoints.isEmpty {
+        if completeDataPoints.isEmpty {
             Logger.warning("📊 [LOAD CHART] No data available for \(period.days)d period")
         }
         
-        return dataPoints
+        return completeDataPoints
     }
     
     private func generateMockLoadData(for period: TrendPeriod) -> [TrendDataPoint] {
