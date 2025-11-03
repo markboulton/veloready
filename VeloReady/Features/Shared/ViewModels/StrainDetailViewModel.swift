@@ -94,9 +94,24 @@ class StrainDetailViewModel: ObservableObject {
         
         Logger.debug("📊 [LOAD CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
         
+        // Group by date and take the latest record for each day (handles duplicate dates)
+        var dataPointsByDate: [Date: TrendDataPoint] = [:]
+        for point in dataPoints {
+            let startOfDay = calendar.startOfDay(for: point.date)
+            // Keep the latest record for each day (or highest strain value)
+            if let existing = dataPointsByDate[startOfDay] {
+                if point.value > existing.value {
+                    dataPointsByDate[startOfDay] = point
+                }
+            } else {
+                dataPointsByDate[startOfDay] = point
+            }
+        }
+        
+        Logger.debug("📊 [LOAD CHART] Deduplicated to \(dataPointsByDate.count) unique days")
+        
         // Fill in missing days with 0 strain for complete chart
         var completeDataPoints: [TrendDataPoint] = []
-        let dataPointsByDate = Dictionary(uniqueKeysWithValues: dataPoints.map { (calendar.startOfDay(for: $0.date), $0) })
         
         // Generate all dates in range (inclusive)
         for dayOffset in 0..<period.days {
