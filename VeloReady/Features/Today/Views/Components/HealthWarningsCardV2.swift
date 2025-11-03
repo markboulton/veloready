@@ -17,8 +17,8 @@ struct HealthWarningsCardV2: View {
                 wellnessWarningCard(alert)
             }
             
-            // Sleep data missing
-            if !viewModel.hasSleepData {
+            // Sleep data missing (only if not dismissed)
+            if !viewModel.hasSleepData && !viewModel.sleepDataWarningDismissed {
                 sleepDataMissingCard()
             }
             
@@ -181,23 +181,34 @@ struct HealthWarningsCardV2: View {
     private func sleepDataMissingCard() -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
-                // Sleep icon next to heading
-                Image(systemName: Icons.Health.sleepFill)
+                // Sleep icon next to heading (outline, purple)
+                Image(systemName: Icons.Health.sleep)
                     .font(.title3)
-                    .foregroundColor(ColorScale.blueAccent)
+                    .foregroundColor(ColorScale.purpleAccent)
                 
                 Text(CommonContent.HealthWarnings.sleepDataMissing)
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Text(CommonContent.HealthWarnings.infoBadge)
+                Text(CommonContent.HealthWarnings.tipBadge)
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(ColorScale.blueAccent)
+                    .foregroundColor(ColorScale.purpleAccent)
                     .padding(.horizontal, Spacing.xs)
                     .padding(.vertical, 2)
-                    .background(ColorScale.blueAccent.opacity(0.15))
+                    .background(ColorScale.purpleAccent.opacity(0.15))
                     .cornerRadius(4)
+                
+                Spacer()
+                
+                // Dismiss button
+                Button(action: {
+                    viewModel.dismissSleepDataWarning()
+                }) {
+                    Image(systemName: Icons.Navigation.close)
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                }
             }
             
             Text(CommonContent.HealthWarnings.sleepDataMissingMessage)
@@ -207,7 +218,7 @@ struct HealthWarningsCardV2: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorScale.blueAccent.opacity(0.05))
+        .background(ColorScale.purpleAccent.opacity(0.05))
         .cornerRadius(12)
     }
     

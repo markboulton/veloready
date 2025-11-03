@@ -137,6 +137,19 @@ class SleepScoreService: ObservableObject {
             return
         }
         
+        #if DEBUG
+        // Check if we're simulating no sleep data
+        if UserDefaults.standard.bool(forKey: "simulateNoSleepData") {
+            Logger.debug("💤 SIMULATION: No sleep data mode enabled - returning nil")
+            currentSleepScore = nil
+            // Still calculate sleep debt and consistency for historical data
+            await calculateSleepDebt()
+            await calculateSleepConsistency()
+            clearSleepScoreCache()
+            return
+        }
+        #endif
+        
         // Use real data
         let realScore = await calculateRealSleepScore()
         currentSleepScore = realScore

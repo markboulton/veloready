@@ -13,6 +13,7 @@ class HealthWarningsCardViewModel: ObservableObject {
     @Published private(set) var isNetworkOffline: Bool = false
     @Published var showingIllnessDetail: Bool = false
     @Published var showingWellnessDetail: Bool = false
+    @Published private(set) var sleepDataWarningDismissed: Bool = false
     
     // MARK: - Dependencies
     
@@ -32,6 +33,9 @@ class HealthWarningsCardViewModel: ObservableObject {
         self.illnessService = illnessService
         self.wellnessService = wellnessService
         self.sleepScoreService = sleepScoreService
+        
+        // Load dismissed state
+        self.sleepDataWarningDismissed = UserDefaults.standard.bool(forKey: "sleepDataWarningDismissed")
         
         setupObservers()
         refreshData()
@@ -157,6 +161,12 @@ class HealthWarningsCardViewModel: ObservableObject {
     func showWellnessDetail() {
         HapticFeedback.light()
         showingWellnessDetail = true
+    }
+    
+    func dismissSleepDataWarning() {
+        HapticFeedback.light()
+        sleepDataWarningDismissed = true
+        UserDefaults.standard.set(true, forKey: "sleepDataWarningDismissed")
     }
     
     // MARK: - Computed Properties

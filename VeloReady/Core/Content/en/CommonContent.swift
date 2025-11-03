@@ -565,7 +565,7 @@ enum CommonContent {
         // Sleep Data Missing
         static let sleepDataMissing = "Get Better Recovery Insights"  /// Sleep data missing title
         static let sleepDataMissingMessage = "Your recovery score works without sleep tracking, but adding sleep data gives you much more accurate insights. Wear your Apple Watch to bed to track sleep quality, stages, and overnight heart rate."  /// Sleep data missing message
-        static let infoBadge = "TIP"  /// Info badge for sleep suggestion
+        static let tipBadge = "TIP"  /// Tip badge for helpful suggestions
         
         // Network Offline
         static let networkOffline = "Network Offline"  /// Network offline title
