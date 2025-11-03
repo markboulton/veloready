@@ -155,7 +155,30 @@ class VeloReadyAPIClient: ObservableObject {
             case 200...299:
                 break
             case 401:
-                throw VeloReadyAPIError.notAuthenticated
+                // Authentication failed - token invalid or expired
+                Logger.error("❌ [VeloReady API] Authentication failed (401)")
+                throw VeloReadyAPIError.authenticationFailed
+            case 403:
+                // Tier limit exceeded - try to decode detailed error
+                Logger.warning("⚠️ [VeloReady API] Tier limit exceeded (403)")
+                do {
+                    let tierError = try JSONDecoder().decode(TierLimitError.self, from: data)
+                    Logger.debug("📊 Tier limit: \(tierError.currentTier) plan allows \(tierError.maxDaysAllowed) days, requested \(tierError.requestedDays)")
+                    throw VeloReadyAPIError.tierLimitExceeded(
+                        message: tierError.message,
+                        currentTier: tierError.currentTier,
+                        requestedDays: tierError.requestedDays,
+                        maxDaysAllowed: tierError.maxDaysAllowed
+                    )
+                } catch let decodingError as DecodingError {
+                    // Failed to decode tier error, fall back to generic message
+                    Logger.error("❌ [VeloReady API] Failed to decode tier error: \(decodingError)")
+                    let errorMessage = String(data: data, encoding: .utf8) ?? "Access denied"
+                    throw VeloReadyAPIError.httpError(statusCode: 403, message: errorMessage)
+                } catch let tierError as VeloReadyAPIError {
+                    // Re-throw the tierLimitExceeded error
+                    throw tierError
+                }
             case 404:
                 throw VeloReadyAPIError.notFound
             case 429:
@@ -238,16 +261,37 @@ struct IntervalsWellnessMetadata: Codable {
     let cachedUntil: String
 }
 
+// MARK: - Tier Limit Error Response
+
+/// Backend response when tier limits are exceeded
+struct TierLimitError: Codable {
+    let error: String
+    let message: String
+    let currentTier: String
+    let requestedDays: Int
+    let maxDaysAllowed: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case error
+        case message
+        case currentTier
+        case requestedDays
+        case maxDaysAllowed
+    }
+}
+
 // MARK: - Errors
 
 enum VeloReadyAPIError: LocalizedError {
     case invalidURL
     case notAuthenticated
+    case authenticationFailed
     case notFound
     case networkError(Error)
     case httpError(statusCode: Int, message: String)
     case decodingError(Error)
     case rateLimitExceeded
+    case tierLimitExceeded(message: String, currentTier: String, requestedDays: Int, maxDaysAllowed: Int)
     case serverError
     case invalidResponse
     
@@ -257,6 +301,8 @@ enum VeloReadyAPIError: LocalizedError {
             return "Invalid URL"
         case .notAuthenticated:
             return "Not authenticated. Please connect your account."
+        case .authenticationFailed:
+            return "Authentication failed. Please sign in again."
         case .notFound:
             return "Resource not found"
         case .networkError(let error):
@@ -267,10 +313,22 @@ enum VeloReadyAPIError: LocalizedError {
             return "Failed to decode response: \(error.localizedDescription)"
         case .rateLimitExceeded:
             return "API rate limit exceeded. Please try again later."
+        case .tierLimitExceeded(let message, let currentTier, let requestedDays, let maxDaysAllowed):
+            return "\(message) Your \(currentTier) plan allows \(maxDaysAllowed) days (requested: \(requestedDays))."
         case .serverError:
             return "Server error. Please try again later."
         case .invalidResponse:
             return "Invalid response from server"
+        }
+    }
+    
+    /// Whether this error should show an upgrade prompt
+    var shouldShowUpgradePrompt: Bool {
+        switch self {
+        case .tierLimitExceeded:
+            return true
+        default:
+            return false
         }
     }
 }

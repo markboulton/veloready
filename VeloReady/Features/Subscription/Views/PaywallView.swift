@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// Tier limit context for upgrade prompts
+struct TierLimitContext {
+    let currentTier: String
+    let requestedDays: Int
+    let maxDaysAllowed: Int
+    let message: String
+}
+
 /// Paywall view for VeloReady Pro subscription
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
@@ -9,10 +17,22 @@ struct PaywallView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     
+    // Optional context when accessed from tier limit error
+    let tierLimitContext: TierLimitContext?
+    
+    init(tierLimitContext: TierLimitContext? = nil) {
+        self.tierLimitContext = tierLimitContext
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Tier limit context (if present)
+                    if let context = tierLimitContext {
+                        tierLimitBanner(context: context)
+                    }
+                    
                     // Header
                     headerSection
                     
@@ -183,6 +203,46 @@ struct PaywallView: View {
             .foregroundColor(Color.button.primary)
         }
         .padding(.top)
+    }
+    
+    private func tierLimitBanner(context: TierLimitContext) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title2)
+                    .foregroundColor(.orange)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Data Limit Reached")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    Text("Your \(context.currentTier.capitalized) plan allows \(context.maxDaysAllowed) days of data")
+                        .font(.subheadline)
+                }
+            }
+            
+            Text(context.message)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            HStack {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.caption)
+                Text("Upgrade to Pro for \(context.requestedDays) days of historical data")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(8)
+        }
+        .padding()
+        .background(Color.orange.opacity(0.05))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+        )
     }
     
     private func handleSubscribe() {
