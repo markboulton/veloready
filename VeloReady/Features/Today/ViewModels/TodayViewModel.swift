@@ -181,9 +181,13 @@ class TodayViewModel: ObservableObject {
             try await cacheManager.refreshToday()
             Logger.debug("💾 Saved today's data to Core Data cache")
             
-            // Backfill historical CTL/ATL/TSS data (runs once, then uses cache)
-            await cacheManager.calculateMissingCTLATL()
-            Logger.debug("✅ Historical CTL/ATL backfill complete")
+            // Move heavy CTL/ATL backfill to background (14+ seconds, non-blocking)
+            Task.detached(priority: .background) {
+                await CacheManager.shared.calculateMissingCTLATL()
+                await MainActor.run {
+                    Logger.debug("✅ Historical CTL/ATL backfill complete (background)")
+                }
+            }
         } catch {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }
@@ -387,7 +391,14 @@ class TodayViewModel: ObservableObject {
         // Save to Core Data cache
         do {
             try await cacheManager.refreshToday()
-            await cacheManager.calculateMissingCTLATL()
+            
+            // Move heavy CTL/ATL calculation to background (non-blocking)
+            Task.detached(priority: .background) {
+                await CacheManager.shared.calculateMissingCTLATL()
+                await MainActor.run {
+                    Logger.debug("✅ CTL/ATL calculation complete (background)")
+                }
+            }
         } catch {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }
