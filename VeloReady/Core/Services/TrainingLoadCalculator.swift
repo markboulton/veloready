@@ -9,6 +9,11 @@ class TrainingLoadCalculator {
     private let trimpCalculator = TRIMPCalculator()
     private let healthKitManager = HealthKitManager.shared
     
+    // Cache training load for 1 hour (expensive calculation, changes slowly)
+    private var cachedTrainingLoad: (ctl: Double, atl: Double)?
+    private var cacheTimestamp: Date?
+    private let cacheExpiryInterval: TimeInterval = 3600 // 1 hour
+    
     /// Calculate CTL and ATL from Strava activities using TSS
     /// - Parameter activities: Array of activities with TSS values
     /// - Returns: Tuple of (ctl, atl) for the most recent date
@@ -252,6 +257,15 @@ class TrainingLoadCalculator {
     /// Calculate current CTL and ATL from HealthKit workouts
     /// - Returns: Tuple of (ctl, atl) or nil if insufficient data
     func calculateTrainingLoad() async -> (ctl: Double, atl: Double) {
+        // Check cache first (1 hour TTL)
+        if let cached = cachedTrainingLoad,
+           let timestamp = cacheTimestamp,
+           Date().timeIntervalSince(timestamp) < cacheExpiryInterval {
+            let age = Int(Date().timeIntervalSince(timestamp) / 60)
+            Logger.debug("⚡ [Training Load] Using cached values (age: \(age)m) - CTL: \(String(format: "%.1f", cached.ctl)), ATL: \(String(format: "%.1f", cached.atl))")
+            return cached
+        }
+        
         Logger.data("Calculating training load from HealthKit workouts...")
         
         // Get last 42 days of TRIMP values
@@ -270,6 +284,11 @@ class TrainingLoadCalculator {
         Logger.debug("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
         Logger.debug("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
         Logger.debug("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
+        
+        // Cache the result
+        cachedTrainingLoad = (ctl, atl)
+        cacheTimestamp = Date()
+        Logger.debug("💾 [Training Load] Cached for 1 hour")
         
         return (ctl, atl)
     }
