@@ -43,7 +43,9 @@ class StrainDetailViewModel: ObservableObject {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
         
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+        // For 7 days, we want last 7 days INCLUDING today
+        // So if today is Nov 3, we want Oct 28 - Nov 3 (7 days)
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("📊 [LOAD CHART] Failed to calculate start date")
             return []
         }
@@ -84,10 +86,11 @@ class StrainDetailViewModel: ObservableObject {
         
         // Fill in missing days with 0 TSS for complete chart
         var completeDataPoints: [TrendDataPoint] = []
-        let dataPointsByDate = Dictionary(uniqueKeysWithValues: dataPoints.map { ($0.date, $0) })
+        let dataPointsByDate = Dictionary(uniqueKeysWithValues: dataPoints.map { (calendar.startOfDay(for: $0.date), $0) })
         
+        // Generate all dates in range (inclusive)
         for dayOffset in 0..<period.days {
-            guard let date = calendar.date(byAdding: .day, value: -period.days + dayOffset + 1, to: endDate) else { continue }
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: startDate) else { continue }
             let startOfDay = calendar.startOfDay(for: date)
             
             if let existingPoint = dataPointsByDate[startOfDay] {
