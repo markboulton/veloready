@@ -11,9 +11,14 @@ struct PerformanceOverviewCardV2: View {
     let timeRange: TrendsViewModel.TimeRange
     
     @StateObject private var viewModel = PerformanceOverviewCardViewModel()
+    @ObservedObject private var proConfig = ProFeatureConfig.shared
+    
+    private var showSleepData: Bool {
+        !sleepData.isEmpty && !proConfig.simulateNoSleepData
+    }
     
     private var hasData: Bool {
-        !recoveryData.isEmpty || !loadData.isEmpty || !sleepData.isEmpty
+        !recoveryData.isEmpty || !loadData.isEmpty || (!sleepData.isEmpty && showSleepData)
     }
     
     private var hasPartialData: Bool {
@@ -189,16 +194,18 @@ struct PerformanceOverviewCardV2: View {
                 .interpolationMethod(.catmullRom)
             }
             
-            // Sleep line (blue)
-            ForEach(sleepData) { point in
-                LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Sleep", point.value),
-                    series: .value("Metric", "Sleep")
-                )
-                .foregroundStyle(Color.blue)
-                .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.catmullRom)
+            // Sleep line (blue) - only show if sleep data available
+            if showSleepData {
+                ForEach(sleepData) { point in
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Sleep", point.value),
+                        series: .value("Metric", "Sleep")
+                    )
+                    .foregroundStyle(Color.blue)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+                }
             }
         }
         .chartYScale(domain: 0...100)
@@ -244,12 +251,15 @@ struct PerformanceOverviewCardV2: View {
                 unit: ""
             )
             
-            MetricLegendItem(
-                color: Color.blue,
-                label: "Sleep",
-                value: sleepData.last?.value,
-                unit: "%"
-            )
+            // Only show sleep legend if sleep data available
+            if showSleepData {
+                MetricLegendItem(
+                    color: Color.blue,
+                    label: "Sleep",
+                    value: sleepData.last?.value,
+                    unit: "%"
+                )
+            }
         }
         .padding(.vertical, Spacing.sm)
         .padding(.horizontal, Spacing.md)

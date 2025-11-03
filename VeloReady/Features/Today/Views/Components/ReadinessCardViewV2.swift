@@ -56,11 +56,14 @@ struct ReadinessCardViewV2: View {
                             color: .blue
                         )
                         
-                        ComponentPill(
-                            label: TodayContent.ReadinessComponents.sleep,
-                            value: readinessScore.components.sleepScore,
-                            color: .purple
-                        )
+                        // Only show sleep component if data available
+                        if let sleepScore = readinessScore.components.sleepScore {
+                            ComponentPill(
+                                label: TodayContent.ReadinessComponents.sleep,
+                                value: sleepScore,
+                                color: .purple
+                            )
+                        }
                         
                         ComponentPill(
                             label: TodayContent.ReadinessComponents.load,

@@ -54,7 +54,8 @@ struct WeeklyReportView: View {
                 )
                 
                 // 6. Sleep Hypnograms with Segmented Control
-                if !viewModel.sleepHypnograms.isEmpty {
+                // Hide when simulating no sleep data
+                if !viewModel.sleepHypnograms.isEmpty && !proConfig.simulateNoSleepData {
                     SleepHypnogramComponent(
                         hypnograms: viewModel.sleepHypnograms,
                         selectedDay: $selectedSleepDay
@@ -62,7 +63,8 @@ struct WeeklyReportView: View {
                 }
                 
                 // 7. Sleep Schedule (Circadian Rhythm)
-                if let circadian = viewModel.circadianRhythm {
+                // Hide when simulating no sleep data
+                if let circadian = viewModel.circadianRhythm, !proConfig.simulateNoSleepData {
                     SleepScheduleComponent(circadian: circadian)
                 }
                 
