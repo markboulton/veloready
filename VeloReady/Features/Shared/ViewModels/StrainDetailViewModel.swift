@@ -2,7 +2,7 @@ import SwiftUI
 import CoreData
 
 /// ViewModel for StrainDetailView
-/// Handles data fetching for load/strain trends from DailyLoad (TSS data)
+/// Handles data fetching for load/strain trends from DailyScores (strain score 0-18)
 @MainActor
 class StrainDetailViewModel: ObservableObject {
     // MARK: - Published Properties
@@ -50,8 +50,10 @@ class StrainDetailViewModel: ObservableObject {
             return []
         }
         
-        // Fetch real TSS data from DailyLoad (not strainScore from DailyScores)
-        let fetchRequest = DailyLoad.fetchRequest()
+        Logger.debug("📊 [LOAD CHART] Date range: \(startDate) to \(endDate) (\(period.days) days)")
+        
+        // Fetch strain score (0-18 load) from DailyScores
+        let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(
             format: "date >= %@ AND date <= %@",
             startDate as NSDate,
@@ -64,27 +66,35 @@ class StrainDetailViewModel: ObservableObject {
             return []
         }
         
-        let dataPoints = results.compactMap { dailyLoad -> TrendDataPoint? in
-            guard let date = dailyLoad.date else { return nil }
+        Logger.debug("📊 [LOAD CHART] Fetched \(results.count) records from Core Data")
+        for (index, score) in results.enumerated() {
+            if let date = score.date {
+                Logger.debug("📊 [LOAD CHART]   Record \(index + 1): \(date) - Strain: \(score.strainScore)")
+            }
+        }
+        
+        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
+            guard let date = dailyScore.date else { return nil }
             
-            // Validate TSS - filter out unrealistic values (data errors)
-            // Typical TSS range: 0-500 (500 = very hard 5+ hour ride)
-            let tss = dailyLoad.tss
-            if tss > 500 {
-                Logger.warning("📊 [LOAD CHART] Filtering out unrealistic TSS value: \(Int(tss)) on \(date)")
+            // Strain score is 0-18 scale
+            let strainScore = dailyScore.strainScore
+            
+            // Validate strain score range (0-18)
+            if strainScore < 0 || strainScore > 18 {
+                Logger.warning("📊 [LOAD CHART] Invalid strain score: \(strainScore) on \(date)")
                 return nil
             }
             
-            // TSS can be 0 for rest days, so include all valid records
+            // Strain can be 0 for rest days, so include all valid records
             return TrendDataPoint(
                 date: date,
-                value: tss
+                value: strainScore
             )
         }
         
         Logger.debug("📊 [LOAD CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
         
-        // Fill in missing days with 0 TSS for complete chart
+        // Fill in missing days with 0 strain for complete chart
         var completeDataPoints: [TrendDataPoint] = []
         let dataPointsByDate = Dictionary(uniqueKeysWithValues: dataPoints.map { (calendar.startOfDay(for: $0.date), $0) })
         
@@ -96,19 +106,19 @@ class StrainDetailViewModel: ObservableObject {
             if let existingPoint = dataPointsByDate[startOfDay] {
                 completeDataPoints.append(existingPoint)
             } else {
-                // Fill missing day with 0 TSS (rest day)
+                // Fill missing day with 0 strain (rest day)
                 completeDataPoints.append(TrendDataPoint(date: startOfDay, value: 0))
             }
         }
         
-        // Log TSS range for debugging
+        // Log strain range for debugging
         if !completeDataPoints.isEmpty {
-            let tssValues = completeDataPoints.map { $0.value }
-            let minTSS = tssValues.min() ?? 0
-            let maxTSS = tssValues.max() ?? 0
-            let avgTSS = tssValues.reduce(0, +) / Double(tssValues.count)
-            Logger.debug("📊 [LOAD CHART] TSS range: min=\(Int(minTSS)), max=\(Int(maxTSS)), avg=\(Int(avgTSS))")
-            Logger.debug("📊 [LOAD CHART] Filled \(completeDataPoints.count - dataPoints.count) missing days with 0 TSS")
+            let strainValues = completeDataPoints.map { $0.value }
+            let minStrain = strainValues.min() ?? 0
+            let maxStrain = strainValues.max() ?? 0
+            let avgStrain = strainValues.reduce(0, +) / Double(strainValues.count)
+            Logger.debug("📊 [LOAD CHART] Strain range: min=\(String(format: "%.1f", minStrain)), max=\(String(format: "%.1f", maxStrain)), avg=\(String(format: "%.1f", avgStrain))")
+            Logger.debug("📊 [LOAD CHART] Filled \(completeDataPoints.count - dataPoints.count) missing days with 0 strain")
         }
         
         if completeDataPoints.isEmpty {
@@ -123,7 +133,7 @@ class StrainDetailViewModel: ObservableObject {
             let daysAgo = period.days - 1 - dayIndex
             return TrendDataPoint(
                 date: Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!,
-                value: Double.random(in: 60...95)  // Realistic range matching recovery/sleep
+                value: Double.random(in: 0...18)  // Strain score range 0-18
             )
         }
     }
