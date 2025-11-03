@@ -315,12 +315,12 @@ class TodayViewModel: ObservableObject {
         }
         Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
         
-        // PHASE 2: Critical Updates (1-2s) - Update today's scores in background
+        // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
         Task {
             let phase2Start = CFAbsoluteTimeGetCurrent()
-            Logger.debug("🎯 PHASE 2: Critical Updates - calculating today's scores...")
+            Logger.debug("🎯 PHASE 2: Critical Scores - sleep, recovery, strain")
             
-            // Calculate scores in parallel
+            // ONLY calculate user-visible scores
             async let sleepTask: Void = sleepScoreService.calculateSleepScore()
             async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
             async let strainTask: Void = strainScoreService.calculateStrainScore()
@@ -330,7 +330,7 @@ class TodayViewModel: ObservableObject {
             _ = await strainTask
             
             let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
-            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores updated")
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
             
             // Trigger ring animations and haptic feedback
             await MainActor.run {
@@ -342,11 +342,21 @@ class TodayViewModel: ObservableObject {
                 Logger.debug("📳 Haptic feedback triggered - scores updated")
             }
             
-            // PHASE 3: Background Sync - Fetch activities and other data
-            await refreshActivitiesAndOtherData()
-            
-            let totalTime = CFAbsoluteTimeGetCurrent() - startTime
-            Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
+            // PHASE 3: Background Updates (4-5s) - Non-blocking
+            // This runs AFTER UI is interactive, user won't notice
+            Task.detached(priority: .background) {
+                let phase3Start = CFAbsoluteTimeGetCurrent()
+                await Logger.debug("🎯 PHASE 3: Background Updates - activities, trends, training load")
+                
+                // Fetch activities and other non-critical data
+                await self.refreshActivitiesAndOtherData()
+                
+                let phase3Time = CFAbsoluteTimeGetCurrent() - phase3Start
+                await Logger.debug("✅ PHASE 3 complete in \(String(format: "%.2f", phase3Time))s - background work done")
+                
+                let totalTime = CFAbsoluteTimeGetCurrent() - startTime
+                await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
+            }
         }
     }
     
