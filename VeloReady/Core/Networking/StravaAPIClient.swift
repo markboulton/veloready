@@ -302,7 +302,8 @@ struct StravaStreamData: Decodable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        series_type = try container.decode(String.self, forKey: .series_type)
+        // series_type is required by Strava but may not be in cached/modified responses
+        series_type = (try? container.decode(String.self, forKey: .series_type)) ?? "distance"
         original_size = try container.decode(Int.self, forKey: .original_size)
         resolution = try container.decode(String.self, forKey: .resolution)
         
