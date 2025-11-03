@@ -14,6 +14,7 @@ struct TrendChart: View {
     enum DataType {
         case recovery
         case sleep
+        case strain
     }
     
     @State private var selectedPeriod: TrendPeriod = .sevenDays
@@ -33,6 +34,11 @@ struct TrendChart: View {
     
     // Adaptive y-axis range
     private var yAxisRange: ClosedRange<Double> {
+        // Strain always uses fixed 0-18 scale
+        if dataType == .strain {
+            return 0...18
+        }
+        
         guard useAdaptiveYAxis, !data.isEmpty else { return 0...100 }
         
         let values = data.map(\.value)
@@ -51,6 +57,11 @@ struct TrendChart: View {
     
     // Y-axis values for adaptive axis
     private var yAxisValues: [Double] {
+        // Strain uses fixed intervals on 0-18 scale
+        if dataType == .strain {
+            return [0, 6, 10, 13, 18]
+        }
+        
         guard useAdaptiveYAxis else { return [0, 25, 50, 75, 100] }
         
         let range = yAxisRange
@@ -182,8 +193,8 @@ struct TrendChart: View {
         .frame(height: 225)
         .chartXAxis {
             if selectedPeriod == .sevenDays {
-                // 7 days: Show all weekday abbreviations, aligned to center of bars
-                AxisMarks { value in
+                // 7 days: Show all weekday abbreviations - use stride to force all days
+                AxisMarks(values: .stride(by: .day, count: 1)) { value in
                     AxisGridLine()
                         .foregroundStyle(ColorPalette.neutral300)
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated))
@@ -217,7 +228,8 @@ struct TrendChart: View {
                 AxisValueLabel {
                     if let doubleValue = value.as(Double.self) {
                         let intValue = Int(doubleValue)
-                        if useAdaptiveYAxis {
+                        // Strain shows plain numbers, recovery/sleep show percentages
+                        if dataType == .strain || useAdaptiveYAxis {
                             Text("\(intValue)")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(ColorPalette.chartAxisLabel)
@@ -231,6 +243,7 @@ struct TrendChart: View {
             }
         }
         .chartYScale(domain: yAxisRange)
+        .chartXScale(domain: .automatic(includesZero: false))
         .chartPlotStyle { plotArea in
             plotArea.background(Color.clear)
         }
@@ -245,7 +258,21 @@ struct TrendChart: View {
     // MARK: - Color Coding
     
     private func colorForValue(_ value: Double) -> Color {
-        // Color based on score level - using solid color tokens
+        // Strain uses 0-18 scale with band-specific colors
+        if dataType == .strain {
+            switch value {
+            case 0..<6:
+                return ColorScale.greenAccent    // Light (0-6)
+            case 6..<10:
+                return ColorScale.yellowAccent   // Moderate (6-10)
+            case 10..<13:
+                return ColorScale.amberAccent    // Hard (10-13)
+            default:
+                return ColorScale.redAccent      // Very Hard (13-18)
+            }
+        }
+        
+        // Recovery/Sleep use 0-100 scale
         switch value {
         case 80...:
             return ColorScale.greenAccent  // Excellent

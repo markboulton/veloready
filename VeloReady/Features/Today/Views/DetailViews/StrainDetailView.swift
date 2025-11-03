@@ -66,7 +66,7 @@ struct StrainDetailView: View {
                     chartType: .bar,
                     unit: "",
                     showProBadge: false,
-                    useAdaptiveYAxis: true
+                    dataType: .strain
                 )
             }
         }
