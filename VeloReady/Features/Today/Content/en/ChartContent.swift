@@ -11,9 +11,9 @@ enum ChartContent {
     
     // MARK: - Summary Stats
     enum Stats {
-        static let average = CommonContent.Metrics.average
-        static let minimum = CommonContent.Metrics.minimum
-        static let maximum = CommonContent.Metrics.maximum
+        static let average = "Avg"  /// Average (abbreviated to prevent wrapping)
+        static let minimum = "Min"  /// Minimum (abbreviated to prevent wrapping)
+        static let maximum = "Max"  /// Maximum (abbreviated to prevent wrapping)
     }
     
     // MARK: - Trend Indicators

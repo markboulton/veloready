@@ -55,6 +55,7 @@ struct LiquidGlassSegmentedControl<T: Hashable>: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .frame(height: 40)
     }
     

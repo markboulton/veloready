@@ -179,9 +179,22 @@ class WeeklyReportViewModel: ObservableObject {
         // High recovery + completed workouts = good nutrition
         let nutrition = min(100, avgRecovery * 1.1)
         
-        // Overall: weighted average
-        let overall = (sleepQuality * 0.25 + recoveryCapacity * 0.25 + hrvStatus * 0.2 +
+        // Check if sleep data is available and not simulated as unavailable
+        let simulateNoSleep = UserDefaults.standard.bool(forKey: "simulateNoSleepData")
+        let hasSleepData = !sleepScores.isEmpty && !simulateNoSleep
+        
+        // Overall: weighted average - rebalance when sleep unavailable
+        let overall: Double
+        if hasSleepData {
+            // Normal weights (with sleep): Sleep 25%, Recovery 25%, HRV 20%, Stress 15%, Consistency 10%, Nutrition 5%
+            overall = (sleepQuality * 0.25 + recoveryCapacity * 0.25 + hrvStatus * 0.2 +
                       (100 - stressLevel) * 0.15 + consistency * 0.1 + nutrition * 0.05)
+        } else {
+            // Rebalanced weights (without sleep): Recovery 33.3%, HRV 26.7%, Stress 20%, Consistency 13.3%, Nutrition 6.7%
+            overall = (recoveryCapacity * 0.333 + hrvStatus * 0.267 +
+                      (100 - stressLevel) * 0.20 + consistency * 0.133 + nutrition * 0.067)
+            Logger.debug("💤 NO SLEEP MODE: Wellness foundation using rebalanced weights (no sleep)")
+        }
         
         wellnessFoundation = WellnessFoundation(
             sleepQuality: sleepQuality,

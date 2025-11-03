@@ -407,7 +407,8 @@ struct RecoveryDetailView: View {
                             .fontWeight(.medium)
                             .foregroundColor(readiness.band.colorToken)
                         
-                        Text("\(RecoveryContent.Readiness.recovery) \(readiness.components.recoveryScore) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Readiness.sleep) \(readiness.components.sleepScore) \(CommonContent.Formatting.bulletPoint) \(RecoveryContent.Readiness.load) \(readiness.components.loadReadiness)")
+                        // Build component breakdown text
+                        Text(buildReadinessBreakdown(components: readiness.components))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -562,6 +563,26 @@ struct RecoveryDetailView: View {
                 .padding(.top, 4)
             }
         )
+    }
+    
+    // MARK: - Helper Functions
+    
+    /// Build readiness component breakdown text with optional sleep
+    private func buildReadinessBreakdown(components: ReadinessScore.Components) -> String {
+        var parts: [String] = []
+        
+        // Recovery (always present)
+        parts.append("\(RecoveryContent.Readiness.recovery) \(components.recoveryScore)")
+        
+        // Sleep (optional)
+        if let sleepScore = components.sleepScore {
+            parts.append("\(RecoveryContent.Readiness.sleep) \(sleepScore)")
+        }
+        
+        // Load (always present)
+        parts.append("\(RecoveryContent.Readiness.load) \(components.loadReadiness)")
+        
+        return parts.joined(separator: " \(CommonContent.Formatting.bulletPoint) ")
     }
 }
 

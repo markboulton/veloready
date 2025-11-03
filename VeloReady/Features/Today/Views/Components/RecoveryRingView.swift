@@ -17,11 +17,11 @@ struct RecoveryRingView: View {
                 .stroke(ColorPalette.backgroundTertiary, lineWidth: ringWidth)
                 .frame(width: size, height: size)
             
-            // Progress ring - refined color based on score
+            // Progress ring - use band color for consistency
             Circle()
                 .trim(from: 0, to: progressValue)
                 .stroke(
-                    ColorPalette.recoveryColor(for: Double(score)),
+                    band.colorToken,
                     style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                 )
                 .frame(width: size, height: size)
@@ -32,7 +32,7 @@ struct RecoveryRingView: View {
             VStack(spacing: Spacing.xs) {
                 Text("\(score)")
                     .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(ColorPalette.recoveryColor(for: Double(score)))
+                    .foregroundColor(band.colorToken)
                 
                 HStack(spacing: Spacing.xs) {
                     Text(CommonContent.ReadinessComponents.recoveryUpper)

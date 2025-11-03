@@ -563,9 +563,9 @@ enum CommonContent {
         static let multipleIndicators = "Multiple Indicators"  /// Multiple indicators title
         
         // Sleep Data Missing
-        static let sleepDataMissing = "Sleep Data Missing"  /// Sleep data missing title
-        static let sleepDataMissingMessage = "No sleep data detected from last night. Make sure your Apple Watch is worn during sleep and sleep tracking is enabled in the Health app."  /// Sleep data missing message
-        static let infoBadge = "INFO"  /// Info badge
+        static let sleepDataMissing = "Get Better Recovery Insights"  /// Sleep data missing title
+        static let sleepDataMissingMessage = "Your recovery score works without sleep tracking, but adding sleep data gives you much more accurate insights. Wear your Apple Watch to bed to track sleep quality, stages, and overnight heart rate."  /// Sleep data missing message
+        static let tipBadge = "TIP"  /// Tip badge for helpful suggestions
         
         // Network Offline
         static let networkOffline = "Network Offline"  /// Network offline title

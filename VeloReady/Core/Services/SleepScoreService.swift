@@ -36,10 +36,11 @@ class SleepScoreService: ObservableObject {
     private func validateAndLoadCache() async {
         // Check if we have sleep data from LAST NIGHT (not older data)
         guard let sleepInfo = await healthKitManager.fetchDetailedSleepData() else {
-            // No sleep data at all - clear cache and set to nil
-            Logger.warning("️ No sleep data detected - clearing cache")
-            clearSleepScoreCache()
-            currentSleepScore = nil
+            // HealthKit returned nil - could be temporary access issue or genuinely no data
+            // DON'T clear cache here - let the actual calculation handle it
+            // This prevents flickering when HealthKit is temporarily inaccessible
+            Logger.debug("️ Unable to fetch sleep data during validation - keeping cached data")
+            loadCachedSleepScore() // Load what we have
             return
         }
         
@@ -135,6 +136,19 @@ class SleepScoreService: ObservableObject {
             }
             return
         }
+        
+        #if DEBUG
+        // Check if we're simulating no sleep data
+        if UserDefaults.standard.bool(forKey: "simulateNoSleepData") {
+            Logger.debug("💤 SIMULATION: No sleep data mode enabled - returning nil")
+            currentSleepScore = nil
+            // Still calculate sleep debt and consistency for historical data
+            await calculateSleepDebt()
+            await calculateSleepConsistency()
+            clearSleepScoreCache()
+            return
+        }
+        #endif
         
         // Use real data
         let realScore = await calculateRealSleepScore()

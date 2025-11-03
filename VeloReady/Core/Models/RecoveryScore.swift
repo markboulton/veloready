@@ -266,13 +266,35 @@ class RecoveryScoreCalculator {
     static func calculateRuleBased(inputs: RecoveryScore.RecoveryInputs, illnessIndicator: IllnessIndicator? = nil) -> RecoveryScore {
         let subScores = calculateSubScores(inputs: inputs)
         
-        // Reweighted formula to increase sleep importance (better for alcohol detection):
-        // HRV 30%, RHR 20%, Sleep 30%, Respiratory 10%, Load 10%
-        let hrvFactor = Double(subScores.hrv) * 0.30
-        let rhrFactor = Double(subScores.rhr) * 0.20
-        let sleepFactor = Double(subScores.sleep) * 0.30
-        let respiratoryFactor = Double(subScores.respiratory) * 0.10
-        let loadFactor = Double(subScores.form) * 0.10
+        // Check if sleep data is available and not simulated as unavailable
+        let simulateNoSleep = UserDefaults.standard.bool(forKey: "simulateNoSleepData")
+        let hasSleepData = inputs.sleepScore != nil && !simulateNoSleep
+        
+        // Choose weights based on sleep availability
+        let hrvFactor: Double
+        let rhrFactor: Double
+        let sleepFactor: Double
+        let respiratoryFactor: Double
+        let loadFactor: Double
+        
+        if hasSleepData {
+            // Normal weights (with sleep)
+            // HRV 30%, RHR 20%, Sleep 30%, Respiratory 10%, Load 10%
+            hrvFactor = Double(subScores.hrv) * 0.30
+            rhrFactor = Double(subScores.rhr) * 0.20
+            sleepFactor = Double(subScores.sleep) * 0.30
+            respiratoryFactor = Double(subScores.respiratory) * 0.10
+            loadFactor = Double(subScores.form) * 0.10
+        } else {
+            // Rebalanced weights (without sleep - redistributed proportionally)
+            // HRV 42.8%, RHR 28.6%, Respiratory 14.3%, Load 14.3%
+            hrvFactor = Double(subScores.hrv) * 0.428
+            rhrFactor = Double(subScores.rhr) * 0.286
+            sleepFactor = 0.0 // Sleep excluded
+            respiratoryFactor = Double(subScores.respiratory) * 0.143
+            loadFactor = Double(subScores.form) * 0.143
+            Logger.debug("💤 NO SLEEP MODE: Using rebalanced weights (HRV 42.8%, RHR 28.6%, Resp 14.3%, Load 14.3%)")
+        }
         
         var finalScore = hrvFactor + rhrFactor + sleepFactor + respiratoryFactor + loadFactor
         

@@ -95,7 +95,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     
     var recoveryTitle: String {
         guard let score = recoveryScore else { return "" }
-        return score.inputs.sleepDuration == nil ? TodayContent.limitedData : score.bandDescription
+        // Show actual band description even without sleep data
+        // The rebalanced algorithm still provides accurate recovery assessment
+        return score.bandDescription
     }
     
     var recoveryScoreValue: Int? {

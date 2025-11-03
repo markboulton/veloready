@@ -17,8 +17,8 @@ struct HealthWarningsCardV2: View {
                 wellnessWarningCard(alert)
             }
             
-            // Sleep data missing
-            if !viewModel.hasSleepData {
+            // Sleep data missing (only if not dismissed)
+            if !viewModel.hasSleepData && !viewModel.sleepDataWarningDismissed {
                 sleepDataMissingCard()
             }
             
@@ -181,8 +181,8 @@ struct HealthWarningsCardV2: View {
     private func sleepDataMissingCard() -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
-                // Sleep icon next to heading
-                Image(systemName: Icons.Health.sleepFill)
+                // Sleep icon next to heading (outline, purple)
+                Image(systemName: Icons.Health.sleep)
                     .font(.title3)
                     .foregroundColor(ColorScale.purpleAccent)
                 
@@ -190,7 +190,7 @@ struct HealthWarningsCardV2: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Text(CommonContent.HealthWarnings.infoBadge)
+                Text(CommonContent.HealthWarnings.tipBadge)
                     .font(.caption2)
                     .fontWeight(.medium)
                     .foregroundColor(ColorScale.purpleAccent)
@@ -198,6 +198,17 @@ struct HealthWarningsCardV2: View {
                     .padding(.vertical, 2)
                     .background(ColorScale.purpleAccent.opacity(0.15))
                     .cornerRadius(4)
+                
+                Spacer()
+                
+                // Dismiss button
+                Button(action: {
+                    viewModel.dismissSleepDataWarning()
+                }) {
+                    Image(systemName: Icons.Navigation.close)
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                }
             }
             
             Text(CommonContent.HealthWarnings.sleepDataMissingMessage)

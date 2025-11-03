@@ -19,10 +19,12 @@ class PerformanceOverviewCardViewModel: ObservableObject {
         sleepData: [TrendsViewModel.TrendDataPoint]
     ) -> String {
         guard let lastRecovery = recoveryData.last?.value,
-              let lastLoad = loadData.last?.value,
-              let lastSleep = sleepData.last?.value else {
+              let lastLoad = loadData.last?.value else {
             return TrendsContent.PerformanceOverview.trackConsistently
         }
+        
+        // Sleep data is optional (may not be available)
+        let lastSleep = sleepData.last?.value
         
         // Analyze balance between metrics and provide actionable insights
         return analyzeMetricBalance(
@@ -34,11 +36,11 @@ class PerformanceOverviewCardViewModel: ObservableObject {
     
     // MARK: - Private Methods
     
-    /// Analyze the balance between recovery, training load, and sleep
+    /// Analyze the balance between recovery, training load, and sleep (optional)
     /// Returns context-specific insight based on current state
-    private func analyzeMetricBalance(recovery: Double, load: Double, sleep: Double) -> String {
+    private func analyzeMetricBalance(recovery: Double, load: Double, sleep: Double?) -> String {
         // Well-recovered + Light load + Good sleep = Ready for hard training
-        if recovery > 75 && load < 50 && sleep > 75 {
+        if recovery > 75 && load < 50 && (sleep ?? 75) > 75 {
             return TrendsContent.PerformanceOverview.Insights.wellRecovered
         }
         
@@ -47,8 +49,8 @@ class PerformanceOverviewCardViewModel: ObservableObject {
             return TrendsContent.PerformanceOverview.Insights.highLoadLowRecovery
         }
         
-        // Poor sleep + Low recovery = Sleep is limiting factor
-        if sleep < 60 && recovery < 70 {
+        // Poor sleep + Low recovery = Sleep is limiting factor (only if sleep data available)
+        if let sleepValue = sleep, sleepValue < 60 && recovery < 70 {
             return TrendsContent.PerformanceOverview.Insights.poorSleepAffecting
         }
         
