@@ -479,7 +479,19 @@ final class CacheManager: ObservableObject {
     /// Calculate missing CTL/ATL values from activities
     /// Called when Intervals.icu doesn't provide CTL/ATL data
     /// Optimized to backfill last 42 days and save TSS values
+    /// Smart caching: Only runs once per day to avoid redundant calculations
     func calculateMissingCTLATL() async {
+        // Check if backfill ran recently (within 24 hours)
+        let lastBackfillKey = "lastCTLBackfill"
+        if let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
+            let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
+            if hoursSinceBackfill < 24 {
+                Logger.data("⏭️ [CTL/ATL BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
+                return
+            }
+            Logger.data("🔄 [CTL/ATL BACKFILL] Last run was \(String(format: "%.1f", hoursSinceBackfill))h ago - running fresh backfill")
+        }
+        
         Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
         
         let calculator = TrainingLoadCalculator()
@@ -533,7 +545,10 @@ final class CacheManager: ObservableObject {
         // Batch update DailyLoad entities for performance
         await updateDailyLoadBatch(progressiveLoad)
         
-        Logger.data("✅ [CTL/ATL BACKFILL] Complete!")
+        // Save timestamp of successful backfill
+        UserDefaults.standard.set(Date(), forKey: "lastCTLBackfill")
+        
+        Logger.data("✅ [CTL/ATL BACKFILL] Complete! (Next run allowed in 24h)")
     }
     
     /// Batch update DailyLoad entities for performance
