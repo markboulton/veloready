@@ -179,6 +179,19 @@ class HealthWarningsCardViewModel: ObservableObject {
         hasIllnessWarning && hasWellnessAlert
     }
     
+    var warningCount: Int {
+        var count = 0
+        if hasIllnessWarning { count += 1 }
+        if hasWellnessAlert { count += 1 }
+        if !hasSleepData { count += 1 }
+        if isNetworkOffline { count += 1 }
+        return count
+    }
+    
+    var hasSingleWarning: Bool {
+        warningCount == 1
+    }
+    
     var title: String {
         hasIllnessWarning ? "Body Stress Detected" : "Health Alerts"
     }

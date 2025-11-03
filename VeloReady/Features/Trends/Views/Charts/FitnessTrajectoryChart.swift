@@ -229,6 +229,7 @@ struct FitnessTrajectoryChart: View {
                     .font(.caption2)
             }
         }
+        .frame(maxWidth: .infinity)
         .frame(height: 200)
     }
     

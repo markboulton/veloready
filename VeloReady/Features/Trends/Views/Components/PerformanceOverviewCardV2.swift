@@ -222,6 +222,7 @@ struct PerformanceOverviewCardV2: View {
                     .foregroundStyle(Color.text.tertiary)
             }
         }
+        .frame(maxWidth: .infinity)
         .frame(height: 200)
     }
     

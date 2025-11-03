@@ -6,58 +6,27 @@ struct HealthWarningsCardV2: View {
     @StateObject private var viewModel = HealthWarningsCardViewModel()
     
     var body: some View {
-        if viewModel.hasWarnings {
-            CardContainer(
-                header: CardHeader(
-                    title: viewModel.title,
-                    subtitle: nil,
-                    badge: viewModel.severityBadge
-                ),
-                style: .standard
-            ) {
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Illness indicator (highest priority)
-                    if let indicator = viewModel.illnessIndicator, indicator.isSignificant && indicator.isRecent {
-                        illnessWarningContent(indicator)
-                            .onTapGesture {
-                                viewModel.showIllnessDetail()
-                            }
-                        
-                        if viewModel.hasWellnessAlert || !viewModel.hasSleepData {
-                            Divider()
-                                .padding(.vertical, Spacing.xs)
-                        }
-                    }
-                    
-                    // Wellness alert
-                    if let alert = viewModel.wellnessAlert {
-                        wellnessWarningContent(alert)
-                            .onTapGesture {
-                                viewModel.showWellnessDetail()
-                            }
-                        
-                        if !viewModel.hasSleepData {
-                            Divider()
-                                .padding(.vertical, Spacing.xs)
-                        }
-                    }
-                    
-                    // Sleep data missing
-                    if !viewModel.hasSleepData {
-                        sleepDataMissingContent()
-                        
-                        if viewModel.isNetworkOffline {
-                            Divider()
-                                .padding(.vertical, Spacing.xs)
-                        }
-                    }
-                    
-                    // Network offline (lowest priority)
-                    if viewModel.isNetworkOffline {
-                        networkOfflineContent()
-                    }
-                }
+        VStack(spacing: Spacing.md) {
+            // Illness indicator (highest priority)
+            if let indicator = viewModel.illnessIndicator, indicator.isSignificant && indicator.isRecent {
+                illnessWarningCard(indicator)
             }
+            
+            // Wellness alert
+            if let alert = viewModel.wellnessAlert {
+                wellnessWarningCard(alert)
+            }
+            
+            // Sleep data missing
+            if !viewModel.hasSleepData {
+                sleepDataMissingCard()
+            }
+            
+            // Network offline (lowest priority)
+            if viewModel.isNetworkOffline {
+                networkOfflineCard()
+            }
+        }
             .sheet(isPresented: $viewModel.showingIllnessDetail) {
                 if let indicator = viewModel.illnessIndicator {
                     IllnessDetailSheet(indicator: indicator)
@@ -72,21 +41,53 @@ struct HealthWarningsCardV2: View {
                         .presentationDragIndicator(.visible)
                 }
             }
-        }
     }
     
-    
     @ViewBuilder
-    private func illnessWarningContent(_ indicator: IllnessIndicator) -> some View {
+    private func illnessWarningCard(_ indicator: IllnessIndicator) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            VRText(indicator.recommendation, style: .caption, color: Color.text.secondary)
+            HStack(spacing: Spacing.xs) {
+                // Icon next to heading
+                Image(systemName: indicator.severity.icon)
+                    .font(.title3)
+                    .foregroundColor(severityColor(indicator.severity))
+                
+                Text(CommonContent.HealthWarnings.bodyStressDetected)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                // Severity badge
+                Text(severityText(indicator.severity))
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(severityColor(indicator.severity))
+                    .padding(.horizontal, Spacing.xs)
+                    .padding(.vertical, 2)
+                    .background(severityColor(indicator.severity).opacity(0.15))
+                    .cornerRadius(4)
+                
+                Spacer()
+                
+                // Info button to trigger sheet
+                Button(action: {
+                    viewModel.showIllnessDetail()
+                }) {
+                    Image(systemName: Icons.Status.info)
+                        .font(.body)
+                        .foregroundColor(Color.text.secondary)
+                }
+            }
+            
+            Text(indicator.recommendation)
+                .font(.subheadline)
+                .foregroundColor(Color.text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             
             // Show signals
             if !indicator.signals.isEmpty {
                 HStack(spacing: Spacing.xs) {
                     ForEach(indicator.signals.prefix(3)) { signal in
-                        HStack(spacing: Spacing.xs) {
+                        HStack(spacing: 4) {
                             Image(systemName: signal.type.icon)
                                 .font(.caption2)
                             Text(signal.type.rawValue)
@@ -101,38 +102,68 @@ struct HealthWarningsCardV2: View {
                             .foregroundColor(Color.text.secondary)
                     }
                 }
-                .padding(.top, Spacing.xs / 2)
+                .padding(.top, 4)
             }
         }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(severityColor(indicator.severity).opacity(0.05))
+        .cornerRadius(12)
     }
     
     @ViewBuilder
-    private func wellnessWarningContent(_ alert: WellnessAlert) -> some View {
+    private func wellnessWarningCard(_ alert: WellnessAlert) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            VRText(alert.type.title, style: .headline, color: Color.text.primary)
+            HStack(spacing: Spacing.xs) {
+                // Warning icon next to heading
+                Image(systemName: alert.severity.icon)
+                    .font(.title3)
+                    .foregroundColor(alert.severity.color)
+                
+                Text(alert.type.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                // Info button to trigger sheet
+                Button(action: {
+                    viewModel.showWellnessDetail()
+                }) {
+                    Image(systemName: Icons.Status.info)
+                        .font(.body)
+                        .foregroundColor(Color.text.secondary)
+                }
+            }
             
-            VRText(alert.bannerMessage, style: .caption, color: Color.text.secondary)
+            Text(alert.bannerMessage)
+                .font(.subheadline)
+                .foregroundColor(Color.text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             
             // Show affected metrics count
             if alert.metrics.count > 0 {
                 HStack(spacing: Spacing.xs) {
                     if alert.metrics.elevatedRHR {
-                        metricBadge(icon: "heart.fill", text: "RHR")
+                        metricBadge(icon: Icons.Health.heartFill, text: "RHR")
                     }
                     if alert.metrics.depressedHRV {
-                        metricBadge(icon: "waveform.path.ecg", text: "HRV")
+                        metricBadge(icon: Icons.Health.heartRate, text: "HRV")
                     }
                     if alert.metrics.elevatedRespiratoryRate {
-                        metricBadge(icon: "lungs.fill", text: "Resp")
+                        metricBadge(icon: Icons.Health.respiratory, text: "Resp")
                     }
                     if alert.metrics.poorSleep {
-                        metricBadge(icon: "bed.double.fill", text: "Sleep")
+                        metricBadge(icon: Icons.Health.sleepFill, text: "Sleep")
                     }
                 }
-                .padding(.top, Spacing.xs / 2)
+                .padding(.top, 4)
             }
         }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(alert.severity.color.opacity(0.1))
+        .cornerRadius(12)
     }
     
     @ViewBuilder
@@ -147,54 +178,88 @@ struct HealthWarningsCardV2: View {
     }
     
     @ViewBuilder
-    private func sleepDataMissingContent() -> some View {
+    private func sleepDataMissingCard() -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
+                // Sleep icon next to heading
                 Image(systemName: Icons.Health.sleepFill)
-                    .font(.caption)
+                    .font(.title3)
                     .foregroundColor(ColorScale.purpleAccent)
                 
-                VRText("Sleep Data Missing", style: .headline, color: Color.text.primary)
+                Text(CommonContent.HealthWarnings.sleepDataMissing)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                 
-                Text("INFO")
+                Text(CommonContent.HealthWarnings.infoBadge)
                     .font(.caption2)
                     .fontWeight(.medium)
                     .foregroundColor(ColorScale.purpleAccent)
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, Spacing.xs)
                     .padding(.vertical, 2)
                     .background(ColorScale.purpleAccent.opacity(0.15))
                     .cornerRadius(4)
             }
             
-            VRText("No sleep data detected from last night. Make sure your Apple Watch is worn during sleep and sleep tracking is enabled in the Health app.", style: .caption, color: Color.text.secondary)
+            Text(CommonContent.HealthWarnings.sleepDataMissingMessage)
+                .font(.subheadline)
+                .foregroundColor(Color.text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorScale.purpleAccent.opacity(0.05))
+        .cornerRadius(12)
     }
     
     @ViewBuilder
-    private func networkOfflineContent() -> some View {
+    private func networkOfflineCard() -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
+                // Network icon next to heading
                 Image(systemName: Icons.System.network)
-                    .font(.caption)
+                    .font(.title3)
                     .foregroundColor(Color.text.secondary)
                 
-                VRText("Network Offline", style: .headline, color: Color.text.primary)
+                Text(CommonContent.HealthWarnings.networkOffline)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                 
-                Spacer()
-                
-                Text("DEBUG")
+                Text(CommonContent.HealthWarnings.debugBadge)
                     .font(.caption2)
                     .fontWeight(.medium)
                     .foregroundColor(Color.text.secondary)
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, Spacing.xs)
                     .padding(.vertical, 2)
                     .background(Color.text.secondary.opacity(0.15))
                     .cornerRadius(4)
             }
             
-            VRText("Network simulation enabled. Some features may show empty states or cached data.", style: .caption, color: Color.text.secondary)
+            Text(CommonContent.HealthWarnings.networkOfflineMessage)
+                .font(.subheadline)
+                .foregroundColor(Color.text.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.text.secondary.opacity(0.05))
+        .cornerRadius(12)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func severityColor(_ severity: IllnessIndicator.Severity) -> Color {
+        switch severity {
+        case .low: return ColorScale.yellowAccent
+        case .moderate: return ColorScale.amberAccent
+        case .high: return ColorScale.redAccent
+        }
+    }
+    
+    private func severityText(_ severity: IllnessIndicator.Severity) -> String {
+        switch severity {
+        case .low: return CommonContent.HealthWarnings.severityLow.uppercased()
+        case .moderate: return CommonContent.HealthWarnings.severityModerate.uppercased()
+        case .high: return CommonContent.HealthWarnings.severityHigh.uppercased()
         }
     }
 }

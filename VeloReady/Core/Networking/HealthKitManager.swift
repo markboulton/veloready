@@ -457,9 +457,9 @@ class HealthKitManager: ObservableObject {
         let startOfToday = calendar.startOfDay(for: now)
         let cacheKey = "healthkit:sleep:\(startOfToday.timeIntervalSince1970)"
         
-        // Try cache first
+        // Try cache first (5 min TTL to catch late-arriving sleep data from watch)
         do {
-            return try await cacheManager.fetch(key: cacheKey, ttl: 3600) { // 1 hour cache
+            return try await cacheManager.fetch(key: cacheKey, ttl: 300) { // 5 minute cache
                 return await self.fetchDetailedSleepDataInternal()
             }
         } catch {

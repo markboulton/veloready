@@ -108,6 +108,7 @@ struct SleepHypnogramChart: View {
                     .frame(width: geometry.size.width, height: geometry.size.height)
                 }
             }
+            .frame(maxWidth: .infinity)
             .frame(height: 180)
             
             // Duration summary

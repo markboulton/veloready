@@ -551,4 +551,26 @@ enum CommonContent {
         static let messageNoData = "No recovery data in shared container"  /// No data message
     }
     
+    // MARK: - Health Warnings
+    enum HealthWarnings {
+        // Illness Indicator
+        static let bodyStressDetected = "Body Stress Detected"  /// Illness indicator title
+        static let severityLow = "Low"  /// Low severity
+        static let severityModerate = "Moderate"  /// Moderate severity
+        static let severityHigh = "High"  /// High severity
+        
+        // Wellness Alert
+        static let multipleIndicators = "Multiple Indicators"  /// Multiple indicators title
+        
+        // Sleep Data Missing
+        static let sleepDataMissing = "Sleep Data Missing"  /// Sleep data missing title
+        static let sleepDataMissingMessage = "No sleep data detected from last night. Make sure your Apple Watch is worn during sleep and sleep tracking is enabled in the Health app."  /// Sleep data missing message
+        static let infoBadge = "INFO"  /// Info badge
+        
+        // Network Offline
+        static let networkOffline = "Network Offline"  /// Network offline title
+        static let networkOfflineMessage = "Network simulation enabled. Some features may show empty states or cached data."  /// Network offline message
+        static let debugBadge = "DEBUG"  /// Debug badge
+    }
+    
 }

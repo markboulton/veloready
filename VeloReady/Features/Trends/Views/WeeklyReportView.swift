@@ -1,17 +1,5 @@
 import SwiftUI
 
-// MARK: - Gesture Modifier to Constrain Scrolling
-extension View {
-    /// Constrains scrolling to vertical only by intercepting horizontal drag gestures
-    func verticalScrollOnly() -> some View {
-        self.gesture(
-            DragGesture()
-                .onChanged { _ in }
-                .onEnded { _ in }
-        )
-    }
-}
-
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
     @StateObject private var viewModel = WeeklyReportViewModel()
@@ -22,6 +10,10 @@ struct WeeklyReportView: View {
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: Spacing.md) {
+                Color.clear.frame(height: 1)
+                    .onAppear {
+                        print("🔍 [WeeklyReport] ScrollView content appeared")
+                    }
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(
                     aiSummary: viewModel.aiSummary,
@@ -83,19 +75,17 @@ struct WeeklyReportView: View {
             .padding(.bottom, 120)
         }
         .scrollDisabled(false) // Ensure vertical scrolling works
+        .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+        .scrollDismissesKeyboard(.interactively)
         .background(Color.background.app)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 20)
-                .onChanged { value in
-                    // Block horizontal scrolling by only allowing vertical
-                    if abs(value.translation.width) > abs(value.translation.height) {
-                        // Horizontal drag detected - do nothing to block it
-                    }
-                }
-        )
+        .onAppear {
+            print("🔍 [WeeklyReport] View appeared - ScrollView should be locked to vertical")
+        }
         .task {
+            print("🔍 [WeeklyReport] Loading data...")
             await viewModel.loadWeeklyReport()
             await trendsViewModel.loadTrendData()
+            print("🔍 [WeeklyReport] Data loaded - checking if draggable")
         }
         .refreshable {
             await viewModel.loadWeeklyReport()
