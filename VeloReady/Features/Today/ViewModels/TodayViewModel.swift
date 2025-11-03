@@ -293,13 +293,23 @@ class TodayViewModel: ObservableObject {
         let phase1Time = CFAbsoluteTimeGetCurrent() - startTime
         Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.3f", phase1Time))s - showing UI now")
         
+        // Ensure animated logo shows for minimum 2 seconds
+        let minimumLogoDisplayTime: TimeInterval = 2.0
+        let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
+        let remainingTime = max(0, minimumLogoDisplayTime - elapsedTime)
+        
+        if remainingTime > 0 {
+            Logger.debug("⏱️ [SPINNER] Delaying for \(String(format: "%.2f", remainingTime))s to show animated logo")
+            try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
+        }
+        
         await MainActor.run {
             withAnimation(.easeOut(duration: 0.3)) {
                 isInitializing = false
                 isDataLoaded = true
             }
         }
-        Logger.debug("✅ UI displayed instantly with cached data")
+        Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
         
         // PHASE 2: Critical Updates (1-2s) - Update today's scores in background
         Task {
