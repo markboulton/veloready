@@ -52,10 +52,25 @@ struct RecoveryMetricsSection: View {
                     }
                 } else {
                     // Show actual data when HealthKit is authorized
-                    HStack(spacing: Spacing.xxl) {
-                        recoveryScoreView
-                        sleepScoreView
-                        loadScoreView
+                    // Check if sleep data is available or simulated as unavailable
+                    let config = ProFeatureConfig.shared
+                    let showSleepRing = viewModel.hasSleepData && !config.simulateNoSleepData
+                    
+                    if showSleepRing {
+                        // Standard 3-ring layout
+                        HStack(spacing: Spacing.xxl) {
+                            recoveryScoreView
+                            sleepScoreView
+                            loadScoreView
+                        }
+                    } else {
+                        // 2-ring layout when sleep unavailable
+                        HStack(spacing: Spacing.xxl) {
+                            Spacer()
+                            recoveryScoreView
+                            loadScoreView
+                            Spacer()
+                        }
                     }
                 }
             }

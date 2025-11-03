@@ -21,6 +21,20 @@ public struct RecoveryCalculations {
     /// Weight for training load (TSB) in recovery score (10%)
     public static let loadWeight = 0.10
     
+    // MARK: - No Sleep Mode Weights (redistributed when sleep unavailable)
+    
+    /// HRV weight when no sleep data (42.8% - redistributed from 30%)
+    public static let hrvWeightNoSleep = 0.428
+    
+    /// RHR weight when no sleep data (28.6% - redistributed from 20%)
+    public static let rhrWeightNoSleep = 0.286
+    
+    /// Respiratory weight when no sleep data (14.3% - redistributed from 10%)
+    public static let respiratoryWeightNoSleep = 0.143
+    
+    /// Load weight when no sleep data (14.3% - redistributed from 10%)
+    public static let loadWeightNoSleep = 0.143
+    
     // MARK: - Recovery Bands
     
     public enum RecoveryBand: String, CaseIterable {
@@ -99,6 +113,7 @@ public struct RecoveryCalculations {
     ///   - atl: Acute Training Load (fatigue)
     ///   - ctl: Chronic Training Load (fitness)
     ///   - yesterdayTSS: Yesterday's training stress score
+    ///   - useSleepData: Whether to include sleep in calculation (default: true)
     /// - Returns: RecoveryScore with final score and breakdown
     public static func calculateRecoveryScore(
         hrv: Double?,
@@ -112,7 +127,8 @@ public struct RecoveryCalculations {
         respiratoryBaseline: Double?,
         atl: Double?,
         ctl: Double?,
-        yesterdayTSS: Double?
+        yesterdayTSS: Double?,
+        useSleepData: Bool = true
     ) -> RecoveryScore {
         // Calculate sub-components
         let hrvScore = calculateHRVScore(hrv: hrv, baseline: hrvBaseline)
@@ -132,12 +148,28 @@ public struct RecoveryCalculations {
             yesterdayTSS: yesterdayTSS
         )
         
-        // Weighted combination
-        let hrvFactor = Double(hrvScore) * hrvWeight
-        let rhrFactor = Double(rhrScore) * rhrWeight
-        let sleepFactor = Double(sleepScore) * sleepWeight
-        let respiratoryFactor = Double(respiratoryScore) * respiratoryWeight
-        let loadFactor = Double(formScore) * loadWeight
+        // Weighted combination - use rebalanced weights if sleep unavailable
+        let hrvFactor: Double
+        let rhrFactor: Double
+        let sleepFactor: Double
+        let respiratoryFactor: Double
+        let loadFactor: Double
+        
+        if useSleepData {
+            // Normal weights (with sleep)
+            hrvFactor = Double(hrvScore) * hrvWeight
+            rhrFactor = Double(rhrScore) * rhrWeight
+            sleepFactor = Double(sleepScore) * sleepWeight
+            respiratoryFactor = Double(respiratoryScore) * respiratoryWeight
+            loadFactor = Double(formScore) * loadWeight
+        } else {
+            // Rebalanced weights (without sleep - redistributed proportionally)
+            hrvFactor = Double(hrvScore) * hrvWeightNoSleep
+            rhrFactor = Double(rhrScore) * rhrWeightNoSleep
+            sleepFactor = 0.0 // Sleep excluded
+            respiratoryFactor = Double(respiratoryScore) * respiratoryWeightNoSleep
+            loadFactor = Double(formScore) * loadWeightNoSleep
+        }
         
         let finalScore = hrvFactor + rhrFactor + sleepFactor + respiratoryFactor + loadFactor
         let clampedScore = max(0, min(100, Int(finalScore)))

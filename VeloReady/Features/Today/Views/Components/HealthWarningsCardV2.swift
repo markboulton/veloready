@@ -184,7 +184,7 @@ struct HealthWarningsCardV2: View {
                 // Sleep icon next to heading
                 Image(systemName: Icons.Health.sleepFill)
                     .font(.title3)
-                    .foregroundColor(ColorScale.purpleAccent)
+                    .foregroundColor(ColorScale.blueAccent)
                 
                 Text(CommonContent.HealthWarnings.sleepDataMissing)
                     .font(.subheadline)
@@ -193,10 +193,10 @@ struct HealthWarningsCardV2: View {
                 Text(CommonContent.HealthWarnings.infoBadge)
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(ColorScale.purpleAccent)
+                    .foregroundColor(ColorScale.blueAccent)
                     .padding(.horizontal, Spacing.xs)
                     .padding(.vertical, 2)
-                    .background(ColorScale.purpleAccent.opacity(0.15))
+                    .background(ColorScale.blueAccent.opacity(0.15))
                     .cornerRadius(4)
             }
             
@@ -207,7 +207,7 @@ struct HealthWarningsCardV2: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorScale.purpleAccent.opacity(0.05))
+        .background(ColorScale.blueAccent.opacity(0.05))
         .cornerRadius(12)
     }
     
