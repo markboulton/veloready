@@ -64,13 +64,12 @@ struct RecoveryMetricsSection: View {
                             loadScoreView
                         }
                     } else {
-                        // 2-ring layout when sleep unavailable
+                        // 2-ring layout when sleep unavailable - centered as a group
                         HStack(spacing: Spacing.xxl) {
-                            Spacer()
                             recoveryScoreView
                             loadScoreView
-                            Spacer()
                         }
+                        .frame(maxWidth: .infinity)
                     }
                 }
             }
