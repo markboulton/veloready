@@ -21,6 +21,11 @@ class SupabaseClient: ObservableObject {
         return session?.accessToken
     }
     
+    /// Get current user ID for subscription sync
+    var currentUserId: String? {
+        return session?.user.id
+    }
+    
     /// Load session from UserDefaults
     private func loadSession() {
         guard let data = UserDefaults.standard.data(forKey: "supabase_session"),

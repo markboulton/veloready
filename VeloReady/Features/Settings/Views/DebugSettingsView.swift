@@ -22,6 +22,8 @@ struct DebugSettingsView: View {
     @State private var showingIntervalsLogin = false
     @State private var isCleaningDuplicates = false
     @State private var duplicatesCleanedCount: Int?
+    @State private var isSyncingSubscription = false
+    @State private var subscriptionSyncSuccess: Bool?
     
     @Environment(\.dismiss) private var dismiss
     
@@ -390,6 +392,45 @@ struct DebugSettingsView: View {
                     Text(DebugSettingsContent.TestingFeatures.noNetworkEnabled)
                         .font(.caption)
                         .foregroundColor(Color.secondary)
+                }
+            }
+            
+            // Test Subscription Sync Button
+            Button(action: {
+                Task {
+                    isSyncingSubscription = true
+                    subscriptionSyncSuccess = nil
+                    let success = await SubscriptionManager.shared.syncToBackend()
+                    subscriptionSyncSuccess = success
+                    isSyncingSubscription = false
+                    
+                    // Auto-hide message after 3 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        subscriptionSyncSuccess = nil
+                    }
+                }
+            }) {
+                HStack {
+                    if isSyncingSubscription {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: Icons.System.icloud)
+                    }
+                    Text("Test Subscription Sync")
+                    Spacer()
+                }
+            }
+            .disabled(isSyncingSubscription)
+            
+            if let success = subscriptionSyncSuccess, success {
+                HStack {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(Color.semantic.success)
+                        .font(.caption)
+                    Text("Synced to Supabase!")
+                        .font(.caption)
+                        .foregroundColor(Color.semantic.success)
                 }
             }
             

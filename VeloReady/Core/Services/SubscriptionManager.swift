@@ -235,7 +235,128 @@ class SubscriptionManager: ObservableObject {
         }
         
             config.saveSubscriptionState()
+            
+            // Sync subscription to backend
+            Task {
+                await syncToBackend()
+            }
         }
+    }
+    
+    // MARK: - Backend Sync
+    
+    /// Sync subscription status to Supabase backend
+    /// - Returns: `true` if sync succeeded, `false` otherwise
+    func syncToBackend() async -> Bool {
+        Logger.debug("💳 [Subscription] Syncing to backend...")
+        
+        guard let athleteId = await StravaAuthService.shared.athleteId else {
+            Logger.error("❌ [Subscription] Cannot sync: No athlete ID")
+            return false
+        }
+        
+        var tier: String
+        var status: String
+        var expiresAt: String?
+        var trialEndsAt: String?
+        var transactionId: String?
+        var productId: String?
+        var purchaseDate: String?
+        
+        switch subscriptionStatus {
+        case .subscribed(let expires):
+            tier = "pro"
+            status = "active"
+            expiresAt = expires?.iso8601String
+            
+            // Get transaction details
+            if let transaction = await getLatestTransaction() {
+                transactionId = String(transaction.id)
+                productId = transaction.productID
+                purchaseDate = transaction.purchaseDate.iso8601String
+            }
+            
+        case .trial(let daysRemaining):
+            tier = "trial"
+            status = "active"
+            let trialEnd = Calendar.current.date(byAdding: .day, value: daysRemaining, to: Date())
+            trialEndsAt = trialEnd?.iso8601String
+            
+        case .notSubscribed:
+            tier = "free"
+            status = "active"
+        }
+        
+        do {
+            // Prepare request body
+            let body: [String: Any?] = [
+                "athlete_id": athleteId,
+                "subscription_tier": tier,
+                "subscription_status": status,
+                "expires_at": expiresAt,
+                "trial_ends_at": trialEndsAt,
+                "transaction_id": transactionId,
+                "product_id": productId,
+                "purchase_date": purchaseDate,
+                "auto_renew": true
+            ]
+            
+            // Convert to JSON, filtering out nil values
+            let filteredBody = body.compactMapValues { $0 }
+            let jsonData = try JSONSerialization.data(withJSONObject: filteredBody)
+            
+            // Use backend endpoint for subscription sync
+            guard let url = URL(string: "https://api.veloready.app/subscription/sync") else {
+                Logger.error("❌ [Subscription] Invalid sync URL")
+                return false
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            
+            // Add JWT auth header
+            if let token = await SupabaseClient.shared.accessToken {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            
+            request.httpBody = jsonData
+            
+            let (responseData, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                Logger.error("❌ [Subscription] Invalid response type")
+                return false
+            }
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                Logger.debug("✅ [Subscription] Synced to backend: \(tier)")
+                return true
+            } else {
+                // Try to parse error message from response
+                if let errorResponse = try? JSONDecoder().decode([String: String].self, from: responseData),
+                   let errorMessage = errorResponse["error"] {
+                    Logger.error("❌ [Subscription] Sync failed (HTTP \(httpResponse.statusCode)): \(errorMessage)")
+                } else {
+                    Logger.error("❌ [Subscription] Sync failed with HTTP \(httpResponse.statusCode)")
+                }
+                return false
+            }
+        } catch {
+            Logger.error("❌ [Subscription] Sync failed: \(error)")
+            return false
+        }
+    }
+    
+    /// Get the latest verified transaction
+    private func getLatestTransaction() async -> Transaction? {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                return transaction
+            }
+        }
+        return nil
     }
     
     // MARK: - Product Info Helpers

@@ -11,6 +11,18 @@ class StravaAuthService: NSObject, ObservableObject {
     
     @Published private(set) var connectionState: StravaConnectionState = .disconnected
     
+    /// Current athlete ID (from Strava)
+    var athleteId: Int? {
+        if case .connected(let athleteId) = connectionState, let id = athleteId {
+            return Int(id)
+        }
+        // Fallback to UserDefaults
+        if let idString = UserDefaults.standard.string(forKey: StravaAuthConfig.athleteIdKey) {
+            return Int(idString)
+        }
+        return nil
+    }
+    
     // MARK: - Private Properties
     
     private var authSession: ASWebAuthenticationSession?
