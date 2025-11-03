@@ -64,14 +64,32 @@ class StrainDetailViewModel: ObservableObject {
         
         let dataPoints = results.compactMap { dailyLoad -> TrendDataPoint? in
             guard let date = dailyLoad.date else { return nil }
-            // TSS can be 0 for rest days, so include all records
+            
+            // Validate TSS - filter out unrealistic values (data errors)
+            // Typical TSS range: 0-500 (500 = very hard 5+ hour ride)
+            let tss = dailyLoad.tss
+            if tss > 500 {
+                Logger.warning("📊 [LOAD CHART] Filtering out unrealistic TSS value: \(Int(tss)) on \(date)")
+                return nil
+            }
+            
+            // TSS can be 0 for rest days, so include all valid records
             return TrendDataPoint(
                 date: date,
-                value: dailyLoad.tss
+                value: tss
             )
         }
         
         Logger.debug("📊 [LOAD CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        
+        // Log TSS range for debugging
+        if !dataPoints.isEmpty {
+            let tssValues = dataPoints.map { $0.value }
+            let minTSS = tssValues.min() ?? 0
+            let maxTSS = tssValues.max() ?? 0
+            let avgTSS = tssValues.reduce(0, +) / Double(tssValues.count)
+            Logger.debug("📊 [LOAD CHART] TSS range: min=\(Int(minTSS)), max=\(Int(maxTSS)), avg=\(Int(avgTSS))")
+        }
         
         if dataPoints.isEmpty {
             Logger.warning("📊 [LOAD CHART] No data available for \(period.days)d period")

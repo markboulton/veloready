@@ -34,8 +34,8 @@ class HealthWarningsCardViewModel: ObservableObject {
         self.wellnessService = wellnessService
         self.sleepScoreService = sleepScoreService
         
-        // Load dismissed state
-        self.sleepDataWarningDismissed = UserDefaults.standard.bool(forKey: "sleepDataWarningDismissed")
+        // Check if warning should reappear (every 7 days)
+        self.sleepDataWarningDismissed = checkSleepWarningDismissalStatus()
         
         setupObservers()
         refreshData()
@@ -166,7 +166,34 @@ class HealthWarningsCardViewModel: ObservableObject {
     func dismissSleepDataWarning() {
         HapticFeedback.light()
         sleepDataWarningDismissed = true
-        UserDefaults.standard.set(true, forKey: "sleepDataWarningDismissed")
+        // Store dismissal timestamp instead of boolean
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "sleepDataWarningDismissedAt")
+        Logger.debug("🚫 Sleep data warning dismissed - will reappear in 7 days")
+    }
+    
+    /// Check if sleep warning should be shown based on dismissal timer
+    /// Returns false if dismissed within last 7 days, true otherwise
+    private func checkSleepWarningDismissalStatus() -> Bool {
+        let dismissedAt = UserDefaults.standard.double(forKey: "sleepDataWarningDismissedAt")
+        
+        // If never dismissed, show warning
+        guard dismissedAt > 0 else {
+            return false
+        }
+        
+        let dismissedDate = Date(timeIntervalSince1970: dismissedAt)
+        let daysSinceDismissal = Calendar.current.dateComponents([.day], from: dismissedDate, to: Date()).day ?? 0
+        
+        // Show warning again after 7 days
+        let shouldShow = daysSinceDismissal >= 7
+        
+        if shouldShow {
+            Logger.debug("⏰ Sleep warning timer expired (\(daysSinceDismissal) days) - showing again")
+        } else {
+            Logger.debug("⏰ Sleep warning dismissed \(daysSinceDismissal) days ago - hiding for \(7 - daysSinceDismissal) more days")
+        }
+        
+        return !shouldShow // Return true if should be dismissed (hidden)
     }
     
     // MARK: - Computed Properties

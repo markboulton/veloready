@@ -73,11 +73,12 @@ struct WeeklyReportView: View {
                     WeekOverWeekComponent(metrics: metrics)
                 }
             }
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
         .scrollDisabled(false) // Ensure vertical scrolling works
-        .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .scrollDismissesKeyboard(.interactively)
         .background(Color.background.app)
         .onAppear {

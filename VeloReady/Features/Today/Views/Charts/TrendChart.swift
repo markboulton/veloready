@@ -286,7 +286,7 @@ struct TrendChart: View {
     }
     
     private var trendIndicator: some View {
-        HStack(spacing: Spacing.xs) {
+        HStack(spacing: 4) {
             Image(systemName: trendDirection)
                 .foregroundColor(trendColor)
                 .font(.system(size: TypeScale.xxs))
@@ -296,6 +296,7 @@ struct TrendChart: View {
                 .foregroundColor(trendColor)
         }
         .font(.system(size: TypeScale.xs, weight: .semibold))
+        .fixedSize(horizontal: true, vertical: false) // Prevent wrapping
     }
     
     private var emptyState: some View {
