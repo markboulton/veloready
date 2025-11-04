@@ -241,7 +241,7 @@ final class PersistenceController {
     
     /// Force CloudKit to import all remote data (restore)
     @MainActor
-    func restoreFromCloudKit() async throws {
+    func restoreFromCloudKit() async throws -> Int {
         Logger.info("☁️ Starting CloudKit restore...")
         
         // CloudKit sync happens automatically when the container loads
@@ -264,12 +264,15 @@ final class PersistenceController {
                     loadRequest.returnsObjectsAsFaults = false
                     let load = try context.fetch(loadRequest)
                     
+                    let totalRecords = scores.count + physio.count + load.count
+                    
                     Logger.info("✅ CloudKit restore completed:")
                     Logger.info("   - \(scores.count) daily scores")
                     Logger.info("   - \(physio.count) physio records")
                     Logger.info("   - \(load.count) load records")
+                    Logger.info("   - \(totalRecords) total records")
                     
-                    continuation.resume()
+                    continuation.resume(returning: totalRecords)
                 } catch {
                     Logger.error("❌ CloudKit restore failed: \(error)")
                     continuation.resume(throwing: error)

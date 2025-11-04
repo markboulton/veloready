@@ -155,7 +155,7 @@ class iCloudSyncService: ObservableObject {
     }
     
     /// Manually trigger a restore from iCloud
-    func restoreFromCloud() async throws {
+    func restoreFromCloud() async throws -> Int {
         guard isCloudAvailable else {
             throw iCloudError.notAvailable
         }
@@ -168,9 +168,11 @@ class iCloudSyncService: ObservableObject {
         
         // Restore Core Data (DailyScores, DailyPhysio, DailyLoad) from CloudKit
         let persistence = PersistenceController.shared
-        try await persistence.restoreFromCloudKit()
+        let recordCount = try await persistence.restoreFromCloudKit()
         
         isSyncing = false
+        
+        return recordCount
     }
     
     // MARK: - UserDefaults Sync
