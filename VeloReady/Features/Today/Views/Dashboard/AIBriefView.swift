@@ -86,7 +86,9 @@ struct AIBriefView: View {
         .onAppear {
             // Fetch brief on appear if not already loaded
             // Note: If sleep data is missing, the recovery refresh will trigger AI brief update
+            Logger.debug("🤖 [AI Brief] AIBriefView.onAppear - briefText: \(service.briefText == nil ? "nil" : "exists"), isLoading: \(service.isLoading)")
             if service.briefText == nil && !service.isLoading {
+                Logger.debug("🤖 [AI Brief] Triggering fetchBrief() from onAppear")
                 Task {
                     await service.fetchBrief()
                 }

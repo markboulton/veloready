@@ -138,14 +138,20 @@ class VeloReadyAPIClient: ObservableObject {
             throw VeloReadyAPIError.notAuthenticated
         }
         
+        Logger.debug("📡 [VeloReady API] Making request to: \(url.absoluteString)")
+        
         do {
             isLoading = true
             let (data, response) = try await URLSession.shared.data(for: request)
             isLoading = false
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                Logger.error("❌ [VeloReady API] Invalid response type")
                 throw VeloReadyAPIError.invalidResponse
             }
+            
+            Logger.debug("📥 [VeloReady API] Response status: \(httpResponse.statusCode)")
+            Logger.debug("📥 [VeloReady API] Response size: \(data.count) bytes")
             
             // Log cache status
             if let cacheStatus = httpResponse.allHeaderFields["X-Cache"] as? String {
@@ -186,9 +192,23 @@ class VeloReadyAPIClient: ObservableObject {
             case 429:
                 throw VeloReadyAPIError.rateLimitExceeded
             case 500...599:
+                // Server error - log detailed information
+                let errorBody = String(data: data, encoding: .utf8) ?? "No response body"
+                Logger.error("❌ [VeloReady API] Server error (\(httpResponse.statusCode))")
+                Logger.error("❌ [VeloReady API] URL: \(url.absoluteString)")
+                Logger.error("❌ [VeloReady API] Response body: \(errorBody.prefix(500))")
+                
+                // Log headers for debugging
+                Logger.debug("📋 [VeloReady API] Response headers:")
+                for (key, value) in httpResponse.allHeaderFields {
+                    Logger.debug("   \(key): \(value)")
+                }
+                
                 throw VeloReadyAPIError.serverError
             default:
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                Logger.error("❌ [VeloReady API] HTTP error (\(httpResponse.statusCode))")
+                Logger.error("❌ [VeloReady API] Error message: \(errorMessage.prefix(500))")
                 throw VeloReadyAPIError.httpError(statusCode: httpResponse.statusCode, message: errorMessage)
             }
             
