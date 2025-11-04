@@ -57,6 +57,15 @@ struct TodayView: View {
                         }
                         .frame(height: 0)
                         
+                        // Loading status view (Apple Mail style)
+                        LoadingStatusView(
+                            state: viewModel.loadingStateManager.currentState,
+                            onErrorTap: {
+                                viewModel.retryLoading()
+                            }
+                        )
+                        .padding(.horizontal, Spacing.xl)
+                        
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
                             isHealthKitAuthorized: healthKitManager.isAuthorized,

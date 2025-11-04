@@ -25,6 +25,9 @@ class TodayViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var animationTrigger = UUID() // Triggers ring animations on refresh
     
+    // Loading state management
+    @ObservedObject var loadingStateManager = LoadingStateManager()
+    
     // Track if initial UI has been loaded to prevent duplicate calls
     private var hasLoadedInitialUI = false
     
@@ -274,6 +277,14 @@ class TodayViewModel: ObservableObject {
         await healthKitManager.refreshAuthorizationStatus()
     }
     
+    /// Retry loading after an error
+    func retryLoading() {
+        loadingStateManager.reset()
+        Task {
+            await loadInitialUI()
+        }
+    }
+    
     /// PHASE 1: Instant Display (<200ms) - Show cached/yesterday's data immediately
     func loadInitialUI() async {
         Logger.debug("🔄 [SPINNER] loadInitialUI called - hasLoadedInitialUI=\(hasLoadedInitialUI), isInitializing=\(isInitializing)")
@@ -316,6 +327,11 @@ class TodayViewModel: ObservableObject {
         // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
         // Keep spinner visible until scores are ready
         Task {
+            // Update loading state: calculating scores
+            await MainActor.run {
+                loadingStateManager.updateState(.calculatingScores)
+            }
+            
             // CRITICAL FIX: Wait for token refresh to complete before Phase 2
             // This prevents serverError when fetching activities/AI brief
             await SupabaseClient.shared.waitForRefreshIfNeeded()
@@ -358,11 +374,21 @@ class TodayViewModel: ObservableObject {
                 let phase3Start = CFAbsoluteTimeGetCurrent()
                 await Logger.debug("🎯 PHASE 3: Background Updates - activities, trends, training load")
                 
+                // Update loading state: contacting Strava
+                await MainActor.run {
+                    self.loadingStateManager.updateState(.contactingStrava)
+                }
+                
                 // Fetch activities and other non-critical data
                 await self.refreshActivitiesAndOtherData()
                 
                 let phase3Time = CFAbsoluteTimeGetCurrent() - phase3Start
                 await Logger.debug("✅ PHASE 3 complete in \(String(format: "%.2f", phase3Time))s - background work done")
+                
+                // Mark as complete
+                await MainActor.run {
+                    self.loadingStateManager.updateState(.complete)
+                }
                 
                 let totalTime = CFAbsoluteTimeGetCurrent() - startTime
                 await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
