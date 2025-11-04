@@ -85,12 +85,25 @@ struct AIBriefView: View {
         }
         .onAppear {
             // Fetch brief on appear if not already loaded
-            // Note: If sleep data is missing, the recovery refresh will trigger AI brief update
+            // CRITICAL: Wait for recovery score to be available (race condition fix)
             Logger.debug("🤖 [AI Brief] AIBriefView.onAppear - briefText: \(service.briefText == nil ? "nil" : "exists"), isLoading: \(service.isLoading)")
             if service.briefText == nil && !service.isLoading {
                 Logger.debug("🤖 [AI Brief] Triggering fetchBrief() from onAppear")
                 Task {
-                    await service.fetchBrief()
+                    // Wait for recovery score to be calculated (max 10s)
+                    var attempts = 0
+                    while RecoveryScoreService.shared.currentRecoveryScore == nil && attempts < 100 {
+                        Logger.debug("⏳ [AI Brief] Waiting for recovery score... (attempt \(attempts + 1))")
+                        try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                        attempts += 1
+                    }
+                    
+                    if RecoveryScoreService.shared.currentRecoveryScore != nil {
+                        Logger.debug("✅ [AI Brief] Recovery score ready - fetching brief")
+                        await service.fetchBrief()
+                    } else {
+                        Logger.warning("⚠️ [AI Brief] Timeout waiting for recovery score")
+                    }
                 }
             }
         }
