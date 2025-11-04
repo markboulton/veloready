@@ -36,31 +36,27 @@ jobs:
           swift run VeloReadyCoreTests
       
       - name: List Available Simulators
-        run: xcrun simctl list devices available
+        run: |
+          echo "Available runtimes:"
+          xcrun simctl list runtimes
+          echo "Available devices:"
+          xcrun simctl list devices available
       
       - name: Run Unit Tests
         run: |
           echo "Running iOS unit tests (simulator required)"
-          # Boot a simulator and get its ID
-          RUNTIME=$(xcrun simctl list runtimes iOS -j | jq -r '.runtimes[0].identifier')
-          DEVICE_TYPE=$(xcrun simctl list devicetypes iPhone -j | jq -r '.devicetypes[0].identifier')
-          UDID=$(xcrun simctl create TestiPhone "$DEVICE_TYPE" "$RUNTIME")
-          xcrun simctl boot "$UDID"
-          
-          # Run tests on the booted simulator
+          # Get the latest iOS runtime and a compatible iPhone device
+          # Use explicit compatible versions
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination "platform=iOS Simulator,id=$UDID" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
             -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
             -only-testing:VeloReadyTests/Unit/CacheManagerTests \
             -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
             -quiet
-          
-          # Clean up
-          xcrun simctl delete "$UDID"
             
       - name: Essential Lint
         run: |
@@ -99,17 +95,11 @@ jobs:
           swift run VeloReadyCoreTests
       
       - name: List Available Simulators
-        run: xcrun simctl list devices available
-      
-      - name: Boot Simulator
-        id: boot_sim
         run: |
-          # Boot a simulator and export its ID
-          RUNTIME=$(xcrun simctl list runtimes iOS -j | jq -r '.runtimes[0].identifier')
-          DEVICE_TYPE=$(xcrun simctl list devicetypes iPhone -j | jq -r '.devicetypes[0].identifier')
-          UDID=$(xcrun simctl create TestiPhone "$DEVICE_TYPE" "$RUNTIME")
-          xcrun simctl boot "$UDID"
-          echo "UDID=$UDID" >> $GITHUB_OUTPUT
+          echo "Available runtimes:"
+          xcrun simctl list runtimes
+          echo "Available devices:"
+          xcrun simctl list devices available
       
       - name: Run All Unit Tests
         run: |
@@ -117,7 +107,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination "platform=iOS Simulator,id=${{ steps.boot_sim.outputs.UDID }}" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
             -only-testing:VeloReadyTests/Unit \
             -quiet
       
@@ -127,13 +117,9 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination "platform=iOS Simulator,id=${{ steps.boot_sim.outputs.UDID }}" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
             -only-testing:VeloReadyTests/Integration \
             -quiet
-      
-      - name: Cleanup Simulator
-        if: always()
-        run: xcrun simctl delete "${{ steps.boot_sim.outputs.UDID }}"
             
       - name: E2E Smoke Test
         run: |
