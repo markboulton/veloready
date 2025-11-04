@@ -21,6 +21,8 @@ final class CacheManager: ObservableObject {
     private let recoveryService = RecoveryScoreService.shared
     private let sleepService = SleepScoreService.shared
     private let strainService = StrainScoreService.shared
+    private let trainingLoadCalculator = TrainingLoadCalculator()
+    private let baselineCalculator = BaselineCalculator()
     
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshDate: Date?
@@ -185,10 +187,12 @@ final class CacheManager: ObservableObject {
         // Fetch sleep data (only for today)
         let sleepData = await healthKit.fetchDetailedSleepData()
         
-        // Calculate 30-day baselines (simplified - you may want to implement proper baseline calculation)
-        let hrvBaseline = hrvData.value // Placeholder - implement proper baseline
-        let rhrBaseline = rhrData.value // Placeholder - implement proper baseline
-        let sleepBaseline = sleepData?.sleepDuration // Placeholder - implement proper baseline
+        // Calculate 7-day baselines using BaselineCalculator
+        let hrvBaseline = await baselineCalculator.calculateHRVBaseline()
+        let rhrBaseline = await baselineCalculator.calculateRHRBaseline()
+        let sleepBaseline = await baselineCalculator.calculateSleepBaseline()
+        
+        Logger.debug("📊 [CacheManager] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
         
         return HealthData(
             hrv: hrvData.value,
@@ -244,9 +248,24 @@ final class CacheManager: ObservableObject {
             }
         }
         
-        // If not authenticated with Intervals, return empty Intervals-specific data
+        // If not authenticated with Intervals, calculate training load from HealthKit
         guard oauthManager.isAuthenticated else {
-            return IntervalsData(ctl: nil, atl: nil, tsb: nil, tss: nil, eftp: nil, workout: nil)
+            Logger.debug("📊 [CacheManager] Intervals.icu not authenticated - calculating training load from HealthKit")
+            
+            // Calculate training load from HealthKit workouts
+            let (ctl, atl) = await trainingLoadCalculator.calculateTrainingLoad()
+            let tsb = ctl - atl
+            
+            Logger.debug("📊 [CacheManager] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
+            
+            return IntervalsData(
+                ctl: ctl,
+                atl: atl,
+                tsb: tsb,
+                tss: nil, // No TSS for today without activity data
+                eftp: nil,
+                workout: nil
+            )
         }
         
         do {
