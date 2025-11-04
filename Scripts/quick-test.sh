@@ -62,14 +62,18 @@ else
     exit 1
 fi
 
-# 2. Critical Unit Tests Only (45 seconds) - CRITICAL
+# 2. Critical Unit Tests Only (60 seconds) - CRITICAL
 echo ""
 echo "2️⃣  Running critical unit tests..."
 if xcodebuild test \
     -project VeloReady.xcodeproj \
     -scheme VeloReady \
     -destination 'platform=iOS Simulator,name=iPhone 17' \
+    -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
     -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+    -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+    -only-testing:VeloReadyTests/Unit/CacheManagerTests \
+    -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
     -quiet \
     -hideShellScriptEnvironment; then
     print_status "Critical unit tests passed"
