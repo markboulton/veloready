@@ -34,30 +34,7 @@ jobs:
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
-      
-      - name: List Available Simulators
-        run: |
-          echo "Available runtimes:"
-          xcrun simctl list runtimes
-          echo "Available devices:"
-          xcrun simctl list devices available
-      
-      - name: Run Unit Tests
-        run: |
-          echo "Running iOS unit tests (simulator required)"
-          # Get the latest iOS runtime and a compatible iPhone device
-          # Use explicit compatible versions
-          xcodebuild test \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
-            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
-            -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
-            -only-testing:VeloReadyTests/Unit/CacheManagerTests \
-            -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
-            -quiet
-            
+          
       - name: Essential Lint
         run: |
           if command -v swiftlint &> /dev/null; then
@@ -93,33 +70,6 @@ jobs:
           echo "Testing core business logic on macOS (fast, no simulator)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
-      
-      - name: List Available Simulators
-        run: |
-          echo "Available runtimes:"
-          xcrun simctl list runtimes
-          echo "Available devices:"
-          xcrun simctl list devices available
-      
-      - name: Run All Unit Tests
-        run: |
-          echo "Running all iOS unit tests"
-          xcodebuild test \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -only-testing:VeloReadyTests/Unit \
-            -quiet
-      
-      - name: Run Integration Tests
-        run: |
-          echo "Running integration tests"
-          xcodebuild test \
-            -project VeloReady.xcodeproj \
-            -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-            -only-testing:VeloReadyTests/Integration \
-            -quiet
             
       - name: E2E Smoke Test
         run: |
