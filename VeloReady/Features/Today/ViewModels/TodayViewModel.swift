@@ -307,16 +307,19 @@ class TodayViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
         }
         
+        // Mark data as loaded so UI content is visible (with cached data)
         await MainActor.run {
-            withAnimation(.easeOut(duration: 0.3)) {
-                isInitializing = false
-                isDataLoaded = true
-            }
+            isDataLoaded = true
         }
         Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
         
         // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
+        // Keep spinner visible until scores are ready
         Task {
+            // CRITICAL FIX: Wait for token refresh to complete before Phase 2
+            // This prevents serverError when fetching activities/AI brief
+            await SupabaseClient.shared.waitForRefreshIfNeeded()
+            
             let phase2Start = CFAbsoluteTimeGetCurrent()
             Logger.debug("🎯 PHASE 2: Critical Scores - sleep, recovery, strain")
             
@@ -331,6 +334,13 @@ class TodayViewModel: ObservableObject {
             
             let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
             Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
+            
+            // NOW hide the spinner - scores are ready
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isInitializing = false
+                }
+            }
             
             // Trigger ring animations and haptic feedback
             await MainActor.run {
