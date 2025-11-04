@@ -104,6 +104,10 @@ class iCloudSyncService: ObservableObject {
             // Sync Core Data metadata
             try await syncCoreDataMetadataToCloud()
             
+            // Trigger CloudKit backup (Core Data sync)
+            let persistence = PersistenceController.shared
+            try await persistence.backupToCloudKit()
+            
             // Update last sync date
             lastSyncDate = Date()
             saveLastSyncDate()
@@ -159,7 +163,12 @@ class iCloudSyncService: ObservableObject {
         isSyncing = true
         syncError = nil
         
+        // Restore UserDefaults and workout metadata
         await syncFromCloud()
+        
+        // Restore Core Data (DailyScores, DailyPhysio, DailyLoad) from CloudKit
+        let persistence = PersistenceController.shared
+        try await persistence.restoreFromCloudKit()
         
         isSyncing = false
     }

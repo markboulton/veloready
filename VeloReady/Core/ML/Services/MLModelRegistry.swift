@@ -87,7 +87,20 @@ class MLModelRegistry: ObservableObject {
     
     /// Check if ML should be used for predictions
     func shouldUseML() -> Bool {
-        return isMLEnabled && currentModelVersion != nil
+        // Check if ML is enabled
+        guard isMLEnabled else { return false }
+        
+        // Check if we have a trained model
+        guard currentModelVersion != nil else { return false }
+        
+        // Check if we have sufficient training data (14+ days minimum)
+        let mlService = MLTrainingDataService.shared
+        guard mlService.trainingDataCount >= 14 else {
+            Logger.debug("🤖 [ML Registry] Insufficient training data (\(mlService.trainingDataCount)/14 days) - using rule-based")
+            return false
+        }
+        
+        return true
     }
     
     /// Get model file URL for a version
