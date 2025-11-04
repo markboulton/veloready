@@ -796,19 +796,22 @@ extension RecoveryScoreService {
                     respiratory: score
                 )
                 
-                // Use minimal inputs
+                // CRITICAL FIX: Load actual physio data from DailyPhysio instead of using zeros
+                let physio = dailyScores.physio
+                let load = dailyScores.load
+                
                 let inputs = RecoveryScore.RecoveryInputs(
-                    hrv: 0,
-                    overnightHrv: 0,
-                    hrvBaseline: nil,
-                    rhr: 0,
-                    rhrBaseline: nil,
-                    sleepDuration: 0,
-                    sleepBaseline: nil,
-                    respiratoryRate: 0,
-                    respiratoryBaseline: nil,
-                    atl: 0,
-                    ctl: 0,
+                    hrv: (physio?.hrv ?? 0) > 0 ? physio?.hrv : nil,
+                    overnightHrv: nil,  // Not stored in Core Data
+                    hrvBaseline: (physio?.hrvBaseline ?? 0) > 0 ? physio?.hrvBaseline : nil,
+                    rhr: (physio?.rhr ?? 0) > 0 ? physio?.rhr : nil,
+                    rhrBaseline: (physio?.rhrBaseline ?? 0) > 0 ? physio?.rhrBaseline : nil,
+                    sleepDuration: (physio?.sleepDuration ?? 0) > 0 ? physio?.sleepDuration : nil,
+                    sleepBaseline: (physio?.sleepBaseline ?? 0) > 0 ? physio?.sleepBaseline : nil,
+                    respiratoryRate: nil,  // Not currently stored
+                    respiratoryBaseline: nil,  // Not currently stored
+                    atl: (load?.atl ?? 0) > 0 ? load?.atl : nil,
+                    ctl: (load?.ctl ?? 0) > 0 ? load?.ctl : nil,
                     recentStrain: nil,
                     sleepScore: nil  // Can't reconstruct full sleep score
                 )

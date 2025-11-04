@@ -137,32 +137,25 @@ final class CacheManager: ObservableObject {
         let today = Calendar.current.startOfDay(for: Date())
         var refreshedCount = 0
         
-        for dayOffset in 0..<count {
-            guard let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: today) else {
-                continue
-            }
+        // CRITICAL FIX: Only refresh TODAY
+        // Historical dates can't be fetched from HealthKit (no historical API)
+        // Historical data is already in Core Data from when it was "today"
+        // Trying to refresh historical dates overwrites good data with zeros
+        
+        do {
+            async let healthData = fetchHealthData()  // Today only
+            async let intervalsData = fetchIntervalsData()  // Today only
             
-            // Skip if cache is fresh (unless forced)
-            if !force && !needsRefresh(for: date) {
-                continue
-            }
+            let (health, intervals) = try await (healthData, intervalsData)
             
-            do {
-                async let healthData = fetchHealthData(for: date)
-                async let intervalsData = fetchIntervalsData(for: date)
-                
-                let (health, intervals) = try await (healthData, intervalsData)
-                
-                await saveToCache(date: date, health: health, intervals: intervals)
-                refreshedCount += 1
-            } catch {
-                Logger.warning("️ Failed to refresh \(date): \(error)")
-                // Continue with other days
-            }
+            await saveToCache(date: today, health: health, intervals: intervals)
+            refreshedCount = 1
+        } catch {
+            Logger.warning("️ Failed to refresh today: \(error)")
         }
         
         lastRefreshDate = Date()
-        Logger.debug("✅ Cache refresh complete: \(refreshedCount)/\(count) days updated")
+        Logger.debug("✅ Cache refresh complete: \(refreshedCount) day(s) updated (today only)")
     }
     
     // MARK: - Fetch from APIs
