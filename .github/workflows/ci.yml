@@ -34,6 +34,20 @@ jobs:
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
+      
+      - name: Run Unit Tests
+        run: |
+          echo "Running iOS unit tests (simulator required)"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+            -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
+            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+            -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+            -only-testing:VeloReadyTests/Unit/CacheManagerTests \
+            -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
+            -quiet
             
       - name: Essential Lint
         run: |
@@ -70,6 +84,26 @@ jobs:
           echo "Testing core business logic on macOS (fast, no simulator)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
+      
+      - name: Run All Unit Tests
+        run: |
+          echo "Running all iOS unit tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+            -only-testing:VeloReadyTests/Unit \
+            -quiet
+      
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+            -only-testing:VeloReadyTests/Integration \
+            -quiet
             
       - name: E2E Smoke Test
         run: |
