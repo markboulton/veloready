@@ -9,6 +9,11 @@ struct VeloReadyApp: App {
         // Log version information at startup
         AppVersion.logVersionInfo()
         
+        // CRITICAL: Refresh Supabase token BEFORE any API calls
+        Task { @MainActor in
+            await SupabaseClient.shared.refreshOnAppLaunch()
+        }
+        
         // Initialize service container early for optimal performance
         Task { @MainActor in
             ServiceContainer.shared.initialize()

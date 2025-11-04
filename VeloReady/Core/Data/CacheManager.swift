@@ -21,6 +21,8 @@ final class CacheManager: ObservableObject {
     private let recoveryService = RecoveryScoreService.shared
     private let sleepService = SleepScoreService.shared
     private let strainService = StrainScoreService.shared
+    private let trainingLoadCalculator = TrainingLoadCalculator()
+    private let baselineCalculator = BaselineCalculator()
     
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshDate: Date?
@@ -135,32 +137,25 @@ final class CacheManager: ObservableObject {
         let today = Calendar.current.startOfDay(for: Date())
         var refreshedCount = 0
         
-        for dayOffset in 0..<count {
-            guard let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: today) else {
-                continue
-            }
+        // CRITICAL FIX: Only refresh TODAY
+        // Historical dates can't be fetched from HealthKit (no historical API)
+        // Historical data is already in Core Data from when it was "today"
+        // Trying to refresh historical dates overwrites good data with zeros
+        
+        do {
+            async let healthData = fetchHealthData()  // Today only
+            async let intervalsData = fetchIntervalsData()  // Today only
             
-            // Skip if cache is fresh (unless forced)
-            if !force && !needsRefresh(for: date) {
-                continue
-            }
+            let (health, intervals) = try await (healthData, intervalsData)
             
-            do {
-                async let healthData = fetchHealthData(for: date)
-                async let intervalsData = fetchIntervalsData(for: date)
-                
-                let (health, intervals) = try await (healthData, intervalsData)
-                
-                await saveToCache(date: date, health: health, intervals: intervals)
-                refreshedCount += 1
-            } catch {
-                Logger.warning("️ Failed to refresh \(date): \(error)")
-                // Continue with other days
-            }
+            await saveToCache(date: today, health: health, intervals: intervals)
+            refreshedCount = 1
+        } catch {
+            Logger.warning("️ Failed to refresh today: \(error)")
         }
         
         lastRefreshDate = Date()
-        Logger.debug("✅ Cache refresh complete: \(refreshedCount)/\(count) days updated")
+        Logger.debug("✅ Cache refresh complete: \(refreshedCount) day(s) updated (today only)")
     }
     
     // MARK: - Fetch from APIs
@@ -185,10 +180,12 @@ final class CacheManager: ObservableObject {
         // Fetch sleep data (only for today)
         let sleepData = await healthKit.fetchDetailedSleepData()
         
-        // Calculate 30-day baselines (simplified - you may want to implement proper baseline calculation)
-        let hrvBaseline = hrvData.value // Placeholder - implement proper baseline
-        let rhrBaseline = rhrData.value // Placeholder - implement proper baseline
-        let sleepBaseline = sleepData?.sleepDuration // Placeholder - implement proper baseline
+        // Calculate 7-day baselines using BaselineCalculator
+        let hrvBaseline = await baselineCalculator.calculateHRVBaseline()
+        let rhrBaseline = await baselineCalculator.calculateRHRBaseline()
+        let sleepBaseline = await baselineCalculator.calculateSleepBaseline()
+        
+        Logger.debug("📊 [CacheManager] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
         
         return HealthData(
             hrv: hrvData.value,
@@ -244,9 +241,24 @@ final class CacheManager: ObservableObject {
             }
         }
         
-        // If not authenticated with Intervals, return empty Intervals-specific data
+        // If not authenticated with Intervals, calculate training load from HealthKit
         guard oauthManager.isAuthenticated else {
-            return IntervalsData(ctl: nil, atl: nil, tsb: nil, tss: nil, eftp: nil, workout: nil)
+            Logger.debug("📊 [CacheManager] Intervals.icu not authenticated - calculating training load from HealthKit")
+            
+            // Calculate training load from HealthKit workouts
+            let (ctl, atl) = await trainingLoadCalculator.calculateTrainingLoad()
+            let tsb = ctl - atl
+            
+            Logger.debug("📊 [CacheManager] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
+            
+            return IntervalsData(
+                ctl: ctl,
+                atl: atl,
+                tsb: tsb,
+                tss: nil, // No TSS for today without activity data
+                eftp: nil,
+                workout: nil
+            )
         }
         
         do {
@@ -479,7 +491,19 @@ final class CacheManager: ObservableObject {
     /// Calculate missing CTL/ATL values from activities
     /// Called when Intervals.icu doesn't provide CTL/ATL data
     /// Optimized to backfill last 42 days and save TSS values
+    /// Smart caching: Only runs once per day to avoid redundant calculations
     func calculateMissingCTLATL() async {
+        // Check if backfill ran recently (within 24 hours)
+        let lastBackfillKey = "lastCTLBackfill"
+        if let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
+            let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
+            if hoursSinceBackfill < 24 {
+                Logger.data("⏭️ [CTL/ATL BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
+                return
+            }
+            Logger.data("🔄 [CTL/ATL BACKFILL] Last run was \(String(format: "%.1f", hoursSinceBackfill))h ago - running fresh backfill")
+        }
+        
         Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
         
         let calculator = TrainingLoadCalculator()
@@ -533,7 +557,10 @@ final class CacheManager: ObservableObject {
         // Batch update DailyLoad entities for performance
         await updateDailyLoadBatch(progressiveLoad)
         
-        Logger.data("✅ [CTL/ATL BACKFILL] Complete!")
+        // Save timestamp of successful backfill
+        UserDefaults.standard.set(Date(), forKey: "lastCTLBackfill")
+        
+        Logger.data("✅ [CTL/ATL BACKFILL] Complete! (Next run allowed in 24h)")
     }
     
     /// Batch update DailyLoad entities for performance

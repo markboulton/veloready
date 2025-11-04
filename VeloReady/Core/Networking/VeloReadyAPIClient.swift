@@ -63,11 +63,13 @@ class VeloReadyAPIClient: ObservableObject {
         
         Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId) (source: \(source))")
         
-        let streams: [String: StravaStreamData] = try await makeRequest(url: url)
+        // Backend returns: { altitude: {...}, cadence: {...}, metadata: {tier: "free"} }
+        // We need to decode this structure and extract just the streams
+        let response: StreamsResponse = try await makeRequest(url: url)
         
-        Logger.debug("✅ [VeloReady API] Received \(streams.count) stream types for activity \(activityId)")
+        Logger.debug("✅ [VeloReady API] Received \(response.streams.count) stream types for activity \(activityId)")
         
-        return streams
+        return response.streams
     }
     
     // MARK: - Intervals.icu Methods
@@ -136,14 +138,20 @@ class VeloReadyAPIClient: ObservableObject {
             throw VeloReadyAPIError.notAuthenticated
         }
         
+        Logger.debug("📡 [VeloReady API] Making request to: \(url.absoluteString)")
+        
         do {
             isLoading = true
             let (data, response) = try await URLSession.shared.data(for: request)
             isLoading = false
             
             guard let httpResponse = response as? HTTPURLResponse else {
+                Logger.error("❌ [VeloReady API] Invalid response type")
                 throw VeloReadyAPIError.invalidResponse
             }
+            
+            Logger.debug("📥 [VeloReady API] Response status: \(httpResponse.statusCode)")
+            Logger.debug("📥 [VeloReady API] Response size: \(data.count) bytes")
             
             // Log cache status
             if let cacheStatus = httpResponse.allHeaderFields["X-Cache"] as? String {
@@ -184,9 +192,23 @@ class VeloReadyAPIClient: ObservableObject {
             case 429:
                 throw VeloReadyAPIError.rateLimitExceeded
             case 500...599:
+                // Server error - log detailed information
+                let errorBody = String(data: data, encoding: .utf8) ?? "No response body"
+                Logger.error("❌ [VeloReady API] Server error (\(httpResponse.statusCode))")
+                Logger.error("❌ [VeloReady API] URL: \(url.absoluteString)")
+                Logger.error("❌ [VeloReady API] Response body: \(errorBody.prefix(500))")
+                
+                // Log headers for debugging
+                Logger.debug("📋 [VeloReady API] Response headers:")
+                for (key, value) in httpResponse.allHeaderFields {
+                    Logger.debug("   \(key): \(value)")
+                }
+                
                 throw VeloReadyAPIError.serverError
             default:
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                Logger.error("❌ [VeloReady API] HTTP error (\(httpResponse.statusCode))")
+                Logger.error("❌ [VeloReady API] Error message: \(errorMessage.prefix(500))")
                 throw VeloReadyAPIError.httpError(statusCode: httpResponse.statusCode, message: errorMessage)
             }
             
@@ -215,8 +237,57 @@ class VeloReadyAPIClient: ObservableObject {
 // MARK: - Data Source
 
 enum APIDataSource: String {
-    case strava
-    case intervals
+    case strava = "strava"
+    case intervals = "intervals"
+}
+
+// Response wrapper for streams endpoint (includes metadata)
+struct StreamsResponse: Decodable {
+    let streams: [String: StravaStreamData]
+    let metadata: StreamsMetadata?
+    
+    struct StreamsMetadata: Decodable {
+        let tier: String?
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: DynamicCodingKeys.self)
+        
+        var streamsDict: [String: StravaStreamData] = [:]
+        var metadataValue: StreamsMetadata?
+        
+        // Iterate through all keys in the response
+        for key in container.allKeys {
+            if key.stringValue == "metadata" {
+                // Decode metadata separately
+                metadataValue = try? container.decode(StreamsMetadata.self, forKey: key)
+            } else {
+                // Everything else is a stream
+                if let streamData = try? container.decode(StravaStreamData.self, forKey: key) {
+                    streamsDict[key.stringValue] = streamData
+                }
+            }
+        }
+        
+        self.streams = streamsDict
+        self.metadata = metadataValue
+    }
+    
+    // Dynamic keys for decoding arbitrary stream types
+    private struct DynamicCodingKeys: CodingKey {
+        var stringValue: String
+        var intValue: Int?
+        
+        init?(stringValue: String) {
+            self.stringValue = stringValue
+            self.intValue = nil
+        }
+        
+        init?(intValue: Int) {
+            self.stringValue = "\(intValue)"
+            self.intValue = intValue
+        }
+    }
 }
 
 // MARK: - Response Models

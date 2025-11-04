@@ -7,10 +7,25 @@ import HealthKit
 class TRIMPCalculator {
     private let healthKitManager = HealthKitManager.shared
     
+    // Cache TRIMP per workout UUID (TRIMP for a workout never changes)
+    private var trimpCache: [String: Double] = [:]
+    private let cacheKey = "trimp_cache"
+    
+    init() {
+        loadCache()
+    }
+    
     /// Calculate TRIMP for a specific workout
     /// - Parameter workout: The HKWorkout to calculate TRIMP for
     /// - Returns: TRIMP value (higher = more training stress)
     func calculateTRIMP(for workout: HKWorkout) async -> Double {
+        let workoutId = workout.uuid.uuidString
+        
+        // Check cache first
+        if let cached = trimpCache[workoutId] {
+            Logger.debug("⚡ [TRIMP] Using cached value: \(String(format: "%.1f", cached))")
+            return cached
+        }
         // Get heart rate samples during workout
         let hrSamples = await getHeartRateSamples(
             from: workout.startDate,
@@ -37,6 +52,11 @@ class TRIMPCalculator {
         )
         
         Logger.debug("💓 TRIMP Result: \(String(format: "%.1f", trimp))")
+        
+        // Cache the result
+        trimpCache[workoutId] = trimp
+        saveCache()
+        
         return trimp
     }
     
@@ -201,5 +221,23 @@ class TRIMPCalculator {
         // TODO: Get from user settings or computed max from workouts
         // For now, use reasonable default
         return 180.0
+    }
+    
+    // MARK: - Cache Persistence
+    
+    /// Load TRIMP cache from UserDefaults
+    private func loadCache() {
+        if let data = UserDefaults.standard.data(forKey: cacheKey),
+           let cache = try? JSONDecoder().decode([String: Double].self, from: data) {
+            trimpCache = cache
+            Logger.debug("⚡ [TRIMP] Loaded \(cache.count) cached workouts")
+        }
+    }
+    
+    /// Save TRIMP cache to UserDefaults
+    private func saveCache() {
+        if let data = try? JSONEncoder().encode(trimpCache) {
+            UserDefaults.standard.set(data, forKey: cacheKey)
+        }
     }
 }

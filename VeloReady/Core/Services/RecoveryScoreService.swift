@@ -51,9 +51,18 @@ class RecoveryScoreService: ObservableObject {
             return
         }
         
-        // If we calculated today but cache is missing, recalculate
+        // If we calculated today but cache is missing, try loading from Core Data before recalculating
         if hasCalculatedToday() && currentRecoveryScore == nil {
-            Logger.warning("⚠️ Recovery was calculated today but cache is missing - recalculating")
+            Logger.warning("⚠️ Recovery was calculated today but cache is missing - trying Core Data fallback")
+            await loadFromCoreDataFallback()
+            
+            // If we successfully loaded from Core Data, skip recalculation
+            if currentRecoveryScore != nil {
+                Logger.debug("✅ Recovered score from Core Data - skipping expensive recalculation")
+                return
+            }
+            
+            Logger.warning("⚠️ No Core Data fallback - must recalculate")
         }
         
         // Cancel any existing calculation
@@ -756,6 +765,77 @@ extension RecoveryScoreService {
         } catch {
             // No cached score or error - this is fine on first launch
             Logger.debug("📦 No cached recovery score found")
+        }
+    }
+    
+    /// Load recovery score from Core Data as fallback when UnifiedCache is invalidated
+    /// Note: This loads basic score + band only, without full recalculation
+    private func loadFromCoreDataFallback() async {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        let persistenceController = PersistenceController.shared
+        let context = persistenceController.container.viewContext
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date == %@", today as NSDate)
+        request.fetchLimit = 1
+        
+        do {
+            let results = try context.fetch(request)
+            if let dailyScores = results.first, dailyScores.recoveryScore > 0 {
+                // Build minimal RecoveryScore from cached Core Data
+                let score = Int(dailyScores.recoveryScore)
+                let band = RecoveryScore.RecoveryBand(rawValue: dailyScores.recoveryBand ?? "fair") ?? .fair
+                
+                // Use minimal sub-scores (we don't have breakdown in Core Data)
+                let subScores = RecoveryScore.SubScores(
+                    hrv: score,
+                    rhr: score,
+                    sleep: score,
+                    form: score,
+                    respiratory: score
+                )
+                
+                // CRITICAL FIX: Load actual physio data from DailyPhysio instead of using zeros
+                let physio = dailyScores.physio
+                let load = dailyScores.load
+                
+                let inputs = RecoveryScore.RecoveryInputs(
+                    hrv: (physio?.hrv ?? 0) > 0 ? physio?.hrv : nil,
+                    overnightHrv: nil,  // Not stored in Core Data
+                    hrvBaseline: (physio?.hrvBaseline ?? 0) > 0 ? physio?.hrvBaseline : nil,
+                    rhr: (physio?.rhr ?? 0) > 0 ? physio?.rhr : nil,
+                    rhrBaseline: (physio?.rhrBaseline ?? 0) > 0 ? physio?.rhrBaseline : nil,
+                    sleepDuration: (physio?.sleepDuration ?? 0) > 0 ? physio?.sleepDuration : nil,
+                    sleepBaseline: (physio?.sleepBaseline ?? 0) > 0 ? physio?.sleepBaseline : nil,
+                    respiratoryRate: nil,  // Not currently stored
+                    respiratoryBaseline: nil,  // Not currently stored
+                    atl: (load?.atl ?? 0) > 0 ? load?.atl : nil,
+                    ctl: (load?.ctl ?? 0) > 0 ? load?.ctl : nil,
+                    recentStrain: nil,
+                    sleepScore: nil  // Can't reconstruct full sleep score
+                )
+                
+                let recoveryScore = RecoveryScore(
+                    score: score,
+                    band: band,
+                    subScores: subScores,
+                    inputs: inputs,
+                    calculatedAt: dailyScores.date ?? Date(),
+                    isPersonalized: true
+                )
+                
+                currentRecoveryScore = recoveryScore
+                Logger.debug("💾 Loaded recovery score from Core Data fallback: \(recoveryScore.score)")
+                
+                // Restore to UnifiedCache
+                let cacheKey = CacheKey.recoveryScore(date: Date())
+                _ = try? await cache.fetch(key: cacheKey, ttl: 86400) {
+                    return recoveryScore
+                }
+            }
+        } catch {
+            Logger.error("Failed to load recovery score from Core Data: \(error)")
         }
     }
     

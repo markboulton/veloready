@@ -104,6 +104,10 @@ class iCloudSyncService: ObservableObject {
             // Sync Core Data metadata
             try await syncCoreDataMetadataToCloud()
             
+            // Trigger CloudKit backup (Core Data sync)
+            let persistence = PersistenceController.shared
+            try await persistence.backupToCloudKit()
+            
             // Update last sync date
             lastSyncDate = Date()
             saveLastSyncDate()
@@ -151,7 +155,7 @@ class iCloudSyncService: ObservableObject {
     }
     
     /// Manually trigger a restore from iCloud
-    func restoreFromCloud() async throws {
+    func restoreFromCloud() async throws -> Int {
         guard isCloudAvailable else {
             throw iCloudError.notAvailable
         }
@@ -159,9 +163,16 @@ class iCloudSyncService: ObservableObject {
         isSyncing = true
         syncError = nil
         
+        // Restore UserDefaults and workout metadata
         await syncFromCloud()
         
+        // Restore Core Data (DailyScores, DailyPhysio, DailyLoad) from CloudKit
+        let persistence = PersistenceController.shared
+        let recordCount = try await persistence.restoreFromCloudKit()
+        
         isSyncing = false
+        
+        return recordCount
     }
     
     // MARK: - UserDefaults Sync

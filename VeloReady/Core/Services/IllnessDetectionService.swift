@@ -179,90 +179,126 @@ class IllnessDetectionService: ObservableObject {
     // MARK: - Data Fetching
     
     private func fetchMultiDayHRV() async -> [Double] {
-        var values: [Double] = []
         let calendar = Calendar.current
         let healthStore = HKHealthStore()
-        let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
-        
-        for dayOffset in 0..<analysisWindowDays {
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { continue }
-            
-            // Fetch HRV for specific day
-            let startOfDay = calendar.startOfDay(for: date)
-            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-            
-            let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
-            
-            let value = await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
-                let query = HKSampleQuery(
-                    sampleType: hrvType,
-                    predicate: predicate,
-                    limit: HKObjectQueryNoLimit,
-                    sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
-                ) { _, samples, error in
-                    if let samples = samples as? [HKQuantitySample], !samples.isEmpty {
-                        // Get average HRV for the day
-                        let dayValues = samples.map { $0.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) }
-                        let avg = dayValues.reduce(0, +) / Double(dayValues.count)
-                        continuation.resume(returning: avg)
-                    } else {
-                        continuation.resume(returning: nil)
-                    }
-                }
-                healthStore.execute(query)
-            }
-            
-            if let value = value {
-                values.append(value)
-                Logger.debug("📊 HRV Day -\(dayOffset): \(String(format: "%.1f", value))ms")
-            }
+        guard let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+            return []
         }
         
-        Logger.debug("📊 Fetched \(values.count) days of HRV data")
+        // OPTIMIZED: Batch query for entire date range (1 query instead of 7)
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -analysisWindowDays, to: endDate) else {
+            return []
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let interval = DateComponents(day: 1)
+        
+        let data = await withCheckedContinuation { (continuation: CheckedContinuation<[Date: Double], Never>) in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: hrvType,
+                quantitySamplePredicate: predicate,
+                options: .discreteAverage,
+                anchorDate: calendar.startOfDay(for: startDate),
+                intervalComponents: interval
+            )
+            
+            query.initialResultsHandler = { _, results, error in
+                if let error = error {
+                    Logger.error("❌ Failed to fetch HRV batch: \(error)")
+                    continuation.resume(returning: [:])
+                    return
+                }
+                
+                var dailyValues: [Date: Double] = [:]
+                results?.enumerateStatistics(from: startDate, to: endDate) { statistics, _ in
+                    if let avg = statistics.averageQuantity() {
+                        let value = avg.doubleValue(for: HKUnit.secondUnit(with: .milli))
+                        dailyValues[statistics.startDate] = value
+                    }
+                }
+                
+                continuation.resume(returning: dailyValues)
+            }
+            
+            healthStore.execute(query)
+        }
+        
+        // Convert to array ordered by day offset (newest first)
+        var values: [Double] = []
+        for dayOffset in 0..<analysisWindowDays {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: endDate),
+                  let dayStart = calendar.startOfDay(for: date) as Date?,
+                  let value = data[dayStart] else {
+                continue
+            }
+            values.append(value)
+            Logger.debug("📊 HRV Day -\(dayOffset): \(String(format: "%.1f", value))ms")
+        }
+        
+        Logger.debug("📊 Batched HRV: Fetched \(values.count)/\(analysisWindowDays) days in 1 query")
         return values
     }
     
     private func fetchMultiDayRHR() async -> [Double] {
-        var values: [Double] = []
         let calendar = Calendar.current
         let healthStore = HKHealthStore()
-        let rhrType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate)!
-        
-        for dayOffset in 0..<analysisWindowDays {
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { continue }
-            
-            // Fetch RHR for specific day
-            let startOfDay = calendar.startOfDay(for: date)
-            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-            
-            let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
-            
-            let value = await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
-                let query = HKSampleQuery(
-                    sampleType: rhrType,
-                    predicate: predicate,
-                    limit: HKObjectQueryNoLimit,
-                    sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
-                ) { _, samples, error in
-                    if let samples = samples as? [HKQuantitySample], !samples.isEmpty {
-                        // Get average RHR for the day
-                        let dayValues = samples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
-                        let avg = dayValues.reduce(0, +) / Double(dayValues.count)
-                        continuation.resume(returning: avg)
-                    } else {
-                        continuation.resume(returning: nil)
-                    }
-                }
-                healthStore.execute(query)
-            }
-            
-            if let value = value {
-                values.append(value)
-                Logger.debug("📊 RHR Day -\(dayOffset): \(String(format: "%.1f", value)) bpm")
-            }
+        guard let rhrType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else {
+            return []
         }
         
-        Logger.debug("📊 Fetched \(values.count) days of RHR data")
+        // OPTIMIZED: Batch query for entire date range (1 query instead of 7)
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -analysisWindowDays, to: endDate) else {
+            return []
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let interval = DateComponents(day: 1)
+        
+        let data = await withCheckedContinuation { (continuation: CheckedContinuation<[Date: Double], Never>) in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: rhrType,
+                quantitySamplePredicate: predicate,
+                options: .discreteAverage,
+                anchorDate: calendar.startOfDay(for: startDate),
+                intervalComponents: interval
+            )
+            
+            query.initialResultsHandler = { _, results, error in
+                if let error = error {
+                    Logger.error("❌ Failed to fetch RHR batch: \(error)")
+                    continuation.resume(returning: [:])
+                    return
+                }
+                
+                var dailyValues: [Date: Double] = [:]
+                results?.enumerateStatistics(from: startDate, to: endDate) { statistics, _ in
+                    if let avg = statistics.averageQuantity() {
+                        let value = avg.doubleValue(for: HKUnit(from: "count/min"))
+                        dailyValues[statistics.startDate] = value
+                    }
+                }
+                
+                continuation.resume(returning: dailyValues)
+            }
+            
+            healthStore.execute(query)
+        }
+        
+        // Convert to array ordered by day offset (newest first)
+        var values: [Double] = []
+        for dayOffset in 0..<analysisWindowDays {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: endDate),
+                  let dayStart = calendar.startOfDay(for: date) as Date?,
+                  let value = data[dayStart] else {
+                continue
+            }
+            values.append(value)
+            Logger.debug("📊 RHR Day -\(dayOffset): \(String(format: "%.1f", value)) bpm")
+        }
+        
+        Logger.debug("📊 Batched RHR: Fetched \(values.count)/\(analysisWindowDays) days in 1 query")
         return values
     }
     

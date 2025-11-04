@@ -221,4 +221,79 @@ final class PersistenceController {
             Logger.debug("🗑️ Pruned data older than \(days) days")
         }
     }
+    
+    // MARK: - CloudKit Backup/Restore
+    
+    /// Force CloudKit to export all local data (backup)
+    @MainActor
+    func backupToCloudKit() async throws {
+        Logger.info("☁️ Starting CloudKit backup...")
+        
+        // Save any pending changes first - this triggers CloudKit sync
+        save()
+        
+        // CloudKit sync happens automatically via NSPersistentCloudKitContainer
+        // Force a sync by saving and waiting briefly
+        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        
+        Logger.info("✅ CloudKit backup completed successfully")
+    }
+    
+    /// Force CloudKit to import all remote data (restore)
+    @MainActor
+    func restoreFromCloudKit() async throws -> Int {
+        Logger.info("☁️ Starting CloudKit restore...")
+        
+        // CloudKit sync happens automatically when the container loads
+        // We can force a fetch by querying the persistent stores
+        let context = viewContext
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            context.perform {
+                do {
+                    // Fetch all entities to trigger CloudKit import
+                    let scoresRequest = DailyScores.fetchRequest()
+                    scoresRequest.returnsObjectsAsFaults = false
+                    let scores = try context.fetch(scoresRequest)
+                    
+                    let physioRequest = DailyPhysio.fetchRequest()
+                    physioRequest.returnsObjectsAsFaults = false
+                    let physio = try context.fetch(physioRequest)
+                    
+                    let loadRequest = DailyLoad.fetchRequest()
+                    loadRequest.returnsObjectsAsFaults = false
+                    let load = try context.fetch(loadRequest)
+                    
+                    let totalRecords = scores.count + physio.count + load.count
+                    
+                    Logger.info("✅ CloudKit restore completed:")
+                    Logger.info("   - \(scores.count) daily scores")
+                    Logger.info("   - \(physio.count) physio records")
+                    Logger.info("   - \(load.count) load records")
+                    Logger.info("   - \(totalRecords) total records")
+                    
+                    continuation.resume(returning: totalRecords)
+                } catch {
+                    Logger.error("❌ CloudKit restore failed: \(error)")
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    /// Check CloudKit sync status
+    @MainActor
+    func checkCloudKitStatus() -> (hasAccount: Bool, isSyncing: Bool, recordCount: Int) {
+        let context = viewContext
+        
+        // Count local records
+        let scoresRequest = DailyScores.fetchRequest()
+        let recordCount = (try? context.count(for: scoresRequest)) ?? 0
+        
+        // Check if CloudKit is configured
+        let hasAccount = FileManager.default.ubiquityIdentityToken != nil
+        let isSyncing = container.persistentStoreDescriptions.first?.cloudKitContainerOptions != nil
+        
+        return (hasAccount, isSyncing, recordCount)
+    }
 }

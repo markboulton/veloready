@@ -8,6 +8,8 @@ struct iCloudSettingsView: View {
     @State private var showingRestoreConfirmation = false
     @State private var showingRestoreSuccess = false
     @State private var showingRestoreError = false
+    @State private var showingSyncSuccess = false
+    @State private var restoredRecordCount = 0
     
     var body: some View {
         List {
@@ -75,9 +77,12 @@ struct iCloudSettingsView: View {
                         Button(action: {
                             Task {
                                 await syncService.syncToCloud()
+                                if syncService.syncError == nil {
+                                    showingSyncSuccess = true
+                                }
                             }
                         }) {
-                            HStack {
+                            HStack(spacing: 12) {
                                 if syncService.isSyncing {
                                     ProgressView()
                                         .scaleEffect(0.8)
@@ -85,8 +90,8 @@ struct iCloudSettingsView: View {
                                     Image(systemName: Icons.Arrow.clockwise)
                                 }
                                 
-                                Button(SettingsContent.iCloud.syncNow) {
-                                }
+                                Text(syncService.isSyncing ? "Syncing..." : SettingsContent.iCloud.syncNow)
+                                    .foregroundColor(syncService.isSyncing ? .secondary : .primary)
                             }
                         }
                         .disabled(syncService.isSyncing)
@@ -94,10 +99,16 @@ struct iCloudSettingsView: View {
                         Button(action: {
                             showingRestoreConfirmation = true
                         }) {
-                            HStack {
-                                Image(systemName: Icons.Document.download)
-                                Button(SettingsContent.iCloud.restoreFromCloud) {
+                            HStack(spacing: 12) {
+                                if syncService.isSyncing {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: Icons.Document.download)
                                 }
+                                
+                                Text(syncService.isSyncing ? "Restoring..." : SettingsContent.iCloud.restoreFromCloud)
+                                    .foregroundColor(syncService.isSyncing ? .secondary : .primary)
                             }
                         }
                         .disabled(syncService.isSyncing)
@@ -183,7 +194,7 @@ struct iCloudSettingsView: View {
                 Button(iCloudSyncContent.Alerts.restoreConfirm, role: .destructive) {
                     Task {
                         do {
-                            try await syncService.restoreFromCloud()
+                            restoredRecordCount = try await syncService.restoreFromCloud()
                             showingRestoreSuccess = true
                         } catch {
                             showingRestoreError = true
@@ -196,12 +207,21 @@ struct iCloudSettingsView: View {
             .alert(SettingsContent.iCloud.restoreSuccessTitle, isPresented: $showingRestoreSuccess) {
                 Button(iCloudSyncContent.Alerts.ok, role: .cancel) { }
             } message: {
-                Text(SettingsContent.iCloud.restoreSuccessMessage)
+                if restoredRecordCount > 0 {
+                    Text("Successfully restored \(restoredRecordCount) records from iCloud.")
+                } else {
+                    Text(SettingsContent.iCloud.restoreSuccessMessage)
+                }
             }
             .alert(SettingsContent.iCloud.restoreFailedTitle, isPresented: $showingRestoreError) {
                 Button(iCloudSyncContent.Alerts.ok, role: .cancel) { }
             } message: {
                 Text(syncService.syncError ?? "Failed to restore data from iCloud. Please try again.")
+            }
+            .alert("Sync Complete", isPresented: $showingSyncSuccess) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your data has been successfully backed up to iCloud.")
             }
     }
 }

@@ -181,9 +181,13 @@ class TodayViewModel: ObservableObject {
             try await cacheManager.refreshToday()
             Logger.debug("💾 Saved today's data to Core Data cache")
             
-            // Backfill historical CTL/ATL/TSS data (runs once, then uses cache)
-            await cacheManager.calculateMissingCTLATL()
-            Logger.debug("✅ Historical CTL/ATL backfill complete")
+            // Move heavy CTL/ATL backfill to background (14+ seconds, non-blocking)
+            Task.detached(priority: .background) {
+                await CacheManager.shared.calculateMissingCTLATL()
+                await MainActor.run {
+                    Logger.debug("✅ Historical CTL/ATL backfill complete (background)")
+                }
+            }
         } catch {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }
@@ -293,20 +297,33 @@ class TodayViewModel: ObservableObject {
         let phase1Time = CFAbsoluteTimeGetCurrent() - startTime
         Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.3f", phase1Time))s - showing UI now")
         
-        await MainActor.run {
-            withAnimation(.easeOut(duration: 0.3)) {
-                isInitializing = false
-                isDataLoaded = true
-            }
-        }
-        Logger.debug("✅ UI displayed instantly with cached data")
+        // Ensure animated logo shows for minimum 2 seconds
+        let minimumLogoDisplayTime: TimeInterval = 2.0
+        let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
+        let remainingTime = max(0, minimumLogoDisplayTime - elapsedTime)
         
-        // PHASE 2: Critical Updates (1-2s) - Update today's scores in background
+        if remainingTime > 0 {
+            Logger.debug("⏱️ [SPINNER] Delaying for \(String(format: "%.2f", remainingTime))s to show animated logo")
+            try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
+        }
+        
+        // Mark data as loaded so UI content is visible (with cached data)
+        await MainActor.run {
+            isDataLoaded = true
+        }
+        Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
+        
+        // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
+        // Keep spinner visible until scores are ready
         Task {
-            let phase2Start = CFAbsoluteTimeGetCurrent()
-            Logger.debug("🎯 PHASE 2: Critical Updates - calculating today's scores...")
+            // CRITICAL FIX: Wait for token refresh to complete before Phase 2
+            // This prevents serverError when fetching activities/AI brief
+            await SupabaseClient.shared.waitForRefreshIfNeeded()
             
-            // Calculate scores in parallel
+            let phase2Start = CFAbsoluteTimeGetCurrent()
+            Logger.debug("🎯 PHASE 2: Critical Scores - sleep, recovery, strain")
+            
+            // ONLY calculate user-visible scores
             async let sleepTask: Void = sleepScoreService.calculateSleepScore()
             async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
             async let strainTask: Void = strainScoreService.calculateStrainScore()
@@ -316,7 +333,14 @@ class TodayViewModel: ObservableObject {
             _ = await strainTask
             
             let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
-            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores updated")
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
+            
+            // NOW hide the spinner - scores are ready
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isInitializing = false
+                }
+            }
             
             // Trigger ring animations and haptic feedback
             await MainActor.run {
@@ -328,11 +352,21 @@ class TodayViewModel: ObservableObject {
                 Logger.debug("📳 Haptic feedback triggered - scores updated")
             }
             
-            // PHASE 3: Background Sync - Fetch activities and other data
-            await refreshActivitiesAndOtherData()
-            
-            let totalTime = CFAbsoluteTimeGetCurrent() - startTime
-            Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
+            // PHASE 3: Background Updates (4-5s) - Non-blocking
+            // This runs AFTER UI is interactive, user won't notice
+            Task.detached(priority: .background) {
+                let phase3Start = CFAbsoluteTimeGetCurrent()
+                await Logger.debug("🎯 PHASE 3: Background Updates - activities, trends, training load")
+                
+                // Fetch activities and other non-critical data
+                await self.refreshActivitiesAndOtherData()
+                
+                let phase3Time = CFAbsoluteTimeGetCurrent() - phase3Start
+                await Logger.debug("✅ PHASE 3 complete in \(String(format: "%.2f", phase3Time))s - background work done")
+                
+                let totalTime = CFAbsoluteTimeGetCurrent() - startTime
+                await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
+            }
         }
     }
     
@@ -377,7 +411,14 @@ class TodayViewModel: ObservableObject {
         // Save to Core Data cache
         do {
             try await cacheManager.refreshToday()
-            await cacheManager.calculateMissingCTLATL()
+            
+            // Move heavy CTL/ATL calculation to background (non-blocking)
+            Task.detached(priority: .background) {
+                await CacheManager.shared.calculateMissingCTLATL()
+                await MainActor.run {
+                    Logger.debug("✅ CTL/ATL calculation complete (background)")
+                }
+            }
         } catch {
             Logger.error("Failed to save to Core Data cache: \(error)")
         }

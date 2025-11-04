@@ -6,8 +6,10 @@ import Foundation
 class SupabaseClient: ObservableObject {
     static let shared = SupabaseClient()
     
-    @Published var session: SupabaseSession?
-    @Published var isAuthenticated: Bool = false
+    @Published var isAuthenticated = false
+    @Published var isRefreshing = false // Track if refresh is in progress
+    private var session: SupabaseSession?
+    private var refreshContinuation: CheckedContinuation<Void, Never>? // For awaiting refresh
     
     private init() {
         // Load saved session from UserDefaults
@@ -40,6 +42,7 @@ class SupabaseClient: ObservableObject {
             Logger.debug("✅ [Supabase] Loaded saved session (expires: \(session.expiresAt))")
         } else {
             Logger.debug("⚠️ [Supabase] Saved session expired - attempting refresh...")
+            isRefreshing = true
             
             // Try to refresh the token using the refresh token
             Task {
@@ -49,9 +52,14 @@ class SupabaseClient: ObservableObject {
                     try await refreshToken()
                     Logger.debug("✅ [Supabase] Session refreshed on startup")
                 } catch {
-                    Logger.error("❌ [Supabase] Failed to refresh expired session: \(error)")
+                    Logger.error("❌ [Supabase] Token refresh failed on launch: \(error)")
                     clearSession()
                 }
+                
+                // Mark refresh complete and resume any waiting callers
+                isRefreshing = false
+                refreshContinuation?.resume()
+                refreshContinuation = nil
             }
         }
     }
@@ -107,16 +115,44 @@ class SupabaseClient: ObservableObject {
         Logger.debug("✅ [Supabase] Session created (user: \(userId), expires: \(expiresAt))")
     }
     
-    /// Refresh access token if expired
+    /// Refresh access token if needed (proactive - before expiry)
     func refreshTokenIfNeeded() async throws {
         guard let session = session else {
+            Logger.warning("⚠️ [Supabase] No session available")
             throw SupabaseError.notAuthenticated
         }
         
-        // If token expires in less than 5 minutes, refresh it
-        if session.expiresAt.timeIntervalSinceNow < 300 {
+        let now = Date()
+        let timeUntilExpiry = session.expiresAt.timeIntervalSince(now)
+        
+        // Refresh 5 minutes BEFORE expiry (300 seconds) - PROACTIVE, not reactive
+        if timeUntilExpiry < 300 {
+            Logger.info("🔄 [Supabase] Token expires in \(Int(timeUntilExpiry))s, refreshing proactively...")
             try await refreshToken()
+        } else {
+            Logger.debug("✅ [Supabase] Token valid for \(Int(timeUntilExpiry))s, no refresh needed")
         }
+    }
+    
+    /// Refresh token on app launch to ensure it's valid for startup
+    func refreshOnAppLaunch() async {
+        do {
+            try await refreshTokenIfNeeded()
+            Logger.info("✅ [Supabase] Token checked on app launch")
+        } catch {
+            Logger.error("❌ [Supabase] Token refresh failed on launch: \(error)")
+        }
+    }
+    
+    /// Wait for token refresh to complete (if in progress)
+    func waitForRefreshIfNeeded() async {
+        guard isRefreshing else { return }
+        
+        Logger.debug("⏳ [Supabase] Waiting for token refresh to complete...")
+        await withCheckedContinuation { continuation in
+            self.refreshContinuation = continuation
+        }
+        Logger.debug("✅ [Supabase] Token refresh wait complete")
     }
     
     /// Refresh the access token via backend

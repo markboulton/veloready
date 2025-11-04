@@ -34,7 +34,7 @@ jobs:
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
           swift run VeloReadyCoreTests
-            
+          
       - name: Essential Lint
         run: |
           if command -v swiftlint &> /dev/null; then

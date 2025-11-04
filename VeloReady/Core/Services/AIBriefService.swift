@@ -95,9 +95,15 @@ class AIBriefService: ObservableObject {
     
     private func buildRequest() throws -> AIBriefRequest {
         // Get current recovery score and inputs
+        Logger.debug("🤖 [AI Brief] Building request - recovery score: \(recoveryService.currentRecoveryScore?.score.description ?? "nil")")
+        Logger.debug("🤖 [AI Brief] Recovery service state: isLoading=\(recoveryService.isLoading)")
+        
         guard let recovery = recoveryService.currentRecoveryScore else {
+            Logger.error("❌ [AI Brief] Recovery score is nil - cannot build request")
             throw AIBriefError.networkError("Recovery score not available")
         }
+        
+        Logger.debug("✅ [AI Brief] Recovery score available: \(recovery.score)")
         
         // Calculate deltas from baselines
         let sleepDelta = calculateSleepDelta(recovery: recovery)

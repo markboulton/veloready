@@ -475,14 +475,20 @@ struct TodayView: View {
         Task {
             await viewModel.loadInitialUI()
             Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
-            Task {
-                // Start live activity updates immediately
-                liveActivityService.startAutoUpdates()
-                // Short delay before wellness analysis to avoid blocking UI
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            
+            // Start live activity updates immediately
+            liveActivityService.startAutoUpdates()
+            
+            // PERFORMANCE: Run illness/wellness AFTER Phase 2 completes
+            // Wait a moment to let Phase 2 finish, then run in background
+            Task.detached(priority: .background) {
+                // Wait for Phase 2 to complete (it takes ~5-10s)
+                // This prevents resource contention with strain calculation
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 second delay
+                await Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
                 await wellnessService.analyzeHealthTrends()
-                // Run illness detection after wellness analysis
                 await illnessService.analyzeHealthTrends()
+                await Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
             }
         }
         wasHealthKitAuthorized = healthKitManager.isAuthorized
@@ -519,8 +525,10 @@ struct TodayView: View {
                 liveActivityService.startAutoUpdates()
                 await viewModel.refreshData()
                 
-                // Re-analyze illness detection when app comes to foreground
-                await illnessService.analyzeHealthTrends()
+                // PERFORMANCE: Run illness detection in background (don't block refresh)
+                Task.detached(priority: .background) {
+                    await illnessService.analyzeHealthTrends()
+                }
             }
         }
     }

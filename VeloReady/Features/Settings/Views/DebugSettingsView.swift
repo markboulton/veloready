@@ -24,7 +24,11 @@ struct DebugSettingsView: View {
     @State private var duplicatesCleanedCount: Int?
     @State private var isSyncingSubscription = false
     @State private var subscriptionSyncSuccess: Bool?
-    
+
+    // Debug tier override for testing backend behavior
+    @AppStorage("debugTierOverride") private var debugTierOverride: String = "disabled"
+    @State private var showingTierSaveConfirmation = false
+
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -446,7 +450,7 @@ struct DebugSettingsView: View {
                         variant: config.hasProAccess ? .pro : .neutral
                     )
                 }
-                
+
                 if config.isInTrialPeriod {
                     HStack {
                         Text(DebugSettingsContent.TestingFeatures.trialDaysRemaining)
@@ -456,6 +460,68 @@ struct DebugSettingsView: View {
                         Text("\(config.trialDaysRemaining)")
                             .font(.caption)
                             .fontWeight(.semibold)
+                    }
+                }
+            }
+
+            Divider()
+
+            // Backend Tier Override (for testing API tier restrictions)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "server.rack")
+                        .foregroundColor(.orange)
+                    Text("Backend Tier Override")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                }
+
+                Text("Override your subscription tier on the backend API for testing tier-based restrictions (rate limits, data access, etc.)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Picker("API Tier", selection: $debugTierOverride) {
+                    Text("Disabled (Use Real Tier)").tag("disabled")
+                    Text("Free Tier").tag("free")
+                    Text("Pro Tier").tag("pro")
+                }
+                .pickerStyle(.menu)
+
+                if debugTierOverride != "disabled" {
+                    HStack {
+                        Image(systemName: Icons.Status.warningFill)
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        Text("Backend will treat you as \(debugTierOverride.uppercased()) tier")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+
+                    Button(action: {
+                        // Trigger confirmation (setting is auto-saved via @AppStorage)
+                        showingTierSaveConfirmation = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showingTierSaveConfirmation = false
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: Icons.Status.successFill)
+                            Text("Apply \(debugTierOverride.capitalized) Tier")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.orange)
+                }
+
+                if showingTierSaveConfirmation {
+                    HStack {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(Color.semantic.success)
+                            .font(.caption)
+                        Text("Tier override saved! Restart app or refetch data to apply.")
+                            .font(.caption)
+                            .foregroundColor(Color.semantic.success)
                     }
                 }
             }
