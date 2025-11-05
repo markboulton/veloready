@@ -26,10 +26,12 @@ The cache persistence layer requires a new `CacheEntry` entity in the Core Data 
    - Add index on `key` for faster lookups
    - Add index on `expiresAt` for faster cleanup queries
 
-5. **Set Codegen**:
+5. **Set Codegen** (IMPORTANT):
    - Select the `CacheEntry` entity
-   - In the inspector, set "Codegen" to "Manual/None"
-   - (The Swift files are already created: `CacheEntry+CoreDataClass.swift` and `CacheEntry+CoreDataProperties.swift`)
+   - In the Data Model Inspector (right panel), find "Codegen"
+   - Set it to **"Class Definition"** (default)
+   - ✅ Xcode will automatically generate the Swift files
+   - Do NOT set to "Manual/None" - we want auto-generation
 
 6. **Save the Model**:
    - Save the .xcdatamodeld file

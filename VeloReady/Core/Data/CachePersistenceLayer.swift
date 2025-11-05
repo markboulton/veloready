@@ -6,7 +6,7 @@ import CoreData
 actor CachePersistenceLayer {
     static let shared = CachePersistenceLayer()
     
-    private let persistenceController = PersistenceController.shared
+    private lazy var persistenceController = PersistenceController.shared
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
@@ -17,7 +17,8 @@ actor CachePersistenceLayer {
     private var missCount = 0
     
     private init() {
-        Logger.debug("💾 [CachePersistence] Initialized")
+        // Deferred initialization - don't access Core Data until needed
+        Logger.debug("💾 [CachePersistence] Initialized (lazy)")
     }
     
     // MARK: - Public Methods
@@ -29,35 +30,39 @@ actor CachePersistenceLayer {
     ///   - cachedAt: Timestamp when cached
     ///   - ttl: Time-to-live in seconds
     func saveToCoreData<T: Codable>(key: String, value: T, cachedAt: Date = Date(), ttl: TimeInterval) async {
-        let context = persistenceController.newBackgroundContext()
-        
-        await context.perform {
-            do {
-                // Check if entry already exists
-                let fetchRequest: NSFetchRequest<CacheEntry> = CacheEntry.fetchRequest()
-                fetchRequest.predicate = NSPredicate(format: "key == %@", key)
-                fetchRequest.fetchLimit = 1
-                
-                let existingEntries = try context.fetch(fetchRequest)
-                let entry = existingEntries.first ?? CacheEntry(context: context)
-                
-                // Encode value to JSON Data
-                let valueData = try self.encoder.encode(value)
-                
-                // Update entry
-                entry.key = key
-                entry.valueData = valueData
-                entry.cachedAt = cachedAt
-                entry.expiresAt = cachedAt.addingTimeInterval(ttl)
-                
-                // Save context
-                try context.save()
-                
-                self.saveCount += 1
-                Logger.debug("💾 [CachePersistence] Saved \(key) (\(valueData.count / 1024)KB, expires: \(Int(ttl/60))min)")
-            } catch {
-                Logger.error("💾 [CachePersistence] Failed to save \(key): \(error.localizedDescription)")
+        do {
+            let context = persistenceController.newBackgroundContext()
+            
+            await context.perform {
+                do {
+                    // Check if entry already exists
+                    let fetchRequest: NSFetchRequest<CacheEntry> = CacheEntry.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "key == %@", key)
+                    fetchRequest.fetchLimit = 1
+                    
+                    let existingEntries = try context.fetch(fetchRequest)
+                    let entry = existingEntries.first ?? CacheEntry(context: context)
+                    
+                    // Encode value to JSON Data
+                    let valueData = try self.encoder.encode(value)
+                    
+                    // Update entry
+                    entry.key = key
+                    entry.valueData = valueData
+                    entry.cachedAt = cachedAt
+                    entry.expiresAt = cachedAt.addingTimeInterval(ttl)
+                    
+                    // Save context
+                    try context.save()
+                    
+                    self.saveCount += 1
+                    Logger.debug("💾 [CachePersistence] Saved \(key) (\(valueData.count / 1024)KB, expires: \(Int(ttl/60))min)")
+                } catch {
+                    Logger.error("💾 [CachePersistence] Failed to save \(key): \(error.localizedDescription)")
+                }
             }
+        } catch {
+            Logger.error("💾 [CachePersistence] Failed to access context: \(error.localizedDescription)")
         }
     }
     
