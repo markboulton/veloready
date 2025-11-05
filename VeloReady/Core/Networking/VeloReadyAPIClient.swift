@@ -29,13 +29,16 @@ class VeloReadyAPIClient: ObservableObject {
     /// - Returns: Array of Strava activities
     func fetchActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [StravaActivity] {
         let endpoint = "\(baseURL)/api/activities?daysBack=\(daysBack)&limit=\(limit)"
-        
+
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
         }
-        
+
+        // Check client-side throttling before making request
+        try await checkThrottle(endpoint: "/api/activities")
+
         Logger.debug("🌐 [VeloReady API] Fetching activities (daysBack: \(daysBack), limit: \(limit))")
-        
+
         let response: ActivitiesResponse = try await makeRequest(url: url)
         
         Logger.debug("✅ [VeloReady API] Received \(response.activities.count) activities (cached until: \(response.metadata.cachedUntil))")
@@ -56,13 +59,16 @@ class VeloReadyAPIClient: ObservableObject {
         case .intervals:
             endpoint = "\(baseURL)/api/intervals/streams/\(activityId)"
         }
-        
+
         guard let url = URL(string: endpoint) else {
             throw VeloReadyAPIError.invalidURL
         }
-        
+
+        // Check client-side throttling before making request
+        try await checkThrottle(endpoint: "/api/streams")
+
         Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId) (source: \(source))")
-        
+
         // Backend returns: { altitude: {...}, cadence: {...}, metadata: {tier: "free"} }
         // We need to decode this structure and extract just the streams
         let response: StreamsResponse = try await makeRequest(url: url)
@@ -115,7 +121,19 @@ class VeloReadyAPIClient: ObservableObject {
     }
     
     // MARK: - Private Helpers
-    
+
+    /// Check client-side request throttling before making API call
+    /// - Parameter endpoint: The API endpoint path
+    /// - Throws: VeloReadyAPIError.throttled if rate limit exceeded
+    private func checkThrottle(endpoint: String) async throws {
+        let result = await RequestThrottler.shared.shouldAllowRequest(endpoint: endpoint)
+
+        if !result.allowed {
+            Logger.warning("🛑 [VeloReady API] Request throttled for \(endpoint)")
+            throw VeloReadyAPIError.throttled(retryAfter: result.retryAfter ?? 60)
+        }
+    }
+
     private func makeRequest<T: Decodable>(url: URL) async throws -> T {
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
@@ -362,6 +380,7 @@ enum VeloReadyAPIError: LocalizedError {
     case httpError(statusCode: Int, message: String)
     case decodingError(Error)
     case rateLimitExceeded
+    case throttled(retryAfter: TimeInterval)
     case tierLimitExceeded(message: String, currentTier: String, requestedDays: Int, maxDaysAllowed: Int)
     case serverError
     case invalidResponse
@@ -384,6 +403,9 @@ enum VeloReadyAPIError: LocalizedError {
             return "Failed to decode response: \(error.localizedDescription)"
         case .rateLimitExceeded:
             return "API rate limit exceeded. Please try again later."
+        case .throttled(let retryAfter):
+            let seconds = Int(retryAfter)
+            return "Too many requests. Please wait \(seconds) seconds before trying again."
         case .tierLimitExceeded(let message, let currentTier, let requestedDays, let maxDaysAllowed):
             return "\(message) Your \(currentTier) plan allows \(maxDaysAllowed) days (requested: \(requestedDays))."
         case .serverError:
