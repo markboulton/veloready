@@ -72,6 +72,11 @@ final class PersistenceController {
         
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+            // Enable migration for in-memory store too
+            if let description = container.persistentStoreDescriptions.first {
+                description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+                description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+            }
         } else {
             // Configure CloudKit sync
             guard let description = container.persistentStoreDescriptions.first else {
@@ -86,6 +91,10 @@ final class PersistenceController {
             // Configure persistent store options
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            
+            // Enable automatic lightweight migration for schema changes
+            description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+            description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
         }
         
         container.loadPersistentStores { description, error in
