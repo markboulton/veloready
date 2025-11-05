@@ -403,12 +403,15 @@ actor UnifiedCacheManager {
             // Encode based on value type
             if let data = value as? Data {
                 diskData = data
+            } else if let dict = value as? [String: Any] {
+                // Handle dictionaries (including NSDictionary)
+                diskData = try? encodeDictionary(dict, using: encoder)
+            } else if let array = value as? [Any] {
+                // Handle arrays (including NSArray)
+                diskData = try? encodeArray(array, using: encoder)
             } else if let encodable = value as? Encodable {
                 // Try to encode any Codable type
                 diskData = try? encodeAny(encodable, using: encoder)
-            } else if let array = value as? [Any] {
-                // Handle arrays of encodables
-                diskData = try? encodeArray(array, using: encoder)
             }
             
             guard let data = diskData else { 
@@ -511,6 +514,53 @@ actor UnifiedCacheManager {
             // If that fails, try direct encoding with a type-erased wrapper
             return try? encoder.encode(AnyCodable(value))
         }
+    }
+    
+    /// Helper to encode dictionaries
+    private func encodeDictionary(_ dict: [String: Any], using encoder: JSONEncoder) throws -> Data? {
+        // Convert all values to safe Swift types
+        var safeDict: [String: Any] = [:]
+        
+        for (key, value) in dict {
+            // Convert NSNumber/NSCFBoolean to Swift types
+            if let number = value as? NSNumber {
+                if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
+                    safeDict[key] = number.boolValue
+                } else if number.doubleValue.truncatingRemainder(dividingBy: 1) == 0 {
+                    safeDict[key] = number.intValue
+                } else {
+                    safeDict[key] = number.doubleValue
+                }
+            } else if let nestedDict = value as? [String: Any] {
+                // Recursively handle nested dictionaries
+                if let encoded = try? encodeDictionary(nestedDict, using: encoder),
+                   let decoded = try? JSONDecoder().decode([String: AnyCodable].self, from: encoded) {
+                    safeDict[key] = decoded
+                }
+            } else if let nestedArray = value as? [Any] {
+                // Handle nested arrays
+                if let encoded = try? encodeArray(nestedArray, using: encoder),
+                   let decoded = try? JSONDecoder().decode([AnyCodable].self, from: encoded) {
+                    safeDict[key] = decoded
+                }
+            } else if let encodable = value as? Encodable {
+                safeDict[key] = encodable
+            } else {
+                // Skip non-encodable values
+                continue
+            }
+        }
+        
+        // Wrap in AnyCodable for type erasure
+        let wrappedDict = safeDict.mapValues { value -> AnyCodable in
+            if let encodable = value as? Encodable {
+                return AnyCodable(encodable)
+            } else {
+                return AnyCodable(String(describing: value))
+            }
+        }
+        
+        return try encoder.encode(wrappedDict)
     }
     
     /// Helper to encode arrays of Encodable types
