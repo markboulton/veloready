@@ -145,6 +145,9 @@ actor ExponentialBackoffRetryPolicy {
             case .throttled:
                 // Don't retry throttled requests (handled by throttler)
                 return false
+            case .circuitOpen:
+                // Don't retry circuit breaker errors (handled by circuit breaker)
+                return false
             case .authenticationFailed, .notAuthenticated:
                 // Don't retry auth errors (user needs to re-authenticate)
                 return false

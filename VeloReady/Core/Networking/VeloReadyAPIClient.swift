@@ -134,22 +134,35 @@ class VeloReadyAPIClient: ObservableObject {
         }
     }
 
-    /// Make a network request with exponential backoff retry logic
+    /// Make a network request with exponential backoff retry logic and circuit breaker
     /// - Parameters:
     ///   - url: The URL to request
     ///   - endpoint: The endpoint path for retry tracking (e.g., "/api/activities")
     /// - Returns: Decoded response object
-    /// - Throws: VeloReadyAPIError on failure after all retries exhausted
+    /// - Throws: VeloReadyAPIError on failure after all retries exhausted or circuit open
     private func makeRequestWithRetry<T: Decodable>(url: URL, endpoint: String) async throws -> T {
+        // Check circuit breaker before attempting request
+        let circuitAllowed = await CircuitBreaker.shared.shouldAllowRequest(endpoint: endpoint)
+        if !circuitAllowed {
+            // Circuit is open - deny request
+            let retryAfter = await CircuitBreaker.shared.getTimeRemaining(endpoint: endpoint) ?? 60
+            Logger.warning("🔴 [VeloReady API] Circuit breaker OPEN for \(endpoint) - blocking request")
+            throw VeloReadyAPIError.circuitOpen(retryAfter: retryAfter)
+        }
+
         do {
             // Attempt the request
             let result: T = try await makeRequest(url: url)
 
             // Success - record it to reset failure counters
             await ExponentialBackoffRetryPolicy.shared.recordSuccess(endpoint: endpoint)
+            await CircuitBreaker.shared.recordResult(endpoint: endpoint, success: true)
 
             return result
         } catch {
+            // Record failure in circuit breaker
+            await CircuitBreaker.shared.recordResult(endpoint: endpoint, success: false)
+
             // Check if we should retry this error
             let retryDecision = await ExponentialBackoffRetryPolicy.shared.shouldRetry(endpoint: endpoint, error: error)
 
@@ -414,6 +427,7 @@ enum VeloReadyAPIError: LocalizedError {
     case decodingError(Error)
     case rateLimitExceeded
     case throttled(retryAfter: TimeInterval)
+    case circuitOpen(retryAfter: TimeInterval)
     case tierLimitExceeded(message: String, currentTier: String, requestedDays: Int, maxDaysAllowed: Int)
     case serverError
     case invalidResponse
@@ -439,6 +453,9 @@ enum VeloReadyAPIError: LocalizedError {
         case .throttled(let retryAfter):
             let seconds = Int(retryAfter)
             return "Too many requests. Please wait \(seconds) seconds before trying again."
+        case .circuitOpen(let retryAfter):
+            let seconds = Int(retryAfter)
+            return "Service temporarily unavailable due to repeated failures. Please try again in \(seconds) seconds."
         case .tierLimitExceeded(let message, let currentTier, let requestedDays, let maxDaysAllowed):
             return "\(message) Your \(currentTier) plan allows \(maxDaysAllowed) days (requested: \(requestedDays))."
         case .serverError:
