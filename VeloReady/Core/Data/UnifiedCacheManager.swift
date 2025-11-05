@@ -475,7 +475,26 @@ actor UnifiedCacheManager {
     
     /// Helper to encode any Encodable type using type erasure
     private func encodeAny(_ value: Encodable, using encoder: JSONEncoder) throws -> Data? {
-        // Convert NSNumber/NSCFBoolean to Swift types first
+        // CRITICAL: Check for Objective-C types FIRST, before checking Encodable
+        // NSDictionary/NSArray claim to be Encodable but fail at runtime
+        
+        // Handle NSDictionary
+        if let dict = value as? NSDictionary {
+            if let swiftDict = dict as? [String: Any] {
+                return try? encodeDictionary(swiftDict, using: encoder)
+            }
+            return nil
+        }
+        
+        // Handle NSArray
+        if let array = value as? NSArray {
+            if let swiftArray = array as? [Any] {
+                return try? encodeArray(swiftArray, using: encoder)
+            }
+            return nil
+        }
+        
+        // Convert NSNumber/NSCFBoolean to Swift types
         if let number = value as? NSNumber {
             // Check if it's a boolean (CFBoolean)
             if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
@@ -487,7 +506,7 @@ actor UnifiedCacheManager {
             }
         }
         
-        // Try common primitive types first for efficiency
+        // Try common Swift primitive types
         if let string = value as? String {
             return try encoder.encode(string)
         } else if let int = value as? Int {
@@ -498,8 +517,7 @@ actor UnifiedCacheManager {
             return try encoder.encode(bool)
         }
         
-        // For complex types, use JSONSerialization as a bridge
-        // This works because Encodable can be converted to JSON
+        // For complex Swift types, use JSONSerialization as a bridge
         do {
             // Encode to JSON data
             let jsonData = try JSONSerialization.data(
@@ -522,6 +540,27 @@ actor UnifiedCacheManager {
         var safeDict: [String: Any] = [:]
         
         for (key, value) in dict {
+            // Handle NSDictionary/NSArray FIRST (they claim to be Encodable but aren't really)
+            if let nsDict = value as? NSDictionary {
+                if let swiftDict = nsDict as? [String: Any] {
+                    if let encoded = try? encodeDictionary(swiftDict, using: encoder),
+                       let decoded = try? JSONDecoder().decode([String: AnyCodable].self, from: encoded) {
+                        safeDict[key] = decoded
+                    }
+                }
+                continue
+            }
+            
+            if let nsArray = value as? NSArray {
+                if let swiftArray = nsArray as? [Any] {
+                    if let encoded = try? encodeArray(swiftArray, using: encoder),
+                       let decoded = try? JSONDecoder().decode([AnyCodable].self, from: encoded) {
+                        safeDict[key] = decoded
+                    }
+                }
+                continue
+            }
+            
             // Convert NSNumber/NSCFBoolean to Swift types
             if let number = value as? NSNumber {
                 if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
@@ -579,6 +618,25 @@ actor UnifiedCacheManager {
         // For arrays of complex Codable types, convert to safe types first
         var safeArray: [Any] = []
         for item in array {
+            // Handle NSDictionary/NSArray FIRST (they claim to be Encodable but aren't really)
+            if let nsDict = item as? NSDictionary {
+                if let swiftDict = nsDict as? [String: Any],
+                   let encoded = try? encodeDictionary(swiftDict, using: encoder),
+                   let decoded = try? JSONDecoder().decode([String: AnyCodable].self, from: encoded) {
+                    safeArray.append(decoded)
+                }
+                continue
+            }
+            
+            if let nsArray = item as? NSArray {
+                if let swiftArray = nsArray as? [Any],
+                   let encoded = try? encodeArray(swiftArray, using: encoder),
+                   let decoded = try? JSONDecoder().decode([AnyCodable].self, from: encoded) {
+                    safeArray.append(decoded)
+                }
+                continue
+            }
+            
             // Convert NSNumber/NSCFBoolean to Swift types
             if let number = item as? NSNumber {
                 // Check if it's a boolean (CFBoolean)
