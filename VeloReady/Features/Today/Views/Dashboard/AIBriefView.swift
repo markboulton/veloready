@@ -28,6 +28,10 @@ struct AIBriefView: View {
         .sheet(isPresented: $showingUpgradeSheet) {
             PaywallView()
         }
+        .task {
+            // Refresh ML training data count on appear
+            await mlService.refreshTrainingDataCount()
+        }
     }
     
     // MARK: - Pro Content
