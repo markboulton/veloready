@@ -454,6 +454,17 @@ struct TrainingLoadChart: View {
             }
         } catch {
             Logger.error("TrainingLoadChart: Failed to fetch activities: \(error)")
+            
+            // OFFLINE FALLBACK: Load from Core Data instead
+            if let networkError = error as? NetworkError {
+                switch networkError {
+                case .offline:
+                    Logger.debug("📱 [OFFLINE] TrainingLoadChart: Falling back to Core Data cached training load")
+                    await loadFromCoreData(rideDate: rideDate)
+                default:
+                    break
+                }
+            }
         }
     }
     
@@ -555,6 +566,77 @@ struct TrainingLoadChart: View {
         Logger.data("TrainingLoadChart: Date range = \(logFormatter.string(from: data.first?.date ?? Date())) to \(logFormatter.string(from: data.last?.date ?? Date()))")
         
         return data
+    }
+    
+    /// Load training load data from Core Data (offline fallback)
+    private func loadFromCoreData(rideDate: Date) async {
+        let calendar = Calendar.current
+        let earliestDate = calendar.date(byAdding: .day, value: -42, to: rideDate) ?? rideDate
+        
+        // Fetch from Core Data (DailyScores with DailyLoad relationship)
+        let context = PersistenceController.shared.container.viewContext
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "date >= %@ AND date <= %@",
+            earliestDate as NSDate,
+            rideDate as NSDate
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        guard let dailyScores = try? context.fetch(request) else {
+            Logger.error("📱 [OFFLINE] Failed to fetch from Core Data")
+            return
+        }
+        
+        Logger.debug("📱 [OFFLINE] Loaded \(dailyScores.count) days from Core Data")
+        
+        // Convert to activities with CTL/ATL
+        var activitiesWithLoad: [IntervalsActivity] = []
+        
+        for score in dailyScores {
+            guard let date = score.date,
+                  let load = score.load,
+                  load.ctl > 0 || load.atl > 0 else { continue }
+            
+            // Create a synthetic activity for this day
+            let dateFormatter = ISO8601DateFormatter()
+            dateFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+            dateFormatter.timeZone = TimeZone.current
+            let dateString = dateFormatter.string(from: date)
+            
+            let syntheticActivity = IntervalsActivity(
+                id: "core-data-\(dateString)",
+                name: "Training Load",
+                description: nil,
+                startDateLocal: dateString,
+                type: "Ride",
+                duration: nil,
+                distance: nil,
+                elevationGain: nil,
+                averagePower: nil,
+                normalizedPower: nil,
+                averageHeartRate: nil,
+                maxHeartRate: nil,
+                averageCadence: nil,
+                averageSpeed: nil,
+                maxSpeed: nil,
+                calories: nil,
+                fileType: nil,
+                tss: load.tss > 0 ? load.tss : nil,
+                intensityFactor: nil,
+                atl: load.atl,
+                ctl: load.ctl,
+                icuZoneTimes: nil,
+                icuHrZoneTimes: nil
+            )
+            
+            activitiesWithLoad.append(syntheticActivity)
+        }
+        
+        await MainActor.run {
+            self.historicalActivities = activitiesWithLoad
+            Logger.debug("📱 [OFFLINE] Loaded \(activitiesWithLoad.count) activities from Core Data")
+        }
     }
     
     private func tsbColor(_ tsb: Double) -> Color {
