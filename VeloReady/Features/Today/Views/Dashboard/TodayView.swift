@@ -19,6 +19,7 @@ struct TodayView: View {
     @StateObject private var wellnessService = WellnessDetectionService.shared
     @StateObject private var illnessService = IllnessDetectionService.shared
     @ObservedObject private var liveActivityService = LiveActivityService.shared
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
@@ -40,12 +41,16 @@ struct TodayView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                // Adaptive background (light grey in light mode, black in dark mode)
-                Color.background.app
-                    .ignoresSafeArea()
-                
-                ScrollView {
+            VStack(spacing: 0) {
+                // Offline banner (shown when no network connection)
+                OfflineBannerView(networkMonitor: networkMonitor)
+
+                ZStack(alignment: .top) {
+                    // Adaptive background (light grey in light mode, black in dark mode)
+                    Color.background.app
+                        .ignoresSafeArea()
+
+                    ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
@@ -167,6 +172,7 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
+            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {
