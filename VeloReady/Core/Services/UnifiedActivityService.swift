@@ -39,7 +39,8 @@ class UnifiedActivityService: ObservableObject {
         if intervalsOAuth.isAuthenticated {
             let cacheKey = CacheKey.intervalsActivities(daysBack: actualDays)
             
-            return try await cache.fetch(
+            // Use cache-first: show cached data immediately, refresh in background
+            return try await cache.fetchCacheFirst(
                 key: cacheKey,
                 ttl: UnifiedCacheManager.CacheTTL.activities
             ) {
@@ -54,7 +55,8 @@ class UnifiedActivityService: ObservableObject {
         let cappedLimit = min(limit, 200)
         let cacheKey = CacheKey.stravaActivities(daysBack: actualDays)
         
-        return try await cache.fetch(
+        // Use cache-first: show cached data immediately, refresh in background
+        return try await cache.fetchCacheFirst(
             key: cacheKey,
             ttl: UnifiedCacheManager.CacheTTL.activities
         ) {

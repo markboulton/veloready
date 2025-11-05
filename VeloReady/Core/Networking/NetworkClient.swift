@@ -30,6 +30,35 @@ actor NetworkClient {
         self.retryPolicy = configuration.retryPolicy
     }
     
+    // MARK: - Network Status
+    
+    /// Check if network is available
+    /// - Returns: True if online, false if offline
+    func isOnline() async -> Bool {
+        // Simple reachability check: try to load a lightweight resource
+        // This is a basic implementation; production apps should use NWPathMonitor
+        guard let url = URL(string: "https://www.apple.com/library/test/success.html") else {
+            return false
+        }
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 3.0 // Quick timeout for reachability check
+        
+        do {
+            let (_, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                return (200...299).contains(httpResponse.statusCode)
+            }
+            return false
+        } catch {
+            // Check if error is network-related
+            if let urlError = error as? URLError {
+                return ![.notConnectedToInternet, .networkConnectionLost, .timedOut].contains(urlError.code)
+            }
+            return false
+        }
+    }
+    
     // MARK: - Request Methods
     
     /// Execute a request and decode the response
@@ -123,6 +152,7 @@ enum NetworkError: Error, LocalizedError {
     case invalidResponse
     case httpError(statusCode: Int, data: Data)
     case decodingError(Error)
+    case offline
     case unknown
     
     var errorDescription: String? {
@@ -135,6 +165,8 @@ enum NetworkError: Error, LocalizedError {
             return "HTTP error \(statusCode)"
         case .decodingError(let error):
             return "Failed to decode response: \(error.localizedDescription)"
+        case .offline:
+            return "No internet connection"
         case .unknown:
             return "Unknown network error"
         }

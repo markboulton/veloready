@@ -240,6 +240,8 @@ extension StravaAPIClient {
                 }
             case .decodingError(let err):
                 return .decodingError(err)
+            case .offline:
+                return .networkError(error)
             case .unknown:
                 return .networkError(error)
             }
