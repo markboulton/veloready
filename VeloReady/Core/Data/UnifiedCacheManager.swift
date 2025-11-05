@@ -470,31 +470,168 @@ actor UnifiedCacheManager {
         }
     }
     
-    /// Helper to encode any Encodable type
+    /// Helper to encode any Encodable type using type erasure
     private func encodeAny(_ value: Encodable, using encoder: JSONEncoder) throws -> Data? {
-        // This is a workaround for Swift's type system
-        // We can't directly encode Encodable, so we try common types
-        if let stringArray = value as? [String] {
-            return try encoder.encode(stringArray)
-        } else if let intArray = value as? [Int] {
-            return try encoder.encode(intArray)
-        } else if let string = value as? String {
+        // Use a generic wrapper to encode any Codable type
+        let mirror = Mirror(reflecting: value)
+        
+        // Try common primitive types first for efficiency
+        if let string = value as? String {
             return try encoder.encode(string)
         } else if let int = value as? Int {
             return try encoder.encode(int)
         } else if let double = value as? Double {
             return try encoder.encode(double)
+        } else if let bool = value as? Bool {
+            return try encoder.encode(bool)
         }
-        return nil
+        
+        // For complex types, use JSONSerialization as a bridge
+        // This works because Encodable can be converted to JSON
+        do {
+            // Encode to JSON data
+            let jsonData = try JSONSerialization.data(
+                withJSONObject: try JSONSerialization.jsonObject(
+                    with: try encoder.encode(AnyCodable(value)),
+                    options: []
+                ),
+                options: []
+            )
+            return jsonData
+        } catch {
+            // If that fails, try direct encoding with a type-erased wrapper
+            return try? encoder.encode(AnyCodable(value))
+        }
     }
     
-    /// Helper to encode arrays
+    /// Helper to encode arrays of Encodable types
     private func encodeArray(_ array: [Any], using encoder: JSONEncoder) throws -> Data? {
-        // Try to encode as array of strings first
+        // Try common array types first
         if let stringArray = array as? [String] {
             return try encoder.encode(stringArray)
+        } else if let intArray = array as? [Int] {
+            return try encoder.encode(intArray)
         }
-        return nil
+        
+        // For arrays of complex Codable types, wrap each element
+        let encodableArray = array.compactMap { $0 as? Encodable }
+        guard encodableArray.count == array.count else {
+            return nil // Not all elements are Encodable
+        }
+        
+        // Wrap in AnyCodable for type erasure
+        let wrappedArray = encodableArray.map { AnyCodable($0) }
+        return try encoder.encode(wrappedArray)
+    }
+}
+
+// MARK: - Type Erasure Helper
+
+/// Type-erased wrapper for Codable values
+/// This allows us to encode/decode any Codable type through the cache
+private struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Encodable) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        // Try to decode as common types
+        if let string = try? container.decode(String.self) {
+            value = string
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let array = try? container.decode([AnyCodable].self) {
+            value = array.map { $0.value }
+        } else if let dict = try? container.decode([String: AnyCodable].self) {
+            value = dict.mapValues { $0.value }
+        } else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Cannot decode AnyCodable"
+            )
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        // Encode based on the actual type
+        if let string = value as? String {
+            try container.encode(string)
+        } else if let int = value as? Int {
+            try container.encode(int)
+        } else if let double = value as? Double {
+            try container.encode(double)
+        } else if let bool = value as? Bool {
+            try container.encode(bool)
+        } else if let encodable = value as? Encodable {
+            // For complex types, encode as JSON dictionary
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(AnyCodableWrapper(encodable))
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            try container.encode(AnyCodableDict(json))
+        } else {
+            throw EncodingError.invalidValue(
+                value,
+                EncodingError.Context(
+                    codingPath: container.codingPath,
+                    debugDescription: "Cannot encode value of type \(type(of: value))"
+                )
+            )
+        }
+    }
+}
+
+/// Wrapper for encoding any Encodable type
+private struct AnyCodableWrapper: Encodable {
+    let value: Encodable
+    
+    init(_ value: Encodable) {
+        self.value = value
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        try value.encode(to: encoder)
+    }
+}
+
+/// Wrapper for JSON dictionaries
+private struct AnyCodableDict: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let dict = try? container.decode([String: AnyCodable].self) {
+            value = dict.mapValues { $0.value }
+        } else if let array = try? container.decode([AnyCodable].self) {
+            value = array.map { $0.value }
+        } else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Cannot decode AnyCodableDict"
+            )
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        if let dict = value as? [String: Any] {
+            try container.encode(dict.mapValues { AnyCodable($0 as! Encodable) })
+        } else if let array = value as? [Any] {
+            try container.encode(array.map { AnyCodable($0 as! Encodable) })
+        }
     }
 }
 
