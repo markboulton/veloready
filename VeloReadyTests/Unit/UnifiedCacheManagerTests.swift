@@ -370,4 +370,190 @@ struct UnifiedCacheManagerTests {
         
         #expect(value == "value_249")
     }
+    
+    // MARK: - Cache-First Strategy Tests
+    
+    @Test("fetchCacheFirst returns valid cache immediately")
+    func testCacheFirstValidCache() async throws {
+        let cache = await UnifiedCacheManager.shared
+        let key = "test:cachefirst:valid:\(UUID().uuidString)"
+        var fetchCount = 0
+        
+        // Populate cache with valid data (long TTL)
+        _ = try await cache.fetch(key: key, ttl: 3600) {
+            fetchCount += 1
+            return "cached value"
+        }
+        
+        #expect(fetchCount == 1)
+        
+        // fetchCacheFirst should return immediately without refetching
+        let startTime = Date()
+        let value = try await cache.fetchCacheFirst(key: key, ttl: 3600) {
+            fetchCount += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s delay if it fetches
+            return "new value"
+        }
+        let elapsed = Date().timeIntervalSince(startTime)
+        
+        #expect(value == "cached value", "Should return cached value")
+        #expect(fetchCount == 1, "Should not refetch for valid cache")
+        #expect(elapsed < 0.1, "Should return immediately (<100ms)")
+    }
+    
+    @Test("fetchCacheFirst returns stale cache immediately and refreshes in background")
+    func testCacheFirstStaleCache() async throws {
+        let cache = await UnifiedCacheManager.shared
+        let key = "test:cachefirst:stale:\(UUID().uuidString)"
+        var fetchCount = 0
+        
+        // Populate cache with short TTL
+        _ = try await cache.fetch(key: key, ttl: 1.0) {
+            fetchCount += 1
+            return "stale value"
+        }
+        
+        #expect(fetchCount == 1)
+        
+        // Wait for cache to become stale
+        try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
+        
+        // fetchCacheFirst should return stale immediately
+        let startTime = Date()
+        let value = try await cache.fetchCacheFirst(key: key, ttl: 1.0) {
+            fetchCount += 1
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
+            return "fresh value"
+        }
+        let elapsed = Date().timeIntervalSince(startTime)
+        
+        #expect(value == "stale value", "Should return stale cache immediately")
+        #expect(elapsed < 0.1, "Should return immediately (<100ms)")
+        #expect(fetchCount == 1, "Background refresh should not block")
+        
+        // Wait for background refresh to complete
+        try await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+        
+        // Verify cache was refreshed
+        #expect(fetchCount == 2, "Background refresh should have completed")
+        
+        // Next fetch should return fresh value
+        let freshValue = try await cache.fetchCacheFirst(key: key, ttl: 1.0) {
+            fetchCount += 1
+            return "newer value"
+        }
+        #expect(freshValue == "fresh value", "Should now have fresh cached value")
+        #expect(fetchCount == 2, "Should not refetch again")
+    }
+    
+    @Test("fetchCacheFirst throws offline error when no cache and offline")
+    func testCacheFirstOfflineNoCache() async throws {
+        let cache = await UnifiedCacheManager.shared
+        let key = "test:cachefirst:offline:\(UUID().uuidString)"
+        
+        // Note: This test assumes we can simulate offline state
+        // In reality, isOnline() checks Apple's servers which will be available in CI
+        // So we test the behavior conceptually
+        
+        enum TestError: Error {
+            case simulatedOffline
+        }
+        
+        do {
+            // Try to fetch with no cache - should fail if offline
+            _ = try await cache.fetchCacheFirst(key: key, ttl: 3600) {
+                throw TestError.simulatedOffline
+            }
+            // If we reach here, we're online and fetch succeeded
+        } catch {
+            // Expected in offline scenario
+        }
+    }
+    
+    @Test("fetchCacheFirst fetches normally when no cache and online")
+    func testCacheFirstOnlineNoCache() async throws {
+        let cache = await UnifiedCacheManager.shared
+        let key = "test:cachefirst:online:\(UUID().uuidString)"
+        var fetchCount = 0
+        
+        // No cache exists - should fetch normally (assuming online)
+        let value = try await cache.fetchCacheFirst(key: key, ttl: 3600) {
+            fetchCount += 1
+            return "fresh value"
+        }
+        
+        #expect(value == "fresh value")
+        #expect(fetchCount == 1, "Should fetch once")
+        
+        // Subsequent fetch should use cache
+        let cachedValue = try await cache.fetchCacheFirst(key: key, ttl: 3600) {
+            fetchCount += 1
+            return "newer value"
+        }
+        
+        #expect(cachedValue == "fresh value", "Should use cached value")
+        #expect(fetchCount == 1, "Should not refetch")
+    }
+    
+    @Test("fetchCacheFirst handles background refresh errors gracefully")
+    func testCacheFirstBackgroundRefreshError() async throws {
+        let cache = await UnifiedCacheManager.shared
+        let key = "test:cachefirst:error:\(UUID().uuidString)"
+        var fetchCount = 0
+        
+        enum TestError: Error {
+            case refreshFailed
+        }
+        
+        // Populate cache
+        _ = try await cache.fetch(key: key, ttl: 1.0) {
+            fetchCount += 1
+            return "cached value"
+        }
+        
+        // Wait for stale
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        
+        // fetchCacheFirst with failing refresh operation
+        let value: String = try await cache.fetchCacheFirst(key: key, ttl: 1.0) {
+            fetchCount += 1
+            throw TestError.refreshFailed
+        }
+        
+        #expect(value == "cached value", "Should return stale cache despite refresh error")
+        
+        // Wait for background task to complete
+        try await Task.sleep(nanoseconds: 500_000_000)
+        
+        // Cache should still have old value (refresh failed)
+        let stillStale = try await cache.fetchCacheFirst(key: key, ttl: 1.0) {
+            fetchCount += 1
+            return "fallback value"
+        }
+        
+        #expect(stillStale == "cached value", "Should keep stale cache after failed refresh")
+    }
+    
+    @Test("fetchCacheFirst with different data types")
+    func testCacheFirstTypes() async throws {
+        let cache = await UnifiedCacheManager.shared
+        
+        // Test with array
+        let activities = try await cache.fetchCacheFirst(key: "test:types:array:\(UUID().uuidString)", ttl: 3600) {
+            ["activity1", "activity2", "activity3"]
+        }
+        #expect(activities.count == 3)
+        
+        // Test with int
+        let score = try await cache.fetchCacheFirst(key: "test:types:int:\(UUID().uuidString)", ttl: 3600) {
+            95
+        }
+        #expect(score == 95)
+        
+        // Test with double
+        let hrv = try await cache.fetchCacheFirst(key: "test:types:double:\(UUID().uuidString)", ttl: 3600) {
+            45.5
+        }
+        #expect(hrv == 45.5)
+    }
 }

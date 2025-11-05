@@ -120,6 +120,70 @@ actor UnifiedCacheManager {
     
     // MARK: - Specialized Fetch Methods
     
+    /// Fetch with cache-first strategy: return stale cache immediately, refresh in background
+    /// This provides instant data display while ensuring freshness over time
+    /// - Parameters:
+    ///   - key: Unique cache key
+    ///   - ttl: Time-to-live in seconds
+    ///   - fetchOperation: Async operation to fetch data if cache miss
+    /// - Returns: Cached data (possibly stale) or freshly fetched data
+    func fetchCacheFirst<T: Sendable>(
+        key: String,
+        ttl: TimeInterval,
+        fetchOperation: @Sendable @escaping () async throws -> T
+    ) async throws -> T {
+        // 1. Check if ANY cache exists (even if stale)
+        if let cached = memoryCache[key],
+           let value = cached.value as? T {
+            let age = Date().timeIntervalSince(cached.cachedAt)
+            
+            // 1a. Cache is still valid - return immediately
+            if cached.isValid(ttl: ttl) {
+                cacheHits += 1
+                Logger.debug("⚡ [Cache HIT] \(key) (age: \(Int(age))s, valid)")
+                return value
+            }
+            
+            // 1b. Cache is stale - return immediately AND refresh in background
+            Logger.debug("📱 [Cache STALE] \(key) (age: \(Int(age))s) - returning stale, refreshing in background")
+            cacheHits += 1
+            
+            // Start background refresh (detached so it doesn't block)
+            Task.detached(priority: .background) {
+                // Check if online before attempting refresh (uses NetworkMonitor for instant check)
+                let isOnline = await NetworkMonitor.shared.isConnected
+                
+                if isOnline {
+                    await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
+                    do {
+                        let freshValue = try await fetchOperation()
+                        await self.storeInCache(key: key, value: freshValue)
+                        await Logger.debug("✅ [Background Refresh] \(key) - complete")
+                    } catch {
+                        await Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
+                    }
+                } else {
+                    await Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
+                }
+            }
+            
+            return value
+        }
+        
+        // 2. No cache exists - check if online (uses NetworkMonitor for instant check)
+        let isOnline = await NetworkMonitor.shared.isConnected
+        
+        if !isOnline {
+            // Offline with no cache - throw error
+            Logger.warning("📱 [Cache MISS] \(key) - offline, no cached data available")
+            throw NetworkError.offline
+        }
+        
+        // 3. Online with no cache - use normal fetch (with deduplication)
+        Logger.debug("🌐 [Cache MISS] \(key) - fetching online...")
+        return try await fetch(key: key, ttl: ttl, fetchOperation: fetchOperation)
+    }
+    
     /// Fetch with Core Data persistence
     /// - Parameters:
     ///   - key: Cache key
@@ -327,8 +391,8 @@ actor UnifiedCacheManager {
         }
     }
     
-    /// Get expired cache for offline fallback
-    private func getExpiredCache<T>(key: String, as type: T.Type) -> T? {
+    /// Get expired cache for offline fallback (public for external use)
+    func getExpiredCache<T>(key: String, as type: T.Type) async -> T? {
         guard let cached = memoryCache[key],
               let value = cached.value as? T else {
             return nil
