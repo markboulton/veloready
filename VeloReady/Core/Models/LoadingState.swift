@@ -34,17 +34,17 @@ enum LoadingState: Equatable {
     /// Minimum time this state should be visible (for readability)
     var minimumDisplayDuration: TimeInterval {
         switch self {
-        case .initial: return 0.5
-        case .fetchingHealthData: return 0.8
-        case .calculatingScores: return 1.0
-        case .checkingForUpdates: return 0.6
-        case .contactingIntegrations: return 0.8
-        case .downloadingActivities: return 1.2
-        case .computingZones: return 1.0
-        case .processingData: return 1.0
-        case .syncingData: return 0.8
-        case .refreshingScores: return 0.8
-        case .complete: return 0.3  // Brief "done" state before fade
+        case .initial: return 0.3
+        case .fetchingHealthData: return 0.4
+        case .calculatingScores: return 0.5
+        case .checkingForUpdates: return 0.3
+        case .contactingIntegrations: return 0.5
+        case .downloadingActivities: return 0.6
+        case .computingZones: return 0.5
+        case .processingData: return 0.4
+        case .syncingData: return 0.4
+        case .refreshingScores: return 0.4
+        case .complete: return 0.2  // Brief "done" state before fade
         case .updated: return 0  // Persistent, no minimum
         case .error: return 0  // Stays until dismissed
         }

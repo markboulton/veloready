@@ -16,6 +16,34 @@ class LoadingStateManager: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
         Logger.debug("📊 [LoadingState] [\(formatter.string(from: timestamp))] Queue: \(newState)")
+        
+        // CRITICAL FIX: When work completes, clear queue and jump to final state
+        if case .complete = newState {
+            Logger.debug("⚡ [LoadingState] Work complete - clearing queue and showing immediately")
+            stateQueue = [newState]
+            currentState = newState
+            currentStateStartTime = Date()
+            isProcessingQueue = false
+            return
+        }
+        
+        if case .updated = newState {
+            Logger.debug("⚡ [LoadingState] Updated state - clearing queue and showing immediately")
+            stateQueue = [newState]
+            currentState = newState
+            currentStateStartTime = Date()
+            isProcessingQueue = false
+            return
+        }
+        
+        // PERFORMANCE FIX: Limit queue depth to prevent massive backlogs
+        // If queue is getting too long, skip intermediate states
+        if stateQueue.count > 3 {
+            Logger.debug("⚠️ [LoadingState] Queue too long (\(stateQueue.count)), skipping intermediate states")
+            // Keep only the most recent states
+            stateQueue = Array(stateQueue.suffix(2))
+        }
+        
         stateQueue.append(newState)
         processQueueIfNeeded()
     }
