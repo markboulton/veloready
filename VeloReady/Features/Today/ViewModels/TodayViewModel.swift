@@ -455,14 +455,17 @@ class TodayViewModel: ObservableObject {
         
         // Priority 1: Today's activities (fast) - ONLY fetch last 7 days, not 365
         Logger.debug("📊 [INCREMENTAL] Fetching today's activities...")
+        loadingStateManager.updateState(.checkingForUpdates)
         let primarySource = activeSources.first
-        // Don't show downloading status yet - wait until we know count
-        // loadingStateManager.updateState(.downloadingActivities(count: nil, source: primarySource))
         await fetchAndUpdateActivities(daysBack: 1)
         Logger.debug("✅ [INCREMENTAL] Today's activities loaded")
         
         // Priority 2: This week's activities (for recent context)
         Logger.debug("📊 [INCREMENTAL] Fetching this week's activities...")
+        // Update status since this might take time (especially if illness detection runs)
+        if !activeSources.isEmpty {
+            loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        }
         await fetchAndUpdateActivities(daysBack: 7)
         Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
         
