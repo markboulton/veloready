@@ -472,8 +472,17 @@ actor UnifiedCacheManager {
     
     /// Helper to encode any Encodable type using type erasure
     private func encodeAny(_ value: Encodable, using encoder: JSONEncoder) throws -> Data? {
-        // Use a generic wrapper to encode any Codable type
-        let mirror = Mirror(reflecting: value)
+        // Convert NSNumber/NSCFBoolean to Swift types first
+        if let number = value as? NSNumber {
+            // Check if it's a boolean (CFBoolean)
+            if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
+                return try encoder.encode(number.boolValue)
+            } else if number.doubleValue.truncatingRemainder(dividingBy: 1) == 0 {
+                return try encoder.encode(number.intValue)
+            } else {
+                return try encoder.encode(number.doubleValue)
+            }
+        }
         
         // Try common primitive types first for efficiency
         if let string = value as? String {
@@ -511,16 +520,41 @@ actor UnifiedCacheManager {
             return try encoder.encode(stringArray)
         } else if let intArray = array as? [Int] {
             return try encoder.encode(intArray)
+        } else if let boolArray = array as? [Bool] {
+            return try encoder.encode(boolArray)
+        } else if let doubleArray = array as? [Double] {
+            return try encoder.encode(doubleArray)
         }
         
-        // For arrays of complex Codable types, wrap each element
-        let encodableArray = array.compactMap { $0 as? Encodable }
-        guard encodableArray.count == array.count else {
-            return nil // Not all elements are Encodable
+        // For arrays of complex Codable types, convert to safe types first
+        var safeArray: [Any] = []
+        for item in array {
+            // Convert NSNumber/NSCFBoolean to Swift types
+            if let number = item as? NSNumber {
+                // Check if it's a boolean (CFBoolean)
+                if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
+                    safeArray.append(number.boolValue)
+                } else if number.doubleValue.truncatingRemainder(dividingBy: 1) == 0 {
+                    safeArray.append(number.intValue)
+                } else {
+                    safeArray.append(number.doubleValue)
+                }
+            } else if let encodable = item as? Encodable {
+                safeArray.append(encodable)
+            } else {
+                return nil // Unsupported type
+            }
         }
         
-        // Wrap in AnyCodable for type erasure
-        let wrappedArray = encodableArray.map { AnyCodable($0) }
+        // Now wrap in AnyCodable
+        let wrappedArray = safeArray.map { item -> AnyCodable in
+            if let encodable = item as? Encodable {
+                return AnyCodable(encodable)
+            } else {
+                // This shouldn't happen, but provide a fallback
+                return AnyCodable(String(describing: item))
+            }
+        }
         return try encoder.encode(wrappedArray)
     }
 }
