@@ -150,9 +150,8 @@ actor UnifiedCacheManager {
             
             // Start background refresh (detached so it doesn't block)
             Task.detached(priority: .background) {
-                // Check if online before attempting refresh
-                let networkClient = await NetworkClient()
-                let isOnline = await networkClient.isOnline()
+                // Check if online before attempting refresh (uses NetworkMonitor for instant check)
+                let isOnline = await NetworkMonitor.shared.isConnected
                 
                 if isOnline {
                     await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
@@ -171,9 +170,8 @@ actor UnifiedCacheManager {
             return value
         }
         
-        // 2. No cache exists - check if online
-        let networkClient = await NetworkClient()
-        let isOnline = await networkClient.isOnline()
+        // 2. No cache exists - check if online (uses NetworkMonitor for instant check)
+        let isOnline = await NetworkMonitor.shared.isConnected
         
         if !isOnline {
             // Offline with no cache - throw error
