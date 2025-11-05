@@ -401,16 +401,36 @@ actor UnifiedCacheManager {
             var diskData: Data?
             
             // Encode based on value type
+            // CRITICAL: Check for Objective-C types FIRST before Encodable check
             if let data = value as? Data {
                 diskData = data
+            } else if let number = value as? NSNumber {
+                // Handle NSNumber/NSCFBoolean (convert to Swift types)
+                if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
+                    diskData = try? encoder.encode(number.boolValue)
+                } else if number.doubleValue.truncatingRemainder(dividingBy: 1) == 0 {
+                    diskData = try? encoder.encode(number.intValue)
+                } else {
+                    diskData = try? encoder.encode(number.doubleValue)
+                }
+            } else if let nsDict = value as? NSDictionary {
+                // Handle NSDictionary (convert to Swift dict)
+                if let swiftDict = nsDict as? [String: Any] {
+                    diskData = try? encodeDictionary(swiftDict, using: encoder)
+                }
+            } else if let nsArray = value as? NSArray {
+                // Handle NSArray (convert to Swift array)
+                if let swiftArray = nsArray as? [Any] {
+                    diskData = try? encodeArray(swiftArray, using: encoder)
+                }
             } else if let dict = value as? [String: Any] {
-                // Handle dictionaries (including NSDictionary)
+                // Handle Swift dictionaries
                 diskData = try? encodeDictionary(dict, using: encoder)
             } else if let array = value as? [Any] {
-                // Handle arrays (including NSArray)
+                // Handle Swift arrays
                 diskData = try? encodeArray(array, using: encoder)
             } else if let encodable = value as? Encodable {
-                // Try to encode any Codable type
+                // Try to encode any Codable type (Swift types only reach here)
                 diskData = try? encodeAny(encodable, using: encoder)
             }
             
