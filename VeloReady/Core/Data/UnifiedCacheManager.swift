@@ -75,7 +75,14 @@ actor UnifiedCacheManager {
             return value
         }
         
-        // 2. Check if request is already in-flight (deduplication)
+        // 2. Check Core Data persistence layer (if memory cache miss and type is Codable)
+        if T.self is Codable.Type {
+            if let persisted = await loadFromCoreDataIfPossible(key: key, as: T.self, ttl: ttl) {
+                return persisted
+            }
+        }
+        
+        // 3. Check if request is already in-flight (deduplication)
         // FIX #1: Use type-safe wrapper for deduplication
         if let existingTask = inflightRequests[key] {
             deduplicatedRequests += 1
@@ -170,7 +177,14 @@ actor UnifiedCacheManager {
             return value
         }
         
-        // 2. No cache exists - check if online (uses NetworkMonitor for instant check)
+        // 2. Check Core Data persistence layer (if memory cache miss and type is Codable)
+        if T.self is Codable.Type {
+            if let persisted = await loadFromCoreDataStaleOK(key: key, as: T.self, ttl: ttl, fetchOperation: fetchOperation) {
+                return persisted
+            }
+        }
+        
+        // 3. No cache exists - check if online (uses NetworkMonitor for instant check)
         let isOnline = await NetworkMonitor.shared.isConnected
         
         if !isOnline {
@@ -179,7 +193,7 @@ actor UnifiedCacheManager {
             throw NetworkError.offline
         }
         
-        // 3. Online with no cache - use normal fetch (with deduplication)
+        // 4. Online with no cache - use normal fetch (with deduplication)
         Logger.debug("🌐 [Cache MISS] \(key) - fetching online...")
         return try await fetch(key: key, ttl: ttl, fetchOperation: fetchOperation)
     }
@@ -315,15 +329,27 @@ actor UnifiedCacheManager {
     // MARK: - Private Helpers
     
     /// Store value in cache
-    private func storeInCache(key: String, value: Any) {
+    private func storeInCache<T>(key: String, value: T) async {
         let cached = CachedValue(value: value, cachedAt: Date())
         memoryCache[key] = cached
-        trackedKeys.insert(key)
         
-        let cost = estimateCost(value)
-        Logger.debug("💾 [Cache STORE] \(key) (cost: \(cost/1024)KB)")
+        // Persist to Core Data for all cacheable types
+        if let codableValue = value as? Codable {
+            // Determine TTL based on key pattern
+            let ttl = determineTTL(for: key)
+            
+            // Save to Core Data in background (non-blocking)
+            Task.detached(priority: .utility) {
+                await CachePersistenceLayer.shared.saveToCoreData(
+                    key: key,
+                    value: codableValue,
+                    cachedAt: cached.cachedAt,
+                    ttl: ttl
+                )
+            }
+        }
         
-        // Persist to disk for long-lived data
+        // Persist to disk for long-lived data (legacy UserDefaults support)
         if shouldPersistToDisk(key: key) {
             saveToDisk(key: key, value: value, cachedAt: cached.cachedAt)
         }
@@ -528,6 +554,135 @@ actor UnifiedCacheManager {
             Logger.debug("💾 [Disk Cache] Saved \(key) to disk (\(data.count / 1024)KB)")
         } catch {
             Logger.error("❌ [Disk Cache] Failed to save \(key): \(error)")
+        }
+    }
+    
+    /// Load from Core Data if value exists and is valid
+    private func loadFromCoreDataIfPossible<T>(key: String, as type: T.Type, ttl: TimeInterval) async -> T? {
+        // This is only called when T is Codable, but we need to cast
+        guard let codableType = type as? any Codable.Type else { return nil }
+        
+        // Use type erasure to load
+        guard let result = await loadFromCoreDataErased(key: key, codableType: codableType) else {
+            return nil
+        }
+        
+        let age = Date().timeIntervalSince(result.cachedAt)
+        if age < ttl {
+            // Valid - restore to memory cache
+            memoryCache[key] = CachedValue(value: result.value, cachedAt: result.cachedAt)
+            cacheHits += 1
+            Logger.debug("💾 [Core Data HIT] \(key) (age: \(Int(age))s) - restored to memory")
+            return result.value as? T
+        } else {
+            Logger.debug("💾 [Core Data EXPIRED] \(key) (age: \(Int(age))s > \(Int(ttl))s)")
+            return nil
+        }
+    }
+    
+    /// Load from Core Data accepting stale values (for cache-first strategy)
+    private func loadFromCoreDataStaleOK<T: Sendable>(
+        key: String,
+        as type: T.Type,
+        ttl: TimeInterval,
+        fetchOperation: @Sendable @escaping () async throws -> T
+    ) async -> T? {
+        // This is only called when T is Codable, but we need to cast
+        guard let codableType = type as? any Codable.Type else { return nil }
+        
+        // Use type erasure to load
+        guard let result = await loadFromCoreDataErased(key: key, codableType: codableType),
+              let value = result.value as? T else {
+            return nil
+        }
+        
+        // Restore to memory cache (even if stale)
+        memoryCache[key] = CachedValue(value: value, cachedAt: result.cachedAt)
+        
+        let age = Date().timeIntervalSince(result.cachedAt)
+        
+        // If valid, return immediately
+        if age < ttl {
+            cacheHits += 1
+            Logger.debug("💾 [Core Data HIT] \(key) (age: \(Int(age))s, valid) - restored to memory")
+            return value
+        }
+        
+        // If stale, return and refresh in background
+        Logger.debug("💾 [Core Data STALE] \(key) (age: \(Int(age))s) - returning stale, refreshing in background")
+        cacheHits += 1
+        
+        // Start background refresh if online
+        Task.detached(priority: .background) {
+            let isOnline = await NetworkMonitor.shared.isConnected
+            
+            if isOnline {
+                await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
+                do {
+                    let freshValue = try await fetchOperation()
+                    await self.storeInCache(key: key, value: freshValue)
+                    await Logger.debug("✅ [Background Refresh] \(key) - complete")
+                } catch {
+                    await Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
+                }
+            } else {
+                await Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
+            }
+        }
+        
+        return value
+    }
+    
+    /// Type-erased Core Data loading (to handle dynamic Codable types)
+    private func loadFromCoreDataErased(key: String, codableType: any Codable.Type) async -> (value: Any, cachedAt: Date)? {
+        // We need to use reflection/type erasure here because we can't directly call
+        // a generic method with a runtime type. For now, we'll try common types.
+        
+        // Try as array of IntervalsActivity (most common)
+        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [IntervalsActivity].self) {
+            return (result.value, result.cachedAt)
+        }
+        
+        // Try as single IntervalsActivity
+        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: IntervalsActivity.self) {
+            return (result.value, result.cachedAt)
+        }
+        
+        // Try as Double (for scores)
+        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Double.self) {
+            return (result.value, result.cachedAt)
+        }
+        
+        // Try as Int
+        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Int.self) {
+            return (result.value, result.cachedAt)
+        }
+        
+        // Try as String
+        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: String.self) {
+            return (result.value, result.cachedAt)
+        }
+        
+        // Add more common types as needed...
+        
+        return nil
+    }
+    
+    /// Determine TTL based on cache key pattern
+    private func determineTTL(for key: String) -> TimeInterval {
+        if key.contains(":activities:") {
+            return CacheTTL.activities
+        } else if key.contains(":streams:") {
+            return CacheTTL.streams
+        } else if key.hasPrefix("healthkit:") {
+            return CacheTTL.healthMetrics
+        } else if key.hasPrefix("score:") {
+            return CacheTTL.dailyScores
+        } else if key.contains(":wellness:") {
+            return CacheTTL.wellness
+        } else {
+            // Default TTL for unknown patterns
+            return CacheTTL.activities
         }
     }
     
