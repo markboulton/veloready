@@ -50,12 +50,46 @@ class StravaDataService: ObservableObject {
         }
     }
     
+    /// Fetch activities for a specific time range
+    /// - Parameters:
+    ///   - daysBack: Number of days to fetch (defaults to Pro/Free tier limit)
+    ///   - forceRefresh: Force refresh even if cache is valid
+    func fetchActivities(daysBack: Int? = nil, forceRefresh: Bool = false) async {
+        // Check connection
+        guard case .connected(let athleteId) = stravaAuthService.connectionState else {
+            Logger.debug("ℹ️ [Strava] Not connected, skipping fetch")
+            activities = []
+            return
+        }
+        
+        // Determine days: use parameter if provided, otherwise use Pro/Free tier limit
+        let days = daysBack ?? (proConfig.hasProAccess ? 365 : 90)
+        let cacheKey = CacheKey.stravaActivities(daysBack: days)
+        let cacheTTL: TimeInterval = 3600 // 1 hour
+        
+        Logger.info("🟠 [Strava] Fetching activities (\(days) days, Pro: \(proConfig.hasProAccess))")
+        
+        do {
+            let fetched = try await cache.fetch(key: cacheKey, ttl: cacheTTL) {
+                // Fetch from API
+                let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())
+                let activities = try await self.fetchAllActivities(after: startDate)
+                Logger.info("✅ [Strava] Fetched \(activities.count) activities from API")
+                return activities
+            }
+            
+            activities = fetched
+            lastFetchDate = Date()
+        } catch {
+            Logger.error("❌ [Strava] Failed to fetch activities: \(error)")
+            activities = []
+        }
+    }
+    
     /// Fetch activities if cache is expired or force refresh (legacy method)
     func fetchActivitiesIfNeeded(forceRefresh: Bool = false) async {
-        // Use new method
-        let fetched = await fetchActivitiesForZones(forceRefresh: forceRefresh)
-        activities = fetched
-        lastFetchDate = Date()
+        // Use new method with default days
+        await fetchActivities(daysBack: nil, forceRefresh: forceRefresh)
     }
     
     /// Fetch all activities with pagination

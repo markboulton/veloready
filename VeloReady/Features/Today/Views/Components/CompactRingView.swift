@@ -10,9 +10,11 @@ struct CompactRingView: View {
     let action: () -> Void
     let centerText: String? // Optional custom text for center (e.g., "12.5" for strain)
     let animationTrigger: UUID // Triggers re-animation when changed
+    var isLoading: Bool = false // Shows grey ring with shimmer when true
     
     @State private var animatedProgress: Double = 0.0
     @State private var numberOpacity: Double = 0.0
+    @State private var shimmerOffset: CGFloat = 0
     
     private let ringWidth: CGFloat = ComponentSizes.ringWidthSmall
     private let size: CGFloat = ComponentSizes.ringDiameterSmall
@@ -23,39 +25,73 @@ struct CompactRingView: View {
     var body: some View {
         VStack(spacing: Spacing.sm) {
             ZStack {
-                // Background ring - very subtle
-                Circle()
-                    .stroke(ColorPalette.backgroundTertiary, lineWidth: ringWidth)
-                    .frame(width: size, height: size)
-                
-                if let score = score {
-                    // Progress ring - draws in clockwise with ease-out animation
+                if isLoading {
+                    // Loading state: Grey ring with subtle shimmer
                     Circle()
-                        .trim(from: 0, to: animatedProgress)
+                        .stroke(Color.text.tertiary.opacity(0.3), lineWidth: ringWidth)
+                        .frame(width: size, height: size)
+                    
+                    // Subtle shimmer effect
+                    Circle()
+                        .trim(from: 0, to: 0.3)
                         .stroke(
-                            colorForBand(band),
+                            LinearGradient(
+                                colors: [.clear, Color.text.tertiary.opacity(0.3), .clear],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
                             style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
                         )
                         .frame(width: size, height: size)
-                        .rotationEffect(.degrees(-90)) // Start from top (12 o'clock position)
+                        .rotationEffect(.degrees(shimmerOffset))
+                        .onAppear {
+                            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                                shimmerOffset = 360
+                            }
+                        }
+                } else {
+                    // Normal state: Background ring
+                    Circle()
+                        .stroke(ColorPalette.backgroundTertiary, lineWidth: ringWidth)
+                        .frame(width: size, height: size)
                     
-                    // Center content - use custom text if provided, otherwise show score
-                    // Fades in as animation completes
-                    Text(centerText ?? "\(score)")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color.text.primary)
-                        .opacity(numberOpacity)
+                    if let score = score {
+                        // Progress ring - draws in clockwise with ease-out animation
+                        Circle()
+                            .trim(from: 0, to: animatedProgress)
+                            .stroke(
+                                colorForBand(band),
+                                style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
+                            )
+                            .frame(width: size, height: size)
+                            .rotationEffect(.degrees(-90)) // Start from top (12 o'clock position)
+                        
+                        // Center content - use custom text if provided, otherwise show score
+                        // Fades in as animation completes
+                        Text(centerText ?? "\(score)")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(Color.text.primary)
+                            .opacity(numberOpacity)
+                    }
                 }
-                // Note: No "?" shown when score is nil - loading indicator is overlaid externally
             }
             
-            // Title - adaptive color for light/dark mode
-            Text(title)
-                .font(.caption) // Increased from size 11
-                .fontWeight(.medium)
-                .foregroundColor(Color.text.primary)
-                .multilineTextAlignment(.center)
-                .padding(.top, 8)
+            // Title - show "Calculating" when loading, otherwise show band
+            if isLoading {
+                Text("Calculating")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.text.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
+            } else if score != nil {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.text.primary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
+            }
         }
         .onChange(of: animationTrigger) { _, _ in
             // Animate when spinner disappears or pull-to-refresh completes
@@ -102,10 +138,20 @@ struct CompactRingView: View {
 
 struct CompactRingView_Previews: PreviewProvider {
     static var previews: some View {
-        HStack(spacing: Spacing.lg) {
-            CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.optimal, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID())
-            CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil, animationTrigger: UUID())
-            CompactRingView(score: 70, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: "12.5", animationTrigger: UUID())
+        VStack(spacing: Spacing.xl) {
+            // Normal state
+            HStack(spacing: Spacing.lg) {
+                CompactRingView(score: 85, title: "Recovery", band: RecoveryScore.RecoveryBand.optimal, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID(), isLoading: false)
+                CompactRingView(score: 55, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil, animationTrigger: UUID(), isLoading: false)
+                CompactRingView(score: 70, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: "12.5", animationTrigger: UUID(), isLoading: false)
+            }
+            
+            // Loading state
+            HStack(spacing: Spacing.lg) {
+                CompactRingView(score: nil, title: "Recovery", band: RecoveryScore.RecoveryBand.optimal, animationDelay: 0.0, action: {}, centerText: nil, animationTrigger: UUID(), isLoading: true)
+                CompactRingView(score: nil, title: "Sleep Quality", band: SleepScore.SleepBand.good, animationDelay: 0.1, action: {}, centerText: nil, animationTrigger: UUID(), isLoading: true)
+                CompactRingView(score: nil, title: "Moderate", band: StrainScore.StrainBand.moderate, animationDelay: 0.2, action: {}, centerText: nil, animationTrigger: UUID(), isLoading: true)
+            }
         }
         .padding()
     }
