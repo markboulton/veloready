@@ -17,11 +17,11 @@ struct LoadingStateManagerTests {
     func testForceState() async throws {
         let manager = LoadingStateManager()
         
-        manager.forceState(.calculatingScores)
-        #expect(manager.currentState == .calculatingScores)
+        manager.forceState(.calculatingScores(hasHealthKit: true, hasSleepData: true))
+        #expect(manager.currentState == .calculatingScores(hasHealthKit: true, hasSleepData: true))
         
-        manager.forceState(.contactingStrava)
-        #expect(manager.currentState == .contactingStrava)
+        manager.forceState(.contactingIntegrations(sources: [.strava]))
+        #expect(manager.currentState == .contactingIntegrations(sources: [.strava]))
     }
     
     @Test("State transitions respect minimum duration")
@@ -30,21 +30,21 @@ struct LoadingStateManagerTests {
         let manager = LoadingStateManager()
         
         let startTime = Date()
-        manager.updateState(.calculatingScores)
+        manager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: true))
         
         // Wait a bit for async processing
         try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
         
         // Should have transitioned to calculatingScores
-        #expect(manager.currentState == .calculatingScores)
+        #expect(manager.currentState == .calculatingScores(hasHealthKit: true, hasSleepData: true))
         
         // Add next state immediately
-        manager.updateState(.contactingStrava)
+        manager.updateState(.contactingIntegrations(sources: [.strava]))
         
         // Should still be on calculatingScores (minimum 1.0s)
         let elapsed = Date().timeIntervalSince(startTime)
         if elapsed < 1.0 {
-            #expect(manager.currentState == .calculatingScores)
+            #expect(manager.currentState == .calculatingScores(hasHealthKit: true, hasSleepData: true))
         }
     }
     
@@ -53,8 +53,8 @@ struct LoadingStateManagerTests {
     func testReset() async throws {
         let manager = LoadingStateManager()
         
-        manager.updateState(.calculatingScores)
-        manager.updateState(.contactingStrava)
+        manager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: true))
+        manager.updateState(.contactingIntegrations(sources: [.strava]))
         
         manager.reset()
         
@@ -66,7 +66,7 @@ struct LoadingStateManagerTests {
     func testErrorStateForce() async throws {
         let manager = LoadingStateManager()
         
-        manager.updateState(.calculatingScores)
+        manager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: true))
         manager.forceState(.error(.network))
         
         #expect(manager.currentState == .error(.network))
@@ -77,13 +77,13 @@ struct LoadingStateManagerTests {
     func testStateQueue() async throws {
         let manager = LoadingStateManager()
         
-        manager.updateState(.calculatingScores)
-        manager.updateState(.contactingStrava)
-        manager.updateState(.downloadingActivities(count: 5))
+        manager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: true))
+        manager.updateState(.contactingIntegrations(sources: [.strava]))
+        manager.updateState(.downloadingActivities(count: 5, source: .strava))
         
         // First state should be active
         try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-        #expect(manager.currentState == .calculatingScores)
+        #expect(manager.currentState == .calculatingScores(hasHealthKit: true, hasSleepData: true))
         
         // States should eventually process
         // (We won't wait for all durations in test, just verify queue works)

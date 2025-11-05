@@ -27,6 +27,10 @@ actor UnifiedCacheManager {
     private var inflightRequests: [String: AnyTaskWrapper] = [:]
     private var trackedKeys: Set<String> = []
     
+    // MARK: - Disk Persistence
+    private let diskCacheKey = "UnifiedCacheManager.DiskCache"
+    private let diskCacheMetadataKey = "UnifiedCacheManager.DiskCacheMetadata"
+    
     // MARK: - Statistics
     private var cacheHits: Int = 0
     private var cacheMisses: Int = 0
@@ -39,6 +43,9 @@ actor UnifiedCacheManager {
     // MARK: - Initialization
     private init() {
         Logger.debug("🗄️ [UnifiedCache] Initialized (actor-based, thread-safe)")
+        
+        // Load disk cache
+        loadDiskCache()
         
         // Run migrations if needed
         Task {
@@ -163,6 +170,12 @@ actor UnifiedCacheManager {
     func invalidate(key: String) {
         memoryCache.removeValue(forKey: key)
         trackedKeys.remove(key)
+        
+        // Remove from disk if activity cache
+        if key.starts(with: "strava:activities:") || key.starts(with: "intervals:activities:") {
+            removeFromDisk(key: key)
+        }
+        
         Logger.debug("🗑️ [Cache INVALIDATE] \(key)")
     }
     
@@ -246,6 +259,11 @@ actor UnifiedCacheManager {
         let cost = estimateCost(value)
         Logger.debug("💾 [Cache STORE] \(key) (cost: \(cost/1024)KB)")
         
+        // Persist activity cache to disk (survives app restarts)
+        if key.starts(with: "strava:activities:") || key.starts(with: "intervals:activities:") {
+            saveToDisk(key: key, value: value, cachedAt: cached.cachedAt)
+        }
+        
         // Enforce memory limits (keep last 200 entries)
         if memoryCache.count > 200 {
             evictOldestEntries(count: 50)
@@ -311,6 +329,114 @@ actor UnifiedCacheManager {
             return nil
         }
         return value
+    }
+    
+    // MARK: - Disk Persistence Helpers
+    
+    /// Load disk cache on init
+    private func loadDiskCache() {
+        guard let diskData = UserDefaults.standard.data(forKey: diskCacheKey),
+              let metadata = UserDefaults.standard.dictionary(forKey: diskCacheMetadataKey) as? [String: TimeInterval] else {
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let diskCache = try decoder.decode([String: Data].self, from: diskData)
+            
+            var loadedCount = 0
+            for (key, data) in diskCache {
+                // Decode based on key type
+                if key.starts(with: "strava:activities:") {
+                    if let activities = try? decoder.decode([StravaActivity].self, from: data),
+                       let cachedAt = metadata[key] {
+                        let cached = CachedValue(value: activities, cachedAt: Date(timeIntervalSince1970: cachedAt))
+                        memoryCache[key] = cached
+                        trackedKeys.insert(key)
+                        loadedCount += 1
+                    }
+                } else if key.starts(with: "intervals:activities:") {
+                    if let activities = try? decoder.decode([IntervalsActivity].self, from: data),
+                       let cachedAt = metadata[key] {
+                        let cached = CachedValue(value: activities, cachedAt: Date(timeIntervalSince1970: cachedAt))
+                        memoryCache[key] = cached
+                        trackedKeys.insert(key)
+                        loadedCount += 1
+                    }
+                }
+            }
+            
+            if loadedCount > 0 {
+                Logger.debug("💾 [Disk Cache] Loaded \(loadedCount) entries from disk")
+            }
+        } catch {
+            Logger.error("❌ [Disk Cache] Failed to load: \(error)")
+        }
+    }
+    
+    /// Save activity cache to disk
+    private func saveToDisk(key: String, value: Any, cachedAt: Date) {
+        do {
+            let encoder = JSONEncoder()
+            var diskData: Data?
+            
+            if let activities = value as? [StravaActivity] {
+                diskData = try encoder.encode(activities)
+            } else if let activities = value as? [IntervalsActivity] {
+                diskData = try encoder.encode(activities)
+            }
+            
+            guard let data = diskData else { return }
+            
+            // Load existing disk cache
+            var diskCache: [String: Data] = [:]
+            if let existing = UserDefaults.standard.data(forKey: diskCacheKey),
+               let decoded = try? JSONDecoder().decode([String: Data].self, from: existing) {
+                diskCache = decoded
+            }
+            
+            // Load existing metadata
+            var metadata = UserDefaults.standard.dictionary(forKey: diskCacheMetadataKey) as? [String: TimeInterval] ?? [:]
+            
+            // Update
+            diskCache[key] = data
+            metadata[key] = cachedAt.timeIntervalSince1970
+            
+            // Save
+            let encoded = try encoder.encode(diskCache)
+            UserDefaults.standard.set(encoded, forKey: diskCacheKey)
+            UserDefaults.standard.set(metadata, forKey: diskCacheMetadataKey)
+            
+            Logger.debug("💾 [Disk Cache] Saved \(key) to disk")
+        } catch {
+            Logger.error("❌ [Disk Cache] Failed to save \(key): \(error)")
+        }
+    }
+    
+    /// Remove from disk cache
+    private func removeFromDisk(key: String) {
+        do {
+            // Load existing
+            guard let diskData = UserDefaults.standard.data(forKey: diskCacheKey),
+                  var diskCache = try? JSONDecoder().decode([String: Data].self, from: diskData) else {
+                return
+            }
+            
+            var metadata = UserDefaults.standard.dictionary(forKey: diskCacheMetadataKey) as? [String: TimeInterval] ?? [:]
+            
+            // Remove
+            diskCache.removeValue(forKey: key)
+            metadata.removeValue(forKey: key)
+            
+            // Save
+            let encoded = try JSONEncoder().encode(diskCache)
+            UserDefaults.standard.set(encoded, forKey: diskCacheKey)
+            UserDefaults.standard.set(metadata, forKey: diskCacheMetadataKey)
+            
+            Logger.debug("💾 [Disk Cache] Removed \(key) from disk")
+        } catch {
+            Logger.error("❌ [Disk Cache] Failed to remove \(key): \(error)")
+        }
     }
 }
 

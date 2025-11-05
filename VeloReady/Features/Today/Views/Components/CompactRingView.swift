@@ -76,8 +76,15 @@ struct CompactRingView: View {
                 }
             }
             
-            // Title - only show when not loading and has data
-            if !isLoading && score != nil {
+            // Title - show "Calculating" when loading, otherwise show band
+            if isLoading {
+                Text("Calculating")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.text.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
+            } else if score != nil {
                 Text(title)
                     .font(.caption)
                     .fontWeight(.medium)

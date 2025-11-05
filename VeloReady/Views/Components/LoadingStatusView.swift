@@ -10,8 +10,27 @@ struct LoadingStatusView: View {
     var body: some View {
         Group {
             if shouldShowStatus {
-                statusContent
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                HStack(spacing: Spacing.xs) {
+                    if isLoadingState {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                            .tint(Color.text.secondary)
+                    }
+                    
+                    VRText(statusText, style: .bodySecondary)
+                        .foregroundColor(statusColor)
+                    
+                    Spacer() // Push content to left
+                }
+                .frame(maxWidth: .infinity, alignment: .leading) // Align left
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(accessibilityLabel)
+                .onTapGesture {
+                    if isErrorState {
+                        onErrorTap?()
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .animation(.easeInOut(duration: 0.3), value: state)
@@ -20,49 +39,36 @@ struct LoadingStatusView: View {
         }
     }
     
-    @ViewBuilder
-    private var statusContent: some View {
-        HStack(spacing: Spacing.xs) {
-            // Loading spinner for active states
-            if isLoadingState {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(Color.text.secondary)
-            }
-            
-            // Status text
-            VRText(
-                statusText,
-                style: .caption,
-                color: statusColor
-            )
-            .accessibilityLabel(LoadingContent.accessibilityLabel(for: state))
-        }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.xs)
-        .if(isErrorState) { view in
-            view.onTapGesture {
-                onErrorTap?()
-            }
-        }
+    private var accessibilityLabel: String {
+        LoadingContent.accessibilityLabel(for: state)
     }
     
     private var statusText: String {
         switch state {
         case .initial:
             return ""
-        case .calculatingScores:
-            return LoadingContent.calculatingScores
-        case .contactingStrava:
-            return LoadingContent.contactingStrava
-        case .downloadingActivities(let count):
-            return LoadingContent.downloadingActivities(count: count)
+        case .fetchingHealthData:
+            return LoadingContent.fetchingHealthData
+        case .checkingForUpdates:
+            return LoadingContent.checkingForUpdates
+        case .calculatingScores(let hasHealthKit, let hasSleepData):
+            return LoadingContent.calculatingScores(hasHealthKit: hasHealthKit, hasSleepData: hasSleepData)
+        case .contactingIntegrations(let sources):
+            return LoadingContent.contactingIntegrations(sources: sources)
+        case .downloadingActivities(let count, let source):
+            return LoadingContent.downloadingActivities(count: count, source: source)
+        case .computingZones:
+            return LoadingContent.computingZones
         case .processingData:
             return LoadingContent.processingData
+        case .syncingData:
+            return LoadingContent.syncingData
         case .refreshingScores:
             return LoadingContent.refreshingScores
         case .complete:
             return LoadingContent.complete
+        case .updated(let date):
+            return LoadingContent.updated(at: date)
         case .error(let error):
             switch error {
             case .network:
@@ -88,6 +94,8 @@ struct LoadingStatusView: View {
         switch state {
         case .initial, .complete:
             return false  // Don't show for these states
+        case .updated:
+            return true  // Show updated status persistently
         default:
             return true
         }
@@ -95,10 +103,8 @@ struct LoadingStatusView: View {
     
     private var isLoadingState: Bool {
         switch state {
-        case .error:
-            return false
-        case .complete:
-            return false
+        case .error, .complete, .updated:
+            return false  // No spinner for these states
         default:
             return true
         }

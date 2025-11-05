@@ -95,6 +95,10 @@ class TodayViewModel: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
         Logger.warning("️ Starting full data refresh...")
         
+        // Update loading state for pull-to-refresh (scores already visible)
+        let activeSources = getActiveIntegrations()
+        loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        
         isLoading = true
         isDataLoaded = false
         errorMessage = nil
@@ -199,6 +203,9 @@ class TodayViewModel: ObservableObject {
         let totalTime = endTime - startTime
         Logger.warning("️ Total refresh time: \(String(format: "%.2f", totalTime))s")
         
+        // Mark loading as complete
+        loadingStateManager.updateState(.complete)
+        
         isLoading = false
         isDataLoaded = true
     }
@@ -255,6 +262,16 @@ class TodayViewModel: ObservableObject {
     func forceRefreshData() async {
         Logger.debug("🔄 Force refreshing data from API...")
         
+        // DON'T set isDataLoaded = false during pull-to-refresh
+        // Keep content visible while refreshing
+        
+        // Update loading state
+        let activeSources = getActiveIntegrations()
+        loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        
+        isLoading = true
+        errorMessage = nil
+        
         // Refresh Core Data cache
         do {
             try await cacheManager.refreshRecentDays(count: 7, force: true)
@@ -266,8 +283,18 @@ class TodayViewModel: ObservableObject {
         // Test alcohol detection algorithm
         await recoveryScoreService.testAlcoholDetection()
         
-        // Then refresh our local data
-        await refreshData()
+        // Refresh activities and scores
+        await refreshActivitiesAndOtherData()
+        
+        // Recalculate scores
+        await sleepScoreService.calculateSleepScore()
+        await recoveryScoreService.calculateRecoveryScore()
+        await strainScoreService.calculateStrainScore()
+        
+        isLoading = false
+        
+        // Show persistent "Updated just now" status
+        loadingStateManager.updateState(.updated(Date()))
         
         // Trigger ring animations after refresh completes
         animationTrigger = UUID()
@@ -321,15 +348,20 @@ class TodayViewModel: ObservableObject {
         // Mark data as loaded so UI content is visible (with cached data)
         await MainActor.run {
             isDataLoaded = true
+            // Hide spinner NOW (after 2s) - loading status will show progress
+            withAnimation(.easeOut(duration: 0.3)) {
+                isInitializing = false
+            }
         }
         Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
+        Logger.debug("🔵 [SPINNER] Hiding animated logo - loading status will show progress")
         
         // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
-        // Keep spinner visible until scores are ready
+        // Spinner is now hidden, loading status shows progress
         Task {
-            // Update loading state: calculating scores
+            // Update loading state: fetching health data
             await MainActor.run {
-                loadingStateManager.updateState(.calculatingScores)
+                loadingStateManager.updateState(.fetchingHealthData)
             }
             
             // CRITICAL FIX: Wait for token refresh to complete before Phase 2
@@ -338,6 +370,14 @@ class TodayViewModel: ObservableObject {
             
             let phase2Start = CFAbsoluteTimeGetCurrent()
             Logger.debug("🎯 PHASE 2: Critical Scores - sleep, recovery, strain")
+            
+            // Show generic calculating state first
+            await MainActor.run {
+                loadingStateManager.updateState(.calculatingScores(
+                    hasHealthKit: healthKitManager.isAuthorized,
+                    hasSleepData: true  // Assume true initially, will update if needed
+                ))
+            }
             
             // ONLY calculate user-visible scores
             async let sleepTask: Void = sleepScoreService.calculateSleepScore()
@@ -348,15 +388,19 @@ class TodayViewModel: ObservableObject {
             _ = await recoveryTask
             _ = await strainTask
             
-            let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
-            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
-            
-            // NOW hide the spinner - scores are ready
-            await MainActor.run {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    isInitializing = false
+            // Update status with actual sleep data availability AFTER calculation
+            let hasSleep = await hasSleepData()
+            if !hasSleep {
+                await MainActor.run {
+                    loadingStateManager.updateState(.calculatingScores(
+                        hasHealthKit: healthKitManager.isAuthorized,
+                        hasSleepData: false
+                    ))
                 }
             }
+            
+            let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
             
             // Trigger ring animations and haptic feedback
             await MainActor.run {
@@ -374,9 +418,12 @@ class TodayViewModel: ObservableObject {
                 let phase3Start = CFAbsoluteTimeGetCurrent()
                 await Logger.debug("🎯 PHASE 3: Background Updates - activities, trends, training load")
                 
-                // Update loading state: contacting Strava
+                // CRITICAL: Wait for token refresh before API calls
+                await SupabaseClient.shared.waitForRefreshIfNeeded()
+                
+                // Update loading state: checking for updates (generic)
                 await MainActor.run {
-                    self.loadingStateManager.updateState(.contactingStrava)
+                    self.loadingStateManager.updateState(.checkingForUpdates)
                 }
                 
                 // Fetch activities and other non-critical data
@@ -385,10 +432,8 @@ class TodayViewModel: ObservableObject {
                 let phase3Time = CFAbsoluteTimeGetCurrent() - phase3Start
                 await Logger.debug("✅ PHASE 3 complete in \(String(format: "%.2f", phase3Time))s - background work done")
                 
-                // Mark as complete
-                await MainActor.run {
-                    self.loadingStateManager.updateState(.complete)
-                }
+                // Note: .complete state is now set within refreshActivitiesAndOtherData()
+                // after critical work is done (not after all background tasks)
                 
                 let totalTime = CFAbsoluteTimeGetCurrent() - startTime
                 await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
@@ -402,8 +447,17 @@ class TodayViewModel: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
         
         // OPTIMIZATION: Fetch incrementally to show data faster
-        // Priority 1: Today's activities (fast)
+        // Show specific integration contact now
+        let activeSources = getActiveIntegrations()
+        if !activeSources.isEmpty {
+            loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        }
+        
+        // Priority 1: Today's activities (fast) - ONLY fetch last 7 days, not 365
         Logger.debug("📊 [INCREMENTAL] Fetching today's activities...")
+        let primarySource = activeSources.first
+        // Don't show downloading status yet - wait until we know count
+        // loadingStateManager.updateState(.downloadingActivities(count: nil, source: primarySource))
         await fetchAndUpdateActivities(daysBack: 1)
         Logger.debug("✅ [INCREMENTAL] Today's activities loaded")
         
@@ -412,12 +466,17 @@ class TodayViewModel: ObservableObject {
         await fetchAndUpdateActivities(daysBack: 7)
         Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
         
-        // Priority 3: Full history (background, low priority)
+        // Show computing zones state (zone computation is slow)
+        loadingStateManager.updateState(.computingZones)
+        
+        // Priority 3: Full history (TRUE background, low priority) - don't block UI
+        // This runs completely detached and doesn't affect loading states
         Logger.debug("📊 [INCREMENTAL] Fetching full activity history in background...")
-        Task.detached(priority: .background) {
-            await self.fetchAndUpdateActivities(daysBack: 365)
+        Task.detached(priority: .utility) {
+            // Fetch 365 days in background without blocking
+            await self.stravaDataService.fetchActivities(daysBack: 365)
             await MainActor.run {
-                Logger.debug("✅ [INCREMENTAL] Full history loaded")
+                Logger.debug("✅ [INCREMENTAL] Full history loaded (\(self.stravaDataService.activities.count) activities)")
             }
         }
         
@@ -453,6 +512,17 @@ class TodayViewModel: ObservableObject {
         // This data is used by the fitness trajectory chart
         await TrainingLoadService.shared.fetchAllData()
         
+        // Show syncing state briefly
+        loadingStateManager.updateState(.syncingData)
+        
+        // Mark loading as complete NOW (user-visible work is done)
+        // Background tasks (365-day history, CTL/ATL backfill) continue without blocking
+        loadingStateManager.updateState(.complete)
+        
+        // After brief complete state, show persistent "Updated just now" status
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
+        loadingStateManager.updateState(.updated(Date()))
+        
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalTime = endTime - startTime
         Logger.debug("⚡ Background refresh completed in \(String(format: "%.2f", totalTime))s")
@@ -475,9 +545,16 @@ class TodayViewModel: ObservableObject {
             Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
         }
         
-        // Fetch Strava activities
-        await stravaDataService.fetchActivitiesIfNeeded()
+        // Fetch Strava activities for specific time range
+        await stravaDataService.fetchActivities(daysBack: daysBack)
         let stravaActivities = stravaDataService.activities
+        
+        // Only show downloading status if we actually have activities (not 0 from failed fetch)
+        if stravaActivities.count > 0 {
+            await MainActor.run {
+                loadingStateManager.updateState(.downloadingActivities(count: stravaActivities.count, source: .strava))
+            }
+        }
         
         // Fetch Apple Health workouts
         let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
@@ -596,6 +673,39 @@ class TodayViewModel: ObservableObject {
         isHealthKitAuthorized = healthKitManager.isAuthorized
         
         Logger.debug("⚡ Ultra-fast initialization completed - no heavy operations")
+    }
+    
+    // MARK: - Integration Detection Helpers
+    
+    /// Detect which external integrations are currently active
+    private func getActiveIntegrations() -> [LoadingState.DataSource] {
+        var sources: [LoadingState.DataSource] = []
+        
+        // Check Strava connection
+        if case .connected = stravaAuthService.connectionState {
+            sources.append(.strava)
+        }
+        
+        // Check Intervals.icu connection
+        if oauthManager.isAuthenticated {
+            sources.append(.intervalsIcu)
+        }
+        
+        // TODO: Add Wahoo detection when implemented
+        // if wahooManager.isConnected {
+        //     sources.append(.wahoo)
+        // }
+        
+        return sources
+    }
+    
+    /// Check if sleep data is available
+    private func hasSleepData() async -> Bool {
+        // Check if we have recent sleep data (last 24 hours)
+        guard healthKitManager.isAuthorized else { return false }
+        
+        // Simple check: if sleep score service has current sleep score
+        return sleepScoreService.currentSleepScore != nil
     }
     
     // HealthKit data loading will be handled by new HealthKitManager

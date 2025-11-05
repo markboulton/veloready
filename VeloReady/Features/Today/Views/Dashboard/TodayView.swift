@@ -58,13 +58,17 @@ struct TodayView: View {
                         .frame(height: 0)
                         
                         // Loading status view (Apple Mail style)
-                        LoadingStatusView(
-                            state: viewModel.loadingStateManager.currentState,
-                            onErrorTap: {
-                                viewModel.retryLoading()
-                            }
-                        )
-                        .padding(.horizontal, Spacing.xl)
+                        HStack {
+                            LoadingStatusView(
+                                state: viewModel.loadingStateManager.currentState,
+                                onErrorTap: {
+                                    viewModel.retryLoading()
+                                }
+                            )
+                            Spacer()
+                        }
+                        .padding(.leading, 0)
+                        .padding(.top, Spacing.xs) // Small top padding (4pt)
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(

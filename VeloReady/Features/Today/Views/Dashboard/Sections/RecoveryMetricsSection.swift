@@ -284,23 +284,17 @@ struct RecoveryMetricsSection: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    // Show background ring with loading spinner to prevent layout shift
-                    ZStack(alignment: .center) {
-                        CompactRingView(
-                            score: nil, // nil = shows background ring only
-                            title: "",
-                            band: StrainScore.StrainBand.moderate,
-                            animationDelay: 0.2,
-                            action: {},
-                            centerText: nil,
-                            animationTrigger: animationTrigger
-                        )
-                        
-                        // Standard iOS spinner centered in ring
-                        ProgressView()
-                            .scaleEffect(1.2)
-                            .offset(y: -18) // Offset to account for title below ring
-                    }
+                    // Show grey ring with shimmer while loading (no spinner)
+                    CompactRingView(
+                        score: nil,
+                        title: "",
+                        band: StrainScore.StrainBand.moderate,
+                        animationDelay: 0.2,
+                        action: {},
+                        centerText: nil,
+                        animationTrigger: animationTrigger,
+                        isLoading: true
+                    )
                 }
                 .frame(maxWidth: .infinity)
             }

@@ -12,6 +12,10 @@ class LoadingStateManager: ObservableObject {
     
     /// Update to a new loading state (will be throttled for readability)
     func updateState(_ newState: LoadingState) {
+        let timestamp = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        Logger.debug("📊 [LoadingState] [\(formatter.string(from: timestamp))] Queue: \(newState)")
         stateQueue.append(newState)
         processQueueIfNeeded()
     }
@@ -55,6 +59,10 @@ class LoadingStateManager: ObservableObject {
         stateQueue.removeFirst()
         currentState = nextState
         currentStateStartTime = Date()
+        let timestamp = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss.SSS"
+        Logger.debug("✅ [LoadingState] [\(formatter.string(from: timestamp))] Now showing: \(nextState)")
         
         // Process next state if queue not empty
         if !stateQueue.isEmpty {
