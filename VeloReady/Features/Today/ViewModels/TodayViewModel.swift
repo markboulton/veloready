@@ -388,6 +388,25 @@ class TodayViewModel: ObservableObject {
             _ = await recoveryTask
             _ = await strainTask
             
+            // CRITICAL: Wait for scores to be published to UI before clearing loading state
+            // This prevents status bands appearing before score values
+            var attempts = 0
+            while attempts < 20 {  // Max 2 seconds
+                let scoresReady = await MainActor.run {
+                    sleepScoreService.currentSleepScore != nil &&
+                    recoveryScoreService.currentRecoveryScore != nil &&
+                    strainScoreService.currentStrainScore != nil
+                }
+                
+                if scoresReady {
+                    Logger.debug("✅ All scores published to UI")
+                    break
+                }
+                
+                try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+                attempts += 1
+            }
+            
             // Update status with actual sleep data availability AFTER calculation
             let hasSleep = await hasSleepData()
             if !hasSleep {
@@ -469,9 +488,6 @@ class TodayViewModel: ObservableObject {
         await fetchAndUpdateActivities(daysBack: 7)
         Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
         
-        // Show computing zones state (zone computation is slow)
-        loadingStateManager.updateState(.computingZones)
-        
         // Priority 3: Full history (TRUE background, low priority) - don't block UI
         // This runs completely detached and doesn't affect loading states
         Logger.debug("📊 [INCREMENTAL] Fetching full activity history in background...")
@@ -495,6 +511,9 @@ class TodayViewModel: ObservableObject {
                 Logger.warning("️ Failed to load wellness data: \(error.localizedDescription)")
             }
         }
+        
+        // Show processing state before heavy operations
+        loadingStateManager.updateState(.processingData)
         
         // Save to Core Data cache
         do {
