@@ -39,7 +39,7 @@ class VeloReadyAPIClient: ObservableObject {
 
         Logger.debug("🌐 [VeloReady API] Fetching activities (daysBack: \(daysBack), limit: \(limit))")
 
-        let response: ActivitiesResponse = try await makeRequest(url: url)
+        let response: ActivitiesResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/activities")
         
         Logger.debug("✅ [VeloReady API] Received \(response.activities.count) activities (cached until: \(response.metadata.cachedUntil))")
         
@@ -71,7 +71,7 @@ class VeloReadyAPIClient: ObservableObject {
 
         // Backend returns: { altitude: {...}, cadence: {...}, metadata: {tier: "free"} }
         // We need to decode this structure and extract just the streams
-        let response: StreamsResponse = try await makeRequest(url: url)
+        let response: StreamsResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/streams")
         
         Logger.debug("✅ [VeloReady API] Received \(response.streams.count) stream types for activity \(activityId)")
         
@@ -93,8 +93,8 @@ class VeloReadyAPIClient: ObservableObject {
         }
         
         Logger.debug("🌐 [VeloReady API] Fetching Intervals activities (daysBack: \(daysBack), limit: \(limit))")
-        
-        let response: IntervalsActivitiesResponse = try await makeRequest(url: url)
+
+        let response: IntervalsActivitiesResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/intervals/activities")
         
         Logger.debug("✅ [VeloReady API] Received \(response.activities.count) Intervals activities")
         
@@ -112,8 +112,8 @@ class VeloReadyAPIClient: ObservableObject {
         }
         
         Logger.debug("🌐 [VeloReady API] Fetching Intervals wellness (days: \(days))")
-        
-        let response: IntervalsWellnessResponse = try await makeRequest(url: url)
+
+        let response: IntervalsWellnessResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/intervals/wellness")
         
         Logger.debug("✅ [VeloReady API] Received \(response.wellness.count) wellness entries")
         
@@ -131,6 +131,39 @@ class VeloReadyAPIClient: ObservableObject {
         if !result.allowed {
             Logger.warning("🛑 [VeloReady API] Request throttled for \(endpoint)")
             throw VeloReadyAPIError.throttled(retryAfter: result.retryAfter ?? 60)
+        }
+    }
+
+    /// Make a network request with exponential backoff retry logic
+    /// - Parameters:
+    ///   - url: The URL to request
+    ///   - endpoint: The endpoint path for retry tracking (e.g., "/api/activities")
+    /// - Returns: Decoded response object
+    /// - Throws: VeloReadyAPIError on failure after all retries exhausted
+    private func makeRequestWithRetry<T: Decodable>(url: URL, endpoint: String) async throws -> T {
+        do {
+            // Attempt the request
+            let result: T = try await makeRequest(url: url)
+
+            // Success - record it to reset failure counters
+            await ExponentialBackoffRetryPolicy.shared.recordSuccess(endpoint: endpoint)
+
+            return result
+        } catch {
+            // Check if we should retry this error
+            let retryDecision = await ExponentialBackoffRetryPolicy.shared.shouldRetry(endpoint: endpoint, error: error)
+
+            if retryDecision.retry {
+                // Wait for exponential backoff delay
+                Logger.info("⏳ [VeloReady API] Waiting \(Int(retryDecision.delay))s before retry...")
+                try await Task.sleep(nanoseconds: UInt64(retryDecision.delay * 1_000_000_000))
+
+                // Recursively retry the request
+                return try await makeRequestWithRetry(url: url, endpoint: endpoint)
+            } else {
+                // No more retries - propagate the error
+                throw error
+            }
         }
     }
 
