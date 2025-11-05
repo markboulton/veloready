@@ -790,10 +790,53 @@ private struct AnyCodableDict: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         if let dict = value as? [String: Any] {
-            try container.encode(dict.mapValues { AnyCodable($0 as! Encodable) })
+            // Convert values safely, filtering out Objective-C types
+            let safeDict = dict.compactMapValues { value -> AnyCodable? in
+                return convertToEncodable(value)
+            }
+            try container.encode(safeDict)
         } else if let array = value as? [Any] {
-            try container.encode(array.map { AnyCodable($0 as! Encodable) })
+            // Convert elements safely, filtering out Objective-C types
+            let safeArray = array.compactMap { value -> AnyCodable? in
+                return convertToEncodable(value)
+            }
+            try container.encode(safeArray)
         }
+    }
+    
+    /// Safely convert Any value to AnyCodable, handling Objective-C types
+    private func convertToEncodable(_ value: Any) -> AnyCodable? {
+        // Handle NSDictionary
+        if let nsDict = value as? NSDictionary, let swiftDict = nsDict as? [String: Any] {
+            return AnyCodable(swiftDict.compactMapValues { convertToEncodable($0) })
+        }
+        
+        // Handle NSArray
+        if let nsArray = value as? NSArray, let swiftArray = nsArray as? [Any] {
+            return AnyCodable(swiftArray.compactMap { convertToEncodable($0) })
+        }
+        
+        // Handle NSNumber/NSCFBoolean
+        if let number = value as? NSNumber {
+            if CFGetTypeID(number as CFTypeRef) == CFBooleanGetTypeID() {
+                return AnyCodable(number.boolValue)
+            } else if number.doubleValue.truncatingRemainder(dividingBy: 1) == 0 {
+                return AnyCodable(number.intValue)
+            } else {
+                return AnyCodable(number.doubleValue)
+            }
+        }
+        
+        // Handle Swift Encodable types
+        if let encodable = value as? Encodable {
+            // Make sure it's not an ObjC type claiming to be Encodable
+            if !(value is NSDictionary) && !(value is NSArray) {
+                return AnyCodable(encodable)
+            }
+        }
+        
+        // Skip non-encodable values
+        return nil
     }
 }
 
