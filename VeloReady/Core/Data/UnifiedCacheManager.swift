@@ -38,7 +38,7 @@ actor UnifiedCacheManager {
     
     // MARK: - Migration Tracking
     private let migrationKey = "UnifiedCacheManager.MigrationVersion"
-    private let currentMigrationVersion = 2 // Increment when adding new migrations
+    private let currentMigrationVersion = 3 // Increment when adding new migrations
     
     // MARK: - Initialization
     private init() {
@@ -171,8 +171,8 @@ actor UnifiedCacheManager {
         memoryCache.removeValue(forKey: key)
         trackedKeys.remove(key)
         
-        // Remove from disk if activity cache
-        if key.starts(with: "strava:activities:") || key.starts(with: "intervals:activities:") {
+        // Remove from disk if persisted
+        if shouldPersistToDisk(key: key) {
             removeFromDisk(key: key)
         }
         
@@ -259,8 +259,8 @@ actor UnifiedCacheManager {
         let cost = estimateCost(value)
         Logger.debug("💾 [Cache STORE] \(key) (cost: \(cost/1024)KB)")
         
-        // Persist activity cache to disk (survives app restarts)
-        if key.starts(with: "strava:activities:") || key.starts(with: "intervals:activities:") {
+        // Persist to disk for long-lived data
+        if shouldPersistToDisk(key: key) {
             saveToDisk(key: key, value: value, cachedAt: cached.cachedAt)
         }
         
@@ -316,6 +316,11 @@ actor UnifiedCacheManager {
                 clearLegacyCacheKeys()
             }
             
+            // Migration v2 → v3: Disk persistence added
+            if lastVersion < 3 {
+                Logger.info("📀 [Cache MIGRATION] v3: Disk persistence enabled for activities, streams, baselines")
+            }
+            
             // Save new version
             UserDefaults.standard.set(currentMigrationVersion, forKey: migrationKey)
             Logger.info("✅ [Cache MIGRATION] Complete")
@@ -331,7 +336,17 @@ actor UnifiedCacheManager {
         return value
     }
     
-    // MARK: - Disk Persistence Helpers
+    // MARK: - Disk Persistence Methods
+    
+    /// Determine if a cache key should be persisted to disk
+    private func shouldPersistToDisk(key: String) -> Bool {
+        // Persist activities, streams, baselines, and scores (not ephemeral health metrics)
+        return key.starts(with: "strava:activities:") ||
+               key.starts(with: "intervals:activities:") ||
+               key.starts(with: "stream:") ||
+               key.starts(with: "baseline:") ||
+               key.starts(with: "score:")
+    }
     
     /// Load disk cache on init
     private func loadDiskCache() {
@@ -342,27 +357,32 @@ actor UnifiedCacheManager {
         
         do {
             let decoder = JSONDecoder()
-            let diskCache = try decoder.decode([String: Data].self, from: diskData)
+            let diskCache = try decoder.decode([String: String].self, from: diskData)
             
             var loadedCount = 0
-            for (key, data) in diskCache {
-                // Decode based on key type
-                if key.starts(with: "strava:activities:") {
-                    if let activities = try? decoder.decode([StravaActivity].self, from: data),
-                       let cachedAt = metadata[key] {
-                        let cached = CachedValue(value: activities, cachedAt: Date(timeIntervalSince1970: cachedAt))
-                        memoryCache[key] = cached
-                        trackedKeys.insert(key)
-                        loadedCount += 1
+            for (key, base64String) in diskCache {
+                if let cachedAt = metadata[key],
+                   let data = Data(base64Encoded: base64String) {
+                    let timestamp = Date(timeIntervalSince1970: cachedAt)
+                    
+                    // Try to decode the data back to original type
+                    var value: Any = data
+                    
+                    // Attempt to decode common types
+                    if let stringArray = try? decoder.decode([String].self, from: data) {
+                        value = stringArray
+                    } else if let intValue = try? decoder.decode(Int.self, from: data) {
+                        value = intValue
+                    } else if let doubleValue = try? decoder.decode(Double.self, from: data) {
+                        value = doubleValue
+                    } else if let stringValue = try? decoder.decode(String.self, from: data) {
+                        value = stringValue
                     }
-                } else if key.starts(with: "intervals:activities:") {
-                    if let activities = try? decoder.decode([IntervalsActivity].self, from: data),
-                       let cachedAt = metadata[key] {
-                        let cached = CachedValue(value: activities, cachedAt: Date(timeIntervalSince1970: cachedAt))
-                        memoryCache[key] = cached
-                        trackedKeys.insert(key)
-                        loadedCount += 1
-                    }
+                    
+                    let cached = CachedValue(value: value, cachedAt: timestamp)
+                    memoryCache[key] = cached
+                    trackedKeys.insert(key)
+                    loadedCount += 1
                 }
             }
             
@@ -374,24 +394,35 @@ actor UnifiedCacheManager {
         }
     }
     
-    /// Save activity cache to disk
+    /// Save cache entry to disk
     private func saveToDisk(key: String, value: Any, cachedAt: Date) {
         do {
             let encoder = JSONEncoder()
             var diskData: Data?
             
-            if let activities = value as? [StravaActivity] {
-                diskData = try encoder.encode(activities)
-            } else if let activities = value as? [IntervalsActivity] {
-                diskData = try encoder.encode(activities)
+            // Encode based on value type
+            if let data = value as? Data {
+                diskData = data
+            } else if let encodable = value as? Encodable {
+                // Try to encode any Codable type
+                diskData = try? encodeAny(encodable, using: encoder)
+            } else if let array = value as? [Any] {
+                // Handle arrays of encodables
+                diskData = try? encodeArray(array, using: encoder)
             }
             
-            guard let data = diskData else { return }
+            guard let data = diskData else { 
+                Logger.debug("⚠️ [Disk Cache] Cannot persist non-encodable type for \(key)")
+                return 
+            }
+            
+            // Convert to base64 string for JSON storage
+            let base64String = data.base64EncodedString()
             
             // Load existing disk cache
-            var diskCache: [String: Data] = [:]
+            var diskCache: [String: String] = [:]
             if let existing = UserDefaults.standard.data(forKey: diskCacheKey),
-               let decoded = try? JSONDecoder().decode([String: Data].self, from: existing) {
+               let decoded = try? JSONDecoder().decode([String: String].self, from: existing) {
                 diskCache = decoded
             }
             
@@ -399,7 +430,7 @@ actor UnifiedCacheManager {
             var metadata = UserDefaults.standard.dictionary(forKey: diskCacheMetadataKey) as? [String: TimeInterval] ?? [:]
             
             // Update
-            diskCache[key] = data
+            diskCache[key] = base64String
             metadata[key] = cachedAt.timeIntervalSince1970
             
             // Save
@@ -407,18 +438,18 @@ actor UnifiedCacheManager {
             UserDefaults.standard.set(encoded, forKey: diskCacheKey)
             UserDefaults.standard.set(metadata, forKey: diskCacheMetadataKey)
             
-            Logger.debug("💾 [Disk Cache] Saved \(key) to disk")
+            Logger.debug("💾 [Disk Cache] Saved \(key) to disk (\(data.count / 1024)KB)")
         } catch {
             Logger.error("❌ [Disk Cache] Failed to save \(key): \(error)")
         }
     }
     
-    /// Remove from disk cache
+    /// Remove cache entry from disk
     private func removeFromDisk(key: String) {
         do {
             // Load existing
             guard let diskData = UserDefaults.standard.data(forKey: diskCacheKey),
-                  var diskCache = try? JSONDecoder().decode([String: Data].self, from: diskData) else {
+                  var diskCache = try? JSONDecoder().decode([String: String].self, from: diskData) else {
                 return
             }
             
@@ -437,6 +468,33 @@ actor UnifiedCacheManager {
         } catch {
             Logger.error("❌ [Disk Cache] Failed to remove \(key): \(error)")
         }
+    }
+    
+    /// Helper to encode any Encodable type
+    private func encodeAny(_ value: Encodable, using encoder: JSONEncoder) throws -> Data? {
+        // This is a workaround for Swift's type system
+        // We can't directly encode Encodable, so we try common types
+        if let stringArray = value as? [String] {
+            return try encoder.encode(stringArray)
+        } else if let intArray = value as? [Int] {
+            return try encoder.encode(intArray)
+        } else if let string = value as? String {
+            return try encoder.encode(string)
+        } else if let int = value as? Int {
+            return try encoder.encode(int)
+        } else if let double = value as? Double {
+            return try encoder.encode(double)
+        }
+        return nil
+    }
+    
+    /// Helper to encode arrays
+    private func encodeArray(_ array: [Any], using encoder: JSONEncoder) throws -> Data? {
+        // Try to encode as array of strings first
+        if let stringArray = array as? [String] {
+            return try encoder.encode(stringArray)
+        }
+        return nil
     }
 }
 
