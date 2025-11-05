@@ -283,8 +283,12 @@ class TodayViewModel: ObservableObject {
         // Test alcohol detection algorithm
         await recoveryScoreService.testAlcoholDetection()
         
-        // Refresh activities and scores
+        // Refresh activities (this will show various loading states)
         await refreshActivitiesAndOtherData()
+        
+        // Show calculating scores status (overrides the .complete state from refreshActivitiesAndOtherData)
+        let hasSleepData = sleepScoreService.currentSleepScore != nil
+        loadingStateManager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: hasSleepData))
         
         // Recalculate scores
         await sleepScoreService.calculateSleepScore()
@@ -293,7 +297,11 @@ class TodayViewModel: ObservableObject {
         
         isLoading = false
         
-        // Show persistent "Updated just now" status
+        // Show brief complete state
+        loadingStateManager.updateState(.complete)
+        
+        // Then show persistent "Updated just now" status
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
         loadingStateManager.updateState(.updated(Date()))
         
         // Trigger ring animations after refresh completes
