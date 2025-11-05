@@ -6,6 +6,7 @@ struct ActivitiesView: View {
     @EnvironmentObject var apiClient: IntervalsAPIClient
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuthService = StravaAuthService.shared
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @State private var showingFilterSheet = false
     @State private var showPaywall = false
     @State private var lastStravaConnectionState: StravaConnectionState = .disconnected
@@ -13,23 +14,28 @@ struct ActivitiesView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                // Adaptive background
-                Color.background.app
-                    .ignoresSafeArea()
-                
-                Group {
-                    if viewModel.isLoading && viewModel.allActivities.isEmpty {
-                        ActivitiesLoadingView()
-                    } else if viewModel.allActivities.isEmpty {
-                        ActivitiesEmptyStateView(onRefresh: {
-                            await viewModel.loadActivities(apiClient: apiClient)
-                        })
-                    } else {
-                        activitiesScrollView
+            VStack(spacing: 0) {
+                // Offline banner (shown when no network connection)
+                OfflineBannerView(networkMonitor: networkMonitor)
+
+                ZStack(alignment: .top) {
+                    // Adaptive background
+                    Color.background.app
+                        .ignoresSafeArea()
+
+                    Group {
+                        if viewModel.isLoading && viewModel.allActivities.isEmpty {
+                            ActivitiesLoadingView()
+                        } else if viewModel.allActivities.isEmpty {
+                            ActivitiesEmptyStateView(onRefresh: {
+                                await viewModel.loadActivities(apiClient: apiClient)
+                            })
+                        } else {
+                            activitiesScrollView
+                        }
                     }
                 }
-                
+
                 // Navigation gradient mask (iOS Mail style)
                 NavigationGradientMask()
             }
