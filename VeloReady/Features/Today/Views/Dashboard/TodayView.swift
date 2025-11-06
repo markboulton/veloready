@@ -531,24 +531,50 @@ struct TodayView: View {
     }
     
     private func handleAppForeground() {
-        Logger.debug("🔄 App entering foreground - preparing fresh data fetch")
+        Logger.debug("🔄 [FOREGROUND] App entering foreground - preparing fresh data fetch")
         
         Task {
+            // Check scores BEFORE doing anything
+            Logger.debug("🔄 [FOREGROUND] Score state BEFORE handleAppForeground:")
+            Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+            Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+            Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
+            
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
             
             if healthKitManager.isAuthorized {
+                Logger.debug("🔄 [FOREGROUND] HealthKit authorized - starting refresh")
+                
                 // Invalidate short-lived caches for fresh data
                 await invalidateShortLivedCaches()
                 
+                // Check scores AFTER cache invalidation
+                Logger.debug("🔄 [FOREGROUND] Score state AFTER cache invalidation:")
+                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
+                
                 // Now refresh will get fresh data
                 liveActivityService.startAutoUpdates()
+                
+                Logger.debug("🔄 [FOREGROUND] About to call viewModel.refreshData()")
                 await viewModel.refreshData()
+                
+                // Check scores AFTER refresh
+                Logger.debug("🔄 [FOREGROUND] Score state AFTER viewModel.refreshData():")
+                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
                 
                 // PERFORMANCE: Run illness detection in background (don't block refresh)
                 Task.detached(priority: .background) {
                     await illnessService.analyzeHealthTrends()
                 }
+            } else {
+                Logger.debug("🔄 [FOREGROUND] HealthKit NOT authorized - skipping refresh")
             }
+            
+            Logger.debug("🔄 [FOREGROUND] handleAppForeground complete")
         }
     }
     
