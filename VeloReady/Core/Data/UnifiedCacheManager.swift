@@ -695,6 +695,18 @@ actor UnifiedCacheManager {
             return (result.value, result.cachedAt)
         }
         
+        // HealthKit metrics (these are typically Double values)
+        if key.hasPrefix("healthkit:") {
+            // Try Double first (most HealthKit metrics are Double)
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Double.self) {
+                return (result.value, result.cachedAt)
+            }
+            // Try Int for step counts
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Int.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
         // Try as Double (for numeric scores/metrics)
         if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Double.self) {
             return (result.value, result.cachedAt)
