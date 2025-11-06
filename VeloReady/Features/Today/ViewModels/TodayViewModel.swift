@@ -56,7 +56,11 @@ class TodayViewModel: ObservableObject {
     
     // Observer for HealthKit authorization changes
     private var healthKitObserver: AnyCancellable?
-    
+
+    // Observer for network state changes
+    private var networkObserver: AnyCancellable?
+    private var wasOffline = false
+
     // PERFORMANCE FIX: Track background tasks for cancellation
     private var backgroundTasks: [Task<Void, Never>] = []
     
@@ -101,15 +105,91 @@ class TodayViewModel: ObservableObject {
                     self?.isHealthKitAuthorized = isAuthorized
                 }
             }
-        
+
+        // Setup network state observer to show syncing status when coming back online
+        setupNetworkObserver()
+
         // ULTRA-FAST initialization - no expensive operations
         loadInitialDataFast()
         Logger.debug("✅ [SPINNER] TodayViewModel init complete - isInitializing=\(isInitializing)")
     }
-    
+
+    /// Setup observer for network state changes to show offline/syncing status
+    private func setupNetworkObserver() {
+        // Check initial network state immediately
+        let initialState = NetworkMonitor.shared.isConnected
+        Logger.debug("🌐 [NETWORK] Initial network state: \(initialState ? "ONLINE" : "OFFLINE")")
+        if !initialState {
+            Logger.debug("📡 [Network] Initial state: offline - showing offline status")
+            loadingStateManager.forceState(.offline)
+        }
+        wasOffline = !initialState
+
+        networkObserver = NetworkMonitor.shared.$isConnected
+            .sink { [weak self] isConnected in
+                guard let self = self else { return }
+
+                Task { @MainActor in
+                    Logger.debug("🌐 [NETWORK] Network state changed: \(isConnected ? "ONLINE" : "OFFLINE") (wasOffline: \(self.wasOffline))")
+                    
+                    // CRITICAL: Check score services BEFORE any state changes
+                    Logger.debug("🌐 [NETWORK] Score state BEFORE handling network change:")
+                    Logger.debug("   Recovery: \(self.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                    Logger.debug("   Sleep: \(self.sleepScoreService.currentSleepScore?.score ?? -999)")
+                    Logger.debug("   Strain: \(self.strainScoreService.currentStrainScore?.score ?? -999)")
+                    
+                    if !isConnected {
+                        // Device went offline - show offline status
+                        Logger.debug("📡 [Network] Device offline - showing offline status (scores should REMAIN)")
+                        self.loadingStateManager.forceState(.offline)
+                        
+                        // Check scores AFTER going offline
+                        Logger.debug("🌐 [NETWORK] Score state AFTER going offline:")
+                        Logger.debug("   Recovery: \(self.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                        Logger.debug("   Sleep: \(self.sleepScoreService.currentSleepScore?.score ?? -999)")
+                        Logger.debug("   Strain: \(self.strainScoreService.currentStrainScore?.score ?? -999)")
+                    } else if self.wasOffline && isConnected {
+                        // Detect offline → online transition - show syncing status then refresh
+                        Logger.debug("📡 [Network] Came back online - showing syncing status (scores should REMAIN)")
+                        
+                        // Show syncing state with rotating icon (green)
+                        self.loadingStateManager.updateState(.syncingData)
+                        
+                        // Check scores AFTER showing syncing state
+                        Logger.debug("🌐 [NETWORK] Score state AFTER showing syncing state:")
+                        Logger.debug("   Recovery: \(self.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                        Logger.debug("   Sleep: \(self.sleepScoreService.currentSleepScore?.score ?? -999)")
+                        Logger.debug("   Strain: \(self.strainScoreService.currentStrainScore?.score ?? -999)")
+                        
+                        // Small delay to ensure syncing state is visible
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                        
+                        Logger.debug("🌐 [NETWORK] About to call refreshData()")
+                        // Actually refresh the data (this will update loading states naturally)
+                        await self.refreshData()
+                        
+                        // Check scores AFTER refresh
+                        Logger.debug("🌐 [NETWORK] Score state AFTER refreshData():")
+                        Logger.debug("   Recovery: \(self.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                        Logger.debug("   Sleep: \(self.sleepScoreService.currentSleepScore?.score ?? -999)")
+                        Logger.debug("   Strain: \(self.strainScoreService.currentStrainScore?.score ?? -999)")
+                    }
+
+                    self.wasOffline = !isConnected
+                    Logger.debug("🌐 [NETWORK] Network state handling complete. wasOffline now: \(!isConnected)")
+                }
+            }
+    }
+
     func refreshData(forceRecoveryRecalculation: Bool = false) async {
         let startTime = CFAbsoluteTimeGetCurrent()
-        Logger.warning("️ Starting full data refresh...")
+        Logger.warning("️ [REFRESH] Starting full data refresh...")
+        
+        // CRITICAL: Check scores at START of refresh
+        Logger.debug("🔍 [REFRESH] Score state at START of refreshData():")
+        Logger.debug("   Recovery: \(recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+        Logger.debug("   Sleep: \(sleepScoreService.currentSleepScore?.score ?? -999)")
+        Logger.debug("   Strain: \(strainScoreService.currentStrainScore?.score ?? -999)")
         
         // OPTIMIZATION: Check cache validity before showing "contacting integrations"
         let activeSources = getActiveIntegrations()
@@ -128,7 +208,9 @@ class TodayViewModel: ObservableObject {
         }
         
         isLoading = true
-        isDataLoaded = false
+        // CRITICAL FIX: DON'T clear isDataLoaded during refresh!
+        // This prevents scores from disappearing when returning to app after offline/online
+        // isDataLoaded = false  // ❌ REMOVED - causes scores to disappear
         errorMessage = nil
         
         // Fetch activities from all connected sources
@@ -229,13 +311,25 @@ class TodayViewModel: ObservableObject {
         
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalTime = endTime - startTime
-        Logger.warning("️ Total refresh time: \(String(format: "%.2f", totalTime))s")
+        Logger.warning("️ [REFRESH] Total refresh time: \(String(format: "%.2f", totalTime))s")
+        
+        // CRITICAL: Check scores BEFORE marking complete
+        Logger.debug("🔍 [REFRESH] Score state BEFORE marking complete:")
+        Logger.debug("   Recovery: \(recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+        Logger.debug("   Sleep: \(sleepScoreService.currentSleepScore?.score ?? -999)")
+        Logger.debug("   Strain: \(strainScoreService.currentStrainScore?.score ?? -999)")
         
         // Mark loading as complete
         loadingStateManager.updateState(.complete)
         
         isLoading = false
         isDataLoaded = true
+        
+        // CRITICAL: Check scores at END of refresh
+        Logger.debug("🔍 [REFRESH] Score state at END of refreshData():")
+        Logger.debug("   Recovery: \(recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+        Logger.debug("   Sleep: \(sleepScoreService.currentSleepScore?.score ?? -999)")
+        Logger.debug("   Strain: \(strainScoreService.currentStrainScore?.score ?? -999)")
     }
     
     /// Sync athlete profile (FTP, weight) from Strava if not available from Intervals.icu

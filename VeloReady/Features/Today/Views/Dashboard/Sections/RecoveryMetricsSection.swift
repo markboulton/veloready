@@ -8,6 +8,13 @@ struct RecoveryMetricsSection: View {
     let animationTrigger: UUID // Triggers animations on change
     var hideBottomDivider: Bool = false
     
+    init(isHealthKitAuthorized: Bool, animationTrigger: UUID, hideBottomDivider: Bool = false) {
+        self.isHealthKitAuthorized = isHealthKitAuthorized
+        self.animationTrigger = animationTrigger
+        self.hideBottomDivider = hideBottomDivider
+        Logger.debug("📺 [VIEW] RecoveryMetricsSection INIT called")
+    }
+    
     // Binding for parent view coordination
     var missingSleepBannerDismissed: Binding<Bool> {
         Binding(
@@ -17,6 +24,8 @@ struct RecoveryMetricsSection: View {
     }
     
     var body: some View {
+        let _ = Logger.debug("📺 [VIEW] RecoveryMetricsSection body evaluated - recovery: \(viewModel.recoveryScore?.score ?? -1), sleep: \(viewModel.sleepScore?.score ?? -1), strain: \(viewModel.strainScore?.score ?? -1)")
+        
         ZStack {
             // Transparent background to match StandardCard structure but without the grey
             RoundedRectangle(cornerRadius: 16)

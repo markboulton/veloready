@@ -19,7 +19,6 @@ struct TodayView: View {
     @StateObject private var wellnessService = WellnessDetectionService.shared
     @StateObject private var illnessService = IllnessDetectionService.shared
     @ObservedObject private var liveActivityService = LiveActivityService.shared
-    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
@@ -34,6 +33,7 @@ struct TodayView: View {
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     
     init(showInitialSpinner: Binding<Bool> = .constant(true)) {
         self._showInitialSpinner = showInitialSpinner
@@ -41,11 +41,7 @@ struct TodayView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Offline banner (shown when no network connection)
-                OfflineBannerView(networkMonitor: networkMonitor)
-
-                ZStack(alignment: .top) {
+            ZStack(alignment: .top) {
                     // Adaptive background (light grey in light mode, black in dark mode)
                     Color.background.app
                         .ignoresSafeArea()
@@ -150,10 +146,12 @@ struct TodayView: View {
                     .padding(.bottom, 120)
                 }
                 .coordinateSpace(name: "scroll")
-                .refreshable {
-                    // User-triggered refresh action (pull-to-refresh)
-                    // LoadingStatusView provides visual feedback (no blocking spinner)
-                    await viewModel.refreshData()
+                .if(networkMonitor.isConnected) { view in
+                    view.refreshable {
+                        // User-triggered refresh action (pull-to-refresh)
+                        // LoadingStatusView provides visual feedback (no blocking spinner)
+                        await viewModel.refreshData()
+                    }
                 }
                 
                 // Loading overlay - shows on top of content
@@ -174,7 +172,6 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
-            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {
@@ -534,24 +531,50 @@ struct TodayView: View {
     }
     
     private func handleAppForeground() {
-        Logger.debug("🔄 App entering foreground - preparing fresh data fetch")
+        Logger.debug("🔄 [FOREGROUND] App entering foreground - preparing fresh data fetch")
         
         Task {
+            // Check scores BEFORE doing anything
+            Logger.debug("🔄 [FOREGROUND] Score state BEFORE handleAppForeground:")
+            Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+            Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+            Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
+            
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
             
             if healthKitManager.isAuthorized {
+                Logger.debug("🔄 [FOREGROUND] HealthKit authorized - starting refresh")
+                
                 // Invalidate short-lived caches for fresh data
                 await invalidateShortLivedCaches()
                 
+                // Check scores AFTER cache invalidation
+                Logger.debug("🔄 [FOREGROUND] Score state AFTER cache invalidation:")
+                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
+                
                 // Now refresh will get fresh data
                 liveActivityService.startAutoUpdates()
+                
+                Logger.debug("🔄 [FOREGROUND] About to call viewModel.refreshData()")
                 await viewModel.refreshData()
+                
+                // Check scores AFTER refresh
+                Logger.debug("🔄 [FOREGROUND] Score state AFTER viewModel.refreshData():")
+                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
+                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
+                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
                 
                 // PERFORMANCE: Run illness detection in background (don't block refresh)
                 Task.detached(priority: .background) {
                     await illnessService.analyzeHealthTrends()
                 }
+            } else {
+                Logger.debug("🔄 [FOREGROUND] HealthKit NOT authorized - skipping refresh")
             }
+            
+            Logger.debug("🔄 [FOREGROUND] handleAppForeground complete")
         }
     }
     

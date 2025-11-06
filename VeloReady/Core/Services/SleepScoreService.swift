@@ -25,10 +25,76 @@ class SleepScoreService: ObservableObject {
     private var hasTriggeredRecoveryRefresh = false
     
     init() {
+        // Load cached sleep score synchronously for instant display (prevents empty rings)
+        loadCachedSleepScoreSync()
+
         // Load cached sleep score immediately for instant display
         // But first check if we have actual sleep data from last night
         Task {
             await validateAndLoadCache()
+        }
+    }
+
+    /// Load cached sleep score synchronously from UserDefaults for instant display
+    /// This prevents empty rings when view re-renders due to network state changes
+    private func loadCachedSleepScoreSync() {
+        Logger.debug("🔍 [SLEEP SYNC] Starting synchronous load from UserDefaults")
+        Logger.debug("🔍 [SLEEP SYNC] currentSleepScore BEFORE: \(currentSleepScore?.score ?? -1)")
+
+        // Try loading from shared UserDefaults (fastest, always available)
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+            if let score = sharedDefaults.value(forKey: "cachedSleepScore") as? Int {
+                // Create a placeholder score with cached values
+                // Map score to band
+                let band: SleepScore.SleepBand
+                if score >= 85 {
+                    band = .optimal
+                } else if score >= 70 {
+                    band = .good
+                } else if score >= 60 {
+                    band = .fair
+                } else {
+                    band = .payAttention
+                }
+
+                let sleepScore = SleepScore(
+                    score: score,
+                    band: band,
+                    subScores: SleepScore.SubScores(
+                        performance: 0,
+                        efficiency: 0,
+                        stageQuality: 0,
+                        disturbances: 0,
+                        timing: 0
+                    ),
+                    inputs: SleepScore.SleepInputs(
+                        sleepDuration: nil,
+                        timeInBed: nil,
+                        sleepNeed: nil,
+                        deepSleepDuration: nil,
+                        remSleepDuration: nil,
+                        coreSleepDuration: nil,
+                        awakeDuration: nil,
+                        wakeEvents: nil,
+                        bedtime: nil,
+                        wakeTime: nil,
+                        baselineBedtime: nil,
+                        baselineWakeTime: nil,
+                        hrvOvernight: nil,
+                        hrvBaseline: nil,
+                        sleepLatency: nil
+                    ),
+                    calculatedAt: Date()
+                )
+
+                currentSleepScore = sleepScore
+                Logger.debug("⚡💾 [SLEEP SYNC] Loaded cached sleep score synchronously: \(score)")
+                Logger.debug("🔍 [SLEEP SYNC] currentSleepScore AFTER: \(currentSleepScore?.score ?? -1)")
+            } else {
+                Logger.debug("⚠️ [SLEEP SYNC] No sleep score found in UserDefaults")
+            }
+        } else {
+            Logger.debug("❌ [SLEEP SYNC] Failed to access shared UserDefaults")
         }
     }
     

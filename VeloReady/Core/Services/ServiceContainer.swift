@@ -142,17 +142,23 @@ final class ServiceContainer {
     /// Refresh stale data when returning to foreground
     private func refreshStaleData() async {
         Logger.debug("🔄 ServiceContainer: Checking for stale data...")
-        
+
+        // Skip cache invalidation when offline to preserve synchronously-loaded cached scores
+        guard NetworkMonitor.shared.isConnected else {
+            Logger.debug("📡 ServiceContainer: Device offline - skipping cache invalidation to preserve cached data")
+            return
+        }
+
         // Invalidate sleep cache to catch late-arriving data from Apple Watch
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: Date())
         let sleepCacheKey = "healthkit:sleep:\(startOfToday.timeIntervalSince1970)"
         await UnifiedCacheManager.shared.invalidate(key: sleepCacheKey)
         Logger.debug("🔄 Invalidated sleep cache - will re-fetch from HealthKit")
-        
+
         // Individual services handle their own staleness checks
         // This is a hook for coordinated refresh logic
-        
+
         Logger.debug("✅ ServiceContainer: Staleness check complete")
     }
     

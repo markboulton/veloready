@@ -14,25 +14,20 @@ struct ActivitiesView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Offline banner (shown when no network connection)
-                OfflineBannerView(networkMonitor: networkMonitor)
+            ZStack(alignment: .top) {
+                // Adaptive background
+                Color.background.app
+                    .ignoresSafeArea()
 
-                ZStack(alignment: .top) {
-                    // Adaptive background
-                    Color.background.app
-                        .ignoresSafeArea()
-
-                    Group {
-                        if viewModel.isLoading && viewModel.allActivities.isEmpty {
-                            ActivitiesLoadingView()
-                        } else if viewModel.allActivities.isEmpty {
-                            ActivitiesEmptyStateView(onRefresh: {
-                                await viewModel.loadActivities(apiClient: apiClient)
-                            })
-                        } else {
-                            activitiesScrollView
-                        }
+                Group {
+                    if viewModel.isLoading && viewModel.allActivities.isEmpty {
+                        ActivitiesLoadingView()
+                    } else if viewModel.allActivities.isEmpty {
+                        ActivitiesEmptyStateView(onRefresh: {
+                            await viewModel.loadActivities(apiClient: apiClient)
+                        })
+                    } else {
+                        activitiesScrollView
                     }
                 }
 
@@ -63,8 +58,10 @@ struct ActivitiesView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
-            .refreshable {
-                await viewModel.loadActivities(apiClient: apiClient)
+            .if(networkMonitor.isConnected) { view in
+                view.refreshable {
+                    await viewModel.loadActivities(apiClient: apiClient)
+                }
             }
             .task {
                 Logger.debug("📊 [Activities] View appeared - loading activities if needed")

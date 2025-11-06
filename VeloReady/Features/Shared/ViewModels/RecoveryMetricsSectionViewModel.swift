@@ -31,6 +31,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         sleepScoreService: SleepScoreService = .shared,
         strainScoreService: StrainScoreService = .shared
     ) {
+        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT starting")
         self.recoveryScoreService = recoveryScoreService
         self.sleepScoreService = sleepScoreService
         self.strainScoreService = strainScoreService
@@ -38,8 +39,14 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         // Load banner dismissed state
         self.missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
         
+        Logger.debug("🏗️ [VIEWMODEL] Setting up observers for score services")
         setupObservers()
         refreshData()
+        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+    }
+    
+    deinit {
+        Logger.debug("🗑️ [VIEWMODEL] RecoveryMetricsSectionViewModel DEINIT - was deinitialized")
     }
     
     // MARK: - Setup
@@ -48,20 +55,25 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         // Observe recovery score
         recoveryScoreService.$currentRecoveryScore
             .sink { [weak self] score in
+                Logger.debug("🔄 [VIEWMODEL] Recovery score changed via Combine: \(score?.score ?? -1)")
                 self?.recoveryScore = score
+                Logger.debug("🔄 [VIEWMODEL] ViewModel recoveryScore now: \(self?.recoveryScore?.score ?? -1)")
             }
             .store(in: &cancellables)
         
         // Observe sleep score
         sleepScoreService.$currentSleepScore
             .sink { [weak self] score in
+                Logger.debug("🔄 [VIEWMODEL] Sleep score changed via Combine: \(score?.score ?? -1)")
                 self?.sleepScore = score
+                Logger.debug("🔄 [VIEWMODEL] ViewModel sleepScore now: \(self?.sleepScore?.score ?? -1)")
             }
             .store(in: &cancellables)
         
         // Observe sleep loading state
         sleepScoreService.$isLoading
             .sink { [weak self] loading in
+                Logger.debug("🔄 [VIEWMODEL] Sleep loading state changed: \(loading)")
                 self?.isSleepLoading = loading
             }
             .store(in: &cancellables)
@@ -69,7 +81,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         // Observe strain score
         strainScoreService.$currentStrainScore
             .sink { [weak self] score in
+                Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
                 self?.strainScore = score
+                Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
             }
             .store(in: &cancellables)
     }
@@ -77,10 +91,13 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     // MARK: - Public Methods
     
     func refreshData() {
+        Logger.debug("🔄 [VIEWMODEL] refreshData() called")
+        Logger.debug("🔄 [VIEWMODEL] Service scores - recovery: \(recoveryScoreService.currentRecoveryScore?.score ?? -1), sleep: \(sleepScoreService.currentSleepScore?.score ?? -1), strain: \(strainScoreService.currentStrainScore?.score ?? -1)")
         recoveryScore = recoveryScoreService.currentRecoveryScore
         sleepScore = sleepScoreService.currentSleepScore
         strainScore = strainScoreService.currentStrainScore
         isSleepLoading = sleepScoreService.isLoading
+        Logger.debug("🔄 [VIEWMODEL] After refresh - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
     }
     
     func reinstateSleepBanner() {
