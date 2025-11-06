@@ -11,7 +11,7 @@ actor CachePersistenceLayer {
     private let decoder = JSONDecoder()
     
     // Cache schema version - increment when models change to invalidate old caches
-    private let cacheVersion = 2 // v2: Fixed StrainScore/SleepScore/RecoveryScore encoding
+    private let cacheVersion = 3 // v3: Added HealthKit metrics + StravaActivity array support
     
     // Statistics
     private var saveCount = 0
