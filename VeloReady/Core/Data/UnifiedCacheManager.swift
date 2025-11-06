@@ -677,6 +677,13 @@ actor UnifiedCacheManager {
         
         // Activity arrays
         if key.contains(":activities:") {
+            // Try as array of StravaActivity for Strava keys
+            if key.hasPrefix("strava:activities:") {
+                if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [StravaActivity].self) {
+                    return (result.value, result.cachedAt)
+                }
+            }
+            
             // Try as array of IntervalsActivity (most common)
             if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [IntervalsActivity].self) {
                 return (result.value, result.cachedAt)
