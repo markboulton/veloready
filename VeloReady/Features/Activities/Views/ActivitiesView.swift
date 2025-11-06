@@ -87,37 +87,33 @@ struct ActivitiesView: View {
                 // Sparkline header
                 sparklineHeader
                 
-                // First 3 activities (non-lazy to prevent render delay)
-                ForEach(Array(viewModel.displayedActivities.prefix(3).enumerated()), id: \.element.id) { index, activity in
-                    LatestActivityCardV2(activity: activity)
-                        .onAppear {
-                            // Progressive loading trigger
-                            if index == viewModel.displayedActivities.count - 3 {
-                                Logger.debug("📊 [Activities] Near end of list (index \(index)/\(viewModel.displayedActivities.count)) - loading more")
-                                viewModel.loadMoreActivitiesIfNeeded()
-                            }
-                        }
-                }
-                
-                // Remaining activities (lazy loaded for performance)
-                if viewModel.displayedActivities.count > 3 {
-                    LazyVStack(spacing: Spacing.md) {
-                        ForEach(Array(viewModel.displayedActivities.dropFirst(3).enumerated()), id: \.element.id) { index, activity in
-                            LatestActivityCardV2(activity: activity)
-                                .onAppear {
-                                    // Adjust index to account for dropFirst(3)
-                                    let actualIndex = index + 3
-                                    if actualIndex == viewModel.displayedActivities.count - 3 {
-                                        Logger.debug("📊 [Activities] Near end of list (index \(actualIndex)/\(viewModel.displayedActivities.count)) - loading more")
-                                        viewModel.loadMoreActivitiesIfNeeded()
-                                    }
+                // Paginated activities list with LazyVGrid
+                LazyVGrid(columns: [GridItem(.flexible())], spacing: Spacing.md) {
+                    ForEach(Array(viewModel.paginatedActivities.enumerated()), id: \.element.id) { index, activity in
+                        LatestActivityCardV2(activity: activity)
+                            .onAppear {
+                                // Trigger pagination when reaching near end (last 3 items)
+                                if index == viewModel.paginatedActivities.count - 3 && viewModel.hasMorePages {
+                                    Logger.debug("📊 [Activities] Near end of page (\(index + 1)/\(viewModel.paginatedActivities.count)) - loading next page")
+                                    viewModel.loadNextPage()
                                 }
+                            }
+                    }
+                    
+                    // Pagination loading indicator
+                    if viewModel.isLoadingPage {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .padding(.vertical, Spacing.lg)
+                            Spacer()
                         }
                     }
                 }
                 
-                // Load more indicator
-                if viewModel.hasMoreToLoad {
+                // Load more indicator (for old progressive loading)
+                if viewModel.hasMoreToLoad && !viewModel.hasMorePages {
                     loadMoreIndicator
                 }
                 
@@ -154,7 +150,7 @@ struct ActivitiesView: View {
             Spacer()
             ProgressView()
                 .onAppear {
-                    Logger.debug("📊 [Activities] Load more indicator appeared - total displayed: \(viewModel.displayedActivities.count)/\(viewModel.allActivities.count)")
+                    Logger.debug("📊 [Activities] Load more indicator appeared - total displayed: \(viewModel.paginatedActivities.count)/\(viewModel.allActivities.count)")
                 }
             Spacer()
         }

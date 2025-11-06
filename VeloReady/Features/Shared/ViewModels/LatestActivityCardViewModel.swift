@@ -163,11 +163,15 @@ class LatestActivityCardViewModel: ObservableObject {
             return
         }
         
-        Logger.debug("🗺️ [LoadMapSnapshot] Generating snapshot from \(coordinates.count) coordinates for \(activity.name)")
-        mapSnapshot = await mapSnapshotService.generateSnapshot(from: coordinates)
+        Logger.debug("🗺️ [LoadMapSnapshot] Generating snapshot from \(coordinates.count) coordinates on background thread for \(activity.name)")
+        // Use background thread method for better performance
+        mapSnapshot = await mapSnapshotService.generateMapAsync(
+            coordinates: coordinates,
+            activityId: activity.id
+        )
         
         if mapSnapshot != nil {
-            Logger.debug("✅ [LoadMapSnapshot] Successfully generated map for \(activity.name)")
+            Logger.debug("✅ [LoadMapSnapshot] Successfully generated map on background thread for \(activity.name)")
         } else {
             Logger.debug("❌ [LoadMapSnapshot] Failed to generate map for \(activity.name)")
         }
