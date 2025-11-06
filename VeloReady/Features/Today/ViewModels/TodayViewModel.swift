@@ -134,9 +134,15 @@ class TodayViewModel: ObservableObject {
                         Logger.debug("📡 [Network] Device offline - showing offline status")
                         self.loadingStateManager.forceState(.offline)
                     } else if self.wasOffline && isConnected {
-                        // Detect offline → online transition - actually refresh data
-                        Logger.debug("📡 [Network] Came back online - refreshing all data")
-
+                        // Detect offline → online transition - show syncing status then refresh
+                        Logger.debug("📡 [Network] Came back online - showing syncing status")
+                        
+                        // Show syncing state with rotating icon (green)
+                        self.loadingStateManager.updateState(.syncingData)
+                        
+                        // Small delay to ensure syncing state is visible
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+                        
                         // Actually refresh the data (this will update loading states naturally)
                         await self.refreshData()
                     }
@@ -167,7 +173,9 @@ class TodayViewModel: ObservableObject {
         }
         
         isLoading = true
-        isDataLoaded = false
+        // CRITICAL FIX: DON'T clear isDataLoaded during refresh!
+        // This prevents scores from disappearing when returning to app after offline/online
+        // isDataLoaded = false  // ❌ REMOVED - causes scores to disappear
         errorMessage = nil
         
         // Fetch activities from all connected sources
