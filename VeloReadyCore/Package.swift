@@ -4,17 +4,13 @@ import PackageDescription
 let package = Package(
     name: "VeloReadyCore",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13)
+        .iOS(.v17),
+        .macOS(.v14)
     ],
     products: [
         .library(
             name: "VeloReadyCore",
             targets: ["VeloReadyCore"]
-        ),
-        .executable(
-            name: "VeloReadyCoreTests",
-            targets: ["VeloReadyCoreTests"]
         )
     ],
     dependencies: [
@@ -26,7 +22,7 @@ let package = Package(
             dependencies: [],
             path: "Sources"
         ),
-        .executableTarget(
+        .testTarget(
             name: "VeloReadyCoreTests",
             dependencies: ["VeloReadyCore"],
             path: "Tests"

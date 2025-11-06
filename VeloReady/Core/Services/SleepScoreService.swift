@@ -1,8 +1,11 @@
 import Foundation
 import HealthKit
 import WidgetKit
+import VeloReadyCore
 
 /// Service for calculating daily sleep scores using Whoop-like algorithm
+/// This service orchestrates data fetching from HealthKit
+/// and delegates calculation logic to VeloReadyCore for testability and reusability
 @MainActor
 class SleepScoreService: ObservableObject {
     static let shared = SleepScoreService()
@@ -320,10 +323,60 @@ class SleepScoreService: ObservableObject {
         Logger.debug("   HRV Overnight: \(inputs.hrvOvernight?.description ?? "nil") ms")
         Logger.debug("   HRV Baseline: \(inputs.hrvBaseline?.description ?? "nil") ms")
         
+        // Create inputs for VeloReadyCore calculation
+        let coreInputs = VeloReadyCore.SleepCalculations.SleepInputs(
+            sleepDuration: inputs.sleepDuration,
+            timeInBed: inputs.timeInBed,
+            sleepNeed: inputs.sleepNeed,
+            deepSleepDuration: inputs.deepSleepDuration,
+            remSleepDuration: inputs.remSleepDuration,
+            coreSleepDuration: inputs.coreSleepDuration,
+            awakeDuration: inputs.awakeDuration,
+            wakeEvents: inputs.wakeEvents,
+            bedtime: inputs.bedtime,
+            wakeTime: inputs.wakeTime,
+            baselineBedtime: inputs.baselineBedtime,
+            baselineWakeTime: inputs.baselineWakeTime,
+            hrvOvernight: inputs.hrvOvernight,
+            hrvBaseline: inputs.hrvBaseline,
+            sleepLatency: inputs.sleepLatency
+        )
+        
         // Get current illness indicator
         let illnessIndicator = IllnessDetectionService.shared.currentIndicator
+        let illnessDetected = illnessIndicator != nil
+        let illnessSeverity = illnessIndicator?.severity.rawValue
         
-        return SleepScoreCalculator.calculate(inputs: inputs, illnessIndicator: illnessIndicator)
+        // Call VeloReadyCore for pure calculation
+        let result = VeloReadyCore.SleepCalculations.calculateScore(inputs: coreInputs)
+        
+        // Map score to band
+        let band: SleepScore.SleepBand
+        switch result.score {
+        case 80...100: band = .optimal
+        case 60..<80: band = .good
+        case 40..<60: band = .fair
+        default: band = .payAttention
+        }
+        
+        // Map VeloReadyCore results back to iOS SleepScore model
+        let modelSubScores = SleepScore.SubScores(
+            performance: result.subScores.performance,
+            efficiency: result.subScores.efficiency,
+            stageQuality: result.subScores.stageQuality,
+            disturbances: result.subScores.disturbances,
+            timing: result.subScores.timing
+        )
+        
+        return SleepScore(
+            score: result.score,
+            band: band,
+            subScores: modelSubScores,
+            inputs: inputs,
+            calculatedAt: Date(),
+            illnessDetected: illnessDetected,
+            illnessSeverity: illnessSeverity
+        )
     }
     
     // MARK: - Helper Methods

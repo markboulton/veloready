@@ -1,8 +1,11 @@
 import Foundation
 import HealthKit
 import WidgetKit
+import VeloReadyCore
 
 /// Service for calculating daily recovery scores
+/// This service orchestrates data fetching from various sources (HealthKit, Intervals, Strava)
+/// and delegates calculation logic to VeloReadyCore for testability and reusability
 @MainActor
 class RecoveryScoreService: ObservableObject {
     static let shared = RecoveryScoreService()
@@ -365,8 +368,37 @@ class RecoveryScoreService: ObservableObject {
             Logger.debug("🍷 RHR Change: \(String(format: "%.1f", rhrChange))% (alcohol threshold: +10%)")
         }
         
-        // Create inputs with sleep score
-        let inputs = RecoveryScore.RecoveryInputs(
+        // Create inputs for VeloReadyCore calculation (pure data)
+        let coreInputs = VeloReadyCore.RecoveryCalculations.RecoveryInputs(
+            hrv: hrvValue,
+            overnightHrv: overnightHrvValue,
+            hrvBaseline: hrvBaseline,
+            rhr: rhrValue,
+            rhrBaseline: rhrBaseline,
+            sleepDuration: sleepScoreResult?.inputs.sleepDuration,
+            sleepBaseline: sleepBaseline,
+            respiratoryRate: respiratoryValue,
+            respiratoryBaseline: respiratoryBaseline,
+            atl: atl,
+            ctl: ctl,
+            recentStrain: strain,
+            sleepScore: sleepScoreResult?.score
+        )
+        
+        // Get current illness indicator
+        let illnessIndicator = IllnessDetectionService.shared.currentIndicator
+        let hasIllness = illnessIndicator != nil
+        let hasSleepData = sleepScoreResult != nil
+        
+        // Call VeloReadyCore for pure calculation (no iOS dependencies)
+        let result = VeloReadyCore.RecoveryCalculations.calculateScore(
+            inputs: coreInputs,
+            hasIllnessIndicator: hasIllness,
+            hasSleepData: hasSleepData
+        )
+        
+        // Map VeloReadyCore results back to iOS RecoveryScore model
+        let modelInputs = RecoveryScore.RecoveryInputs(
             hrv: hrvValue,
             overnightHrv: overnightHrvValue,
             hrvBaseline: hrvBaseline,
@@ -382,10 +414,25 @@ class RecoveryScoreService: ObservableObject {
             sleepScore: sleepScoreResult
         )
         
-        // Get current illness indicator
-        let illnessIndicator = IllnessDetectionService.shared.currentIndicator
+        let modelSubScores = RecoveryScore.SubScores(
+            hrv: result.subScores.hrv,
+            rhr: result.subScores.rhr,
+            sleep: result.subScores.sleep,
+            form: result.subScores.form,
+            respiratory: result.subScores.respiratory
+        )
         
-        return await RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: illnessIndicator)
+        let band = determineBand(score: result.score)
+        
+        return RecoveryScore(
+            score: result.score,
+            band: band,
+            subScores: modelSubScores,
+            inputs: modelInputs,
+            calculatedAt: Date(),
+            illnessDetected: hasIllness,
+            illnessSeverity: illnessIndicator?.severity.rawValue
+        )
     }
     
     // MARK: - Intervals Data Fetching
@@ -573,35 +620,33 @@ class RecoveryScoreService: ObservableObject {
     }
     
     /// Calculate CTL (Chronic Training Load) - 42-day exponentially weighted average
+    /// Delegates to VeloReadyCore for calculation logic
     private func calculateCTL(from dailyTSS: [Date: Double], today: Date) -> Double {
         let calendar = Calendar.current
-        let ctlDecay = 1.0 / 42.0 // Time constant for CTL
-        var ctl = 0.0
         
-        // Calculate for last 42 days
+        // Build array of daily TSS values for last 42 days (most recent last)
+        var tssValues: [Double] = []
         for dayOffset in (0..<42).reversed() {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            let tss = dailyTSS[date] ?? 0
-            ctl = ctl + (tss - ctl) * ctlDecay
+            tssValues.append(dailyTSS[date] ?? 0)
         }
         
-        return ctl
+        return VeloReadyCore.TrainingLoadCalculations.calculateCTL(dailyTSS: tssValues)
     }
     
     /// Calculate ATL (Acute Training Load) - 7-day exponentially weighted average
+    /// Delegates to VeloReadyCore for calculation logic
     private func calculateATL(from dailyTSS: [Date: Double], today: Date) -> Double {
         let calendar = Calendar.current
-        let atlDecay = 1.0 / 7.0 // Time constant for ATL
-        var atl = 0.0
         
-        // Calculate for last 7 days
+        // Build array of daily TSS values for last 7 days (most recent last)
+        var tssValues: [Double] = []
         for dayOffset in (0..<7).reversed() {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            let tss = dailyTSS[date] ?? 0
-            atl = atl + (tss - atl) * atlDecay
+            tssValues.append(dailyTSS[date] ?? 0)
         }
         
-        return atl
+        return VeloReadyCore.TrainingLoadCalculations.calculateATL(dailyTSS: tssValues)
     }
     
     // MARK: - Recent Strain Calculation

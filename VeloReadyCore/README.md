@@ -1,15 +1,44 @@
-# VeloReadyCore - Business Logic Testing Package
+# VeloReadyCore - Pure Calculation Engine
 
-This Swift Package contains the core business logic for VeloReady that can be tested on macOS without requiring iOS simulators.
+**Pure Swift calculation package for VeloReady - Zero iOS dependencies**
 
-## Purpose
+This Swift Package contains all core calculation logic for VeloReady's recovery, sleep, strain, baseline, and training load algorithms. Fully tested, platform-independent, and ready for reuse across iOS, backend, ML, widgets, and watch.
 
-The purpose of this package is to enable **fast, reliable CI testing** on GitHub Actions without the complexity and overhead of iOS simulators. By extracting pure business logic (no UIKit/SwiftUI dependencies) into this package, we can:
+## ✅ Phase 1 Complete (Nov 2025)
 
-- ✅ Run tests on macOS in ~10 seconds instead of ~3-5 minutes with simulators
-- ✅ Avoid simulator creation/booting failures on CI
-- ✅ Get immediate feedback on core logic changes
-- ✅ Test 1:1 replicas of production code
+Successfully extracted all core calculations from iOS app:
+- **1,056 lines** of pure calculation logic
+- **82 comprehensive tests** (all passing in <2 seconds)
+- **39x faster** than iOS simulator tests
+- **Zero dependencies** on UIKit, SwiftUI, or iOS frameworks
+- **Production-ready** and fully documented
+
+## 🎯 What's Included
+
+### 1. Recovery Calculations (364 lines, 36 tests)
+- HRV, RHR, Sleep, Training Load scoring
+- Alcohol detection algorithm
+- Recovery band determination
+
+### 2. Sleep Calculations (195 lines, 14 tests)
+- Performance, efficiency, stage quality scoring
+- Disturbances and timing analysis
+- Sleep band determination
+
+### 3. Strain Calculations (303 lines, 20 tests)
+- TRIMP and blended TRIMP (HR + Power)
+- Whoop-style EPOC and strain formulas
+- Cardio, strength, and non-exercise load scoring
+- Recovery factor modulation
+
+### 4. Baseline Calculations (92 lines, 6 tests)
+- 7-day rolling averages for HRV, RHR, Sleep
+- Sleep score and respiratory baselines
+
+### 5. Training Load Calculations (102 lines, 6 tests)
+- CTL (42-day chronic training load)
+- ATL (7-day acute training load)
+- TSB (training stress balance)
 
 ## Architecture
 
@@ -47,16 +76,25 @@ To ensure this package accurately tests your production code:
 3. **Keep in sync**: When you update production code, update this package
 4. **Link in main app**: Import `VeloReadyCore` in your main iOS app
 
-## Running Tests
+## 🧪 Running Tests
 
-### Locally
+### Locally (Fast!)
 ```bash
 cd VeloReadyCore
-swift run VeloReadyCoreTests
+swift test  # 82 tests in <2 seconds
 ```
 
 ### In CI (GitHub Actions)
 Tests run automatically on every push via the `ci.yml` workflow.
+
+### Test Coverage
+- **Recovery:** 36 tests covering all scoring components
+- **Sleep:** 14 tests covering all sleep metrics
+- **Strain:** 20 tests covering TRIMP, EPOC, sub-scores
+- **Baseline:** 6 tests covering rolling averages
+- **Training Load:** 6 tests covering CTL/ATL/TSB
+
+**Total: 82 tests, 100% pass rate, <2 second execution**
 
 ## Adding New Tests
 
@@ -77,29 +115,60 @@ func testNewFeature() {
 }
 ```
 
-## Migration Plan
+## 🔄 iOS App Integration
 
-Over time, you can gradually move more core logic into this package:
+All core iOS services now delegate to VeloReadyCore:
 
-1. **Phase 1** (Current): Simple test examples to prove the concept
-2. **Phase 2**: Move `TrainingLoadCalculator` and tests
-3. **Phase 3**: Move data models (`StravaActivity`, `HealthMetric`, etc.)
-4. **Phase 4**: Move service layer logic (`UnifiedCacheManager`, etc.)
-5. **Phase 5**: Move networking clients (without UI dependencies)
+```swift
+// RecoveryScoreService.swift
+import VeloReadyCore
+let result = VeloReadyCore.RecoveryCalculations.calculateScore(inputs: coreInputs)
 
-## Benefits
+// SleepScoreService.swift
+import VeloReadyCore
+let result = VeloReadyCore.SleepCalculations.calculateScore(inputs: coreInputs)
 
-- **Speed**: Tests run in seconds instead of minutes
-- **Reliability**: No simulator failures or timeout issues
-- **Focus**: Tests only core business logic that matters most
-- **Simplicity**: No complex CI configuration needed
-- **Cost**: Faster CI means lower GitHub Actions costs
+// BaselineCalculator.swift
+import VeloReadyCore
+let baseline = VeloReadyCore.BaselineCalculations.calculateHRVBaseline(hrvValues: values)
 
-## Trade-offs
+// TrainingLoadCalculator.swift
+import VeloReadyCore
+let ctl = VeloReadyCore.TrainingLoadCalculations.calculateCTL(dailyTSS: tssValues)
+```
 
-- **No UI testing**: This doesn't test SwiftUI views or UI interactions
-- **Manual sync**: You need to keep this package in sync with main app
-- **Initial setup**: Requires extracting logic into a separate package
+iOS services handle data fetching from HealthKit, Strava, and Intervals.icu, then delegate all calculations to VeloReadyCore.
 
-For UI-specific tests, continue to use your local testing workflow with `./Scripts/quick-test.sh`.
+## 🚀 Reusability
+
+VeloReadyCore is platform-independent and ready for:
+
+### Current
+- ✅ **iOS App** - All 4 core services integrated
+- ✅ **Testing** - 39x faster than simulator tests
+
+### Ready For
+- 🔜 **Backend** - AI brief service can calculate recovery server-side
+- 🔜 **ML Pipeline** - Training data uses same scoring algorithms
+- 🔜 **Widgets** - Independent score calculations
+- 🔜 **Apple Watch** - Same logic across devices
+- 🔜 **macOS App** - Cross-platform consistency
+
+## 📊 Performance
+
+**Before Phase 1:**
+- Tests require iOS simulator
+- 78 second execution time
+- Can't run on Linux/backend
+- Duplicate logic across services
+
+**After Phase 1:**
+- Pure Swift tests (no simulator)
+- <2 second execution time (39x faster)
+- Runs anywhere Swift runs
+- Single source of truth
+
+## 📚 Documentation
+
+See [PHASE1_FINAL_COMPLETE.md](../PHASE1_FINAL_COMPLETE.md) for complete Phase 1 details.
 
