@@ -105,25 +105,31 @@ class RecoveryScoreService: ObservableObject {
     func calculateRecoveryScore() async {
         // Check if we already calculated today's recovery score AND have a valid FULL object
         // Not just the numeric value, but the complete object with HRV, RHR, etc.
+        // Also check that sub-scores are NOT placeholders (all equal to main score)
         if hasCalculatedToday() && currentRecoveryScore != nil &&
-           currentRecoveryScore?.inputs.hrv != nil {
+           currentRecoveryScore?.inputs.hrv != nil &&
+           !hasPlaceholderSubScores(currentRecoveryScore) {
             Logger.debug("✅ Recovery score already calculated today with full data - skipping recalculation")
             Logger.debug("🍷 NOTE: To test new alcohol detection algorithm, use forceRefreshRecoveryScoreIgnoringDailyLimit()")
             return
         }
 
-        // If we calculated today but object is missing or incomplete, try loading from Core Data
-        if hasCalculatedToday() && (currentRecoveryScore == nil || currentRecoveryScore?.inputs.hrv == nil) {
-            Logger.warning("⚠️ Recovery calculated today but full object missing (placeholder only) - trying Core Data fallback")
+        // If we calculated today but object is missing, incomplete, or has placeholder sub-scores
+        if hasCalculatedToday() && (currentRecoveryScore == nil || 
+                                     currentRecoveryScore?.inputs.hrv == nil ||
+                                     hasPlaceholderSubScores(currentRecoveryScore)) {
+            Logger.warning("⚠️ Recovery calculated today but full object missing or has placeholder sub-scores - trying Core Data fallback")
             await loadFromCoreDataFallback()
 
-            // If we successfully loaded FULL object from Core Data, skip recalculation
-            if currentRecoveryScore != nil && currentRecoveryScore?.inputs.hrv != nil {
+            // If we successfully loaded FULL object from Core Data (not placeholders), skip recalculation
+            if currentRecoveryScore != nil && 
+               currentRecoveryScore?.inputs.hrv != nil &&
+               !hasPlaceholderSubScores(currentRecoveryScore) {
                 Logger.debug("✅ Recovered FULL score from Core Data - skipping expensive recalculation")
                 return
             }
 
-            Logger.warning("⚠️ No Core Data fallback with full data - forcing recalculation to restore all inputs")
+            Logger.warning("⚠️ No Core Data fallback with full data - forcing recalculation to restore all sub-scores")
         }
 
         // Cancel any existing calculation
@@ -1005,6 +1011,28 @@ extension RecoveryScoreService {
             Logger.debug("🎯 Readiness: \(readiness.score) (\(readiness.band.rawValue))")
             Logger.debug("   Recovery: \(recovery.score), Sleep: \(sleepScore), Load: \(Int(strainScore))")
         }
+    }
+    
+    /// Check if recovery score has placeholder sub-scores (all equal to main score)
+    /// This indicates data loaded from Core Data fallback without full calculation
+    private func hasPlaceholderSubScores(_ score: RecoveryScore?) -> Bool {
+        guard let score = score else { return false }
+        
+        // If all sub-scores equal the main score, it's a placeholder
+        let mainScore = score.score
+        let subScores = score.subScores
+        
+        let isPlaceholder = subScores.hrv == mainScore &&
+                           subScores.rhr == mainScore &&
+                           subScores.sleep == mainScore &&
+                           subScores.form == mainScore &&
+                           subScores.respiratory == mainScore
+        
+        if isPlaceholder {
+            Logger.debug("🔍 Detected placeholder sub-scores (all = \(mainScore))")
+        }
+        
+        return isPlaceholder
     }
     
     /// Calculate resilience score from 30-day history
