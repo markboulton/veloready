@@ -14,6 +14,11 @@ class ActivitiesViewModel: ObservableObject {
     @Published var selectedFilters: Set<UnifiedActivity.ActivityType> = []
     @Published var displayedActivities: [UnifiedActivity] = []
     
+    // Pagination properties
+    @Published var currentPage: Int = 0
+    private let pageSize: Int = 15
+    @Published private(set) var isLoadingPage: Bool = false
+    
     var allActivities: [UnifiedActivity] = []
     private var proConfig = ProFeatureConfig.shared
     private var hasLoadedInitialData = false
@@ -21,6 +26,19 @@ class ActivitiesViewModel: ObservableObject {
     private var currentBatchIndex = 0
     
     private init() {} // Private init for singleton
+    
+    /// Paginated activities based on current page
+    var paginatedActivities: [UnifiedActivity] {
+        let filteredActivities = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        let endIndex = min((currentPage + 1) * pageSize, filteredActivities.count)
+        return Array(filteredActivities.prefix(endIndex))
+    }
+    
+    /// Check if more pages are available
+    var hasMorePages: Bool {
+        let filteredActivities = selectedFilters.isEmpty ? allActivities : allActivities.filter { selectedFilters.contains($0.type) }
+        return paginatedActivities.count < filteredActivities.count
+    }
     
     var sortedMonthKeys: [String] {
         // Sort month keys chronologically (newest first)
@@ -290,6 +308,26 @@ class ActivitiesViewModel: ObservableObject {
         currentBatchIndex += 1
         
         Logger.debug("📊 [Activities] Loaded batch \(currentBatchIndex) - now showing \(displayedActivities.count)/\(filteredActivities.count)")
+    }
+    
+    /// Load next page of activities (pagination)
+    func loadNextPage() {
+        guard !isLoadingPage && hasMorePages else {
+            Logger.debug("📊 [Activities] Cannot load next page - loading: \(isLoadingPage), hasMore: \(hasMorePages)")
+            return
+        }
+        
+        isLoadingPage = true
+        currentPage += 1
+        
+        // Brief delay to show loading indicator
+        Task {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
+            await MainActor.run {
+                isLoadingPage = false
+                Logger.debug("📊 [Activities] Loaded page \(currentPage) - now showing \(paginatedActivities.count) activities")
+            }
+        }
     }
 }
 

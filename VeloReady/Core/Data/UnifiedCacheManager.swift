@@ -647,11 +647,47 @@ actor UnifiedCacheManager {
     /// Type-erased Core Data loading (to handle dynamic Codable types)
     private func loadFromCoreDataErased(key: String, codableType: any Codable.Type) async -> (value: Any, cachedAt: Date)? {
         // We need to use reflection/type erasure here because we can't directly call
-        // a generic method with a runtime type. For now, we'll try common types.
+        // a generic method with a runtime type. Use pattern matching on key for better type detection.
         
-        // Try as array of IntervalsActivity (most common)
-        if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [IntervalsActivity].self) {
-            return (result.value, result.cachedAt)
+        // Score models (use key patterns for type detection)
+        if key.hasPrefix("score:sleep:") || key.hasPrefix("sleep_score:") {
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: SleepScore.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
+        if key.hasPrefix("score:recovery:") || key.hasPrefix("recovery_score:") {
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: RecoveryScore.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
+        if key.hasPrefix("strain:") {
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: StrainScore.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
+        // Athlete data
+        if key == "strava_athlete" {
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: StravaAthlete.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
+        // Activity arrays
+        if key.contains(":activities:") {
+            // Try as array of StravaActivity for Strava keys
+            if key.hasPrefix("strava:activities:") {
+                if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [StravaActivity].self) {
+                    return (result.value, result.cachedAt)
+                }
+            }
+            
+            // Try as array of IntervalsActivity (most common)
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: [IntervalsActivity].self) {
+                return (result.value, result.cachedAt)
+            }
         }
         
         // Try as single IntervalsActivity
@@ -659,7 +695,19 @@ actor UnifiedCacheManager {
             return (result.value, result.cachedAt)
         }
         
-        // Try as Double (for scores)
+        // HealthKit metrics (these are typically Double values)
+        if key.hasPrefix("healthkit:") {
+            // Try Double first (most HealthKit metrics are Double)
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Double.self) {
+                return (result.value, result.cachedAt)
+            }
+            // Try Int for step counts
+            if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Int.self) {
+                return (result.value, result.cachedAt)
+            }
+        }
+        
+        // Try as Double (for numeric scores/metrics)
         if let result = await CachePersistenceLayer.shared.loadFromCoreData(key: key, as: Double.self) {
             return (result.value, result.cachedAt)
         }
@@ -674,7 +722,8 @@ actor UnifiedCacheManager {
             return (result.value, result.cachedAt)
         }
         
-        // Add more common types as needed...
+        // Log if we couldn't decode the type
+        Logger.warning("⚠️ [CachePersistence] Could not determine type for key: \(key)")
         
         return nil
     }

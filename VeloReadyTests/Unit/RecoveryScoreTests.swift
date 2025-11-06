@@ -86,8 +86,158 @@ struct RecoveryScoreTests {
             .fair,
             .payAttention
         ]
-        
+
         #expect(allBands.count == 4)
         #expect(RecoveryScore.RecoveryBand.allCases.count == 4)
+    }
+
+    // MARK: - Recovery Score Cache Validation Tests
+
+    @Test("Recovery score with complete data is valid")
+    func testCompleteRecoveryScore() async throws {
+        // Create a complete recovery score with HRV data
+        let inputs = RecoveryScore.RecoveryInputs(
+            hrv: 45.0,  // Has HRV data - complete object
+            overnightHrv: 42.0,
+            hrvBaseline: 50.0,
+            rhr: 55.0,
+            rhrBaseline: 60.0,
+            sleepDuration: 28800,
+            sleepBaseline: 28800,
+            respiratoryRate: 16.0,
+            respiratoryBaseline: 16.0,
+            atl: 10.0,
+            ctl: 40.0,
+            recentStrain: 8.5,
+            sleepScore: nil  // Simplified for test
+        )
+
+        let subScores = RecoveryScore.SubScores(
+            hrv: 85,
+            rhr: 90,
+            sleep: 85,
+            form: 80,
+            respiratory: 88
+        )
+
+        let score = RecoveryScore(
+            score: 86,
+            band: .optimal,
+            subScores: subScores,
+            inputs: inputs,
+            calculatedAt: Date(),
+            isPersonalized: true
+        )
+
+        // Verify this is a complete score
+        #expect(score.inputs.hrv != nil)
+        #expect(score.inputs.hrv! > 0)
+        #expect(score.score == 86)
+    }
+
+    @Test("Recovery score with missing HRV is incomplete")
+    func testIncompleteRecoveryScore() async throws {
+        // Create an incomplete recovery score (placeholder from sync load)
+        let inputs = RecoveryScore.RecoveryInputs(
+            hrv: nil,  // Missing HRV data - incomplete placeholder
+            overnightHrv: nil,
+            hrvBaseline: nil,
+            rhr: nil,
+            rhrBaseline: nil,
+            sleepDuration: nil,
+            sleepBaseline: nil,
+            respiratoryRate: nil,
+            respiratoryBaseline: nil,
+            atl: nil,
+            ctl: nil,
+            recentStrain: nil,
+            sleepScore: nil
+        )
+
+        let subScores = RecoveryScore.SubScores(
+            hrv: 0,
+            rhr: 0,
+            sleep: 0,
+            form: 0,
+            respiratory: 0
+        )
+
+        let score = RecoveryScore(
+            score: 86,
+            band: .optimal,
+            subScores: subScores,
+            inputs: inputs,
+            calculatedAt: Date(),
+            isPersonalized: false
+        )
+
+        // Verify this is an incomplete placeholder
+        #expect(score.inputs.hrv == nil)
+        #expect(score.score == 86)  // Numeric value exists
+        #expect(!score.isPersonalized)  // But it's not personalized
+    }
+
+    @Test("Recovery score validation logic")
+    func testRecoveryScoreValidation() async throws {
+        // Test the validation logic used in RecoveryScoreService
+
+        // Complete score - should NOT need recalculation
+        let completeInputs = RecoveryScore.RecoveryInputs(
+            hrv: 45.0,
+            overnightHrv: 42.0,
+            hrvBaseline: 50.0,
+            rhr: 55.0,
+            rhrBaseline: 60.0,
+            sleepDuration: 28800,
+            sleepBaseline: 28800,
+            respiratoryRate: 16.0,
+            respiratoryBaseline: 16.0,
+            atl: 10.0,
+            ctl: 40.0,
+            recentStrain: 8.5,
+            sleepScore: nil  // Simplified for test
+        )
+
+        let completeScore = RecoveryScore(
+            score: 86,
+            band: .optimal,
+            subScores: RecoveryScore.SubScores(hrv: 85, rhr: 90, sleep: 85, form: 80, respiratory: 88),
+            inputs: completeInputs,
+            calculatedAt: Date(),
+            isPersonalized: true
+        )
+
+        // This mimics the check in RecoveryScoreService.calculateRecoveryScore()
+        let hasCompleteData = completeScore.inputs.hrv != nil
+        #expect(hasCompleteData == true)
+
+        // Incomplete score - SHOULD need recalculation
+        let incompleteInputs = RecoveryScore.RecoveryInputs(
+            hrv: nil,
+            overnightHrv: nil,
+            hrvBaseline: nil,
+            rhr: nil,
+            rhrBaseline: nil,
+            sleepDuration: nil,
+            sleepBaseline: nil,
+            respiratoryRate: nil,
+            respiratoryBaseline: nil,
+            atl: nil,
+            ctl: nil,
+            recentStrain: nil,
+            sleepScore: nil
+        )
+
+        let incompleteScore = RecoveryScore(
+            score: 86,
+            band: .optimal,
+            subScores: RecoveryScore.SubScores(hrv: 0, rhr: 0, sleep: 0, form: 0, respiratory: 0),
+            inputs: incompleteInputs,
+            calculatedAt: Date(),
+            isPersonalized: false
+        )
+
+        let hasIncompleteData = incompleteScore.inputs.hrv != nil
+        #expect(hasIncompleteData == false)
     }
 }

@@ -65,7 +65,15 @@ struct RecoveryMetricsSection: View {
                     let config = ProFeatureConfig.shared
                     let showSleepRing = viewModel.hasSleepData && !config.simulateNoSleepData
                     
-                    if showSleepRing {
+                    // Show loading state until all scores are ready
+                    if !viewModel.allScoresReady {
+                        // Loading state - show grey rings with shimmer for all three
+                        HStack(spacing: Spacing.xxl) {
+                            loadingRingView(title: TodayContent.Scores.recoveryScore, delay: 0.0)
+                            loadingRingView(title: TodayContent.Scores.sleepScore, delay: 0.1)
+                            loadingRingView(title: TodayContent.Scores.loadScore, delay: 0.2)
+                        }
+                    } else if showSleepRing {
                         // Standard 3-ring layout
                         HStack(spacing: Spacing.xxl) {
                             recoveryScoreView
@@ -307,6 +315,29 @@ struct RecoveryMetricsSection: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+    }
+    
+    // MARK: - Loading Ring View
+    
+    @ViewBuilder
+    private func loadingRingView(title: String, delay: Double) -> some View {
+        VStack(spacing: 16) {
+            Text(title)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            CompactRingView(
+                score: nil,
+                title: "",
+                band: RecoveryScore.RecoveryBand.optimal,
+                animationDelay: delay,
+                action: {},
+                centerText: nil,
+                animationTrigger: animationTrigger,
+                isLoading: true
+            )
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

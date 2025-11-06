@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# VeloReady Quick Test - Single Developer Optimized
-# Run this during development for fast feedback - 45 seconds max
-# Focus: Build + Essential Fast Tests + Lint
-# For comprehensive testing before commit: ./Scripts/full-test.sh
+# VeloReady Full Test - Pre-Commit Comprehensive Testing
+# Run this before committing - 90 seconds max
+# Focus: Build + All Critical Tests + Lint
 
 set -e
 
 # Set Xcode path for proper tool access
 export PATH="/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH"
 
-echo "⚡ VeloReady Quick Test (45 seconds max)"
-echo "========================================="
+echo "⚡ VeloReady Full Test (90 seconds max)"
+echo "========================================"
 
 # Colors
 GREEN='\033[0;32m'
@@ -45,7 +44,7 @@ fi
 # Start timer
 start_time=$(date +%s)
 
-echo "🎯 Running essential tests only (build + critical unit tests + lint)"
+echo "🎯 Running comprehensive tests (build + all critical unit tests + lint)"
 echo ""
 
 # 1. Build Check (30 seconds) - CRITICAL
@@ -63,21 +62,23 @@ else
     exit 1
 fi
 
-# 2. Essential Unit Tests Only (30 seconds) - CRITICAL
-# NOTE: Reduced to 2 fastest test suites for speed. Run full-test.sh before commit.
+# 2. All Critical Unit Tests (60 seconds) - CRITICAL
 echo ""
-echo "2️⃣  Running essential unit tests (fast only)..."
+echo "2️⃣  Running all critical unit tests..."
 if xcodebuild test \
     -project VeloReady.xcodeproj \
     -scheme VeloReady \
     -destination 'platform=iOS Simulator,name=iPhone 17' \
+    -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
     -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
     -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+    -only-testing:VeloReadyTests/Unit/CacheManagerTests \
+    -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
     -quiet \
     -hideShellScriptEnvironment; then
-    print_status "Essential unit tests passed"
+    print_status "All critical unit tests passed"
 else
-    print_error "Essential unit tests failed - fix logic errors first"
+    print_error "Critical unit tests failed - fix logic errors first"
     exit 1
 fi
 
@@ -100,21 +101,22 @@ end_time=$(date +%s)
 elapsed=$((end_time - start_time))
 
 echo ""
-print_status "🎉 Quick test completed successfully in ${elapsed}s!"
+print_status "🎉 Full test completed successfully in ${elapsed}s!"
 echo ""
 print_info "💡 Next steps:"
-echo "   • Before commit: ./Scripts/full-test.sh (comprehensive)"
-echo "   • Push your changes: git push"
-echo "   • CI will run full test suite"
+echo "   • Commit your changes: git commit"
+echo "   • Push: git push"
+echo "   • CI will run complete test suite"
 echo ""
 print_info "⚡ Speed tiers available:"
 echo "   • Lightning: ./Scripts/super-quick-test.sh (~20s) - Build + smoke test"
 echo "   • Quick: ./Scripts/quick-test.sh (~45s) - Build + essential tests"
-echo "   • Full: ./Scripts/full-test.sh (~90s) - All critical tests before commit"
+echo "   • Full: ./Scripts/full-test.sh (~90s) - All critical tests ← YOU ARE HERE"
 echo ""
 print_info "🚀 Development workflow:"
 echo "   1. Code your feature"
 echo "   2. Run: ./Scripts/quick-test.sh (45s) - fast iteration"
-echo "   3. Before commit: ./Scripts/full-test.sh (90s) - comprehensive"
-echo "   4. Push when green"
+echo "   3. Before commit: ./Scripts/full-test.sh (90s) - comprehensive ← YOU ARE HERE"
+echo "   4. Commit and push when green"
 echo "   5. Ship when CI passes"
+echo ""
