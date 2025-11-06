@@ -11,6 +11,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var sleepScore: SleepScore?
     @Published private(set) var strainScore: StrainScore?
     @Published private(set) var isSleepLoading: Bool = false
+    @Published private(set) var allScoresReady: Bool = false // True when all scores are loaded
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
@@ -58,6 +59,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 Logger.debug("🔄 [VIEWMODEL] Recovery score changed via Combine: \(score?.score ?? -1)")
                 self?.recoveryScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel recoveryScore now: \(self?.recoveryScore?.score ?? -1)")
+                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
         
@@ -67,6 +69,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 Logger.debug("🔄 [VIEWMODEL] Sleep score changed via Combine: \(score?.score ?? -1)")
                 self?.sleepScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel sleepScore now: \(self?.sleepScore?.score ?? -1)")
+                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
         
@@ -75,6 +78,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             .sink { [weak self] loading in
                 Logger.debug("🔄 [VIEWMODEL] Sleep loading state changed: \(loading)")
                 self?.isSleepLoading = loading
+                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
         
@@ -84,8 +88,24 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
                 self?.strainScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
+                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
+    }
+    
+    /// Check if all scores are ready to display
+    /// Waits until recovery, sleep (or sleep loading complete), and strain are all available
+    private func checkAllScoresReady() {
+        let recoveryReady = recoveryScore != nil
+        let sleepReady = sleepScore != nil || !isSleepLoading // Ready if we have score OR loading is complete
+        let strainReady = strainScore != nil
+        
+        let wasReady = allScoresReady
+        allScoresReady = recoveryReady && sleepReady && strainReady
+        
+        if !wasReady && allScoresReady {
+            Logger.debug("✅ [VIEWMODEL] All scores ready - recovery: \(recoveryReady), sleep: \(sleepReady), strain: \(strainReady)")
+        }
     }
     
     // MARK: - Public Methods
