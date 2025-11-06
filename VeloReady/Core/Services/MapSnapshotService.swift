@@ -11,6 +11,12 @@ class MapSnapshotService {
     private var snapshotCache: [String: UIImage] = [:]
     private let cacheLimit = 50 // Keep last 50 map snapshots in memory
     
+    // MARK: - Concurrency Control
+    // Limit concurrent map generations to prevent memory issues
+    private let maxConcurrentGenerations = 3
+    private var activeGenerations = 0
+    private var pendingGenerations: [(continuation: CheckedContinuation<Void, Never>, activityId: String)] = []
+    
     private init() {}
     
     /// Generate a placeholder map with activity info (fast, non-blocking)
@@ -155,19 +161,28 @@ class MapSnapshotService {
         activityId: String? = nil,
         size: CGSize = CGSize(width: 400, height: 300)
     ) async -> UIImage? {
+        guard !coordinates.isEmpty else {
+            Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
+            return nil
+        }
+        
+        // Check cache first on main actor
+        if let activityId = activityId {
+            if let cached = getCachedSnapshot(activityId: activityId) {
+                Logger.debug("🗺️ [Background] ⚡ Using cached map snapshot for activity \(activityId)")
+                return cached
+            }
+        }
+        
+        // Wait for available slot if at max concurrent generations
+        await acquireGenerationSlot(activityId: activityId ?? "unknown")
+        defer { Task { await releaseGenerationSlot() } }
+        
         // Run map generation on background thread to avoid blocking UI
         return await Task.detached(priority: .utility) {
             guard !coordinates.isEmpty else {
                 await Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
                 return nil
-            }
-            
-            // Check cache first on main actor
-            if let activityId = activityId {
-                if let cached = await self.getCachedSnapshot(activityId: activityId) {
-                    await Logger.debug("🗺️ [Background] ⚡ Using cached map snapshot for activity \(activityId)")
-                    return cached
-                }
             }
             
             await Logger.debug("🗺️ [Background] Generating map snapshot from \(coordinates.count) coordinates")
@@ -178,10 +193,20 @@ class MapSnapshotService {
                 return nil
             }
             
+            // Validate size to prevent 0-height/width image creation
+            let validatedSize = CGSize(
+                width: max(size.width, 100),  // Minimum 100pt width
+                height: max(size.height, 100)  // Minimum 100pt height
+            )
+            
+            if validatedSize != size {
+                await Logger.warning("🗺️ [Background] Invalid size \(size), using \(validatedSize)")
+            }
+            
             // Create map snapshot options
             let options = MKMapSnapshotter.Options()
             options.region = region
-            options.size = size
+            options.size = validatedSize
             options.scale = await UIScreen.main.scale
             options.mapType = .standard
             options.showsBuildings = true
@@ -456,5 +481,38 @@ class MapSnapshotService {
         UIGraphicsEndImageContext()
         
         return resultImage
+    }
+    
+    // MARK: - Concurrency Control Methods
+    
+    /// Acquire a slot for map generation (limits concurrent operations)
+    private func acquireGenerationSlot(activityId: String) async {
+        // If under limit, proceed immediately
+        guard activeGenerations >= maxConcurrentGenerations else {
+            activeGenerations += 1
+            Logger.debug("🗺️ [Concurrency] Acquired slot for \(activityId) (\(activeGenerations)/\(maxConcurrentGenerations))")
+            return
+        }
+        
+        // Wait for a slot to become available
+        Logger.debug("🗺️ [Concurrency] Waiting for slot for \(activityId) (\(activeGenerations)/\(maxConcurrentGenerations))")
+        await withCheckedContinuation { continuation in
+            pendingGenerations.append((continuation: continuation, activityId: activityId))
+        }
+        activeGenerations += 1
+        Logger.debug("🗺️ [Concurrency] Acquired slot for \(activityId) after wait (\(activeGenerations)/\(maxConcurrentGenerations))")
+    }
+    
+    /// Release a slot after map generation completes
+    private func releaseGenerationSlot() async {
+        activeGenerations -= 1
+        Logger.debug("🗺️ [Concurrency] Released slot (\(activeGenerations)/\(maxConcurrentGenerations))")
+        
+        // Resume next pending generation if any
+        if !pendingGenerations.isEmpty {
+            let next = pendingGenerations.removeFirst()
+            Logger.debug("🗺️ [Concurrency] Resuming pending generation for \(next.activityId)")
+            next.continuation.resume()
+        }
     }
 }
