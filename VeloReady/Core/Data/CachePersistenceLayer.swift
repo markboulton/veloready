@@ -10,6 +10,9 @@ actor CachePersistenceLayer {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
+    // Cache schema version - increment when models change to invalidate old caches
+    private let cacheVersion = 2 // v2: Fixed StrainScore/SleepScore/RecoveryScore encoding
+    
     // Statistics
     private var saveCount = 0
     private var loadCount = 0
@@ -19,6 +22,23 @@ actor CachePersistenceLayer {
     private init() {
         // Deferred initialization - don't access Core Data until needed
         Logger.debug("💾 [CachePersistence] Initialized (lazy)")
+        
+        // Clear old cache on version change
+        Task {
+            await checkAndClearOldCache()
+        }
+    }
+    
+    /// Check and clear cache if version changed
+    private func checkAndClearOldCache() async {
+        let versionKey = "CachePersistenceVersion"
+        let storedVersion = UserDefaults.standard.integer(forKey: versionKey)
+        
+        if storedVersion != cacheVersion {
+            Logger.debug("💾 [CachePersistence] Cache version mismatch (stored: \(storedVersion), current: \(cacheVersion)) - clearing old cache")
+            await clearAll()
+            UserDefaults.standard.set(cacheVersion, forKey: versionKey)
+        }
     }
     
     // MARK: - Public Methods
