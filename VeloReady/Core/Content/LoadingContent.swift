@@ -44,8 +44,9 @@ struct LoadingContent {
     static let computingZones = "Computing power zones..."
     static let processingData = "Processing data..."
     static let savingToICloud = "Saving to iCloud..."
-    static let syncingData = "Syncing to iCloud..."
+    static let syncingData = "Syncing data..."
     static let refreshingScores = "Refreshing scores..."
+    static let offline = "No internet connection"
     static let complete = "Ready"
     
     static func updated(at date: Date) -> String {
@@ -105,9 +106,11 @@ struct LoadingContent {
         case .savingToICloud:
             return "Saving data to iCloud for backup"
         case .syncingData:
-            return "Syncing data to iCloud"
+            return "Syncing data after coming back online"
         case .refreshingScores:
             return "Refreshing scores with new data"
+        case .offline:
+            return "Device is offline - no internet connection available"
         case .complete:
             return "Loading complete"
         case .updated(let date):

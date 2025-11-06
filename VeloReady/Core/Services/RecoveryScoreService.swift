@@ -35,10 +35,69 @@ class RecoveryScoreService: ObservableObject {
         if let savedDate = userDefaults.object(forKey: recoveryScoreKey) as? Date {
             self.lastRecoveryCalculationDate = savedDate
         }
-        
-        // Load cached recovery score immediately for instant display
+
+        // Load cached recovery score synchronously for instant display (prevents empty rings)
+        loadCachedRecoveryScoreSync()
+
+        // Then try async cache as backup
         Task {
             await loadCachedRecoveryScore()
+        }
+    }
+
+    /// Load cached recovery score synchronously from UserDefaults for instant display
+    /// This prevents empty rings when view re-renders due to network state changes
+    private func loadCachedRecoveryScoreSync() {
+        Logger.debug("🔍 [RECOVERY SYNC] Starting synchronous load from UserDefaults")
+        Logger.debug("🔍 [RECOVERY SYNC] currentRecoveryScore BEFORE: \(currentRecoveryScore?.score ?? -1)")
+
+        // Try loading from shared UserDefaults (fastest, always available)
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+            if let score = sharedDefaults.value(forKey: "cachedRecoveryScore") as? Int,
+               let bandRawValue = sharedDefaults.string(forKey: "cachedRecoveryBand"),
+               let band = RecoveryScore.RecoveryBand(rawValue: bandRawValue) {
+
+                // Create a placeholder score with cached values
+                // This is enough to display the ring while full data loads
+                let placeholderInputs = RecoveryScore.RecoveryInputs(
+                    hrv: nil,
+                    overnightHrv: nil,
+                    hrvBaseline: nil,
+                    rhr: nil,
+                    rhrBaseline: nil,
+                    sleepDuration: nil,
+                    sleepBaseline: nil,
+                    respiratoryRate: nil,
+                    respiratoryBaseline: nil,
+                    atl: nil,
+                    ctl: nil,
+                    recentStrain: nil,
+                    sleepScore: nil
+                )
+                let placeholderSubScores = RecoveryScore.SubScores(
+                    hrv: 0,
+                    rhr: 0,
+                    sleep: 0,
+                    form: 0,
+                    respiratory: 0
+                )
+                let recoveryScore = RecoveryScore(
+                    score: score,
+                    band: band,
+                    subScores: placeholderSubScores,
+                    inputs: placeholderInputs,
+                    calculatedAt: Date(),
+                    isPersonalized: sharedDefaults.bool(forKey: "cachedRecoveryIsPersonalized")
+                )
+
+                currentRecoveryScore = recoveryScore
+                Logger.debug("⚡💾 [RECOVERY SYNC] Loaded cached recovery score synchronously: \(score)")
+                Logger.debug("🔍 [RECOVERY SYNC] currentRecoveryScore AFTER: \(currentRecoveryScore?.score ?? -1)")
+            } else {
+                Logger.debug("⚠️ [RECOVERY SYNC] No recovery score found in UserDefaults")
+            }
+        } else {
+            Logger.debug("❌ [RECOVERY SYNC] Failed to access shared UserDefaults")
         }
     }
     
@@ -740,31 +799,36 @@ extension RecoveryScoreService {
     
     /// Load cached recovery score for instant display
     private func loadCachedRecoveryScore() async {
+        Logger.debug("🔍 [RECOVERY ASYNC] Starting async load from UnifiedCacheManager")
+        Logger.debug("🔍 [RECOVERY ASYNC] currentRecoveryScore BEFORE async load: \(currentRecoveryScore?.score ?? -1)")
+
         let cacheKey = CacheKey.recoveryScore(date: Date())
-        
+
         // Try to get cached score - wrap in do-catch since we're checking if it exists
         do {
             let cachedScore: RecoveryScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
                 // If no cache, return nil to skip
                 throw NSError(domain: "RecoveryScore", code: 404)
             }
-            
+
+            Logger.debug("⚡ [RECOVERY ASYNC] Found cached score in UnifiedCacheManager: \(cachedScore.score)")
             currentRecoveryScore = cachedScore
-            Logger.debug("⚡ Loaded cached recovery score: \(cachedScore.score)")
-            
+            Logger.debug("🔍 [RECOVERY ASYNC] currentRecoveryScore AFTER setting from cache: \(currentRecoveryScore?.score ?? -1)")
+
             // Also save to shared UserDefaults for widget/watch
             if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
                 sharedDefaults.set(cachedScore.score, forKey: "cachedRecoveryScore")
                 sharedDefaults.set(cachedScore.band.rawValue, forKey: "cachedRecoveryBand")
                 sharedDefaults.set(cachedScore.isPersonalized, forKey: "cachedRecoveryIsPersonalized")
                 Logger.debug("⌚ Synced cached recovery score to shared defaults for widget/watch")
-                
+
                 // Reload widgets to show cached data
                 WidgetCenter.shared.reloadAllTimelines()
             }
         } catch {
-            // No cached score or error - this is fine on first launch
-            Logger.debug("📦 No cached recovery score found")
+            // No cached score or error - DON'T clear the synchronously-loaded score!
+            Logger.debug("📦 [RECOVERY ASYNC] No cached recovery score found in UnifiedCacheManager (error: \(error.localizedDescription))")
+            Logger.debug("🔍 [RECOVERY ASYNC] Preserving synchronously-loaded score: \(currentRecoveryScore?.score ?? -1)")
         }
     }
     

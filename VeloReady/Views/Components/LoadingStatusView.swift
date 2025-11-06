@@ -4,22 +4,39 @@ import SwiftUI
 struct LoadingStatusView: View {
     let state: LoadingState
     let onErrorTap: (() -> Void)?
-    
+
     @State private var isVisible = false
-    
+    @State private var rotationAngle: Double = 0
+
     var body: some View {
         Group {
             if shouldShowStatus {
                 HStack(spacing: Spacing.xs) {
-                    if isLoadingState {
+                    if isOfflineState {
+                        // Show wifi slash icon for offline state
+                        Image(systemName: "wifi.slash")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(ColorScale.amberAccent)
+                    } else if isSyncingState {
+                        // Show rotating sync icon for syncing state
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(ColorScale.greenAccent)
+                            .rotationEffect(.degrees(rotationAngle))
+                            .onAppear {
+                                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                                    rotationAngle = 360
+                                }
+                            }
+                    } else if isLoadingState {
                         ProgressView()
                             .scaleEffect(0.7)
                             .tint(Color.text.secondary)
                     }
-                    
+
                     VRText(statusText, style: .bodySecondary)
                         .foregroundColor(statusColor)
-                    
+
                     Spacer() // Push content to left
                 }
                 .frame(maxWidth: .infinity, alignment: .leading) // Align left
@@ -69,6 +86,8 @@ struct LoadingStatusView: View {
             return LoadingContent.syncingData
         case .refreshingScores:
             return LoadingContent.refreshingScores
+        case .offline:
+            return LoadingContent.offline
         case .complete:
             return LoadingContent.complete
         case .updated(let date):
@@ -91,6 +110,12 @@ struct LoadingStatusView: View {
         if isErrorState {
             return Color.text.error
         }
+        if isOfflineState {
+            return ColorScale.amberAccent
+        }
+        if isSyncingState {
+            return ColorScale.greenAccent
+        }
         return Color.text.secondary
     }
     
@@ -98,8 +123,8 @@ struct LoadingStatusView: View {
         switch state {
         case .initial, .complete:
             return false  // Don't show for these states
-        case .updated:
-            return true  // Show updated status persistently
+        case .updated, .offline:
+            return true  // Show updated and offline status persistently
         default:
             return true
         }
@@ -107,13 +132,27 @@ struct LoadingStatusView: View {
     
     private var isLoadingState: Bool {
         switch state {
-        case .error, .complete, .updated:
+        case .error, .complete, .updated, .syncingData, .offline:
             return false  // No spinner for these states
         default:
             return true
         }
     }
-    
+
+    private var isOfflineState: Bool {
+        if case .offline = state {
+            return true
+        }
+        return false
+    }
+
+    private var isSyncingState: Bool {
+        if case .syncingData = state {
+            return true
+        }
+        return false
+    }
+
     private var isErrorState: Bool {
         if case .error = state {
             return true
@@ -128,6 +167,11 @@ struct LoadingStatusView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isVisible = false
             }
+        } else if case .syncingData = newState {
+            // Show syncing state with rotating icon
+            isVisible = true
+            Logger.debug("📊 [LoadingStatus] Showing syncing state with rotating icon")
+            // Note: Timeout is handled by TodayViewModel which transitions to .updated after 3 seconds
         } else {
             isVisible = true
         }

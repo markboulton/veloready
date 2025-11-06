@@ -28,9 +28,83 @@ class StrainScoreService: ObservableObject {
     
     init() {
         self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
-        
+
+        // Load cached strain score synchronously for instant display (prevents empty rings)
+        loadCachedStrainScoreSync()
+
         // Load cached strain score immediately for instant display
         loadCachedStrainScore()
+    }
+
+    /// Load cached strain score synchronously from UserDefaults for instant display
+    /// This prevents empty rings when view re-renders due to network state changes
+    private func loadCachedStrainScoreSync() {
+        Logger.debug("🔍 [STRAIN SYNC] Starting synchronous load from UserDefaults")
+        Logger.debug("🔍 [STRAIN SYNC] currentStrainScore BEFORE: \(currentStrainScore?.score ?? -1)")
+
+        // Try loading from shared UserDefaults (fastest, always available)
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.markboulton.VeloReady") {
+            if let score = sharedDefaults.value(forKey: "cachedStrainScore") as? Double {
+                // Create a placeholder score with cached values
+                // Map score to band (0-18 scale)
+                let band: StrainScore.StrainBand
+                if score < 6 {
+                    band = .light
+                } else if score < 11 {
+                    band = .moderate
+                } else if score < 16 {
+                    band = .hard
+                } else {
+                    band = .veryHard
+                }
+
+                let strainScore = StrainScore(
+                    score: score,
+                    band: band,
+                    subScores: StrainScore.SubScores(
+                        cardioLoad: 0,
+                        strengthLoad: 0,
+                        nonExerciseLoad: 0,
+                        recoveryFactor: 1.0
+                    ),
+                    inputs: StrainScore.StrainInputs(
+                        continuousHRData: nil,
+                        dailyTRIMP: nil,
+                        cardioDailyTRIMP: nil,
+                        cardioDurationMinutes: nil,
+                        averageIntensityFactor: nil,
+                        workoutTypes: nil,
+                        strengthSessionRPE: nil,
+                        strengthDurationMinutes: nil,
+                        strengthVolume: nil,
+                        strengthSets: nil,
+                        muscleGroupsTrained: nil,
+                        isEccentricFocused: nil,
+                        dailySteps: nil,
+                        activeEnergyCalories: nil,
+                        nonWorkoutMETmin: nil,
+                        hrvOvernight: nil,
+                        hrvBaseline: nil,
+                        rmrToday: nil,
+                        rmrBaseline: nil,
+                        sleepQuality: nil,
+                        userFTP: nil,
+                        userMaxHR: nil,
+                        userRestingHR: nil,
+                        userBodyMass: nil
+                    ),
+                    calculatedAt: Date()
+                )
+
+                currentStrainScore = strainScore
+                Logger.debug("⚡💾 [STRAIN SYNC] Loaded cached strain score synchronously: \(score)")
+                Logger.debug("🔍 [STRAIN SYNC] currentStrainScore AFTER: \(currentStrainScore?.score ?? -1)")
+            } else {
+                Logger.debug("⚠️ [STRAIN SYNC] No strain score found in UserDefaults")
+            }
+        } else {
+            Logger.debug("❌ [STRAIN SYNC] Failed to access shared UserDefaults")
+        }
     }
     
     /// Calculate today's strain score

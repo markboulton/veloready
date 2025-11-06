@@ -19,7 +19,6 @@ struct TodayView: View {
     @StateObject private var wellnessService = WellnessDetectionService.shared
     @StateObject private var illnessService = IllnessDetectionService.shared
     @ObservedObject private var liveActivityService = LiveActivityService.shared
-    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
@@ -34,6 +33,7 @@ struct TodayView: View {
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     
     init(showInitialSpinner: Binding<Bool> = .constant(true)) {
         self._showInitialSpinner = showInitialSpinner
@@ -41,11 +41,7 @@ struct TodayView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Offline banner (shown when no network connection)
-                OfflineBannerView(networkMonitor: networkMonitor)
-
-                ZStack(alignment: .top) {
+            ZStack(alignment: .top) {
                     // Adaptive background (light grey in light mode, black in dark mode)
                     Color.background.app
                         .ignoresSafeArea()
@@ -150,10 +146,12 @@ struct TodayView: View {
                     .padding(.bottom, 120)
                 }
                 .coordinateSpace(name: "scroll")
-                .refreshable {
-                    // User-triggered refresh action (pull-to-refresh)
-                    // LoadingStatusView provides visual feedback (no blocking spinner)
-                    await viewModel.refreshData()
+                .if(networkMonitor.isConnected) { view in
+                    view.refreshable {
+                        // User-triggered refresh action (pull-to-refresh)
+                        // LoadingStatusView provides visual feedback (no blocking spinner)
+                        await viewModel.refreshData()
+                    }
                 }
                 
                 // Loading overlay - shows on top of content
@@ -174,7 +172,6 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
-            }
         }
         .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
         .onAppear {

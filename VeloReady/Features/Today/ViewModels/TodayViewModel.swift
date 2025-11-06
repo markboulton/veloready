@@ -56,7 +56,11 @@ class TodayViewModel: ObservableObject {
     
     // Observer for HealthKit authorization changes
     private var healthKitObserver: AnyCancellable?
-    
+
+    // Observer for network state changes
+    private var networkObserver: AnyCancellable?
+    private var wasOffline = false
+
     // PERFORMANCE FIX: Track background tasks for cancellation
     private var backgroundTasks: [Task<Void, Never>] = []
     
@@ -101,12 +105,47 @@ class TodayViewModel: ObservableObject {
                     self?.isHealthKitAuthorized = isAuthorized
                 }
             }
-        
+
+        // Setup network state observer to show syncing status when coming back online
+        setupNetworkObserver()
+
         // ULTRA-FAST initialization - no expensive operations
         loadInitialDataFast()
         Logger.debug("✅ [SPINNER] TodayViewModel init complete - isInitializing=\(isInitializing)")
     }
-    
+
+    /// Setup observer for network state changes to show offline/syncing status
+    private func setupNetworkObserver() {
+        // Check initial network state immediately
+        let initialState = NetworkMonitor.shared.isConnected
+        if !initialState {
+            Logger.debug("📡 [Network] Initial state: offline - showing offline status")
+            loadingStateManager.forceState(.offline)
+        }
+        wasOffline = !initialState
+
+        networkObserver = NetworkMonitor.shared.$isConnected
+            .sink { [weak self] isConnected in
+                guard let self = self else { return }
+
+                Task { @MainActor in
+                    if !isConnected {
+                        // Device went offline - show offline status
+                        Logger.debug("📡 [Network] Device offline - showing offline status")
+                        self.loadingStateManager.forceState(.offline)
+                    } else if self.wasOffline && isConnected {
+                        // Detect offline → online transition - actually refresh data
+                        Logger.debug("📡 [Network] Came back online - refreshing all data")
+
+                        // Actually refresh the data (this will update loading states naturally)
+                        await self.refreshData()
+                    }
+
+                    self.wasOffline = !isConnected
+                }
+            }
+    }
+
     func refreshData(forceRecoveryRecalculation: Bool = false) async {
         let startTime = CFAbsoluteTimeGetCurrent()
         Logger.warning("️ Starting full data refresh...")

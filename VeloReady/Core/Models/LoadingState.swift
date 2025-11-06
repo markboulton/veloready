@@ -14,6 +14,7 @@ enum LoadingState: Equatable {
     case savingToICloud            // Saving data to iCloud
     case syncingData               // Syncing to iCloud/backend (deprecated - use savingToICloud)
     case refreshingScores          // Recalculating with new data
+    case offline                   // Device is offline (persistent)
     case complete                  // All loading complete
     case updated(Date)             // Updated at specific time (persistent)
     case error(LoadingError)       // Error occurred
@@ -61,6 +62,8 @@ enum LoadingState: Equatable {
             return 0.4
         case .refreshingScores:
             return 0.4
+        case .offline:
+            return 2.0  // Persistent while offline
         case .complete:
             return 0.2
         case .updated:

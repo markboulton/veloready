@@ -14,7 +14,7 @@ struct TrendsView: View {
                 // Adaptive background (light grey in light mode, black in dark mode)
                 Color.background.app
                     .ignoresSafeArea()
-                
+
                 Group {
                     if proConfig.hasProAccess {
                         trendsContent
@@ -22,7 +22,7 @@ struct TrendsView: View {
                         proGate
                     }
                 }
-                
+
                 // Navigation gradient mask (iOS Mail style)
                 NavigationGradientMask()
             }
