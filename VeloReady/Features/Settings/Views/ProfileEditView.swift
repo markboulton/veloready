@@ -248,33 +248,86 @@ class ProfileEditViewModel: ObservableObject {
             weight: weight,
             height: height
         )
-        
+
         if let data = try? JSONEncoder().encode(profile) {
             UserDefaults.standard.set(data, forKey: profileKey)
             Logger.info("✅ Profile saved", category: .data)
         }
-        
+
         // Save avatar
         if let image = avatarImage,
            let imageData = image.jpegData(compressionQuality: 0.8) {
             UserDefaults.standard.set(imageData, forKey: avatarKey)
             Logger.info("✅ Avatar saved", category: .data)
         }
-        
+
         // Sync with AthleteProfileManager (for weight and name)
         // Split name into first/last
         let nameComponents = name.split(separator: " ", maxSplits: 1)
         let firstName = nameComponents.first.map(String.init)
         let lastName = nameComponents.count > 1 ? String(nameComponents[1]) : nil
-        
+
         AthleteProfileManager.shared.updateManually(
             firstName: firstName,
             lastName: lastName,
             weight: weight > 0 ? weight : nil,
             sex: nil // Sex not in this form yet
         )
+
+        // Queue write for backend sync
+        Task {
+            await queueProfileWrite()
+        }
     }
-    
+
+    /// Queue profile changes for backend sync when online
+    private func queueProfileWrite() async {
+        do {
+            // Queue each setting change separately
+            if !name.isEmpty {
+                try await OfflineWriteQueue.shared.enqueue(
+                    type: .settingsChange,
+                    payload: ProfileSettingsPayload(key: "name", value: name)
+                )
+            }
+
+            if !email.isEmpty {
+                try await OfflineWriteQueue.shared.enqueue(
+                    type: .settingsChange,
+                    payload: ProfileSettingsPayload(key: "email", value: email)
+                )
+            }
+
+            if age > 0 {
+                try await OfflineWriteQueue.shared.enqueue(
+                    type: .settingsChange,
+                    payload: ProfileSettingsPayload(key: "age", value: String(age))
+                )
+            }
+
+            if weight > 0 {
+                try await OfflineWriteQueue.shared.enqueue(
+                    type: .settingsChange,
+                    payload: ProfileSettingsPayload(key: "weight", value: String(weight))
+                )
+            }
+
+            if height > 0 {
+                try await OfflineWriteQueue.shared.enqueue(
+                    type: .settingsChange,
+                    payload: ProfileSettingsPayload(key: "height", value: String(height))
+                )
+            }
+
+            Logger.debug("📦 [Profile] Queued profile settings for backend sync")
+
+            // Try to sync immediately if online
+            await OfflineWriteQueue.shared.syncWhenOnline()
+        } catch {
+            Logger.error("❌ [Profile] Failed to queue profile settings: \(error)")
+        }
+    }
+
     func loadImage(from item: PhotosPickerItem) {
         Task {
             if let data = try? await item.loadTransferable(type: Data.self),
@@ -332,6 +385,13 @@ struct UserProfile: Codable {
     let age: Int
     let weight: Double
     let height: Int
+}
+
+// MARK: - Profile Settings Payload
+
+private struct ProfileSettingsPayload: Codable {
+    let key: String
+    let value: String
 }
 
 // MARK: - Preview

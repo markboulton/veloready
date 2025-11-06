@@ -225,27 +225,30 @@ struct RPEInputSheet: View {
     
     private func saveDetails() {
         isSaving = true
-        
+
         Logger.debug("🟢 RPEInputSheet saveDetails called")
         Logger.debug("🟢 RPE: \(rpeValue)")
         Logger.debug("🟢 Selected muscle groups count: \(selectedMuscleGroups.count)")
         Logger.debug("🟢 Selected muscle groups: \(selectedMuscleGroups.map { $0.rawValue })")
         Logger.debug("🟢 Workout UUID: \(workout.uuid)")
-        
-        // Save to new Core Data service
+
+        // Save to new Core Data service (local storage)
         WorkoutMetadataService.shared.saveMetadata(
             for: workout,
             rpe: rpeValue,
             muscleGroups: selectedMuscleGroups.isEmpty ? nil : Array(selectedMuscleGroups),
             isEccentricFocused: nil // TODO: Add UI for this
         )
-        
+
         Logger.debug("🟢 Save completed, refreshing strain score...")
-        
+
         // Trigger strain score refresh
         Task {
             await StrainScoreService.shared.calculateStrainScore()
-            
+
+            // Queue write for backend sync (online or offline)
+            await queueRPEWrite()
+
             await MainActor.run {
                 isSaving = false
                 onSave?()
@@ -253,6 +256,33 @@ struct RPEInputSheet: View {
             }
         }
     }
+
+    /// Queue RPE write for backend sync when online
+    private func queueRPEWrite() async {
+        do {
+            let payload = RPEWritePayload(
+                activityId: workout.uuid.uuidString,
+                rpeScore: Int(rpeValue),
+                source: "healthkit"
+            )
+
+            try await OfflineWriteQueue.shared.enqueue(type: .rpeRating, payload: payload)
+            Logger.debug("📦 [RPE] Queued RPE write for workout \(workout.uuid)")
+
+            // Try to sync immediately if online
+            await OfflineWriteQueue.shared.syncWhenOnline()
+        } catch {
+            Logger.error("❌ [RPE] Failed to queue RPE write: \(error)")
+        }
+    }
+}
+
+// MARK: - RPE Write Payload
+
+private struct RPEWritePayload: Codable {
+    let activityId: String
+    let rpeScore: Int
+    let source: String
 }
 
 // MARK: - Muscle Group Button
