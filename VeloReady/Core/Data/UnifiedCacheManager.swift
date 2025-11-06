@@ -242,6 +242,17 @@ actor UnifiedCacheManager {
         }
     }
     
+    // MARK: - Cache Inspection
+    
+    /// Check if cache is valid without fetching
+    /// Returns true if cache exists and is fresh (within TTL)
+    func isCacheValid(key: String, ttl: TimeInterval) -> Bool {
+        guard let cached = memoryCache[key] else {
+            return false
+        }
+        return cached.isValid(ttl: ttl)
+    }
+    
     // MARK: - Cache Management
     
     /// Invalidate specific cache entry

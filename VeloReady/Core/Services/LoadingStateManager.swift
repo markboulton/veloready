@@ -16,23 +16,22 @@ class LoadingStateManager: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
         Logger.debug("📊 [LoadingState] [\(formatter.string(from: timestamp))] Queue: \(newState)")
+        Logger.debug("📊 [LoadingState] Queue depth BEFORE: \(stateQueue.count), isProcessing: \(isProcessingQueue), current: \(currentState)")
         
-        // CRITICAL FIX: When work completes, clear queue and jump to final state
+        // CRITICAL FIX: When work completes, append to queue (don't skip pending states!)
         if case .complete = newState {
-            Logger.debug("⚡ [LoadingState] Work complete - clearing queue and showing immediately")
-            stateQueue = [newState]
-            currentState = newState
-            currentStateStartTime = Date()
-            isProcessingQueue = false
+            Logger.debug("⚡ [LoadingState] Work complete - appending to queue (will show pending states first)")
+            Logger.debug("⚡ [LoadingState] Queue currently has \(stateQueue.count) pending states: \(stateQueue.map { String(describing: $0) }.joined(separator: ", "))")
+            stateQueue.append(newState)
+            processQueueIfNeeded()
             return
         }
         
         if case .updated = newState {
-            Logger.debug("⚡ [LoadingState] Updated state - clearing queue and showing immediately")
-            stateQueue = [newState]
-            currentState = newState
-            currentStateStartTime = Date()
-            isProcessingQueue = false
+            Logger.debug("⚡ [LoadingState] Updated state - appending to queue")
+            Logger.debug("⚡ [LoadingState] Queue currently has \(stateQueue.count) pending states: \(stateQueue.map { String(describing: $0) }.joined(separator: ", "))")
+            stateQueue.append(newState)
+            processQueueIfNeeded()
             return
         }
         
@@ -57,9 +56,16 @@ class LoadingStateManager: ObservableObject {
     }
     
     private func processQueueIfNeeded() {
-        guard !isProcessingQueue else { return }
-        guard !stateQueue.isEmpty else { return }
+        guard !isProcessingQueue else {
+            Logger.debug("📊 [LoadingState] processQueueIfNeeded: Already processing, skipping")
+            return
+        }
+        guard !stateQueue.isEmpty else {
+            Logger.debug("📊 [LoadingState] processQueueIfNeeded: Queue empty, nothing to process")
+            return
+        }
         
+        Logger.debug("📊 [LoadingState] processQueueIfNeeded: Starting to process \(stateQueue.count) queued states")
         isProcessingQueue = true
         Task {
             await processNextState()
@@ -68,9 +74,12 @@ class LoadingStateManager: ObservableObject {
     
     private func processNextState() async {
         guard let nextState = stateQueue.first else {
+            Logger.debug("📊 [LoadingState] processNextState: Queue empty, marking done")
             isProcessingQueue = false
             return
         }
+        
+        Logger.debug("📊 [LoadingState] processNextState: Processing state \(nextState), queue has \(stateQueue.count) items")
         
         // Wait for minimum display duration of current state
         if let startTime = currentStateStartTime {
@@ -78,7 +87,10 @@ class LoadingStateManager: ObservableObject {
             let minimumDuration = currentState.minimumDisplayDuration
             let remaining = minimumDuration - elapsed
             
+            Logger.debug("📊 [LoadingState] Current state '\(currentState)' elapsed: \(String(format: "%.2f", elapsed))s, min: \(String(format: "%.2f", minimumDuration))s, remaining: \(String(format: "%.2f", remaining))s")
+            
             if remaining > 0 {
+                Logger.debug("📊 [LoadingState] Waiting \(String(format: "%.2f", remaining))s before transition")
                 try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
             }
         }
@@ -91,11 +103,14 @@ class LoadingStateManager: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
         Logger.debug("✅ [LoadingState] [\(formatter.string(from: timestamp))] Now showing: \(nextState)")
+        Logger.debug("📊 [LoadingState] Queue now has \(stateQueue.count) remaining states")
         
         // Process next state if queue not empty
         if !stateQueue.isEmpty {
+            Logger.debug("📊 [LoadingState] Recursing to process next state...")
             await processNextState()
         } else {
+            Logger.debug("📊 [LoadingState] Queue empty, marking processing complete")
             isProcessingQueue = false
         }
     }

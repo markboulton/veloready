@@ -62,18 +62,18 @@ struct TodayView: View {
                         }
                         .frame(height: 0)
                         
-                        // Loading status view (Apple Mail style)
-                        HStack {
+                        // Loading status - scrolls with content, appears at top during pull-to-refresh
+                        if !viewModel.isInitializing {
                             LoadingStatusView(
                                 state: viewModel.loadingStateManager.currentState,
                                 onErrorTap: {
                                     viewModel.retryLoading()
                                 }
                             )
-                            Spacer()
+                            .padding(.leading, 0)
+                            .padding(.top, 0)
+                            .padding(.bottom, Spacing.sm)
                         }
-                        .padding(.leading, 0)
-                        .padding(.top, Spacing.xs) // Small top padding (4pt)
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
@@ -151,7 +151,9 @@ struct TodayView: View {
                 }
                 .coordinateSpace(name: "scroll")
                 .refreshable {
-                    await viewModel.forceRefreshData()
+                    // User-triggered refresh action (pull-to-refresh)
+                    // LoadingStatusView provides visual feedback (no blocking spinner)
+                    await viewModel.refreshData()
                 }
                 
                 // Loading overlay - shows on top of content
@@ -186,6 +188,7 @@ struct TodayView: View {
         .onDisappear {
             Logger.debug("👋 [SPINNER] TodayView.onDisappear called - marking view as inactive")
             isViewActive = false
+            viewModel.cancelBackgroundTasks()
         }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")

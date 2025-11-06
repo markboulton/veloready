@@ -57,6 +57,22 @@ class TodayViewModel: ObservableObject {
     // Observer for HealthKit authorization changes
     private var healthKitObserver: AnyCancellable?
     
+    // PERFORMANCE FIX: Track background tasks for cancellation
+    private var backgroundTasks: [Task<Void, Never>] = []
+    
+    /// Cancel all background tasks (call when view disappears or on memory warning)
+    func cancelBackgroundTasks() {
+        Logger.debug("🛑 Cancelling \(backgroundTasks.count) background tasks")
+        backgroundTasks.forEach { $0.cancel() }
+        backgroundTasks.removeAll()
+    }
+    
+    deinit {
+        // Directly cancel tasks (can't call @MainActor method from deinit)
+        Logger.debug("🗑️ TodayViewModel deinit - cancelling \(backgroundTasks.count) background tasks")
+        backgroundTasks.forEach { $0.cancel() }
+    }
+    
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() {
         recoveryScoreService.clearBaselineCache()
@@ -95,9 +111,21 @@ class TodayViewModel: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
         Logger.warning("️ Starting full data refresh...")
         
-        // Update loading state for pull-to-refresh (scores already visible)
+        // OPTIMIZATION: Check cache validity before showing "contacting integrations"
         let activeSources = getActiveIntegrations()
-        loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        let cacheKey = CacheKey.stravaActivities(daysBack: 7)
+        let cacheTTL: TimeInterval = 3600 // 1 hour
+        let hasFreshCache = await UnifiedCacheManager.shared.isCacheValid(key: cacheKey, ttl: cacheTTL)
+        
+        if !hasFreshCache && !activeSources.isEmpty {
+            // Cache is stale/missing - we'll need to contact integrations
+            Logger.debug("📡 Cache stale - showing 'contacting integrations' message")
+            loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        } else {
+            // Cache is fresh - just show checking for updates
+            Logger.debug("⚡ Cache fresh (age: \(hasFreshCache ? "valid" : "missing")) - skipping 'contacting integrations' message")
+            loadingStateManager.updateState(.checkingForUpdates)
+        }
         
         isLoading = true
         isDataLoaded = false
@@ -473,42 +501,62 @@ class TodayViewModel: ObservableObject {
     private func refreshActivitiesAndOtherData() async {
         let startTime = CFAbsoluteTimeGetCurrent()
         
-        // OPTIMIZATION: Fetch incrementally to show data faster
-        // Show specific integration contact now
+        // PERFORMANCE FIX: Cancel any existing background tasks before starting new ones
+        backgroundTasks.forEach { $0.cancel() }
+        backgroundTasks.removeAll()
+        
+        // OPTIMIZATION: Check cache validity BEFORE showing "contacting integrations"
+        // Only show loading state if we'll actually make network requests
         let activeSources = getActiveIntegrations()
-        if !activeSources.isEmpty {
+        let cacheKey = CacheKey.stravaActivities(daysBack: 7)
+        let cacheTTL: TimeInterval = 3600 // 1 hour
+        let hasFreshCache = await UnifiedCacheManager.shared.isCacheValid(key: cacheKey, ttl: cacheTTL)
+        
+        if !hasFreshCache && !activeSources.isEmpty {
+            // Cache is stale/missing - we'll need to contact integrations
+            Logger.debug("📡 Cache stale - showing 'contacting integrations' message")
             loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
+        } else {
+            // Cache is fresh - just show checking for updates (brief)
+            Logger.debug("⚡ Cache fresh - skipping 'contacting integrations' message")
+            loadingStateManager.updateState(.checkingForUpdates)
         }
         
         // Priority 1: Today's activities (fast) - ONLY fetch last 7 days, not 365
         Logger.debug("📊 [INCREMENTAL] Fetching today's activities...")
-        loadingStateManager.updateState(.checkingForUpdates)
-        let primarySource = activeSources.first
+        loadingStateManager.updateState(.downloadingActivities(count: nil, source: nil))
         await fetchAndUpdateActivities(daysBack: 1)
         Logger.debug("✅ [INCREMENTAL] Today's activities loaded")
         
         // Priority 2: This week's activities (for recent context)
         Logger.debug("📊 [INCREMENTAL] Fetching this week's activities...")
-        // Update status since this might take time (especially if illness detection runs)
-        if !activeSources.isEmpty {
-            loadingStateManager.updateState(.contactingIntegrations(sources: activeSources))
-        }
+        // Only show contacting state if cache will be stale (already checked above)
         await fetchAndUpdateActivities(daysBack: 7)
         Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
         
         // Priority 3: Full history (TRUE background, low priority) - don't block UI
-        // This runs completely detached and doesn't affect loading states
+        // PERFORMANCE FIX: Track task for cancellation
         Logger.debug("📊 [INCREMENTAL] Fetching full activity history in background...")
-        Task.detached(priority: .utility) {
+        let historyTask = Task.detached(priority: .utility) {
+            guard !Task.isCancelled else {
+                await Logger.debug("🛑 [TASK] Full history fetch cancelled")
+                return
+            }
             // Fetch 365 days in background without blocking
             await self.stravaDataService.fetchActivities(daysBack: 365)
             await MainActor.run {
                 Logger.debug("✅ [INCREMENTAL] Full history loaded (\(self.stravaDataService.activities.count) activities)")
             }
         }
+        backgroundTasks.append(historyTask)
         
         // Also fetch wellness data (non-blocking)
-        Task.detached(priority: .background) {
+        // PERFORMANCE FIX: Track task for cancellation
+        let wellnessTask = Task.detached(priority: .background) {
+            guard !Task.isCancelled else {
+                await Logger.debug("🛑 [TASK] Wellness fetch cancelled")
+                return
+            }
             do {
                 let wellness = try await self.intervalsCache.getCachedWellness(apiClient: self.apiClient, forceRefresh: false)
                 await MainActor.run {
@@ -519,38 +567,57 @@ class TodayViewModel: ObservableObject {
                 Logger.warning("️ Failed to load wellness data: \(error.localizedDescription)")
             }
         }
+        backgroundTasks.append(wellnessTask)
         
-        // Show processing state before heavy operations
-        loadingStateManager.updateState(.processingData)
+        // PERFORMANCE FIX: Move ALL heavy background operations to non-blocking tasks
+        // User-visible refresh should complete in <3s, background work continues silently
         
-        // Save to Core Data cache
-        do {
-            try await cacheManager.refreshToday()
-            
-            // Move heavy CTL/ATL calculation to background (non-blocking)
-            Task.detached(priority: .background) {
+        // Show saving state before background work
+        loadingStateManager.updateState(.savingToICloud)
+        
+        // Background task: Core Data save + CTL/ATL calculation
+        let coreDataTask = Task.detached(priority: .utility) {
+            guard !Task.isCancelled else {
+                await Logger.debug("🛑 [TASK] Core Data save cancelled")
+                return
+            }
+            do {
+                try await self.cacheManager.refreshToday()
+                
+                // CTL/ATL backfill (heavy computation)
                 await CacheManager.shared.calculateMissingCTLATL()
                 await MainActor.run {
-                    Logger.debug("✅ CTL/ATL calculation complete (background)")
+                    Logger.debug("☁️ Core Data + CTL/ATL complete (background)")
                 }
+            } catch {
+                Logger.error("Failed to save to Core Data cache: \(error)")
             }
-        } catch {
-            Logger.error("Failed to save to Core Data cache: \(error)")
         }
+        backgroundTasks.append(coreDataTask)
         
-        // Fetch training load data for all time ranges (week, month, 3 months)
-        // This data is used by the fitness trajectory chart
-        await TrainingLoadService.shared.fetchAllData()
+        // Background task: Training load fetch (week/month/3-month data)
+        let trainingLoadTask = Task.detached(priority: .utility) {
+            guard !Task.isCancelled else {
+                await Logger.debug("🛑 [TASK] Training load fetch cancelled")
+                return
+            }
+            await TrainingLoadService.shared.fetchAllData()
+            await MainActor.run {
+                Logger.debug("📊 Training load data fetched (background)")
+            }
+        }
+        backgroundTasks.append(trainingLoadTask)
         
-        // Show syncing state briefly
-        loadingStateManager.updateState(.syncingData)
+        // CRITICAL: Wait for savingToICloud to display (min 0.6s) before showing complete
+        // This ensures the user sees the "Saving to iCloud" status
+        try? await Task.sleep(nanoseconds: 700_000_000) // 0.7s (gives savingToICloud time to show)
         
-        // Mark loading as complete NOW (user-visible work is done)
-        // Background tasks (365-day history, CTL/ATL backfill) continue without blocking
+        // Mark user-visible work as COMPLETE (no processingData/syncingData delay)
+        // Background tasks continue without blocking UI
         loadingStateManager.updateState(.complete)
         
         // After brief complete state, show persistent "Updated just now" status
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay
+        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s delay
         loadingStateManager.updateState(.updated(Date()))
         
         let endTime = CFAbsoluteTimeGetCurrent()
@@ -578,13 +645,6 @@ class TodayViewModel: ObservableObject {
         // Fetch Strava activities for specific time range
         await stravaDataService.fetchActivities(daysBack: daysBack)
         let stravaActivities = stravaDataService.activities
-        
-        // Only show downloading status if we actually have activities (not 0 from failed fetch)
-        if stravaActivities.count > 0 {
-            await MainActor.run {
-                loadingStateManager.updateState(.downloadingActivities(count: stravaActivities.count, source: .strava))
-            }
-        }
         
         // Fetch Apple Health workouts
         let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)

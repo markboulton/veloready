@@ -28,18 +28,22 @@ struct LoadingContent {
     }
     
     static func downloadingActivities(count: Int?, source: LoadingState.DataSource?) -> String {
-        let sourceName = source?.rawValue ?? "activities"
         if let count = count {
             if let source = source {
                 return "Downloading \(count) \(source.rawValue) activities..."
             }
             return "Downloading \(count) activities..."
         }
-        return "Downloading \(sourceName) activities..."
+        if let source = source {
+            return "Downloading \(source.rawValue) activities..."
+        }
+        return "Downloading activities..."
     }
     
+    static let generatingInsights = "Generating insights..."
     static let computingZones = "Computing power zones..."
     static let processingData = "Processing data..."
+    static let savingToICloud = "Saving to iCloud..."
     static let syncingData = "Syncing to iCloud..."
     static let refreshingScores = "Refreshing scores..."
     static let complete = "Ready"
@@ -92,10 +96,14 @@ struct LoadingContent {
                 return "Downloading \(count) activities from \(sourceName)"
             }
             return "Downloading activities from \(sourceName)"
+        case .generatingInsights:
+            return "Generating personalized insights and recommendations using AI"
         case .computingZones:
             return "Computing power and heart rate zones"
         case .processingData:
             return "Processing workout data"
+        case .savingToICloud:
+            return "Saving data to iCloud for backup"
         case .syncingData:
             return "Syncing data to iCloud"
         case .refreshingScores:

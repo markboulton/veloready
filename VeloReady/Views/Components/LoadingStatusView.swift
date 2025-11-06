@@ -30,7 +30,7 @@ struct LoadingStatusView: View {
                         onErrorTap?()
                     }
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(.opacity) // FIXED: Remove .move to prevent layout shift
             }
         }
         .animation(.easeInOut(duration: 0.3), value: state)
@@ -57,10 +57,14 @@ struct LoadingStatusView: View {
             return LoadingContent.contactingIntegrations(sources: sources)
         case .downloadingActivities(let count, let source):
             return LoadingContent.downloadingActivities(count: count, source: source)
+        case .generatingInsights:
+            return LoadingContent.generatingInsights
         case .computingZones:
             return LoadingContent.computingZones
         case .processingData:
             return LoadingContent.processingData
+        case .savingToICloud:
+            return LoadingContent.savingToICloud
         case .syncingData:
             return LoadingContent.syncingData
         case .refreshingScores:

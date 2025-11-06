@@ -8,9 +8,11 @@ enum LoadingState: Equatable {
     case checkingForUpdates        // Checking for new data (generic, before contacting services)
     case contactingIntegrations(sources: [DataSource])  // Contacting external services
     case downloadingActivities(count: Int?, source: DataSource?)  // Fetching activities
+    case generatingInsights        // Generating AI insights and recommendations
     case computingZones            // Computing power/HR zones
     case processingData            // Processing fetched data
-    case syncingData               // Syncing to iCloud/backend
+    case savingToICloud            // Saving data to iCloud
+    case syncingData               // Syncing to iCloud/backend (deprecated - use savingToICloud)
     case refreshingScores          // Recalculating with new data
     case complete                  // All loading complete
     case updated(Date)             // Updated at specific time (persistent)
@@ -35,19 +37,36 @@ enum LoadingState: Equatable {
     /// CRITICAL: Keep these VERY short to prevent lag when operations complete quickly
     var minimumDisplayDuration: TimeInterval {
         switch self {
-        case .initial: return 0.2
-        case .fetchingHealthData: return 0.2
-        case .calculatingScores: return 0.3
-        case .checkingForUpdates: return 0.2
-        case .contactingIntegrations: return 0.3
-        case .downloadingActivities: return 0.3
-        case .computingZones: return 0.3
-        case .processingData: return 0.2
-        case .syncingData: return 0.2
-        case .refreshingScores: return 0.2
-        case .complete: return 0.1  // Brief "done" state before fade
-        case .updated: return 0  // Persistent, no minimum
-        case .error: return 0  // Stays until dismissed
+        case .initial:
+            return 0
+        case .contactingIntegrations:
+            return 0.5
+        case .checkingForUpdates:
+            return 0.4
+        case .fetchingHealthData:
+            return 0.4
+        case .calculatingScores:
+            return 0.5
+        case .downloadingActivities:
+            return 0.5
+        case .generatingInsights:
+            return 0.5
+        case .computingZones:
+            return 0.4
+        case .processingData:
+            return 0.5
+        case .savingToICloud:
+            return 0.6
+        case .syncingData:
+            return 0.4
+        case .refreshingScores:
+            return 0.4
+        case .complete:
+            return 0.2
+        case .updated:
+            return 2.0
+        case .error:
+            return 3.0
         }
     }
     
