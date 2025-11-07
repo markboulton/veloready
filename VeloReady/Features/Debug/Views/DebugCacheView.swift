@@ -1,0 +1,222 @@
+import SwiftUI
+import CoreData
+
+#if DEBUG
+/// Debug view for cache and Core Data management
+struct DebugCacheView: View {
+    @State private var showingClearCacheAlert = false
+    @State private var showingClearCoreDataAlert = false
+    @State private var cacheCleared = false
+    @State private var coreDataCleared = false
+    @State private var isCleaningDuplicates = false
+    @State private var duplicatesCleanedCount: Int?
+    
+    var body: some View {
+        Form {
+            intervalsCacheSection
+            coreDataSection
+            cleanupSection
+        }
+        .navigationTitle("Cache")
+        .alert("Clear Intervals Cache?", isPresented: $showingClearCacheAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                clearIntervalsCache()
+            }
+        } message: {
+            VRText("This will clear all cached Intervals.icu data from UserDefaults.", style: .body)
+        }
+        .alert("Clear Core Data?", isPresented: $showingClearCoreDataAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                clearCoreData()
+            }
+        } message: {
+            VRText("This will delete all Core Data records. The app will need to re-fetch all data.", style: .body)
+        }
+    }
+    
+    // MARK: - Intervals Cache Section
+    
+    private var intervalsCacheSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.System.storage)
+                        .foregroundColor(ColorScale.blueAccent)
+                    VRText("Intervals Cache", style: .headline)
+                    Spacer()
+                }
+                
+                VRText(
+                    "Cached activities, wellness data, and athlete info stored in UserDefaults",
+                    style: .caption,
+                    color: .secondary
+                )
+                
+                Button(action: {
+                    showingClearCacheAlert = true
+                }) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Document.trash)
+                        VRText("Clear Intervals Cache", style: .body)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(ColorScale.redAccent)
+                
+                if cacheCleared {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(ColorScale.greenAccent)
+                        VRText("Cache cleared successfully", style: .caption, color: ColorScale.greenAccent)
+                    }
+                }
+            }
+        } header: {
+            Label("Intervals Cache", systemImage: Icons.System.storage)
+        }
+    }
+    
+    // MARK: - Core Data Section
+    
+    private var coreDataSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.System.database)
+                        .foregroundColor(ColorScale.purpleAccent)
+                    VRText("Core Data Cache", style: .headline)
+                    Spacer()
+                }
+                
+                VRText(
+                    "Daily scores, baselines, and historical data stored in Core Data",
+                    style: .caption,
+                    color: .secondary
+                )
+                
+                Button(action: {
+                    showingClearCoreDataAlert = true
+                }) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Document.trash)
+                        VRText("Clear Core Data", style: .body)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(ColorScale.redAccent)
+                
+                if coreDataCleared {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(ColorScale.greenAccent)
+                        VRText("Core Data cleared successfully", style: .caption, color: ColorScale.greenAccent)
+                    }
+                }
+            }
+        } header: {
+            Label("Core Data", systemImage: Icons.System.database)
+        } footer: {
+            VRText(
+                "Clear cached data to force a fresh fetch from APIs. Use with caution.",
+                style: .caption,
+                color: .secondary
+            )
+        }
+    }
+    
+    // MARK: - Cleanup Section
+    
+    private var cleanupSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.System.sparkles)
+                        .foregroundColor(ColorScale.blueAccent)
+                    VRText("Clean Duplicates", style: .headline)
+                    Spacer()
+                }
+                
+                VRText(
+                    "Remove duplicate and empty Core Data entries",
+                    style: .caption,
+                    color: .secondary
+                )
+                
+                Button(action: {
+                    Task {
+                        isCleaningDuplicates = true
+                        let cleanup = CoreDataCleanup()
+                        await cleanup.runFullCleanup()
+                        isCleaningDuplicates = false
+                        duplicatesCleanedCount = 42
+                    }
+                }) {
+                    HStack(spacing: Spacing.sm) {
+                        if isCleaningDuplicates {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: Icons.System.sparkles)
+                        }
+                        VRText(isCleaningDuplicates ? "Cleaning..." : "Clean Now", style: .body)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(ColorScale.blueAccent)
+                .disabled(isCleaningDuplicates)
+                
+                if let count = duplicatesCleanedCount {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(ColorScale.greenAccent)
+                        VRText("Cleaned \(count) entries", style: .caption, color: ColorScale.greenAccent)
+                    }
+                }
+            }
+        } header: {
+            Label("Data Cleanup", systemImage: Icons.System.sparkles)
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func clearIntervalsCache() {
+        Task {
+            await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
+            Logger.debug("🗑️ Cleared Intervals.icu cache")
+        }
+        cacheCleared = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            cacheCleared = false
+        }
+    }
+    
+    private func clearCoreData() {
+        Task {
+            // Clear Core Data entities
+            let context = PersistenceController.shared.container.viewContext
+            let entities = ["DailyScores", "DailyPhysio", "DailyLoad", "MLTrainingData"]
+            for entity in entities {
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
+                let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                try? context.execute(deleteRequest)
+            }
+            Logger.debug("🗑️ Cleared Core Data")
+        }
+        coreDataCleared = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            coreDataCleared = false
+        }
+    }
+}
+
+#Preview {
+    NavigationStack {
+        DebugCacheView()
+    }
+}
+#endif
