@@ -118,7 +118,7 @@ struct AlphaTesterSettingsView: View {
     
     private var feedbackSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Thank you for alpha testing!")
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -127,20 +127,20 @@ struct AlphaTesterSettingsView: View {
                     .font(.caption)
                     .foregroundColor(Color.text.secondary)
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .top, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack(alignment: .top, spacing: Spacing.xs) {
                         Text("•")
                         Text("Enable debug logging above")
                     }
-                    HStack(alignment: .top, spacing: 4) {
+                    HStack(alignment: .top, spacing: Spacing.xs) {
                         Text("•")
                         Text("Reproduce the issue")
                     }
-                    HStack(alignment: .top, spacing: 4) {
+                    HStack(alignment: .top, spacing: Spacing.xs) {
                         Text("•")
                         Text("Use the feedback button in Settings")
                     }
-                    HStack(alignment: .top, spacing: 4) {
+                    HStack(alignment: .top, spacing: Spacing.xs) {
                         Text("•")
                         Text("Logs will be automatically included")
                     }
