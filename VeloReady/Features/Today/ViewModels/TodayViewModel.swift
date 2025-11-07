@@ -77,7 +77,7 @@ class TodayViewModel: ObservableObject {
     
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() {
-        recoveryScoreService.clearBaselineCache()
+        Task { await recoveryScoreService.clearBaselineCache() }
         Logger.debug("🗑️ Cleared baseline cache - will fetch fresh historical data from HealthKit")
     }
     

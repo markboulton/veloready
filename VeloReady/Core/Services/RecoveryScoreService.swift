@@ -778,7 +778,7 @@ class RecoveryScoreService: ObservableObject {
         // Clear all caches first
         // IntervalsCache deleted - use CacheOrchestrator
         await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
-        baselineCalculator.clearCache()
+        await baselineCalculator.clearCache()
         
         // Wait a moment for cache clear to complete
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
@@ -1001,8 +1001,8 @@ extension RecoveryScoreService {
     }
     
     /// Clear baseline cache to force fresh calculation from HealthKit
-    func clearBaselineCache() {
-        baselineCalculator.clearCache()
+    func clearBaselineCache() async {
+        await baselineCalculator.clearCache()
     }
     
     // MARK: - Additional Recovery Metrics
