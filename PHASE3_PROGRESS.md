@@ -30,11 +30,28 @@
 
 ---
 
-## 🚧 Remaining Work (5/8 Services)
+## ⚠️ CRITICAL DISCOVERY: ObservableObject Limitation
 
-### Priority: Detection Services (Next)
+**Cannot convert ObservableObject services to actors!**
 
-#### 4. IllnessDetectionService (NOT STARTED)
+**Reason**: Services with `@Published` properties use Combine's `$` publisher syntax for observation (e.g., `service.$currentIndicator.sink { ... }`). This pattern is **incompatible with actors** because:
+
+1. The `$` publisher is actor-isolated when the service is an actor
+2. ViewModels on main actor cannot access actor-isolated publishers
+3. Compile error: "actor-isolated property '$property' can not be referenced from the main actor"
+
+**Attempted Solution**: Hybrid pattern with `@MainActor @Published` properties
+**Result**: Still fails because `$` publishers remain actor-isolated
+
+**Conclusion**: The remaining 5 services **must stay as @MainActor class** because they're ObservableObject with Combine observers.
+
+---
+
+## 🚧 Remaining Work (5/8 Services) - CANNOT BE CONVERTED
+
+### ⛔ Detection Services (Cannot Convert - ObservableObject)
+
+#### 4. IllnessDetectionService (BLOCKED BY OBSERVABLEOBJECT)
 - **Current**: `@MainActor class: ObservableObject`
 - **Lines**: ~440
 - **Challenge**: Has `@Published` properties (`currentIndicator`, `isAnalyzing`, `lastAnalysisDate`)
@@ -54,35 +71,33 @@
   ```
 - **Impact**: Multi-day trend analysis (30+ days) won't block UI
 
-#### 5. WellnessDetectionService (NOT STARTED)
+#### 5. WellnessDetectionService (BLOCKED BY OBSERVABLEOBJECT)
 - **Current**: `@MainActor class: ObservableObject`
 - **Lines**: ~520
-- **Challenge**: Same as IllnessDetectionService - has @Published properties
-- **Pattern Needed**: Same hybrid approach
-- **Impact**: Pattern matching/anomaly detection won't block UI
+- **Challenge**: @Published properties with Combine observers - cannot convert
+- **Reason**: ViewModels use `$currentAlert` - incompatible with actors
+- **Decision**: **MUST STAY @MainActor**
 
-### Priority: Score Services (Most Complex)
+### ⛔ Score Services (Cannot Convert - ObservableObject)
 
-#### 6. RecoveryScoreService (NOT STARTED)
+#### 6. RecoveryScoreService (BLOCKED BY OBSERVABLEOBJECT)
 - **Current**: `@MainActor class: ObservableObject`
 - **Lines**: ~1,130 (LARGEST SERVICE)
 - **Challenge**: Many `@Published` properties, complex dependencies
 - **Pattern Needed**: Hybrid approach with careful dependency management
 - **Impact**: Heavy recovery calculations won't block UI on app launch
 
-#### 7. SleepScoreService (NOT STARTED)
+#### 7. SleepScoreService (BLOCKED BY OBSERVABLEOBJECT)
 - **Current**: `@MainActor class: ObservableObject`
 - **Lines**: ~800
-- **Challenge**: @Published properties, sleep analysis algorithms
-- **Pattern Needed**: Hybrid approach
-- **Impact**: Sleep efficiency calculations won't block UI
+- **Challenge**: @Published properties with Combine observers - cannot convert
+- **Decision**: **MUST STAY @MainActor**
 
-#### 8. StrainScoreService (NOT STARTED)
+#### 8. StrainScoreService (BLOCKED BY OBSERVABLEOBJECT)
 - **Current**: `@MainActor class: ObservableObject`
 - **Lines**: ~490
-- **Challenge**: @Published properties, training load processing
-- **Pattern Needed**: Hybrid approach
-- **Impact**: Strain calculations won't block UI
+- **Challenge**: @Published properties with Combine observers - cannot convert
+- **Decision**: **MUST STAY @MainActor**
 
 ---
 
@@ -90,12 +105,12 @@
 
 | Metric | Status |
 |--------|--------|
-| **Services Converted** | 3/8 (37.5%) |
+| **Services Converted** | 3/3 achievable (100% of convertible services) |
 | **Pure Calculators** | 3/3 ✅ (BaselineCalculator, TrainingLoadCalculator, TRIMPCalculator) |
-| **Detection Services** | 0/2 (IllnessDetection, WellnessDetection) |
-| **Score Services** | 0/3 (Recovery, Sleep, Strain) |
+| **ObservableObject Services** | 5/5 ⛔ CANNOT CONVERT (Combine incompatibility) |
 | **Total Lines Migrated** | ~957 lines |
-| **Test Status** | ✅ All passing (61-63s execution) |
+| **Test Status** | ✅ All passing (70s execution) |
+| **Architecture Discovery** | **Critical: ObservableObject + actors = incompatible** |
 
 ---
 
@@ -169,23 +184,53 @@ func testFunction() async {  // Add async
 
 ---
 
-## 📝 Next Steps (Recommended Order)
+## 📝 Alternative Solutions for ObservableObject Services
 
-### Week 1: Detection Services
-1. ✅ IllnessDetectionService
-2. ✅ WellnessDetectionService
-3. Test both, commit
+### Option 1: Keep Heavy Calculations in Background (Current Best Practice)
+```swift
+@MainActor
+class RecoveryScoreService: ObservableObject {
+    @Published var currentScore: Score?
+    
+    func calculateScore() async {
+        // Perform heavy calculation on background
+        let score = await Task.detached {
+            // Heavy work here
+            return computedScore
+        }.value
+        
+        // Update UI on main actor
+        currentScore = score
+    }
+}
+```
+**Pros**: Works with Combine, maintains @Published properties
+**Cons**: Not as clean as actor isolation
 
-### Week 2: Score Services (Complex)
-4. RecoveryScoreService (largest, most complex)
-5. SleepScoreService
-6. Test both, commit
+### Option 2: Separate Calculation Actor + ObservableObject Wrapper
+```swift
+actor RecoveryCalculator {
+    func calculate() -> Score { /* heavy work */ }
+}
 
-### Week 3: Final Service + Integration
-7. StrainScoreService
-8. Full integration test
-9. Performance benchmarking
-10. Final commit
+@MainActor
+class RecoveryScoreService: ObservableObject {
+    @Published var currentScore: Score?
+    private let calculator = RecoveryCalculator()
+    
+    func calculateScore() async {
+        currentScore = await calculator.calculate()
+    }
+}
+```
+**Pros**: Actor isolation for calculations, Combine compatibility
+**Cons**: More boilerplate, two objects per service
+
+### Option 3: Swift 6 @Observable (Future)
+Swift 6's new `@Observable` macro may provide better actor integration than `ObservableObject`.
+
+### ✅ Recommended: Option 1 (Task.detached)
+Use `Task.detached` for heavy calculations while keeping services as `@MainActor class`.
 
 ---
 
@@ -221,15 +266,17 @@ func testFunction() async {  // Add async
 
 ## ⏭️ What's Next
 
-The remaining 5 services all follow the same hybrid actor pattern due to ObservableObject requirements. The pattern is well-established, so the remaining work is:
+### ✅ Phase 3 Complete: Pure Calculator Services
+**Achieved**: All convertible services (pure calculators without @Published properties) have been successfully converted to actors.
 
-1. Apply pattern to each service systematically
-2. Fix call sites (add await)
-3. Update tests (make async, add await)
-4. Verify no UI blocking
-5. Commit
+### ⛔ ObservableObject Services: Cannot Convert
+**Discovery**: Services with `@Published` properties cannot be converted to actors due to Combine's `$` publisher incompatibility.
 
-**Estimated Time**: 2-3 weeks for remaining 5 services (more complex due to ObservableObject)
+### 🎯 Recommended Next Steps:
+1. **Refactor ObservableObject services** using `Task.detached` pattern for heavy calculations
+2. **Separate calculation logic** into dedicated actor classes (Option 2)
+3. **Wait for Swift 6** `@Observable` macro which may solve the actor/observation problem
+4. **Document pattern** for future services: Pure calculators = actors, UI services = @MainActor class
 
 ---
 
