@@ -1,8 +1,11 @@
 import Foundation
 import HealthKit
+import VeloReadyCore
 
 /// Service for calculating 7-day rolling baselines from HealthKit data (Whoop-like)
-final class BaselineCalculator: @unchecked Sendable {
+/// This service fetches data from HealthKit and delegates calculation to VeloReadyCore
+/// Actor-isolated to run heavy calculations on background threads
+actor BaselineCalculator {
     private let healthStore = HKHealthStore()
     
     // HealthKit types
@@ -40,7 +43,7 @@ final class BaselineCalculator: @unchecked Sendable {
                 } else {
                     let hrvSamples = samples as? [HKQuantitySample] ?? []
                     let values = hrvSamples.map { $0.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) }
-                    let baseline = self.calculateAverage(values) // Use average instead of median for 7-day
+                    let baseline = VeloReadyCore.BaselineCalculations.calculateHRVBaseline(hrvValues: values)
                     Logger.data("HRV Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
@@ -75,7 +78,7 @@ final class BaselineCalculator: @unchecked Sendable {
                 } else {
                     let rhrSamples = samples as? [HKQuantitySample] ?? []
                     let values = rhrSamples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
-                    let baseline = self.calculateAverage(values) // Use average instead of median for 7-day
+                    let baseline = VeloReadyCore.BaselineCalculations.calculateRHRBaseline(rhrValues: values)
                     Logger.data("RHR Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
@@ -157,7 +160,7 @@ final class BaselineCalculator: @unchecked Sendable {
                         Logger.debug("   Sleep range: \(minSleep/3600)h - \(maxSleep/3600)h (avg: \(avgSleep/3600)h)")
                     }
                     
-                    let baseline = self.calculateAverage(actualSleepDurations)
+                    let baseline = VeloReadyCore.BaselineCalculations.calculateSleepBaseline(sleepDurations: actualSleepDurations)
                     Logger.data("Sleep Baseline (7-day avg): \(baseline?.description ?? "No data") seconds from \(actualSleepDurations.count) actual sleep periods (filtered from \(sleepSamples.count) total samples)")
                     continuation.resume(returning: baseline)
                 }
@@ -231,7 +234,7 @@ final class BaselineCalculator: @unchecked Sendable {
                 } else {
                     let respiratorySamples = samples as? [HKQuantitySample] ?? []
                     let values = respiratorySamples.map { $0.quantity.doubleValue(for: HKUnit(from: "count/min")) }
-                    let baseline = self.calculateAverage(values)
+                    let baseline = VeloReadyCore.BaselineCalculations.calculateRespiratoryBaseline(respiratoryRates: values)
                     Logger.data("Respiratory Baseline (7-day avg): \(baseline?.description ?? "No data") from \(values.count) samples")
                     continuation.resume(returning: baseline)
                 }
@@ -283,26 +286,5 @@ final class BaselineCalculator: @unchecked Sendable {
     
     // MARK: - Helper Methods
     
-    private func calculateMedian(_ values: [Double]) -> Double? {
-        guard !values.isEmpty else { return nil }
-        
-        let sortedValues = values.sorted()
-        let count = sortedValues.count
-        
-        if count % 2 == 0 {
-            // Even number of values - average of two middle values
-            let mid1 = sortedValues[count / 2 - 1]
-            let mid2 = sortedValues[count / 2]
-            return (mid1 + mid2) / 2
-        } else {
-            // Odd number of values - middle value
-            return sortedValues[count / 2]
-        }
-    }
-    
-    private func calculateAverage(_ values: [Double]) -> Double? {
-        guard !values.isEmpty else { return nil }
-        return values.reduce(0, +) / Double(values.count)
-    }
-    
+    // Removed duplicate calculation methods - now use VeloReadyCore.BaselineCalculations
 }

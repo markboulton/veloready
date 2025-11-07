@@ -11,7 +11,7 @@ struct DevelopmentCertificateBypass: View {
         NavigationView {
             VStack(spacing: 20) {
                 // Warning
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     Image(systemName: Icons.Status.warningFill)
                         .font(.system(size: 40))
                         .foregroundColor(Color.semantic.warning)
@@ -31,7 +31,7 @@ struct DevelopmentCertificateBypass: View {
                 .cornerRadius(12)
                 
                 // Toggle
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(OnboardingContent.CertificateBypass.title)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -58,12 +58,12 @@ struct DevelopmentCertificateBypass: View {
                 .cornerRadius(12)
                 
                 // Instructions
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(OnboardingContent.CertificateBypass.howItWorks)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(OnboardingContent.CertificateBypass.step1)
                         Text(OnboardingContent.CertificateBypass.step2)
                         Text(OnboardingContent.CertificateBypass.step3)

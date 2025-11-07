@@ -287,7 +287,7 @@ extension View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Button("Primary Button") {}
                         .primaryGlassButton()
                     
@@ -297,7 +297,7 @@ extension View {
                     Button("Compact Button") {}
                         .compactGlassButton()
                     
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.md) {
                         Button {
                         } label: {
                             Image(systemName: "heart.fill")
@@ -317,7 +317,7 @@ extension View {
                         .floatingActionButton()
                     }
                     
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Button("Tag 1") {}
                             .pillGlassButton()
                         

@@ -61,7 +61,7 @@ struct CardContainer<Content: View>: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             if let header = header {
                 header
             }
@@ -78,15 +78,12 @@ struct CardContainer<Content: View>: View {
             RoundedRectangle(cornerRadius: style.cornerRadius)
                 .fill(style.backgroundColor)
         )
-        .onAppear {
-            print("🎨 [CardContainer] Style: \(style), ColorScheme: \(colorScheme), BG: \(style.backgroundColor)")
-        }
     }
 }
 
 // MARK: - Preview
 #Preview("Simple Card") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardContainer {
             VRText("Simple card content", style: .body)
         }
@@ -103,7 +100,7 @@ struct CardContainer<Content: View>: View {
 }
 
 #Preview("Card with Header") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardContainer(
             header: CardHeader(title: "Recovery Score")
         ) {
@@ -132,7 +129,7 @@ struct CardContainer<Content: View>: View {
 }
 
 #Preview("Full Card") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardContainer(
             header: CardHeader(
                 title: "Training Load",
@@ -145,7 +142,7 @@ struct CardContainer<Content: View>: View {
                 action: .init(label: "View Details", action: {})
             )
         ) {
-            HStack(spacing: 20) {
+            HStack(spacing: Spacing.xs) {
                 CardMetric(
                     value: "245",
                     label: "CTL",
@@ -171,7 +168,7 @@ struct CardContainer<Content: View>: View {
 }
 
 #Preview("Different Styles") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardContainer(
             header: CardHeader(title: "Compact Card"),
             style: .compact
@@ -202,7 +199,7 @@ struct CardContainer<Content: View>: View {
 
 #Preview("Real World Examples") {
     ScrollView {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.xs) {
             // Recovery Card
             CardContainer(
                 header: CardHeader(
@@ -231,14 +228,14 @@ struct CardContainer<Content: View>: View {
                 ),
                 footer: CardFooter(text: "Data from Apple Health")
             ) {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     CardMetric(
                         value: "96",
                         label: "Excellent",
                         size: .large
                     )
                     
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.xs) {
                         VStack {
                             Text("1.2h")
                                 .font(.headline)
@@ -276,7 +273,7 @@ struct CardContainer<Content: View>: View {
                     action: .init(label: "View All", action: {})
                 )
             ) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack {
                         Image(systemName: "figure.outdoor.cycle")
                         Text("Evening Ride")

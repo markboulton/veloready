@@ -22,7 +22,7 @@ struct iCloudSettingsView: View {
                         Spacer()
                         
                         if syncService.isCloudAvailable {
-                            HStack(spacing: 4) {
+                            HStack(spacing: Spacing.xs) {
                                 Image(systemName: Icons.Status.successFill)
                                     .foregroundColor(Color.semantic.success)
                                 Text(CommonContent.States.enabled)
@@ -30,7 +30,7 @@ struct iCloudSettingsView: View {
                             }
                             .font(.subheadline)
                         } else {
-                            HStack(spacing: 4) {
+                            HStack(spacing: Spacing.xs) {
                                 Image(systemName: Icons.Status.errorFill)
                                     .foregroundColor(Color.semantic.error)
                                 Text(SettingsContent.iCloud.notAvailable)
@@ -54,7 +54,7 @@ struct iCloudSettingsView: View {
                     }
                     
                     if let error = syncService.syncError {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(SettingsContent.iCloud.syncError)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
@@ -63,7 +63,7 @@ struct iCloudSettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(Color.text.error)
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                     }
                 } header: {
                     Text(SettingsContent.iCloud.status)
@@ -82,7 +82,7 @@ struct iCloudSettingsView: View {
                                 }
                             }
                         }) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Spacing.md) {
                                 if syncService.isSyncing {
                                     ProgressView()
                                         .scaleEffect(0.8)
@@ -99,7 +99,7 @@ struct iCloudSettingsView: View {
                         Button(action: {
                             showingRestoreConfirmation = true
                         }) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Spacing.md) {
                                 if syncService.isSyncing {
                                     ProgressView()
                                         .scaleEffect(0.8)
@@ -120,7 +120,7 @@ struct iCloudSettingsView: View {
                     
                     // What's Synced Section
                     Section {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             SyncedDataRow(
                                 icon: "gearshape.fill",
                                 title: SettingsContent.iCloud.userSettings,
@@ -151,7 +151,7 @@ struct iCloudSettingsView: View {
                                 description: "Recovery, sleep, and strain scores"
                             )
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                     } header: {
                         Text(SettingsContent.iCloud.whatSyncs)
                     } footer: {
@@ -160,7 +160,7 @@ struct iCloudSettingsView: View {
                 } else {
                     // iCloud Not Available Section
                     Section {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             HStack {
                                 Image(systemName: Icons.Status.warningFill)
                                     .foregroundColor(Color.semantic.warning)
@@ -173,7 +173,7 @@ struct iCloudSettingsView: View {
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
                                 Text(SettingsContent.iCloud.step1)
                                 Text(SettingsContent.iCloud.step2)
                                 Text(SettingsContent.iCloud.step3)
@@ -183,7 +183,7 @@ struct iCloudSettingsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.sm)
                     }
                 }
         }
@@ -234,13 +234,13 @@ struct SyncedDataRow: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(Color.button.primary)
                 .frame(width: 28)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)

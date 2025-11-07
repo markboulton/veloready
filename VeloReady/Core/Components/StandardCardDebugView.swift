@@ -55,7 +55,7 @@ struct StandardCardDebugView: View {
                         iconColor: .orange,
                         title: "Calories"
                     ) {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("2,450")
                                 .font(.system(size: 32, weight: .bold))
                             Text("Active: 850 cal")
@@ -69,7 +69,7 @@ struct StandardCardDebugView: View {
                         iconColor: .green,
                         title: "Steps"
                     ) {
-                        HStack(alignment: .bottom, spacing: 8) {
+                        HStack(alignment: .bottom, spacing: Spacing.sm) {
                             Text("8,432")
                                 .font(.system(size: 32, weight: .bold))
                             Text("/ 10,000")

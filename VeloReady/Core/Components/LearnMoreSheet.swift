@@ -14,7 +14,7 @@ struct LearnMoreSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     ForEach(Array(content.sections.enumerated()), id: \.offset) { index, section in
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             if let heading = section.heading {
                                 Text(heading)
                                     .font(.title3)

@@ -13,7 +13,7 @@ struct TrainingLoadComponent: View {
                 if let metrics = metrics {
                 // Weekly totals
                 HStack(spacing: Spacing.xl) {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.WeeklyReport.totalTSS)
                             .metricLabel()
                         Text("\(Int(metrics.weeklyTSS))")
@@ -21,7 +21,7 @@ struct TrainingLoadComponent: View {
                             .fontWeight(.bold)
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.WeeklyReport.trainingTime)
                             .metricLabel()
                         Text(formatDuration(metrics.weeklyDuration))
@@ -29,7 +29,7 @@ struct TrainingLoadComponent: View {
                             .fontWeight(.bold)
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(TrendsContent.WeeklyReport.workouts)
                             .metricLabel()
                         Text("\(metrics.workoutCount)")
@@ -37,20 +37,20 @@ struct TrainingLoadComponent: View {
                             .fontWeight(.bold)
                     }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, Spacing.sm)
             }
             
             if let zones = zones {
                 Divider()
-                    .padding(.vertical, 8)
+                    .padding(.vertical, Spacing.md)
                 
                 // Training days breakdown
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(TrendsContent.WeeklyReport.trainingPattern)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.md) {
                         dayTypePill(TrendsContent.WeeklyReport.optimalDays, count: zones.optimalDays, color: .green)
                         dayTypePill(TrendsContent.WeeklyReport.hardDays, count: zones.overreachingDays, color: .orange)
                         dayTypePill(TrendsContent.WeeklyReport.easyRestDays, count: zones.restoringDays, color: .blue)
@@ -60,13 +60,13 @@ struct TrainingLoadComponent: View {
                         .font(.caption)
                         .foregroundColor(.text.secondary)
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, Spacing.sm)
                 
                 Divider()
-                    .padding(.vertical, 8)
+                    .padding(.vertical, Spacing.md)
                 
                 // Intensity distribution
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(TrendsContent.WeeklyReport.intensityDistribution)
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -87,7 +87,7 @@ struct TrainingLoadComponent: View {
                         color: .red
                     )
                     
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         Text(TrendsContent.WeeklyReport.polarization)
                             .font(.caption)
                             .foregroundColor(.text.secondary)
@@ -110,7 +110,7 @@ struct TrainingLoadComponent: View {
     }
     
     private func dayTypePill(_ label: String, count: Int, color: Color) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Circle()
                 .fill(color)
                 .frame(width: 8, height: 8)
@@ -131,7 +131,7 @@ struct TrainingLoadComponent: View {
     }
     
     private func intensityBar(label: String, percent: Double, color: Color) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.sm) {
             Text(label)
                 .font(.caption)
                 .foregroundColor(.text.secondary)

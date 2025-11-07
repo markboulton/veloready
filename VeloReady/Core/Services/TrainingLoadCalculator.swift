@@ -1,11 +1,14 @@
 import Foundation
 import HealthKit
+import VeloReadyCore
 
 /// Calculates Chronic Training Load (CTL) and Acute Training Load (ATL) from HealthKit workouts
+/// This service fetches data from HealthKit and delegates calculation to VeloReadyCore
 /// CTL = 42-day exponentially weighted average (fitness)
 /// ATL = 7-day exponentially weighted average (fatigue)
 /// TSB = CTL - ATL (form/readiness)
-class TrainingLoadCalculator {
+/// Actor-isolated to run heavy calculations on background threads
+actor TrainingLoadCalculator {
     private let trimpCalculator = TRIMPCalculator()
     private let healthKitManager = HealthKitManager.shared
     
@@ -355,42 +358,17 @@ class TrainingLoadCalculator {
         return result
     }
     
-    /// Calculate CTL (Chronic Training Load) - 42-day exponentially weighted average
-    /// This represents your fitness/training capacity
+    /// Calculate CTL (Chronic Training Load) - delegates to VeloReadyCore
     private func calculateCTL(from dailyValues: [Double]) -> Double {
-        return calculateExponentialAverage(values: dailyValues, days: 42)
+        return VeloReadyCore.TrainingLoadCalculations.calculateCTL(dailyTSS: dailyValues)
     }
     
-    /// Calculate ATL (Acute Training Load) - 7-day exponentially weighted average
-    /// This represents your recent fatigue/training stress
+    /// Calculate ATL (Acute Training Load) - delegates to VeloReadyCore
     private func calculateATL(from dailyValues: [Double]) -> Double {
-        let last7Days = Array(dailyValues.suffix(7))
-        return calculateExponentialAverage(values: last7Days, days: 7)
+        return VeloReadyCore.TrainingLoadCalculations.calculateATL(dailyTSS: dailyValues)
     }
     
-    /// Calculate exponentially weighted average
-    /// Recent values have more weight than older values
-    /// - Parameters:
-    ///   - values: Array of daily values
-    ///   - days: Time constant for the exponential average
-    /// - Returns: Exponentially weighted average
-    private func calculateExponentialAverage(values: [Double], days: Int) -> Double {
-        guard !values.isEmpty else { return 0 }
-        
-        // Lambda (smoothing factor) = 2 / (N + 1)
-        // This gives more weight to recent values
-        let lambda = 2.0 / (Double(days) + 1.0)
-        
-        // Start with first value
-        var ewa = values.first!
-        
-        // Apply exponential weighting to subsequent values
-        for value in values.dropFirst() {
-            ewa = (value * lambda) + (ewa * (1 - lambda))
-        }
-        
-        return ewa
-    }
+    // Removed duplicate calculateExponentialAverage() - now use VeloReadyCore.TrainingLoadCalculations
 }
 
 // MARK: - HealthKitManager Extension

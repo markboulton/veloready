@@ -97,7 +97,7 @@ struct HeightPreferenceKey: PreferenceKey {
         Text(CommonContent.Preview.flowLayoutExample)
             .font(.headline)
         
-        FlowLayout(spacing: 8) {
+        FlowLayout(spacing: Spacing.sm) {
             ForEach(["Push", "Pull", "Legs", "Core", "Conditioning", "Full Body"], id: \.self) { item in
                 Text(item)
                     .font(.subheadline)

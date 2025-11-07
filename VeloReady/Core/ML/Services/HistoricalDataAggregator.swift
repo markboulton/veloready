@@ -10,7 +10,7 @@ class HistoricalDataAggregator {
     
     private let persistence = PersistenceController.shared
     private let healthKitManager = HealthKitManager.shared
-    private let intervalsCache = IntervalsCache.shared
+    // IntervalsCache deleted - use UnifiedActivityService instead
     private let intervalsAPIClient: IntervalsAPIClient
     private let unifiedActivityService = UnifiedActivityService.shared
     
@@ -275,10 +275,8 @@ class HistoricalDataAggregator {
             
             // Fallback: Try cached Intervals activities
             do {
-                let cached = try await intervalsCache.getCachedActivities(
-                    apiClient: intervalsAPIClient,
-                    forceRefresh: false
-                )
+                // IntervalsCache deleted - use UnifiedActivityService
+                let cached = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 365)
                 
                 let filtered = cached.filter { activity in
                     guard let activityDate = parseActivityDate(activity.startDateLocal) else { return false }

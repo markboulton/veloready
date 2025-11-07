@@ -12,7 +12,7 @@ struct ChartLegend: View {
     }
     
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns), spacing: 8) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns), spacing: Spacing.sm) {
             ForEach(items) { item in
                 HStack(spacing: 6) {
                     Circle()

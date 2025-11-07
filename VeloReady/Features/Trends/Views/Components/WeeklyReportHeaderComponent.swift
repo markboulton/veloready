@@ -9,9 +9,9 @@ struct WeeklyReportHeaderComponent: View {
     let daysUntilNextReport: Int
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             // Header
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.sm) {
                 Image(systemName: Icons.System.sparkles)
                     .font(.heading)
                     .foregroundColor(Color.text.secondary)
@@ -47,7 +47,7 @@ struct WeeklyReportHeaderComponent: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 12)
             } else if let error = aiError {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.WeeklyReport.unableToGenerate)
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -60,7 +60,7 @@ struct WeeklyReportHeaderComponent: View {
             
             // Next report countdown
             if daysUntilNextReport > 0 {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: Icons.Training.duration)
                         .font(.caption)
                         .foregroundColor(.text.secondary)
@@ -69,7 +69,7 @@ struct WeeklyReportHeaderComponent: View {
                         .foregroundColor(.text.secondary)
                 }
             } else {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: Icons.Status.successFill)
                         .font(.caption)
                         .foregroundColor(.green)

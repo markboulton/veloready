@@ -9,7 +9,7 @@ struct SportPreferencesDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Current Settings
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(DebugContent.SportPreferences.currentPrefs)
                         .font(.headline)
                     
@@ -37,7 +37,7 @@ struct SportPreferencesDebugView: View {
                 Divider()
                 
                 // Test Buttons
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(DebugContent.SportPreferences.testActions)
                         .font(.headline)
                     
@@ -89,7 +89,7 @@ struct SportPreferencesDebugView: View {
                 
                 // Test Output
                 if !testOutput.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(DebugContent.SportPreferencesDebugExtended.testOutput)
                             .font(.headline)
                         
@@ -103,7 +103,7 @@ struct SportPreferencesDebugView: View {
                 }
                 
                 // Technical Details
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(DebugContent.SportPreferencesDebugExtended.technicalDetails)
                         .font(.headline)
                     

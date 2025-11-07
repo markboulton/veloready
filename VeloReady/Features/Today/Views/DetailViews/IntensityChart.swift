@@ -49,7 +49,7 @@ struct IntensityChart: View {
                                     .rotationEffect(.degrees(-90))
                                 
                                 // Value and label
-                                VStack(spacing: 2) {
+                                VStack(spacing: Spacing.xs) {
                                     Text(String(format: "%.2f", intensityFactor))
                                         .font(.title2)
                                         .fontWeight(.bold)
@@ -98,7 +98,7 @@ struct IntensityChart: View {
                             .foregroundColor(Color.text.secondary)
                         
                         // TSS category bar
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             tssSegment(label: "Light", range: 0..<50, value: tss, color: Color.semantic.success)
                             tssSegment(label: "Moderate", range: 50..<90, value: tss, color: Color.button.primary)
                             tssSegment(label: "Hard", range: 90..<120, value: tss, color: Color.semantic.warning)
@@ -120,7 +120,7 @@ struct IntensityChart: View {
     // MARK: - Helper Views
     
     private func comparisonRow(label: String, range: String, matches: Bool) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Circle()
                 .fill(matches ? Color.text.primary : Color.clear)
                 .stroke(matches ? Color.clear : ColorScale.divider, lineWidth: 1)
@@ -148,7 +148,7 @@ struct IntensityChart: View {
             }
         }()
         
-        return VStack(spacing: 2) {
+        return VStack(spacing: Spacing.xs) {
             ZStack(alignment: .leading) {
                 Rectangle()
                     .fill(ColorScale.gray200)

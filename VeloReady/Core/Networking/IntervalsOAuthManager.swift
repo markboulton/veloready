@@ -332,7 +332,8 @@ class IntervalsOAuthManager: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "intervals_user")
         
         // Clear cached Intervals data so only HealthKit data is shown
-        _ = await IntervalsCache.shared.clearCache()
+        // IntervalsCache deleted - cache is now managed by CacheOrchestrator
+        await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
         Logger.debug("🗑️ Cleared Intervals.icu cache on sign out - switching to HealthKit-only mode")
     }
     

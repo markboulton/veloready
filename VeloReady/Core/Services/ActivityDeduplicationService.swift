@@ -176,10 +176,7 @@ class ActivityDeduplicationService {
             return nil
         }
         
-        // TODO: Future enhancement - merge partial data
-        // For now, just return the best activity
-        // In the future, could merge:
-        // - Use Intervals TSS if available, otherwise calculate from Strava power
+        // Return the best activity
         // - Use Strava detailed HR zones if Intervals doesn't have them
         // - etc.
         

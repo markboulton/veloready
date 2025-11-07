@@ -37,7 +37,7 @@ struct AIBriefView: View {
     // MARK: - Pro Content
     
     private var proContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             
             ZStack(alignment: .topLeading) {
                 Text(CommonContent.Preview.placeholderText)
@@ -57,7 +57,7 @@ struct AIBriefView: View {
                 } else if let error = service.error {
                     ErrorView(error: error)
                 } else if let text = service.briefText {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(text)
                             .bodyStyle()
                             .fixedSize(horizontal: false, vertical: true)
@@ -69,7 +69,7 @@ struct AIBriefView: View {
                                 totalDays: 30,
                                 showInfoSheet: { showingMLInfoSheet = true }
                             )
-                            .padding(.top, 4)
+                            .padding(.top, Spacing.xs)
                         }
                         
                         // Training Metrics
@@ -122,7 +122,7 @@ struct AIBriefView: View {
     // MARK: - Free Content
     
     private var freeContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(generateBriefText())
                 .bodyStyle()
                 .fixedSize(horizontal: false, vertical: true)
@@ -200,7 +200,7 @@ private struct ErrorView: View {
     @State private var showDebugInfo = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Image(systemName: Icons.Status.warningFill)
                     .foregroundColor(.primary)
@@ -250,7 +250,7 @@ private struct MLDataCollectionView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Text with info button on the right
             HStack {
                 Text(TodayContent.AIBrief.mlCollecting)
@@ -314,7 +314,7 @@ struct TrainingMetricsView: View {
     @ObservedObject private var wellnessService = WellnessDetectionService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Grey dividing line before TSB section
             Divider()
                 .padding(.vertical, 4)
@@ -326,7 +326,7 @@ struct TrainingMetricsView: View {
                 let atl = recovery.inputs.atl ?? 45.0
                 let tsb = ctl - atl
                 
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: Spacing.sm) {
                     Image(systemName: Icons.DataSource.intervalsICU)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -359,7 +359,7 @@ struct TrainingMetricsView: View {
                 let tssLow = Int(ctl * 0.8)
                 let tssHigh = Int(ctl * 1.5)
                 
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: Spacing.sm) {
                     Image(systemName: Icons.System.target)
                         .font(.caption)
                         .foregroundColor(.secondary)

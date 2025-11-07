@@ -36,7 +36,7 @@ struct VeloReadyApp: App {
         
         // Migrate large stream data from UserDefaults to file-based cache (one-time)
         Task { @MainActor in
-            StreamCacheService.shared.migrateLegacyStreamsToFileCache()
+            // StreamCacheService deleted - migration no longer needed (handled by DiskCacheLayer)
         }
         
         // Enable automatic iCloud sync
@@ -108,19 +108,17 @@ struct VeloReadyApp: App {
             }
             
             // Prefetch today's activities (low bandwidth, high value)
-            let intervalsCache = IntervalsCache.shared
-            let apiClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
+            // Using UnifiedActivityService (replaces IntervalsCache)
             do {
-                let _ = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: true)
+                let _ = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 100, daysBack: 90)
                 Logger.debug("✅ [BACKGROUND] Activities prefetched")
             } catch {
                 Logger.debug("⚠️ [BACKGROUND] Could not prefetch activities: \(error.localizedDescription)")
             }
             
-            // Prefetch HealthKit data
+            // Prefetch HealthKit data (replaces HealthKitCache)
             let healthKitManager = HealthKitManager.shared
-            let healthKitCache = HealthKitCache.shared
-            let _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: true)
+            let _ = await healthKitManager.fetchRecentWorkouts(daysBack: 90)
             Logger.debug("✅ [BACKGROUND] HealthKit data prefetched")
             
             // Refresh all scores
@@ -226,38 +224,13 @@ struct MainTabView: View {
     ]
     
     var body: some View {
-        let systemVersion = UIDevice.current.systemVersion
-        let versionComponents = systemVersion.split(separator: ".").compactMap { Int($0) }
-        let majorVersion = versionComponents.first ?? 0
-        
-        let _ = print("🎨 [MainTabView] ========== TAB VIEW INITIALIZATION ==========")
-        let _ = print("🎨 [MainTabView] iOS Version String: \(systemVersion)")
-        let _ = print("🎨 [MainTabView] Parsed Major Version: \(majorVersion)")
-        let _ = print("🎨 [MainTabView] Device Model: \(UIDevice.current.model)")
-        let _ = print("🎨 [MainTabView] ProcessInfo OS Version: \(ProcessInfo.processInfo.operatingSystemVersion)")
-        
-        // Check if iOS 26 is available at compile time
-        if #available(iOS 26.0, *) {
-            let _ = print("🎨 [MainTabView] #available(iOS 26.0, *) = TRUE")
-        } else {
-            let _ = print("🎨 [MainTabView] #available(iOS 26.0, *) = FALSE")
-        }
-        
         return Group {
             if #available(iOS 26.0, *) {
                 // iOS 26+ - Use native TabView with automatic Liquid Glass
-                let _ = print("🎨 [MainTabView] ✅ Taking iOS 26+ code path")
                 nativeTabView
-                    .onAppear {
-                        print("🎨 [MainTabView] ✅ Native TabView DID APPEAR")
-                    }
             } else {
                 // iOS 25 and earlier - Use custom FloatingTabBar
-                let _ = print("🎨 [MainTabView] ❌ Taking iOS < 26 code path (fallback)")
                 customTabView
-                    .onAppear {
-                        print("🎨 [MainTabView] Custom FloatingTabBar appeared")
-                    }
             }
         }
     }

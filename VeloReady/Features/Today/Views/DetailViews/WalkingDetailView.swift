@@ -92,7 +92,7 @@ struct WalkingDetailView: View {
     // MARK: - Workout Type Section
     
     private var workoutTypeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Text(ActivityContent.WorkoutTypes.workoutType)
                     .font(.headline)
@@ -113,7 +113,7 @@ struct WalkingDetailView: View {
             let _ = print("🟣 WorkoutTypeSection rendering - RPE: \(rpe?.description ?? "nil"), Muscle Groups: \(muscleGroups?.map { $0.rawValue } ?? [])")
             
             if rpe != nil || muscleGroups != nil {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     // Calculate and show training load
                     if let rpe = rpe {
                         let trainingLoad = StrainScoreCalculator.calculateWorkoutLoad(
@@ -126,7 +126,7 @@ struct WalkingDetailView: View {
                         let simplifiedLoad = trainingLoad / 100.0
                         let loadLabel = trainingLoadLabel(trainingLoad)
                         
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Text(ActivityContent.TrainingLoad.trainingLoad)
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
@@ -147,7 +147,7 @@ struct WalkingDetailView: View {
                     
                     // Show RPE if available
                     if let rpe = rpe {
-                        HStack(spacing: 4) {
+                        HStack(spacing: Spacing.xs) {
                             Text(ActivityContent.TrainingLoad.effort)
                                 .font(.subheadline)
                                 .foregroundColor(Color.text.secondary)
@@ -172,7 +172,7 @@ struct WalkingDetailView: View {
                         
                         // Show specific muscle groups
                         if !specificMuscles.isEmpty {
-                            HStack(spacing: 4) {
+                            HStack(spacing: Spacing.xs) {
                                 Text(ActivityContent.TrainingLoad.muscleGroups)
                                     .font(.subheadline)
                                     .foregroundColor(Color.text.secondary)
@@ -185,7 +185,7 @@ struct WalkingDetailView: View {
                         
                         // Show workout types
                         if !workoutTypes.isEmpty {
-                            HStack(spacing: 4) {
+                            HStack(spacing: Spacing.xs) {
                                 Text("\(ActivityContent.WorkoutTypes.workoutType):")
                                     .font(.subheadline)
                                     .foregroundColor(Color.text.secondary)
@@ -279,15 +279,15 @@ struct WalkingWorkoutInfoHeader: View {
     @State private var locationString: String? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Title and Date/Time
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(workoutTitle)
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.text.primary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text(formattedDateAndTime)
                         .font(.subheadline)
                         .foregroundStyle(Color.text.secondary)
@@ -304,7 +304,7 @@ struct WalkingWorkoutInfoHeader: View {
             }
             
             // Primary Metrics Grid - 3 columns like cycling
-            LazyVGrid(columns: createGridColumns(), spacing: 12) {
+            LazyVGrid(columns: createGridColumns(), spacing: Spacing.md) {
                 CompactMetricItem(
                     label: "Duration",
                     value: ActivityFormatters.formatDuration(workout.duration)
@@ -387,7 +387,7 @@ struct WalkingWorkoutInfoHeader: View {
     }
     
     private func createGridColumns() -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: Spacing.md), count: 3)
     }
     
     private var isStrengthWorkout: Bool {

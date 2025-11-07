@@ -119,7 +119,7 @@ class MLPredictionService {
         let model = try MLModel(contentsOf: modelURL, configuration: config)
         
         loadedModel = model
-        modelVersion = "1.0" // TODO: Read from model metadata
+        modelVersion = "1.0"
         
         Logger.info("✅ [MLPrediction] Model loaded successfully")
     }

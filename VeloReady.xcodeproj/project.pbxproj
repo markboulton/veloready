@@ -12,6 +12,7 @@
 		4A6F6B0B2E8BDC3300D8A526 /* RideReadyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4A6F6AF62E8BDC3200D8A526 /* RideReadyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FA2A743E2E8960550047AC79 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA2A743D2E89604C0047AC79 /* README.md */; };
 		FA2A74402E8960690047AC79 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = FA2A743F2E89605C0047AC79 /* LICENSE.md */; };
+		FAA933142EBD3AB20080E4E4 /* VeloReadyCore in Frameworks */ = {isa = PBXBuildFile; productRef = FAA933132EBD3AB20080E4E4 /* VeloReadyCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,6 +135,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAA933142EBD3AB20080E4E4 /* VeloReadyCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +238,7 @@
 			);
 			name = VeloReady;
 			packageProductDependencies = (
+				FAA933132EBD3AB20080E4E4 /* VeloReadyCore */,
 			);
 			productName = VeloReady;
 			productReference = FA2A74082E895F0D0047AC79 /* VeloReady.app */;
@@ -326,6 +329,7 @@
 				4A6F6B112E8BDC6E00D8A526 /* XCRemoteSwiftPackageReference "SwiftLint" */,
 				4A6F6B122E8BDC7C00D8A526 /* XCRemoteSwiftPackageReference "SwiftFormat" */,
 				4A6F6B132E8BDC8B00D8A526 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
+				FAA933122EBD3AB20080E4E4 /* XCLocalSwiftPackageReference "VeloReadyCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = FA2A74092E895F0D0047AC79 /* Products */;
@@ -812,6 +816,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		FAA933122EBD3AB20080E4E4 /* XCLocalSwiftPackageReference "VeloReadyCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = VeloReadyCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		4A6F6B112E8BDC6E00D8A526 /* XCRemoteSwiftPackageReference "SwiftLint" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -838,6 +849,13 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FAA933132EBD3AB20080E4E4 /* VeloReadyCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VeloReadyCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FA2A74002E895F0D0047AC79 /* Project object */;
 }

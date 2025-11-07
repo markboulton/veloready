@@ -23,7 +23,7 @@ struct OfflineBanner: View {
     // MARK: - Banner View
 
     private func bannerView(icon: String, text: String, badge: String, backgroundColor: Color) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .medium))
 

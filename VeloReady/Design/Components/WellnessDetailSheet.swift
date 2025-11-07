@@ -47,12 +47,12 @@ struct WellnessDetailSheet: View {
     // MARK: - Sections
     
     private var headerSection: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: alert.severity.icon)
                 .font(.title)
                 .foregroundColor(alert.severity.color)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(alert.type.title)
                     .font(.headline)
                     .fontWeight(.semibold)
@@ -71,7 +71,7 @@ struct WellnessDetailSheet: View {
     }
     
     private var disclaimerSection: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: Icons.Status.info)
                 .foregroundColor(ColorScale.labelSecondary)
                 .font(.body)
@@ -89,7 +89,7 @@ struct WellnessDetailSheet: View {
     }
     
     private var whatWeNoticedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(WellnessContent.Detail.whatWeNoticed)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -102,12 +102,12 @@ struct WellnessDetailSheet: View {
     }
     
     private var affectedMetricsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(WellnessContent.Detail.affectedMetrics)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 if alert.metrics.elevatedRHR {
                     metricCard(
                         title: WellnessContent.Metrics.elevatedRHR,
@@ -157,7 +157,7 @@ struct WellnessDetailSheet: View {
     }
     
     private var recommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(WellnessContent.Detail.recommendations)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -174,9 +174,9 @@ struct WellnessDetailSheet: View {
                 }
             }()
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 ForEach(recommendations, id: \.self) { recommendation in
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: Spacing.sm) {
                         Image(systemName: Icons.System.circle)
                             .font(.system(size: 6))
                             .foregroundColor(ColorScale.labelSecondary)
@@ -196,7 +196,7 @@ struct WellnessDetailSheet: View {
             )
             
             // Medical disclaimer
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .top, spacing: Spacing.sm) {
                 Image(systemName: Icons.Status.warning)
                     .foregroundColor(ColorScale.labelSecondary)
                     .font(.caption)
@@ -212,13 +212,13 @@ struct WellnessDetailSheet: View {
     // MARK: - Helper Views
     
     private func metricCard(title: String, description: String, icon: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(color)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

@@ -5,9 +5,9 @@ struct HealthKitEnablementSection: View {
     @Binding var showingHealthKitPermissionsSheet: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.xs) {
             // Header
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.xs) {
                 Image(systemName: Icons.Health.heartFill)
                     .font(.system(size: 48))
                     .foregroundColor(.primary)
@@ -23,7 +23,7 @@ struct HealthKitEnablementSection: View {
             }
             
             // Benefits list
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.xs) {
                 HealthKitBenefitRow(
                     icon: "heart.circle.fill",
                     title: TodayContent.HealthKitBenefits.recoveryTitle,

@@ -12,7 +12,7 @@ struct WelcomeStepView: View {
             VeloReadyLogo(size: .large)
             
             // Welcome message
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.ValueProp.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -80,13 +80,13 @@ struct OnboardingFeatureBullet: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: Spacing.lg) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(.blue)
                 .frame(width: 32)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.semibold)

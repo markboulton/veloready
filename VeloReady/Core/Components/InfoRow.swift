@@ -194,7 +194,7 @@ extension DataRow {
                         title: "Calories Burned",
                         subtitle: "Active: 456 cal"
                     ) {
-                        VStack(alignment: .trailing, spacing: 2) {
+                        VStack(alignment: .trailing, spacing: Spacing.xs / 2) {
                             Text("1,234")
                                 .font(.system(size: TypeScale.sm, weight: .semibold))
                             Text(CommonContent.Labels.total)

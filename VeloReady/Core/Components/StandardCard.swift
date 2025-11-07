@@ -50,7 +50,7 @@ struct StandardCard<Content: View>: View {
     }
     
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Optional header
             if icon != nil || title != nil || subtitle != nil || showChevron {
                 header
@@ -79,7 +79,7 @@ struct StandardCard<Content: View>: View {
             
             // Title and subtitle
             if title != nil || subtitle != nil {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     if let title = title {
                         Text(title)
                             .font(.heading)
@@ -163,7 +163,7 @@ extension StandardCard {
 
 #Preview("All Features") {
     ScrollView {
-        VStack(spacing: 0) {
+        VStack(spacing: Spacing.sm) {
             // Full header with all elements
             StandardCard(
                 icon: "figure.run",
@@ -233,7 +233,7 @@ extension StandardCard {
                 iconColor: .orange,
                 title: nil
             ) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Calories Burned")
                         .font(.caption)
                         .foregroundColor(Color.text.secondary)
@@ -248,7 +248,7 @@ extension StandardCard {
 
 #Preview("Dark Mode") {
     ScrollView {
-        VStack(spacing: 0) {
+        VStack(spacing: Spacing.sm) {
             StandardCard(
                 icon: "moon.stars.fill",
                 iconColor: .purple,

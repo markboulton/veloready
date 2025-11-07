@@ -30,7 +30,7 @@ struct DebugDataView: View {
     // MARK: - View Components
     
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(CommonContent.Debug.healthKitIntegration)
                 .font(.title2)
                 .fontWeight(.semibold)
@@ -43,7 +43,7 @@ struct DebugDataView: View {
     }
     
     private var authorizationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(CommonContent.Debug.authorizationStatus)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -69,7 +69,7 @@ struct DebugDataView: View {
     }
     
     private var authorizationDetailsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(CommonContent.Debug.authorizationDetails)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -97,7 +97,7 @@ struct DebugDataView: View {
     }
     
     private var actionButtonsSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             Button(DebugContent.HealthDataDebug.requestHealthKitAuthorization) {
                 Task {
                     await healthKitManager.requestAuthorization()
@@ -121,7 +121,7 @@ struct DebugDataView: View {
     }
     
     private func errorSection(_ error: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(CommonContent.Debug.error)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -167,7 +167,7 @@ struct HealthDataCard: View {
                 .font(.title2)
                 .frame(width: 30)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .foregroundColor(.secondary)

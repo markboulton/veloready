@@ -75,8 +75,8 @@ struct ChartCard<Content: View>: View {
         footerText: "Average: 45ms"
     ) {
         // Mock chart
-        VStack(spacing: 8) {
-            HStack(spacing: 4) {
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 ForEach(0..<7) { i in
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.green.opacity(0.7))
@@ -132,15 +132,15 @@ struct ChartCard<Content: View>: View {
         footerText: "TSB: +12"
     ) {
         // Mock dual line chart
-        VStack(spacing: 16) {
-            HStack(spacing: 20) {
+        VStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.md) {
                 CardMetric(value: "245", label: "CTL", size: .small)
                 CardMetric(value: "89", label: "ATL", size: .small)
                 CardMetric(value: "+12", label: "TSB", size: .small)
             }
             
             // Simple bar representation
-            HStack(spacing: 4) {
+            HStack(spacing: Spacing.xs) {
                 ForEach(0..<14) { i in
                     VStack(spacing: 2) {
                         RoundedRectangle(cornerRadius: 2)

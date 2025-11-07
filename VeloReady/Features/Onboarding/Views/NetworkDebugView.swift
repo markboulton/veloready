@@ -29,7 +29,7 @@ struct NetworkDebugView: View {
     }
     
     private var networkStatusSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.NetworkDebug.networkStatus)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -44,12 +44,12 @@ struct NetworkDebugView: View {
     }
     
     private var networkTestsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.NetworkDebug.networkTests)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 Button(DebugContent.NetworkDebug.testBasicConnectivity) {
                     testBasicConnectivity()
                 }
@@ -82,7 +82,7 @@ struct NetworkDebugView: View {
     }
     
     private var testResultsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.NetworkDebug.testResults)
                 .font(.headline)
                 .fontWeight(.semibold)

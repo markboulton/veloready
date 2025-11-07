@@ -9,7 +9,7 @@ struct GoalsSettingsView: View {
         Form {
             // Step Goals
             Section {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Daily Step Target")
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -42,7 +42,7 @@ struct GoalsSettingsView: View {
                         }
                     
                     if !userSettings.useBMRAsGoal {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Daily Calorie Target")
                                 .font(.subheadline)
                                 .fontWeight(.medium)

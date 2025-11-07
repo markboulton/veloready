@@ -18,7 +18,7 @@ struct DataSourceBadge: View {
                 iconView
                 
             case .compact:
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     iconView
                     Text(abbreviation)
                         .font(.caption2)

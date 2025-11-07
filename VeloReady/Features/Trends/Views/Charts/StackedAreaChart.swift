@@ -32,7 +32,7 @@ struct StackedAreaChart: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Chart
             Chart {
                 ForEach(categories) { category in
@@ -72,9 +72,9 @@ struct StackedAreaChart: View {
             .frame(height: 180)
             
             // Legend
-            HStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(categories) { category in
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(category.color)
                             .frame(width: 12, height: 12)
@@ -92,22 +92,22 @@ struct StackedAreaChart: View {
 
 #Preview {
     Card(style: .flat) {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(ChartContent.ChartTitles.sleepArchitecture)
                 .font(.heading)
             
             StackedAreaChart(
                 data: generateMockSleepData(),
                 categories: [
-                    .init(name: "awake", color: Color.red.opacity(0.6), label: "Awake (5%)"),
-                    .init(name: "core", color: Color.blue.opacity(0.5), label: "Core (48%)"),
-                    .init(name: "rem", color: Color.purple.opacity(0.6), label: "REM (28%)"),
+                    .init(name: "awake", color: ColorScale.redAccent.opacity(0.6), label: "Awake (5%)"),
+                    .init(name: "core", color: ColorScale.blueAccent.opacity(0.5), label: "Core (48%)"),
+                    .init(name: "rem", color: ColorScale.pinkAccent.opacity(0.6), label: "REM (28%)"),
                     .init(name: "deep", color: Color.indigo.opacity(0.7), label: "Deep (19%)")
                 ],
                 yAxisMax: 9.0
             )
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     Text(ChartContent.Examples.deepSleepAvg)
                     Image(systemName: Icons.Status.successFill)

@@ -150,7 +150,8 @@ class AthleteProfileManager: ObservableObject {
         
         do {
             Logger.data("📸 Syncing athlete info from Strava...")
-            let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+            // StravaAthleteCache deleted - use StravaAPIClient directly
+            let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
             
             await MainActor.run {
                 // Update name (only if not manually set)
@@ -208,8 +209,8 @@ class AthleteProfileManager: ObservableObject {
         
         do {
             Logger.data("📊 Attempting to fetch Strava athlete FTP as fallback (Strava-only user)...")
-            // Use cache to avoid repeated API calls
-            let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+            // StravaAthleteCache deleted - use StravaAPIClient directly
+            let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
             
             if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                 Logger.data("✅ Using Strava FTP as fallback: \(stravaFTP)W")

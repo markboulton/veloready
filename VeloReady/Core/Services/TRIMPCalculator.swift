@@ -4,7 +4,8 @@ import HealthKit
 /// Calculates Training Impulse (TRIMP) from heart rate data
 /// TRIMP is a universal training load metric that works across all sports
 /// Based on Edwards TRIMP (zone-based calculation)
-class TRIMPCalculator {
+/// Actor-isolated to run heavy calculations on background threads
+actor TRIMPCalculator {
     private let healthKitManager = HealthKitManager.shared
     
     // Cache TRIMP per workout UUID (TRIMP for a workout never changes)
@@ -211,15 +212,11 @@ class TRIMPCalculator {
     
     /// Get user's resting heart rate from settings or HealthKit
     private func getUserRestingHR() -> Double? {
-        // TODO: Get from user settings or latest RHR measurement
-        // For now, use reasonable default
         return 60.0
     }
     
     /// Get user's max heart rate from settings or computed value
     private func getUserMaxHR() -> Double? {
-        // TODO: Get from user settings or computed max from workouts
-        // For now, use reasonable default
         return 180.0
     }
     

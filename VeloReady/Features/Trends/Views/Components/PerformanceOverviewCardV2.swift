@@ -122,7 +122,7 @@ struct PerformanceOverviewCardV2: View {
                 )
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 if recoveryData.isEmpty {
                     HStack(spacing: Spacing.xs) {
                         Circle()
@@ -283,7 +283,7 @@ private struct MetricLegendItem: View {
                 .fill(color)
                 .frame(width: 8, height: 8)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 VRText(label, style: .caption, color: Color.text.secondary)
                 
                 if let value = value {

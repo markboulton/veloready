@@ -16,9 +16,9 @@ struct ProUpgradeCard: View {
     
     var body: some View {
         Button(action: { showPaywall = true }) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 // Header with title and PRO badge (aligned top right)
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: Spacing.md) {
                     // Title
                     Text(content.title)
                         .font(.headline)
@@ -39,7 +39,7 @@ struct ProUpgradeCard: View {
                 }
                 
                 // Description with optional Learn More link
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(content.description)
                         .font(.subheadline)
                         .foregroundColor(invertedTextColor.opacity(1.0))
@@ -53,15 +53,15 @@ struct ProUpgradeCard: View {
                 
                 // Benefits (optional)
                 if showBenefits, let benefits = content.benefits {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         ForEach(Array(benefits.enumerated()), id: \.offset) { _, benefit in
-                            HStack(alignment: .top, spacing: 12) {
+                            HStack(alignment: .top, spacing: Spacing.md) {
                                 Image(systemName: benefit.icon)
                                     .font(.system(size: 20))
                                     .foregroundColor(invertedTextColor.opacity(1.0))
                                     .frame(width: 24)
                                 
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
                                     Text(benefit.title)
                                         .font(.subheadline)
                                         .fontWeight(.semibold)

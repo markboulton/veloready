@@ -5,14 +5,14 @@ struct RecoveryHeaderSection: View {
     let recoveryScore: RecoveryScore
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.xs / 2) {
             RecoveryRingView(
                 score: recoveryScore.score,
                 band: recoveryScore.band,
                 isPersonalized: recoveryScore.isPersonalized
             )
             
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs / 2) {
                 Text(recoveryScore.bandDescription)
                     .font(.title2)
                     .fontWeight(.semibold)

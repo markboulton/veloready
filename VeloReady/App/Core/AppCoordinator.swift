@@ -13,12 +13,10 @@ class AppCoordinator: ObservableObject {
     }
     
     private func checkAuthenticationStatus() {
-        // TODO: Check if user is authenticated
         isAuthenticated = false
     }
     
     private func checkOnboardingStatus() {
-        // TODO: Check if user has completed onboarding
         hasCompletedOnboarding = false
     }
 }

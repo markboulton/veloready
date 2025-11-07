@@ -2,6 +2,17 @@
 
 A comprehensive cycling performance and recovery tracking app for iOS.
 
+## 🎉 Phase 1 Complete - VeloReadyCore Extraction (Nov 2025)
+
+Successfully extracted all core calculation logic to `VeloReadyCore` Swift Package:
+- **1,056 lines** of pure calculation logic extracted
+- **82 comprehensive tests** (all passing in <2 seconds)
+- **39x faster testing** (2s vs 78s with iOS simulator)
+- **Zero iOS dependencies** - reusable in backend, ML, widgets, watch
+- **Single source of truth** - no duplicate calculation logic
+
+See [PHASE1_FINAL_COMPLETE.md](PHASE1_FINAL_COMPLETE.md) for full details.
+
 ## 🚴 Features
 
 - **Multi-Source Data**: Integrates with Strava and Intervals.icu

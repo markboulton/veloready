@@ -37,7 +37,7 @@ struct DebugSection: View {
             
             // Full debug menu for developers only
             if DebugFlags.showDebugMenu {
-                NavigationLink(destination: DebugSettingsView()) {
+                NavigationLink(destination: DebugHub()) {
                     HStack {
                         Image(systemName: Icons.System.hammerFill)
                             .foregroundColor(Color.semantic.warning)

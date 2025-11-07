@@ -223,7 +223,7 @@ struct CardGalleryDebugView: View {
                     StandardCard(
                         title: "Sleep Stages"
                     ) {
-                        VStack(spacing: 16) {
+                        VStack(spacing: Spacing.lg) {
                             if let bedtime = Calendar.current.date(bySettingHour: 22, minute: 30, second: 0, of: Date()),
                                let wakeTime = Calendar.current.date(bySettingHour: 6, minute: 45, second: 0, of: Date()) {
                                 SleepHypnogramChart(
@@ -239,13 +239,13 @@ struct CardGalleryDebugView: View {
                     StandardCard(
                         title: "Sleep Consistency"
                     ) {
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.lg) {
+                            HStack(spacing: Spacing.md) {
                                 Image(systemName: Icons.System.clock)
                                     .font(.title2)
                                     .foregroundColor(ColorScale.greenAccent)
                                 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                                     Text("Excellent")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
@@ -582,7 +582,7 @@ extension View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             self
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     Image(systemName: "doc.text.fill")
                         .font(.caption)

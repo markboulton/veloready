@@ -10,14 +10,14 @@ struct TrainingLoadSummaryView: View {
     private var tsb: Double { ctl - atl }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             // Header
             Text(CommonContent.Metrics.trainingLoad)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // Three metrics in a row
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.xs) {
                 // CTL (Fitness)
                 TrainingLoadMetric(
                     title: "Fitness",
@@ -47,7 +47,7 @@ struct TrainingLoadSummaryView: View {
             }
             
             // Explanation
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(CommonContent.Sections.whatThisMeans)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -58,9 +58,9 @@ struct TrainingLoadSummaryView: View {
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.top, 4)
+            .padding(.top, Spacing.xs)
         }
-        .padding()
+        .padding(Spacing.md)
         .background(Color.background.secondary)
         .cornerRadius(12)
     }
@@ -93,7 +93,7 @@ struct TrainingLoadMetric: View {
     let icon: String
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             // Icon
             Image(systemName: icon)
                 .font(.title2)

@@ -10,10 +10,10 @@ struct RecoveryCapacityComponent: View {
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 HStack(alignment: .top, spacing: Spacing.lg) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.WeeklyReport.avgRecovery)
                         .metricLabel()
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         Text("\(Int(metrics.avgRecovery))\(TrendsContent.Units.percent)")
                             .font(.title)
                             .fontWeight(.bold)
@@ -28,7 +28,7 @@ struct RecoveryCapacityComponent: View {
                     }
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.WeeklyReport.hrvTrend)
                         .metricLabel()
                     Text(metrics.hrvTrend)
@@ -36,7 +36,7 @@ struct RecoveryCapacityComponent: View {
                         .fontWeight(.medium)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(TrendsContent.WeeklyReport.sleepLabel)
                         .metricLabel()
                     Text(String(format: "%.1fh", metrics.avgSleep))

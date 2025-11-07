@@ -30,12 +30,12 @@ struct IntervalsLoginView: View {
                 }
                 
                 // Benefits
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
                     Text(OnboardingContent.IntervalsLogin.whatYouGet)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         LoginBenefitRow(
                             icon: "chart.line.uptrend.xyaxis",
                             title: "Training Analysis",
@@ -62,7 +62,7 @@ struct IntervalsLoginView: View {
                 Spacer()
                 
                 // Action Button
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Button(OnboardingContent.IntervalsLogin.connectButton) {
                         authenticateWithIntervals()
                     }
@@ -146,13 +146,13 @@ struct LoginBenefitRow: View {
     let description: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .foregroundColor(Color.button.primary)
                 .font(.title2)
                 .frame(width: 30)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)

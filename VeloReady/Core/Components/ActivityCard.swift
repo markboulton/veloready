@@ -56,7 +56,7 @@ struct ActivityCard: View {
     }
     
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Header
             header
                 .padding(.bottom, Spacing.md)
@@ -93,12 +93,12 @@ struct ActivityCard: View {
                 .foregroundColor(Color.text.secondary)
             
             // Title, date, location
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(activity.name)
                     .font(.heading)
                     .foregroundColor(Color.text.primary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text(formatDateTime(activity.startDate))
                         .font(.subheadline)
                         .foregroundColor(Color.text.secondary)
@@ -152,7 +152,7 @@ struct ActivityCard: View {
     }
     
     private var cyclingMetadata: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: Spacing.sm) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -190,7 +190,7 @@ struct ActivityCard: View {
     }
     
     private var strengthMetadata: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: Spacing.sm) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -229,7 +229,7 @@ struct ActivityCard: View {
     }
     
     private var walkingMetadata: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: Spacing.sm) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -261,7 +261,7 @@ struct ActivityCard: View {
     }
     
     private var defaultMetadata: some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: Spacing.sm) {
             if let duration = activity.duration {
                 MetricDisplay(
                     formatDuration(duration),
@@ -601,7 +601,7 @@ struct ActivityCard: View {
 
 #Preview("All Activity Types") {
     ScrollView {
-        VStack(spacing: 0) {
+        VStack(spacing: Spacing.sm) {
             // Outdoor Ride
             ActivityCard(
                 activity: UnifiedActivity(

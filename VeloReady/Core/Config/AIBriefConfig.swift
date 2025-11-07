@@ -64,6 +64,6 @@ extension AIBriefConfig {
     @MainActor
     static func initializeOnAppLaunch() {
         configure()
-        print(statusMessage)
+        Logger.debug(statusMessage)
     }
 }

@@ -106,7 +106,7 @@ struct CircadianClockChart: View {
                 }
                 
                 // Center label
-                VStack(spacing: 4) {
+                VStack(spacing: Spacing.xs) {
                     Text(TrendsContent.Labels.consistency)
                         .font(.system(size: TypeScale.xs))
                         .foregroundColor(.text.secondary)
@@ -209,7 +209,7 @@ struct CircadianClockChart: View {
             )
             .frame(height: 280)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(ChartContent.Examples.bedtimeVariance)
                     .font(.caption)
                     .foregroundColor(.text.secondary)

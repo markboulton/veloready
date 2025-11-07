@@ -12,11 +12,11 @@ struct DataSourcesStepView: View {
     }
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xxl) {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Image(systemName: showCyclingIntegrations ? "link.circle.fill" : "checkmark.circle.fill")
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
@@ -35,7 +35,7 @@ struct DataSourcesStepView: View {
             
             // Connection options (conditional)
             if showCyclingIntegrations {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     // Strava (top)
                     ConnectWithStravaButton(
                         action: {
@@ -74,7 +74,7 @@ struct DataSourcesStepView: View {
                     .padding(.top, 8)
             } else {
                 // Non-cycling message
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Text(OnboardingContent.DataSources.allSetTitle)
                         .font(.title2)
                         .fontWeight(.semibold)
@@ -101,7 +101,7 @@ struct DataSourcesStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(12)
             }
             .padding(.horizontal, 32)
@@ -131,7 +131,7 @@ struct DataSourceConnectionCard: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.lg) {
                 ZStack {
                     Circle()
                         .fill(color.opacity(0.1))
@@ -142,7 +142,7 @@ struct DataSourceConnectionCard: View {
                         .foregroundColor(color)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(title)
                         .font(.headline)
                         .foregroundColor(.primary)
