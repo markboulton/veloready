@@ -359,11 +359,6 @@ class RideSummaryClient: RideSummaryClientProtocol {
         Logger.debug("   Ride ID: \(rideId)")
         Logger.debug("   User (hashed): \(hashedUserId)")
         #endif
-        
-        // TODO: Send to analytics service
-        // AnalyticsService.shared.track("ride_summary_fetch", properties: [
-        //     "result": result,
-        //     "http_status": httpStatus,
         //     "latency_ms": latencyMs,
         //     "ride_id": rideId,
         //     "user_id_hash": hashedUserId

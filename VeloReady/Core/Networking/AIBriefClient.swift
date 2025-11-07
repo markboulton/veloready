@@ -324,11 +324,6 @@ class AIBriefClient: AIBriefClientProtocol {
         Logger.debug("   Server Cached: \(serverCached)")
         Logger.debug("   User (hashed): \(hashedUserId)")
         #endif
-        
-        // TODO: Send to analytics service
-        // AnalyticsService.shared.track("ai_brief_fetch", properties: [
-        //     "result": result,
-        //     "http_status": httpStatus,
         //     "latency_ms": latencyMs,
         //     "server_cached": serverCached,
         //     "user_id_hash": hashedUserId

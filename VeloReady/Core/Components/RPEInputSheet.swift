@@ -237,7 +237,7 @@ struct RPEInputSheet: View {
             for: workout,
             rpe: rpeValue,
             muscleGroups: selectedMuscleGroups.isEmpty ? nil : Array(selectedMuscleGroups),
-            isEccentricFocused: nil // TODO: Add UI for this
+            isEccentricFocused: nil
         )
         
         Logger.debug("🟢 Save completed, refreshing strain score...")

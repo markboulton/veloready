@@ -201,11 +201,6 @@ class MLTelemetryService {
         
         Logger.info("🔄 [Telemetry] Flushing \(self.eventQueue.count) events", category: .data)
         
-        // TODO: Send to TelemetryDeck or Firebase
-        // For now, just log and clear
-        // Example integration:
-        // TelemetryDeck.send(eventQueue)
-        
         eventQueue.removeAll()
         lastFlushTime = Date()
     }
