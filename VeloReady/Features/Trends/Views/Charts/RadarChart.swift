@@ -111,7 +111,7 @@ struct RadarChart: View {
                     let labelRadius = radius * 1.2
                     let labelPosition = pointOnCircle(center: center, radius: labelRadius, angle: angle)
                     
-                    VStack(spacing: 2) {
+                    VStack(spacing: Spacing.xs) {
                         if let icon = point.icon {
                             Image(systemName: icon)
                                 .font(.system(size: TypeScale.xs))
@@ -129,7 +129,7 @@ struct RadarChart: View {
                 }
                 
                 // Center value (overall score)
-                VStack(spacing: 2) {
+                VStack(spacing: Spacing.xs) {
                     let avgValue = dataPoints.map(\.value).reduce(0, +) / Double(dataPoints.count)
                     Text("\(Int(avgValue))")
                         .font(.system(size: TypeScale.xxl, weight: .bold))

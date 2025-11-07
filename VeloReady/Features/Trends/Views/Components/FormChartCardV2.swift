@@ -89,7 +89,7 @@ struct FormChartCardV2: View {
                     x: .value("Date", point.date),
                     y: .value("CTL", point.value)
                 )
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(ColorScale.blueAccent)
                 .lineStyle(StrokeStyle(lineWidth: 2))
             }
             
@@ -99,7 +99,7 @@ struct FormChartCardV2: View {
                     x: .value("Date", point.date),
                     y: .value("ATL", point.value)
                 )
-                .foregroundStyle(Color.red)
+                .foregroundStyle(ColorScale.redAccent)
                 .lineStyle(StrokeStyle(lineWidth: 2))
             }
             
@@ -109,7 +109,7 @@ struct FormChartCardV2: View {
                     x: .value("Date", point.date),
                     y: .value("TSB", point.value)
                 )
-                .foregroundStyle(Color.green)
+                .foregroundStyle(ColorScale.greenAccent)
                 .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
             }
         }

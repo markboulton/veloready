@@ -7,9 +7,9 @@ struct MLPersonalizationInfoSheet: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     // Header
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(MLPersonalizationContent.title)
                             .font(.title)
                             .fontWeight(.bold)
@@ -19,12 +19,12 @@ struct MLPersonalizationInfoSheet: View {
                             .font(.subheadline)
                             .foregroundColor(Color.text.secondary)
                     }
-                    .padding(.top, 8)
+                    .padding(.top, Spacing.xs)
                     
                     Divider()
                     
                     // Why Personalization Matters
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(MLPersonalizationContent.whatIsItTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -37,7 +37,7 @@ struct MLPersonalizationInfoSheet: View {
                     }
                     
                     // How It Works
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(MLPersonalizationContent.howItWorksTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -50,7 +50,7 @@ struct MLPersonalizationInfoSheet: View {
                     }
                     
                     // What We're Learning
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(MLPersonalizationContent.whatWeLearnTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -63,8 +63,8 @@ struct MLPersonalizationInfoSheet: View {
                     }
                     
                     // Privacy
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 6) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        HStack(spacing: Spacing.lg) {
                             Image(systemName: Icons.System.lockShield)
                                 .foregroundColor(Color.blue)
                             Text(MLPersonalizationContent.privacyTitle)
@@ -83,7 +83,7 @@ struct MLPersonalizationInfoSheet: View {
                     .cornerRadius(12)
                     
                     // What Changes
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(MLPersonalizationContent.whatChangesTitle)
                             .font(.headline)
                             .fontWeight(.semibold)

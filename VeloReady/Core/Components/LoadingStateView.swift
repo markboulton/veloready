@@ -17,7 +17,7 @@ struct LoadingStateView: View {
     var body: some View {
         HStack {
             Spacer()
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 ProgressView()
                     .scaleEffect(size.scale)
                 

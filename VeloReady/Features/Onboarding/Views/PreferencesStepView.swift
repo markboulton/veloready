@@ -50,11 +50,11 @@ struct PreferencesStepView: View {
     }
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xxl) {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Image(systemName: Icons.System.person)
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
@@ -72,7 +72,7 @@ struct PreferencesStepView: View {
             .padding(.horizontal)
             
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: Spacing.xl) {
                     // Unit System
                     unitSystemSection
                     
@@ -97,7 +97,7 @@ struct PreferencesStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(16)
             }
             .padding(.horizontal, 32)
@@ -108,17 +108,17 @@ struct PreferencesStepView: View {
     // MARK: - Sections
     
     private var unitSystemSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.Preferences.unitsTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.md) {
                 ForEach(UnitSystem.allCases, id: \.self) { unit in
                     Button(action: {
                         selectedUnit = unit
                     }) {
-                        VStack(spacing: 8) {
+                        VStack(spacing: Spacing.sm) {
                             Image(systemName: unit == .metric ? "ruler" : "ruler.fill")
                                 .font(.title2)
                                 .foregroundColor(selectedUnit == unit ? .white : .blue)
@@ -148,7 +148,7 @@ struct PreferencesStepView: View {
     }
     
     private var activityTypesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.Preferences.activitiesTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -157,7 +157,7 @@ struct PreferencesStepView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
                 ForEach(ActivityType.allCases) { activity in
                     Button(action: {
                         if selectedActivities.contains(activity) {
@@ -166,7 +166,7 @@ struct PreferencesStepView: View {
                             selectedActivities.insert(activity)
                         }
                     }) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.sm) {
                             Image(systemName: activity.icon)
                                 .font(.body)
                                 .foregroundColor(selectedActivities.contains(activity) ? .white : .blue)
@@ -199,13 +199,13 @@ struct PreferencesStepView: View {
     }
     
     private var notificationsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.Preferences.notificationsTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             Toggle(isOn: $enableNotifications) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(OnboardingContent.Preferences.recoveryReminders)
                         .font(.subheadline)
                         .fontWeight(.medium)

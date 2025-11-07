@@ -253,7 +253,6 @@ class StravaAuthService: NSObject, ObservableObject {
     }
     
     private func handleSessionCompletion(callbackURL: URL?, error: Error?) async {
-        print("")
         Logger.debug("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         Logger.debug("📞 [STRAVA OAUTH] Session Completion Handler Called")
         Logger.debug("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

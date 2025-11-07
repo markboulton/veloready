@@ -84,7 +84,7 @@ struct ActivityTypeBadge: View {
 }
 
 #Preview {
-    VStack(spacing: 8) {
+    VStack(spacing: Spacing.sm) {
         ActivityTypeBadge("Ride")
         ActivityTypeBadge("VirtualRide")
         ActivityTypeBadge("Run")

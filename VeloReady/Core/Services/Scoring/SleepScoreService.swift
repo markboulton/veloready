@@ -395,9 +395,6 @@ class SleepScoreService: ObservableObject {
         // Base sleep need from user settings
         let sleepNeed = userSettings.sleepTargetSeconds
         
-        // TODO: Adjust based on training load from Intervals.icu
-        // For now, just return the user's target
-        
         return sleepNeed
     }
     

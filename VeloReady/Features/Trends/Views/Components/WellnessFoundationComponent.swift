@@ -8,7 +8,7 @@ struct WellnessFoundationComponent: View {
         StandardCard(
             title: TrendsContent.WeeklyReport.wellnessFoundation
         ) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Use single color - health purple with minimal fill
             RadarChart(
                 dataPoints: [
@@ -25,7 +25,7 @@ struct WellnessFoundationComponent: View {
             )
             .frame(height: 280)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("\(TrendsContent.WeeklyReport.overallScore) \(Int(wellness.overallScore))/100")
                     .font(.subheadline)
                     .fontWeight(.semibold)

@@ -5,7 +5,7 @@ struct StrainHeaderSection: View {
     let strainScore: StrainScore
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.xs / 2) {
             // Main score ring
             ZStack {
                 Circle()
@@ -24,7 +24,7 @@ struct StrainHeaderSection: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 1.0), value: strainScore.score)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: Spacing.xs / 2) {
                     // Display 0-18 scale with 1 decimal
                     Text(strainScore.formattedScore)
                         .font(.system(size: 48, weight: .bold))

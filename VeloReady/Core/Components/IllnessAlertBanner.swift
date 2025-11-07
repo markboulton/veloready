@@ -6,8 +6,8 @@ struct IllnessAlertBanner: View {
     
     var body: some View {
         if let indicator = illnessService.currentIndicator, indicator.isSignificant {
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
+            VStack(spacing: Spacing.xs / 2) {
+                HStack(spacing: Spacing.xs) {
                     // Icon
                     ZStack {
                         Circle()
@@ -19,7 +19,7 @@ struct IllnessAlertBanner: View {
                             .foregroundColor(severityColor(indicator.severity))
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         HStack {
                             Text("Body Stress Detected")
                                 .font(.subheadline)
@@ -46,7 +46,7 @@ struct IllnessAlertBanner: View {
                         if !indicator.signals.isEmpty {
                             HStack(spacing: 6) {
                                 ForEach(indicator.signals.prefix(3)) { signal in
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: Spacing.xs) {
                                         Image(systemName: signal.type.icon)
                                             .font(.caption2)
                                         Text(signal.type.rawValue)
@@ -90,7 +90,7 @@ struct IllnessAlertBanner: View {
 
 struct IllnessAlertBanner_Previews: PreviewProvider {
     static var previews: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             IllnessAlertBanner()
                 .onAppear {
                     // Mock high severity indicator

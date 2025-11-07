@@ -5,13 +5,13 @@ struct SleepScheduleComponent: View {
     let circadian: WeeklyReportViewModel.CircadianRhythmData
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             Text(TrendsContent.WeeklyReport.sleepSchedule)
                 .font(.heading)
                 .padding(.top, Spacing.xxl)
             
-            HStack(spacing: Spacing.xl) {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: Spacing.xs / 2) {
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(TrendsContent.WeeklyReport.avgBedtime)
                         .metricLabel()
                     Text(formatHour(circadian.avgBedtime))
@@ -19,7 +19,7 @@ struct SleepScheduleComponent: View {
                         .fontWeight(.bold)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(TrendsContent.WeeklyReport.avgWake)
                         .metricLabel()
                     Text(formatHour(circadian.avgWakeTime))
@@ -27,7 +27,7 @@ struct SleepScheduleComponent: View {
                         .fontWeight(.bold)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text(TrendsContent.WeeklyReport.consistency)
                         .metricLabel()
                     Text("±\(Int(circadian.bedtimeVariance))min")

@@ -9,7 +9,7 @@ struct SleepHypnogramComponent: View {
         StandardCard(
             title: TrendsContent.WeeklyReport.weeklySleep
         ) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 if hypnograms.isEmpty {
                 Text(TrendsContent.WeeklyReport.noSleepData)
                     .font(.caption)
@@ -45,7 +45,7 @@ struct SleepHypnogramComponent: View {
                 if selectedDay < hypnograms.count {
                     let hypnogram = hypnograms[selectedDay]
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         HStack {
                             Text(formatHypnogramDate(hypnogram.date))
                                 .font(.subheadline)

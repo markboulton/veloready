@@ -330,7 +330,7 @@ struct TrendChart: View {
     }
     
     private var trendIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: trendDirection)
                 .foregroundColor(trendColor)
                 .font(.system(size: TypeScale.xxs))
@@ -399,7 +399,7 @@ struct TrendChart: View {
         
         return AnyView(
             VStack(spacing: Spacing.md) {
-                HStack(spacing: 8) {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: Icons.System.clock)
                         .foregroundColor(Color.text.secondary)
                     
@@ -411,7 +411,7 @@ struct TrendChart: View {
                     .font(.system(size: TypeScale.xs))
                     .foregroundColor(Color.text.secondary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text("\(availableDays) \(CommonContent.EmptyStates.ofDays) \(selectedPeriod.days) \(CommonContent.TimeUnits.days)")
                         .font(.system(size: TypeScale.xxs, weight: .medium))
                         .foregroundColor(Color.text.secondary)
@@ -461,7 +461,7 @@ struct TrendChart: View {
         
         return AnyView(
             VStack(spacing: Spacing.sm) {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: Icons.System.clock)
                         .font(.system(size: TypeScale.xxs))
                         .foregroundColor(Color.text.tertiary)
@@ -635,7 +635,7 @@ enum TrendPeriod: CaseIterable {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.md) {
         TrendChart(
             title: "Recovery Score",
             getData: { period in

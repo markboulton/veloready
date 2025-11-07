@@ -111,7 +111,7 @@ struct ProFeatureToggle: View {
     @ObservedObject var config = ProFeatureConfig.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Toggle(SettingsContent.DebugSettings.enableProTesting, isOn: $config.bypassSubscriptionForTesting)
                 .onChange(of: config.bypassSubscriptionForTesting) { _, newValue in
                     if newValue {
@@ -175,7 +175,7 @@ struct SleepSettingsView: View {
         NavigationView {
             Form {
                 Section {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text(SettingsContent.Sleep.targetTitle)
                             .font(.headline)
                         
@@ -211,11 +211,11 @@ struct SleepSettingsView: View {
                 }
                 
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(SettingsContent.Sleep.componentsTitle)
                             .font(.headline)
                         
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             HStack {
                                 Text(SettingsContent.SleepComponents.performance)
                                     .font(.subheadline)
@@ -303,8 +303,8 @@ struct TrainingZoneSettingsView: View {
             Form {
                 // Intervals.icu Integration Section
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
                                 HStack {
                                     Text(SettingsContent.TrainingZones.intervalsSync)
                                         .font(.headline)
@@ -335,7 +335,7 @@ struct TrainingZoneSettingsView: View {
                             }
                         
                         if let athlete = athleteZoneService.athlete {
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
                                 Text("\(SettingsContent.AthleteZones.athlete) \(athlete.name ?? SettingsContent.AthleteZones.unknownAthlete)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
@@ -368,7 +368,7 @@ struct TrainingZoneSettingsView: View {
                 
                 // Zone Source Selection
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(SettingsContent.TrainingZones.zoneSource)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -391,7 +391,7 @@ struct TrainingZoneSettingsView: View {
                 // Coggan FTP/Max HR inputs (show when Coggan selected)
                 if userSettings.zoneSource == "coggan" {
                     Section {
-                        VStack(spacing: 12) {
+                        VStack(spacing: Spacing.md) {
                             HStack {
                                 Text(SettingsContent.AthleteZones.ftp)
                                     .frame(width: 100, alignment: .leading)
@@ -421,11 +421,11 @@ struct TrainingZoneSettingsView: View {
                 
                 // Current Zone Boundaries Section
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(SettingsContent.TrainingZones.currentBoundaries)
                             .font(.headline)
                         
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(SettingsContent.TrainingZones.heartRateZonesLabel)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
@@ -442,7 +442,7 @@ struct TrainingZoneSettingsView: View {
                             }
                         }
                         
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(SettingsContent.TrainingZones.powerZonesLabel)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
@@ -462,11 +462,11 @@ struct TrainingZoneSettingsView: View {
                 }
                 
                 Section {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text(SettingsContent.TrainingZones.heartRateZonesTitle)
                             .font(.headline)
                         
-                        VStack(spacing: 12) {
+                        VStack(spacing: Spacing.md) {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
@@ -526,11 +526,11 @@ struct TrainingZoneSettingsView: View {
                 }
                 
                 Section {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text(SettingsContent.TrainingZones.powerZonesTitle)
                             .font(.headline)
                         
-                        VStack(spacing: 12) {
+                        VStack(spacing: Spacing.md) {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
@@ -678,7 +678,7 @@ struct NotificationSettingsView: View {
                         Image(systemName: notificationManager.isAuthorized ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .foregroundColor(notificationManager.isAuthorized ? .green : .orange)
                         
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(SettingsContent.Notifications.permission)
                                 .font(.subheadline)
                                 .fontWeight(.medium)

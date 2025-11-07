@@ -31,7 +31,7 @@ struct RecoveryMetricsSection: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.clear)
             
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 // Show empty state rings when HealthKit is not authorized
                 if !isHealthKitAuthorized {
                     HStack(spacing: Spacing.xxl) {
@@ -100,8 +100,8 @@ struct RecoveryMetricsSection: View {
     private var recoveryScoreView: some View {
             if let recoveryScore = viewModel.recoveryScore {
                 HapticNavigationLink(destination: RecoveryDetailView(recoveryScore: recoveryScore)) {
-                    VStack(spacing: 16) {
-                        HStack(spacing: 4) {
+                    VStack(spacing: Spacing.lg) {
+                        HStack(spacing: Spacing.xs) {
                             Text(TodayContent.Scores.recoveryScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -126,7 +126,7 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Text(TodayContent.Scores.recoveryScore)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -155,8 +155,8 @@ struct RecoveryMetricsSection: View {
                 // Show ? if no sleep data
                 if !viewModel.hasSleepData {
                     // No NavigationLink when no data - make entire ring tappable to reinstate banner
-                    VStack(spacing: 16) {
-                        HStack(spacing: 4) {
+                    VStack(spacing: Spacing.lg) {
+                        HStack(spacing: Spacing.xs) {
                             Text(TodayContent.Scores.sleepScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -186,8 +186,8 @@ struct RecoveryMetricsSection: View {
                 } else {
                     // Normal HapticNavigationLink when we have sleep data
                     HapticNavigationLink(destination: SleepDetailView(sleepScore: sleepScore)) {
-                        VStack(spacing: 16) {
-                            HStack(spacing: 4) {
+                        VStack(spacing: Spacing.lg) {
+                            HStack(spacing: Spacing.xs) {
                                 Text(TodayContent.Scores.sleepScore)
                                     .font(.headline)
                                     .fontWeight(.semibold)
@@ -213,8 +213,8 @@ struct RecoveryMetricsSection: View {
                 }
             } else {
                 // No sleep score calculated yet - show loading spinner or '?' if done loading
-                VStack(spacing: 12) {
-                    HStack(spacing: 4) {
+                VStack(spacing: Spacing.md) {
+                    HStack(spacing: Spacing.xs) {
                         Text(TodayContent.Scores.sleepScore)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -271,8 +271,8 @@ struct RecoveryMetricsSection: View {
     private var loadScoreView: some View {
             if viewModel.hasStrainScore {
                 HapticNavigationLink(destination: StrainDetailView(strainScore: viewModel.strainScore!)) {
-                    VStack(spacing: 16) {
-                        HStack(spacing: 4) {
+                    VStack(spacing: Spacing.lg) {
+                        HStack(spacing: Spacing.xs) {
                             Text(TodayContent.Scores.loadScore)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -296,7 +296,7 @@ struct RecoveryMetricsSection: View {
                     .frame(maxWidth: .infinity)
                 }
             } else {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Text(TodayContent.Scores.loadScore)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -321,7 +321,7 @@ struct RecoveryMetricsSection: View {
     
     @ViewBuilder
     private func loadingRingView(title: String, delay: Double) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             Text(title)
                 .font(.headline)
                 .fontWeight(.semibold)

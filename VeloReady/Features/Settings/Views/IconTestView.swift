@@ -295,11 +295,6 @@ struct IconRow: View {
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     .frame(width: 32, height: 32)
                 
-                // TODO: Replace with custom icon when available
-                // Image("custom-\(icon.name)")
-                //     .resizable()
-                //     .frame(width: 24, height: 24)
-                
                 Text("?")
                     .font(.system(size: 12))
                     .foregroundColor(.gray.opacity(0.5))

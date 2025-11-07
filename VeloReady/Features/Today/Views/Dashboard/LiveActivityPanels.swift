@@ -10,7 +10,7 @@ struct LiveCaloriesPanel: View {
     
     var body: some View {
         Card {
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 HStack {
                     Image(systemName: Icons.Health.caloriesFill)
                         .foregroundColor(ColorPalette.peach)
@@ -28,7 +28,7 @@ struct LiveCaloriesPanel: View {
                     }
                 }
                 
-                HStack(alignment: .bottom, spacing: 4) {
+                HStack(alignment: .bottom, spacing: Spacing.xs) {
                     Text("\(Int(liveActivityService.dailyCalories))")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
@@ -68,7 +68,7 @@ struct LiveStepsPanel: View {
     
     var body: some View {
         Card {
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 HStack {
                     Image(systemName: Icons.Activity.walking)
                         .foregroundColor(ColorPalette.mint)
@@ -86,7 +86,7 @@ struct LiveStepsPanel: View {
                     }
                 }
                 
-                HStack(alignment: .bottom, spacing: 4) {
+                HStack(alignment: .bottom, spacing: Spacing.xs) {
                     Text(formatSteps(liveActivityService.dailySteps))
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
@@ -125,8 +125,8 @@ struct LiveStepsPanel: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        HStack(spacing: 12) {
+    VStack(spacing: Spacing.lg) {
+        HStack(spacing: Spacing.md) {
             LiveCaloriesPanel(liveActivityService: LiveActivityService.shared)
                 .frame(maxWidth: .infinity)
             

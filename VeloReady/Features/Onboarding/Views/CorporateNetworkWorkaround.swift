@@ -27,7 +27,7 @@ struct CorporateNetworkWorkaround: View {
                     .multilineTextAlignment(.center)
                     .padding()
                 
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
                     Text(OnboardingContent.CorporateNetwork.workaroundOptions)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -112,7 +112,7 @@ struct WorkaroundInstructions: View {
     }
     
     private var personalHotspotInstructions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.CorporateNetwork.usePersonalHotspot)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -120,7 +120,7 @@ struct WorkaroundInstructions: View {
             Text(OnboardingContent.CorporateNetwork.hotspotBypass)
                 .font(.subheadline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(OnboardingContent.CorporateNetwork.hotspotStep1)
                 Text(OnboardingContent.CorporateNetwork.hotspotStep2)
                 Text(OnboardingContent.CorporateNetwork.hotspotStep3)
@@ -139,7 +139,7 @@ struct WorkaroundInstructions: View {
     }
     
     private var vpnInstructions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.CorporateNetwork.useVPN)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -147,7 +147,7 @@ struct WorkaroundInstructions: View {
             Text(OnboardingContent.CorporateNetwork.vpnBypass)
                 .font(.subheadline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(OnboardingContent.CorporateNetwork.vpnStep1)
                 Text(OnboardingContent.CorporateNetwork.vpnStep2)
                 Text(OnboardingContent.CorporateNetwork.vpnStep3)
@@ -166,7 +166,7 @@ struct WorkaroundInstructions: View {
     }
     
     private var differentNetworkInstructions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.CorporateNetwork.useDifferentNetwork)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -174,7 +174,7 @@ struct WorkaroundInstructions: View {
             Text(OnboardingContent.CorporateNetwork.networkWithout)
                 .font(.subheadline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(OnboardingContent.CorporateNetwork.networkStep1)
                 Text(OnboardingContent.CorporateNetwork.networkStep2)
                 Text(OnboardingContent.CorporateNetwork.networkStep3)
@@ -193,7 +193,7 @@ struct WorkaroundInstructions: View {
     }
     
     private var certificateBypassInstructions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(OnboardingContent.CorporateNetwork.certificateAdvanced)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -201,7 +201,7 @@ struct WorkaroundInstructions: View {
             Text(OnboardingContent.CorporateNetwork.certificateConfigure)
                 .font(.subheadline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(OnboardingContent.CorporateNetwork.certificateStep1)
                 Text(OnboardingContent.CorporateNetwork.certificateStep2)
                 Text(OnboardingContent.CorporateNetwork.certificateStep3)

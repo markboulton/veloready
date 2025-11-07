@@ -18,7 +18,6 @@ class DataSourceManager: ObservableObject {
     private let intervalsManager = IntervalsOAuthManager.shared
     private let healthKitManager = HealthKitManager.shared
     private let stravaAuthService = StravaAuthService.shared
-    // TODO: Add Garmin manager when implemented
     
     // MARK: - Initialization
     
@@ -111,8 +110,6 @@ class DataSourceManager: ObservableObject {
                 }
             }
             .store(in: &cancellables)
-        
-        // TODO: Add observer for Garmin when implemented
     }
     
     private var cancellables = Set<AnyCancellable>()

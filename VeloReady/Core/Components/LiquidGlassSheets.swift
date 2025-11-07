@@ -88,7 +88,7 @@ struct GlassAlert<Content: View, Actions: View>: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             // Icon
             if let icon = icon {
                 Image(systemName: icon)
@@ -153,7 +153,7 @@ struct GlassToast: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             if let icon = icon {
                 Image(systemName: icon)
                     .font(.system(size: 20))
@@ -220,10 +220,10 @@ struct GlassBottomSheet<Content: View>: View {
                     }
                 
                 // Sheet
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.xs) {
                     Spacer()
                     
-                    VStack(spacing: 0) {
+                    VStack(spacing: Spacing.xs) {
                         // Handle
                         RoundedRectangle(cornerRadius: 2.5)
                             .fill(Color.secondary.opacity(0.3))
@@ -331,7 +331,7 @@ extension View {
                 .foregroundColor(.white)
             
             FloatingPanel(width: 300) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text("Floating Panel")
                         .font(.headline)
                     
@@ -347,7 +347,7 @@ extension View {
                 icon: "checkmark.circle.fill",
                 iconColor: .green
             ) {
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     Button("Cancel") {}
                         .secondaryGlassButton()
                     

@@ -78,14 +78,14 @@ struct CardMetric: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+        VStack(spacing: Spacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
                 Text(value)
                     .font(size.valueFont)
                     .foregroundColor(.primary)
                 
                 if let change = change {
-                    HStack(spacing: 2) {
+                    HStack(spacing: Spacing.xs / 2) {
                         Image(systemName: change.direction.icon)
                             .font(.system(size: 10, weight: .bold))
                         Text(change.value)

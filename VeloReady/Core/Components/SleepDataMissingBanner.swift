@@ -4,7 +4,7 @@ import SwiftUI
 struct SleepDataMissingBanner: View {
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.md) {
                 // Icon
                 ZStack {
                     Circle()
@@ -16,7 +16,7 @@ struct SleepDataMissingBanner: View {
                         .foregroundColor(ColorScale.purpleAccent)
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
                         Text("Sleep Data Missing")
                             .font(.subheadline)
@@ -56,7 +56,7 @@ struct SleepDataMissingBanner: View {
 
 struct SleepDataMissingBanner_Previews: PreviewProvider {
     static var previews: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             SleepDataMissingBanner()
             Spacer()
         }

@@ -212,15 +212,11 @@ actor TRIMPCalculator {
     
     /// Get user's resting heart rate from settings or HealthKit
     private func getUserRestingHR() -> Double? {
-        // TODO: Get from user settings or latest RHR measurement
-        // For now, use reasonable default
         return 60.0
     }
     
     /// Get user's max heart rate from settings or computed value
     private func getUserMaxHR() -> Double? {
-        // TODO: Get from user settings or computed max from workouts
-        // For now, use reasonable default
         return 180.0
     }
     

@@ -73,7 +73,7 @@ struct SleepDetailView: View {
     // MARK: - View Sections
     
     private var missingSleepDataWarning: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             ZStack {
                 Circle()
                     .fill(ColorPalette.neutral200)
@@ -83,7 +83,7 @@ struct SleepDetailView: View {
                     .font(.system(size: 18))
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(SleepContent.Warnings.noSleepDataTitle)
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -127,8 +127,8 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.breakdownTitle
         ) {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                VStack(spacing: Spacing.md) {
                     ScoreBreakdownRow(
                         title: SleepContent.Components.performance,
                         score: sleepScore.subScores.performance,
@@ -173,7 +173,7 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.hypnogramTitle
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if !sleepSamples.isEmpty,
                    let bedtime = sleepScore.inputs.bedtime,
                    let wakeTime = sleepScore.inputs.wakeTime {
@@ -228,11 +228,11 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.metricsTitle
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible())
-                ], spacing: 16) {
+                ], spacing: Spacing.lg) {
                     SleepMetricCard(
                         title: SleepContent.Metrics.duration,
                         value: sleepScore.formattedSleepDuration,
@@ -276,9 +276,9 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.stagesTitle
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if let sleepDuration = sleepScore.inputs.sleepDuration, sleepDuration > 0 {
-                    VStack(spacing: 12) {
+                    VStack(spacing: Spacing.md) {
                         if let deepDuration = sleepScore.inputs.deepSleepDuration {
                             SleepStageRow(
                                 title: SleepContent.Stages.deep,
@@ -329,10 +329,10 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.recommendationsTitle
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(generateRecommendations(), id: \.self) { recommendation in
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: Spacing.md) {
                             Image(systemName: Icons.System.lightbulb)
                                 .foregroundColor(ColorScale.sleepAwake)
                                 .font(.caption)
@@ -396,14 +396,14 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.NewMetrics.sleepDebt
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if let debt = SleepScoreService.shared.currentSleepDebt {
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     Image(systemName: Icons.Health.sleepZzzFill)
                         .font(.title2)
                         .foregroundColor(debt.band.colorToken)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(debt.band.rawValue)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -455,14 +455,14 @@ struct SleepDetailView: View {
         StandardCard(
             title: SleepContent.NewMetrics.consistency
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if let consistency = SleepScoreService.shared.currentSleepConsistency {
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     Image(systemName: Icons.System.clock)
                         .font(.title2)
                         .foregroundColor(consistency.band.colorToken)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(consistency.band.rawValue)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -531,20 +531,20 @@ struct SleepDetailView: View {
         }
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(SleepContent.SleepDebt.trendTitle)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
                 
                 GeometryReader { geometry in
-                    HStack(alignment: .bottom, spacing: 4) {
+                    HStack(alignment: .bottom, spacing: Spacing.xs) {
                         ForEach(Array(results.enumerated()), id: \.element.date) { index, dailyScore in
                             let score = dailyScore.sleepScore
                             let height = max(4, (score / 100.0) * geometry.size.height)
                             let color: Color = score >= 80 ? ColorScale.greenAccent : score >= 60 ? ColorScale.yellowAccent : ColorScale.amberAccent
                             
-                            VStack(spacing: 2) {
+                            VStack(spacing: Spacing.xs / 2) {
                                 RoundedRectangle(cornerRadius: 2)
                                     .fill(color)
                                     .frame(height: height)
@@ -619,7 +619,7 @@ struct SleepDetailView: View {
         let avgScore = scores.reduce(0, +) / Double(scores.count)
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(SleepContent.Consistency.patternTitle)
                     .font(.caption)
                     .fontWeight(.medium)
@@ -677,8 +677,8 @@ struct SleepDetailView: View {
         // If we have enough data, show a refresh message instead
         if availableDays >= requiredDays {
             return AnyView(
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
                         
@@ -695,8 +695,8 @@ struct SleepDetailView: View {
         }
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: Icons.System.clock)
                         .foregroundColor(.secondary)
                     
@@ -709,7 +709,7 @@ struct SleepDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text("\(availableDays) \(SleepContent.DataAvailability.of) \(requiredDays) \(SleepContent.DataAvailability.days)")
                         .font(.caption2)
                         .fontWeight(.medium)
@@ -743,8 +743,8 @@ struct ScoreBreakdownRow: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)

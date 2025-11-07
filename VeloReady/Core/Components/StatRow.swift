@@ -42,7 +42,7 @@ struct StatRow: View {
 }
 
 #Preview {
-    VStack(spacing: 12) {
+    VStack(spacing: Spacing.md) {
         StatRow(label: "Duration", value: "45 min")
         StatRow(label: "Distance", value: "12.5 km")
         StatRow(label: "Heart Rate", value: "165 bpm", valueColor: .red, icon: "heart.fill")

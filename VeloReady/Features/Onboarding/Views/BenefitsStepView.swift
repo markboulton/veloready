@@ -5,11 +5,11 @@ struct BenefitsStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xxl) {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Image(systemName: Icons.System.sparkles)
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
@@ -22,7 +22,7 @@ struct BenefitsStepView: View {
             .padding(.horizontal)
             
             // Benefits
-            VStack(spacing: 24) {
+            VStack(spacing: Spacing.xl) {
                 BenefitCard(
                     icon: "brain.head.profile",
                     title: "Smart Recovery Tracking",
@@ -54,7 +54,7 @@ struct BenefitsStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(16)
             }
             .padding(.horizontal, 32)
@@ -70,7 +70,7 @@ struct BenefitCard: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: Spacing.lg) {
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.1))
@@ -81,7 +81,7 @@ struct BenefitCard: View {
                     .foregroundColor(.blue)
             }
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: Spacing.xs + 2) {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.semibold)

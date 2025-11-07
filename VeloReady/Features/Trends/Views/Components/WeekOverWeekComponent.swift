@@ -9,7 +9,7 @@ struct WeekOverWeekComponent: View {
             title: TrendsContent.WeeklyReport.weekOverWeek
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                 changeRow(
                     label: TrendsContent.WeeklyReport.recoveryLabel,
                     value: "\(Int(metrics.avgRecovery))%",
@@ -36,7 +36,7 @@ struct WeekOverWeekComponent: View {
     }
     
     private func changeRow(label: String, value: String, change: Double?) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.xs / 2) {
             // Label column - flexible
             Text(label)
                 .font(.body)
@@ -52,7 +52,7 @@ struct WeekOverWeekComponent: View {
             // Change column - fixed width for alignment
             Group {
                 if let change = change {
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         Image(systemName: change >= 0 ? "arrow.up" : "arrow.down")
                             .font(.caption2)
                         Text("\(Int(abs(change)))")

@@ -18,7 +18,7 @@ struct WeeklyTrendChart_Legacy: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header with title and Pro badge
             HStack {
                 Image(systemName: Icons.DataSource.intervalsICU)
@@ -60,12 +60,12 @@ struct WeeklyTrendChart_Legacy: View {
                 // Animated selection indicator
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.background.card)
-                    .frame(width: geometry.size.width / 3 - 4, height: 32)
+                    .frame(width: geometry.size.width / 3 - Spacing.xs, height: 32)
                     .offset(x: selectedPeriodOffset(containerWidth: geometry.size.width))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedPeriod)
                 
                 // Period buttons
-                HStack(spacing: 0) {
+                HStack(spacing: Spacing.md) {
                     ForEach(TrendPeriod.allCases, id: \.self) { period in
                         Button(action: {
                             withAnimation {
@@ -221,7 +221,7 @@ struct WeeklyTrendChart_Legacy: View {
     }
     
     private var trendIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: trendDirection)
                 .foregroundColor(trendColor)
             Text(trendText)
@@ -234,7 +234,7 @@ struct WeeklyTrendChart_Legacy: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             Image(systemName: Icons.DataSource.intervalsICU)
                 .font(.title2)
                 .foregroundColor(.secondary)
@@ -333,7 +333,7 @@ struct WeeklyTrendChart_Legacy: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.lg) {
         TrendChart(
             title: ChartContent.ChartTitles.recoveryScore,
             getData: { period in

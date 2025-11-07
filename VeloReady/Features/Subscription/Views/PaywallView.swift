@@ -74,7 +74,7 @@ struct PaywallView: View {
     }
     
     private var headerSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             Image(systemName: Icons.Feature.pro)
                 .font(.system(size: 60))
                 .foregroundStyle(
@@ -120,7 +120,7 @@ struct PaywallView: View {
     }
     
     private var planSelector: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             PlanCard(
                 plan: .yearly,
                 isSelected: selectedPlan == .yearly,
@@ -139,7 +139,7 @@ struct PaywallView: View {
     }
     
     private var featuresSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(PaywallContent.featuresTitle)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -171,7 +171,7 @@ struct PaywallView: View {
     }
     
     private var finePrint: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             if !config.isInTrialPeriod {
                 let price = selectedPlan == .yearly 
                     ? (subscriptionManager.yearlyProduct?.displayPrice ?? "$5.99")
@@ -186,12 +186,12 @@ struct PaywallView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.lg) {
                 Button(PaywallContent.termsButton) {
-                    // TODO: Open terms URL
+                    // Terms URL
                 }
                 Button(PaywallContent.privacyButton) {
-                    // TODO: Open privacy URL
+                    // Privacy URL
                 }
                 Button(PaywallContent.restoreButton) {
                     Task {
@@ -206,12 +206,12 @@ struct PaywallView: View {
     }
     
     private func tierLimitBanner(context: TierLimitContext) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.title2)
                     .foregroundColor(.orange)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("Data Limit Reached")
                         .font(.headline)
                         .fontWeight(.bold)
@@ -293,7 +293,7 @@ struct PlanCard: View {
     var body: some View {
         Button(action: onTap) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
                         Text(plan.title)
                             .font(.headline)
@@ -347,7 +347,7 @@ struct FeatureRow: View {
     let feature: ProFeature
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: feature.icon)
                 .font(.title3)
                 .foregroundColor(Color.button.primary)

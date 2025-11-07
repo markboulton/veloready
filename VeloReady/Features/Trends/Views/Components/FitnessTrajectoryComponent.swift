@@ -86,7 +86,7 @@ struct FitnessTrajectoryComponent: View {
     }
     
     private func legendItem(label: String, color: Color) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Spacing.xs / 2) {
             Circle()
                 .fill(color)
                 .frame(width: 10, height: 10)

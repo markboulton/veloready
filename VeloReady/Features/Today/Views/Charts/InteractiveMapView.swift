@@ -32,8 +32,6 @@ struct InteractiveMapView: UIViewRepresentable {
             } else {
                 self.gradientData = .none
             }
-            
-            print("🗺️ [Performance] Downsampled \(coordinates.count) → \(self.coordinates.count) coordinates for map rendering")
         } else {
             self.coordinates = coordinates
             if let paces = paces, !paces.isEmpty {
@@ -47,20 +45,6 @@ struct InteractiveMapView: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> UIView {
-        print("🗺️ [InteractiveMapView] makeUIView called")
-        print("🗺️ [InteractiveMapView] Coordinates count: \(coordinates.count)")
-        
-        switch gradientData {
-        case .heartRate(let hrs):
-            let avgHR = hrs.reduce(0, +) / Double(hrs.count)
-            print("🗺️ [InteractiveMapView] Using HR gradient: \(hrs.count) samples, avg \(avgHR) bpm")
-        case .pace(let paces):
-            let avgPace = paces.reduce(0, +) / Double(paces.count)
-            print("🗺️ [InteractiveMapView] Using pace gradient: \(paces.count) samples, avg \(avgPace) min/km")
-        case .none:
-            print("🗺️ [InteractiveMapView] No gradient data - using default blue")
-        }
-        
         let containerView = UIView()
         
         let mapView = MKMapView()
@@ -319,7 +303,6 @@ struct InteractiveMapView: UIViewRepresentable {
             segments.append(polyline)
         }
         
-        print("🗺️ [Gradient] Created \(segments.count) HR gradient segments")
         return segments
     }
     
@@ -342,7 +325,6 @@ struct InteractiveMapView: UIViewRepresentable {
             segments.append(polyline)
         }
         
-        print("🗺️ [Gradient] Created \(segments.count) pace gradient segments")
         return segments
     }
     

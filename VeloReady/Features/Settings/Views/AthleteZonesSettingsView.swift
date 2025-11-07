@@ -57,9 +57,9 @@ struct AthleteZonesSettingsView: View {
     
     private var profileSummarySection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 // FTP Display/Edit
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack {
                         Text(SettingsContent.AthleteZones.athlete)
                             .font(.subheadline)
@@ -115,7 +115,7 @@ struct AthleteZonesSettingsView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("\(Int(profileManager.profile.ftp ?? 0)) \(CommonContent.Units.watts)")
                                 .font(.title2)
                                 .fontWeight(.bold)
@@ -131,7 +131,7 @@ struct AthleteZonesSettingsView: View {
                 Divider()
                 
                 // Max HR Display/Edit
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack {
                         Text(SettingsContent.AthleteZones.maxHR)
                             .font(.subheadline)
@@ -187,7 +187,7 @@ struct AthleteZonesSettingsView: View {
                             }
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("\(Int(profileManager.profile.maxHR ?? 0)) \(CommonContent.Units.bpm)")
                                 .font(.title2)
                                 .fontWeight(.bold)
@@ -212,10 +212,10 @@ struct AthleteZonesSettingsView: View {
     
     private var powerZonesSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 // Zone Source Picker (PRO only)
                 if proConfig.hasProAccess {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(SettingsContent.AthleteZones.zoneSource)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -259,7 +259,7 @@ struct AthleteZonesSettingsView: View {
     
     private var hrZonesSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 // Zone Source Picker (PRO only)
                 if proConfig.hasProAccess {
                 }
@@ -317,7 +317,7 @@ struct AthleteZonesSettingsView: View {
         
         return HStack {
             // Zone number and name
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text("\(SettingsContent.AthleteZones.zone) \(index + 1)")
                     .font(.caption)
                     .fontWeight(.medium)
@@ -369,7 +369,7 @@ struct AthleteZonesSettingsView: View {
         
         return HStack {
             // Zone number and name
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text("\(SettingsContent.AthleteZones.zone) \(index + 1)")
                     .font(.caption)
                     .fontWeight(.medium)

@@ -80,7 +80,7 @@ private struct ErrorView: View {
     @ObservedObject var service = RideSummaryService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack(alignment: .top) {
                 Image(systemName: Icons.Status.warningFill)
                     .foregroundColor(.primary)
@@ -116,7 +116,7 @@ private struct SummaryContentView: View {
     let summary: RideSummaryResponse
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Headline (prominent)
             Text(summary.headline)
                 .font(.title3)
@@ -137,10 +137,10 @@ private struct SummaryContentView: View {
             if !summary.strengths.isEmpty || !summary.limiters.isEmpty {
                 Divider()
                 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     // Strengths
                     if !summary.strengths.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             HStack {
                                 Image(systemName: Icons.Status.successFill)
                                     .foregroundColor(.secondary)
@@ -151,7 +151,7 @@ private struct SummaryContentView: View {
                             }
                             
                             ForEach(summary.strengths, id: \.self) { strength in
-                                HStack(alignment: .top, spacing: 8) {
+                                HStack(alignment: .top, spacing: Spacing.sm) {
                                     Text(RideSummaryContent.bulletPoint)
                                         .foregroundColor(.secondary)
                                     Text(strength)
@@ -165,7 +165,7 @@ private struct SummaryContentView: View {
                     
                     // Limiters
                     if !summary.limiters.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             HStack {
                                 Image(systemName: Icons.Status.warningFill)
                                     .foregroundColor(.secondary)
@@ -176,7 +176,7 @@ private struct SummaryContentView: View {
                             }
                             
                             ForEach(summary.limiters, id: \.self) { limiter in
-                                HStack(alignment: .top, spacing: 8) {
+                                HStack(alignment: .top, spacing: Spacing.sm) {
                                     Text(RideSummaryContent.bulletPoint)
                                         .foregroundColor(.secondary)
                                     Text(limiter)
@@ -194,7 +194,7 @@ private struct SummaryContentView: View {
             if !summary.nextHint.isEmpty {
                 Divider()
                 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack {
                         Image(systemName: Icons.System.lightbulb)
                             .foregroundColor(.secondary)
@@ -253,7 +253,7 @@ private struct ExecutionScoreView: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             // Circular gauge
             ZStack {
                 Circle()
@@ -266,7 +266,7 @@ private struct ExecutionScoreView: View {
                     .frame(width: 60, height: 60)
                     .rotationEffect(.degrees(-90))
                 
-                VStack(spacing: 0) {
+                VStack(spacing: Spacing.xs / 2) {
                     Text("\(score)")
                         .font(.title3)
                         .fontWeight(.bold)
@@ -278,7 +278,7 @@ private struct ExecutionScoreView: View {
                 animateRing()
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(RideSummaryContent.ExecutionScore.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

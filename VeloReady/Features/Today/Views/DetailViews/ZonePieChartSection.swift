@@ -47,7 +47,7 @@ struct ZonePieChartSection: View {
     }
     
     private var adaptiveHRZoneChart: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             // Pie chart
             if let zoneTimes = activity.icuHrZoneTimes,
                let totalDuration = activity.duration,
@@ -69,7 +69,7 @@ struct ZonePieChartSection: View {
                 .frame(height: 200)
                 
                 // Zone legend with values
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     if let hrZones = profileManager.profile.hrZones {
                         ForEach(Array(hrZones.enumerated()), id: \.offset) { index, boundary in
                             if index < hrZones.count - 1 {
@@ -77,13 +77,13 @@ struct ZonePieChartSection: View {
                                 let timeInZone = zoneTimes.count > index ? zoneTimes[index] : 0
                                 
                                 if timeInZone > 0 {
-                                    HStack(spacing: 12) {
+                                    HStack(spacing: Spacing.md) {
                                         Circle()
                                             .fill(hrZoneColor(index))
                                             .opacity(hrZoneOpacity(index))
                                             .frame(width: 16, height: 16)
                                         
-                                        VStack(alignment: .leading, spacing: 2) {
+                                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                                             Text("\(ChartContent.Zones.zone) \(index + 1)")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
@@ -120,7 +120,7 @@ struct ZonePieChartSection: View {
     }
     
     private var freeHRZoneChart: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             // Pie chart with user-configured zones from Settings
             if let zoneTimes = activity.icuHrZoneTimes,
                let totalDuration = activity.duration,
@@ -142,18 +142,18 @@ struct ZonePieChartSection: View {
                 .frame(height: 200)
                 
                 // Basic zone legend (no specific boundaries, just zones)
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     ForEach(0..<min(7, zoneTimes.count), id: \.self) { index in
                         let timeInZone = zoneTimes[index]
                         
                         if timeInZone > 0 {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Spacing.md) {
                                 Circle()
                                     .fill(hrZoneColor(index))
                                     .opacity(hrZoneOpacity(index))
                                     .frame(width: 16, height: 16)
                                 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                                     Text("\(ChartContent.Zones.zone) \(index + 1)")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
@@ -202,7 +202,7 @@ struct ZonePieChartSection: View {
     }
     
     private var adaptivePowerZoneChart: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             
             // Pie chart
             if let zoneTimes = activity.icuZoneTimes,
@@ -225,7 +225,7 @@ struct ZonePieChartSection: View {
                 .frame(height: 200)
                 
                 // Zone legend with adaptive values
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     if let powerZones = profileManager.profile.powerZones {
                         ForEach(Array(powerZones.enumerated()), id: \.offset) { index, boundary in
                             if index < powerZones.count - 1 {
@@ -233,13 +233,13 @@ struct ZonePieChartSection: View {
                                 let timeInZone = zoneTimes.count > index ? zoneTimes[index] : 0
                                 
                                 if timeInZone > 0 {
-                                    HStack(spacing: 12) {
+                                    HStack(spacing: Spacing.md) {
                                         Circle()
                                             .fill(powerZoneColor(index))
                                             .opacity(powerZoneOpacity(index))
                                             .frame(width: 16, height: 16)
                                         
-                                        VStack(alignment: .leading, spacing: 2) {
+                                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                                             Text("\(ChartContent.Zones.zone) \(index + 1)")
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
@@ -276,7 +276,7 @@ struct ZonePieChartSection: View {
     }
     
     private var freePowerZoneChart: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             
             // Pie chart with user-configured zones from Settings
             if let zoneTimes = activity.icuZoneTimes,
@@ -299,18 +299,18 @@ struct ZonePieChartSection: View {
                 .frame(height: 200)
                 
                 // Basic zone legend (no specific boundaries, just zones)
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     ForEach(0..<min(7, zoneTimes.count), id: \.self) { index in
                         let timeInZone = zoneTimes[index]
                         
                         if timeInZone > 0 {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Spacing.md) {
                                 Circle()
                                     .fill(powerZoneColor(index))
                                     .opacity(powerZoneOpacity(index))
                                     .frame(width: 16, height: 16)
                                 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                                     Text("\(ChartContent.Zones.zone) \(index + 1)")
                                         .font(.subheadline)
                                         .fontWeight(.medium)

@@ -183,8 +183,6 @@ class ProFeatureConfig: ObservableObject {
         // In debug builds, check for testing bypass
         bypassSubscriptionForTesting = UserDefaults.standard.bool(forKey: "bypassProForTesting")
         #endif
-        
-        // TODO: Integrate with RevenueCat
     }
     
     func saveSubscriptionState() {

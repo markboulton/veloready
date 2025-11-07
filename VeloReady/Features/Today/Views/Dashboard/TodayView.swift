@@ -257,7 +257,7 @@ struct TodayView: View {
     // MARK: - View Sections
     
     private var headerSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             Text(TodayContent.welcomeBack)
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -287,11 +287,11 @@ struct TodayView: View {
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 12) {
+            ], spacing: Spacing.md) {
                 // Sleep Data
                 TodayHealthDataCard(
                     title: "Sleep",
-                    value: "No data", // TODO: Implement sleep data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "moon.fill",
                     color: .blue
@@ -300,7 +300,7 @@ struct TodayView: View {
                 // HRV Data
                 TodayHealthDataCard(
                     title: "HRV",
-                    value: "No data", // TODO: Implement HRV data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "heart.fill",
                     color: .green
@@ -309,7 +309,7 @@ struct TodayView: View {
                 // RHR Data
                 TodayHealthDataCard(
                     title: "Resting HR",
-                    value: "No data", // TODO: Implement RHR data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "heart.circle.fill",
                     color: .red
@@ -624,13 +624,13 @@ struct HealthKitBenefitRow: View {
     let description: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .foregroundColor(Color.semantic.error)
                 .font(.title2)
                 .frame(width: 30)
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -651,7 +651,7 @@ struct StatCard: View {
     let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(icon == "checkmark.circle.fill" ? .green : .primary)
@@ -680,8 +680,8 @@ struct RecentActivityCard: View {
     
     var body: some View {
         NavigationLink(destination: RideDetailSheet(activity: activity)) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: Spacing.md) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack(spacing: 6) {
                         Text(activity.name ?? "Unnamed Activity")
                             .font(.subheadline)
@@ -699,7 +699,7 @@ struct RecentActivityCard: View {
                         }
                     }
                     
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         if let startDate = parseActivityDate(activity.startDateLocal) {
                             Text(formatActivityDate(startDate))
                                 .font(.caption)
@@ -777,7 +777,7 @@ struct TodayHealthDataCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(color)

@@ -164,7 +164,7 @@ struct SleepHypnogramChart: View {
         let hours = Int(totalDuration / 3600)
         let minutes = Int((totalDuration.truncatingRemainder(dividingBy: 3600)) / 60)
         
-        return HStack(spacing: 4) {
+        return HStack(spacing: Spacing.xs) {
             Circle()
                 .fill(stage.color)
                 .frame(width: 8, height: 8)

@@ -153,14 +153,12 @@ class WatchConnectivityManager: NSObject, ObservableObject {
         if let hrv = data["hrv"] as? Double,
            let hrvTimestamp = data["hrvTimestamp"] as? TimeInterval {
             Logger.info("⌚ Received HRV from watch: \(hrv)ms")
-            // TODO: Update HealthKit with watch data (preferred source)
         }
         
         // Extract RHR if available
         if let rhr = data["rhr"] as? Double,
            let rhrTimestamp = data["rhrTimestamp"] as? TimeInterval {
             Logger.info("⌚ Received RHR from watch: \(rhr)bpm")
-            // TODO: Update HealthKit with watch data (preferred source)
         }
     }
 }

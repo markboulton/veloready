@@ -43,9 +43,9 @@ struct CardHeader: View {
     }
     
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: Spacing.xs / 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                HStack(spacing: Spacing.sm) {
                     // Title icon (optional)
                     if let titleIcon = titleIcon {
                         Image(systemName: titleIcon)
@@ -68,7 +68,7 @@ struct CardHeader: View {
                 }
                 
                 if let subtitle = subtitle {
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         if let icon = subtitleIcon {
                             Image(systemName: icon)
                                 .font(.caption)
