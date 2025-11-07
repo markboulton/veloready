@@ -57,10 +57,10 @@ struct RideDetailSheet: View {
     // MARK: - Header Section
     
     private var rideHeaderSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Title and Type
             HStack {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(activity.name ?? "Unnamed Activity")
                         .font(.title2)
                         .fontWeight(.bold)
@@ -92,7 +92,7 @@ struct RideDetailSheet: View {
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 16) {
+            ], spacing: Spacing.lg) {
                 RideMetricCard(
                     title: ActivityContent.Metrics.duration,
                     value: formatDuration(activity.duration ?? 0)
@@ -119,11 +119,11 @@ struct RideDetailSheet: View {
             // FTP Warning/Info
             if activity.tss == nil || activity.intensityFactor == nil {
                 if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
-                    HStack(spacing: 6) {
+                    HStack(spacing: Spacing.xs + 2) {
                         Image(systemName: Icons.Status.warningFill)
                             .foregroundColor(.orange)
                             .font(.caption)
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                             Text(ActivityContent.FTPWarnings.ftpRequired)
                                 .font(.caption)
                                 .fontWeight(.semibold)
@@ -147,13 +147,13 @@ struct RideDetailSheet: View {
     // MARK: - HR Zone Chart Section
     
     private var hrZoneChartSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(ActivityContent.Zones.heartRateZones)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // Real HR Zone Chart
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 Text(ActivityContent.Zones.hrZoneDistribution)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -170,7 +170,7 @@ struct RideDetailSheet: View {
                     // Create chronological chart showing ride duration from start to finish
                     let chartWidth: CGFloat = UIScreen.main.bounds.width - 40 // Full width minus padding
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         // Main chart - horizontal bars showing chronological zone distribution
                         HStack(spacing: 0) {
                             ForEach(0..<min(5, zoneTimes.count), id: \.self) { zoneIndex in
@@ -186,11 +186,11 @@ struct RideDetailSheet: View {
                         .cornerRadius(2)
                         
                         // Zone legend with time spent (chronological order)
-                        HStack(spacing: 12) {
+                        HStack(spacing: Spacing.md) {
                             ForEach(0..<min(5, zoneTimes.count), id: \.self) { zoneIndex in
                                 let timeInZone = zoneTimes[zoneIndex]
                                 if timeInZone > 0 {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: Spacing.xs) {
                                         Circle()
                                             .fill(hrZoneColors[zoneIndex])
                                             .frame(width: 10, height: 10)
@@ -211,7 +211,7 @@ struct RideDetailSheet: View {
                     let mockDuration: Double = 1200 // 20 minutes
                     let chartWidth: CGFloat = UIScreen.main.bounds.width - 40
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         HStack(spacing: 0) {
                             ForEach(0..<5, id: \.self) { zoneIndex in
                                 let timeInZone = mockZoneTimes[zoneIndex]
@@ -234,11 +234,11 @@ struct RideDetailSheet: View {
                             alignment: .topTrailing
                         )
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: Spacing.md) {
                             ForEach(0..<5, id: \.self) { zoneIndex in
                                 let timeInZone = mockZoneTimes[zoneIndex]
                                 if timeInZone > 0 {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: Spacing.xs) {
                                         Circle()
                                             .fill(hrZoneColors[zoneIndex])
                                             .frame(width: 10, height: 10)
@@ -268,13 +268,13 @@ struct RideDetailSheet: View {
     // MARK: - Power Zone Chart Section
     
     private var powerZoneChartSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(ActivityContent.Zones.powerZones)
                 .font(.headline)
                 .fontWeight(.semibold)
             
             // Real Power Zone Chart based on actual data
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 Text(ActivityContent.Zones.powerZoneDistribution)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -291,7 +291,7 @@ struct RideDetailSheet: View {
                     // Create chronological chart showing ride duration from start to finish
                     let chartWidth: CGFloat = UIScreen.main.bounds.width - 40 // Full width minus padding
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         // Main chart - horizontal bars showing chronological zone distribution
                         HStack(spacing: 0) {
                             ForEach(0..<min(5, zoneTimes.count), id: \.self) { zoneIndex in
@@ -307,11 +307,11 @@ struct RideDetailSheet: View {
                         .cornerRadius(2)
                         
                         // Zone legend with time spent (chronological order)
-                        HStack(spacing: 12) {
+                        HStack(spacing: Spacing.md) {
                             ForEach(0..<min(5, zoneTimes.count), id: \.self) { zoneIndex in
                                 let timeInZone = zoneTimes[zoneIndex]
                                 if timeInZone > 0 {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: Spacing.xs) {
                                         Circle()
                                             .fill(powerZoneColors[zoneIndex % powerZoneColors.count])
                                             .frame(width: 10, height: 10)
@@ -328,8 +328,8 @@ struct RideDetailSheet: View {
                     }
                 } else {
                     // No power zone data available
-                    VStack(spacing: 12) {
-                        HStack(spacing: 8) {
+                    VStack(spacing: Spacing.md) {
+                        HStack(spacing: Spacing.sm) {
                             Image(systemName: Icons.Health.boltSlash)
                                 .foregroundColor(.orange)
                             Text(ActivityContent.powerZonesNotAvailable)
@@ -367,7 +367,7 @@ struct RideDetailSheet: View {
     // MARK: - Time in Zone Tables Section
     
     private var timeInZoneTablesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(ActivityContent.Zones.timeInZones)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -399,11 +399,11 @@ struct RideDetailSheet: View {
                 .fontWeight(.medium)
                 .foregroundColor(.secondary)
             
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm) {
                 ForEach(Array(zones.enumerated()), id: \.offset) { index, zone in
                     HStack {
                         // Zone indicator
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.sm) {
                             Circle()
                                 .fill(colorScheme[index])
                                 .frame(width: 16, height: 16)
@@ -601,7 +601,7 @@ struct RideMetricCard: View {
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
