@@ -108,7 +108,7 @@ struct IntervalsAPIDebugView: View {
             .cornerRadius(12)
             .padding(.horizontal)
         } else if !viewModel.isLoading {
-            Text(DebugSettingsContent.IntervalsAPI.noAthleteData)
+            Text(DebugContent.IntervalsAPI.noAthleteData)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
@@ -125,7 +125,7 @@ struct IntervalsAPIDebugView: View {
     
     @ViewBuilder
     private func powerZonesSection(athlete: IntervalsAthlete) -> some View {
-        Text(DebugSettingsContent.IntervalsAPI.powerZones)
+        Text(DebugContent.IntervalsAPI.powerZones)
             .font(.subheadline)
             .fontWeight(.medium)
             .padding(.top, 4)
@@ -137,7 +137,7 @@ struct IntervalsAPIDebugView: View {
             if let zones = powerZones.zones {
                 ForEach(Array(zones.enumerated()), id: \.offset) { index, boundary in
                     HStack {
-                        Text("\(DebugSettingsContent.IntervalsAPI.boundary) \(index + 1)")
+                        Text("\(DebugContent.IntervalsAPI.boundary) \(index + 1)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -149,7 +149,7 @@ struct IntervalsAPIDebugView: View {
                 }
             }
         } else {
-            Text(DebugSettingsContent.IntervalsAPI.powerZonesNil)
+            Text(DebugContent.IntervalsAPI.powerZonesNil)
                 .font(.caption)
                 .foregroundColor(ColorScale.redAccent)
         }
@@ -157,7 +157,7 @@ struct IntervalsAPIDebugView: View {
     
     @ViewBuilder
     private func heartRateZonesSection(athlete: IntervalsAthlete) -> some View {
-        Text(DebugSettingsContent.IntervalsAPI.heartRateZones)
+        Text(DebugContent.IntervalsAPI.heartRateZones)
             .font(.subheadline)
             .fontWeight(.medium)
             .padding(.top, 4)
@@ -169,7 +169,7 @@ struct IntervalsAPIDebugView: View {
             if let zones = hrZones.zones {
                 ForEach(Array(zones.enumerated()), id: \.offset) { index, boundary in
                     HStack {
-                        Text("\(DebugSettingsContent.IntervalsAPI.boundary) \(index + 1)")
+                        Text("\(DebugContent.IntervalsAPI.boundary) \(index + 1)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -181,7 +181,7 @@ struct IntervalsAPIDebugView: View {
                 }
             }
         } else {
-            Text(DebugSettingsContent.IntervalsAPI.hrZonesNil)
+            Text(DebugContent.IntervalsAPI.hrZonesNil)
                 .font(.caption)
                 .foregroundColor(ColorScale.redAccent)
         }
@@ -191,7 +191,7 @@ struct IntervalsAPIDebugView: View {
     
     private var activitiesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(DebugSettingsContent.IntervalsAPI.recentActivities)
+            Text(DebugContent.IntervalsAPI.recentActivities)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .padding(.horizontal)
@@ -202,7 +202,7 @@ struct IntervalsAPIDebugView: View {
                         .padding(.horizontal)
                 }
             } else if !viewModel.isLoading {
-                Text(DebugSettingsContent.IntervalsAPI.noActivities)
+                Text(DebugContent.IntervalsAPI.noActivities)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.horizontal)
@@ -214,14 +214,14 @@ struct IntervalsAPIDebugView: View {
     
     private var rawJSONSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(DebugSettingsContent.IntervalsAPI.rawJSON)
+            Text(DebugContent.IntervalsAPI.rawJSON)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .padding(.horizontal)
             
             if let athleteJSON = viewModel.athleteRawJSON {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(DebugSettingsContent.IntervalsAPI.athleteProfileJSON)
+                    Text(DebugContent.IntervalsAPI.athleteProfileJSON)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -238,7 +238,7 @@ struct IntervalsAPIDebugView: View {
             
             if let activitiesJSON = viewModel.activitiesRawJSON {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(DebugSettingsContent.IntervalsAPI.activitiesJSON)
+                    Text(DebugContent.IntervalsAPI.activitiesJSON)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
