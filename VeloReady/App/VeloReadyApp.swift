@@ -36,7 +36,7 @@ struct VeloReadyApp: App {
         
         // Migrate large stream data from UserDefaults to file-based cache (one-time)
         Task { @MainActor in
-            StreamCacheService.shared.migrateLegacyStreamsToFileCache()
+            // StreamCacheService deleted - migration no longer needed (handled by DiskCacheLayer)
         }
         
         // Enable automatic iCloud sync
@@ -108,19 +108,17 @@ struct VeloReadyApp: App {
             }
             
             // Prefetch today's activities (low bandwidth, high value)
-            let intervalsCache = IntervalsCache.shared
-            let apiClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
+            // Using UnifiedActivityService (replaces IntervalsCache)
             do {
-                let _ = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: true)
+                let _ = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 100, daysBack: 90)
                 Logger.debug("✅ [BACKGROUND] Activities prefetched")
             } catch {
                 Logger.debug("⚠️ [BACKGROUND] Could not prefetch activities: \(error.localizedDescription)")
             }
             
-            // Prefetch HealthKit data
+            // Prefetch HealthKit data (replaces HealthKitCache)
             let healthKitManager = HealthKitManager.shared
-            let healthKitCache = HealthKitCache.shared
-            let _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: true)
+            let _ = await healthKitManager.fetchRecentWorkouts(daysBack: 90)
             Logger.debug("✅ [BACKGROUND] HealthKit data prefetched")
             
             // Refresh all scores

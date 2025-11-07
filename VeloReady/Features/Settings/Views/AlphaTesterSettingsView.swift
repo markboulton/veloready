@@ -156,7 +156,8 @@ struct AlphaTesterSettingsView: View {
     // MARK: - Actions
     
     private func clearCache() {
-        IntervalsCache.shared.clearCache()
+        // IntervalsCache deleted - use CacheOrchestrator
+        Task { await CacheOrchestrator.shared.invalidate(matching: "intervals:.*") }
         cacheCleared = true
         
         // Reset after 3 seconds

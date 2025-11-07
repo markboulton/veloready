@@ -1241,19 +1241,16 @@ struct DebugSettingsView: View {
     // MARK: - Helper Functions
     
     private func clearIntervalsCache() {
-        // Use IntervalsCache to clear all cached data properly
+        // Clear Intervals cache using CacheOrchestrator
         Task {
-            IntervalsCache.shared.clearCache()
-            Logger.debug("🗑️ Cleared Intervals.icu cache from Debug Settings")
-            
-            await MainActor.run {
-                cacheCleared = true
-                
-                // Reset after 3 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    cacheCleared = false
-                }
-            }
+            await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
+            Logger.debug("🗑️ Cleared Intervals.icu cache")
+        }
+        cacheCleared = true
+        
+        // Reset flag after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            cacheCleared = false
         }
     }
     

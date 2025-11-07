@@ -31,15 +31,10 @@ struct CacheStatsView: View {
                     .font(.caption)
             }
             
-            // Stream Cache Section
-            Section(SettingsContent.Cache.streamCache) {
-                let streamStats = StreamCacheService.shared.getCacheStats()
-                
-                StatRow(label: SettingsContent.Cache.totalActivities, value: "\(streamStats.totalEntries)")
-                StatRow(label: SettingsContent.Cache.totalSamples, value: formatNumber(streamStats.totalSamples))
-                StatRow(label: SettingsContent.Cache.cacheHits, value: "\(streamStats.cacheHits)")
-                StatRow(label: SettingsContent.Cache.cacheMisses, value: "\(streamStats.cacheMisses)")
-                StatRow(label: SettingsContent.Cache.hitRate, value: "\(Int(streamStats.hitRate * 100))%")
+            // Cache Statistics Section (StreamCacheService deleted)
+            Section("CacheOrchestrator") {
+                StatRow(label: "Architecture", value: "3-Layer (Memory/Disk/CoreData)")
+                StatRow(label: "Status", value: "Active")
             }
             
             // Performance Monitoring Section
@@ -119,7 +114,8 @@ struct CacheStatsView: View {
             Button(SettingsContent.Cache.clear, role: .destructive) {
                 Task {
                     await cacheManager.invalidate(matching: "*")
-                    StreamCacheService.shared.clearAllCaches()
+                    // StreamCacheService deleted - use CacheOrchestrator
+                    Task { await CacheOrchestrator.shared.invalidate(matching: ".*") }
                     Logger.debug("🗑️ All caches cleared")
                 }
             }

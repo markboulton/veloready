@@ -43,7 +43,46 @@ actor CacheOrchestrator {
         Logger.debug("🗄️ [CacheOrchestrator] Initialized with 3-layer architecture")
     }
     
-    // MARK: - Main Fetch API (Compatible with UnifiedCacheManager)
+    // MARK: - Main API (Compatible with UnifiedCacheManager)
+    
+    /// Get data from cache without fetching
+    /// - Parameters:
+    ///   - key: Unique cache key
+    ///   - ttl: Time-to-live in seconds
+    /// - Returns: Cached data if found and valid, nil otherwise
+    func get<T: Sendable>(key: String, ttl: TimeInterval) async -> T? {
+        // Check memory cache (fastest)
+        if let cached: T = await memoryLayer.get(key: key, ttl: ttl) {
+            return cached
+        }
+        
+        // Check disk cache (fast)
+        if let cached: T = await diskLayer.get(key: key, ttl: ttl) {
+            // Restore to memory for next access
+            await memoryLayer.set(key: key, value: cached, cachedAt: Date())
+            return cached
+        }
+        
+        // Check Core Data (slower)
+        if T.self is Codable.Type,
+           let cached: T = await coreDataLayer.get(key: key, ttl: ttl) {
+            // Restore to memory and disk for faster access
+            await memoryLayer.set(key: key, value: cached, cachedAt: Date())
+            await diskLayer.set(key: key, value: cached, cachedAt: Date())
+            return cached
+        }
+        
+        return nil
+    }
+    
+    /// Set data in cache
+    /// - Parameters:
+    ///   - key: Unique cache key
+    ///   - value: Value to cache
+    ///   - cachedAt: Timestamp when value was cached
+    func set<T: Sendable>(key: String, value: T, cachedAt: Date) async {
+        await storeInAllLayers(key: key, value: value)
+    }
     
     /// Fetch data with automatic caching and layer coordination
     /// - Parameters:

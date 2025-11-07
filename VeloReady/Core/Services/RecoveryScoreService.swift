@@ -20,7 +20,6 @@ class RecoveryScoreService: ObservableObject {
     private let healthKitManager = HealthKitManager.shared
     let baselineCalculator = BaselineCalculator() // Made public for cache clearing
     private let intervalsAPIClient: IntervalsAPIClient
-    private let intervalsCache = IntervalsCache.shared
     private let sleepScoreService = SleepScoreService.shared
     private let cache = UnifiedCacheManager.shared
     
@@ -440,7 +439,8 @@ class RecoveryScoreService: ObservableObject {
     private func fetchIntervalsData(forceRefresh: Bool = false) async -> (atl: Double?, ctl: Double?) {
         do {
             // Try Intervals.icu first (if available)
-            let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: forceRefresh)
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             Logger.debug("🔍 Using pre-calculated CTL/ATL from \(activities.count) cached activities")
             
@@ -655,7 +655,8 @@ class RecoveryScoreService: ObservableObject {
         do {
             // Use normal caching behavior - cache serialization is now fixed
             // Never force refresh here to avoid race conditions - use cached data from fetchIntervalsData
-            let recentActivities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            // IntervalsCache deleted - use UnifiedActivityService
+            let recentActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             // Filter for last 8 days to be more inclusive of "last week" activities
             let calendar = Calendar.current
@@ -731,19 +732,21 @@ class RecoveryScoreService: ObservableObject {
         Logger.debug("🧪 Testing cache serialization...")
         
         // Clear cache and fetch fresh data
-        intervalsCache.clearAllCache()
+        // IntervalsCache deleted - use CacheOrchestrator
+        await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
         
         do {
             // First fetch - should get fresh data from API
             Logger.debug("🔄 First fetch (fresh from API)...")
-            let activities1 = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: true)
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities1 = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             if let first1 = activities1.first {
                 Logger.debug("✅ Fresh API data: TSS=\(first1.tss?.description ?? "nil"), ATL=\(first1.atl?.description ?? "nil"), CTL=\(first1.ctl?.description ?? "nil")")
             }
             
             // Second fetch - should use cached data
             Logger.debug("🔄 Second fetch (from cache)...")
-            let activities2 = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            let activities2 = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             if let first2 = activities2.first {
                 Logger.debug("✅ Cached data: TSS=\(first2.tss?.description ?? "nil"), ATL=\(first2.atl?.description ?? "nil"), CTL=\(first2.ctl?.description ?? "nil")")
             }
@@ -773,7 +776,8 @@ class RecoveryScoreService: ObservableObject {
         Logger.debug("🔄 Force refreshing data from API...")
         
         // Clear all caches first
-        intervalsCache.clearAllCache()
+        // IntervalsCache deleted - use CacheOrchestrator
+        await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
         baselineCalculator.clearCache()
         
         // Wait a moment for cache clear to complete

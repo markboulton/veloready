@@ -21,8 +21,6 @@ final class ServiceContainer {
     
     // MARK: - Data Services
     
-    lazy var intervalsCache = IntervalsCache.shared
-    lazy var healthKitCache = HealthKitCache.shared
     lazy var stravaDataService = StravaDataService.shared
     lazy var deduplicationService = ActivityDeduplicationService.shared
     
@@ -180,8 +178,10 @@ final class ServiceContainer {
     func clearAllCaches() {
         Logger.debug("🗑️ ServiceContainer: Clearing all caches...")
         
-        intervalsCache.clearAllCache()
-        healthKitCache.clearCache()
+        // IntervalsCache and HealthKitCache deleted - use CacheOrchestrator
+        Task {
+            await CacheOrchestrator.shared.invalidate(matching: ".*")
+        }
         
         // Clear score service caches
         recoveryScoreService.clearBaselineCache()
@@ -195,8 +195,8 @@ final class ServiceContainer {
         
         // Pre-load critical data
         if healthKitManager.isAuthorized {
-            // Trigger cache population
-            _ = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
+            // HealthKitCache deleted - pre-load directly
+            _ = await healthKitManager.fetchRecentWorkouts(daysBack: 90)
         }
         
         Logger.debug("✅ ServiceContainer: Services warmed up")

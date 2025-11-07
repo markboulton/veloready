@@ -17,7 +17,6 @@ class LiveActivityService: ObservableObject {
     
     private let healthKitManager = HealthKitManager.shared
     private let intervalsAPIClient: IntervalsAPIClient
-    private let intervalsCache = IntervalsCache.shared
     private let userSettings = UserSettings.shared
     
     // Prevent multiple concurrent updates
@@ -243,7 +242,8 @@ class LiveActivityService: ObservableObject {
             let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? today
             
             // Get activities from cache (prevents rate limiting)
-            let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 100, daysBack: 7)
             
             // Filter for today's rides and sum calories
             let todayActivities = activities.filter { activity in

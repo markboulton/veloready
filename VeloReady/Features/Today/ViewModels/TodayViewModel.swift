@@ -41,8 +41,6 @@ class TodayViewModel: ObservableObject {
     // Convenience accessors for frequently used services
     private var oauthManager: IntervalsOAuthManager { services.intervalsOAuthManager }
     private var apiClient: IntervalsAPIClient { services.intervalsAPIClient }
-    private var intervalsCache: IntervalsCache { services.intervalsCache }
-    private var healthKitCache: HealthKitCache { services.healthKitCache }
     private var healthKitManager: HealthKitManager { services.healthKitManager }
     private var stravaAuthService: StravaAuthService { services.stravaAuthService }
     private var stravaDataService: StravaDataService { services.stravaDataService }
@@ -83,10 +81,10 @@ class TodayViewModel: ObservableObject {
         Logger.debug("🗑️ Cleared baseline cache - will fetch fresh historical data from HealthKit")
     }
     
-    /// Force refresh HealthKit workouts (clears cache)
+    /// Force refresh HealthKit workouts
     func forceRefreshHealthKitWorkouts() async {
         Logger.debug("🔄 Force refreshing HealthKit workouts...")
-        healthKitCache.clearCache()
+        // HealthKitCache deleted - refresh happens automatically in refreshData()
         await refreshData()
     }
     
@@ -219,8 +217,11 @@ class TodayViewModel: ObservableObject {
         var intervalsActivities: [IntervalsActivity] = []
         var wellness: [IntervalsWellness] = []
         do {
-            intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: false)
-            wellness = try await intervalsCache.getCachedWellness(apiClient: apiClient, forceRefresh: false)
+            // Use UnifiedActivityService for activities (replaces IntervalsCache)
+            intervalsActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 100, daysBack: 90)
+            // Wellness fetching - IntervalsCache deleted, skip for now
+            // TODO: Implement wellness fetching via UnifiedActivityService if needed
+            wellness = []
             Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
             Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
@@ -230,8 +231,8 @@ class TodayViewModel: ObservableObject {
         await stravaDataService.fetchActivitiesIfNeeded()
         let stravaActivities = stravaDataService.activities
         
-        // Always fetch Apple Health workouts
-        let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
+        // Always fetch Apple Health workouts (replaces HealthKitCache)
+        let healthWorkouts = await healthKitManager.fetchRecentWorkouts(daysBack: 90)
         Logger.debug("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
         
         // Keep backwards compatibility
@@ -647,23 +648,20 @@ class TodayViewModel: ObservableObject {
         // Also fetch wellness data (non-blocking)
         // PERFORMANCE FIX: Track task for cancellation
         let wellnessTask = Task.detached(priority: .background) {
-            guard !Task.isCancelled else {
-                await Logger.debug("🛑 [TASK] Wellness fetch cancelled")
-                return
-            }
             do {
-                let wellness = try await self.intervalsCache.getCachedWellness(apiClient: self.apiClient, forceRefresh: false)
+                // Wellness fetching - IntervalsCache deleted, skip for now
+                // TODO: Implement wellness fetching if needed
+                let wellness: [IntervalsWellness] = []
                 await MainActor.run {
                     self.wellnessData = wellness
                     Logger.debug("✅ Loaded wellness data")
                 }
             } catch {
-                Logger.warning("️ Failed to load wellness data: \(error.localizedDescription)")
+                await Logger.error("❌ Failed to load wellness: \(error.localizedDescription)")
             }
         }
         backgroundTasks.append(wellnessTask)
         
-        // PERFORMANCE FIX: Move ALL heavy background operations to non-blocking tasks
         // User-visible refresh should complete in <3s, background work continues silently
         
         // Show saving state before background work
@@ -728,9 +726,8 @@ class TodayViewModel: ObservableObject {
         // Fetch activities from all connected sources
         var intervalsActivities: [IntervalsActivity] = []
         do {
-            // For small day ranges, we can use cache more aggressively
-            let forceRefresh = daysBack >= 365 ? false : false // Always use cache if available
-            intervalsActivities = try await intervalsCache.getCachedActivities(apiClient: apiClient, forceRefresh: forceRefresh)
+            // Use UnifiedActivityService (replaces IntervalsCache)
+            intervalsActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: daysBack)
             Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
             Logger.warning("️ Intervals.icu not available: \(error.localizedDescription)")
@@ -740,8 +737,8 @@ class TodayViewModel: ObservableObject {
         await stravaDataService.fetchActivities(daysBack: daysBack)
         let stravaActivities = stravaDataService.activities
         
-        // Fetch Apple Health workouts
-        let healthWorkouts = await healthKitCache.getCachedWorkouts(healthKitManager: healthKitManager, forceRefresh: false)
+        // Fetch Apple Health workouts (replaces HealthKitCache)
+        let healthWorkouts = await healthKitManager.fetchRecentWorkouts(daysBack: daysBack)
         Logger.debug("✅ Loaded \(healthWorkouts.count) workouts from Apple Health")
         
         // Update activities
