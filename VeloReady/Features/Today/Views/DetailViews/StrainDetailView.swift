@@ -77,8 +77,8 @@ struct StrainDetailView: View {
         StandardCard(
             title: StrainContent.loadComponents
         ) {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                VStack(spacing: Spacing.md) {
                     LoadComponentRow(
                         title: "Cardio",
                         score: strainScore.subScores.cardioLoad,
@@ -108,11 +108,11 @@ struct StrainDetailView: View {
         StandardCard(
             title: StrainContent.activitySummary
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible())
-                ], spacing: 16) {
+                ], spacing: Spacing.lg) {
                     if let cardioDuration = strainScore.inputs.cardioDurationMinutes {
                         LoadMetricCard(
                             title: "Cardio Time",
@@ -172,12 +172,12 @@ struct StrainDetailView: View {
     }
     
     private var activitySummarySection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(StrainContent.dailyBreakdown)
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 if strainScore.inputs.cardioDailyTRIMP != nil {
                     ActivityRow(
                         title: "Cycling Load",
@@ -212,9 +212,9 @@ struct StrainDetailView: View {
         StandardCard(
             title: StrainContent.recoveryModulation
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(StrainContent.RecoveryModulation.recoveryFactor)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -240,10 +240,10 @@ struct StrainDetailView: View {
         StandardCard(
             title: StrainContent.recommendations
         ) {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     ForEach(generateRecommendations(), id: \.self) { recommendation in
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: Spacing.md) {
                             Image(systemName: Icons.System.lightbulb)
                                 .foregroundColor(ColorPalette.yellow)
                                 .font(.caption)
@@ -341,8 +341,8 @@ struct LoadComponentRow: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -383,7 +383,7 @@ struct LoadMetricCard: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
                 .font(.title2)
@@ -416,7 +416,7 @@ struct ActivityRow: View {
                 .fill(color)
                 .frame(width: 12, height: 12)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
