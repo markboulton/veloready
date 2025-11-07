@@ -5,7 +5,7 @@ struct SleepHeaderSection: View {
     let sleepScore: SleepScore
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.xs / 2) {
             // Main score ring
             ZStack {
                 Circle()
@@ -22,7 +22,7 @@ struct SleepHeaderSection: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 1.0), value: sleepScore.score)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: Spacing.xs / 2) {
                     Text("\(sleepScore.score)")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(sleepScore.band.colorToken)

@@ -23,7 +23,7 @@ struct SecondaryButton: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.lg) {
         SecondaryButton(title: "Edit RPE", action: {})
         SecondaryButton(title: "Cancel", action: {})
         SecondaryButton(title: "More", action: {})

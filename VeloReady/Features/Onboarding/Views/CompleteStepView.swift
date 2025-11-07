@@ -5,7 +5,7 @@ struct CompleteStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xxl) {
             Spacer()
             
             // Success animation
@@ -19,7 +19,7 @@ struct CompleteStepView: View {
                     .foregroundColor(ColorScale.greenAccent)
             }
             
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.Complete.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)

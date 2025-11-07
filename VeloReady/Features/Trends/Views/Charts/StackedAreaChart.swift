@@ -32,7 +32,7 @@ struct StackedAreaChart: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Chart
             Chart {
                 ForEach(categories) { category in
@@ -72,9 +72,9 @@ struct StackedAreaChart: View {
             .frame(height: 180)
             
             // Legend
-            HStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(categories) { category in
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(category.color)
                             .frame(width: 12, height: 12)
@@ -92,7 +92,7 @@ struct StackedAreaChart: View {
 
 #Preview {
     Card(style: .flat) {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(ChartContent.ChartTitles.sleepArchitecture)
                 .font(.heading)
             
@@ -107,7 +107,7 @@ struct StackedAreaChart: View {
                 yAxisMax: 9.0
             )
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     Text(ChartContent.Examples.deepSleepAvg)
                     Image(systemName: Icons.Status.successFill)

@@ -111,7 +111,7 @@ struct WorkoutDetailCharts: View {
         let _ = print("📊 FTP: \(ftp ?? 0)W")
         let _ = print("📊 Max HR: \(maxHR ?? 0)bpm")
         
-        return VStack(spacing: ChartStyle.chartPadding) {
+        return VStack(spacing: Spacing.xs) {
             // Power Chart - only show if we have meaningful data
             if !samples.isEmpty && hasData({ $0.power }, metricName: "Power") {
                 let validPower = samples.map(\.power).filter { !$0.isNaN && !$0.isInfinite && $0 > 0 }
@@ -272,7 +272,7 @@ struct MetricChartView: View {
             title: title,
             cardStyle: useBlendedStyle ? .blended : .standard
         ) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 // Summary
                 summaryText
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -363,7 +363,7 @@ struct MetricChartView: View {
     }
     
     private var summaryText: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.xs) {
             Text("\(ChartContent.Summary.avg) \(safeInt(summary.average))\(summary.unit)")
             Text("\(ChartContent.Summary.max) \(safeInt(summary.max))\(summary.unit)")
         }
@@ -457,7 +457,7 @@ struct ElevationChartView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             // Header with icon
             HStack {
                 Image(systemName: Icons.Training.elevation)
@@ -544,7 +544,7 @@ struct ElevationChartView: View {
     }
     
     private var summaryText: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.xs) {
             Text("\(ChartContent.Summary.avg) \(safeInt(summary.average))\(summary.unit)")
             Text("\(ChartContent.Summary.max) \(safeInt(summary.max))\(summary.unit)")
         }

@@ -104,7 +104,7 @@ struct RHRCandlestickChart: View {
                         y: .value("High", point.high)
                     )
                     .opacity(0)
-                    .annotation(position: .top, spacing: 2) {
+                    .annotation(position: .top, spacing: Spacing.sm) {
                         Text("\(Int(point.high))")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(isTodayPoint ? colorForRHRValue(point.high) : Color.text.primary)
@@ -116,7 +116,7 @@ struct RHRCandlestickChart: View {
                         y: .value("Low", point.low)
                     )
                     .opacity(0)
-                    .annotation(position: .bottom, spacing: 2) {
+                    .annotation(position: .bottom, spacing: Spacing.sm) {
                         Text("\(Int(point.low))")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(isTodayPoint ? colorForRHRValue(point.low) : Color.text.primary)
@@ -317,7 +317,7 @@ struct RHRCandlestickChart: View {
     }
     
     private func legendItem(color: Color, label: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Circle()
                 .fill(color)
                 .frame(width: 8, height: 8)

@@ -38,7 +38,7 @@ struct ValuePropStepView: View {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.ValueProp.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -87,7 +87,7 @@ struct ValuePropBenefitRow: View {
     let benefit: Benefit
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: Spacing.lg) {
             // Icon
             Image(systemName: benefit.icon)
                 .font(.title2)
@@ -97,7 +97,7 @@ struct ValuePropBenefitRow: View {
                 .clipShape(Circle())
             
             // Text
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(benefit.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

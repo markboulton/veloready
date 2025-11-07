@@ -40,7 +40,7 @@ struct TelemetryDashboard: View {
             let totalComponents = ComponentTelemetry.Component.allCases.count
             
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("\(totalUsage)")
                         .font(.metric)
                     Text(DebugContent.TelemetryExtended.totalUses)
@@ -49,7 +49,7 @@ struct TelemetryDashboard: View {
                 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
                     Text("\(activeComponents)/\(totalComponents)")
                         .font(.metric)
                     Text(DebugContent.TelemetryExtended.activeComponents)
@@ -120,7 +120,7 @@ private struct ComponentRow: View {
     let stat: ComponentStats
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text(stat.component.rawValue)
                     .font(.body)

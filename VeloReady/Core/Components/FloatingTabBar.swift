@@ -88,7 +88,7 @@ struct TabBarButton: View {
         Button(action: {
             action()
         }) {
-            VStack(spacing: 4) {
+            VStack(spacing: Spacing.xs) {
                 ZStack {
                     // Selection pill background - elevated
                     if isSelected {

@@ -32,7 +32,7 @@ struct DebugTodayView: View {
     // MARK: - Status Header
     
     private var statusHeader: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             HStack {
                 Image(systemName: Icons.Status.successFill)
                     .foregroundColor(Color.semantic.success)
@@ -58,7 +58,7 @@ struct DebugTodayView: View {
     // MARK: - Recent Activities Section
     
     private var recentActivitiesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(DebugContent.Today.recentActivities)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -77,7 +77,7 @@ struct DebugTodayView: View {
     // MARK: - Health Data Section
     
     private var healthDataSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(CommonContent.Sections.healthData)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -96,7 +96,7 @@ struct DebugTodayView: View {
     // MARK: - Wellness Data Section
     
     private var wellnessDataSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(CommonContent.Sections.wellnessData)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -120,7 +120,7 @@ struct ActivityRowView: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(activity.name ?? "Unnamed Activity")
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -132,7 +132,7 @@ struct ActivityRowView: View {
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: Spacing.xs) {
                 Text("\(activity.duration ?? 0, specifier: "%.0f") min")
                     .font(.subheadline)
                     .fontWeight(.semibold)
@@ -163,7 +163,7 @@ struct HealthDataRowView: View {
                 .foregroundColor(color)
                 .font(.title2)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)

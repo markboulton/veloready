@@ -54,9 +54,9 @@ struct SkeletonPlaceholders {
     
     /// Three ring skeleton placeholders
     static var recoveryRings: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             ForEach(0..<3) { _ in
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     Circle()
                         .fill(Color.background.tertiary)
                         .frame(width: 100, height: 100)
@@ -75,7 +75,7 @@ struct SkeletonPlaceholders {
     
     /// AI Brief skeleton
     static var aiBrief: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.background.tertiary)
@@ -102,7 +102,7 @@ struct SkeletonPlaceholders {
     
     /// Latest ride skeleton
     static var latestRide: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             HStack {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.background.tertiary)
@@ -112,7 +112,7 @@ struct SkeletonPlaceholders {
             
             HStack(spacing: 20) {
                 ForEach(0..<4) { _ in
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.background.tertiary)
                             .frame(width: 50, height: 18)
@@ -131,14 +131,14 @@ struct SkeletonPlaceholders {
     
     /// Activity list skeleton
     static var activityList: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             ForEach(0..<3) { _ in
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.background.tertiary)
                         .frame(width: 50, height: 50)
                     
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.background.tertiary)
                             .frame(width: 150, height: 16)

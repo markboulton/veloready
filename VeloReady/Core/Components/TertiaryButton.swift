@@ -23,7 +23,7 @@ struct TertiaryButton: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: Spacing.lg) {
         TertiaryButton(title: "Edit details", action: {})
         TertiaryButton(title: "More info", action: {})
         TertiaryButton(title: "Cancel", action: {})

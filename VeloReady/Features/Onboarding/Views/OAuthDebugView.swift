@@ -12,9 +12,9 @@ struct OAuthDebugView: View {
                     .fontWeight(.bold)
                 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         // OAuth Configuration
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(OnboardingContent.OAuthDebug.configuration)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -28,7 +28,7 @@ struct OAuthDebugView: View {
                         .cornerRadius(8)
                         
                         // Test OAuth URL
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(OnboardingContent.OAuthDebug.testURL)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -59,7 +59,7 @@ struct OAuthDebugView: View {
                         .cornerRadius(8)
                         
                         // Debug Information
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(OnboardingContent.OAuthDebug.debugInfo)
                                 .font(.headline)
                                 .fontWeight(.semibold)
@@ -74,7 +74,7 @@ struct OAuthDebugView: View {
                         .cornerRadius(8)
                         
                         // Test API Connection
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text(OnboardingContent.OAuthDebug.testAPI)
                                 .font(.headline)
                                 .fontWeight(.semibold)

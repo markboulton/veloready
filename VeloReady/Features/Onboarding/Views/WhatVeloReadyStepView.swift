@@ -9,7 +9,7 @@ struct WhatVeloReadyStepView: View {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.WhatVeloReady.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -24,7 +24,7 @@ struct WhatVeloReadyStepView: View {
             .padding(.bottom, 48)
             
             // Content Cards - Not scrollable
-            VStack(spacing: 24) {
+            VStack(spacing: Spacing.xl) {
                 // Riding First
                 FeatureCard(
                     icon: "figure.outdoor.cycle",
@@ -88,7 +88,7 @@ struct FeatureCard: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: Spacing.lg) {
             // Icon
             Image(systemName: icon)
                 .font(.title2)
@@ -98,7 +98,7 @@ struct FeatureCard: View {
                 .clipShape(Circle())
             
             // Content
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: Spacing.xs + 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

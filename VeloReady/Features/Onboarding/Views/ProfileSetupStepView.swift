@@ -35,7 +35,7 @@ struct ProfileSetupStepView: View {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.ProfileSetup.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -50,9 +50,9 @@ struct ProfileSetupStepView: View {
             .padding(.bottom, 48)
             
             // Profile Info (auto-populated if available)
-            VStack(spacing: 24) {
+            VStack(spacing: Spacing.xl) {
                 // Name (auto-populated from connected service)
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(OnboardingContent.ProfileSetup.nameLabel)
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -71,13 +71,13 @@ struct ProfileSetupStepView: View {
                 Divider()
                 
                 // Unit System
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(OnboardingContent.ProfileSetup.units)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
                     
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.md) {
                         ForEach(UnitSystem.allCases, id: \.self) { unit in
                             Button(action: {
                                 selectedUnit = unit

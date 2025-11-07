@@ -28,7 +28,7 @@ struct HealthPermissionsView: View {
                 }
                 
                 // What we track
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
                     Text(OnboardingContent.HealthPermissions.required)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -55,7 +55,7 @@ struct HealthPermissionsView: View {
                 }
                 
                 // Action buttons
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     if healthKitManager.isAuthorized {
                         Button(OnboardingContent.HealthPermissions.continueButton) {
                             onAuthorized()
@@ -153,7 +153,7 @@ struct HealthDataRow: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .foregroundColor(color)
                 .font(.title3)

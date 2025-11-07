@@ -99,9 +99,9 @@ enum SparklineActivityType {
 }
 
 #Preview {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: Spacing.lg) {
         // Preview: Right-aligned (for Today Activities section)
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text(CommonContent.TabLabels.activities)
                     .font(.headline)
@@ -134,7 +134,7 @@ enum SparklineActivityType {
         .cornerRadius(12)
         
         // Preview: Full-width (for Activities list page)
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(CommonContent.TabLabels.activities)
                 .font(.title2)
                 .fontWeight(.bold)

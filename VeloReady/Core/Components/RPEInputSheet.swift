@@ -30,9 +30,9 @@ struct RPEInputSheet: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: Spacing.xs / 2) {
                     // Header
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         Text(CommonContent.workoutDetails)
                             .font(.title2)
                             .fontWeight(.bold)
@@ -46,7 +46,7 @@ struct RPEInputSheet: View {
                     .padding(.top, 32)
                     
                     // RPE Display
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         Text(String(format: "%.1f", rpeValue))
                             .font(.system(size: 72, weight: .bold))
                             .foregroundStyle(Color.text.primary)
@@ -59,7 +59,7 @@ struct RPEInputSheet: View {
                     .padding(.vertical, 16)
                 
                 // Slider with custom styling
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     Text(CommonContent.effortLevel)
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -82,7 +82,7 @@ struct RPEInputSheet: View {
                     .padding(.horizontal)
                     
                     // RPE Guide (moved below slider)
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         rpeGuideRow(range: CommonContent.RPE.range12, label: CommonContent.RPE.veryLight, description: CommonContent.RPE.veryLightDesc)
                         rpeGuideRow(range: CommonContent.RPE.range34, label: CommonContent.RPE.light, description: CommonContent.RPE.lightDesc)
                         rpeGuideRow(range: CommonContent.RPE.range56, label: CommonContent.RPE.moderate, description: CommonContent.RPE.moderateDesc)
@@ -94,13 +94,13 @@ struct RPEInputSheet: View {
                 .padding(.horizontal, 8)
                 
                 // Muscle Groups Selection
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(CommonContent.muscleGroupsOptional)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .padding(.horizontal)
                     
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
                         ForEach(muscleGroupOptions, id: \.self) { group in
                             MuscleGroupButton(
                                 group: group,
@@ -118,13 +118,13 @@ struct RPEInputSheet: View {
                 }
                 
                 // Workout Type Selection
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     Text(CommonContent.workoutTypeOptional)
                         .font(.headline)
                         .fontWeight(.semibold)
                         .padding(.horizontal)
                     
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.md) {
                         ForEach(workoutTypeOptions, id: \.self) { group in
                             MuscleGroupButton(
                                 group: group,
@@ -187,7 +187,7 @@ struct RPEInputSheet: View {
     }
     
     private func rpeGuideRow(range: String, label: String, description: String) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Text(range)
                 .font(.smcaption)
                 .fontWeight(.semibold)

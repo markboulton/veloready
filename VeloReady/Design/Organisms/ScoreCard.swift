@@ -110,7 +110,7 @@ struct ScoreCard: View {
             ),
             footer: config.footerText != nil ? CardFooter(text: config.footerText) : nil
         ) {
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .center, spacing: Spacing.xs) {
                 Image(systemName: config.icon)
                     .font(.system(size: 36))
                     .foregroundColor(config.color)
@@ -171,7 +171,7 @@ extension StrainScore.StrainBand {
 // MARK: - Preview
 
 #Preview("Recovery Score") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         ScoreCard(
             config: .recovery(
                 score: 92,
@@ -194,7 +194,7 @@ extension StrainScore.StrainBand {
 }
 
 #Preview("Sleep Score") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         ScoreCard(
             config: .sleep(
                 score: 96,
@@ -216,7 +216,7 @@ extension StrainScore.StrainBand {
 }
 
 #Preview("Strain Score") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         ScoreCard(
             config: .strain(score: 15.5),
             onTap: {}
@@ -232,7 +232,7 @@ extension StrainScore.StrainBand {
 
 #Preview("All Scores") {
     ScrollView {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.xs) {
             ScoreCard(
                 config: .recovery(
                     score: 92,
@@ -261,7 +261,7 @@ extension StrainScore.StrainBand {
 }
 
 #Preview("Without Action") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         ScoreCard(
             config: .recovery(score: 85, band: .good)
         )

@@ -9,7 +9,7 @@ struct IntervalsAPIDebugView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Header
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(DebugContent.IntervalsAPI.title)
                         .font(.title2)
                         .fontWeight(.bold)
@@ -62,7 +62,7 @@ struct IntervalsAPIDebugView: View {
     // MARK: - Athlete Profile Section
     
     private var athleteProfileSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(DebugContent.IntervalsAPI.athleteProfile)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -75,9 +75,9 @@ struct IntervalsAPIDebugView: View {
     @ViewBuilder
     private var athleteProfileContent: some View {
         if let athlete = viewModel.athleteData {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 // Basic Info Section
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(DebugContent.IntervalsAPI.basicInfo)
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -190,7 +190,7 @@ struct IntervalsAPIDebugView: View {
     // MARK: - Activities Section
     
     private var activitiesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(DebugContent.IntervalsAPI.recentActivities)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -213,14 +213,14 @@ struct IntervalsAPIDebugView: View {
     // MARK: - Raw JSON Section
     
     private var rawJSONSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text(DebugContent.IntervalsAPI.rawJSON)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .padding(.horizontal)
             
             if let athleteJSON = viewModel.athleteRawJSON {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(DebugContent.IntervalsAPI.athleteProfileJSON)
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -237,7 +237,7 @@ struct IntervalsAPIDebugView: View {
             }
             
             if let activitiesJSON = viewModel.activitiesRawJSON {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(DebugContent.IntervalsAPI.activitiesJSON)
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -262,7 +262,7 @@ struct ActivityDebugCard: View {
     let activity: IntervalsActivity
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             // Header
             HStack {
                 Text(activity.name ?? "Unnamed")
@@ -285,7 +285,7 @@ struct ActivityDebugCard: View {
             Divider()
             
             // Metrics Grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
                 MetricDebugRow(label: "Duration", value: formatOptional(activity.duration, suffix: "s"))
                 MetricDebugRow(label: "Distance", value: formatOptional(activity.distance, suffix: "m"))
                 MetricDebugRow(label: "Avg Power", value: formatOptional(activity.averagePower, suffix: "W"))
@@ -336,7 +336,7 @@ struct MetricDebugRow: View {
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             Text(label)
                 .font(.caption2)
                 .foregroundColor(.secondary)

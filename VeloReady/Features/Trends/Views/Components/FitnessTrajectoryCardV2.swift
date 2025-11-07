@@ -152,7 +152,7 @@ private struct LegendItem: View {
     let value: Double?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             HStack(spacing: Spacing.xs) {
                 Circle()
                     .fill(color)

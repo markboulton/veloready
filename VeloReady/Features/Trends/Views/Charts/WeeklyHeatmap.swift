@@ -143,7 +143,7 @@ struct WeeklyHeatmap: View {
     }
     
     private func legendItem(emoji: String, label: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Text(emoji)
             Text(label)
         }

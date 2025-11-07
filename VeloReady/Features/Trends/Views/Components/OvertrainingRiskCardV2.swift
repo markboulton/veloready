@@ -158,7 +158,7 @@ struct OvertrainingRiskCardV2: View {
                 .fill(severityColor(factor.severity))
                 .frame(width: 8, height: 8)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 VRText(
                     factor.name,
                     style: .caption,

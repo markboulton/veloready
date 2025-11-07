@@ -9,7 +9,7 @@ struct TrainingLoadInfoSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // Header
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(StrengthLoadContent.title)
                             .font(.title)
                             .fontWeight(.bold)
@@ -24,7 +24,7 @@ struct TrainingLoadInfoSheet: View {
                     Divider()
                     
                     // What Is It
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(StrengthLoadContent.whatIsItTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -37,7 +37,7 @@ struct TrainingLoadInfoSheet: View {
                     }
                     
                     // How It Works
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(StrengthLoadContent.howItWorksTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -50,13 +50,13 @@ struct TrainingLoadInfoSheet: View {
                     }
                     
                     // Intensity Levels
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text(StrengthLoadContent.intensityLevelsTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundColor(Color.text.primary)
                         
-                        VStack(spacing: 12) {
+                        VStack(spacing: Spacing.md) {
                             IntensityLevelRow(
                                 label: StrengthLoadContent.lightLabel,
                                 description: StrengthLoadContent.lightDescription
@@ -80,7 +80,7 @@ struct TrainingLoadInfoSheet: View {
                     }
                     
                     // Why It Matters
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(StrengthLoadContent.whyItMattersTitle)
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -114,7 +114,7 @@ private struct IntensityLevelRow: View {
     let description: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label)
                 .font(.subheadline)
                 .fontWeight(.semibold)

@@ -37,7 +37,7 @@ struct SubscriptionStepView: View {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Text(OnboardingContent.Subscription.title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -81,13 +81,13 @@ struct SubscriptionStepView: View {
             .padding(.bottom, 32)
             
             // Pricing
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 ForEach(SubscriptionPlan.allCases, id: \.self) { plan in
                     Button(action: {
                         selectedPlan = plan
                     }) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text(plan.rawValue)
                                     .font(.headline)
                                     .foregroundColor(.primary)
@@ -99,7 +99,7 @@ struct SubscriptionStepView: View {
                             
                             Spacer()
                             
-                            VStack(alignment: .trailing, spacing: 4) {
+                            VStack(alignment: .trailing, spacing: Spacing.xs) {
                                 Text(plan.price)
                                     .font(.title3)
                                     .fontWeight(.bold)
@@ -136,7 +136,7 @@ struct SubscriptionStepView: View {
             Spacer()
             
             // Action Buttons
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 Button(action: {
                     // TODO: Implement actual subscription flow
                     Logger.debug("🔥 Starting \(selectedPlan.rawValue) subscription")
@@ -172,7 +172,7 @@ struct ProFeatureRow: View {
     let description: String
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: Spacing.lg) {
             // White icon on blue circle
             Image(systemName: icon)
                 .font(.title3)
@@ -181,7 +181,7 @@ struct ProFeatureRow: View {
                 .background(ColorScale.blueAccent)
                 .clipShape(Circle())
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

@@ -36,7 +36,7 @@ struct CardFooter: View {
 
 // MARK: - Preview
 #Preview("Text Only") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardFooter(text: "Updated 5 min ago")
         CardFooter(text: "Last synced: Today at 2:30 PM")
         CardFooter(text: "Data from HealthKit")
@@ -45,7 +45,7 @@ struct CardFooter: View {
 }
 
 #Preview("Action Only") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardFooter(action: .init(label: "View Details", action: {}))
         CardFooter(action: .init(label: "See All", action: {}))
         CardFooter(action: .init(label: "Learn More", action: {}))
@@ -54,7 +54,7 @@ struct CardFooter: View {
 }
 
 #Preview("Text + Action") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         CardFooter(
             text: "Updated 5 min ago",
             action: .init(label: "Refresh", action: {})
@@ -74,9 +74,9 @@ struct CardFooter: View {
 }
 
 #Preview("In Card Context") {
-    VStack(spacing: 20) {
+    VStack(spacing: Spacing.xs) {
         // Example 1: Simple footer
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             CardHeader(title: "Recovery Score")
             
             CardMetric(
@@ -95,7 +95,7 @@ struct CardFooter: View {
         )
         
         // Example 2: Footer with action
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             CardHeader(
                 title: "Recent Activities",
                 badge: .init(text: "5 NEW", style: .info)

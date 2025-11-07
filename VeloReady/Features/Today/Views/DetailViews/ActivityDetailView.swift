@@ -18,11 +18,11 @@ struct ActivityDetailView: View {
                 VStack(spacing: Spacing.md) {
                     // Header with key metrics - gradient shows through
                     ActivityInfoHeader(activityData: activityData, viewModel: viewModel)
-                        .padding(.top, 60)
+                        .padding(.top, Spacing.xxl)
                     
                     // Charts Section with solid background
                     if !viewModel.chartSamples.isEmpty {
-                        VStack(spacing: 0) {
+                        VStack(spacing: Spacing.xs / 2) {
                             chartsSection
                         }
                         .padding(.horizontal, -Spacing.xl)
@@ -31,7 +31,7 @@ struct ActivityDetailView: View {
                     // Map Section - Interactive with solid background
                     // Only show for outdoor activities with route data
                     if !viewModel.routeCoordinates.isEmpty && activityData.shouldShowMap {
-                        VStack(spacing: 0) {
+                        VStack(spacing: Spacing.xs / 2) {
                             InteractiveWorkoutMapSection(
                                 coordinates: viewModel.routeCoordinates,
                                 heartRates: activityData.type == .walking ? nil : viewModel.heartRateSamples.map { $0.heartRate },
@@ -43,7 +43,7 @@ struct ActivityDetailView: View {
                     }
                 }
                 .padding(.horizontal, Spacing.xl)
-                .padding(.bottom, 120)
+                .padding(.bottom, Spacing.xxl)
             }
         .background(Color.background.primary)
         .navigationTitle(activityData.title)
@@ -74,7 +74,7 @@ struct ActivityDetailView: View {
     }
     
     private var heartRateChartSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: Icons.Health.heart)
                     .foregroundColor(.secondary)
@@ -87,7 +87,7 @@ struct ActivityDetailView: View {
                 Spacer()
                 
                 if let avg = viewModel.averageHeartRate, let max = viewModel.maxHeartRate {
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.md) {
                         Text("\(ActivityContent.HeartRate.avg) \(Int(avg))")
                         Text("\(ActivityContent.HeartRate.max) \(Int(max))")
                     }
@@ -95,7 +95,7 @@ struct ActivityDetailView: View {
                     .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, Spacing.md)
             
             HeartRateChart(samples: viewModel.heartRateSamples)
                 .frame(height: 200)
@@ -235,10 +235,10 @@ struct ActivityInfoHeader: View {
     @ObservedObject var viewModel: ActivityDetailViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Title and Date/Time
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
                     Text(ActivityContent.Details.title)
                         .font(.title2)
                         .fontWeight(.semibold)
@@ -258,7 +258,7 @@ struct ActivityInfoHeader: View {
             }
             
             // Primary Metrics Grid
-            LazyVGrid(columns: createGridColumns(), spacing: 12) {
+            LazyVGrid(columns: createGridColumns(), spacing: Spacing.md) {
                 // Duration (all types)
                 CompactMetricItem(
                     label: ActivityContent.Metrics.duration,
@@ -356,7 +356,7 @@ struct ActivityInfoHeader: View {
     }
     
     private func createGridColumns() -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: Spacing.md), count: 3)
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -392,11 +392,11 @@ struct InteractiveWorkoutMapSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             if isLoading {
                 ZStack {
                     Color.background.secondary
-                        .frame(height: UIScreen.main.bounds.width - 32) // Square
+                        .frame(height: UIScreen.main.bounds.width - Spacing.xxl) // Square
                     ProgressView()
                 }
             } else if !coordinates.isEmpty {
@@ -406,7 +406,7 @@ struct InteractiveWorkoutMapSection: View {
                 ZStack {
                     Color.background.secondary
                         .frame(height: UIScreen.main.bounds.width - 32) // Square
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.System.map)
                             .font(.title2)
                             .foregroundColor(.secondary)

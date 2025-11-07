@@ -7,11 +7,11 @@ struct HealthKitStepView: View {
     @State private var isRequesting = false
     
     var body: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: Spacing.xxl) {
             Spacer()
             
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 ZStack {
                     Circle()
                         .fill(Color.red.opacity(0.1))
@@ -34,7 +34,7 @@ struct HealthKitStepView: View {
             }
             
             // What we need
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 Text(OnboardingContent.AppleHealth.wellAccess)
                     .font(.headline)
                     .padding(.horizontal, 32)
@@ -49,7 +49,7 @@ struct HealthKitStepView: View {
             Spacer()
             
             // Buttons
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 if healthKitManager.isAuthorized {
                     // Already authorized
                     HStack {
@@ -124,7 +124,7 @@ struct HealthKitPermissionRow: View {
     let text: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .foregroundColor(.blue)
                 .frame(width: 24)
