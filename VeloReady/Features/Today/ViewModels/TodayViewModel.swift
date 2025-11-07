@@ -219,8 +219,6 @@ class TodayViewModel: ObservableObject {
         do {
             // Use UnifiedActivityService for activities (replaces IntervalsCache)
             intervalsActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 100, daysBack: 90)
-            // Wellness fetching - IntervalsCache deleted, skip for now
-            // TODO: Implement wellness fetching via UnifiedActivityService if needed
             wellness = []
             Logger.debug("✅ Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
@@ -606,8 +604,6 @@ class TodayViewModel: ObservableObject {
         // PERFORMANCE FIX: Track task for cancellation
         let wellnessTask = Task.detached(priority: .background) {
             do {
-                // Wellness fetching - IntervalsCache deleted, skip for now
-                // TODO: Implement wellness fetching if needed
                 let wellness: [IntervalsWellness] = []
                 await MainActor.run {
                     self.wellnessData = wellness
@@ -828,11 +824,6 @@ class TodayViewModel: ObservableObject {
         if oauthManager.isAuthenticated {
             sources.append(.intervalsIcu)
         }
-        
-        // TODO: Add Wahoo detection when implemented
-        // if wahooManager.isConnected {
-        //     sources.append(.wahoo)
-        // }
         
         return sources
     }

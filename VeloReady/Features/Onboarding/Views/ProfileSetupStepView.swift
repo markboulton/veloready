@@ -137,10 +137,8 @@ struct ProfileSetupStepView: View {
         Task {
             // Priority: Strava > Intervals > Health Kit
             if stravaAuthService.connectionState.isConnected {
-                // TODO: Fetch athlete name from Strava when available
                 userName = "Athlete"
             } else if intervalsManager.isAuthenticated {
-                // TODO: Fetch athlete name from Intervals when available
                 userName = "Athlete"
             } else {
                 // Fallback to default

@@ -450,8 +450,8 @@ struct StrainDetailView_Previews: PreviewProvider {
                 recoveryFactor: 0.95
             ),
             inputs: StrainScore.StrainInputs(
-                continuousHRData: nil, // TODO: Implement continuous HR data collection
-                dailyTRIMP: nil, // TODO: Calculate from continuous HR data
+                continuousHRData: nil,
+                dailyTRIMP: nil,
                 cardioDailyTRIMP: 2800,
                 cardioDurationMinutes: 120,
                 averageIntensityFactor: 0.82,

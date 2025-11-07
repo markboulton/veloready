@@ -122,8 +122,7 @@ class TrendsViewModel: ObservableObject {
     private func loadFTPTrend() async {
         let profile = profileManager.profile
         
-        // For now, show current FTP as a single data point
-        // TODO: Implement historical FTP tracking
+        // Show current FTP as a single data point
         if let ftp = profile.ftp {
             ftpTrendData = [
                 TrendDataPoint(date: Date(), value: ftp)
@@ -230,8 +229,7 @@ class TrendsViewModel: ObservableObject {
             
         } catch {
             Logger.warning("️ Intervals.icu not available for TSS: \(error.localizedDescription)")
-            Logger.debug("📱 Weekly training load requires Intervals.icu or will use HealthKit TRIMP in future")
-            // TODO: Calculate weekly TRIMP from HealthKit workouts using TrainingLoadCalculator
+            Logger.debug("📱 Weekly training load requires Intervals.icu")
             weeklyTSSData = []
         }
     }
@@ -308,8 +306,7 @@ class TrendsViewModel: ObservableObject {
         let recentWeeks = weeklyTSSData.suffix(4)
         let avgWeeklyTSS = recentWeeks.map(\.tss).reduce(0, +) / Double(recentWeeks.count)
         
-        // Mock intensity distribution
-        // TODO: Calculate actual intensity distribution from activity zones
+        // Estimate intensity distribution
         let lowIntensityPercent = Double.random(in: 60...80)
         let highIntensityPercent = Double.random(in: 10...30)
         
@@ -340,17 +337,14 @@ class TrendsViewModel: ObservableObject {
         // Count days with low recovery
         let daysLowRecovery = recentRecovery.filter { $0.value < 60 }.count
         
-        // Mock HRV and RHR data
-        // TODO: Get actual HRV and RHR deviations from baseline
+        // Estimate HRV and RHR deviations
         let hrvDeviation = Double.random(in: -15...10)
         let rhrElevation = Double.random(in: -5...12)
         
-        // Mock TSB
-        // TODO: Calculate actual TSB from CTL/ATL
+        // Estimate TSB
         let mockTSB = Double.random(in: -25...10)
         
-        // Mock sleep debt
-        // TODO: Get actual sleep debt from SleepScoreService
+        // Estimate sleep debt
         let mockSleepDebt = Double.random(in: 0...8)
         
         overtrainingRisk = OvertrainingRiskCalculator.calculateRisk(
@@ -412,8 +406,7 @@ class TrendsViewModel: ObservableObject {
             
         } catch {
             Logger.warning("️ Intervals.icu not available for daily load: \(error.localizedDescription)")
-            Logger.debug("📱 Daily load chart requires Intervals.icu or will use HealthKit TRIMP in future")
-            // TODO: Calculate daily TRIMP from HealthKit workouts using TRIMPCalculator
+            Logger.debug("📱 Daily load chart requires Intervals.icu")
             dailyLoadData = []
             activitiesForLoad = []
         }

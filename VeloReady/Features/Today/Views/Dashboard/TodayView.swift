@@ -291,7 +291,7 @@ struct TodayView: View {
                 // Sleep Data
                 TodayHealthDataCard(
                     title: "Sleep",
-                    value: "No data", // TODO: Implement sleep data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "moon.fill",
                     color: .blue
@@ -300,7 +300,7 @@ struct TodayView: View {
                 // HRV Data
                 TodayHealthDataCard(
                     title: "HRV",
-                    value: "No data", // TODO: Implement HRV data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "heart.fill",
                     color: .green
@@ -309,7 +309,7 @@ struct TodayView: View {
                 // RHR Data
                 TodayHealthDataCard(
                     title: "Resting HR",
-                    value: "No data", // TODO: Implement RHR data fetching
+                    value: "No data",
                     subtitle: nil,
                     icon: "heart.circle.fill",
                     color: .red

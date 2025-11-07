@@ -139,12 +139,12 @@ class RideSummaryService: ObservableObject {
             hr: hrData,
             cadence: cadenceData,
             timeInZonesSec: activity.icuZoneTimes,  // Power zone times
-            intervals: nil,  // TODO: Parse from activity if needed
-            fueling: nil,  // TODO: Add to activity model if tracked
-            rpe: nil,  // TODO: Add to activity model if tracked
+            intervals: nil,
+            fueling: nil,
+            rpe: nil,
             notes: activity.description,
             context: contextData,
-            goal: nil  // TODO: Add if user sets goals
+            goal: nil
         )
         
         #if DEBUG

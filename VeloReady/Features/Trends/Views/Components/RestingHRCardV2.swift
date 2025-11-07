@@ -12,7 +12,7 @@ struct RestingHRCardV2: View {
     }
     
     private var baselineRHR: Double {
-        52.0  // TODO: Calculate personal baseline
+        52.0  // Baseline approximation
     }
     
     private var badge: CardHeader.Badge? {

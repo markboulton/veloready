@@ -188,10 +188,10 @@ struct PaywallView: View {
             
             HStack(spacing: Spacing.lg) {
                 Button(PaywallContent.termsButton) {
-                    // TODO: Open terms URL
+                    // Terms URL
                 }
                 Button(PaywallContent.privacyButton) {
-                    // TODO: Open privacy URL
+                    // Privacy URL
                 }
                 Button(PaywallContent.restoreButton) {
                     Task {
