@@ -17,9 +17,7 @@ class RecoveryScoreService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let healthKitManager = HealthKitManager.shared
-    let baselineCalculator = BaselineCalculator() // Made public for cache clearing
-    private let intervalsAPIClient: IntervalsAPIClient
+    private let calculator = RecoveryDataCalculator()
     private let sleepScoreService = SleepScoreService.shared
     private let cache = UnifiedCacheManager.shared
     
@@ -32,7 +30,6 @@ class RecoveryScoreService: ObservableObject {
     private let recoveryScoreKey = "lastRecoveryCalculationDate"
     
     init() {
-        self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
         // Load last calculation date from UserDefaults
         if let savedDate = userDefaults.object(forKey: recoveryScoreKey) as? Date {
             self.lastRecoveryCalculationDate = savedDate
@@ -215,7 +212,7 @@ class RecoveryScoreService: ObservableObject {
     private func performActualCalculation(forceRefresh: Bool = false, ignoreDailyLimit: Bool = false) async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
-        let hrvStatus = healthKitManager.getAuthorizationStatus(for: hrvType)
+        let hrvStatus = HealthKitManager.shared.getAuthorizationStatus(for: hrvType)
         
         if hrvStatus == .sharingDenied {
             Logger.error("Recovery permissions explicitly denied - skipping calculation")
@@ -269,8 +266,6 @@ class RecoveryScoreService: ObservableObject {
     // MARK: - Real Data Calculation
     
     private func calculateRealRecoveryScore(forceRefresh: Bool = false) async -> RecoveryScore? {
-        Logger.debug("⚡ Starting parallel data fetching for recovery score...")
-        
         // CRITICAL: Sleep score MUST be calculated first for accurate recovery calculation
         // If sleep score is being calculated, wait for it. If not started, start it.
         if sleepScoreService.currentSleepScore == nil {
@@ -305,134 +300,11 @@ class RecoveryScoreService: ObservableObject {
             Logger.debug("✅ Sleep score already available: \(sleepScoreService.currentSleepScore!.score)")
         }
         
-        // Get actual sleep times for overnight HRV window (physiologically correct)
-        let sleepBedtime = sleepScoreService.currentSleepScore?.inputs.bedtime
-        let sleepWakeTime = sleepScoreService.currentSleepScore?.inputs.wakeTime
-        
-        // Start all data fetching operations in parallel
-        async let latestHRV = healthKitManager.fetchLatestHRVData()
-        async let overnightHRV = healthKitManager.fetchOvernightHRVData(bedtime: sleepBedtime, wakeTime: sleepWakeTime) // Use actual sleep times
-        async let latestRHR = healthKitManager.fetchLatestRHRData()
-        async let latestRespiratoryRate = healthKitManager.fetchLatestRespiratoryRateData()
-        async let baselines = baselineCalculator.calculateAllBaselines()
-        async let intervalsData = fetchIntervalsData(forceRefresh: forceRefresh)
-        async let recentStrain = fetchRecentStrain(forceRefresh: false) // Never force refresh strain to avoid race conditions
-        
-        // Wait for all parallel operations to complete
-        let (hrv, overnightHrv, rhr, respiratoryRate) = await (latestHRV, overnightHRV, latestRHR, latestRespiratoryRate)
-        
-        // Get sleep score - should be available now since we waited for it
-        let sleepScoreResult = sleepScoreService.currentSleepScore
-        
-        // Log if sleep data is still missing
-        if sleepScoreResult == nil {
-            Logger.warning("⚠️ Sleep score is nil - recovery will show 'Limited Data'")
-            Logger.warning("   This usually means: no sleep data in HealthKit for last night")
-        }
-        
-        let (hrvBaseline, rhrBaseline, sleepBaseline, respiratoryBaseline) = await baselines
-        let (atl, ctl) = await intervalsData
-        let strain = await recentStrain
-        
-        Logger.debug("⚡ All parallel data fetching completed")
-        
-        // Extract values for debugging
-        let hrvValue = hrv.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
-        let overnightHrvValue = overnightHrv.value // Use the calculated average value from fetchOvernightHRVData
-        let rhrValue = rhr.sample?.quantity.doubleValue(for: HKUnit(from: "count/min"))
-        let respiratoryValue = respiratoryRate.sample?.quantity.doubleValue(for: HKUnit(from: "count/min"))
-        
-        Logger.debug("🔍 Recovery Score Inputs:")
-        Logger.debug("   HRV: \(hrvValue?.description ?? "nil") ms (baseline: \(hrvBaseline?.description ?? "nil"))")
-        Logger.debug("   Overnight HRV: \(overnightHrvValue?.description ?? "nil") ms (for alcohol detection)")
-        if overnightHrvValue == nil {
-            Logger.debug("   ⚠️ WARNING: No overnight HRV data - alcohol detection may fail!")
-        }
-        Logger.debug("   RHR: \(rhrValue?.description ?? "nil") bpm (baseline: \(rhrBaseline?.description ?? "nil"))")
-        Logger.debug("   Sleep Score: \(sleepScoreResult?.score.description ?? "nil") (band: \(sleepScoreResult?.band.rawValue ?? "nil"))")
-        if let sleepScore = sleepScoreResult {
-            Logger.debug("   Sleep Breakdown: Perf=\(sleepScore.subScores.performance), Quality=\(sleepScore.subScores.stageQuality), Eff=\(sleepScore.subScores.efficiency), Disturb=\(sleepScore.subScores.disturbances)")
-        }
-        Logger.debug("   Respiratory: \(respiratoryValue?.description ?? "nil") breaths/min (baseline: \(respiratoryBaseline?.description ?? "nil"))")
-        Logger.debug("   ATL: \(atl?.description ?? "nil"), CTL: \(ctl?.description ?? "nil")")
-        Logger.debug("   Recent Strain: \(strain?.description ?? "nil")")
-        
-        // Calculate percentage changes for alcohol detection using OVERNIGHT HRV
-        if let overnightHrv = overnightHrvValue, let hrvBase = hrvBaseline, hrvBase > 0 {
-            let hrvChange = ((overnightHrv - hrvBase) / hrvBase) * 100
-            Logger.debug("🍷 Overnight HRV Change: \(String(format: "%.1f", hrvChange))% (alcohol threshold: -15%)")
-        }
-        if let rhr = rhrValue, let rhrBase = rhrBaseline, rhrBase > 0 {
-            let rhrChange = ((rhr - rhrBase) / rhrBase) * 100
-            Logger.debug("🍷 RHR Change: \(String(format: "%.1f", rhrChange))% (alcohol threshold: +10%)")
-        }
-        
-        // Create inputs for VeloReadyCore calculation (pure data)
-        let coreInputs = VeloReadyCore.RecoveryCalculations.RecoveryInputs(
-            hrv: hrvValue,
-            overnightHrv: overnightHrvValue,
-            hrvBaseline: hrvBaseline,
-            rhr: rhrValue,
-            rhrBaseline: rhrBaseline,
-            sleepDuration: sleepScoreResult?.inputs.sleepDuration,
-            sleepBaseline: sleepBaseline,
-            respiratoryRate: respiratoryValue,
-            respiratoryBaseline: respiratoryBaseline,
-            atl: atl,
-            ctl: ctl,
-            recentStrain: strain,
-            sleepScore: sleepScoreResult?.score
-        )
-        
-        // Get current illness indicator
-        let illnessIndicator = IllnessDetectionService.shared.currentIndicator
-        let hasIllness = illnessIndicator != nil
-        let hasSleepData = sleepScoreResult != nil
-        
-        // Call VeloReadyCore for pure calculation (no iOS dependencies)
-        let result = VeloReadyCore.RecoveryCalculations.calculateScore(
-            inputs: coreInputs,
-            hasIllnessIndicator: hasIllness,
-            hasSleepData: hasSleepData
-        )
-        
-        // Map VeloReadyCore results back to iOS RecoveryScore model
-        let modelInputs = RecoveryScore.RecoveryInputs(
-            hrv: hrvValue,
-            overnightHrv: overnightHrvValue,
-            hrvBaseline: hrvBaseline,
-            rhr: rhrValue,
-            rhrBaseline: rhrBaseline,
-            sleepDuration: sleepScoreResult?.inputs.sleepDuration,
-            sleepBaseline: sleepBaseline,
-            respiratoryRate: respiratoryValue,
-            respiratoryBaseline: respiratoryBaseline,
-            atl: atl,
-            ctl: ctl,
-            recentStrain: strain,
-            sleepScore: sleepScoreResult
-        )
-        
-        let modelSubScores = RecoveryScore.SubScores(
-            hrv: result.subScores.hrv,
-            rhr: result.subScores.rhr,
-            sleep: result.subScores.sleep,
-            form: result.subScores.form,
-            respiratory: result.subScores.respiratory
-        )
-        
-        let band = determineBand(score: result.score)
-        
-        return RecoveryScore(
-            score: result.score,
-            band: band,
-            subScores: modelSubScores,
-            inputs: modelInputs,
-            calculatedAt: Date(),
-            illnessDetected: hasIllness,
-            illnessSeverity: illnessIndicator?.severity.rawValue
-        )
+        // Delegate to calculator (runs on background thread)
+        return await calculator.calculateRecoveryScore(sleepScore: sleepScoreService.currentSleepScore)
     }
+    
+    // All heavy calculation logic has been moved to RecoveryDataCalculator actor
     
     // MARK: - Intervals Data Fetching
     
@@ -544,7 +416,7 @@ class RecoveryScoreService: ObservableObject {
             // Fetch 42 days of HealthKit workouts (all activity types)
             let calendar = Calendar.current
             let startDate = calendar.date(byAdding: .day, value: -42, to: Date())!
-            let workouts = await healthKitManager.fetchWorkouts(from: startDate, to: Date(), activityTypes: [])
+            let workouts = await HealthKitManager.shared.fetchWorkouts(from: startDate, to: Date(), activityTypes: [])
             
             Logger.data("Calculating training load from HealthKit workouts...")
             Logger.data("Found \(workouts.count) workouts to analyze")
@@ -778,7 +650,7 @@ class RecoveryScoreService: ObservableObject {
         // Clear all caches first
         // IntervalsCache deleted - use CacheOrchestrator
         await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
-        await baselineCalculator.clearCache()
+        await BaselineCalculator().clearCache()
         
         // Wait a moment for cache clear to complete
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
@@ -1002,7 +874,7 @@ extension RecoveryScoreService {
     
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() async {
-        await baselineCalculator.clearCache()
+        await BaselineCalculator().clearCache()
     }
     
     // MARK: - Additional Recovery Metrics
