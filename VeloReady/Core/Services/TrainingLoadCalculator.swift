@@ -7,7 +7,8 @@ import VeloReadyCore
 /// CTL = 42-day exponentially weighted average (fitness)
 /// ATL = 7-day exponentially weighted average (fatigue)
 /// TSB = CTL - ATL (form/readiness)
-class TrainingLoadCalculator {
+/// Actor-isolated to run heavy calculations on background threads
+actor TrainingLoadCalculator {
     private let trimpCalculator = TRIMPCalculator()
     private let healthKitManager = HealthKitManager.shared
     
