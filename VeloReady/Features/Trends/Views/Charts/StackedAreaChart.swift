@@ -99,9 +99,9 @@ struct StackedAreaChart: View {
             StackedAreaChart(
                 data: generateMockSleepData(),
                 categories: [
-                    .init(name: "awake", color: Color.red.opacity(0.6), label: "Awake (5%)"),
-                    .init(name: "core", color: Color.blue.opacity(0.5), label: "Core (48%)"),
-                    .init(name: "rem", color: Color.purple.opacity(0.6), label: "REM (28%)"),
+                    .init(name: "awake", color: ColorScale.redAccent.opacity(0.6), label: "Awake (5%)"),
+                    .init(name: "core", color: ColorScale.blueAccent.opacity(0.5), label: "Core (48%)"),
+                    .init(name: "rem", color: ColorScale.pinkAccent.opacity(0.6), label: "REM (28%)"),
                     .init(name: "deep", color: Color.indigo.opacity(0.7), label: "Deep (19%)")
                 ],
                 yAxisMax: 9.0
