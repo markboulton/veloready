@@ -126,9 +126,7 @@ struct TodayView: View {
                                 SkeletonRecentActivities()
                             } else {
                                 RecentActivitiesSection(
-                                    allActivities: viewModel.unifiedActivities.isEmpty ?
-                                        viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-                                        viewModel.unifiedActivities,
+                                    allActivities: getActivitiesForSection(),
                                     dailyActivityData: generateDailyActivityData()
                                 )
                             }
@@ -456,6 +454,20 @@ struct TodayView: View {
         // Filter to only Strava/Intervals activities (not Apple Health)
         return activities.first { activity in
             activity.source == .strava || activity.source == .intervalsICU
+        }
+    }
+    
+    /// Get activities for Recent Activities section, excluding the one already shown in Latest Activity card
+    private func getActivitiesForSection() -> [UnifiedActivity] {
+        let activities = viewModel.unifiedActivities.isEmpty ?
+            viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
+            viewModel.unifiedActivities
+        
+        // If we're showing a latest activity card, exclude that activity from the list
+        if let latestActivity = getLatestActivity() {
+            return activities.filter { $0.id != latestActivity.id }
+        } else {
+            return activities
         }
     }
     

@@ -130,7 +130,8 @@ struct DebugAuthView: View {
     
     private var intervalsOAuthSection: some View {
         Section {
-            VRText("Intervals.icu", style: .headline)
+            Text("Intervals.icu")
+                .font(.heading)
             
             if oauthManager.isAuthenticated {
                 Button(action: {
@@ -187,7 +188,8 @@ struct DebugAuthView: View {
     
     private var stravaOAuthSection: some View {
         Section {
-            VRText("Strava", style: .headline)
+            Text("Strava")
+                .font(.heading)
             
             if stravaAuthService.connectionState.isConnected {
                 Button(action: {

@@ -318,6 +318,7 @@ extension Notification.Name {
     static let popToRootView = Notification.Name("popToRootView")
     static let refreshDataAfterIntervalsConnection = Notification.Name("refreshDataAfterIntervalsConnection")
     static let todayDataRefreshed = Notification.Name("todayDataRefreshed")
+    static let refreshHealthWarnings = Notification.Name("refreshHealthWarnings")
 }
 
 // ProfileTabView removed - now using SettingsView with ProfileSection
