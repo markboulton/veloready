@@ -14,7 +14,6 @@ class StrainScoreService: ObservableObject {
     private let healthKitManager = HealthKitManager.shared
     private let baselineCalculator = BaselineCalculator()
     private let intervalsAPIClient: IntervalsAPIClient
-    private let intervalsCache = IntervalsCache.shared
     private let userSettings = UserSettings.shared
     private let sleepScoreService = SleepScoreService.shared
     private let athleteZoneService = AthleteZoneService.shared
@@ -327,7 +326,8 @@ class StrainScoreService: ObservableObject {
     private func fetchTrainingLoads() async -> (atl: Double?, ctl: Double?) {
         do {
             // Try Intervals.icu first (if available)
-            let activities = try await intervalsCache.getCachedActivities(apiClient: intervalsAPIClient, forceRefresh: false)
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             if let latestActivity = activities.first {
                 Logger.data("Using Intervals.icu training loads: ATL=\(latestActivity.atl?.description ?? "nil"), CTL=\(latestActivity.ctl?.description ?? "nil")")

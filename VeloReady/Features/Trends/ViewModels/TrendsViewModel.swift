@@ -35,8 +35,8 @@ class TrendsViewModel: ObservableObject {
     // MARK: - Services
     
     private let recoveryService = RecoveryScoreService.shared
-    private let intervalsCache = IntervalsCache.shared
     private let intervalsAPIClient = IntervalsAPIClient.shared
+    // IntervalsCache deleted - using UnifiedActivityService instead
     private let profileManager = AthleteProfileManager.shared
     private let healthKitManager = HealthKitManager.shared
     private let proConfig = ProFeatureConfig.shared
@@ -201,10 +201,8 @@ class TrendsViewModel: ObservableObject {
     private func loadWeeklyTSSTrend() async {
         // Try Intervals.icu first (cycling-specific TSS)
         do {
-            let activities = try await intervalsCache.getCachedActivities(
-                apiClient: intervalsAPIClient,
-                forceRefresh: false
-            )
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             let startDate = selectedTimeRange.startDate
             let calendar = Calendar.current
@@ -243,10 +241,8 @@ class TrendsViewModel: ObservableObject {
     private func loadRecoveryVsPowerCorrelation() async {
         // Recovery vs Power is cycling-specific (requires power meter data from Intervals.icu)
         do {
-            let activities = try await intervalsCache.getCachedActivities(
-                apiClient: intervalsAPIClient,
-                forceRefresh: false
-            )
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             let startDate = selectedTimeRange.startDate
             
@@ -384,10 +380,8 @@ class TrendsViewModel: ObservableObject {
         
         // Try Intervals.icu first for TSS-based load
         do {
-            let activities = try await intervalsCache.getCachedActivities(
-                apiClient: intervalsAPIClient,
-                forceRefresh: false
-            )
+            // IntervalsCache deleted - use UnifiedActivityService
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
             
             let startDate = selectedTimeRange.startDate
             let calendar = Calendar.current

@@ -19,7 +19,8 @@ class RideDetailViewModel: ObservableObject {
         error = nil
         
         // Check cache first for all activities
-        if let cachedSamples = StreamCacheService.shared.getCachedStreams(activityId: activity.id) {
+        let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: "any")
+        if let cachedSamples: [WorkoutSample] = await CacheOrchestrator.shared.get(key: cacheKey, ttl: 604800) {
             Logger.debug("⚡ Using cached stream data (\(cachedSamples.count) samples)")
             samples = cachedSamples
             
@@ -99,7 +100,8 @@ class RideDetailViewModel: ObservableObject {
                 samples = streamData
                 
                 // Cache for future use
-                StreamCacheService.shared.cacheStreams(streamData, activityId: activity.id, source: "intervals")
+                let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: "intervals")
+                await CacheOrchestrator.shared.set(key: cacheKey, value: streamData, cachedAt: Date())
                 
                 // Enrich activity with calculated data if summary is missing values
                 enrichedActivity = enrichActivityWithStreamData(activity: activity, samples: streamData, profileManager: profileManager)
@@ -442,7 +444,8 @@ class RideDetailViewModel: ObservableObject {
         Logger.debug("🟠 Strava Activity ID: \(stravaId)")
         
         // Try cache first (7-day TTL)
-        if let cachedSamples = StreamCacheService.shared.getCachedStreams(activityId: activity.id) {
+        let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: "strava")
+        if let cachedSamples: [WorkoutSample] = await CacheOrchestrator.shared.get(key: cacheKey, ttl: 604800) {
             Logger.debug("⚡ Using cached stream data (\(cachedSamples.count) samples)")
             samples = cachedSamples
             
@@ -495,7 +498,8 @@ class RideDetailViewModel: ObservableObject {
                 samples = workoutSamples
                 
                 // Cache for future use
-                StreamCacheService.shared.cacheStreams(workoutSamples, activityId: activity.id, source: "strava")
+                let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: "strava")
+                await CacheOrchestrator.shared.set(key: cacheKey, value: workoutSamples, cachedAt: Date())
                 
                 // Enrich activity with stream data
                 var enriched = enrichActivityWithStreamData(activity: activity, samples: workoutSamples, profileManager: profileManager)
@@ -524,7 +528,8 @@ class RideDetailViewModel: ObservableObject {
                     Logger.debug("🟠 No FTP in profile, fetching from Strava...")
                     do {
                         // Use cache to avoid repeated API calls
-                        let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+                        // StravaAthleteCache deleted - use StravaAPIClient
+                        let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
                         if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                             ftp = Double(stravaFTP)
                             Logger.debug("🟠 ✅ Using Strava FTP: \(Int(ftp!))W")
@@ -723,7 +728,8 @@ class RideDetailViewModel: ObservableObject {
             Logger.debug("🟠 No FTP found, trying to get from Strava...")
             // Try to get FTP from Strava
             do {
-                let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+                // StravaAthleteCache deleted - use StravaAPIClient
+                let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
                 if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                     Logger.debug("🟠 ✅ Setting FTP from Strava: \(stravaFTP)W")
                     profileManager.profile.ftp = Double(stravaFTP)
@@ -804,7 +810,8 @@ class RideDetailViewModel: ObservableObject {
             Logger.debug("🟠 No FTP in profile, fetching from Strava...")
             do {
                 // Use cache to avoid repeated API calls
-                let stravaAthlete = try await StravaAthleteCache.shared.getAthlete()
+                // StravaAthleteCache deleted - use StravaAPIClient
+                let stravaAthlete = try await StravaAPIClient.shared.fetchAthlete()
                 if let stravaFTP = stravaAthlete.ftp, stravaFTP > 0 {
                     ftp = Double(stravaFTP)
                     Logger.debug("🟠 ✅ Using Strava FTP: \(Int(ftp!))W")
