@@ -12,7 +12,7 @@ class UnifiedActivityService: ObservableObject {
     private let intervalsOAuth = IntervalsOAuthManager.shared
     private let stravaAuth = StravaAuthService.shared
     private let proConfig = ProFeatureConfig.shared
-    private let cache = UnifiedCacheManager.shared // NEW: Unified cache
+    private let cache = CacheOrchestrator.shared // NEW: Multi-layer cache orchestrator
     
     // Data fetch limits based on subscription tier
     // Research-backed windows for >90% accuracy:
@@ -42,7 +42,7 @@ class UnifiedActivityService: ObservableObject {
             // Use cache-first: show cached data immediately, refresh in background
             return try await cache.fetchCacheFirst(
                 key: cacheKey,
-                ttl: UnifiedCacheManager.CacheTTL.activities
+                ttl: 3600 // 1 hour (activities TTL)
             ) {
                 Logger.data("📊 [Activities] Fetching from Intervals.icu (limit: \(limit), days: \(actualDays))")
                 let activities = try await self.intervalsAPI.fetchRecentActivities(limit: limit, daysBack: actualDays)
@@ -58,7 +58,7 @@ class UnifiedActivityService: ObservableObject {
         // Use cache-first: show cached data immediately, refresh in background
         return try await cache.fetchCacheFirst(
             key: cacheKey,
-            ttl: UnifiedCacheManager.CacheTTL.activities
+            ttl: 3600 // 1 hour (activities TTL)
         ) {
             Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
             let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
