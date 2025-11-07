@@ -78,9 +78,6 @@ struct CardContainer<Content: View>: View {
             RoundedRectangle(cornerRadius: style.cornerRadius)
                 .fill(style.backgroundColor)
         )
-        .onAppear {
-            print("🎨 [CardContainer] Style: \(style), ColorScheme: \(colorScheme), BG: \(style.backgroundColor)")
-        }
     }
 }
 

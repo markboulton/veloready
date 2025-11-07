@@ -321,8 +321,7 @@ class RideSummaryClient: RideSummaryClientProtocol {
             #if DEBUG
             if let text = String(data: data, encoding: .utf8) {
                 Logger.error("JSON Decoding Error: \(error)")
-                Logger.error("Full Response (\(data.count) bytes):")
-                print(text)
+                Logger.error("Full Response (\(data.count) bytes): \(text)")
             }
             #endif
             

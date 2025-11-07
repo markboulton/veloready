@@ -12,11 +12,6 @@ struct WeeklyReportView: View {
             let screenWidth = geometry.size.width
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: Spacing.md) {
-                    Color.clear.frame(height: 1)
-                        .onAppear {
-                            print("🔍 [WeeklyReport] Screen width: \(screenWidth)")
-                        }
-
                     GeometryReader { vStackGeo in
                         Color.clear.preference(key: ViewWidthKey.self, value: vStackGeo.size.width)
                     }
@@ -92,25 +87,14 @@ struct WeeklyReportView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
-            .onPreferenceChange(ViewWidthKey.self) { width in
-                print("📏 [WeeklyReport] VStack width: \(width)")
-            }
-            .onPreferenceChange(ComponentWidthKey.self) { component in
-                print("📏 [WeeklyReport] \(component.name) width: \(component.width)")
-            }
         }
         .scrollDisabled(false) // Ensure vertical scrolling works
         .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .scrollDismissesKeyboard(.interactively)
         .background(Color.background.app)
-        .onAppear {
-            print("🔍 [WeeklyReport] View appeared - ScrollView should be locked to vertical")
-        }
         .task {
-            print("🔍 [WeeklyReport] Loading data...")
             await viewModel.loadWeeklyReport()
             await trendsViewModel.loadTrendData()
-            print("🔍 [WeeklyReport] Data loaded - checking if draggable")
         }
         .refreshable {
             await viewModel.loadWeeklyReport()

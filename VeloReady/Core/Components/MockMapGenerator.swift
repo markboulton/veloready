@@ -73,7 +73,7 @@ class MockMapGenerator {
             
             return image
         } catch {
-            print("Failed to generate mock map: \(error)")
+            Logger.error("Failed to generate mock map: \(error)")
             return nil
         }
     }
