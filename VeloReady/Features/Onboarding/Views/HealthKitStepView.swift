@@ -70,7 +70,7 @@ struct HealthKitStepView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(ColorScale.blueAccent)
                             .cornerRadius(16)
                     }
                 } else {
@@ -97,7 +97,7 @@ struct HealthKitStepView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(ColorScale.blueAccent)
                         .cornerRadius(16)
                     }
                     .disabled(isRequesting)

@@ -147,7 +147,7 @@ struct SubscriptionStepView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(ColorScale.blueAccent)
                         .cornerRadius(12)
                 }
                 
@@ -178,7 +178,7 @@ struct ProFeatureRow: View {
                 .font(.title3)
                 .foregroundColor(.white)
                 .frame(width: 40, height: 40)
-                .background(Color.blue)
+                .background(ColorScale.blueAccent)
                 .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 4) {

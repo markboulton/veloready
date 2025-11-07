@@ -71,7 +71,7 @@ struct ValuePropStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(12)
             }
             .padding(.horizontal, 32)
@@ -93,7 +93,7 @@ struct ValuePropBenefitRow: View {
                 .font(.title2)
                 .foregroundColor(.white)
                 .frame(width: 40, height: 40)
-                .background(Color.blue)
+                .background(ColorScale.blueAccent)
                 .clipShape(Circle())
             
             // Text

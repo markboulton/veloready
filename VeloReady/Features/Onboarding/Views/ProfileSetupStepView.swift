@@ -114,7 +114,7 @@ struct ProfileSetupStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(16)
             }
             .padding(.horizontal, 32)

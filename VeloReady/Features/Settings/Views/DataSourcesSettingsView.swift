@@ -70,13 +70,13 @@ struct DataSourcesSettingsView: View {
     
     private var overviewSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 HStack {
                     Image(systemName: Icons.System.linkCircleFill)
                         .foregroundColor(.blue)
                         .font(.title2)
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(CommonContent.States.connectedSources)
                             .font(.headline)
                         
@@ -87,7 +87,7 @@ struct DataSourcesSettingsView: View {
                 }
                 
                 if !dataSourceManager.hasActivitySource {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.Status.warningFill)
                             .foregroundColor(.orange)
                         Text(SettingsContent.DataSources.connectWarning)
@@ -107,7 +107,7 @@ struct DataSourcesSettingsView: View {
     
     private func dataSourceRow(_ source: DataSource) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 // Description
                 Text(source.sourceDescription)
                     .font(.subheadline)
@@ -131,12 +131,12 @@ struct DataSourcesSettingsView: View {
                 brandedConnectionButton(for: source)
                 
                 // Data types provided
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(SettingsContent.DataSources.provides)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         ForEach(source.providedDataTypes, id: \.self) { dataType in
                             Text(dataType.rawValue.capitalized)
                                 .font(.caption2)
@@ -158,7 +158,7 @@ struct DataSourcesSettingsView: View {
     
     private var prioritySection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Text(SettingsContent.DataSources.dataPriority)
                     .font(.headline)
                 
@@ -400,7 +400,7 @@ struct ToastView: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(.white)

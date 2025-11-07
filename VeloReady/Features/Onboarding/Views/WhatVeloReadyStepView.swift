@@ -70,7 +70,7 @@ struct WhatVeloReadyStepView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(ColorScale.blueAccent)
                     .cornerRadius(12)
             }
             .padding(.horizontal, 32)
