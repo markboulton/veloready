@@ -6,13 +6,13 @@ import Testing
 struct TrainingLoadCalculatorTests {
     
     @Test("Calculate training load from activities")
-    func testTrainingLoadFromActivities() {
+    func testTrainingLoadFromActivities() async {
         let calculator = TrainingLoadCalculator()
         
         // Create mock activities with TSS values
         let activities = createMockActivities()
         
-        let result = calculator.calculateTrainingLoadFromActivities(activities)
+        let result = await calculator.calculateTrainingLoadFromActivities(activities)
         
         // Should return valid CTL and ATL values
         #expect(result.ctl >= 0.0)
@@ -22,13 +22,13 @@ struct TrainingLoadCalculatorTests {
     }
     
     @Test("Calculate progressive training load")
-    func testProgressiveTrainingLoad() {
+    func testProgressiveTrainingLoad() async {
         let calculator = TrainingLoadCalculator()
         
         // Create mock activities with TSS values
         let activities = createMockActivities()
         
-        let result = calculator.calculateProgressiveTrainingLoad(activities)
+        let result = await calculator.calculateProgressiveTrainingLoad(activities)
         
         // Should return a dictionary with dates and CTL/ATL values
         #expect(result.count > 0)
@@ -42,13 +42,13 @@ struct TrainingLoadCalculatorTests {
     }
     
     @Test("Get daily TSS from activities")
-    func testGetDailyTSSFromActivities() {
+    func testGetDailyTSSFromActivities() async {
         let calculator = TrainingLoadCalculator()
         
         // Create mock activities with TSS values
         let activities = createMockActivities()
         
-        let dailyTSS = calculator.getDailyTSSFromActivities(activities)
+        let dailyTSS = await calculator.getDailyTSSFromActivities(activities)
         
         // Should return a dictionary with dates and TSS values
         #expect(dailyTSS.count > 0)
@@ -60,12 +60,12 @@ struct TrainingLoadCalculatorTests {
     }
     
     @Test("Handle empty activities list")
-    func testEmptyActivitiesHandling() {
+    func testEmptyActivitiesHandling() async {
         let calculator = TrainingLoadCalculator()
         
         let emptyActivities: [IntervalsActivity] = []
         
-        let result = calculator.calculateTrainingLoadFromActivities(emptyActivities)
+        let result = await calculator.calculateTrainingLoadFromActivities(emptyActivities)
         
         // Should return zero values for empty input
         #expect(result.ctl == 0.0)
@@ -73,13 +73,13 @@ struct TrainingLoadCalculatorTests {
     }
     
     @Test("Handle activities without TSS")
-    func testActivitiesWithoutTSS() {
+    func testActivitiesWithoutTSS() async {
         let calculator = TrainingLoadCalculator()
         
         // Create activities without TSS values
         let activities = createMockActivitiesWithoutTSS()
         
-        let result = calculator.calculateTrainingLoadFromActivities(activities)
+        let result = await calculator.calculateTrainingLoadFromActivities(activities)
         
         // Should return zero values when no TSS data
         #expect(result.ctl == 0.0)

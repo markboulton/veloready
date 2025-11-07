@@ -184,7 +184,7 @@ final class ServiceContainer {
         }
         
         // Clear score service caches
-        recoveryScoreService.clearBaselineCache()
+        Task { await recoveryScoreService.clearBaselineCache() }
         
         Logger.debug("✅ ServiceContainer: All caches cleared")
     }

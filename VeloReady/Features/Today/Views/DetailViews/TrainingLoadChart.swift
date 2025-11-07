@@ -382,7 +382,7 @@ struct TrainingLoadChart: View {
             
             // Calculate progressive CTL/ATL using TrainingLoadCalculator
             let calculator = TrainingLoadCalculator()
-            let progressiveLoad = calculator.calculateProgressiveTrainingLoad(enrichedActivities)
+            let progressiveLoad = await calculator.calculateProgressiveTrainingLoad(enrichedActivities)
             
             // Date formatter for matching activity dates (must match calculator's parser!)
             // NOTE: Intervals.icu returns dates WITHOUT timezone suffix (e.g., "2025-10-16T06:33:05")

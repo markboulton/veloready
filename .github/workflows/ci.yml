@@ -33,7 +33,7 @@ jobs:
         run: |
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
-          swift run VeloReadyCoreTests
+          swift test
           
       - name: Essential Lint
         run: |
@@ -69,7 +69,7 @@ jobs:
         run: |
           echo "Testing core business logic on macOS (fast, no simulator)"
           cd VeloReadyCore
-          swift run VeloReadyCoreTests
+          swift test
             
       - name: E2E Smoke Test
         run: |

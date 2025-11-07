@@ -523,7 +523,7 @@ struct TodayView: View {
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
             Task {
-                viewModel.clearBaselineCache()
+                await viewModel.recoveryScoreService.clearBaselineCache()
                 await viewModel.refreshData(forceRecoveryRecalculation: true)
                 liveActivityService.startAutoUpdates()
             }

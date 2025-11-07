@@ -1,0 +1,248 @@
+import Foundation
+import HealthKit
+
+/// Actor for strain score data aggregation and calculation
+/// Performs heavy data fetching and coordinates with existing StrainScoreCalculator
+actor StrainDataCalculator {
+    private let healthKitManager = HealthKitManager.shared
+    private let baselineCalculator = BaselineCalculator()
+    private let trimpCalculator = TRIMPCalculator()
+    private let trainingLoadCalculator = TrainingLoadCalculator()
+    
+    // MARK: - Main Calculation
+    
+    func calculateStrainScore(
+        sleepScore: SleepScore?,
+        ftp: Double?,
+        maxHeartRate: Double?,
+        restingHeartRate: Double?,
+        bodyMass: Double?
+    ) async -> StrainScore? {
+        // Get health data (now cached in HealthKitManager)
+        async let steps = healthKitManager.fetchDailySteps()
+        async let activeCalories = healthKitManager.fetchDailyActiveCalories()
+        async let hrv = healthKitManager.fetchLatestHRVData()
+        async let rhr = healthKitManager.fetchLatestRHRData()
+        async let baselines = baselineCalculator.calculateAllBaselines()
+        
+        // Get training loads (from Intervals or HealthKit)
+        async let trainingLoadData = fetchTrainingLoads()
+        
+        // Get today's workouts from ALL sources (HealthKit, Intervals.icu, Strava)
+        async let todaysWorkouts = fetchTodaysWorkouts()
+        async let todaysActivities = fetchTodaysUnifiedActivities()
+        
+        let (hrvValue, rhrValue) = await (hrv, rhr)
+        let (stepsValue, activeCaloriesValue) = await (steps, activeCalories)
+        let (hrvBaseline, rhrBaseline, _, _) = await baselines
+        let trainingLoads = await trainingLoadData
+        let workouts = await todaysWorkouts
+        let unifiedActivities = await todaysActivities
+        
+        // Calculate TRIMP from today's HealthKit workouts + unified activities (Intervals/Strava)
+        let healthKitTRIMP = await calculateTRIMPFromWorkouts(workouts: workouts)
+        let unifiedTRIMP = calculateTRIMPFromStravaActivities(activities: unifiedActivities, ftp: ftp, maxHR: maxHeartRate, restingHR: restingHeartRate)
+        let cardioTRIMP = healthKitTRIMP + unifiedTRIMP
+        
+        // Include HealthKit AND unified activities (Intervals.icu + Strava)
+        let healthKitDuration = workouts.reduce(0.0) { $0 + $1.duration }
+        let unifiedDuration = unifiedActivities.reduce(0.0) { $0 + ($1.duration ?? 0) }
+        let cardioDuration = healthKitDuration + unifiedDuration
+        
+        Logger.debug("   HealthKit Duration: \(Int(healthKitDuration/60))min")
+        Logger.debug("   Intervals/Strava Duration: \(Int(unifiedDuration/60))min")
+        Logger.debug("   Total Cardio Duration: \(Int(cardioDuration/60))min")
+        
+        let averageIF: Double? = nil // Not available from HealthKit alone
+        
+        // Collect workout types for activity differentiation
+        let workoutTypes = workouts.map { workout -> String in
+            switch workout.workoutActivityType {
+            case .running: return "Running"
+            case .cycling: return "Cycling"
+            case .swimming: return "Swimming"
+            case .walking: return "Walking"
+            case .hiking: return "Hiking"
+            case .rowing: return "Rowing"
+            default: return "Other"
+            }
+        }
+        
+        // Detect strength workouts and get RPE
+        let strengthWorkouts = workouts.filter {
+            $0.workoutActivityType == .traditionalStrengthTraining ||
+            $0.workoutActivityType == .functionalStrengthTraining
+        }
+        let strengthDuration = strengthWorkouts.reduce(0.0) { $0 + $1.duration }
+        
+        // Get RPE and muscle groups from storage for strength workouts (use first if multiple)
+        var strengthRPE: Double? = nil
+        var muscleGroupsTrained: [MuscleGroup]? = nil
+        if let firstStrength = strengthWorkouts.first {
+            strengthRPE = await WorkoutMetadataService.shared.getRPE(for: firstStrength)
+            muscleGroupsTrained = await WorkoutMetadataService.shared.getMuscleGroups(for: firstStrength)
+        }
+        
+        Logger.debug("🔍 Strain Score Inputs:")
+        Logger.debug("   Steps: \(stepsValue ?? 0)")
+        Logger.debug("   Active Calories: \(activeCaloriesValue ?? 0)")
+        Logger.debug("   Cardio TRIMP: \(cardioTRIMP)")
+        Logger.debug("   Cardio Duration: \(cardioDuration)s")
+        Logger.debug("   Workout Types: \(workoutTypes)")
+        Logger.debug("   Strength Duration: \(strengthDuration / 60)min")
+        Logger.debug("   Strength RPE: \(strengthRPE != nil ? String(format: "%.1f", strengthRPE!) : "nil (using default 6.5)")")
+        if let muscleGroups = muscleGroupsTrained {
+            Logger.debug("   Muscle Groups: \(muscleGroups.map { $0.rawValue }.joined(separator: ", "))")
+        }
+        Logger.debug("   Average IF: \(averageIF ?? 0.0)")
+        Logger.debug("   Sleep Score: \(sleepScore?.score ?? -1)")
+        if let hrvSample = hrvValue.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)) {
+            Logger.debug("   HRV: \(hrvSample) ms")
+        } else {
+            Logger.debug("   HRV: nil")
+        }
+        Logger.debug("   Recovery Factor: \((trainingLoads.atl, trainingLoads.ctl))")
+        
+        // Create inputs
+        let inputs = StrainScore.StrainInputs(
+            continuousHRData: nil,
+            dailyTRIMP: nil,
+            cardioDailyTRIMP: cardioTRIMP,
+            cardioDurationMinutes: cardioDuration > 0 ? cardioDuration / 60 : nil,
+            averageIntensityFactor: averageIF,
+            workoutTypes: workoutTypes.isEmpty ? nil : workoutTypes,
+            strengthSessionRPE: strengthRPE,
+            strengthDurationMinutes: strengthDuration > 0 ? strengthDuration / 60 : nil,
+            strengthVolume: nil,
+            strengthSets: nil,
+            muscleGroupsTrained: muscleGroupsTrained,
+            isEccentricFocused: nil,
+            dailySteps: stepsValue,
+            activeEnergyCalories: activeCaloriesValue,
+            nonWorkoutMETmin: nil,
+            hrvOvernight: hrvValue.sample?.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)),
+            hrvBaseline: hrvBaseline,
+            rmrToday: rhrValue.sample?.quantity.doubleValue(for: HKUnit(from: "count/min")),
+            rmrBaseline: rhrBaseline,
+            sleepQuality: sleepScore?.score,
+            userFTP: ftp,
+            userMaxHR: maxHeartRate,
+            userRestingHR: restingHeartRate,
+            userBodyMass: bodyMass
+        )
+        
+        // Delegate to existing StrainScoreCalculator for final calculation
+        let result = StrainScoreCalculator.calculate(inputs: inputs)
+        Logger.debug("🔍 Strain Score Result:")
+        Logger.debug("   Final Score: \(result.score)")
+        Logger.debug("   Band: \(result.band.rawValue)")
+        Logger.debug("   Sub-scores: Cardio=\(result.subScores.cardioLoad), Strength=\(result.subScores.strengthLoad), Activity=\(result.subScores.nonExerciseLoad)")
+        Logger.debug("   Recovery Factor: \(String(format: "%.2f", result.subScores.recoveryFactor))")
+        return result
+    }
+    
+    // MARK: - Data Fetching
+    
+    private func fetchTrainingLoads() async -> (atl: Double?, ctl: Double?) {
+        do {
+            // Try Intervals.icu first (if available)
+            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
+            
+            if let latestActivity = activities.first {
+                Logger.data("Using Intervals.icu training loads: ATL=\(latestActivity.atl?.description ?? "nil"), CTL=\(latestActivity.ctl?.description ?? "nil")")
+                return (latestActivity.atl, latestActivity.ctl)
+            } else {
+                Logger.warning("️ No Intervals.icu data, calculating from HealthKit")
+                return await calculateTrainingLoadsFromHealthKit()
+            }
+        } catch {
+            Logger.error("Intervals.icu not available: \(error)")
+            Logger.warning("️ Calculating training loads from HealthKit")
+            return await calculateTrainingLoadsFromHealthKit()
+        }
+    }
+    
+    private func fetchTodaysWorkouts() async -> [HKWorkout] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        
+        let workouts = await healthKitManager.fetchWorkouts(
+            from: today,
+            to: tomorrow,
+            activityTypes: [.cycling, .running, .swimming, .walking, .functionalStrengthTraining, .traditionalStrengthTraining, .hiking, .rowing, .other]
+        )
+        
+        Logger.debug("🔍 Found \(workouts.count) HealthKit workouts for today")
+        return workouts
+    }
+    
+    private func fetchTodaysUnifiedActivities() async -> [IntervalsActivity] {
+        do {
+            let activities = try await UnifiedActivityService.shared.fetchTodaysActivities()
+            Logger.debug("🔍 Found \(activities.count) unified activities for today (Intervals.icu or Strava)")
+            return activities
+        } catch {
+            Logger.warning("⚠️ Failed to fetch unified activities: \(error)")
+            return []
+        }
+    }
+    
+    private func calculateTRIMPFromStravaActivities(activities: [IntervalsActivity], ftp: Double?, maxHR: Double?, restingHR: Double?) -> Double {
+        var totalTRIMP: Double = 0
+        
+        for activity in activities {
+            // Priority 1: Use power data if available
+            if let np = activity.normalizedPower,
+               let duration = activity.duration,
+               let ftpValue = ftp,
+               np > 0, ftpValue > 0 {
+                let intensityFactor = np / ftpValue
+                let estimatedTSS = (duration / 3600) * intensityFactor * intensityFactor * 100
+                totalTRIMP += estimatedTSS
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Power-based TSS: \(String(format: "%.1f", estimatedTSS))")
+                continue
+            }
+            
+            // Priority 2: Use pre-calculated TSS
+            if let tss = activity.tss {
+                totalTRIMP += tss
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Pre-calculated TSS: \(String(format: "%.1f", tss))")
+                continue
+            }
+            
+            // Priority 3: Estimate from HR
+            if let avgHR = activity.averageHeartRate,
+               let duration = activity.duration,
+               let maxHRValue = maxHR,
+               let restingHRValue = restingHR {
+                let hrReserve = maxHRValue - restingHRValue
+                let workingHR = avgHR - restingHRValue
+                let percentHRR = workingHR / hrReserve
+                let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
+                totalTRIMP += trimp
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
+            }
+        }
+        
+        Logger.debug("🔍 Total TRIMP from \(activities.count) unified activities: \(String(format: "%.1f", totalTRIMP))")
+        return totalTRIMP
+    }
+    
+    private func calculateTrainingLoadsFromHealthKit() async -> (atl: Double?, ctl: Double?) {
+        let (ctl, atl) = await trainingLoadCalculator.calculateTrainingLoad()
+        return (atl, ctl)
+    }
+    
+    private func calculateTRIMPFromWorkouts(workouts: [HKWorkout]) async -> Double {
+        var totalTRIMP: Double = 0
+        
+        for workout in workouts {
+            let trimp = await trimpCalculator.calculateTRIMP(for: workout)
+            totalTRIMP += trimp
+        }
+        
+        Logger.debug("🔍 Total TRIMP from \(workouts.count) HealthKit workouts: \(String(format: "%.1f", totalTRIMP))")
+        return totalTRIMP
+    }
+}

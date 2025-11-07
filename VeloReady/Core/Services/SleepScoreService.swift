@@ -16,8 +16,8 @@ class SleepScoreService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    private let calculator = SleepDataCalculator()
     private let healthKitManager = HealthKitManager.shared
-    private let baselineCalculator = BaselineCalculator()
     private let userSettings = UserSettings.shared
     private let cache = UnifiedCacheManager.shared
     
@@ -253,10 +253,19 @@ class SleepScoreService: ObservableObject {
     // MARK: - Real Data Calculation
     
     private func calculateRealSleepScore() async -> SleepScore? {
+        // Calculate sleep need based on user target
+        let sleepNeed = calculateSleepNeed()
+        
+        // Delegate to calculator (runs on background thread)
+        return await calculator.calculateSleepScore(sleepNeed: sleepNeed)
+    }
+    
+    // Legacy method - kept for reference but calculation moved to actor
+    private func calculateRealSleepScoreOld() async -> SleepScore? {
         // Get detailed sleep data
         async let sleepData = healthKitManager.fetchDetailedSleepData()
         async let hrvData = healthKitManager.fetchLatestHRVData()
-        async let baselines = baselineCalculator.calculateAllBaselines()
+        async let baselines = BaselineCalculator().calculateAllBaselines()
         
         let (sleepInfo, hrv, (hrvBaseline, _, _, _)) = await (sleepData, hrvData, baselines)
         

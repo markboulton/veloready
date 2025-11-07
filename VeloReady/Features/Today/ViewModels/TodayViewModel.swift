@@ -77,7 +77,7 @@ class TodayViewModel: ObservableObject {
     
     /// Clear baseline cache to force fresh calculation from HealthKit
     func clearBaselineCache() {
-        recoveryScoreService.clearBaselineCache()
+        Task { await recoveryScoreService.clearBaselineCache() }
         Logger.debug("🗑️ Cleared baseline cache - will fetch fresh historical data from HealthKit")
     }
     
@@ -274,25 +274,20 @@ class TodayViewModel: ObservableObject {
         }
         Logger.debug("⚡ Starting parallel score calculations...")
         
-        // Start sleep and strain calculations in parallel
-        await sleepScoreService.calculateSleepScore()
-        Logger.debug("✅ Sleep score calculated")
-        
-        // Start recovery and strain calculations in parallel
-        async let recoveryCalculation: Void = {
-            if forceRecoveryRecalculation {
-                await recoveryScoreService.forceRefreshRecoveryScoreIgnoringDailyLimit()
-            } else {
-                await recoveryScoreService.calculateRecoveryScore()
+        // OPTIMIZATION: Truly parallel execution using withTaskGroup
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.sleepScoreService.calculateSleepScore() }
+            group.addTask {
+                if forceRecoveryRecalculation {
+                    await self.recoveryScoreService.forceRefreshRecoveryScoreIgnoringDailyLimit()
+                } else {
+                    await self.recoveryScoreService.calculateRecoveryScore()
+                }
             }
-        }()
-        async let strainCalculation: Void = strainScoreService.calculateStrainScore()
+            group.addTask { await self.strainScoreService.calculateStrainScore() }
+        }
         
-        // Wait for both to complete
-        _ = await recoveryCalculation
-        _ = await strainCalculation
-        
-        Logger.debug("✅ All score calculations completed")
+        Logger.debug("✅ All score calculations completed in parallel")
         
         // Save to Core Data cache after scores are calculated
         do {
@@ -462,132 +457,94 @@ class TodayViewModel: ObservableObject {
         // Load cached data first (instant)
         loadCachedDataOnly()
         
-        // Show UI IMMEDIATELY with cached data (no calculations)
+        // OPTIMIZATION: Show UI with cached data, but maintain 2-second brand spinner
         let phase1Time = CFAbsoluteTimeGetCurrent() - startTime
-        Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.3f", phase1Time))s - showing UI now")
+        Logger.debug("⚡ PHASE 1 complete in \(String(format: "%.3f", phase1Time))s - cached data ready")
         
-        // Ensure animated logo shows for minimum 2 seconds
-        let minimumLogoDisplayTime: TimeInterval = 2.0
+        // Mark data as loaded so UI content is ready (will show after spinner)
+        await MainActor.run {
+            isDataLoaded = true
+        }
+        Logger.debug("✅ Cached data loaded after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
+        
+        // PHASE 2: Brand Spinner (2s) + Background Score Calculations
+        // Start score calculations immediately in background (don't wait for spinner)
+        let scoreCalculationTask = Task {
+            // CRITICAL FIX: Wait for token refresh to complete before Phase 2
+            await SupabaseClient.shared.waitForRefreshIfNeeded()
+            
+            let phase2Start = CFAbsoluteTimeGetCurrent()
+            Logger.debug("🎯 PHASE 2 (Background): Starting parallel score calculations during spinner")
+            
+            // Calculate all scores in parallel while spinner shows
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.sleepScoreService.calculateSleepScore() }
+                group.addTask { await self.recoveryScoreService.calculateRecoveryScore() }
+                group.addTask { await self.strainScoreService.calculateStrainScore() }
+            }
+            
+            let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - all scores ready")
+        }
+        
+        // Show brand spinner for exactly 2 seconds (brand experience)
+        let minimumSpinnerTime: TimeInterval = 2.0
         let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
-        let remainingTime = max(0, minimumLogoDisplayTime - elapsedTime)
+        let remainingTime = max(0, minimumSpinnerTime - elapsedTime)
         
         if remainingTime > 0 {
-            Logger.debug("⏱️ [SPINNER] Delaying for \(String(format: "%.2f", remainingTime))s to show animated logo")
+            Logger.debug("🎨 [BRAND] Showing animated logo for \(String(format: "%.2f", remainingTime))s (brand experience)")
             try? await Task.sleep(nanoseconds: UInt64(remainingTime * 1_000_000_000))
         }
         
-        // Mark data as loaded so UI content is visible (with cached data)
+        // Hide spinner and show UI (with skeletons if scores not ready yet)
         await MainActor.run {
-            isDataLoaded = true
-            // Hide spinner NOW (after 2s) - loading status will show progress
             withAnimation(.easeOut(duration: 0.3)) {
                 isInitializing = false
             }
         }
         Logger.debug("✅ UI displayed after \(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - startTime))s")
-        Logger.debug("🔵 [SPINNER] Hiding animated logo - loading status will show progress")
+        Logger.debug("🎨 [BRAND] Spinner hidden - UI shows with progressive score population")
         
-        // PHASE 2: Critical Scores ONLY (<1s) - User-visible data
-        // Spinner is now hidden, loading status shows progress
-        Task {
-            // Update loading state: fetching health data
-            await MainActor.run {
-                loadingStateManager.updateState(.fetchingHealthData)
-            }
+        // Wait for scores to finish calculating (if not done already)
+        await scoreCalculationTask.value
+        
+        // Scores populate progressively as they become available
+        // UI already shows skeleton/compact rings, will update automatically via @Published
+        Logger.debug("✅ PHASE 2/3 complete - UI showing with progressive score population")
+        
+        // Trigger ring animations and haptic feedback when all scores are ready
+        await MainActor.run {
+            animationTrigger = UUID()
             
-            // CRITICAL FIX: Wait for token refresh to complete before Phase 2
-            // This prevents serverError when fetching activities/AI brief
+            // Subtle haptic feedback when scores complete
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            Logger.debug("📳 Haptic feedback triggered - all scores populated")
+        }
+        
+        // PHASE 4: Background Updates (4-5s) - Non-blocking
+        // Activities, trends, training load - happens in background
+        Task.detached(priority: .background) {
+            let phase4Start = CFAbsoluteTimeGetCurrent()
+            await Logger.debug("🎯 PHASE 4: Background Updates - activities, trends, training load")
+            
+            // CRITICAL: Wait for token refresh before API calls
             await SupabaseClient.shared.waitForRefreshIfNeeded()
             
-            let phase2Start = CFAbsoluteTimeGetCurrent()
-            Logger.debug("🎯 PHASE 2: Critical Scores - sleep, recovery, strain")
-            
-            // Show generic calculating state first
+            // Update loading state: checking for updates (generic)
             await MainActor.run {
-                loadingStateManager.updateState(.calculatingScores(
-                    hasHealthKit: healthKitManager.isAuthorized,
-                    hasSleepData: true  // Assume true initially, will update if needed
-                ))
+                self.loadingStateManager.updateState(.checkingForUpdates)
             }
             
-            // ONLY calculate user-visible scores
-            async let sleepTask: Void = sleepScoreService.calculateSleepScore()
-            async let recoveryTask: Void = recoveryScoreService.calculateRecoveryScore()
-            async let strainTask: Void = strainScoreService.calculateStrainScore()
+            // Fetch activities and other non-critical data
+            await self.refreshActivitiesAndOtherData()
             
-            _ = await sleepTask
-            _ = await recoveryTask
-            _ = await strainTask
+            let phase4Time = CFAbsoluteTimeGetCurrent() - phase4Start
+            await Logger.debug("✅ PHASE 4 complete in \(String(format: "%.2f", phase4Time))s - background work done")
             
-            // CRITICAL: Wait for scores to be published to UI before clearing loading state
-            // This prevents status bands appearing before score values
-            var attempts = 0
-            while attempts < 20 {  // Max 2 seconds
-                let scoresReady = await MainActor.run {
-                    sleepScoreService.currentSleepScore != nil &&
-                    recoveryScoreService.currentRecoveryScore != nil &&
-                    strainScoreService.currentStrainScore != nil
-                }
-                
-                if scoresReady {
-                    Logger.debug("✅ All scores published to UI")
-                    break
-                }
-                
-                try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
-                attempts += 1
-            }
-            
-            // Update status with actual sleep data availability AFTER calculation
-            let hasSleep = await hasSleepData()
-            if !hasSleep {
-                await MainActor.run {
-                    loadingStateManager.updateState(.calculatingScores(
-                        hasHealthKit: healthKitManager.isAuthorized,
-                        hasSleepData: false
-                    ))
-                }
-            }
-            
-            let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
-            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - scores ready")
-            
-            // Trigger ring animations and haptic feedback
-            await MainActor.run {
-                animationTrigger = UUID()
-                
-                // Subtle haptic feedback when scores complete
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-                Logger.debug("📳 Haptic feedback triggered - scores updated")
-            }
-            
-            // PHASE 3: Background Updates (4-5s) - Non-blocking
-            // This runs AFTER UI is interactive, user won't notice
-            Task.detached(priority: .background) {
-                let phase3Start = CFAbsoluteTimeGetCurrent()
-                await Logger.debug("🎯 PHASE 3: Background Updates - activities, trends, training load")
-                
-                // CRITICAL: Wait for token refresh before API calls
-                await SupabaseClient.shared.waitForRefreshIfNeeded()
-                
-                // Update loading state: checking for updates (generic)
-                await MainActor.run {
-                    self.loadingStateManager.updateState(.checkingForUpdates)
-                }
-                
-                // Fetch activities and other non-critical data
-                await self.refreshActivitiesAndOtherData()
-                
-                let phase3Time = CFAbsoluteTimeGetCurrent() - phase3Start
-                await Logger.debug("✅ PHASE 3 complete in \(String(format: "%.2f", phase3Time))s - background work done")
-                
-                // Note: .complete state is now set within refreshActivitiesAndOtherData()
-                // after critical work is done (not after all background tasks)
-                
-                let totalTime = CFAbsoluteTimeGetCurrent() - startTime
-                await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
-            }
+            let totalTime = CFAbsoluteTimeGetCurrent() - startTime
+            await Logger.debug("✅ ALL PHASES complete in \(String(format: "%.2f", totalTime))s")
         }
     }
     

@@ -519,8 +519,8 @@ final class CacheManager: ObservableObject {
             
             if !activitiesWithTSS.isEmpty {
                 // Get progressive CTL/ATL with TSS per day
-                let ctlAtlData = calculator.calculateProgressiveTrainingLoad(intervalsActivities)
-                let dailyTSS = calculator.getDailyTSSFromActivities(intervalsActivities)
+                let ctlAtlData = await calculator.calculateProgressiveTrainingLoad(intervalsActivities)
+                let dailyTSS = await calculator.getDailyTSSFromActivities(intervalsActivities)
                 
                 Logger.data("📊 [CTL/ATL BACKFILL] Intervals gave us \(ctlAtlData.count) days of CTL/ATL")
                 Logger.data("📊 [CTL/ATL BACKFILL] Daily TSS has \(dailyTSS.count) entries")

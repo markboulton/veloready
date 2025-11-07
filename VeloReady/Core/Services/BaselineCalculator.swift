@@ -4,7 +4,8 @@ import VeloReadyCore
 
 /// Service for calculating 7-day rolling baselines from HealthKit data (Whoop-like)
 /// This service fetches data from HealthKit and delegates calculation to VeloReadyCore
-final class BaselineCalculator: @unchecked Sendable {
+/// Actor-isolated to run heavy calculations on background threads
+actor BaselineCalculator {
     private let healthStore = HKHealthStore()
     
     // HealthKit types
