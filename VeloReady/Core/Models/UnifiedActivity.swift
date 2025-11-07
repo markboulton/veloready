@@ -245,7 +245,7 @@ struct UnifiedActivity: Identifiable {
     /// Determines if this activity is an indoor/virtual ride
     /// Uses multiple heuristics: type, distance, speed, elevation
     var isIndoorRide: Bool {
-        // Check raw type first - most reliable
+        // Check raw type first - most reliable indicator
         if let rawType = rawType?.lowercased() {
             if rawType.contains("virtual") || rawType.contains("indoor") {
                 return true
@@ -255,27 +255,27 @@ struct UnifiedActivity: Identifiable {
         // For cycling activities, check for indoor indicators
         guard type == .cycling else { return false }
         
-        // Very low distance (<2km) for rides over 20 minutes suggests indoor
+        // FIX: Made distance/speed heuristics more conservative
+        // Only mark as indoor if BOTH conditions are met (not just one)
+        // This prevents outdoor rides with GPS from being marked as indoor
         if let duration = duration, let distance = distance {
             let durationMinutes = duration / 60.0
             let distanceKm = distance / 1000.0
-            
-            if durationMinutes > 20 && distanceKm < 2.0 {
-                return true
-            }
-            
-            // Very low average speed (<5 km/h) suggests indoor/trainer
             let avgSpeed = (distance / duration) * 3.6 // m/s to km/h
-            if avgSpeed < 5.0 {
+            
+            // Very low distance AND very low speed (both required)
+            // Rides like "4x9" intervals may have low distance but should show map if they have GPS
+            if durationMinutes > 30 && distanceKm < 1.0 && avgSpeed < 3.0 {
                 return true
             }
         }
         
-        // Check Intervals.icu source - if it came from Strava and has minimal distance
+        // Check Intervals.icu source - only if extremely minimal distance (< 500m)
+        // Reduced from 1000m to be less aggressive
         if let intervalsActivity = intervalsActivity,
            intervalsActivity.source?.uppercased() == "STRAVA",
            let distance = intervalsActivity.distance,
-           distance < 1000 { // Less than 1km
+           distance < 500 { // Less than 500m
             return true
         }
         
@@ -292,8 +292,25 @@ struct UnifiedActivity: Identifiable {
             return false
         }
         
-        // Need meaningful distance
-        guard let distance = distance, distance > 100 else { // At least 100m
+        // Check if activity has GPS coordinates from any source
+        // Strava and Intervals activities with coordinates should show maps
+        if stravaActivity != nil || intervalsActivity != nil {
+            // Has data source that typically includes GPS - show map
+            return true
+        }
+        
+        // For HealthKit workouts, check if they have routes (GPS data)
+        if let workout = healthKitWorkout {
+            // HealthKit workouts with routes should show maps
+            // Note: We can't check workout.workoutRoutes here as it requires async query
+            // So we use distance as a proxy - activities with distance likely have GPS
+            if let distance = distance, distance > 100 { // At least 100m
+                return true
+            }
+        }
+        
+        // For activities without clear GPS indicators, require meaningful distance
+        guard let distance = distance, distance > 100 else {
             return false
         }
         

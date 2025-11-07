@@ -13,7 +13,11 @@ struct DebugCacheView: View {
     
     var body: some View {
         Form {
-            intervalsCacheSection
+            cacheArchitectureSection
+            stravaSection
+            intervalsSection
+            healthKitSection
+            scoresSection
             coreDataSection
             cleanupSection
         }
@@ -36,45 +40,122 @@ struct DebugCacheView: View {
         }
     }
     
-    // MARK: - Intervals Cache Section
+    // MARK: - Cache Architecture Section
     
-    private var intervalsCacheSection: some View {
+    private var cacheArchitectureSection: some View {
         Section {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.System.storage)
-                        .foregroundColor(ColorScale.blueAccent)
-                    VRText("Intervals Cache", style: .headline)
-                    Spacer()
-                }
-                
-                VRText(
-                    "Cached activities, wellness data, and athlete info stored in UserDefaults",
-                    style: .caption,
-                    color: .secondary
-                )
-                
-                Button(action: {
-                    showingClearCacheAlert = true
-                }) {
-                    HStack(spacing: Spacing.sm) {
-                        Image(systemName: Icons.Document.trash)
-                        VRText("Clear Intervals Cache", style: .body)
-                    }
-                }
-                .buttonStyle(.bordered)
-                .tint(ColorScale.redAccent)
-                
-                if cacheCleared {
-                    HStack(spacing: Spacing.sm) {
-                        Image(systemName: Icons.Status.successFill)
-                            .foregroundColor(ColorScale.greenAccent)
-                        VRText("Cache cleared successfully", style: .caption, color: ColorScale.greenAccent)
-                    }
-                }
+                Text("3-Layer Cache System")
+                    .font(.heading)
+                Text("Memory → Disk → Core Data with automatic fallback")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         } header: {
-            Label("Intervals Cache", systemImage: Icons.System.storage)
+            Text("Architecture")
+        }
+    }
+    
+    // MARK: - Strava Section
+    
+    private var stravaSection: some View {
+        Section {
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "strava:.*")
+                    Logger.debug("🗑️ Cleared Strava cache")
+                }
+            }) {
+                Label("Clear Strava Activities", systemImage: Icons.Document.trash)
+            }
+            
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "strava_athlete")
+                    Logger.debug("🗑️ Cleared Strava athlete data")
+                }
+            }) {
+                Label("Clear Athlete Info", systemImage: Icons.Document.trash)
+            }
+        } header: {
+            Label("Strava", systemImage: "figure.outdoor.cycle")
+        } footer: {
+            VRText("Activities (90/365 days), streams, athlete profile", style: .caption, color: .secondary)
+        }
+    }
+    
+    // MARK: - Intervals Section
+    
+    private var intervalsSection: some View {
+        Section {
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "intervals:.*")
+                    Logger.debug("🗑️ Cleared Intervals cache")
+                }
+            }) {
+                Label("Clear Intervals Activities", systemImage: Icons.Document.trash)
+            }
+            
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "intervals:wellness:.*")
+                    Logger.debug("🗑️ Cleared wellness data")
+                }
+            }) {
+                Label("Clear Wellness Data", systemImage: Icons.Document.trash)
+            }
+        } header: {
+            Label("Intervals.icu", systemImage: "chart.line.uptrend.xyaxis")
+        } footer: {
+            VRText("Activities, wellness, training load (CTL/ATL/TSB)", style: .caption, color: .secondary)
+        }
+    }
+    
+    // MARK: - HealthKit Section
+    
+    private var healthKitSection: some View {
+        Section {
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "healthkit:.*")
+                    Logger.debug("🗑️ Cleared HealthKit cache")
+                }
+            }) {
+                Label("Clear HealthKit Data", systemImage: Icons.Document.trash)
+            }
+        } header: {
+            Label("HealthKit", systemImage: Icons.Health.heartFill)
+        } footer: {
+            VRText("HRV, RHR, sleep, steps, calories, respiratory rate", style: .caption, color: .secondary)
+        }
+    }
+    
+    // MARK: - Scores Section
+    
+    private var scoresSection: some View {
+        Section {
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "score:.*")
+                    Logger.debug("🗑️ Cleared score caches")
+                }
+            }) {
+                Label("Clear All Scores", systemImage: Icons.Document.trash)
+            }
+            
+            Button(action: {
+                Task {
+                    await CacheOrchestrator.shared.invalidate(matching: "baselines:.*")
+                    Logger.debug("🗑️ Cleared baselines")
+                }
+            }) {
+                Label("Clear Baselines", systemImage: Icons.Document.trash)
+            }
+        } header: {
+            Label("Scores & Baselines", systemImage: Icons.System.chart)
+        } footer: {
+            VRText("Recovery, sleep, strain scores and 7-day baselines", style: .caption, color: .secondary)
         }
     }
     
@@ -83,18 +164,9 @@ struct DebugCacheView: View {
     private var coreDataSection: some View {
         Section {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.System.database)
-                        .foregroundColor(ColorScale.purpleAccent)
-                    VRText("Core Data Cache", style: .headline)
-                    Spacer()
-                }
-                
-                VRText(
-                    "Daily scores, baselines, and historical data stored in Core Data",
-                    style: .caption,
-                    color: .secondary
-                )
+                Text("Daily scores, baselines, and historical data stored in Core Data")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
                 Button(action: {
                     showingClearCoreDataAlert = true
@@ -131,18 +203,9 @@ struct DebugCacheView: View {
     private var cleanupSection: some View {
         Section {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.System.sparkles)
-                        .foregroundColor(ColorScale.blueAccent)
-                    VRText("Clean Duplicates", style: .headline)
-                    Spacer()
-                }
-                
-                VRText(
-                    "Remove duplicate and empty Core Data entries",
-                    style: .caption,
-                    color: .secondary
-                )
+                Text("Remove duplicate and empty Core Data entries")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
                 Button(action: {
                     Task {

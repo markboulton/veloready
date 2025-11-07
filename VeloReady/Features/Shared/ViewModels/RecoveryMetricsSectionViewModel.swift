@@ -10,7 +10,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var recoveryScore: RecoveryScore?
     @Published private(set) var sleepScore: SleepScore?
     @Published private(set) var strainScore: StrainScore?
+    @Published private(set) var isRecoveryLoading: Bool = false
     @Published private(set) var isSleepLoading: Bool = false
+    @Published private(set) var isStrainLoading: Bool = false
     @Published private(set) var allScoresReady: Bool = false // True when all scores are loaded
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
@@ -63,6 +65,15 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Observe recovery loading state
+        recoveryScoreService.$isLoading
+            .sink { [weak self] loading in
+                Logger.debug("🔄 [VIEWMODEL] Recovery loading state changed: \(loading)")
+                self?.isRecoveryLoading = loading
+                self?.checkAllScoresReady()
+            }
+            .store(in: &cancellables)
+        
         // Observe sleep score
         sleepScoreService.$currentSleepScore
             .sink { [weak self] score in
@@ -91,20 +102,60 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
+        
+        // Observe strain loading state
+        strainScoreService.$isLoading
+            .sink { [weak self] loading in
+                Logger.debug("🔄 [VIEWMODEL] Strain loading state changed: \(loading)")
+                self?.isStrainLoading = loading
+                self?.checkAllScoresReady()
+            }
+            .store(in: &cancellables)
+        
+        #if DEBUG
+        // Observe sleep simulation toggle to update rings immediately
+        ProFeatureConfig.shared.$simulateNoSleepData
+            .sink { [weak self] simulate in
+                if simulate {
+                    // Clear sleep score when simulation is ON
+                    self?.sleepScore = nil
+                    Logger.debug("🔄 [VIEWMODEL] Sleep simulation ON - cleared sleep score for rings")
+                } else {
+                    // Restore from service when simulation is OFF
+                    self?.sleepScore = self?.sleepScoreService.currentSleepScore
+                    Logger.debug("🔄 [VIEWMODEL] Sleep simulation OFF - restored sleep score: \(self?.sleepScore?.score ?? -1)")
+                }
+                self?.checkAllScoresReady()
+            }
+            .store(in: &cancellables)
+        #endif
     }
     
     /// Check if all scores are ready to display
-    /// Waits until recovery, sleep (or sleep loading complete), and strain are all available
+    /// Shows cached scores immediately on navigation return, only waits for initial load
+    /// This prevents rings from disappearing when navigating back to Today page
     private func checkAllScoresReady() {
-        let recoveryReady = recoveryScore != nil
-        let sleepReady = sleepScore != nil || !isSleepLoading // Ready if we have score OR loading is complete
-        let strainReady = strainScore != nil
+        // All loading must be complete before showing scores
+        let allLoadingComplete = !isRecoveryLoading && !isSleepLoading && !isStrainLoading
+        
+        // At least one score must exist (could be that sleep has no data, which is OK)
+        let hasAnyScore = recoveryScore != nil || sleepScore != nil || strainScore != nil
         
         let wasReady = allScoresReady
-        allScoresReady = recoveryReady && sleepReady && strainReady
+        
+        // FIX: Show scores if we have ANY score, even if still loading
+        // This prevents rings from disappearing when navigating back after toggling debug settings
+        // Only show loading rings if we have NO scores at all AND still loading
+        if hasAnyScore {
+            allScoresReady = true
+        } else {
+            allScoresReady = allLoadingComplete && hasAnyScore
+        }
         
         if !wasReady && allScoresReady {
-            Logger.debug("✅ [VIEWMODEL] All scores ready - recovery: \(recoveryReady), sleep: \(sleepReady), strain: \(strainReady)")
+            Logger.debug("✅ [VIEWMODEL] All scores ready - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+        } else if !allLoadingComplete {
+            Logger.debug("⏳ [VIEWMODEL] Still loading - recovery: \(isRecoveryLoading), sleep: \(isSleepLoading), strain: \(isStrainLoading)")
         }
     }
     
@@ -116,8 +167,11 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         recoveryScore = recoveryScoreService.currentRecoveryScore
         sleepScore = sleepScoreService.currentSleepScore
         strainScore = strainScoreService.currentStrainScore
+        isRecoveryLoading = recoveryScoreService.isLoading
         isSleepLoading = sleepScoreService.isLoading
-        Logger.debug("🔄 [VIEWMODEL] After refresh - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+        isStrainLoading = strainScoreService.isLoading
+        checkAllScoresReady()
+        Logger.debug("🔄 [VIEWMODEL] After refresh - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1), loading states: R=\(isRecoveryLoading), S=\(isSleepLoading), St=\(isStrainLoading)")
     }
     
     func reinstateSleepBanner() {

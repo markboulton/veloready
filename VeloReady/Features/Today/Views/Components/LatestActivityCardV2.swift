@@ -243,6 +243,22 @@ struct LatestActivityCardV2: View {
                     .frame(maxWidth: .infinity, maxHeight: 300)
                     .clipped()
                     .cornerRadius(12)
+            } else {
+                // Show placeholder when map loading completed but no snapshot available
+                Rectangle()
+                    .fill(Color.text.tertiary.opacity(0.05))
+                    .frame(height: 300)
+                    .overlay(
+                        VStack(spacing: Spacing.sm) {
+                            Image(systemName: "map")
+                                .font(.system(size: 40))
+                                .foregroundColor(Color.text.tertiary)
+                            Text("Map not available")
+                                .font(.caption)
+                                .foregroundColor(Color.text.secondary)
+                        }
+                    )
+                    .cornerRadius(12)
             }
         }
     }

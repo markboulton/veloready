@@ -100,6 +100,20 @@ struct DebugFeaturesView: View {
             
             // No Sleep Data Toggle
             Toggle("Simulate No Sleep Data", isOn: $config.simulateNoSleepData)
+                .onChange(of: config.simulateNoSleepData) { _, newValue in
+                    // Always reinstate the banner when toggling
+                    // When ON: show "no sleep data" banner
+                    // When OFF: show banner if sleep data is actually missing
+                    
+                    // Reset both dismissal flags to ensure banner shows
+                    UserDefaults.standard.set(false, forKey: "missingSleepBannerDismissed")
+                    UserDefaults.standard.set(0, forKey: "sleepDataWarningDismissedAt")
+                    
+                    // Force refresh of HealthWarningsCardViewModel to pick up the change
+                    NotificationCenter.default.post(name: .refreshHealthWarnings, object: nil)
+                    
+                    Logger.debug("🔄 [DEBUG] Sleep simulation toggled - banner reinstated")
+                }
             
             if config.simulateNoSleepData {
                 HStack(spacing: Spacing.sm) {

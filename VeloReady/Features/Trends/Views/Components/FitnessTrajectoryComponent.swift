@@ -35,10 +35,21 @@ struct FitnessTrajectoryComponent: View {
     }
     
     var body: some View {
-        StandardCard(
-            title: TrendsContent.WeeklyReport.fitnessTrajectory
-        ) {
+        StandardCard {
             VStack(alignment: .leading, spacing: Spacing.md) {
+                // Custom header with loading spinner
+                HStack(spacing: Spacing.sm) {
+                    Text(TrendsContent.WeeklyReport.fitnessTrajectory)
+                        .font(.heading)
+                        .foregroundColor(Color.text.primary)
+                    
+                    // Show loading spinner next to heading while calculating
+                    if trainingLoadService.isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+                .padding(.bottom, Spacing.sm)
                 // Segmented control for time range
                 LiquidGlassSegmentedControl(
                     segments: FitnessTimeRange.allCases.map { timeRange in

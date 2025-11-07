@@ -13,7 +13,8 @@ class MapSnapshotService {
     
     // MARK: - Concurrency Control
     // Limit concurrent map generations to prevent memory issues
-    private let maxConcurrentGenerations = 3
+    // Increased to 6 to improve responsiveness in lists with many activities
+    private let maxConcurrentGenerations = 6
     private var activeGenerations = 0
     private var pendingGenerations: [(continuation: CheckedContinuation<Void, Never>, activityId: String)] = []
     

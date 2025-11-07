@@ -123,6 +123,16 @@ class HealthWarningsCardViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        
+        // Observe notification to refresh health warnings (e.g., from debug toggles)
+        NotificationCenter.default.publisher(for: .refreshHealthWarnings)
+            .sink { [weak self] _ in
+                // Re-check dismissal status from UserDefaults
+                self?.sleepDataWarningDismissed = self?.checkSleepWarningDismissalStatus() ?? false
+                self?.refreshData()
+                Logger.debug("🔄 [HealthWarnings] Refreshed after notification")
+            }
+            .store(in: &cancellables)
         #endif
     }
     

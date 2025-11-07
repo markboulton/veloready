@@ -1,48 +1,68 @@
 import SwiftUI
 
 #if DEBUG
-/// Main debug hub with tab-based navigation
+/// Main debug hub with standard iOS list-based navigation
 struct DebugHub: View {
-    @Environment(\.dismiss) private var dismiss
-    
     var body: some View {
-        NavigationStack {
-            TabView {
-                DebugAuthView()
-                    .tabItem {
-                        Label("Auth", systemImage: Icons.System.shield)
-                    }
-                
-                DebugCacheView()
-                    .tabItem {
-                        Label("Cache", systemImage: Icons.System.storage)
-                    }
-                
-                DebugFeaturesView()
-                    .tabItem {
-                        Label("Features", systemImage: Icons.System.star)
-                    }
-                
-                DebugNetworkView()
-                    .tabItem {
-                        Label("Network", systemImage: Icons.System.network)
-                    }
-                
-                DebugHealthView()
-                    .tabItem {
-                        Label("Health", systemImage: Icons.Health.heartFill)
-                    }
-            }
-            .navigationTitle(DebugContent.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(DebugContent.done) {
-                        dismiss()
-                    }
+        List {
+            Section {
+                NavigationLink {
+                    DebugAuthView()
+                } label: {
+                    Label("Auth", systemImage: Icons.System.shield)
                 }
+                
+                NavigationLink {
+                    DebugCacheView()
+                } label: {
+                    Label("Cache", systemImage: Icons.System.storage)
+                }
+                
+                NavigationLink {
+                    DebugFeaturesView()
+                } label: {
+                    Label("Features", systemImage: Icons.System.star)
+                }
+                
+                NavigationLink {
+                    DebugNetworkView()
+                } label: {
+                    Label("Network", systemImage: Icons.System.network)
+                }
+                
+                NavigationLink {
+                    DebugHealthView()
+                } label: {
+                    Label("Health", systemImage: Icons.Health.heartFill)
+                }
+            } header: {
+                Text("Debug Tools")
+            } footer: {
+                VRText(
+                    "Development and testing utilities. DEBUG builds only.",
+                    style: .caption,
+                    color: .secondary
+                )
+            }
+            
+            Section {
+                NavigationLink {
+                    CardGalleryDebugView()
+                } label: {
+                    Label("Card Gallery", systemImage: Icons.System.grid2x2)
+                }
+                
+                NavigationLink {
+                    ColorPaletteDebugView()
+                } label: {
+                    Label("Color Palette", systemImage: Icons.System.sparkles)
+                }
+            } header: {
+                Text("Design System")
             }
         }
+        .navigationTitle(DebugContent.title)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
