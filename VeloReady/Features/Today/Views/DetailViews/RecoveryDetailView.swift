@@ -124,7 +124,7 @@ struct RecoveryDetailView: View {
         StandardCard(
             title: RecoveryContent.factorsTitle
         ) {
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 subScoreRow(
                     title: RecoveryContent.Metrics.hrv,
                     score: recoveryScore.subScores.hrv,
@@ -166,7 +166,7 @@ struct RecoveryDetailView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -198,7 +198,7 @@ struct RecoveryDetailView: View {
         StandardCard(
             title: RecoveryContent.appleHealthTitle
         ) {
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 if let hrv = recoveryScore.inputs.hrv {
                     if let hrvBaseline = recoveryScore.inputs.hrvBaseline {
                         healthMetricRow(
@@ -258,7 +258,7 @@ struct RecoveryDetailView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -290,7 +290,7 @@ struct RecoveryDetailView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -321,7 +321,7 @@ struct RecoveryDetailView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 Text(RecoveryContent.HealthMetrics.trainingLoadRatio)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -393,15 +393,15 @@ struct RecoveryDetailView: View {
         StandardCard(
             title: ReadinessContent.title
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if let readiness = RecoveryScoreService.shared.currentReadinessScore {
                 
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     Image(systemName: Icons.Activity.running)
                         .font(.title2)
                         .foregroundColor(readiness.band.colorToken)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(readiness.band.rawValue)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -445,11 +445,11 @@ struct RecoveryDetailView: View {
         StandardCard(
             title: RecoveryContent.NewMetrics.resilience
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
                 if let resilience = RecoveryScoreService.shared.currentResilienceScore {
                 
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: Spacing.md) {
+                    VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                         Text(resilience.band.rawValue)
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -509,8 +509,8 @@ struct RecoveryDetailView: View {
         // If we have enough data, show a refresh message instead
         if availableDays >= requiredDays {
             return AnyView(
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
                         
@@ -527,8 +527,8 @@ struct RecoveryDetailView: View {
         }
         
         return AnyView(
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: Icons.System.clock)
                         .foregroundColor(.secondary)
                     
@@ -541,7 +541,7 @@ struct RecoveryDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text("\(availableDays) \(RecoveryContent.DataAvailability.of) \(requiredDays) \(RecoveryContent.DataAvailability.days)")
                         .font(.caption2)
                         .fontWeight(.medium)
