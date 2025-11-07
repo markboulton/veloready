@@ -269,15 +269,15 @@ struct WorkoutInfoHeader: View {
     @State private var locationString: String? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Title and Date/Time
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(activity.name ?? "Untitled Workout")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.text.primary)
                 
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Text(formattedDateAndTime)
                         .font(.subheadline)
                         .foregroundStyle(Color.text.secondary)
@@ -300,7 +300,7 @@ struct WorkoutInfoHeader: View {
             }
             
             // Primary Metrics Grid - Always show these specific metrics
-            LazyVGrid(columns: createGridColumns(), spacing: 12) {
+            LazyVGrid(columns: createGridColumns(), spacing: Spacing.md) {
                 // Duration - always show
                 CompactMetricItem(
                     label: "Duration",
@@ -367,7 +367,7 @@ struct WorkoutInfoHeader: View {
     }
     
     private func createGridColumns() -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: Spacing.md), count: 3)
     }
     
     // MARK: - Formatting Functions
@@ -409,7 +409,7 @@ struct CompactMetricItem: View {
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             Text(label)
                 .metricLabel()
                 .lineLimit(1)
@@ -432,7 +432,7 @@ struct MetricItem: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(Color.text.secondary)
@@ -456,7 +456,7 @@ struct WorkoutChartsSection: View {
     let maxHR: Double?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Always show charts - they will handle empty data gracefully
             WorkoutDetailCharts(
                 samples: samples,
@@ -484,7 +484,7 @@ struct WorkoutMapSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             if isLoading {
                 ZStack {
                     Color.background.secondary
@@ -500,7 +500,7 @@ struct WorkoutMapSection: View {
                 ZStack {
                     Color.background.secondary
                         .frame(height: 300)
-                    VStack(spacing: 8) {
+                    VStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.System.map)
                             .font(.title2)
                             .foregroundStyle(Color.text.tertiary)
@@ -521,13 +521,13 @@ struct AdditionalDataSection: View {
     let activity: IntervalsActivity
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text(CommonContent.Sections.additionalData)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.text.primary)
             
-            LazyVGrid(columns: createGridColumns(), spacing: 12) {
+            LazyVGrid(columns: createGridColumns(), spacing: Spacing.md) {
                 // Calories
                 if let calories = activity.calories {
                     CompactMetricItem(
@@ -604,7 +604,7 @@ struct AdditionalDataSection: View {
     }
     
     private func createGridColumns() -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: Spacing.md), count: 3)
     }
     
     private func formatCalories(_ calories: Int) -> String {
