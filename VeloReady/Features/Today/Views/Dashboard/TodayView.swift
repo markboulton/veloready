@@ -578,10 +578,9 @@ struct TodayView: View {
                 Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
                 Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
                 
-                // PERFORMANCE: Run illness detection in background (don't block refresh)
-                Task.detached(priority: .background) {
-                    await illnessService.analyzeHealthTrends()
-                }
+                // PERFORMANCE FIX: Removed redundant illness detection call
+                // Illness detection already runs in Phase 3 background analysis (line 521)
+                // Running it here causes unnecessary cache lookups during chart rendering
             } else {
                 Logger.debug("🔄 [FOREGROUND] HealthKit NOT authorized - skipping refresh")
             }

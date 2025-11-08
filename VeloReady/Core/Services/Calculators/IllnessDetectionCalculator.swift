@@ -239,6 +239,17 @@ actor IllnessDetectionCalculator {
             
             let cacheKey = "healthkit:respiratory:\(ISO8601DateFormatter().string(from: date))"
             
+            // PERFORMANCE FIX: Check if cache exists before attempting fetch
+            // This prevents redundant cache layer lookups (Memory → Disk → CoreData)
+            if let cachedValue: Double = await CacheOrchestrator.shared.get(
+                key: cacheKey,
+                ttl: UnifiedCacheManager.CacheTTL.healthMetrics
+            ) {
+                values.append(cachedValue)
+                continue
+            }
+            
+            // Cache miss - only fetch if we really need it
             do {
                 let value = try await cacheManager.fetch(
                     key: cacheKey,
@@ -269,6 +280,17 @@ actor IllnessDetectionCalculator {
             
             let cacheKey = "healthkit:steps:\(ISO8601DateFormatter().string(from: date))"
             
+            // PERFORMANCE FIX: Check if cache exists before attempting fetch
+            // This prevents redundant cache layer lookups (Memory → Disk → CoreData)
+            if let cachedSteps: Double = await CacheOrchestrator.shared.get(
+                key: cacheKey,
+                ttl: UnifiedCacheManager.CacheTTL.healthMetrics
+            ) {
+                values.append(cachedSteps)
+                continue
+            }
+            
+            // Cache miss - only fetch if we really need it
             do {
                 let steps = try await cacheManager.fetch(
                     key: cacheKey,
