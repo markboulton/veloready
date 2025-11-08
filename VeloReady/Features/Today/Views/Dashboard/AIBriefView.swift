@@ -280,16 +280,22 @@ private struct MLDataCollectionView: View {
                         .fill(ColorPalette.neutral200)
                         .frame(height: 2)
                     
-                    // Progress (rainbow gradient) - animates from left, revealing gradient
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: ColorPalette.aiGradientColors),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: geometry.size.width * animatedProgress, height: 2)
+                    // Progress - full-width gradient revealed by mask
+                    LinearGradient(
+                        gradient: Gradient(colors: ColorPalette.aiGradientColors),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(height: 2)
+                    .mask(
+                        HStack(spacing: 0) {
+                            // Revealed portion (progress)
+                            Rectangle()
+                                .frame(width: geometry.size.width * animatedProgress)
+                            
+                            Spacer()
+                        }
+                    )
                 }
             }
             .frame(height: 2)
