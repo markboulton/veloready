@@ -294,6 +294,7 @@ public struct RecoveryCalculations {
     // MARK: - Alcohol Detection
     
     /// Apply alcohol-specific compound effect detection with multi-signal confidence scoring
+    /// Sleep data is OPTIONAL - detection works with HRV/RHR alone
     /// This reduces false positives by requiring multiple confirming signals
     public static func applyAlcoholCompoundEffect(
         baseScore: Double,
@@ -306,11 +307,6 @@ public struct RecoveryCalculations {
         
         // Skip alcohol detection if illness is detected (same signals as alcohol)
         if hasIllnessIndicator {
-            return baseScore
-        }
-        
-        // Skip alcohol detection if sleep data is missing (unreliable)
-        guard inputs.sleepScore != nil else {
             return baseScore
         }
         
@@ -329,46 +325,52 @@ public struct RecoveryCalculations {
         var alcoholConfidence: Double = 0
         var basePenalty: Double = 0
         
-        // Signal 1: HRV suppression (30% max confidence)
+        // Signal 1: HRV suppression (30% max confidence) - INCREASED PENALTIES
         if hrvChange < -35.0 {
-            alcoholConfidence += 30.0 // Strong HRV suppression
-            basePenalty = 12.0
+            alcoholConfidence += 30.0 // Severe HRV suppression
+            basePenalty = 20.0  // Was 12.0
+        } else if hrvChange < -30.0 {
+            alcoholConfidence += 28.0
+            basePenalty = 16.0  // New tier
         } else if hrvChange < -25.0 {
             alcoholConfidence += 25.0
-            basePenalty = 8.0
+            basePenalty = 12.0  // Was 8.0
         } else if hrvChange < -20.0 {
             alcoholConfidence += 20.0
-            basePenalty = 5.0
+            basePenalty = 10.0  // Was 5.0
+        } else if hrvChange < -15.0 {
+            alcoholConfidence += 15.0
+            basePenalty = 7.0   // New tier
         } else if hrvChange < -10.0 {
             alcoholConfidence += 10.0
-            basePenalty = 3.0
+            basePenalty = 4.0   // Was 3.0
         }
         
         // If no HRV suppression, unlikely to be alcohol
         guard alcoholConfidence > 0 else { return baseScore }
         
-        // Signal 2: Poor sleep quality (20% confidence)
-        if sleepScore < 40 {
-            alcoholConfidence += 20.0 // Very poor sleep
-        } else if sleepScore < 60 {
-            alcoholConfidence += 10.0 // Moderately poor sleep
+        // Signal 2: Poor sleep quality (20% confidence) - OPTIONAL
+        if let sleepScore = inputs.sleepScore {
+            if sleepScore < 40 {
+                alcoholConfidence += 20.0 // Very poor sleep
+            } else if sleepScore < 60 {
+                alcoholConfidence += 10.0 // Moderately poor sleep
+            }
+            
+            // Signal 3: Deep sleep suppression (15% confidence) - OPTIONAL
+            if sleepScore < 50 {
+                alcoholConfidence += 15.0 // Likely deep sleep suppression
+            }
         }
         
-        // Signal 3: Deep sleep suppression (25% confidence)
-        // Alcohol specifically suppresses deep sleep, not just overall quality
-        // This would require deep sleep data - for now, use poor sleep as proxy
-        if sleepScore < 50 {
-            alcoholConfidence += 15.0 // Likely deep sleep suppression
-        }
-        
-        // Signal 4: Elevated RHR (15% confidence)
+        // Signal 4: Elevated RHR (15% confidence) - ALWAYS AVAILABLE
         if rhrScore < 30 {
             alcoholConfidence += 15.0 // Strong RHR elevation
         } else if rhrScore < 50 {
             alcoholConfidence += 10.0 // Moderate RHR elevation
         }
         
-        // Signal 5: Normal respiratory rate (15% confidence)
+        // Signal 5: Normal respiratory rate (15% confidence) - OPTIONAL
         // Alcohol doesn't usually elevate RR, but illness does
         if let respiratory = inputs.respiratoryRate,
            let respBaseline = inputs.respiratoryBaseline,
@@ -383,7 +385,7 @@ public struct RecoveryCalculations {
             }
         }
         
-        // Signal 6: Timing/context (10% confidence)
+        // Signal 6: Timing/context (10% confidence) - ALWAYS AVAILABLE
         // Weekend = higher likelihood of alcohol
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: Date())
@@ -394,8 +396,10 @@ public struct RecoveryCalculations {
         // Ensure confidence is bounded [0, 100]
         alcoholConfidence = max(0, min(100, alcoholConfidence))
         
-        // Only apply penalty if confidence > 50% (requires multiple signals)
-        guard alcoholConfidence >= 50 else {
+        // Adaptive threshold: lower when sleep data unavailable
+        let confidenceThreshold = inputs.sleepScore == nil ? 40.0 : 50.0
+        
+        guard alcoholConfidence >= confidenceThreshold else {
             // Low confidence - likely not alcohol, could be stress/illness
             return baseScore
         }
@@ -403,18 +407,32 @@ public struct RecoveryCalculations {
         // Scale penalty by confidence
         var finalPenalty = basePenalty * (alcoholConfidence / 100.0)
         
-        // Sleep quality mitigation: Good sleep reduces alcohol penalty
-        // (If you managed good sleep despite drinking, impact is less)
-        if sleepScore >= 80 {
-            // Excellent sleep mitigates by 30%
-            finalPenalty *= 0.70
-        } else if sleepScore >= 65 {
-            // Good sleep mitigates by 15%
-            finalPenalty *= 0.85
+        // RHR multiplier: Elevated RHR compounds the penalty
+        if rhrScore < 30 {
+            finalPenalty *= 1.5  // Strong RHR elevation = 50% worse
+        } else if rhrScore < 50 {
+            finalPenalty *= 1.25 // Moderate RHR elevation = 25% worse
         }
         
-        // Cap maximum penalty at 15 points
-        finalPenalty = min(finalPenalty, 15.0)
+        // Weekend pattern amplifier: High confidence on weekend = likely heavy drinking
+        if (weekday == 1 || weekday == 7) && alcoholConfidence > 60 {
+            finalPenalty *= 1.2  // Weekend + high confidence = 20% worse
+        }
+        
+        // Sleep quality mitigation: Good sleep reduces alcohol penalty (OPTIONAL)
+        // (If you managed good sleep despite drinking, impact is less)
+        if let sleepScore = inputs.sleepScore {
+            if sleepScore >= 80 {
+                // Excellent sleep mitigates by 30%
+                finalPenalty *= 0.70
+            } else if sleepScore >= 65 {
+                // Good sleep mitigates by 15%
+                finalPenalty *= 0.85
+            }
+        }
+        
+        // Cap maximum penalty at 25 points (was 15)
+        finalPenalty = min(finalPenalty, 25.0)
         
         // Apply alcohol penalty to base score
         let adjustedScore = baseScore - finalPenalty

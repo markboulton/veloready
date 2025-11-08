@@ -4,6 +4,23 @@ import Foundation
 /// No dependencies on iOS frameworks or UI
 public struct BaselineCalculations {
     
+    // MARK: - Data Structures
+    
+    /// Sample data for historical alcohol detection
+    public struct HistoricalSample {
+        public let date: Date
+        public let hrv: Double
+        public let rhr: Double
+        public let sleepScore: Int?
+        
+        public init(date: Date, hrv: Double, rhr: Double, sleepScore: Int?) {
+            self.date = date
+            self.hrv = hrv
+            self.rhr = rhr
+            self.sleepScore = sleepScore
+        }
+    }
+    
     // MARK: - HRV Baseline
     
     /// Calculate adaptive HRV baseline with outlier removal and robust statistics
@@ -205,5 +222,130 @@ public struct BaselineCalculations {
         guard mean > 0 else { return nil }
         
         return (stdDev / mean) * 100.0
+    }
+    
+    // MARK: - Smart Alcohol Detection for Baseline Exclusion
+    
+    /// Detect likely alcohol days in historical data to exclude from baseline calculation
+    /// This prevents baseline contamination from regular alcohol consumption
+    /// - Parameter samples: Historical samples with date, HRV, RHR, and optional sleep score
+    /// - Returns: Set of dates to exclude from baseline (alcohol days + recovery days)
+    public static func detectHistoricalAlcoholDays(
+        samples: [HistoricalSample]
+    ) -> Set<Date> {
+        var alcoholDays = Set<Date>()
+        
+        guard samples.count >= 2 else { return alcoholDays }
+        
+        let calendar = Calendar.current
+        
+        for i in 1..<samples.count {
+            let today = samples[i]
+            let yesterday = samples[i-1]
+            
+            // Calculate changes
+            let hrvDrop = (today.hrv - yesterday.hrv) / yesterday.hrv
+            let rhrSpike = today.rhr - yesterday.rhr
+            
+            // Alcohol signature detection (score-based)
+            var alcoholScore = 0
+            
+            // Signal 1: Sharp HRV drop (>20% overnight)
+            if hrvDrop < -0.30 {
+                alcoholScore += 3  // Severe drop
+            } else if hrvDrop < -0.20 {
+                alcoholScore += 2  // Moderate drop
+            } else if hrvDrop < -0.15 {
+                alcoholScore += 1  // Mild drop
+            }
+            
+            // Signal 2: RHR spike (>5 bpm increase)
+            if rhrSpike > 8 {
+                alcoholScore += 3  // Large spike
+            } else if rhrSpike > 5 {
+                alcoholScore += 2  // Moderate spike
+            } else if rhrSpike > 3 {
+                alcoholScore += 1  // Mild spike
+            }
+            
+            // Signal 3: Poor sleep quality
+            if let sleep = today.sleepScore {
+                if sleep < 50 {
+                    alcoholScore += 2  // Very poor sleep
+                } else if sleep < 65 {
+                    alcoholScore += 1  // Poor sleep
+                }
+            }
+            
+            // Signal 4: Weekend timing (not exclusive, just a hint)
+            let weekday = calendar.component(.weekday, from: today.date)
+            if weekday == 1 || weekday == 7 {  // Sunday or Saturday
+                alcoholScore += 1
+            }
+            
+            // Signal 5: Rapid recovery (next day HRV rebounds)
+            // Alcohol often shows rapid rebound (>15% next day)
+            if i < samples.count - 1 {
+                let tomorrow = samples[i+1]
+                let hrvRebound = (tomorrow.hrv - today.hrv) / today.hrv
+                
+                if hrvRebound > 0.20 {
+                    alcoholScore += 2  // Strong rebound
+                } else if hrvRebound > 0.15 {
+                    alcoholScore += 1  // Moderate rebound
+                }
+            }
+            
+            // Threshold: Score ≥5 = likely alcohol
+            if alcoholScore >= 5 {
+                // Normalize dates to start of day for comparison
+                let todayNormalized = calendar.startOfDay(for: today.date)
+                alcoholDays.insert(todayNormalized)
+                
+                // Also exclude the recovery day (next day)
+                if i < samples.count - 1 {
+                    let tomorrowNormalized = calendar.startOfDay(for: samples[i+1].date)
+                    alcoholDays.insert(tomorrowNormalized)
+                }
+            }
+        }
+        
+        return alcoholDays
+    }
+    
+    /// Calculate HRV baseline with smart alcohol exclusion
+    /// Detects and excludes historical alcohol days to prevent baseline contamination
+    /// - Parameter samples: Historical samples with date, HRV, RHR, and optional sleep score
+    /// - Returns: Clean HRV baseline or nil if insufficient data
+    public static func calculateHRVBaselineWithAlcoholExclusion(
+        samples: [HistoricalSample]
+    ) -> Double? {
+        guard !samples.isEmpty else { return nil }
+        
+        // Step 1: Detect alcohol days
+        let alcoholDays = detectHistoricalAlcoholDays(samples: samples)
+        
+        // Step 2: Filter out alcohol days
+        let calendar = Calendar.current
+        let cleanSamples = samples.filter { sample in
+            let normalizedDate = calendar.startOfDay(for: sample.date)
+            return !alcoholDays.contains(normalizedDate)
+        }
+        
+        // Step 3: Use last 30 clean days
+        let recentClean = Array(cleanSamples.suffix(30))
+        
+        guard recentClean.count >= 15 else {
+            // Not enough clean data, fall back to standard 30-day baseline
+            let allValues = samples.suffix(30).map { $0.hrv }
+            return calculateHRVBaseline(hrvValues: Array(allValues))
+        }
+        
+        // Step 4: Apply outlier removal and median
+        let cleanedValues = removeOutliers(from: recentClean.map { $0.hrv }, sigmaThreshold: 3.0)
+        
+        guard !cleanedValues.isEmpty else { return nil }
+        
+        return calculateMedian(cleanedValues)
     }
 }

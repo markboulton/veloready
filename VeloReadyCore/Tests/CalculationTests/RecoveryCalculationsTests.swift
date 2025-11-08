@@ -418,8 +418,12 @@ final class RecoveryCalculationsTests: XCTestCase {
         
         // Then
         // New algorithm: 30+10+15+20 = 75% confidence → penalty applied
+        // Base penalty: 20 points (>35% HRV drop)
+        // RHR multiplier: ×1.25 (rhrScore 60) = 25 points
+        // Capped at 25 points max
         XCTAssertLessThan(adjustedScore, baseScore, "Should apply penalty for heavy drinking with multiple signals")
-        XCTAssertGreaterThanOrEqual(adjustedScore, baseScore - 15, "Penalty should be capped at 15 points")
+        XCTAssertGreaterThanOrEqual(adjustedScore, baseScore - 25, "Penalty should be capped at 25 points")
+        XCTAssertLessThanOrEqual(adjustedScore, baseScore - 15, "Heavy drinking should have significant penalty (15-25 points)")
     }
     
     func testApplyAlcoholCompoundEffect_ModerateDrinking_AppliesModeratePenalty() {
