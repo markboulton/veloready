@@ -547,7 +547,7 @@ class TodayViewModel: ObservableObject {
     }
     
     /// Load activities and other non-critical data in background
-    /// Uses incremental loading: 1 day → 7 days → full history
+    /// SIMPLIFIED: Single fetch of 90 days (covers all use cases), then filter as needed
     private func refreshActivitiesAndOtherData() async {
         let startTime = CFAbsoluteTimeGetCurrent()
         
@@ -558,7 +558,7 @@ class TodayViewModel: ObservableObject {
         // OPTIMIZATION: Check cache validity BEFORE showing "contacting integrations"
         // Only show loading state if we'll actually make network requests
         let activeSources = getActiveIntegrations()
-        let cacheKey = CacheKey.stravaActivities(daysBack: 7)
+        let cacheKey = CacheKey.stravaActivities(daysBack: 90)
         let cacheTTL: TimeInterval = 3600 // 1 hour
         let hasFreshCache = await UnifiedCacheManager.shared.isCacheValid(key: cacheKey, ttl: cacheTTL)
         
@@ -572,30 +572,25 @@ class TodayViewModel: ObservableObject {
             loadingStateManager.updateState(.checkingForUpdates)
         }
         
-        // Priority 1: Today's activities (fast) - ONLY fetch last 7 days, not 365
-        Logger.debug("📊 [INCREMENTAL] Fetching today's activities...")
+        // SIMPLIFIED: Single fetch of 90 days (covers all use cases)
+        // Benefits: 1 network request, no race conditions, cache-friendly, simpler code
+        Logger.debug("📊 [SINGLE FETCH] Fetching 90 days of activities...")
         loadingStateManager.updateState(.downloadingActivities(count: nil, source: nil))
-        await fetchAndUpdateActivities(daysBack: 1)
-        Logger.debug("✅ [INCREMENTAL] Today's activities loaded")
+        await fetchAndUpdateActivities(daysBack: 90)
+        Logger.debug("✅ [SINGLE FETCH] Activities loaded (\(unifiedActivities.count) shown)")
         
-        // Priority 2: This week's activities (for recent context)
-        Logger.debug("📊 [INCREMENTAL] Fetching this week's activities...")
-        // Only show contacting state if cache will be stale (already checked above)
-        await fetchAndUpdateActivities(daysBack: 7)
-        Logger.debug("✅ [INCREMENTAL] Week's activities loaded")
-        
-        // Priority 3: Full history (TRUE background, low priority) - don't block UI
-        // PERFORMANCE FIX: Track task for cancellation
-        Logger.debug("📊 [INCREMENTAL] Fetching full activity history in background...")
+        // Optional: Fetch full 365-day history in background for trends/analytics
+        // This is truly optional and doesn't affect the Today page UI
+        Logger.debug("📊 [BACKGROUND] Fetching full 365-day history for analytics...")
         let historyTask = Task.detached(priority: .utility) {
             guard !Task.isCancelled else {
                 await Logger.debug("🛑 [TASK] Full history fetch cancelled")
                 return
             }
-            // Fetch 365 days in background without blocking
+            // Fetch 365 days in background for trends/FTP calculation
             await self.stravaDataService.fetchActivities(daysBack: 365)
             await MainActor.run {
-                Logger.debug("✅ [INCREMENTAL] Full history loaded (\(self.stravaDataService.activities.count) activities)")
+                Logger.debug("✅ [BACKGROUND] Full history loaded (\(self.stravaDataService.activities.count) activities)")
             }
         }
         backgroundTasks.append(historyTask)
@@ -712,33 +707,16 @@ class TodayViewModel: ObservableObject {
         let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
         let healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
         
-        // Deduplicate activities
+        // Deduplicate activities across all sources
         let deduplicated = deduplicationService.deduplicateActivities(
             intervalsActivities: intervalsUnified,
             stravaActivities: stravaUnified,
             appleHealthActivities: healthUnified
         )
         
-        // CRITICAL FIX: Merge with existing activities instead of replacing
-        // This prevents race conditions where different fetches overwrite each other
-        let existingActivities = unifiedActivities
-        let newActivities = deduplicated.sorted { $0.startDate > $1.startDate }
-        
-        // Combine existing + new, then deduplicate by ID
-        let combined = existingActivities + newActivities
-        var seen = Set<String>()
-        let merged = combined.filter { activity in
-            if seen.contains(activity.id) {
-                return false
-            } else {
-                seen.insert(activity.id)
-                return true
-            }
-        }
-        
-        // Sort by date and take top 15
-        unifiedActivities = merged.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
-        Logger.debug("📊 Showing \(unifiedActivities.count) unified activities (merged from \(daysBack) days)")
+        // Sort by date and take top 15 for display
+        unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
+        Logger.debug("📊 Showing \(unifiedActivities.count) unified activities from \(daysBack) days")
     }
     
     /// Load only cached data without any network calls or heavy calculations
