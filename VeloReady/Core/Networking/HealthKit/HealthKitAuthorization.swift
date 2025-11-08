@@ -262,23 +262,16 @@ class HealthKitAuthorization: ObservableObject {
         for type in readTypes {
             let status = healthStore.authorizationStatus(for: type)
             
-            if status.rawValue == 1 {
-                if await canAccessHealthData(for: type) {
-                    authorizedCount += 1
-                } else {
-                    deniedCount += 1
-                }
-            } else {
-                switch status {
-                case .notDetermined:
-                    notDeterminedCount += 1
-                case .sharingDenied:
-                    deniedCount += 1
-                case .sharingAuthorized:
-                    authorizedCount += 1
-                @unknown default:
-                    notDeterminedCount += 1
-                }
+            // Use actual status - no special handling for rawValue 1
+            switch status {
+            case .notDetermined:
+                notDeterminedCount += 1
+            case .sharingDenied:
+                deniedCount += 1
+            case .sharingAuthorized:
+                authorizedCount += 1
+            @unknown default:
+                notDeterminedCount += 1
             }
         }
         
@@ -326,7 +319,7 @@ class HealthKitAuthorization: ObservableObject {
     private func canAccessHealthData(for type: HKObjectType) async -> Bool {
         guard let sampleType = type as? HKSampleType else {
             let status = healthStore.authorizationStatus(for: type)
-            return status == .sharingAuthorized || (status.rawValue == 1)
+            return status == .sharingAuthorized
         }
         
         return await withCheckedContinuation { continuation in
