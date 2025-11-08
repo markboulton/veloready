@@ -14,7 +14,9 @@ struct AIBriefView: View {
     var body: some View {
         StandardCard(
             icon: Icons.System.sparkles,
-            title: proConfig.hasProAccess ? TodayContent.AIBrief.title : DailyBriefContent.title
+            iconColor: ColorPalette.aiIconColor, // Orange - start of gradient
+            title: proConfig.hasProAccess ? TodayContent.AIBrief.title : DailyBriefContent.title,
+            useRainbowGradient: true // Only applies to title, not icon
         ) {
             if proConfig.hasProAccess {
                 proContent
@@ -278,10 +280,22 @@ private struct MLDataCollectionView: View {
                         .fill(ColorPalette.neutral200)
                         .frame(height: 2)
                     
-                    // Progress (blue) - animates from left
-                    Rectangle()
-                        .fill(Color.blue)
-                        .frame(width: geometry.size.width * animatedProgress, height: 2)
+                    // Progress - full-width gradient revealed by mask
+                    LinearGradient(
+                        gradient: Gradient(colors: ColorPalette.aiGradientColors),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(height: 2)
+                    .mask(
+                        HStack(spacing: 0) {
+                            // Revealed portion (progress)
+                            Rectangle()
+                                .frame(width: geometry.size.width * animatedProgress)
+                            
+                            Spacer()
+                        }
+                    )
                 }
             }
             .frame(height: 2)

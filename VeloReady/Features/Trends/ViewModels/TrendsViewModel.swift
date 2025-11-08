@@ -142,18 +142,37 @@ class TrendsViewModel: ObservableObject {
         }
         
         let request = DailyScores.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        // Sort by date descending to get most recent entries first
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "date", ascending: false)
+        ]
         request.predicate = NSPredicate(format: "date >= %@ AND recoveryScore > 0", selectedTimeRange.startDate as NSDate)
         
         let persistence = PersistenceController.shared
         let cachedDays = persistence.fetch(request)
         
-        recoveryTrendData = cachedDays.compactMap { cached in
-            guard let date = cached.date else { return nil }
-            return TrendDataPoint(date: date, value: cached.recoveryScore)
+        // Deduplicate by date: keep only the most recent entry per day
+        let calendar = Calendar.current
+        var seenDates = Set<Date>()
+        let deduplicatedDays = cachedDays.filter { cached in
+            guard let date = cached.date else { return false }
+            let normalizedDate = calendar.startOfDay(for: date)
+            
+            if seenDates.contains(normalizedDate) {
+                return false  // Skip duplicate
+            } else {
+                seenDates.insert(normalizedDate)
+                return true  // Keep first (most recent) entry
+            }
         }
         
-        Logger.debug("📈 Loaded recovery trend: \(recoveryTrendData.count) points from Core Data")
+        // Convert to data points and sort ascending for chart display
+        recoveryTrendData = deduplicatedDays.compactMap { cached in
+            guard let date = cached.date else { return nil }
+            return TrendDataPoint(date: date, value: cached.recoveryScore)
+        }.sorted { $0.date < $1.date }
+        
+        Logger.debug("📈 Loaded recovery trend: \(cachedDays.count) records → \(deduplicatedDays.count) unique days → \(recoveryTrendData.count) points from Core Data")
     }
     
     // MARK: - HRV Trend

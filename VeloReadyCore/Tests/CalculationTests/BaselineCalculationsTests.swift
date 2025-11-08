@@ -7,8 +7,8 @@ final class BaselineCalculationsTests: XCTestCase {
     
     // MARK: - HRV Baseline Tests
     
-    func testCalculateHRVBaseline_WithValidData_ReturnsAverage() {
-        // Given
+    func testCalculateHRVBaseline_WithValidData_ReturnsMedian() {
+        // Given: 7 values, median should be 49.0 (middle value when sorted)
         let hrvValues = [45.0, 50.0, 48.0, 52.0, 46.0, 49.0, 51.0]
         
         // When
@@ -16,7 +16,8 @@ final class BaselineCalculationsTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(baseline)
-        XCTAssertEqual(baseline!, 48.71, accuracy: 0.01, "Should calculate average HRV")
+        // New algorithm uses median (49.0) with outlier removal, not mean (48.71)
+        XCTAssertEqual(baseline!, 49.0, accuracy: 0.01, "Should calculate median HRV with outlier removal")
     }
     
     func testCalculateHRVBaseline_WithEmptyArray_ReturnsNil() {
@@ -32,8 +33,8 @@ final class BaselineCalculationsTests: XCTestCase {
     
     // MARK: - RHR Baseline Tests
     
-    func testCalculateRHRBaseline_WithValidData_ReturnsAverage() {
-        // Given
+    func testCalculateRHRBaseline_WithValidData_ReturnsMedian() {
+        // Given: 7 values, median should be 59.0 (middle value when sorted)
         let rhrValues = [58.0, 60.0, 59.0, 61.0, 58.0, 60.0, 59.0]
         
         // When
@@ -41,7 +42,8 @@ final class BaselineCalculationsTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(baseline)
-        XCTAssertEqual(baseline!, 59.29, accuracy: 0.01, "Should calculate average RHR")
+        // New algorithm uses median (59.0) with outlier removal, not mean (59.29)
+        XCTAssertEqual(baseline!, 59.0, accuracy: 0.01, "Should calculate median RHR with outlier removal")
     }
     
     // MARK: - Sleep Baseline Tests
@@ -74,8 +76,8 @@ final class BaselineCalculationsTests: XCTestCase {
     
     // MARK: - Respiratory Baseline Tests
     
-    func testCalculateRespiratoryBaseline_WithValidData_ReturnsAverage() {
-        // Given
+    func testCalculateRespiratoryBaseline_WithValidData_ReturnsMedian() {
+        // Given: 7 values, median should be 14.5 (middle value when sorted)
         let respiratoryRates = [14.0, 15.0, 14.5, 15.5, 14.0, 15.0, 14.5]
         
         // When
@@ -83,6 +85,7 @@ final class BaselineCalculationsTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(baseline)
-        XCTAssertEqual(baseline!, 14.64, accuracy: 0.01, "Should calculate average respiratory rate")
+        // New algorithm uses median (14.5) with outlier removal, not mean (14.64)
+        XCTAssertEqual(baseline!, 14.5, accuracy: 0.01, "Should calculate median respiratory rate with outlier removal")
     }
 }

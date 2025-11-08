@@ -67,22 +67,40 @@ class RecoveryDetailViewModel: ObservableObject {
             startDate as NSDate,
             endDate as NSDate
         )
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        // Sort by date descending to get most recent entries first
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "date", ascending: false)
+        ]
         
         guard let results = try? context.fetch(fetchRequest) else {
             Logger.error("📊 [RECOVERY CHART] Core Data fetch failed")
             return []
         }
         
-        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
+        // Deduplicate by date: keep only the most recent entry per day
+        var seenDates = Set<Date>()
+        let deduplicatedResults = results.filter { dailyScore in
+            guard let date = dailyScore.date else { return false }
+            let normalizedDate = calendar.startOfDay(for: date)
+            
+            if seenDates.contains(normalizedDate) {
+                return false  // Skip duplicate
+            } else {
+                seenDates.insert(normalizedDate)
+                return true  // Keep first (most recent) entry
+            }
+        }
+        
+        // Convert to data points and sort ascending for chart display
+        let dataPoints = deduplicatedResults.compactMap { dailyScore -> TrendDataPoint? in
             guard let date = dailyScore.date else { return nil }
             return TrendDataPoint(
                 date: date,
                 value: dailyScore.recoveryScore
             )
-        }
+        }.sorted { $0.date < $1.date }
         
-        Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
+        Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(deduplicatedResults.count) unique days → \(dataPoints.count) points for \(period.days)d view")
         
         if dataPoints.isEmpty {
             Logger.warning("📊 [RECOVERY CHART] No data available for \(period.days)d period")

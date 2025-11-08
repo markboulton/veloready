@@ -127,6 +127,7 @@ public struct SleepCalculations {
     }
     
     /// Calculate stage quality component (deep + REM percentage) - 0-100
+    /// Uses fixed thresholds - for personalized scoring, use calculatePersonalizedStageQualityScore
     public static func calculateStageQualityScore(inputs: SleepInputs) -> Int {
         guard let sleepDuration = inputs.sleepDuration,
               sleepDuration > 0 else { return 50 }
@@ -148,6 +149,59 @@ public struct SleepCalculations {
             let score = deepRemPercentage * 166.67 // Scale 0%-30% to 0-50
             return max(0, Int(score))
         }
+    }
+    
+    /// Calculate personalized stage quality component using user's historical baselines
+    /// - Parameters:
+    ///   - inputs: Sleep inputs
+    ///   - personalDeepBaseline: User's 30-day average deep sleep percentage (optional, uses 0.15 if nil)
+    ///   - personalREMBaseline: User's 30-day average REM sleep percentage (optional, uses 0.20 if nil)
+    /// - Returns: Stage quality score 0-100
+    public static func calculatePersonalizedStageQualityScore(
+        inputs: SleepInputs,
+        personalDeepBaseline: Double? = nil,
+        personalREMBaseline: Double? = nil
+    ) -> Int {
+        guard let sleepDuration = inputs.sleepDuration,
+              sleepDuration > 0 else { return 50 }
+        
+        let deepDuration = inputs.deepSleepDuration ?? 0
+        let remDuration = inputs.remSleepDuration ?? 0
+        
+        // Calculate actual percentages
+        let deepPercentage = deepDuration / sleepDuration
+        let remPercentage = remDuration / sleepDuration
+        
+        // Use personalized baselines if available, otherwise use population averages
+        let targetDeep = personalDeepBaseline ?? 0.15 // Default: 15% deep sleep
+        let targetREM = personalREMBaseline ?? 0.20   // Default: 20% REM sleep
+        
+        // Score deep sleep component (0-50 points)
+        var deepScore: Double = 0
+        if deepPercentage >= targetDeep {
+            // At or above baseline - excellent
+            deepScore = 50
+        } else {
+            // Below baseline - scale proportionally
+            let ratio = deepPercentage / targetDeep
+            deepScore = ratio * 50
+        }
+        
+        // Score REM sleep component (0-50 points)
+        var remScore: Double = 0
+        if remPercentage >= targetREM {
+            // At or above baseline - excellent
+            remScore = 50
+        } else {
+            // Below baseline - scale proportionally
+            let ratio = remPercentage / targetREM
+            remScore = ratio * 50
+        }
+        
+        // Combined score (0-100)
+        let finalScore = deepScore + remScore
+        
+        return max(0, min(100, Int(finalScore)))
     }
     
     /// Calculate disturbances component (wake events penalty) - 0-100

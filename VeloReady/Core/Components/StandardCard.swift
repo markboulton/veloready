@@ -14,6 +14,7 @@ struct StandardCard<Content: View>: View {
     let subtitle: String?
     let showChevron: Bool
     let onTap: (() -> Void)?
+    let useRainbowGradient: Bool // For AI-powered features
     
     // Content
     let content: Content
@@ -25,6 +26,7 @@ struct StandardCard<Content: View>: View {
         subtitle: String? = nil,
         showChevron: Bool = false,
         onTap: (() -> Void)? = nil,
+        useRainbowGradient: Bool = false,
         @ViewBuilder content: () -> Content
     ) {
         self.icon = icon
@@ -33,6 +35,7 @@ struct StandardCard<Content: View>: View {
         self.subtitle = subtitle
         self.showChevron = showChevron
         self.onTap = onTap
+        self.useRainbowGradient = useRainbowGradient
         self.content = content()
     }
     
@@ -72,18 +75,35 @@ struct StandardCard<Content: View>: View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             // Optional icon
             if let icon = icon {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(iconColor ?? Color.text.secondary)
+                // iconColor takes precedence over gradient
+                if let iconColor = iconColor {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(iconColor)
+                } else if useRainbowGradient {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .rainbowGradient()
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Color.text.secondary)
+                }
             }
             
             // Title and subtitle
             if title != nil || subtitle != nil {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     if let title = title {
-                        Text(title)
-                            .font(.heading)
-                            .foregroundColor(Color.text.primary)
+                        if useRainbowGradient {
+                            Text(title)
+                                .font(.heading)
+                                .rainbowGradient()
+                        } else {
+                            Text(title)
+                                .font(.heading)
+                                .foregroundColor(Color.text.primary)
+                        }
                     }
                     
                     if let subtitle = subtitle {

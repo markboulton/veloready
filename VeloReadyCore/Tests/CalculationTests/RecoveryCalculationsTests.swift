@@ -393,53 +393,67 @@ final class RecoveryCalculationsTests: XCTestCase {
     }
     
     func testApplyAlcoholCompoundEffect_HeavyDrinking_AppliesLargePenalty() {
-        // Given: Heavy drinking pattern (>35% HRV drop)
+        // Given: Heavy drinking pattern (>35% HRV drop) with multiple confirming signals
         let baseScore = 85.0
         let inputs = RecoveryCalculations.RecoveryInputs(
-            hrv: 27.0, // 40% drop from 45
-            overnightHrv: 27.0,
+            hrv: 28.0, // 38% drop from 45 (30% confidence)
+            overnightHrv: 28.0,
             hrvBaseline: 45.0,
-            sleepScore: 60
+            rhr: 68.0, // Elevated (10% confidence)
+            rhrBaseline: 62.0,
+            respiratoryRate: 14.5, // Stable (15% confidence)
+            respiratoryBaseline: 14.0,
+            sleepScore: 45 // Poor sleep (20% confidence)
         )
         
         // When
         let adjustedScore = RecoveryCalculations.applyAlcoholCompoundEffect(
             baseScore: baseScore,
-            hrvScore: 30,
-            rhrScore: 50,
-            sleepScore: 60,
+            hrvScore: 40,
+            rhrScore: 60,
+            sleepScore: 45,
             inputs: inputs,
             hasIllnessIndicator: false
         )
         
         // Then
-        XCTAssertLessThan(adjustedScore, baseScore, "Should apply penalty for heavy drinking")
-        XCTAssertGreaterThanOrEqual(adjustedScore, baseScore - 15, "Penalty should be capped at 15 points")
+        // New algorithm: 30+10+15+20 = 75% confidence → penalty applied
+        // Base penalty: 20 points (>35% HRV drop)
+        // RHR multiplier: ×1.25 (rhrScore 60) = 25 points
+        // Capped at 25 points max
+        XCTAssertLessThan(adjustedScore, baseScore, "Should apply penalty for heavy drinking with multiple signals")
+        XCTAssertGreaterThanOrEqual(adjustedScore, baseScore - 25, "Penalty should be capped at 25 points")
+        XCTAssertLessThanOrEqual(adjustedScore, baseScore - 15, "Heavy drinking should have significant penalty (15-25 points)")
     }
     
     func testApplyAlcoholCompoundEffect_ModerateDrinking_AppliesModeratePenalty() {
-        // Given: Moderate drinking pattern (20-25% HRV drop)
+        // Given: Moderate drinking pattern (20-25% HRV drop) with multiple signals
         let baseScore = 85.0
         let inputs = RecoveryCalculations.RecoveryInputs(
-            hrv: 35.0, // 22% drop from 45
+            hrv: 35.0, // 22% drop from 45 (20% confidence)
             overnightHrv: 35.0,
             hrvBaseline: 45.0,
-            sleepScore: 70
+            rhr: 64.0, // Elevated 3% (10% confidence)
+            rhrBaseline: 62.0,
+            respiratoryRate: 14.0, // Stable (15% confidence)
+            respiratoryBaseline: 14.0,
+            sleepScore: 55 // Poor sleep (20% confidence)
         )
         
         // When
         let adjustedScore = RecoveryCalculations.applyAlcoholCompoundEffect(
             baseScore: baseScore,
             hrvScore: 60,
-            rhrScore: 80,
-            sleepScore: 70,
+            rhrScore: 70,
+            sleepScore: 55,
             inputs: inputs,
             hasIllnessIndicator: false
         )
         
         // Then
-        XCTAssertLessThan(adjustedScore, baseScore, "Should apply penalty for moderate drinking")
-        XCTAssertGreaterThan(adjustedScore, baseScore - 8, "Moderate penalty should be ~5 points")
+        // New algorithm: 20+10+15+20 = 65% confidence → penalty applied (~3-5 points)
+        XCTAssertLessThan(adjustedScore, baseScore, "Should apply penalty for moderate drinking with multiple signals")
+        XCTAssertGreaterThan(adjustedScore, baseScore - 8, "Moderate penalty should be ~3-5 points")
     }
     
     func testApplyAlcoholCompoundEffect_ExcellentSleep_MitigatesPenalty() {
