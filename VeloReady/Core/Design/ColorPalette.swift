@@ -47,21 +47,23 @@ enum ColorPalette {
     // MARK: - AI Feature Gradients
     
     /// Gradient colors for AI-powered features (Daily Brief, Ride Summary)
-    /// Order: Pink → Purple → Blue → Cyan
+    /// Order: Orange → Pink → Purple → Purple-Blue → Blue (left to right)
+    /// Colors: #E98E34 → #DF486A → #B95ACA → #9472DE → #5C87EB
     static let aiGradientColors: [Color] = [
-        pink,
-        purple,
-        blue,
-        cyan
+        Color(hex: "E98E34"), // Orange
+        Color(hex: "DF486A"), // Pink
+        Color(hex: "B95ACA"), // Purple
+        Color(hex: "9472DE"), // Purple-Blue
+        Color(hex: "5C87EB")  // Blue
     ]
     
     /// Starting color for AI feature icons (solid fill)
-    static let aiIconColor = pink
+    static let aiIconColor = Color(hex: "E98E34") // Orange
     
-    /// Gradient angle for AI features (30 degrees)
+    /// Gradient angle for AI features (horizontal left to right)
     static let aiGradientAngle: (start: UnitPoint, end: UnitPoint) = (
-        start: UnitPoint(x: 0, y: 0),
-        end: UnitPoint(x: 1, y: 0.577) // tan(30°) ≈ 0.577
+        start: .leading,
+        end: .trailing
     )
     
     // MARK: - Refined Metric Colors
