@@ -294,18 +294,21 @@ class HealthKitAuthorization: ObservableObject {
         
         _ = readTypes.filter { criticalTypes.contains($0.identifier) }.count
         
+        // FIXED: Check if we have ANY authorized permissions first
         if authorizedCount == readTypes.count {
             authorizationState = .authorized
             isAuthorized = true
             Logger.debug("✅ HealthKit fully authorized")
-        } else if deniedCount > 0 {
-            authorizationState = .denied
-            isAuthorized = false
-            Logger.warning("️ HealthKit denied - critical permissions missing (\(deniedCount) denied, \(authorizedCount) authorized)")
-        } else if authorizedCount > 0 && deniedCount == 0 {
+        } else if authorizedCount > 0 {
+            // If we have SOME permissions, treat as partially authorized (usable!)
             authorizationState = .partial
             isAuthorized = true
-            Logger.debug("✅ HealthKit partially authorized (\(authorizedCount)/\(readTypes.count))")
+            Logger.debug("✅ HealthKit partially authorized (\(authorizedCount)/\(readTypes.count), \(deniedCount) denied)")
+        } else if deniedCount > 0 {
+            // Only mark as denied if we have NO authorized permissions
+            authorizationState = .denied
+            isAuthorized = false
+            Logger.warning("️ HealthKit denied - no permissions granted (\(deniedCount) denied, \(authorizedCount) authorized)")
         } else {
             authorizationState = .notDetermined
             isAuthorized = false
