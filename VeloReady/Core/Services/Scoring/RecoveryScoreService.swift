@@ -212,10 +212,9 @@ class RecoveryScoreService: ObservableObject {
     private func performActualCalculation(forceRefresh: Bool = false, ignoreDailyLimit: Bool = false) async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
-        let hrvStatus = HealthKitManager.shared.getAuthorizationStatus(for: hrvType)
-        
-        if hrvStatus == .sharingDenied {
-            Logger.error("Recovery permissions explicitly denied - skipping calculation")
+        // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
+        if !HealthKitManager.shared.isAuthorized {
+            Logger.error("Recovery permissions not granted - skipping calculation")
             await MainActor.run {
                 currentRecoveryScore = nil
                 isLoading = false

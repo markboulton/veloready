@@ -119,8 +119,25 @@ class HealthKitAuthorization: ObservableObject {
             // Check status after authorization with delay (iOS needs time to update)
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             print("🟠 [AUTH] Now checking authorization status...")
-            await MainActor.run {
-                checkAuthorizationStatus()
+            
+            // iOS 26 BUG WORKAROUND: authorizationStatus() returns wrong value
+            // Test actual data access instead
+            print("🟠 [AUTH] Testing actual data access (iOS 26 workaround)...")
+            let canAccessData = await testDataAccess()
+            print("🟠 [AUTH] Data access test result: \(canAccessData)")
+            
+            if canAccessData {
+                print("🟠 [AUTH] ✅ Can access data! Overriding iOS authorizationStatus() bug")
+                await MainActor.run {
+                    self.isAuthorized = true
+                    self.authorizationState = .authorized
+                    UserDefaults.standard.set(true, forKey: "healthKitAuthorized")
+                    UserDefaults.standard.set(AuthorizationState.authorized.rawValue, forKey: "healthKitAuthState")
+                }
+            } else {
+                await MainActor.run {
+                    checkAuthorizationStatus()
+                }
             }
             print("🟠 [AUTH] Authorization status check completed")
             
@@ -182,11 +199,29 @@ class HealthKitAuthorization: ObservableObject {
         }
     }
     
-    /// Check authorization after returning from Settings
+    /// Check authorization after returning from Settings (or on view appear)
     func checkAuthorizationAfterSettingsReturn() async {
+        print("🟠 [AUTH] checkAuthorizationAfterSettingsReturn() called")
         try? await Task.sleep(nanoseconds: 500_000_000)
-        await MainActor.run {
-            checkAuthorizationStatus()
+        
+        // iOS 26 WORKAROUND: Test actual data access instead of trusting authorizationStatus()
+        print("🟠 [AUTH] Testing actual data access...")
+        let canAccessData = await testDataAccess()
+        print("🟠 [AUTH] Data access test result: \(canAccessData)")
+        
+        if canAccessData {
+            print("🟠 [AUTH] ✅ Can access data! Marking as authorized")
+            await MainActor.run {
+                self.isAuthorized = true
+                self.authorizationState = .authorized
+                UserDefaults.standard.set(true, forKey: "healthKitAuthorized")
+                UserDefaults.standard.set(AuthorizationState.authorized.rawValue, forKey: "healthKitAuthState")
+            }
+        } else {
+            print("🟠 [AUTH] ❌ Cannot access data, checking authorizationStatus...")
+            await MainActor.run {
+                checkAuthorizationStatus()
+            }
         }
     }
     
@@ -389,6 +424,48 @@ class HealthKitAuthorization: ObservableObject {
                     } else {
                         continuation.resume(returning: true)
                     }
+                }
+            }
+            
+            healthStore.execute(query)
+        }
+    }
+    
+    /// iOS 26 Workaround: Test actual data access
+    private func testDataAccess() async -> Bool {
+        print("🟠 [AUTH] testDataAccess: Attempting to fetch steps data...")
+        
+        guard let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+            print("🟠 [AUTH] testDataAccess: Could not create steps type")
+            return false
+        }
+        
+        return await withCheckedContinuation { continuation in
+            let calendar = Calendar.current
+            let now = Date()
+            let startOfDay = calendar.startOfDay(for: now)
+            let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: now, options: .strictStartDate)
+            
+            let query = HKSampleQuery(
+                sampleType: stepsType,
+                predicate: predicate,
+                limit: 1,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)]
+            ) { _, samples, error in
+                if let error = error {
+                    let errorMsg = error.localizedDescription.lowercased()
+                    print("🟠 [AUTH] testDataAccess: Query error: \(error.localizedDescription)")
+                    if errorMsg.contains("not authorized") || errorMsg.contains("denied") {
+                        print("🟠 [AUTH] testDataAccess: DENIED - no permission")
+                        continuation.resume(returning: false)
+                    } else {
+                        print("🟠 [AUTH] testDataAccess: Non-permission error, assuming no data")
+                        continuation.resume(returning: true)
+                    }
+                } else {
+                    print("🟠 [AUTH] testDataAccess: SUCCESS - can access HealthKit!")
+                    print("🟠 [AUTH] testDataAccess: Sample count: \(samples?.count ?? 0)")
+                    continuation.resume(returning: true)
                 }
             }
             

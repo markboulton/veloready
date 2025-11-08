@@ -5,6 +5,7 @@ struct HealthKitStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
     @State private var isRequesting = false
+    @State private var isCheckingPermissions = true
     
     var body: some View {
         VStack(spacing: Spacing.xxl) {
@@ -126,6 +127,15 @@ struct HealthKitStepView: View {
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
+        }
+        .onAppear {
+            print("🔵 [ONBOARDING] HealthKitStepView appeared - checking permissions...")
+            Task {
+                // Check current authorization status using the iOS 26 workaround
+                await healthKitManager.checkAuthorizationAfterSettingsReturn()
+                isCheckingPermissions = false
+                print("🔵 [ONBOARDING] Permission check complete - isAuthorized: \(healthKitManager.isAuthorized)")
+            }
         }
     }
 }

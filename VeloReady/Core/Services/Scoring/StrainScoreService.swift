@@ -165,10 +165,9 @@ class StrainScoreService: ObservableObject {
     private func performActualCalculation() async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         let stepType = HKObjectType.quantityType(forIdentifier: .stepCount)!
-        let stepStatus = HealthKitManager.shared.getAuthorizationStatus(for: stepType)
-        
-        if stepStatus == .sharingDenied {
-            Logger.error("Strain permissions explicitly denied - skipping calculation")
+        // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
+        if !HealthKitManager.shared.isAuthorized {
+            Logger.error("Strain permissions not granted - skipping calculation")
             await MainActor.run {
                 currentStrainScore = nil
                 isLoading = false
