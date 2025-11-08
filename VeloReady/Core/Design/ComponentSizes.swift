@@ -8,7 +8,7 @@ enum ComponentSizes {
     // MARK: - Ring Components
     
     /// Ring width for large recovery/score rings (e.g., RecoveryRingView)
-    static let ringWidthLarge: CGFloat = 12
+    static let ringWidthLarge: CGFloat = 10
     
     /// Ring width for compact rings (e.g., CompactRingView)
     static let ringWidthSmall: CGFloat = 5

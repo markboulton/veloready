@@ -5,11 +5,11 @@ struct SleepHeaderSection: View {
     let sleepScore: SleepScore
     
     var body: some View {
-        VStack(spacing: Spacing.xs / 2) {
+        VStack(spacing: Spacing.lg) {
             // Main score ring
             ZStack {
                 Circle()
-                    .stroke(ColorPalette.neutral200, lineWidth: 12)
+                    .stroke(ColorPalette.neutral200, lineWidth: 10)
                     .frame(width: 160, height: 160)
                 
                 Circle()

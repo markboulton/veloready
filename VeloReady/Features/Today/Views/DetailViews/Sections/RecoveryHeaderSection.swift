@@ -5,7 +5,7 @@ struct RecoveryHeaderSection: View {
     let recoveryScore: RecoveryScore
     
     var body: some View {
-        VStack(spacing: Spacing.xs / 2) {
+        VStack(spacing: Spacing.lg) {
             RecoveryRingView(
                 score: recoveryScore.score,
                 band: recoveryScore.band,

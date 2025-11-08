@@ -18,8 +18,9 @@ class RideDetailViewModel: ObservableObject {
         isLoading = true
         error = nil
         
-        // Check cache first for all activities
-        let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: "any")
+        // Check cache first - use source-specific key for consistency
+        let source = activity.id.hasPrefix("strava_") ? "strava" : "intervals"
+        let cacheKey = CacheKey.activityStreams(activityId: activity.id, source: source)
         if let cachedSamples: [WorkoutSample] = await CacheOrchestrator.shared.get(key: cacheKey, ttl: 604800) {
             Logger.debug("⚡ Using cached stream data (\(cachedSamples.count) samples)")
             samples = cachedSamples
