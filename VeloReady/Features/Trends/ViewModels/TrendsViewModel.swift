@@ -99,17 +99,22 @@ class TrendsViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // PERFORMANCE FIX: Fetch activities once, share between methods
+        // Previously, loadWeeklyTSSTrend() and loadRecoveryVsPowerCorrelation() 
+        // both fetched the same activities independently (duplicate work)
+        let sharedActivities: [IntervalsActivity]? = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
+        
         // Load all trends in parallel
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.loadFTPTrend() }
             group.addTask { await self.loadRecoveryTrend() }
             group.addTask { await self.loadHRVTrend() }
-            group.addTask { await self.loadWeeklyTSSTrend() }
-            group.addTask { await self.loadDailyLoadTrend() }
+            group.addTask { await self.loadWeeklyTSSTrend(activities: sharedActivities) }
+            group.addTask { await self.loadDailyLoadTrend(activities: sharedActivities) }
             group.addTask { await self.loadSleepTrend() }
             group.addTask { await self.loadRestingHRTrend() }
             group.addTask { await self.loadStressTrend() }
-            group.addTask { await self.loadRecoveryVsPowerCorrelation() }
+            group.addTask { await self.loadRecoveryVsPowerCorrelation(activities: sharedActivities) }
             group.addTask { await self.loadTrainingPhaseDetection() }
             group.addTask { await self.loadOvertrainingRisk() }
         }
@@ -216,99 +221,91 @@ class TrendsViewModel: ObservableObject {
     
     // MARK: - Weekly TSS Trend
     
-    private func loadWeeklyTSSTrend() async {
-        // Try Intervals.icu first (cycling-specific TSS)
-        do {
-            // IntervalsCache deleted - use UnifiedActivityService
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
-            
-            let startDate = selectedTimeRange.startDate
-            let calendar = Calendar.current
-            
-            // Group activities by week
-            var weeklyData: [Date: Double] = [:]
-            
-            for activity in activities {
-                guard let activityDate = parseActivityDate(activity.startDateLocal),
-                      activityDate >= startDate,
-                      let tss = activity.tss else { continue }
-                
-                // Get week start (Monday)
-                guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: activityDate)) else { continue }
-                
-                weeklyData[weekStart, default: 0] += tss
-            }
-            
-            // Convert to sorted array
-            weeklyTSSData = weeklyData.map { date, tss in
-                WeeklyTSSDataPoint(weekStart: date, tss: tss)
-            }.sorted { $0.weekStart < $1.weekStart }
-            
-            Logger.debug("📈 Loaded weekly TSS trend: \(weeklyTSSData.count) weeks from Intervals.icu")
-            
-        } catch {
-            Logger.warning("️ Intervals.icu not available for TSS: \(error.localizedDescription)")
-            Logger.debug("📱 Weekly training load requires Intervals.icu")
+    private func loadWeeklyTSSTrend(activities: [IntervalsActivity]?) async {
+        // Use shared activities (already fetched in loadTrendData)
+        guard let activities = activities else {
+            Logger.warning("️ No activities available for weekly TSS trend")
             weeklyTSSData = []
+            return
         }
+        
+        let startDate = selectedTimeRange.startDate
+        let calendar = Calendar.current
+        
+        // Group activities by week
+        var weeklyData: [Date: Double] = [:]
+        
+        for activity in activities {
+            guard let activityDate = parseActivityDate(activity.startDateLocal),
+                  activityDate >= startDate,
+                  let tss = activity.tss else { continue }
+            
+            // Get week start (Monday)
+            guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: activityDate)) else { continue }
+            
+            weeklyData[weekStart, default: 0] += tss
+        }
+        
+        // Convert to sorted array
+        weeklyTSSData = weeklyData.map { date, tss in
+            WeeklyTSSDataPoint(weekStart: date, tss: tss)
+        }.sorted { $0.weekStart < $1.weekStart }
+        
+        Logger.debug("📈 Loaded weekly TSS trend: \(weeklyTSSData.count) weeks (using shared activities)")
     }
     
     // MARK: - Recovery vs Power Correlation
     
-    private func loadRecoveryVsPowerCorrelation() async {
-        // Recovery vs Power is cycling-specific (requires power meter data from Intervals.icu)
-        do {
-            // IntervalsCache deleted - use UnifiedActivityService
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
-            
-            let startDate = selectedTimeRange.startDate
-            
-            // Build correlation data: recovery score vs average power
-            var correlationData: [CorrelationDataPoint] = []
-            
-            for activity in activities {
-                guard let activityDate = parseActivityDate(activity.startDateLocal),
-                      activityDate >= startDate,
-                      let avgPower = activity.averagePower,
-                      avgPower > 0 else { continue }
-                
-                // Match with recovery data for the same date
-                if let recoveryPoint = recoveryTrendData.first(where: { 
-                    Calendar.current.isDate($0.date, inSameDayAs: activityDate) 
-                }) {
-                    correlationData.append(CorrelationDataPoint(
-                        date: activityDate,
-                        x: recoveryPoint.value,
-                        y: avgPower
-                    ))
-                }
-            }
-            
-            recoveryVsPowerData = correlationData.sorted { $0.date < $1.date }
-            
-            // Calculate correlation
-            if correlationData.count >= 3 {
-                let xValues = correlationData.map(\.x)
-                let yValues = correlationData.map(\.y)
-                
-                recoveryVsPowerCorrelation = CorrelationCalculator.pearsonCorrelation(
-                    x: xValues,
-                    y: yValues
-                )
-                
-                if let correlation = recoveryVsPowerCorrelation {
-                    Logger.debug("📈 Recovery vs Power correlation: r=\(correlation.coefficient), R²=\(correlation.rSquared), n=\(correlation.sampleSize)")
-                }
-            } else {
-                Logger.warning("️ Not enough data for correlation: \(correlationData.count) points (need 3+)")
-                Logger.debug("   Activities: \(activities.count), Recovery points: \(recoveryTrendData.count)")
-            }
-            
-        } catch {
-            Logger.warning("️ Intervals.icu not available: Recovery vs Power correlation is cycling-specific")
-            Logger.debug("📱 This feature requires power meter data from Intervals.icu")
+    private func loadRecoveryVsPowerCorrelation(activities: [IntervalsActivity]?) async {
+        // Use shared activities (already fetched in loadTrendData)
+        guard let activities = activities else {
+            Logger.warning("️ No activities available for correlation analysis")
             recoveryVsPowerData = []
             recoveryVsPowerCorrelation = nil
+            return
+        }
+        
+        let startDate = selectedTimeRange.startDate
+        
+        // Build correlation data: recovery score vs average power
+        var correlationData: [CorrelationDataPoint] = []
+        
+        for activity in activities {
+            guard let activityDate = parseActivityDate(activity.startDateLocal),
+                  activityDate >= startDate,
+                  let avgPower = activity.averagePower,
+                  avgPower > 0 else { continue }
+            
+            // Match with recovery data for the same date
+            if let recoveryPoint = recoveryTrendData.first(where: { 
+                Calendar.current.isDate($0.date, inSameDayAs: activityDate) 
+            }) {
+                correlationData.append(CorrelationDataPoint(
+                    date: activityDate,
+                    x: recoveryPoint.value,
+                    y: avgPower
+                ))
+            }
+        }
+        
+        recoveryVsPowerData = correlationData.sorted { $0.date < $1.date }
+        
+        // Calculate correlation
+        if correlationData.count >= 3 {
+            let xValues = correlationData.map(\.x)
+            let yValues = correlationData.map(\.y)
+            
+            recoveryVsPowerCorrelation = CorrelationCalculator.pearsonCorrelation(
+                x: xValues,
+                y: yValues
+            )
+            
+            if let correlation = recoveryVsPowerCorrelation {
+                Logger.debug("📈 Recovery vs Power correlation: r=\(correlation.coefficient), R²=\(correlation.rSquared), n=\(correlation.sampleSize) (using shared activities)")
+            }
+        } else {
+            Logger.warning("️ Not enough data for correlation: \(correlationData.count) points (need 3+)")
+            Logger.debug("   Activities: \(activities.count), Recovery points: \(recoveryTrendData.count)")
         }
     }
     
@@ -382,7 +379,7 @@ class TrendsViewModel: ObservableObject {
     
     // MARK: - Daily Load Trend
     
-    private func loadDailyLoadTrend() async {
+    private func loadDailyLoadTrend(activities: [IntervalsActivity]?) async {
         if proConfig.showMockDataForTesting {
             dailyLoadData = generateMockDailyLoadData()
             activitiesForLoad = generateMockActivitiesForLoad()
@@ -391,44 +388,40 @@ class TrendsViewModel: ObservableObject {
             return
         }
         
-        // Try Intervals.icu first for TSS-based load
-        do {
-            // IntervalsCache deleted - use UnifiedActivityService
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
-            
-            let startDate = selectedTimeRange.startDate
-            let calendar = Calendar.current
-            
-            // Store activities for training load chart
-            activitiesForLoad = activities.filter { $0.ctl != nil && $0.atl != nil }
-            
-            // Group activities by day and sum TSS
-            var dailyTSS: [Date: Double] = [:]
-            
-            for activity in activities {
-                guard let activityDate = parseActivityDate(activity.startDateLocal),
-                      activityDate >= startDate,
-                      let tss = activity.tss else { continue }
-                
-                let dayStart = calendar.startOfDay(for: activityDate)
-                dailyTSS[dayStart, default: 0] += tss
-            }
-            
-            // Normalize to 0-100 scale (assume 300 TSS = 100%)
-            dailyLoadData = dailyTSS.map { date, tss in
-                let normalizedTSS = min((tss / 300.0) * 100.0, 100.0)
-                return TrendDataPoint(date: date, value: normalizedTSS)
-            }.sorted { $0.date < $1.date }
-            
-            Logger.debug("📈 Loaded daily load trend: \(dailyLoadData.count) days from Intervals.icu")
-            Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL for training load chart")
-            
-        } catch {
-            Logger.warning("️ Intervals.icu not available for daily load: \(error.localizedDescription)")
-            Logger.debug("📱 Daily load chart requires Intervals.icu")
+        // Use shared activities (already fetched in loadTrendData)
+        guard let activities = activities else {
+            Logger.warning("️ No activities available for daily load trend")
             dailyLoadData = []
             activitiesForLoad = []
+            return
         }
+        
+        let startDate = selectedTimeRange.startDate
+        let calendar = Calendar.current
+        
+        // Store activities for training load chart
+        activitiesForLoad = activities.filter { $0.ctl != nil && $0.atl != nil }
+        
+        // Group activities by day and sum TSS
+        var dailyTSS: [Date: Double] = [:]
+        
+        for activity in activities {
+            guard let activityDate = parseActivityDate(activity.startDateLocal),
+                  activityDate >= startDate,
+                  let tss = activity.tss else { continue }
+            
+            let dayStart = calendar.startOfDay(for: activityDate)
+            dailyTSS[dayStart, default: 0] += tss
+        }
+        
+        // Normalize to 0-100 scale (assume 300 TSS = 100%)
+        dailyLoadData = dailyTSS.map { date, tss in
+            let normalizedTSS = min((tss / 300.0) * 100.0, 100.0)
+            return TrendDataPoint(date: date, value: normalizedTSS)
+        }.sorted { $0.date < $1.date }
+        
+        Logger.debug("📈 Loaded daily load trend: \(dailyLoadData.count) days (using shared activities)")
+        Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL for training load chart")
     }
     
     // MARK: - Sleep Trend

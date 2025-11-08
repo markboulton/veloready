@@ -186,6 +186,17 @@ actor BaselineCalculator {
             
             let cacheKey = CacheKey.sleepScore(date: date)
             
+            // PERFORMANCE FIX: Check if cache exists before attempting fetch
+            // This prevents redundant cache layer lookups (Memory → Disk → CoreData)
+            if let cachedScore: Int = await CacheOrchestrator.shared.get(
+                key: cacheKey,
+                ttl: UnifiedCacheManager.CacheTTL.dailyScores
+            ) {
+                scores.append(cachedScore)
+                continue
+            }
+            
+            // Cache miss - only fetch if we really need it
             do {
                 let score = try await cacheManager.fetch(
                     key: cacheKey,
