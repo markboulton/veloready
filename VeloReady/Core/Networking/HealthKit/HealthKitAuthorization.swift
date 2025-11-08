@@ -94,16 +94,23 @@ class HealthKitAuthorization: ObservableObject {
     
     /// Request HealthKit authorization from the user
     func requestAuthorization() async {
+        Logger.debug("[AUTH] requestAuthorization() called")
+        Logger.debug("[AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
+        
         guard HKHealthStore.isHealthDataAvailable() else {
-            Logger.error("HealthKit not available on this device")
+            Logger.error("[AUTH] ❌ HealthKit not available on this device")
             return
         }
         
+        Logger.debug("[AUTH] HealthKit is available, proceeding with request")
+        Logger.debug("[AUTH] readTypes count: \(readTypes.count)")
+        
         do {
-            Logger.debug("🔐 Requesting HealthKit authorization...")
-            Logger.debug("📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
+            Logger.debug("[AUTH] 🔐 Requesting HealthKit authorization...")
+            Logger.debug("[AUTH] 📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
+            Logger.debug("[AUTH] About to call healthStore.requestAuthorization()")
             try await healthStore.requestAuthorization(toShare: [], read: readTypes)
-            Logger.debug("✅ Authorization sheet completed")
+            Logger.debug("[AUTH] ✅ Authorization sheet completed (or bypassed by iOS)")
             
             // Check status after authorization with delay
             try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -255,24 +262,38 @@ class HealthKitAuthorization: ObservableObject {
     // MARK: - Private Methods
     
     private func checkAuthorizationStatusAsync() async {
+        Logger.debug("[AUTH] checkAuthorizationStatusAsync() starting...")
         var authorizedCount = 0
         var deniedCount = 0
         var notDeterminedCount = 0
+        var statusDetails: [String] = []
         
         for type in readTypes {
             let status = healthStore.authorizationStatus(for: type)
+            let statusStr: String
             
             // Use actual status - no special handling for rawValue 1
             switch status {
             case .notDetermined:
                 notDeterminedCount += 1
+                statusStr = "notDetermined"
             case .sharingDenied:
                 deniedCount += 1
+                statusStr = "DENIED"
             case .sharingAuthorized:
                 authorizedCount += 1
+                statusStr = "authorized"
             @unknown default:
                 notDeterminedCount += 1
+                statusStr = "unknown"
             }
+            
+            statusDetails.append("\(type.identifier): \(statusStr) (raw:\(status.rawValue))")
+        }
+        
+        Logger.debug("[AUTH] Authorization status for all \(readTypes.count) types:")
+        for detail in statusDetails {
+            Logger.debug("[AUTH]   \(detail)")
         }
         
         await updateAuthorizationState(
