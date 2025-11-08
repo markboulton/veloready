@@ -50,7 +50,9 @@ struct HealthKitStepView: View {
             
             // Buttons
             VStack(spacing: Spacing.lg) {
+                let _ = Logger.debug("[ONBOARDING] Rendering buttons - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                 if healthKitManager.isAuthorized {
+                    let _ = Logger.debug("[ONBOARDING] Showing 'Continue' button (already authorized)")
                     // Already authorized
                     HStack {
                         Image(systemName: Icons.Status.successFill)
@@ -74,15 +76,25 @@ struct HealthKitStepView: View {
                             .cornerRadius(16)
                     }
                 } else {
+                    let _ = print("🔵 [ONBOARDING] Showing 'Grant Access' button (NOT authorized)")
                     // Request permission
                     Button(action: {
+                        print("🔵 [ONBOARDING] Grant Access button tapped")
+                        print("🔵 [ONBOARDING] healthKitManager instance: \(ObjectIdentifier(healthKitManager))")
+                        print("🔵 [ONBOARDING] Starting authorization request...")
                         Task {
                             isRequesting = true
+                            print("🔵 [ONBOARDING] About to call healthKitManager.requestAuthorization()")
                             await healthKitManager.requestAuthorization()
+                            print("🔵 [ONBOARDING] Returned from requestAuthorization()")
+                            print("🔵 [ONBOARDING] healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                             isRequesting = false
                             
                             if healthKitManager.isAuthorized {
+                                print("🔵 [ONBOARDING] Setting hasConnectedHealthKit = true")
                                 onboardingManager.hasConnectedHealthKit = true
+                            } else {
+                                print("🔵 [ONBOARDING] Authorization failed or denied")
                             }
                         }
                     }) {

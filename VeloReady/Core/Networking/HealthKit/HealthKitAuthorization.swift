@@ -94,29 +94,35 @@ class HealthKitAuthorization: ObservableObject {
     
     /// Request HealthKit authorization from the user
     func requestAuthorization() async {
-        Logger.debug("[AUTH] requestAuthorization() called")
-        Logger.debug("[AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
+        print("==========================================")
+        print("🟠🟠🟠 AUTH requestAuthorization ENTRY")
+        print("==========================================")
+        print("🟠 [AUTH] requestAuthorization() called")
+        print("🟠 [AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
         
         guard HKHealthStore.isHealthDataAvailable() else {
-            Logger.error("[AUTH] ❌ HealthKit not available on this device")
+            print("🟠 [AUTH] ❌ HealthKit not available on this device")
             return
         }
         
-        Logger.debug("[AUTH] HealthKit is available, proceeding with request")
-        Logger.debug("[AUTH] readTypes count: \(readTypes.count)")
+        print("🟠 [AUTH] HealthKit is available, proceeding with request")
+        print("🟠 [AUTH] readTypes count: \(readTypes.count)")
         
         do {
-            Logger.debug("[AUTH] 🔐 Requesting HealthKit authorization...")
-            Logger.debug("[AUTH] 📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
-            Logger.debug("[AUTH] About to call healthStore.requestAuthorization()")
+            print("🟠 [AUTH] 🔐 Requesting HealthKit authorization...")
+            print("🟠 [AUTH] 📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
+            print("🟠 [AUTH] About to call healthStore.requestAuthorization()")
             try await healthStore.requestAuthorization(toShare: [], read: readTypes)
-            Logger.debug("[AUTH] ✅ Authorization sheet completed (or bypassed by iOS)")
+            print("🟠 [AUTH] ✅ Authorization sheet completed (or bypassed by iOS)")
+            print("🟠 [AUTH] Waiting 2 seconds for iOS to update authorization status...")
             
-            // Check status after authorization with delay
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            // Check status after authorization with delay (iOS needs time to update)
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            print("🟠 [AUTH] Now checking authorization status...")
             await MainActor.run {
                 checkAuthorizationStatus()
             }
+            print("🟠 [AUTH] Authorization status check completed")
             
         } catch {
             Logger.error("HealthKit authorization error: \(error.localizedDescription)")
@@ -262,7 +268,7 @@ class HealthKitAuthorization: ObservableObject {
     // MARK: - Private Methods
     
     private func checkAuthorizationStatusAsync() async {
-        Logger.debug("[AUTH] checkAuthorizationStatusAsync() starting...")
+        print("🟠 [AUTH] checkAuthorizationStatusAsync() starting...")
         var authorizedCount = 0
         var deniedCount = 0
         var notDeterminedCount = 0
@@ -291,10 +297,11 @@ class HealthKitAuthorization: ObservableObject {
             statusDetails.append("\(type.identifier): \(statusStr) (raw:\(status.rawValue))")
         }
         
-        Logger.debug("[AUTH] Authorization status for all \(readTypes.count) types:")
+        print("🟠 [AUTH] Authorization status for all \(readTypes.count) types:")
         for detail in statusDetails {
-            Logger.debug("[AUTH]   \(detail)")
+            print("🟠 [AUTH]   \(detail)")
         }
+        print("🟠 [AUTH] Summary: authorized=\(authorizedCount), denied=\(deniedCount), notDetermined=\(notDeterminedCount)")
         
         await updateAuthorizationState(
             authorizedCount: authorizedCount,

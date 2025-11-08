@@ -35,8 +35,19 @@ class HealthKitManager: ObservableObject {
     // MARK: - Authorization (delegated to HealthKitAuthorization)
     
     func requestAuthorization() async {
+        print("==========================================")
+        print("🟢🟢🟢 HKMANAGER requestAuthorization ENTRY")
+        print("==========================================")
+        print("🟢 [HKMANAGER] requestAuthorization() called")
+        print("🟢 [HKMANAGER] authorization instance: \(ObjectIdentifier(authorization))")
+        print("🟢 [HKMANAGER] Delegating to authorization component...")
         await authorization.requestAuthorization()
+        print("🟢 [HKMANAGER] Returned from authorization.requestAuthorization()")
         await syncAuth()
+        print("🟢 [HKMANAGER] syncAuth() completed, isAuthorized: \(isAuthorized)")
+        print("==========================================")
+        print("🟢🟢🟢 HKMANAGER requestAuthorization EXIT")
+        print("==========================================")
     }
     
     func refreshAuthorizationStatus() async {
