@@ -719,9 +719,26 @@ class TodayViewModel: ObservableObject {
             appleHealthActivities: healthUnified
         )
         
-        // Sort and update
-        unifiedActivities = deduplicated.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
-        Logger.debug("📊 Showing \(unifiedActivities.count) unified activities")
+        // CRITICAL FIX: Merge with existing activities instead of replacing
+        // This prevents race conditions where different fetches overwrite each other
+        let existingActivities = unifiedActivities
+        let newActivities = deduplicated.sorted { $0.startDate > $1.startDate }
+        
+        // Combine existing + new, then deduplicate by ID
+        let combined = existingActivities + newActivities
+        var seen = Set<String>()
+        let merged = combined.filter { activity in
+            if seen.contains(activity.id) {
+                return false
+            } else {
+                seen.insert(activity.id)
+                return true
+            }
+        }
+        
+        // Sort by date and take top 15
+        unifiedActivities = merged.sorted { $0.startDate > $1.startDate }.prefix(15).map { $0 }
+        Logger.debug("📊 Showing \(unifiedActivities.count) unified activities (merged from \(daysBack) days)")
     }
     
     /// Load only cached data without any network calls or heavy calculations
