@@ -144,8 +144,7 @@ class TrendsViewModel: ObservableObject {
         let request = DailyScores.fetchRequest()
         // Sort by date descending to get most recent entries first
         request.sortDescriptors = [
-            NSSortDescriptor(key: "date", ascending: false),
-            NSSortDescriptor(key: "timestamp", ascending: false)
+            NSSortDescriptor(key: "date", ascending: false)
         ]
         request.predicate = NSPredicate(format: "date >= %@ AND recoveryScore > 0", selectedTimeRange.startDate as NSDate)
         

@@ -69,8 +69,7 @@ class RecoveryDetailViewModel: ObservableObject {
         )
         // Sort by date descending to get most recent entries first
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "date", ascending: false),
-            NSSortDescriptor(key: "timestamp", ascending: false)
+            NSSortDescriptor(key: "date", ascending: false)
         ]
         
         guard let results = try? context.fetch(fetchRequest) else {
