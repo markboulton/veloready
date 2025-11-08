@@ -75,14 +75,19 @@ struct StandardCard<Content: View>: View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             // Optional icon
             if let icon = icon {
-                if useRainbowGradient {
+                // iconColor takes precedence over gradient
+                if let iconColor = iconColor {
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(iconColor)
+                } else if useRainbowGradient {
                     Image(systemName: icon)
                         .font(.system(size: 18, weight: .medium))
                         .rainbowGradient()
                 } else {
                     Image(systemName: icon)
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(iconColor ?? Color.text.secondary)
+                        .foregroundColor(Color.text.secondary)
                 }
             }
             

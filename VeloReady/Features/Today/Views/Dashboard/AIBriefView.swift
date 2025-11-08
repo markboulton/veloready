@@ -14,8 +14,9 @@ struct AIBriefView: View {
     var body: some View {
         StandardCard(
             icon: Icons.System.sparkles,
+            iconColor: ColorPalette.aiIconColor, // Orange - start of gradient
             title: proConfig.hasProAccess ? TodayContent.AIBrief.title : DailyBriefContent.title,
-            useRainbowGradient: true
+            useRainbowGradient: true // Only applies to title, not icon
         ) {
             if proConfig.hasProAccess {
                 proContent
