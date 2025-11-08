@@ -204,12 +204,9 @@ class HealthKitAuthorization: ObservableObject {
     func getAuthorizationStatus(for type: HKObjectType) -> HKAuthorizationStatus {
         let status = healthStore.authorizationStatus(for: type)
         
-        // iOS bug fix: rawValue 1 should be treated as authorized
-        if status.rawValue == 1 && status == .sharingDenied {
-            Logger.debug("🔧 Fixing authorization status: rawValue 1 treated as authorized for \(type.identifier)")
-            return .sharingAuthorized
-        }
-        
+        // Return actual status - no workarounds!
+        // .sharingDenied (rawValue 1) means user denied permissions
+        // .sharingAuthorized (rawValue 2) means user granted permissions
         return status
     }
     
@@ -232,20 +229,13 @@ class HealthKitAuthorization: ObservableObject {
         let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
         let hrvStatus = healthStore.authorizationStatus(for: hrvType)
         
-        let effectiveStatus: HKAuthorizationStatus
-        if hrvStatus.rawValue == 1 && hrvStatus == .sharingDenied {
-            Logger.debug("🔧 Fast check: rawValue 1 treated as authorized for \(hrvType.identifier)")
-            effectiveStatus = .sharingAuthorized
-        } else {
-            effectiveStatus = hrvStatus
-        }
-        
+        // Use actual status - no workarounds!
         await updateAuthState(
-            AuthorizationState.fromHKStatus(effectiveStatus),
-            effectiveStatus == .sharingAuthorized
+            AuthorizationState.fromHKStatus(hrvStatus),
+            hrvStatus == .sharingAuthorized
         )
         
-        Logger.debug("⚡ Fast HealthKit check completed: \(await authorizationState)")
+        Logger.debug("⚡ Fast HealthKit check completed: \(await authorizationState) (rawValue: \(hrvStatus.rawValue))")
     }
     
     /// Check current authorization status
