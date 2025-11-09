@@ -33,7 +33,9 @@ class IntervalsOAuthManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
+        Logger.debug("🔵 [INTERVALS] IntervalsOAuthManager initializing...")
         loadStoredCredentials()
+        Logger.debug("🔵 [INTERVALS] IntervalsOAuthManager initialized - isAuthenticated: \(isAuthenticated)")
     }
     
     // MARK: - OAuth Flow

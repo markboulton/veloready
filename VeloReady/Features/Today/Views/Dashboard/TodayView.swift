@@ -47,6 +47,9 @@ struct TodayView: View {
                     // Adaptive background (light grey in light mode, black in dark mode)
                     Color.background.app
                         .ignoresSafeArea()
+                        .onAppear {
+                            Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
+                        }
 
                     ScrollView {
                     // Use LazyVStack as main container for better performance
@@ -462,7 +465,16 @@ struct TodayView: View {
     // MARK: - Helper Computed Properties
     
     private var hasConnectedDataSource: Bool {
-        stravaAuth.connectionState.isConnected || intervalsAuth.isAuthenticated
+        let stravaConnected = stravaAuth.connectionState.isConnected
+        let intervalsConnected = intervalsAuth.isAuthenticated
+        let result = stravaConnected || intervalsConnected
+        
+        Logger.debug("🔍 [TodayView] hasConnectedDataSource check:")
+        Logger.debug("   - Strava connected: \(stravaConnected)")
+        Logger.debug("   - Intervals connected: \(intervalsConnected)")
+        Logger.debug("   - Result: \(result)")
+        
+        return result
     }
     
     private func getLatestActivity() -> UnifiedActivity? {

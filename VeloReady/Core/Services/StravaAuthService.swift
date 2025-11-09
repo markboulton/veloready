@@ -30,7 +30,9 @@ class StravaAuthService: NSObject, ObservableObject {
     
     private override init() {
         super.init()
+        Logger.debug("🔵 [STRAVA] StravaAuthService initializing...")
         loadStoredConnection()
+        Logger.debug("🔵 [STRAVA] StravaAuthService initialized - connectionState: \(connectionState)")
     }
     
     // MARK: - Public API
