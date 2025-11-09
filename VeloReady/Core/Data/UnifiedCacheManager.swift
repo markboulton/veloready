@@ -40,6 +40,10 @@ actor UnifiedCacheManager {
     private let migrationKey = "UnifiedCacheManager.MigrationVersion"
     private let currentMigrationVersion = 3 // Increment when adding new migrations
     
+    // MARK: - Cache Version Management
+    private let cacheVersionKey = "UnifiedCacheManager.CacheVersion"
+    private let currentCacheVersion = "v4" // Increment when cache format changes
+    
     // MARK: - Initialization
     private init() {
         Logger.debug("🗄️ [UnifiedCache] Initialized (actor-based, thread-safe)")
@@ -409,6 +413,31 @@ actor UnifiedCacheManager {
     /// Run migrations if needed
     /// FIX #5: Persistent migration tracking
     private func runMigrationsIfNeeded() {
+        // Check cache version FIRST - if changed, clear everything
+        let lastCacheVersion = UserDefaults.standard.string(forKey: cacheVersionKey)
+        
+        if lastCacheVersion != currentCacheVersion {
+            Logger.warning("🗑️ [Cache VERSION] Cache format changed (\(lastCacheVersion ?? "none") → \(currentCacheVersion))")
+            Logger.warning("🗑️ [Cache VERSION] Clearing all caches to prevent corruption")
+            
+            // Clear memory cache
+            memoryCache.removeAll()
+            
+            // Clear Core Data cache
+            Task {
+                await CachePersistenceLayer.shared.clearAll()
+            }
+            
+            // Clear disk cache
+            UserDefaults.standard.removeObject(forKey: diskCacheKey)
+            UserDefaults.standard.removeObject(forKey: diskCacheMetadataKey)
+            
+            // Save new version
+            UserDefaults.standard.set(currentCacheVersion, forKey: cacheVersionKey)
+            Logger.info("✅ [Cache VERSION] Cache cleared and version updated")
+        }
+        
+        // Then run data migrations
         let lastVersion = UserDefaults.standard.integer(forKey: migrationKey)
         
         if lastVersion < currentMigrationVersion {
