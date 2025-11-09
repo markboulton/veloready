@@ -42,8 +42,11 @@ class SupabaseClient: ObservableObject {
         if session.expiresAt > Date() {
             self.session = session
             self.isAuthenticated = true
+            print("✅ [Supabase] Session loaded and VALID (expires: \(session.expiresAt))")
             Logger.debug("✅ [Supabase] Loaded saved session (expires: \(session.expiresAt))")
         } else {
+            print("❌ [Supabase] Session loaded but EXPIRED (expired: \(session.expiresAt))")
+            print("💡 [Supabase] Re-authenticate Strava to get new session")
             Logger.debug("⚠️ [Supabase] Saved session expired - attempting refresh...")
             isRefreshing = true
             

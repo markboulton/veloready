@@ -247,7 +247,10 @@ struct DataSourcesSettingsView: View {
                     )
                     
                     // Show re-authenticate button if connected but no Supabase session
+                    // This catches: no session OR expired/invalid tokens
                     if stravaAuthService.connectionState.isConnected && !SupabaseClient.shared.isAuthenticated {
+                        let _ = print("🔍 [Settings] Showing re-auth button - Strava connected: true, Supabase authenticated: false")
+                        
                         Button(action: {
                             Task {
                                 await stravaAuthService.reAuthenticate()
@@ -255,7 +258,7 @@ struct DataSourcesSettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrow.triangle.2.circlepath")
-                                Text("Re-authenticate for Backend Access")
+                                Text("Re-authenticate for Full Access")
                                     .font(.caption)
                             }
                             .foregroundColor(.orange)
