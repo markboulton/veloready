@@ -211,15 +211,22 @@ class LatestActivityCardViewModel: ObservableObject {
         if let intervalsActivity = activity.intervalsActivity {
             print("🗺️ [GPS] Have Intervals activity - source: \(intervalsActivity.source ?? "nil"), id: \(intervalsActivity.id)")
             
-            // If source is STRAVA, try using the ID directly with Strava API
-            if intervalsActivity.source?.uppercased() == "STRAVA", let stravaId = Int(intervalsActivity.id) {
-                print("🗺️ [GPS] Activity from Strava, fetching GPS from Strava API with ID: \(stravaId)")
-                let coords = await fetchStravaGPSCoordinates(activityId: stravaId)
-                if coords != nil {
-                    print("✅ [GPS] Got coordinates from Strava")
-                    return coords
+            // Check if ID has "strava_" prefix (indicates synced from Strava)
+            let isFromStrava = intervalsActivity.source?.uppercased() == "STRAVA" || 
+                              intervalsActivity.id.hasPrefix("strava_")
+            
+            if isFromStrava {
+                // Extract Strava ID from the ID string (format: "strava_16403607746")
+                let stravaIdString = intervalsActivity.id.replacingOccurrences(of: "strava_", with: "")
+                if let stravaId = Int(stravaIdString) {
+                    print("🗺️ [GPS] Activity from Strava (ID: \(stravaId)), fetching GPS from Strava API")
+                    let coords = await fetchStravaGPSCoordinates(activityId: stravaId)
+                    if coords != nil {
+                        print("✅ [GPS] Got \(coords!.count) coordinates from Strava")
+                        return coords
+                    }
+                    print("⚠️ [GPS] Strava fetch failed, falling back to Intervals")
                 }
-                print("⚠️ [GPS] Strava fetch failed, falling back to Intervals")
             }
             
             // Fallback to Intervals API
