@@ -94,11 +94,13 @@ class HealthKitAuthorization: ObservableObject {
     
     /// Request HealthKit authorization from the user
     func requestAuthorization() async {
-        print("==========================================")
-        print("🟠🟠🟠 AUTH requestAuthorization ENTRY")
-        print("==========================================")
-        print("🟠 [AUTH] requestAuthorization() called")
-        print("🟠 [AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
+        Logger.debug("==========================================")
+        Logger.debug("🟠🟠🟠 AUTH requestAuthorization ENTRY")
+        Logger.debug("==========================================")
+        Logger.debug("🟠 [AUTH] requestAuthorization() called")
+        Logger.debug("🟠 [AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
+        print("🟠🟠🟠 [AUTH] PRINT: requestAuthorization() ENTRY")
+        print("🟠 [AUTH] PRINT: HKHealthStore available: \(HKHealthStore.isHealthDataAvailable())")
         
         guard HKHealthStore.isHealthDataAvailable() else {
             print("🟠 [AUTH] ❌ HealthKit not available on this device")
