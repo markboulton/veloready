@@ -28,6 +28,8 @@ struct TodayView: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var isViewActive = false
     @Binding var showInitialSpinner: Bool
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var previousScenePhase: ScenePhase = .inactive
     
     private let viewState = ViewStateManager.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
@@ -197,6 +199,9 @@ struct TodayView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             handleAppForeground()
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            handleScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
         }
         .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
             handleIntervalsConnection()
@@ -451,10 +456,20 @@ struct TodayView: View {
             viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
             viewModel.unifiedActivities
         
+        Logger.debug("🔍 [LatestActivity] Total activities: \(activities.count)")
+        
         // Filter to only Strava/Intervals activities (not Apple Health)
-        return activities.first { activity in
+        let result = activities.first { activity in
             activity.source == .strava || activity.source == .intervalsICU
         }
+        
+        if let activity = result {
+            Logger.debug("✅ [LatestActivity] Found: \(activity.name) (source: \(activity.source), shouldShowMap: \(activity.shouldShowMap))")
+        } else {
+            Logger.debug("❌ [LatestActivity] No Strava/Intervals activity found")
+        }
+        
+        return result
     }
     
     /// Get activities for Recent Activities section, excluding the one already shown in Latest Activity card
@@ -624,6 +639,56 @@ struct TodayView: View {
             await viewModel.refreshData()
             liveActivityService.startAutoUpdates()
         }
+    }
+    
+    /// Handle scene phase changes (background → active transitions)
+    /// CRITICAL: Only triggers after initial load is complete to prevent cancellation errors
+    private func handleScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
+        Logger.debug("🔄 [SCENE] Scene phase: \(String(describing: oldPhase)) → \(String(describing: newPhase))")
+        
+        // CRITICAL GUARDS to prevent triggering during initialization:
+        // 1. Must have completed initial load
+        guard viewState.hasCompletedTodayInitialLoad else {
+            Logger.debug("⏭️ [SCENE] Skipping - initial load not complete")
+            previousScenePhase = newPhase
+            return
+        }
+        
+        // 2. View must be active (prevents triggering when navigating away)
+        guard isViewActive else {
+            Logger.debug("⏭️ [SCENE] Skipping - view not active")
+            previousScenePhase = newPhase
+            return
+        }
+        
+        // 3. Must not already be loading (prevents cancelling ongoing calculations)
+        guard !viewModel.isLoading else {
+            Logger.debug("⏭️ [SCENE] Skipping - already loading")
+            previousScenePhase = newPhase
+            return
+        }
+        
+        // 4. Only handle background → active transition
+        guard oldPhase == .background && newPhase == .active else {
+            previousScenePhase = newPhase
+            return
+        }
+        
+        Logger.debug("✅ [SCENE] App became active from background - triggering refresh")
+        
+        Task {
+            // Invalidate short-lived caches for fresh data
+            await invalidateShortLivedCaches()
+            
+            // Refresh data (this will recalculate scores with new activities)
+            await viewModel.refreshData()
+            
+            // Trigger ring animations to show updated values
+            viewModel.animationTrigger = UUID()
+            Logger.debug("🎬 [SCENE] Ring animations triggered after background refresh")
+        }
+        
+        previousScenePhase = newPhase
     }
 }
 

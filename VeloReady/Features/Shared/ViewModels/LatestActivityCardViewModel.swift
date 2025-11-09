@@ -144,6 +144,9 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     func loadMapSnapshot() async {
+        Logger.debug("🗺️ [LoadMapSnapshot] Starting for activity: \(activity.name) (type: \(activity.type), source: \(activity.source))")
+        Logger.debug("🗺️ [LoadMapSnapshot] shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")
+        
         // Allow map loading for walking activities even if shouldShowMap is false
         guard activity.shouldShowMap || activity.type == .walking else {
             Logger.debug("🗺️ [LoadMapSnapshot] Skipping - not eligible for map (type: \(activity.type))")
@@ -153,12 +156,15 @@ class LatestActivityCardViewModel: ObservableObject {
         isLoadingMap = true
         defer { isLoadingMap = false }
         
+        Logger.debug("🗺️ [LoadMapSnapshot] Fetching GPS coordinates...")
         guard let coordinates = await getGPSCoordinates() else {
-            Logger.debug("🗺️ [LoadMapSnapshot] No GPS coordinates available for \(activity.name)")
+            Logger.debug("❌ [LoadMapSnapshot] No GPS coordinates available for \(activity.name)")
             return
         }
         
+        Logger.debug("✅ [LoadMapSnapshot] Got \(coordinates.count) GPS coordinates")
         Logger.debug("🗺️ [LoadMapSnapshot] Generating snapshot from \(coordinates.count) coordinates on background thread for \(activity.name)")
+        
         // Use background thread method for better performance
         mapSnapshot = await mapSnapshotService.generateMapAsync(
             coordinates: coordinates,
@@ -190,13 +196,19 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     private func fetchStravaGPSCoordinates(activityId: Int) async -> [CLLocationCoordinate2D]? {
+        Logger.debug("🗺️ [GPS] Fetching Strava GPS for activity \(activityId)")
         do {
             let streamsDict = try await veloReadyAPIClient.fetchActivityStreams(
                 activityId: String(activityId),
                 source: .strava
             )
             
-            guard let latlngStreamData = streamsDict["latlng"] else { return nil }
+            Logger.debug("🗺️ [GPS] Got stream data with keys: \(streamsDict.keys.joined(separator: ", "))")
+            
+            guard let latlngStreamData = streamsDict["latlng"] else {
+                Logger.debug("❌ [GPS] No latlng stream in response")
+                return nil
+            }
             
             let coordinates: [CLLocationCoordinate2D]
             switch latlngStreamData.data {
@@ -205,12 +217,15 @@ class LatestActivityCardViewModel: ObservableObject {
                     guard coord.count >= 2 else { return nil }
                     return CLLocationCoordinate2D(latitude: coord[0], longitude: coord[1])
                 }
+                Logger.debug("✅ [GPS] Extracted \(coordinates.count) coordinates from latlng stream")
             case .simple:
+                Logger.debug("❌ [GPS] Stream data is simple type, not latlng")
                 return nil
             }
             
             return coordinates.isEmpty ? nil : coordinates
         } catch {
+            Logger.debug("❌ [GPS] Failed to fetch Strava streams: \(error.localizedDescription)")
             return nil
         }
     }

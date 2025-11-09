@@ -12,6 +12,7 @@ struct LatestActivityCardV2: View {
     
     init(activity: UnifiedActivity) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
+        Logger.debug("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
     }
     
     var body: some View {
@@ -24,7 +25,9 @@ struct LatestActivityCardV2: View {
             }
         }
         .onAppear {
+            Logger.debug("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
             Task {
+                Logger.debug("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
                 await viewModel.loadData()
                 // Mark initial load complete after data is ready
                 withAnimation(.easeOut(duration: 0.2)) {

@@ -63,6 +63,7 @@ struct AIBriefView: View {
                         Text(text)
                             .bodyStyle()
                             .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil) // Remove any line limits to prevent truncation
                         
                         // ML Data Collection Progress (if not sufficient data yet)
                         if mlService.trainingDataCount < 30 {
