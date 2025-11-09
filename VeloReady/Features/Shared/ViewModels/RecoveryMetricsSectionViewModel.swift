@@ -14,6 +14,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var isSleepLoading: Bool = false
     @Published private(set) var isStrainLoading: Bool = false
     @Published private(set) var allScoresReady: Bool = false // True when all scores are loaded
+    @Published var ringAnimationTrigger = UUID() // Triggers ring re-animation when scores change
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
@@ -97,8 +98,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         strainScoreService.$currentStrainScore
             .sink { [weak self] score in
                 Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
+                let oldScore = self?.strainScore?.score
                 self?.strainScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
+                
+                // Trigger ring animation if score changed (handles cached → real transition)
+                if let old = oldScore, let new = score?.score, old != new {
+                    Logger.debug("🎬 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering ring animation")
+                    self?.ringAnimationTrigger = UUID()
+                }
+                
                 self?.checkAllScoresReady()
             }
             .store(in: &cancellables)

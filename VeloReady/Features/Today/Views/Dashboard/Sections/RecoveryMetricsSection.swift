@@ -290,7 +290,7 @@ struct RecoveryMetricsSection: View {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
                             centerText: viewModel.strainFormattedScore,
-                            animationTrigger: animationTrigger
+                            animationTrigger: viewModel.ringAnimationTrigger // Use local trigger for score changes
                         )
                     }
                     .frame(maxWidth: .infinity)
