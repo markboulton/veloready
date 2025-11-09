@@ -9,6 +9,12 @@ struct VeloReadyApp: App {
         // Log version information at startup
         AppVersion.logVersionInfo()
         
+        // CRITICAL: Verify cache version synchronization on startup
+        // This prevents the bug where cache systems get out of sync
+        Task { @MainActor in
+            _ = CacheVersion.verifySynchronization()
+        }
+        
         // CRITICAL: Refresh Supabase token BEFORE any API calls
         Task { @MainActor in
             await SupabaseClient.shared.refreshOnAppLaunch()

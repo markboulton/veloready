@@ -41,8 +41,8 @@ actor UnifiedCacheManager {
     private let currentMigrationVersion = 3 // Increment when adding new migrations
     
     // MARK: - Cache Version Management
-    private let cacheVersionKey = "UnifiedCacheManager.CacheVersion"
-    private let currentCacheVersion = "v4" // Increment when cache format changes
+    // Version is now centralized in CacheVersion.swift - single source of truth!
+    // DO NOT add version constants here - use CacheVersion.current instead
     
     // MARK: - Initialization
     private init() {
@@ -414,10 +414,10 @@ actor UnifiedCacheManager {
     /// FIX #5: Persistent migration tracking
     private func runMigrationsIfNeeded() {
         // Check cache version FIRST - if changed, clear everything
-        let lastCacheVersion = UserDefaults.standard.string(forKey: cacheVersionKey)
-        
-        if lastCacheVersion != currentCacheVersion {
-            Logger.warning("🗑️ [Cache VERSION] Cache format changed (\(lastCacheVersion ?? "none") → \(currentCacheVersion))")
+        // Using centralized CacheVersion.current for version synchronization
+        if CacheVersion.needsCacheClear(for: CacheVersion.unifiedCacheKey) {
+            let lastVersion = UserDefaults.standard.string(forKey: CacheVersion.unifiedCacheKey) ?? "none"
+            Logger.warning("🗑️ [Cache VERSION] Cache format changed (\(lastVersion) → v\(CacheVersion.current))")
             Logger.warning("🗑️ [Cache VERSION] Clearing all caches to prevent corruption")
             
             // Clear memory cache
@@ -433,8 +433,8 @@ actor UnifiedCacheManager {
             UserDefaults.standard.removeObject(forKey: diskCacheMetadataKey)
             
             // Save new version
-            UserDefaults.standard.set(currentCacheVersion, forKey: cacheVersionKey)
-            Logger.info("✅ [Cache VERSION] Cache cleared and version updated")
+            CacheVersion.markAsCurrent(for: CacheVersion.unifiedCacheKey)
+            Logger.info("✅ [Cache VERSION] Cache cleared and version updated to v\(CacheVersion.current)")
         }
         
         // Then run data migrations

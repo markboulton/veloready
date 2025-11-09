@@ -10,8 +10,8 @@ actor CachePersistenceLayer {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
-    // Cache schema version - increment when models change to invalidate old caches
-    private let cacheVersion = 4 // v4: Clear corrupted cache from format changes
+    // Cache version is now centralized in CacheVersion.swift - single source of truth!
+    // DO NOT add version constants here - use CacheVersion.current instead
     
     // Statistics
     private var saveCount = 0
@@ -30,14 +30,14 @@ actor CachePersistenceLayer {
     }
     
     /// Check and clear cache if version changed
+    /// Using centralized CacheVersion for synchronization with UnifiedCacheManager
     private func checkAndClearOldCache() async {
-        let versionKey = "CachePersistenceVersion"
-        let storedVersion = UserDefaults.standard.integer(forKey: versionKey)
-        
-        if storedVersion != cacheVersion {
-            Logger.debug("💾 [CachePersistence] Cache version mismatch (stored: \(storedVersion), current: \(cacheVersion)) - clearing old cache")
+        if CacheVersion.needsCacheClear(for: CacheVersion.persistenceKey) {
+            let storedVersion = UserDefaults.standard.integer(forKey: CacheVersion.persistenceKey)
+            Logger.debug("💾 [CachePersistence] Cache version mismatch (stored: \(storedVersion), current: \(CacheVersion.current)) - clearing old cache")
             await clearAll()
-            UserDefaults.standard.set(cacheVersion, forKey: versionKey)
+            CacheVersion.markAsCurrent(for: CacheVersion.persistenceKey)
+            Logger.info("✅ [CachePersistence] Cache cleared and version updated to v\(CacheVersion.current)")
         }
     }
     
