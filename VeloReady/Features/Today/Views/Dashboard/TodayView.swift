@@ -98,13 +98,26 @@ struct TodayView: View {
                             AIBriefView()
                             
                             // Latest Activity from Strava/Intervals
-                            if hasConnectedDataSource {
-                                if let latestActivity = getLatestActivity() {
-                                    LatestActivityCardV2(activity: latestActivity)
-                                        // Removed .id() modifier - was causing view to recreate
-                                        // and cancel async loadData() task before map could load
+                            Group {
+                                if hasConnectedDataSource {
+                                    if let latestActivity = getLatestActivity() {
+                                        LatestActivityCardV2(activity: latestActivity)
+                                            // Removed .id() modifier - was causing view to recreate
+                                            // and cancel async loadData() task before map could load
+                                            .onAppear {
+                                                Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
+                                            }
+                                    } else {
+                                        SkeletonActivityCard()
+                                            .onAppear {
+                                                Logger.debug("🏠 [TodayView] No latest activity - showing skeleton")
+                                            }
+                                    }
                                 } else {
-                                    SkeletonActivityCard()
+                                    EmptyView()
+                                        .onAppear {
+                                            Logger.debug("🏠 [TodayView] NO connected data source - not showing activity card")
+                                        }
                                 }
                             }
                             
