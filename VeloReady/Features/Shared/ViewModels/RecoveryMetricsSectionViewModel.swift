@@ -96,6 +96,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         
         // Observe strain score
         strainScoreService.$currentStrainScore
+            .receive(on: DispatchQueue.main)  // CRITICAL: Ensure main thread for UI updates
             .sink { [weak self] score in
                 print("💪 [VIEWMODEL] Strain score Combine fired: \(score?.score ?? -1)")
                 Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
@@ -109,6 +110,13 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                     print("💪 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering animation")
                     Logger.debug("🎬 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering ring animation")
                     self?.ringAnimationTrigger = UUID()
+                }
+                
+                // CRITICAL: Force allScoresReady = true if we have ANY score
+                // This fixes intermittent bug where view renders before checkAllScoresReady() runs
+                if score != nil || self?.recoveryScore != nil || self?.sleepScore != nil {
+                    print("💪 [VIEWMODEL] FORCING allScoresReady = true (have at least one score)")
+                    self?.allScoresReady = true
                 }
                 
                 self?.checkAllScoresReady()
