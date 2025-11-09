@@ -101,7 +101,8 @@ struct TodayView: View {
                             if hasConnectedDataSource {
                                 if let latestActivity = getLatestActivity() {
                                     LatestActivityCardV2(activity: latestActivity)
-                                        .id(latestActivity.id)
+                                        // Removed .id() modifier - was causing view to recreate
+                                        // and cancel async loadData() task before map could load
                                 } else {
                                     SkeletonActivityCard()
                                 }
