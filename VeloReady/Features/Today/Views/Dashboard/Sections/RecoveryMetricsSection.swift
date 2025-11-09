@@ -66,7 +66,9 @@ struct RecoveryMetricsSection: View {
                     let showSleepRing = viewModel.hasSleepData && !config.simulateNoSleepData
                     
                     // Show loading state until all scores are ready
+                    let _ = print("💪 [VIEW] RecoveryMetricsSection - allScoresReady: \(viewModel.allScoresReady), showSleepRing: \(showSleepRing)")
                     if !viewModel.allScoresReady {
+                        let _ = print("💪 [VIEW] Showing LOADING rings")
                         // Loading state - show grey rings with shimmer for all three
                         HStack(spacing: Spacing.xxl) {
                             loadingRingView(title: TodayContent.Scores.recoveryScore, delay: 0.0)
@@ -74,6 +76,7 @@ struct RecoveryMetricsSection: View {
                             loadingRingView(title: TodayContent.Scores.loadScore, delay: 0.2)
                         }
                     } else if showSleepRing {
+                        let _ = print("💪 [VIEW] Showing 3-RING layout")
                         // Standard 3-ring layout
                         HStack(spacing: Spacing.xxl) {
                             recoveryScoreView
@@ -81,6 +84,7 @@ struct RecoveryMetricsSection: View {
                             loadScoreView
                         }
                     } else {
+                        let _ = print("💪 [VIEW] Showing 2-RING layout (no sleep)")
                         // 2-ring layout when sleep unavailable - centered as a group
                         HStack(spacing: Spacing.xxl) {
                             recoveryScoreView

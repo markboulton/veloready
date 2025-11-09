@@ -155,6 +155,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         
         let wasReady = allScoresReady
         
+        print("💪 [VIEWMODEL] checkAllScoresReady - hasAnyScore: \(hasAnyScore), recovery: \(recoveryScore != nil), sleep: \(sleepScore != nil), strain: \(strainScore != nil)")
+        print("💪 [VIEWMODEL] checkAllScoresReady - allLoadingComplete: \(allLoadingComplete), wasReady: \(wasReady)")
+        
         // FIX: Show scores if we have ANY score, even if still loading
         // This prevents rings from disappearing when navigating back after toggling debug settings
         // Only show loading rings if we have NO scores at all AND still loading
@@ -164,7 +167,10 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             allScoresReady = allLoadingComplete && hasAnyScore
         }
         
+        print("💪 [VIEWMODEL] checkAllScoresReady - allScoresReady NOW: \(allScoresReady)")
+        
         if !wasReady && allScoresReady {
+            print("💪 [VIEWMODEL] ✅ All scores ready!")
             Logger.debug("✅ [VIEWMODEL] All scores ready - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
         } else if !allLoadingComplete {
             Logger.debug("⏳ [VIEWMODEL] Still loading - recovery: \(isRecoveryLoading), sleep: \(isSleepLoading), strain: \(isStrainLoading)")
