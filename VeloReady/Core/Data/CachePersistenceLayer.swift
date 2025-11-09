@@ -19,14 +19,47 @@ actor CachePersistenceLayer {
     private var hitCount = 0
     private var missCount = 0
     
+    // Track initialization to prevent data access before cache clear
+    private var isInitialized = false
+    private let initLock = NSLock()
+    
     private init() {
         // Deferred initialization - don't access Core Data until needed
         Logger.debug("💾 [CachePersistence] Initialized (lazy)")
         
-        // Clear old cache on version change
+        // CRITICAL: Clear old cache SYNCHRONOUSLY before allowing data access
         Task {
             await checkAndClearOldCache()
+            await markInitComplete()
         }
+    }
+    
+    /// Mark initialization as complete (must be called from async context)
+    private func markInitComplete() async {
+        initLock.lock()
+        isInitialized = true
+        initLock.unlock()
+        Logger.debug("💾 [CachePersistence] Initialization complete")
+    }
+    
+    /// Wait for initialization to complete (cache clear if needed)
+    private func ensureInitialized() async {
+        // Poll until initialized (cache clear complete)
+        var attempts = 0
+        while attempts < 100 {  // Max 10 seconds
+            initLock.lock()
+            let initialized = isInitialized
+            initLock.unlock()
+            
+            if initialized {
+                return
+            }
+            
+            try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+            attempts += 1
+        }
+        
+        Logger.warning("⚠️ [CachePersistence] Initialization timeout - proceeding anyway")
     }
     
     /// Check and clear cache if version changed
@@ -50,6 +83,9 @@ actor CachePersistenceLayer {
     ///   - cachedAt: Timestamp when cached
     ///   - ttl: Time-to-live in seconds
     func saveToCoreData<T: Codable>(key: String, value: T, cachedAt: Date = Date(), ttl: TimeInterval) async {
+        // Wait for cache clear to complete before accessing data
+        await ensureInitialized()
+        
         do {
             let context = persistenceController.newBackgroundContext()
             
@@ -91,6 +127,9 @@ actor CachePersistenceLayer {
     ///   - key: Cache key to load
     /// - Returns: Decoded value if found and not expired, nil otherwise
     func loadFromCoreData<T: Codable>(key: String, as type: T.Type) async -> (value: T, cachedAt: Date)? {
+        // Wait for cache clear to complete before accessing data
+        await ensureInitialized()
+        
         let context = persistenceController.newBackgroundContext()
         
         return await context.perform {

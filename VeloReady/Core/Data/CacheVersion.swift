@@ -27,7 +27,7 @@ import Foundation
 enum CacheVersion {
     /// Current cache version - increment when cache format changes
     /// **IMPORTANT**: This is the ONLY place to change the version number
-    static let current = 4
+    static let current = 5  // Nov 9 19:00 - Force clear corrupted cache
     
     /// UserDefaults key for UnifiedCacheManager version
     static let unifiedCacheKey = "UnifiedCacheManager.CacheVersion"
