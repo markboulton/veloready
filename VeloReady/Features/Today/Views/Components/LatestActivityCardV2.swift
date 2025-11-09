@@ -70,8 +70,16 @@ struct LatestActivityCardV2: View {
                     }
                     
                     // Map (if outdoor activity with GPS data or walking)
-                    if viewModel.shouldShowMap || viewModel.activity.type == .walking {
+                    if shouldRenderMap {
                         mapSection
+                            .onAppear {
+                                Logger.debug("🗺️ [Card] Map section appeared - isLoadingMap: \(viewModel.isLoadingMap), hasSnapshot: \(viewModel.mapSnapshot != nil)")
+                            }
+                    } else {
+                        EmptyView()
+                            .onAppear {
+                                Logger.debug("🗺️ [Card] Map section SKIPPED - shouldShowMap: \(viewModel.shouldShowMap), activityType: \(viewModel.activity.type), isWalking: \(viewModel.activity.type == .walking)")
+                            }
                     }
                 }
             }
@@ -211,6 +219,12 @@ struct LatestActivityCardV2: View {
     }
     
     // MARK: - RPE Section
+    
+    private var shouldRenderMap: Bool {
+        let result = viewModel.shouldShowMap || viewModel.activity.type == .walking
+        Logger.debug("🗺️ [Card] shouldRenderMap: \(result) (shouldShowMap: \(viewModel.shouldShowMap), type: \(viewModel.activity.type))")
+        return result
+    }
     
     private var shouldShowRPEButton: Bool {
         guard let workout = viewModel.activity.healthKitWorkout else {
