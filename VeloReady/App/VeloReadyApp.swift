@@ -25,6 +25,14 @@ struct VeloReadyApp: App {
             ServiceContainer.shared.initialize()
         }
         
+        // CRITICAL: Check HealthKit authorization on app launch
+        // Without this, permissions aren't detected after rebuild/reinstall
+        Task { @MainActor in
+            Logger.debug("🏥 [APP LAUNCH] Checking HealthKit authorization...")
+            await HealthKitManager.shared.checkAuthorizationAfterSettingsReturn()
+            Logger.debug("🏥 [APP LAUNCH] HealthKit check complete - isAuthorized: \(HealthKitManager.shared.isAuthorized)")
+        }
+        
         // Configure AI Brief
         Task { @MainActor in
             AIBriefConfig.configure()
