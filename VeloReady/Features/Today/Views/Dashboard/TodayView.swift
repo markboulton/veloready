@@ -15,9 +15,9 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 /// Main Today view showing current activities and progress
 struct TodayView: View {
     @ObservedObject private var viewModel = TodayViewModel.shared
-    @StateObject private var healthKitManager = HealthKitManager.shared
-    @StateObject private var wellnessService = WellnessDetectionService.shared
-    @StateObject private var illnessService = IllnessDetectionService.shared
+    @ObservedObject private var healthKitManager = HealthKitManager.shared  // CRITICAL: Must be @ObservedObject not @StateObject!
+    @ObservedObject private var wellnessService = WellnessDetectionService.shared  // CRITICAL: Observe shared instance
+    @ObservedObject private var illnessService = IllnessDetectionService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var liveActivityService = LiveActivityService.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
