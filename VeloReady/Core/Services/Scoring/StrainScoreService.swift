@@ -114,14 +114,17 @@ class StrainScoreService: ObservableObject {
     }
     
     private func performCalculation() async {
+        print("💪 [STRAIN] Starting strain score calculation")
         Logger.debug("🔄 Starting strain score calculation")
         
         // Check if already loading to prevent multiple concurrent calculations
         guard !isLoading else {
+            print("💪 [STRAIN] Already in progress, skipping")
             Logger.warning("️ Strain score calculation already in progress, skipping...")
             return
         }
         
+        print("💪 [STRAIN] Setting isLoading = true")
         isLoading = true
         errorMessage = nil
         
@@ -166,7 +169,9 @@ class StrainScoreService: ObservableObject {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         let stepType = HKObjectType.quantityType(forIdentifier: .stepCount)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
+        print("💪 [STRAIN] Checking HealthKit authorization: \(HealthKitManager.shared.isAuthorized)")
         if !HealthKitManager.shared.isAuthorized {
+            print("💪 [STRAIN] ❌ Not authorized - skipping calculation")
             Logger.error("Strain permissions not granted - skipping calculation")
             await MainActor.run {
                 currentStrainScore = nil
@@ -175,12 +180,16 @@ class StrainScoreService: ObservableObject {
             return
         }
         
+        print("💪 [STRAIN] ✅ Authorized - calculating real score")
         // Use real data
         let realScore = await calculateRealStrainScore()
+        print("💪 [STRAIN] Real score calculated: \(realScore?.score ?? -1)")
         currentStrainScore = realScore
+        print("💪 [STRAIN] currentStrainScore set to: \(currentStrainScore?.score ?? -1)")
         
         // Save to persistent cache for instant loading next time
         if let score = currentStrainScore {
+            print("💪 [STRAIN] Saving score to cache: \(score.score)")
             saveStrainScoreToCache(score)
         }
     }

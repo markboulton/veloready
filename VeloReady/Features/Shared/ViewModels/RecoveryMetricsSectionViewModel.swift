@@ -97,13 +97,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         // Observe strain score
         strainScoreService.$currentStrainScore
             .sink { [weak self] score in
+                print("💪 [VIEWMODEL] Strain score Combine fired: \(score?.score ?? -1)")
                 Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
                 let oldScore = self?.strainScore?.score
                 self?.strainScore = score
+                print("💪 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
                 Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
                 
                 // Trigger ring animation if score changed (handles cached → real transition)
                 if let old = oldScore, let new = score?.score, old != new {
+                    print("💪 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering animation")
                     Logger.debug("🎬 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering ring animation")
                     self?.ringAnimationTrigger = UUID()
                 }
