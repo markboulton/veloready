@@ -23,10 +23,13 @@ class MapSnapshotService {
     private var warmUpTask: Task<Void, Never>?
     
     private init() {
+        Logger.debug("🗺️ [MapSnapshotService] Initializing service...")
         // Pre-warm MapKit on initialization
         warmUpTask = Task {
+            Logger.debug("🗺️ [MapSnapshotService] Starting warmup task...")
             await self.warmUpMapKit()
         }
+        Logger.debug("🗺️ [MapSnapshotService] Init complete, warmup task started")
     }
     
     /// Generate a placeholder map with activity info (fast, non-blocking)
@@ -171,6 +174,8 @@ class MapSnapshotService {
         activityId: String? = nil,
         size: CGSize = CGSize(width: 400, height: 300)
     ) async -> UIImage? {
+        Logger.debug("🗺️ [generateMapAsync] ENTRY - coordinates: \(coordinates.count), activityId: \(activityId ?? "nil")")
+        
         guard !coordinates.isEmpty else {
             Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
             return nil

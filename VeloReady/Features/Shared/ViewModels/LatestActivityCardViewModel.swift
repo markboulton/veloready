@@ -45,10 +45,15 @@ class LatestActivityCardViewModel: ObservableObject {
     // MARK: - Public Methods
     
     func loadData() async {
+        Logger.debug("🔄 [LoadData] ENTRY for activity: \(activity.name)")
+        Logger.debug("🔄 [LoadData] Activity details - type: \(activity.type), shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")
+        Logger.debug("🔄 [LoadData] Activity sources - strava: \(activity.stravaActivity != nil), intervals: \(activity.intervalsActivity != nil), healthkit: \(activity.healthKitWorkout != nil)")
+        
         // Mark as loaded to track state
         hasLoadedData = true
         
         // Load all data in parallel to avoid blocking
+        Logger.debug("🔄 [LoadData] Starting parallel tasks...")
         async let mapTask: Void = loadMapSnapshot()
         async let locationTask: Void = loadLocation()
         async let stepsTask: Void = activity.type == .walking ? loadStepsData() : ()
@@ -144,14 +149,17 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     func loadMapSnapshot() async {
-        Logger.debug("🗺️ [LoadMapSnapshot] Starting for activity: \(activity.name) (type: \(activity.type), source: \(activity.source))")
+        Logger.debug("🗺️ [LoadMapSnapshot] ENTRY - Starting for activity: \(activity.name) (type: \(activity.type), source: \(activity.source))")
         Logger.debug("🗺️ [LoadMapSnapshot] shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")
+        Logger.debug("🗺️ [LoadMapSnapshot] type == .walking: \(activity.type == .walking)")
         
         // Allow map loading for walking activities even if shouldShowMap is false
-        guard activity.shouldShowMap || activity.type == .walking else {
-            Logger.debug("🗺️ [LoadMapSnapshot] Skipping - not eligible for map (type: \(activity.type))")
+        if !activity.shouldShowMap && activity.type != .walking {
+            Logger.debug("🗺️ [LoadMapSnapshot] ❌ SKIPPING - not eligible for map (shouldShowMap=false, type=\(activity.type))")
             return
         }
+        
+        Logger.debug("🗺️ [LoadMapSnapshot] ✅ Map loading eligible, proceeding...")
         
         isLoadingMap = true
         defer { isLoadingMap = false }
