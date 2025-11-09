@@ -95,6 +95,25 @@ class StravaAuthService: NSObject, ObservableObject {
         }
     }
     
+    /// Re-authenticate with Strava (forces fresh OAuth flow to create new Supabase session)
+    /// Use this when backend authentication is failing
+    func reAuthenticate() async {
+        print("🔄 [STRAVA] Re-authenticating to create fresh Supabase session...")
+        Logger.debug("🔄 [STRAVA] Re-authentication requested - clearing old session and starting fresh OAuth")
+        
+        // Clear current Supabase session
+        SupabaseClient.shared.clearSession()
+        
+        // Clear Strava connection state but keep athlete ID
+        // This forces a fresh OAuth flow while maintaining the connection
+        currentState = nil
+        authSession?.cancel()
+        authSession = nil
+        
+        // Start fresh OAuth flow
+        startAuth()
+    }
+    
     /// Handle incoming deep link callback
     func handleCallback(url: URL) async {
         #if DEBUG

@@ -32,6 +32,9 @@ class SupabaseClient: ObservableObject {
     private func loadSession() {
         guard let data = UserDefaults.standard.data(forKey: "supabase_session"),
               let session = try? JSONDecoder().decode(SupabaseSession.self, from: data) else {
+            print("⚠️ [Supabase] No saved session found")
+            print("💡 [Supabase] You need to connect Strava to create a session")
+            Logger.debug("⚠️ [Supabase] No saved session - user needs to authenticate")
             return
         }
         

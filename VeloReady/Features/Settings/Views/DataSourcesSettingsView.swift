@@ -229,21 +229,40 @@ struct DataSourcesSettingsView: View {
                 )
                 
             case .strava:
-                ConnectWithStravaButton(
-                    action: {
-                        if !stravaAuthService.connectionState.isConnected {
-                            // Start the OAuth flow
-                            stravaAuthService.startAuth()
-                        } else {
-                            // Disconnect
-                            stravaAuthService.disconnect()
-                            dataSourceManager.disconnect(from: source)
-                            dataSourceManager.updateConnectionStatuses()
+                VStack(spacing: 8) {
+                    ConnectWithStravaButton(
+                        action: {
+                            if !stravaAuthService.connectionState.isConnected {
+                                // Start the OAuth flow
+                                stravaAuthService.startAuth()
+                            } else {
+                                // Disconnect
+                                stravaAuthService.disconnect()
+                                dataSourceManager.disconnect(from: source)
+                                dataSourceManager.updateConnectionStatuses()
+                            }
+                        },
+                        isConnected: stravaAuthService.connectionState.isConnected,
+                        connectionState: stravaAuthService.connectionState
+                    )
+                    
+                    // Show re-authenticate button if connected but no Supabase session
+                    if stravaAuthService.connectionState.isConnected && !SupabaseClient.shared.isAuthenticated {
+                        Button(action: {
+                            Task {
+                                await stravaAuthService.reAuthenticate()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Re-authenticate for Backend Access")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.orange)
+                            .padding(.vertical, 8)
                         }
-                    },
-                    isConnected: stravaAuthService.connectionState.isConnected,
-                    connectionState: stravaAuthService.connectionState
-                )
+                    }
+                }
                 
             case .appleHealth:
                 // Generic button for Apple Health
