@@ -12,6 +12,7 @@ struct LatestActivityCardV2: View {
     
     init(activity: UnifiedActivity) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
+        print("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
         Logger.debug("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
     }
     
@@ -25,10 +26,13 @@ struct LatestActivityCardV2: View {
             }
         }
         .onAppear {
+            print("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
             Logger.debug("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
             Task {
+                print("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
                 Logger.debug("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
                 await viewModel.loadData()
+                print("✅ [LatestActivityCardV2] loadData() completed for: \(viewModel.activity.name)")
                 // Mark initial load complete after data is ready
                 withAnimation(.easeOut(duration: 0.2)) {
                     isInitialLoad = false
@@ -73,11 +77,13 @@ struct LatestActivityCardV2: View {
                     if shouldRenderMap {
                         mapSection
                             .onAppear {
+                                print("🗺️ [Card] Map section appeared - isLoadingMap: \(viewModel.isLoadingMap), hasSnapshot: \(viewModel.mapSnapshot != nil)")
                                 Logger.debug("🗺️ [Card] Map section appeared - isLoadingMap: \(viewModel.isLoadingMap), hasSnapshot: \(viewModel.mapSnapshot != nil)")
                             }
                     } else {
                         EmptyView()
                             .onAppear {
+                                print("🗺️ [Card] Map section SKIPPED - shouldShowMap: \(viewModel.shouldShowMap), activityType: \(viewModel.activity.type), isWalking: \(viewModel.activity.type == .walking)")
                                 Logger.debug("🗺️ [Card] Map section SKIPPED - shouldShowMap: \(viewModel.shouldShowMap), activityType: \(viewModel.activity.type), isWalking: \(viewModel.activity.type == .walking)")
                             }
                     }
@@ -222,6 +228,7 @@ struct LatestActivityCardV2: View {
     
     private var shouldRenderMap: Bool {
         let result = viewModel.shouldShowMap || viewModel.activity.type == .walking
+        print("🗺️ [Card] shouldRenderMap: \(result) (shouldShowMap: \(viewModel.shouldShowMap), type: \(viewModel.activity.type))")
         Logger.debug("🗺️ [Card] shouldRenderMap: \(result) (shouldShowMap: \(viewModel.shouldShowMap), type: \(viewModel.activity.type))")
         return result
     }
