@@ -199,19 +199,41 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     private func getGPSCoordinates() async -> [CLLocationCoordinate2D]? {
+        print("🗺️ [GPS] Getting coordinates - strava: \(activity.stravaActivity != nil), intervals: \(activity.intervalsActivity != nil)")
+        
+        // Try Strava first if available
         if let stravaActivity = activity.stravaActivity {
+            print("🗺️ [GPS] Using Strava activity ID: \(stravaActivity.id)")
             return await fetchStravaGPSCoordinates(activityId: stravaActivity.id)
         }
         
+        // If Intervals activity, check if it's from Strava
         if let intervalsActivity = activity.intervalsActivity {
+            print("🗺️ [GPS] Have Intervals activity - source: \(intervalsActivity.source ?? "nil"), id: \(intervalsActivity.id)")
+            
+            // If source is STRAVA, try using the ID directly with Strava API
+            if intervalsActivity.source?.uppercased() == "STRAVA", let stravaId = Int(intervalsActivity.id) {
+                print("🗺️ [GPS] Activity from Strava, fetching GPS from Strava API with ID: \(stravaId)")
+                let coords = await fetchStravaGPSCoordinates(activityId: stravaId)
+                if coords != nil {
+                    print("✅ [GPS] Got coordinates from Strava")
+                    return coords
+                }
+                print("⚠️ [GPS] Strava fetch failed, falling back to Intervals")
+            }
+            
+            // Fallback to Intervals API
+            print("🗺️ [GPS] Fetching from Intervals API")
             return await fetchIntervalsGPSCoordinates(activityId: intervalsActivity.id)
         }
         
         // For HealthKit workouts (Walking, etc), fetch route data
         if let workout = activity.healthKitWorkout {
+            print("🗺️ [GPS] Using HealthKit workout")
             return await fetchHealthKitGPSCoordinates(workout: workout)
         }
         
+        print("❌ [GPS] No valid activity source found")
         return nil
     }
     
@@ -251,8 +273,10 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     private func fetchIntervalsGPSCoordinates(activityId: String) async -> [CLLocationCoordinate2D]? {
+        print("🗺️ [GPS] Fetching Intervals GPS for activity \(activityId)")
         do {
             let samples = try await intervalsAPIClient.fetchActivityStreams(activityId: activityId)
+            print("🗺️ [GPS] Got \(samples.count) samples from Intervals")
             
             let coordinates = samples.compactMap { sample -> CLLocationCoordinate2D? in
                 guard let lat = sample.latitude, let lng = sample.longitude else { return nil }
@@ -260,8 +284,10 @@ class LatestActivityCardViewModel: ObservableObject {
                 return CLLocationCoordinate2D(latitude: lat, longitude: lng)
             }
             
+            print("🗺️ [GPS] Extracted \(coordinates.count) valid coordinates from Intervals")
             return coordinates.isEmpty ? nil : coordinates
         } catch {
+            print("❌ [GPS] Failed to fetch Intervals streams: \(error.localizedDescription)")
             return nil
         }
     }

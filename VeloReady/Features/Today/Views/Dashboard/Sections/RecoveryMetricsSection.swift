@@ -269,6 +269,7 @@ struct RecoveryMetricsSection: View {
     
     @ViewBuilder
     private var loadScoreView: some View {
+            let _ = print("💪 [VIEW] loadScoreView - hasStrainScore: \(viewModel.hasStrainScore), score: \(viewModel.strainScore?.score ?? -1)")
             if viewModel.hasStrainScore {
                 HapticNavigationLink(destination: StrainDetailView(strainScore: viewModel.strainScore!)) {
                     VStack(spacing: Spacing.lg) {
