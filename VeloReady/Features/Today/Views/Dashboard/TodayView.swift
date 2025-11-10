@@ -172,12 +172,8 @@ struct TodayView: View {
                     }
                 }
                 
-                // Loading overlay with animated rings (like onboarding)
-                // Shows smooth animation instead of flash
-                if viewModel.isInitializing {
-                    AnimatedRingsOverlay()
-                        .transition(.opacity)
-                }
+                // No loading overlay needed - content shows immediately with cached scores
+                // Rings handle their own loading/shimmer states
                 
                 // Navigation gradient mask (iOS Mail style)
                 // Always show to prevent layout shift

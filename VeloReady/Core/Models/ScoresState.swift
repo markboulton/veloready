@@ -64,9 +64,13 @@ struct ScoresState {
     }
     
     /// Should show grey rings with shimmer effect
-    /// Only during initial load, not during refresh
+    /// Only during loading when NO cached scores are available
+    /// If we have cached scores, show them immediately (no grey rings)
     var shouldShowGreyRings: Bool {
-        phase == .initial || phase == .loading
+        // Show grey rings ONLY if:
+        // 1. We're loading AND
+        // 2. We don't have ANY cached scores to display
+        return (phase == .loading) && !allCoreScoresAvailable
     }
     
     /// Should show "Calculating" status text
