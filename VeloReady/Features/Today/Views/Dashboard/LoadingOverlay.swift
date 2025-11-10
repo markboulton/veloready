@@ -4,17 +4,18 @@ import SwiftUI
 /// Centered horizontally and vertically during initial app load (Phase 1)
 struct LoadingOverlay: View {
     var body: some View {
-        Color.background.primary
-            .ignoresSafeArea()
-            .overlay(
-                // Pulse-scale loader animation - centered in viewport
-                PulseScaleLoader()
-            )
-            .onAppear {
-                Logger.debug("🔵 [SPINNER] LoadingOverlay SHOWING")
-            }
-            .onDisappear {
-                Logger.debug("🟢 [SPINNER] LoadingOverlay HIDDEN")
-            }
+        ZStack {
+            Color.background.primary
+                .ignoresSafeArea()
+            
+            // Pulse-scale loader animation - centered in viewport
+            PulseScaleLoader()
+        }
+        .onAppear {
+            Logger.info("🔵 [LOADING-OVERLAY] onAppear - LoadingOverlay is NOW VISIBLE")
+        }
+        .onDisappear {
+            Logger.info("🟢 [LOADING-OVERLAY] onDisappear - LoadingOverlay is NOW HIDDEN")
+        }
     }
 }

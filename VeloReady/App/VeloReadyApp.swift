@@ -289,9 +289,9 @@ struct MainTabView: View {
             if showInitialSpinner {
                 LoadingOverlay()
                     .zIndex(999)
-                    .transition(.opacity)
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
+                        Logger.info("🔵 [BRANDING] Starting 2-second display timer")
                         Task { @MainActor in
                             // Show for 2 seconds
                             try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -300,6 +300,7 @@ struct MainTabView: View {
                                 showInitialSpinner = false
                             }
                             Logger.info("🎬 [BRANDING] Animation hidden - showInitialSpinner now: \(showInitialSpinner)")
+                            Logger.info("🟢 [BRANDING] Branding sequence complete")
                         }
                     }
             }
@@ -333,9 +334,9 @@ struct MainTabView: View {
             if showInitialSpinner {
                 LoadingOverlay()
                     .zIndex(999)
-                    .transition(.opacity)
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
+                        Logger.info("🔵 [BRANDING] Starting 2-second display timer")
                         Task { @MainActor in
                             // Show for 2 seconds
                             try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -344,6 +345,7 @@ struct MainTabView: View {
                                 showInitialSpinner = false
                             }
                             Logger.info("🎬 [BRANDING] Animation hidden - showInitialSpinner now: \(showInitialSpinner)")
+                            Logger.info("🟢 [BRANDING] Branding sequence complete")
                         }
                     }
             }
