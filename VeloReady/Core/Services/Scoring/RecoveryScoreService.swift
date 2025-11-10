@@ -262,7 +262,107 @@ class RecoveryScoreService: ObservableObject {
         }
     }
     
-    // MARK: - Real Data Calculation
+    // MARK: - NEW API (explicit dependency - no hidden polling)
+    
+    /// Calculate recovery score with explicit sleep dependency
+    ///
+    /// **This is the NEW, PREFERRED API.**
+    /// Use this instead of `calculateRecoveryScore()` to avoid hidden service dependencies.
+    ///
+    /// - Parameters:
+    ///   - sleepScore: Pre-calculated sleep score (can be nil if no sleep data)
+    ///   - forceRefresh: Force recalculation even if daily limit reached
+    /// - Returns: Recovery score
+    ///
+    /// Created: 2025-11-10
+    /// Part of: Today View Refactoring Plan - Week 1 Day 4
+    func calculate(sleepScore: SleepScore?, forceRefresh: Bool = false) async -> RecoveryScore {
+        Logger.debug("🔄 [RecoveryScoreService] calculate(sleepScore: \(sleepScore?.score ?? -1), forceRefresh: \(forceRefresh))")
+        
+        // Check daily calculation limit (unless forcing)
+        if !forceRefresh && hasCalculatedToday() && currentRecoveryScore != nil &&
+           currentRecoveryScore?.inputs.hrv != nil &&
+           !hasPlaceholderSubScores(currentRecoveryScore) {
+            Logger.debug("⏭️ [RecoveryScoreService] Using cached score (daily limit reached)")
+            return currentRecoveryScore!
+        }
+        
+        // Set loading state
+        isLoading = true
+        defer { isLoading = false }
+        
+        // Check HealthKit authorization
+        if !HealthKitManager.shared.isAuthorized {
+            Logger.error("❌ [RecoveryScoreService] HealthKit not authorized")
+            // Return a placeholder score with Limited Data band
+            return createLimitedDataScore(sleepScore: sleepScore)
+        }
+        
+        // Delegate to calculator with explicit sleep input
+        Logger.debug("🔄 [RecoveryScoreService] Calculating with explicit sleep score...")
+        guard let score = await calculator.calculateRecoveryScore(sleepScore: sleepScore) else {
+            Logger.error("❌ [RecoveryScoreService] Calculation failed")
+            return createLimitedDataScore(sleepScore: sleepScore)
+        }
+        
+        // Update current score
+        currentRecoveryScore = score
+        
+        // Save to cache
+        await saveRecoveryScoreToCache(score)
+        
+        // Mark as calculated today (unless forcing)
+        if !forceRefresh {
+            markAsCalculatedToday()
+        }
+        
+        // Sync to Apple Watch
+        WatchConnectivityManager.shared.sendRecoveryScore(score)
+        
+        // Send recovery alert if score is low
+        await NotificationManager.shared.sendRecoveryAlert(score: Double(score.score), band: score.band.rawValue)
+        
+        Logger.debug("✅ [RecoveryScoreService] Recovery score calculated: \(score.score)")
+        return score
+    }
+    
+    /// Create a Limited Data recovery score as fallback
+    private func createLimitedDataScore(sleepScore: SleepScore?) -> RecoveryScore {
+        let placeholderInputs = RecoveryScore.RecoveryInputs(
+            hrv: nil,
+            overnightHrv: nil,
+            hrvBaseline: nil,
+            rhr: nil,
+            rhrBaseline: nil,
+            sleepDuration: nil,
+            sleepBaseline: nil,
+            respiratoryRate: nil,
+            respiratoryBaseline: nil,
+            atl: nil,
+            ctl: nil,
+            recentStrain: nil,
+            sleepScore: sleepScore
+        )
+        
+        let placeholderSubScores = RecoveryScore.SubScores(
+            hrv: 50,
+            rhr: 50,
+            sleep: sleepScore?.score ?? 50,
+            form: 50,
+            respiratory: 50
+        )
+        
+        return RecoveryScore(
+            score: 50,
+            band: .limitedData,
+            subScores: placeholderSubScores,
+            inputs: placeholderInputs,
+            calculatedAt: Date(),
+            isPersonalized: false
+        )
+    }
+    
+    // MARK: - Real Data Calculation (DEPRECATED - uses hidden dependency)
     
     private func calculateRealRecoveryScore(forceRefresh: Bool = false) async -> RecoveryScore? {
         // CRITICAL: Sleep score MUST be calculated first for accurate recovery calculation
