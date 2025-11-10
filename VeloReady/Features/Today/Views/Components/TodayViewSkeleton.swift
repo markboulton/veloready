@@ -42,8 +42,8 @@ struct TodayViewSkeleton: View {
                 if let score = cachedRecoveryScore {
                     CompactRingView(
                         score: score,
-                        title: "Optimal",
-                        band: .optimal,
+                        title: RecoveryScore.RecoveryBand.optimal.title,
+                        band: RecoveryScore.RecoveryBand.optimal,
                         animationDelay: 0.0,
                         action: {},
                         centerText: nil,
@@ -60,7 +60,7 @@ struct TodayViewSkeleton: View {
                 if let score = cachedSleepScore {
                     CompactRingView(
                         score: score,
-                        title: "Optimal",
+                        title: SleepScore.SleepBand.optimal.title,
                         band: SleepScore.SleepBand.optimal,
                         animationDelay: 0.1,
                         action: {},
@@ -78,7 +78,7 @@ struct TodayViewSkeleton: View {
                 if let score = cachedStrainScore {
                     CompactRingView(
                         score: Int((score / 10) * 100), // Convert to 0-100
-                        title: "Light",
+                        title: StrainScore.StrainBand.moderate.title,
                         band: StrainScore.StrainBand.moderate,
                         animationDelay: 0.2,
                         action: {},
