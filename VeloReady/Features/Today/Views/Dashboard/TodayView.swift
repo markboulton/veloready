@@ -42,18 +42,26 @@ struct TodayView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
+        // Don't render NavigationStack at all until branding animation is done
+        // This prevents the navigation bar from flashing before the overlay appears
+        if showInitialSpinner {
+            // Black screen while branding animation shows (overlay is in MainTabView)
+            Color.black
+                .ignoresSafeArea()
+                .onAppear {
+                    Logger.debug("🏠 [TodayView] Showing black screen for branding animation")
+                }
+        } else {
+            NavigationStack {
+                ZStack(alignment: .top) {
                     // Adaptive background (light grey in light mode, black in dark mode)
                     Color.background.app
                         .ignoresSafeArea()
                         .onAppear {
                             Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                         }
-
-                    // Real content - hide while branding animation is showing
-                    if !showInitialSpinner {
-                        ScrollView {
+                    
+                    ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
@@ -181,18 +189,17 @@ struct TodayView: View {
                 // Always show to prevent layout shift
                 NavigationGradientMask()
                     .opacity(viewModel.isInitializing ? 0 : 1)
-                    } // End of if !showInitialSpinner
+                }
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                    scrollOffset = value
+                }
+                .navigationTitle(TodayContent.title)
+                .navigationBarTitleDisplayMode(.large)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
             }
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-            }
-            .navigationTitle(TodayContent.title)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
-        }
-        .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
-        .onAppear {
+            .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
+            .onAppear {
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
@@ -242,6 +249,7 @@ struct TodayView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+        } // End of else (NavigationStack content)
     }
     
     // MARK: - Loading Spinner

@@ -5,17 +5,17 @@ import SwiftUI
 struct LoadingOverlay: View {
     var body: some View {
         ZStack {
-            Color.background.primary
-                .ignoresSafeArea()
+        Color.background.primary
+            .ignoresSafeArea()
             
-            // Pulse-scale loader animation - centered in viewport
-            PulseScaleLoader()
+                // Pulse-scale loader animation - centered in viewport
+                PulseScaleLoader()
         }
-        .onAppear {
+            .onAppear {
             Logger.info("🔵 [LOADING-OVERLAY] onAppear - LoadingOverlay is NOW VISIBLE")
-        }
-        .onDisappear {
+            }
+            .onDisappear {
             Logger.info("🟢 [LOADING-OVERLAY] onDisappear - LoadingOverlay is NOW HIDDEN")
-        }
+            }
     }
 }
