@@ -165,7 +165,11 @@ class SupabaseClient: ObservableObject {
         saveSession(session)
         
         // Solution 4: Validate session asynchronously (don't block OAuth flow)
+        // Wait 2 seconds before validation to allow backend database replication
+        // This prevents race condition where JWT is created but athlete record not yet visible
         Task {
+            Logger.info("⏳ [Supabase] Waiting 2s for backend database replication...")
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             await validateSession(accessToken: accessToken)
         }
     }

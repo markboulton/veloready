@@ -16,12 +16,13 @@ actor SleepDataCalculator {
         var retryCount = 0
         let maxRetries = 2
         
-        // Retry up to 2 times with a 1-second delay between attempts
+        // Retry up to 2 times with a 3-second delay between attempts (total 6s wait)
         // This handles the race condition where HealthKit authorization was just granted
+        // iOS 26 needs more time to propagate permissions and make data available
         while sleepInfo == nil && retryCount <= maxRetries {
             if retryCount > 0 {
-                Logger.info("🔄 [SleepCalculator] Retry \(retryCount)/\(maxRetries) - waiting 1s before fetching sleep data...")
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                Logger.info("🔄 [SleepCalculator] Retry \(retryCount)/\(maxRetries) - waiting 3s before fetching sleep data...")
+                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
             }
             
             sleepInfo = await healthKitManager.fetchDetailedSleepData()
