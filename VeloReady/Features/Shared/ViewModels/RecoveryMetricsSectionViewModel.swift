@@ -46,7 +46,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     // MARK: - Initialization
     
     init(coordinator: ScoresCoordinator? = nil) {
-        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT (Week 2 - using ScoresCoordinator)")
+        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT (Week 2 - using ScoresCoordinator)")
         self.coordinator = coordinator ?? ServiceContainer.shared.scoresCoordinator
         
         // Load banner dismissed state
@@ -57,11 +57,11 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         self.sleepScore = self.coordinator.state.sleep
         self.strainScore = self.coordinator.state.strain
         
-        Logger.debug("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
+        Logger.info("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
         setupObservers()
         updateFromState(self.coordinator.state)
         
-        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
     }
     
     deinit {
@@ -133,16 +133,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         if state.phase == .ready && !hasCompletedFirstLoad {
             hasCompletedFirstLoad = true
             isInitialLoad = false
-            Logger.debug("🎯 [VIEWMODEL] First load completed - isInitialLoad now false")
+            Logger.info("🎯 [VIEWMODEL] First load completed - isInitialLoad now false")
         } else if state.phase == .loading && !hasCompletedFirstLoad {
             isInitialLoad = true  // Ensure we stay in initial load mode during first calculation
-            Logger.debug("🔄 [VIEWMODEL] First load in progress - isInitialLoad remains true")
+            Logger.info("🔄 [VIEWMODEL] First load in progress - isInitialLoad remains true")
         }
         
         // Update allScoresReady based on phase
         allScoresReady = (state.phase == .ready || state.phase == .refreshing) && state.allCoreScoresAvailable
         
-        Logger.debug("📊 [VIEWMODEL] State updated - phase: \(state.phase.description), isInitialLoad: \(isInitialLoad), hasCompletedFirstLoad: \(hasCompletedFirstLoad), allReady: \(allScoresReady), scores: R=\(recoveryScore?.score ?? -1) S=\(sleepScore?.score ?? -1) St=\(strainScore?.score ?? -1)")
+        Logger.info("📊 [VIEWMODEL] State updated - phase: \(state.phase.description), isInitialLoad: \(isInitialLoad), hasCompletedFirstLoad: \(hasCompletedFirstLoad), allReady: \(allScoresReady), scores: R=\(recoveryScore?.score ?? -1) S=\(sleepScore?.score ?? -1) St=\(strainScore?.score ?? -1)")
     }
     
     // MARK: - Public Methods

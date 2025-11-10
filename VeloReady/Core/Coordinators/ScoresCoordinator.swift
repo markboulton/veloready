@@ -76,16 +76,16 @@ class ScoresCoordinator: ObservableObject {
         
         do {
             // STEP 1: Calculate sleep FIRST (recovery needs it)
-            Logger.debug("🔄 [ScoresCoordinator] Step 1/3: Calculating sleep...")
+            Logger.info("🔄 [ScoresCoordinator] Step 1/3: Calculating sleep...")
             let sleepStartTime = Date()
             await sleepService.calculateSleepScore()
             let sleepDuration = Date().timeIntervalSince(sleepStartTime)
             let sleep = sleepService.currentSleepScore
             state.sleep = sleep
-            Logger.debug("✅ [ScoresCoordinator] Sleep calculated in \(String(format: "%.2f", sleepDuration))s - Score: \(sleep?.score ?? -1)")
+            Logger.info("✅ [ScoresCoordinator] Sleep calculated in \(String(format: "%.2f", sleepDuration))s - Score: \(sleep?.score ?? -1)")
             
             // STEP 2: Calculate recovery WITH sleep as input (no more polling!)
-            Logger.debug("🔄 [ScoresCoordinator] Step 2/3: Calculating recovery with sleep input...")
+            Logger.info("🔄 [ScoresCoordinator] Step 2/3: Calculating recovery with sleep input...")
             let recoveryStartTime = Date()
             let recovery = await recoveryService.calculate(
                 sleepScore: sleep,
@@ -93,25 +93,25 @@ class ScoresCoordinator: ObservableObject {
             )
             let recoveryDuration = Date().timeIntervalSince(recoveryStartTime)
             state.recovery = recovery
-            Logger.debug("✅ [ScoresCoordinator] Recovery calculated in \(String(format: "%.2f", recoveryDuration))s - Score: \(recovery.score), Band: \(recovery.band.rawValue)")
+            Logger.info("✅ [ScoresCoordinator] Recovery calculated in \(String(format: "%.2f", recoveryDuration))s - Score: \(recovery.score), Band: \(recovery.band.rawValue)")
             
             // STEP 3: Calculate strain (independent)
-            Logger.debug("🔄 [ScoresCoordinator] Step 3/3: Calculating strain...")
+            Logger.info("🔄 [ScoresCoordinator] Step 3/3: Calculating strain...")
             let strainStartTime = Date()
             await strainService.calculateStrainScore()
             let strainDuration = Date().timeIntervalSince(strainStartTime)
             let strain = strainService.currentStrainScore
             state.strain = strain
-            Logger.debug("✅ [ScoresCoordinator] Strain calculated in \(String(format: "%.2f", strainDuration))s - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
+            Logger.info("✅ [ScoresCoordinator] Strain calculated in \(String(format: "%.2f", strainDuration))s - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
             
             // STEP 4: Mark as ready (triggers animation if transitioning from loading)
             state.phase = .ready
             let totalDuration = Date().timeIntervalSince(startTime)
-            Logger.debug("✅ [ScoresCoordinator] ━━━ All scores ready in \(String(format: "%.2f", totalDuration))s - phase: .ready ━━━")
+            Logger.info("✅ [ScoresCoordinator] ━━━ All scores ready in \(String(format: "%.2f", totalDuration))s - phase: .ready ━━━")
             
             // Log animation trigger
             if state.shouldTriggerAnimation(from: oldState) {
-                Logger.debug("🎬 [ScoresCoordinator] Animation will be triggered (loading → ready transition)")
+                Logger.info("🎬 [ScoresCoordinator] Animation will be triggered (loading → ready transition)")
             }
             
         } catch {
@@ -137,36 +137,36 @@ class ScoresCoordinator: ObservableObject {
     /// - Individual score changes trigger animations
     func refresh() async {
         let startTime = Date()
-        Logger.debug("🔄 [ScoresCoordinator] ━━━ Starting refresh() ━━━")
+        Logger.info("🔄 [ScoresCoordinator] ━━━ Starting refresh() ━━━")
         
         let oldState = state
         state.phase = .refreshing
         
         // Same calculation logic but different phase (shows "Calculating" without grey rings)
-        Logger.debug("🔄 [ScoresCoordinator] Step 1/3: Refreshing sleep...")
+        Logger.info("🔄 [ScoresCoordinator] Step 1/3: Refreshing sleep...")
         await sleepService.calculateSleepScore()
         let sleep = sleepService.currentSleepScore
         state.sleep = sleep
-        Logger.debug("✅ [ScoresCoordinator] Sleep refreshed - Score: \(sleep?.score ?? -1)")
+        Logger.info("✅ [ScoresCoordinator] Sleep refreshed - Score: \(sleep?.score ?? -1)")
         
-        Logger.debug("🔄 [ScoresCoordinator] Step 2/3: Refreshing recovery...")
+        Logger.info("🔄 [ScoresCoordinator] Step 2/3: Refreshing recovery...")
         let recovery = await recoveryService.calculate(sleepScore: sleep)
         state.recovery = recovery
-        Logger.debug("✅ [ScoresCoordinator] Recovery refreshed - Score: \(recovery.score)")
+        Logger.info("✅ [ScoresCoordinator] Recovery refreshed - Score: \(recovery.score)")
         
-        Logger.debug("🔄 [ScoresCoordinator] Step 3/3: Refreshing strain...")
+        Logger.info("🔄 [ScoresCoordinator] Step 3/3: Refreshing strain...")
         await strainService.calculateStrainScore()
         let strain = strainService.currentStrainScore
         state.strain = strain
-        Logger.debug("✅ [ScoresCoordinator] Strain refreshed - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
+        Logger.info("✅ [ScoresCoordinator] Strain refreshed - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
         
         state.phase = .ready
         let totalDuration = Date().timeIntervalSince(startTime)
-        Logger.debug("✅ [ScoresCoordinator] ━━━ Scores refreshed in \(String(format: "%.2f", totalDuration))s ━━━")
+        Logger.info("✅ [ScoresCoordinator] ━━━ Scores refreshed in \(String(format: "%.2f", totalDuration))s ━━━")
         
         // Log animation trigger for changed scores
         if state.shouldTriggerAnimation(from: oldState) {
-            Logger.debug("🎬 [ScoresCoordinator] Animation will be triggered (score changed during refresh)")
+            Logger.info("🎬 [ScoresCoordinator] Animation will be triggered (score changed during refresh)")
         }
     }
     
@@ -179,7 +179,7 @@ class ScoresCoordinator: ObservableObject {
     /// until the first calculateAll() is called. This ensures the UI has
     /// a chance to display the loading state (grey rings + shimmer).
     private func loadCachedScores() {
-        Logger.debug("📦 [ScoresCoordinator] Loading cached scores...")
+        Logger.info("📦 [ScoresCoordinator] Loading cached scores...")
         
         // Load from service cache (instant, no async needed)
         state.recovery = recoveryService.currentRecoveryScore
@@ -192,20 +192,20 @@ class ScoresCoordinator: ObservableObject {
         state.phase = .initial
         
         if state.allCoreScoresAvailable {
-            Logger.debug("✅ [ScoresCoordinator] Loaded cached scores - phase: .initial (waiting for calculateAll)")
-            Logger.debug("   Recovery: \(state.recovery?.score ?? -1) (cached)")
-            Logger.debug("   Sleep: \(state.sleep?.score ?? -1) (cached)")
-            Logger.debug("   Strain: \(state.strain != nil ? String(format: "%.1f", state.strain!.score) : "-1") (cached)")
+            Logger.info("✅ [ScoresCoordinator] Loaded cached scores - phase: .initial (waiting for calculateAll)")
+            Logger.info("   Recovery: \(state.recovery?.score ?? -1) (cached)")
+            Logger.info("   Sleep: \(state.sleep?.score ?? -1) (cached)")
+            Logger.info("   Strain: \(state.strain != nil ? String(format: "%.1f", state.strain!.score) : "-1") (cached)")
         } else {
-            Logger.debug("⏳ [ScoresCoordinator] Partial/no cached scores - phase: .initial")
+            Logger.info("⏳ [ScoresCoordinator] Partial/no cached scores - phase: .initial")
             if state.recovery != nil {
-                Logger.debug("   Recovery: \(state.recovery!.score) (cached)")
+                Logger.info("   Recovery: \(state.recovery!.score) (cached)")
             }
             if state.sleep != nil {
-                Logger.debug("   Sleep: \(state.sleep!.score) (cached)")
+                Logger.info("   Sleep: \(state.sleep!.score) (cached)")
             }
             if state.strain != nil {
-                Logger.debug("   Strain: \(String(format: "%.1f", state.strain!.score)) (cached)")
+                Logger.info("   Strain: \(String(format: "%.1f", state.strain!.score)) (cached)")
             }
         }
     }
