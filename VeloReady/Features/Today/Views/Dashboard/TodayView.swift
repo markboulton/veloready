@@ -27,7 +27,6 @@ struct TodayView: View {
     @State private var wasHealthKitAuthorized = false
     @State private var scrollOffset: CGFloat = 0
     @State private var isViewActive = false
-    @State private var showSkeleton = false // Set by MainTabView after branding animation
     @Binding var showInitialSpinner: Bool
     @Environment(\.scenePhase) private var scenePhase
     @State private var previousScenePhase: ScenePhase = .inactive
@@ -45,12 +44,14 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Adaptive background (light grey in light mode, black in dark mode)
-                Color.background.app
-                    .ignoresSafeArea()
-                
-                // Real content
-                ScrollView {
+                    // Adaptive background (light grey in light mode, black in dark mode)
+                    Color.background.app
+                        .ignoresSafeArea()
+                        .onAppear {
+                            Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
+                        }
+
+                    ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
@@ -171,16 +172,13 @@ struct TodayView: View {
                     }
                 }
                 
+                // No loading overlay needed - content shows immediately with cached scores
+                // Rings handle their own loading/shimmer states
+                
                 // Navigation gradient mask (iOS Mail style)
                 // Always show to prevent layout shift
                 NavigationGradientMask()
                     .opacity(viewModel.isInitializing ? 0 : 1)
-                
-                // Skeleton loading state (shown after central branding animation)
-                if showSkeleton {
-                    TodayViewSkeleton(isVisible: $showSkeleton)
-                        .zIndex(100) // Ensure it's on top
-                }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -192,7 +190,6 @@ struct TodayView: View {
         }
         .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
         .onAppear {
-            Logger.info("🏠 [TodayView] onAppear - showSkeleton: \(showSkeleton), showInitialSpinner: \(showInitialSpinner)")
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
@@ -210,26 +207,6 @@ struct TodayView: View {
             if !newValue {
                 Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
                 showInitialSpinner = false
-                
-                // Hide skeleton after initialization completes
-                Logger.info("🎬 [TodayView] Initialization complete - hiding skeleton")
-                withAnimation(.easeOut(duration: 0.3)) {
-                    showSkeleton = false
-                }
-            }
-        }
-        .onChange(of: showInitialSpinner) { oldValue, newValue in
-            Logger.info("🎬 [TodayView] showInitialSpinner changed: \(oldValue) → \(newValue)")
-            // When central branding animation completes, show skeleton
-            if !newValue && oldValue {
-                Logger.info("🎬 [TodayView] Central branding complete - showing skeleton")
-                Task { @MainActor in
-                    // Small delay to ensure smooth transition from branding to skeleton
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
-                    withAnimation(.easeIn(duration: 0.2)) {
-                        showSkeleton = true
-                    }
-                }
             }
         }
         .onChange(of: healthKitManager.isAuthorized) { _, newValue in
