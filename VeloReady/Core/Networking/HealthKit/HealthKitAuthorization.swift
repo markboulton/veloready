@@ -6,18 +6,11 @@ import UIKit
 class HealthKitAuthorization: ObservableObject {
     
     // MARK: - Published Properties
-    @MainActor @Published var isAuthorized: Bool = {
-        let cached = UserDefaults.standard.bool(forKey: "healthKitAuthorized")
-        return cached
-    }()
+    // CRITICAL: No initial caching - always query HealthKit directly
+    // This prevents drift between cached state and actual iOS Health permissions
+    @MainActor @Published var isAuthorized: Bool = false
     
-    @MainActor @Published var authorizationState: AuthorizationState = {
-        if let rawValue = UserDefaults.standard.string(forKey: "healthKitAuthState"),
-           let state = AuthorizationState(rawValue: rawValue) {
-            return state
-        }
-        return .notDetermined
-    }()
+    @MainActor @Published var authorizationState: AuthorizationState = .notDetermined
     
     // MARK: - Private Properties
     private let healthStore: HKHealthStore
@@ -93,58 +86,56 @@ class HealthKitAuthorization: ObservableObject {
     // MARK: - Authorization Methods
     
     /// Request HealthKit authorization from the user
+    /// CRITICAL: This shows the iOS authorization sheet to the user
     func requestAuthorization() async {
-        Logger.debug("==========================================")
-        Logger.debug("🟠🟠🟠 AUTH requestAuthorization ENTRY")
-        Logger.debug("==========================================")
-        Logger.debug("🟠 [AUTH] requestAuthorization() called")
-        Logger.debug("🟠 [AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
-        print("🟠🟠🟠 [AUTH] PRINT: requestAuthorization() ENTRY")
-        print("🟠 [AUTH] PRINT: HKHealthStore available: \(HKHealthStore.isHealthDataAvailable())")
+        Logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Logger.info("🚀 [AUTH] requestAuthorization() ENTRY")
+        Logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Logger.info("🔍 [AUTH] HKHealthStore.isHealthDataAvailable: \(HKHealthStore.isHealthDataAvailable())")
         
         guard HKHealthStore.isHealthDataAvailable() else {
-            print("🟠 [AUTH] ❌ HealthKit not available on this device")
+            Logger.info("❌ [AUTH] HealthKit not available on this device")
+            await updateAuthState(.notAvailable, false)
             return
         }
         
-        print("🟠 [AUTH] HealthKit is available, proceeding with request")
-        print("🟠 [AUTH] readTypes count: \(readTypes.count)")
+        Logger.info("✅ [AUTH] HealthKit is available")
+        Logger.info("📋 [AUTH] Requesting permissions for \(readTypes.count) data types")
+        Logger.info("📋 [AUTH] Types: \(readTypes.map { $0.identifier }.prefix(5).joined(separator: ", "))...")
         
         do {
-            print("🟠 [AUTH] 🔐 Requesting HealthKit authorization...")
-            print("🟠 [AUTH] 📋 Requesting permissions for: \(readTypes.map { $0.identifier })")
-            print("🟠 [AUTH] About to call healthStore.requestAuthorization()")
+            Logger.info("🔐 [AUTH] Calling healthStore.requestAuthorization()...")
+            Logger.info("⏳ [AUTH] iOS will now show authorization sheet to user...")
+            
             try await healthStore.requestAuthorization(toShare: [], read: readTypes)
-            print("🟠 [AUTH] ✅ Authorization sheet completed (or bypassed by iOS)")
-            print("🟠 [AUTH] Waiting 2 seconds for iOS to update authorization status...")
             
-            // Check status after authorization with delay (iOS needs time to update)
+            Logger.info("✅ [AUTH] Authorization sheet completed (user made selection)")
+            Logger.info("⏳ [AUTH] Waiting 2 seconds for iOS to process authorization...")
+            
+            // iOS needs time to process authorization
             try? await Task.sleep(nanoseconds: 2_000_000_000)
-            print("🟠 [AUTH] Now checking authorization status...")
             
-            // iOS 26 BUG WORKAROUND: authorizationStatus() returns wrong value
-            // Test actual data access instead
-            print("🟠 [AUTH] Testing actual data access (iOS 26 workaround)...")
+            Logger.info("🔍 [AUTH] Testing actual data access (iOS 26 workaround)...")
             let canAccessData = await testDataAccess()
-            print("🟠 [AUTH] Data access test result: \(canAccessData)")
+            Logger.info("🔍 [AUTH] Data access test result: \(canAccessData)")
             
             if canAccessData {
-                print("🟠 [AUTH] ✅ Can access data! Overriding iOS authorizationStatus() bug")
-                await MainActor.run {
-                    self.isAuthorized = true
-                    self.authorizationState = .authorized
-                    UserDefaults.standard.set(true, forKey: "healthKitAuthorized")
-                    UserDefaults.standard.set(AuthorizationState.authorized.rawValue, forKey: "healthKitAuthState")
-                }
+                Logger.info("✅ [AUTH] SUCCESS! User granted HealthKit permissions")
+                await updateAuthState(.authorized, true)
             } else {
+                Logger.info("❌ [AUTH] Data access denied - checking authorization status...")
                 await MainActor.run {
                     checkAuthorizationStatus()
                 }
             }
-            print("🟠 [AUTH] Authorization status check completed")
+            
+            Logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Logger.info("🏁 [AUTH] requestAuthorization() EXIT - isAuthorized: \(await isAuthorized)")
+            Logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             
         } catch {
-            Logger.error("HealthKit authorization error: \(error.localizedDescription)")
+            Logger.error("❌ [AUTH] HealthKit authorization error: \(error.localizedDescription)")
+            await updateAuthState(.denied, false)
         }
     }
     
@@ -202,27 +193,47 @@ class HealthKitAuthorization: ObservableObject {
     }
     
     /// Check authorization after returning from Settings (or on view appear)
+    /// CRITICAL: This now PROACTIVELY requests authorization if not determined
     func checkAuthorizationAfterSettingsReturn() async {
-        print("🟠 [AUTH] checkAuthorizationAfterSettingsReturn() called")
+        Logger.info("🔍 [AUTH] checkAuthorizationAfterSettingsReturn() called")
         try? await Task.sleep(nanoseconds: 500_000_000)
         
-        // iOS 26 WORKAROUND: Test actual data access instead of trusting authorizationStatus()
-        print("🟠 [AUTH] Testing actual data access...")
+        guard HKHealthStore.isHealthDataAvailable() else {
+            Logger.info("❌ [AUTH] HealthKit not available on device")
+            await updateAuthState(.notAvailable, false)
+            return
+        }
+        
+        // Step 1: Check actual data access
+        Logger.info("🔍 [AUTH] Testing actual data access...")
         let canAccessData = await testDataAccess()
-        print("🟠 [AUTH] Data access test result: \(canAccessData)")
+        Logger.info("🔍 [AUTH] Data access test result: \(canAccessData)")
         
         if canAccessData {
-            print("🟠 [AUTH] ✅ Can access data! Marking as authorized")
-            await MainActor.run {
-                self.isAuthorized = true
-                self.authorizationState = .authorized
-                UserDefaults.standard.set(true, forKey: "healthKitAuthorized")
-                UserDefaults.standard.set(AuthorizationState.authorized.rawValue, forKey: "healthKitAuthState")
-            }
+            Logger.info("✅ [AUTH] Can access data! User has granted permissions.")
+            await updateAuthState(.authorized, true)
         } else {
-            print("🟠 [AUTH] ❌ Cannot access data, checking authorizationStatus...")
-            await MainActor.run {
-                checkAuthorizationStatus()
+            // Step 2: Cannot access data - check if it's "not determined" vs "denied"
+            Logger.info("❌ [AUTH] Cannot access data - checking authorization status...")
+            
+            // Check the actual authorization status
+            let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
+            let status = healthStore.authorizationStatus(for: hrvType)
+            Logger.info("🔍 [AUTH] HRV authorization status: \(status.rawValue) (\(AuthorizationState.fromHKStatus(status).description))")
+            
+            if status == .notDetermined {
+                // CRITICAL FIX: Authorization has NEVER been requested - request it now!
+                Logger.info("🚀 [AUTH] Authorization not determined - REQUESTING NOW")
+                await requestAuthorization()
+            } else if status == .sharingDenied {
+                Logger.info("❌ [AUTH] Authorization explicitly denied by user")
+                await updateAuthState(.denied, false)
+            } else {
+                // Fallback: check all types
+                Logger.info("⚠️ [AUTH] Status unclear - performing full check...")
+                await MainActor.run {
+                    checkAuthorizationStatus()
+                }
             }
         }
     }
@@ -305,7 +316,9 @@ class HealthKitAuthorization: ObservableObject {
     // MARK: - Private Methods
     
     private func checkAuthorizationStatusAsync() async {
-        print("🟠 [AUTH] checkAuthorizationStatusAsync() starting...")
+        Logger.info("🔍 [AUTH] checkAuthorizationStatusAsync() starting...")
+        Logger.info("📊 [AUTH] Checking authorization for \(readTypes.count) data types...")
+        
         var authorizedCount = 0
         var deniedCount = 0
         var notDeterminedCount = 0
@@ -334,11 +347,11 @@ class HealthKitAuthorization: ObservableObject {
             statusDetails.append("\(type.identifier): \(statusStr) (raw:\(status.rawValue))")
         }
         
-        print("🟠 [AUTH] Authorization status for all \(readTypes.count) types:")
+        Logger.info("📊 [AUTH] Authorization status for all \(readTypes.count) types:")
         for detail in statusDetails {
-            print("🟠 [AUTH]   \(detail)")
+            Logger.debug("   \(detail)")
         }
-        print("🟠 [AUTH] Summary: authorized=\(authorizedCount), denied=\(deniedCount), notDetermined=\(notDeterminedCount)")
+        Logger.info("📊 [AUTH] Summary: ✅ \(authorizedCount) authorized, ❌ \(deniedCount) denied, ⏳ \(notDeterminedCount) pending")
         
         await updateAuthorizationState(
             authorizedCount: authorizedCount,
@@ -359,29 +372,36 @@ class HealthKitAuthorization: ObservableObject {
         
         _ = readTypes.filter { criticalTypes.contains($0.identifier) }.count
         
+        let oldState = authorizationState
+        let oldAuthorized = isAuthorized
+        
         // FIXED: Check if we have ANY authorized permissions first
         if authorizedCount == readTypes.count {
             authorizationState = .authorized
             isAuthorized = true
-            Logger.debug("✅ HealthKit fully authorized")
+            Logger.info("✅ [AUTH] HealthKit fully authorized (\(authorizedCount)/\(readTypes.count))")
         } else if authorizedCount > 0 {
             // If we have SOME permissions, treat as partially authorized (usable!)
             authorizationState = .partial
             isAuthorized = true
-            Logger.debug("✅ HealthKit partially authorized (\(authorizedCount)/\(readTypes.count), \(deniedCount) denied)")
+            Logger.info("✅ [AUTH] HealthKit partially authorized (\(authorizedCount)/\(readTypes.count), \(deniedCount) denied)")
         } else if deniedCount > 0 {
             // Only mark as denied if we have NO authorized permissions
             authorizationState = .denied
             isAuthorized = false
-            Logger.warning("️ HealthKit denied - no permissions granted (\(deniedCount) denied, \(authorizedCount) authorized)")
+            Logger.warning("❌ [AUTH] HealthKit denied - no permissions granted (\(deniedCount) denied)")
         } else {
             authorizationState = .notDetermined
             isAuthorized = false
-            Logger.warning("️ HealthKit authorization not determined")
+            Logger.warning("⚠️ [AUTH] HealthKit authorization not determined (\(notDeterminedCount) pending)")
         }
         
-        UserDefaults.standard.set(isAuthorized, forKey: "healthKitAuthorized")
-        UserDefaults.standard.set(authorizationState.rawValue, forKey: "healthKitAuthState")
+        // Log state transitions
+        if oldState != authorizationState || oldAuthorized != isAuthorized {
+            Logger.info("🔄 [AUTH] State transition: \(oldState.description) → \(authorizationState.description)")
+        }
+        
+        // REMOVED: UserDefaults caching to prevent drift from actual iOS Health permissions
     }
     
     private func canAccessHealthData(for type: HKObjectType) async -> Bool {
@@ -434,11 +454,12 @@ class HealthKitAuthorization: ObservableObject {
     }
     
     /// iOS 26 Workaround: Test actual data access
+    /// CRITICAL: This is the definitive way to check authorization on iOS 26+
     private func testDataAccess() async -> Bool {
-        print("🟠 [AUTH] testDataAccess: Attempting to fetch steps data...")
+        Logger.info("🔍 [AUTH] testDataAccess: Attempting to fetch steps data...")
         
         guard let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
-            print("🟠 [AUTH] testDataAccess: Could not create steps type")
+            Logger.info("❌ [AUTH] testDataAccess: Could not create steps type")
             return false
         }
         
@@ -456,17 +477,25 @@ class HealthKitAuthorization: ObservableObject {
             ) { _, samples, error in
                 if let error = error {
                     let errorMsg = error.localizedDescription.lowercased()
-                    print("🟠 [AUTH] testDataAccess: Query error: \(error.localizedDescription)")
-                    if errorMsg.contains("not authorized") || errorMsg.contains("denied") {
-                        print("🟠 [AUTH] testDataAccess: DENIED - no permission")
+                    Logger.info("❌ [AUTH] testDataAccess: Query error: \(error.localizedDescription)")
+                    
+                    // CRITICAL FIX: "Authorization not determined" is a PERMISSION ERROR!
+                    // It means the user has NEVER been asked for permission.
+                    // OLD BUG: This was incorrectly treated as "no data available"
+                    if errorMsg.contains("authorization not determined") ||
+                       errorMsg.contains("not determined") ||
+                       errorMsg.contains("not authorized") || 
+                       errorMsg.contains("denied") {
+                        Logger.info("❌ [AUTH] testDataAccess: PERMISSION ERROR - authorization required")
                         continuation.resume(returning: false)
                     } else {
-                        print("🟠 [AUTH] testDataAccess: Non-permission error, assuming no data")
+                        // Other errors (network, data unavailable, etc) - assume no data but authorized
+                        Logger.info("⚠️ [AUTH] testDataAccess: Non-permission error (network/data issue)")
                         continuation.resume(returning: true)
                     }
                 } else {
-                    print("🟠 [AUTH] testDataAccess: SUCCESS - can access HealthKit!")
-                    print("🟠 [AUTH] testDataAccess: Sample count: \(samples?.count ?? 0)")
+                    Logger.info("✅ [AUTH] testDataAccess: SUCCESS - can access HealthKit!")
+                    Logger.info("✅ [AUTH] testDataAccess: Sample count: \(samples?.count ?? 0)")
                     continuation.resume(returning: true)
                 }
             }
@@ -477,10 +506,19 @@ class HealthKitAuthorization: ObservableObject {
     
     @MainActor
     private func updateAuthState(_ state: AuthorizationState, _ authorized: Bool) {
+        let oldState = authorizationState
+        let oldAuthorized = isAuthorized
+        
         authorizationState = state
         isAuthorized = authorized
-        UserDefaults.standard.set(isAuthorized, forKey: "healthKitAuthorized")
-        UserDefaults.standard.set(authorizationState.rawValue, forKey: "healthKitAuthState")
+        
+        // Log state transitions for debugging
+        if oldState != state || oldAuthorized != authorized {
+            Logger.info("🔄 [AUTH] State transition: \(oldState.description) → \(state.description), isAuthorized: \(oldAuthorized) → \(authorized)")
+        }
+        
+        // REMOVED: UserDefaults caching to prevent drift from actual iOS Health permissions
+        // The app now always queries HealthKit directly for authoritative state
     }
 }
 
