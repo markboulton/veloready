@@ -421,3 +421,36 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
     }
 }
 
+// MARK: - Authorization State
+
+enum AuthorizationState: String {
+    case notDetermined
+    case authorized
+    case denied
+    case partial
+    case notAvailable
+    
+    var description: String {
+        switch self {
+        case .notDetermined: return "Not Requested"
+        case .authorized: return "Authorized"
+        case .denied: return "Denied"
+        case .partial: return "Partially Authorized"
+        case .notAvailable: return "Not Available"
+        }
+    }
+    
+    static func fromHKStatus(_ status: HKAuthorizationStatus) -> AuthorizationState {
+        switch status {
+        case .notDetermined:
+            return .notDetermined
+        case .sharingDenied:
+            return .denied
+        case .sharingAuthorized:
+            return .authorized
+        @unknown default:
+            return .notDetermined
+        }
+    }
+}
+

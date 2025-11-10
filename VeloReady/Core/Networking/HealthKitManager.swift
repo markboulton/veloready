@@ -3,7 +3,7 @@ import HealthKit
 import UIKit
 
 /// Lightweight coordinator for HealthKit operations
-/// NOW USES: HealthKitAuthorizationCoordinator for centralized, Apple-recommended authorization
+/// Uses HealthKitAuthorizationCoordinator for centralized, Apple-recommended authorization
 /// Delegates to: HealthKitDataFetcher, HealthKitTransformer for data operations
 class HealthKitManager: ObservableObject {
     
@@ -13,11 +13,8 @@ class HealthKitManager: ObservableObject {
     // MARK: - Components
     private let healthStore = HKHealthStore()
     
-    // NEW: Centralized authorization coordinator (Apple's recommendations implemented)
+    // Centralized authorization coordinator (Apple's recommendations implemented)
     let authorizationCoordinator: HealthKitAuthorizationCoordinator
-    
-    // LEGACY: Keep for backward compatibility (will be removed in Phase 3)
-    let authorization: HealthKitAuthorization
     
     let dataFetcher: HealthKitDataFetcher
     let transformer: HealthKitTransformer
@@ -25,24 +22,20 @@ class HealthKitManager: ObservableObject {
     // MARK: - Published Properties (delegated from authorizationCoordinator)
     @Published var isAuthorized: Bool = false
     @Published var authorizationState: AuthorizationState = .notDetermined
-    @Published var isRequesting: Bool = false  // NEW: Expose request state
+    @Published var isRequesting: Bool = false
     
     // MARK: - Initialization
     private init() {
-        // LEGACY: Keep old authorization for backward compatibility
-        self.authorization = HealthKitAuthorization(healthStore: healthStore)
-        
         self.dataFetcher = HealthKitDataFetcher(healthStore: healthStore)
         self.transformer = HealthKitTransformer(healthStore: healthStore)
         
-        // NEW: Initialize centralized coordinator on MainActor
-        // Must be after other properties are initialized
+        // Initialize centralized coordinator
         let coordinator = HealthKitAuthorizationCoordinator(healthStore: healthStore)
         self.authorizationCoordinator = coordinator
         
-        Logger.info("🔧 [HKMANAGER] Initialized with new HealthKitAuthorizationCoordinator")
+        Logger.info("🔧 [HKMANAGER] Initialized with HealthKitAuthorizationCoordinator")
         
-        // Sync published properties with NEW coordinator
+        // Sync published properties with coordinator
         Task { @MainActor in
             await self.syncWithCoordinator()
         }
@@ -106,22 +99,6 @@ class HealthKitManager: ObservableObject {
         authorizationCoordinator.openSettings()
     }
     
-    // MARK: - LEGACY Methods (for backward compatibility - Phase 3 will remove these)
-    
-    func refreshAuthorizationStatus() async {
-        Logger.warning("⚠️ [HKMANAGER] refreshAuthorizationStatus() is LEGACY - use checkAuthorizationStatus() instead")
-        await authorizationCoordinator.checkAuthorizationStatus()
-    }
-    
-    func requestWorkoutPermissions() async {
-        Logger.warning("⚠️ [HKMANAGER] requestWorkoutPermissions() is LEGACY - workout permissions included in main authorization")
-        await authorizationCoordinator.requestAuthorization()
-    }
-    
-    func requestWorkoutRoutePermissions() async {
-        Logger.warning("⚠️ [HKMANAGER] requestWorkoutRoutePermissions() is LEGACY - route permissions included in main authorization")
-        await authorizationCoordinator.requestAuthorization()
-    }
     
     // MARK: - Data Fetching (delegated to HealthKitTransformer)
     

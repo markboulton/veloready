@@ -426,7 +426,7 @@ class TodayViewModel: ObservableObject {
     }
     
     func refreshHealthKitAuthorizationStatus() async {
-        await healthKitManager.refreshAuthorizationStatus()
+        await healthKitManager.checkAuthorizationStatus()
     }
     
     /// Retry loading after an error
