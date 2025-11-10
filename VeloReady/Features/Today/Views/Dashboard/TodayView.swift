@@ -30,7 +30,6 @@ struct TodayView: View {
     @Binding var showInitialSpinner: Bool
     @Environment(\.scenePhase) private var scenePhase
     @State private var previousScenePhase: ScenePhase = .inactive
-    @State private var hasCompletedInitialAuthCheck = false // Grace period for HealthKit auth check
     
     private let viewState = ViewStateManager.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
@@ -85,9 +84,8 @@ struct TodayView: View {
                         )
                         
                         // HealthKit Enablement Section (only when not authorized)
-                        // Wait for initial auth check to complete (150ms grace period)
-                        // to prevent flash of enable screen on app launch
-                        if !viewModel.isHealthKitAuthorized && hasCompletedInitialAuthCheck {
+                        // Wait for initial auth check to complete to prevent flash on app launch
+                        if !viewModel.isHealthKitAuthorized && healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
                             HealthKitEnablementSection(
                                 showingHealthKitPermissionsSheet: $showingHealthKitPermissionsSheet
                             )
@@ -201,17 +199,6 @@ struct TodayView: View {
             Logger.debug("📋   Each card .padding(.vertical, Spacing.xxl / 2) = \(Spacing.xxl / 2)pt")
             Logger.debug("📋   Total between cards: \(Spacing.md) + \(Spacing.xxl / 2) + \(Spacing.xxl / 2) = \(Spacing.md + Spacing.xxl)pt")
             handleViewAppear()
-            
-            // Grace period for HealthKit authorization check (prevents flash of enable screen)
-            // HealthKitAuthorizationCoordinator needs ~100-150ms to complete fast check + data access test
-            if !hasCompletedInitialAuthCheck {
-                Task {
-                    try? await Task.sleep(nanoseconds: 150_000_000) // 150ms
-                    await MainActor.run {
-                        hasCompletedInitialAuthCheck = true
-                    }
-                }
-            }
         }
         .onDisappear {
             Logger.debug("👋 [SPINNER] TodayView.onDisappear called - marking view as inactive")
