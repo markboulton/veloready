@@ -773,22 +773,39 @@ extension RecoveryScore {
         band: RecoveryBand? = nil,
         sleepScore: SleepScore? = nil
     ) -> RecoveryScore {
-        let actualBand = band ?? RecoveryBand(score: score)
+        // Determine band based on score if not provided
+        let actualBand = band ?? {
+            switch score {
+            case 80...100: return RecoveryBand.optimal
+            case 60..<80: return RecoveryBand.good
+            case 40..<60: return RecoveryBand.fair
+            case 20..<40: return RecoveryBand.poor
+            default: return RecoveryBand.limitedData
+            }
+        }()
         
         let mockInputs = RecoveryInputs(
             hrv: 50.0,
+            overnightHrv: 55.0,
+            hrvBaseline: 48.0,
             rhr: 55.0,
-            sleepScore: sleepScore,
-            temperature: 36.5,
-            respiratoryRate: 16.0
+            rhrBaseline: 58.0,
+            sleepDuration: 28800, // 8 hours
+            sleepBaseline: 28800,
+            respiratoryRate: 16.0,
+            respiratoryBaseline: 16.5,
+            atl: 50.0,
+            ctl: 60.0,
+            recentStrain: 100.0,
+            sleepScore: sleepScore
         )
         
         let mockSubScores = SubScores(
-            hrvScore: 70,
-            rhrScore: 80,
-            sleepScore: sleepScore?.score ?? 85,
-            temperatureScore: 100,
-            respiratoryScore: 100
+            hrv: 70,
+            rhr: 80,
+            sleep: sleepScore?.score ?? 85,
+            form: 75,
+            respiratory: 90
         )
         
         return RecoveryScore(

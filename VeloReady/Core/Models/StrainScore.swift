@@ -909,19 +909,38 @@ extension StrainScore {
             }
         }()
         
+        // Create mock inputs with minimal required fields
         let mockInputs = StrainInputs(
-            cardioActivities: [],
-            strengthWorkouts: [],
-            dailyActiveCalories: 500,
+            continuousHRData: nil,
+            dailyTRIMP: 100.0,
+            cardioDailyTRIMP: 80.0,
+            cardioDurationMinutes: 60.0,
+            averageIntensityFactor: 0.75,
+            workoutTypes: ["Cycling"],
+            strengthSessionRPE: 7.0,
+            strengthDurationMinutes: 30.0,
+            strengthVolume: 5000.0,
+            strengthSets: 10,
+            muscleGroupsTrained: [.legs],
+            isEccentricFocused: false,
             dailySteps: 8000,
-            todayRecoveryScore: nil,
-            muscleSorenessData: []
+            activeEnergyCalories: 500.0,
+            nonWorkoutMETmin: 200.0,
+            hrvOvernight: 50.0,
+            hrvBaseline: 48.0,
+            rmrToday: 55.0,
+            rmrBaseline: 58.0,
+            sleepQuality: 85,
+            userFTP: 250.0,
+            userMaxHR: 190.0,
+            userRestingHR: 55.0,
+            userBodyMass: 75.0
         )
         
         let mockSubScores = SubScores(
-            cardioLoad: 8.0,
-            strengthLoad: 3.0,
-            nonExerciseLoad: 1.0,
+            cardioLoad: 60,
+            strengthLoad: 30,
+            nonExerciseLoad: 10,
             recoveryFactor: 1.0
         )
         

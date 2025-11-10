@@ -78,8 +78,9 @@ class ScoresCoordinator: ObservableObject {
             // STEP 1: Calculate sleep FIRST (recovery needs it)
             Logger.debug("🔄 [ScoresCoordinator] Step 1/3: Calculating sleep...")
             let sleepStartTime = Date()
-            let sleep = await sleepService.calculateSleepScore()
+            await sleepService.calculateSleepScore()
             let sleepDuration = Date().timeIntervalSince(sleepStartTime)
+            let sleep = sleepService.currentSleepScore
             state.sleep = sleep
             Logger.debug("✅ [ScoresCoordinator] Sleep calculated in \(String(format: "%.2f", sleepDuration))s - Score: \(sleep?.score ?? -1)")
             
@@ -97,10 +98,11 @@ class ScoresCoordinator: ObservableObject {
             // STEP 3: Calculate strain (independent)
             Logger.debug("🔄 [ScoresCoordinator] Step 3/3: Calculating strain...")
             let strainStartTime = Date()
-            let strain = await strainService.calculateStrainScore()
+            await strainService.calculateStrainScore()
             let strainDuration = Date().timeIntervalSince(strainStartTime)
+            let strain = strainService.currentStrainScore
             state.strain = strain
-            Logger.debug("✅ [ScoresCoordinator] Strain calculated in \(String(format: "%.2f", strainDuration))s - Score: \(String(format: "%.1f", strain.score))")
+            Logger.debug("✅ [ScoresCoordinator] Strain calculated in \(String(format: "%.2f", strainDuration))s - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
             
             // STEP 4: Mark as ready (triggers animation if transitioning from loading)
             state.phase = .ready
@@ -142,7 +144,8 @@ class ScoresCoordinator: ObservableObject {
         
         // Same calculation logic but different phase (shows "Calculating" without grey rings)
         Logger.debug("🔄 [ScoresCoordinator] Step 1/3: Refreshing sleep...")
-        let sleep = await sleepService.calculateSleepScore()
+        await sleepService.calculateSleepScore()
+        let sleep = sleepService.currentSleepScore
         state.sleep = sleep
         Logger.debug("✅ [ScoresCoordinator] Sleep refreshed - Score: \(sleep?.score ?? -1)")
         
@@ -152,9 +155,10 @@ class ScoresCoordinator: ObservableObject {
         Logger.debug("✅ [ScoresCoordinator] Recovery refreshed - Score: \(recovery.score)")
         
         Logger.debug("🔄 [ScoresCoordinator] Step 3/3: Refreshing strain...")
-        let strain = await strainService.calculateStrainScore()
+        await strainService.calculateStrainScore()
+        let strain = strainService.currentStrainScore
         state.strain = strain
-        Logger.debug("✅ [ScoresCoordinator] Strain refreshed - Score: \(String(format: "%.1f", strain.score))")
+        Logger.debug("✅ [ScoresCoordinator] Strain refreshed - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
         
         state.phase = .ready
         let totalDuration = Date().timeIntervalSince(startTime)

@@ -13,14 +13,14 @@ import Foundation
 ///
 /// Created: 2025-11-10
 /// Part of: Today View Refactoring Plan - Week 1
-struct ScoresState: Equatable {
+struct ScoresState {
     var recovery: RecoveryScore?
     var sleep: SleepScore?
     var strain: StrainScore?
     var phase: Phase
     
     /// Loading phase for score calculation
-    enum Phase: Equatable {
+    enum Phase {
         case initial         // Never loaded (app just launched)
         case loading         // Initial calculation in progress
         case ready           // Scores available and ready
