@@ -96,10 +96,15 @@ struct CompactRingView: View {
                     .padding(.top, 8)
             }
         }
-        .onChange(of: animationTrigger) { _, _ in
+        .onChange(of: animationTrigger) { oldValue, newValue in
+            Logger.info("🎬 [CompactRingView] animationTrigger CHANGED for '\(title)' - \(oldValue) → \(newValue)")
             // Animate when spinner disappears or pull-to-refresh completes
-            guard score != nil else { return }
+            guard score != nil else {
+                Logger.info("🎬 [CompactRingView] Skipping animation for '\(title)' - score is nil")
+                return
+            }
             
+            Logger.info("🎬 [CompactRingView] Starting animation for '\(title)' with score: \(score!)")
             // Reset and animate
             animatedProgress = 0.0
             numberOpacity = 0.0

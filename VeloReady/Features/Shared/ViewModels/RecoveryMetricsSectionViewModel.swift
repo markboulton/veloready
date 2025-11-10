@@ -83,15 +83,20 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                     phase: newState.phase // Use same phase for comparison
                 )
                 
-                Logger.debug("🔄 [VIEWMODEL] ScoresCoordinator state changed - phase: \(newState.phase.description)")
+                Logger.info("🔄 [VIEWMODEL] ScoresCoordinator state changed - phase: \(newState.phase.description)")
                 
                 // Update scores and loading states
                 self.updateFromState(newState)
                 
                 // Handle animation triggers (logic from ScoresState)
+                Logger.info("🎬 [VIEWMODEL] Checking if animation should trigger - newState.shouldTriggerAnimation(from: oldState)")
                 if newState.shouldTriggerAnimation(from: oldState) {
-                    Logger.debug("🎬 [VIEWMODEL] Animation triggered by state transition")
+                    Logger.info("🎬 [VIEWMODEL] ✅ Animation WILL trigger - updating ringAnimationTrigger UUID")
+                    let oldUUID = self.ringAnimationTrigger
                     self.ringAnimationTrigger = UUID()
+                    Logger.info("🎬 [VIEWMODEL] ringAnimationTrigger changed: \(oldUUID) → \(self.ringAnimationTrigger)")
+                } else {
+                    Logger.info("🎬 [VIEWMODEL] ❌ Animation will NOT trigger")
                 }
             }
             .store(in: &cancellables)
