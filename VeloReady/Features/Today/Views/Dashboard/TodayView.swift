@@ -206,11 +206,9 @@ struct TodayView: View {
             viewModel.cancelBackgroundTasks()
         }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
-            Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
-            if !newValue {
-                Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
-                showInitialSpinner = false
-            }
+            Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(newValue)")
+            // Note: showInitialSpinner is controlled by MainTabView's 3-second timer
+            // Don't set it here to avoid interrupting the branding animation
         }
         .onChange(of: healthKitManager.isAuthorized) { _, newValue in
             handleHealthKitAuthChange(newValue)

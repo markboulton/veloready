@@ -226,6 +226,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var showInitialSpinner = true
+    @State private var brandingOpacity: Double = 0.0  // Start at 0 for fade-in animation
     
     private let tabs = [
         TabItem(title: CommonContent.TabLabels.today, icon: "house.fill"),
@@ -288,19 +289,33 @@ struct MainTabView: View {
             // Central branding animation - shows on app launch
             if showInitialSpinner {
                 LoadingOverlay()
+                    .opacity(brandingOpacity)
                     .zIndex(999)
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
-                        Logger.info("🔵 [BRANDING] Starting 2-second display timer")
+                        Logger.info("🔵 [BRANDING] Starting fade-in animation")
+                        
+                        // Phase 1: Fade in immediately (0.3s)
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            brandingOpacity = 1.0
+                        }
+                        
                         Task { @MainActor in
-                            // Show for 2 seconds
-                            try? await Task.sleep(nanoseconds: 2_000_000_000)
-                            Logger.info("🎬 [BRANDING] 2 seconds elapsed - hiding animation")
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                showInitialSpinner = false
+                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
+                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            
+                            // Phase 3: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                brandingOpacity = 0.0
                             }
-                            Logger.info("🎬 [BRANDING] Animation hidden - showInitialSpinner now: \(showInitialSpinner)")
-                            Logger.info("🟢 [BRANDING] Branding sequence complete")
+                            
+                            // Wait for fade-out to complete before removing from hierarchy
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
+                            showInitialSpinner = false
+                            Logger.info("✅ [BRANDING] Branding sequence complete")
                         }
                     }
             }
@@ -333,19 +348,33 @@ struct MainTabView: View {
             // Central branding animation - shows on app launch
             if showInitialSpinner {
                 LoadingOverlay()
+                    .opacity(brandingOpacity)
                     .zIndex(999)
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
-                        Logger.info("🔵 [BRANDING] Starting 2-second display timer")
+                        Logger.info("🔵 [BRANDING] Starting fade-in animation")
+                        
+                        // Phase 1: Fade in immediately (0.3s)
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            brandingOpacity = 1.0
+                        }
+                        
                         Task { @MainActor in
-                            // Show for 2 seconds
-                            try? await Task.sleep(nanoseconds: 2_000_000_000)
-                            Logger.info("🎬 [BRANDING] 2 seconds elapsed - hiding animation")
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                showInitialSpinner = false
+                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
+                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            
+                            // Phase 3: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                brandingOpacity = 0.0
                             }
-                            Logger.info("🎬 [BRANDING] Animation hidden - showInitialSpinner now: \(showInitialSpinner)")
-                            Logger.info("🟢 [BRANDING] Branding sequence complete")
+                            
+                            // Wait for fade-out to complete before removing from hierarchy
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
+                            showInitialSpinner = false
+                            Logger.info("✅ [BRANDING] Branding sequence complete")
                         }
                     }
             }
