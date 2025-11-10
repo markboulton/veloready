@@ -76,7 +76,7 @@ struct TodayView: View {
                         .frame(height: 0)
                         
                         // Loading status - scrolls with content, appears at top during pull-to-refresh
-                        // Always show (removed isInitializing check to prevent layout shifts)
+                        // Always visible to show loading state updates
                         HStack {
                             LoadingStatusView(
                                 state: viewModel.loadingStateManager.currentState,
@@ -90,7 +90,6 @@ struct TodayView: View {
                         .padding(.trailing, 0)
                         .padding(.top, 0)
                         .padding(.bottom, Spacing.sm)
-                        .opacity(viewModel.isInitializing ? 0 : 1) // Fade in after initializing
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
