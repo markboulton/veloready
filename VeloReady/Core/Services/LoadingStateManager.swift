@@ -37,10 +37,11 @@ class LoadingStateManager: ObservableObject {
         
         // PERFORMANCE FIX: Limit queue depth to prevent massive backlogs
         // If queue is getting too long, skip intermediate states
-        if stateQueue.count > 3 {
+        // Increased from 3 to 8 to show full loading cycle
+        if stateQueue.count > 8 {
             Logger.debug("⚠️ [LoadingState] Queue too long (\(stateQueue.count)), skipping intermediate states")
             // Keep only the most recent states
-            stateQueue = Array(stateQueue.suffix(2))
+            stateQueue = Array(stateQueue.suffix(6))
         }
         
         stateQueue.append(newState)
