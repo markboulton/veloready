@@ -108,7 +108,7 @@ struct DebugDataView: View {
             
             Button(DebugContent.HealthDataDebug.refreshAuthorizationStatus) {
                 Task {
-                    await healthKitManager.refreshAuthorizationStatus()
+                    await healthKitManager.checkAuthorizationStatus()
                 }
             }
             .buttonStyle(.bordered)

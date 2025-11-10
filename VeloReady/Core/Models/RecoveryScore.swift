@@ -762,3 +762,62 @@ extension RecoveryScore {
         return brief
     }
 }
+
+// MARK: - Mock Data for Testing
+
+#if DEBUG
+extension RecoveryScore {
+    /// Create a mock RecoveryScore for testing
+    static func mock(
+        score: Int = 78,
+        band: RecoveryBand? = nil,
+        sleepScore: SleepScore? = nil
+    ) -> RecoveryScore {
+        // Determine band based on score if not provided
+        let actualBand = band ?? {
+            switch score {
+            case 80...100: return RecoveryBand.optimal
+            case 60..<80: return RecoveryBand.good
+            case 40..<60: return RecoveryBand.fair
+            default: return RecoveryBand.payAttention
+            }
+        }()
+        
+        let mockInputs = RecoveryInputs(
+            hrv: 50.0,
+            overnightHrv: 55.0,
+            hrvBaseline: 48.0,
+            rhr: 55.0,
+            rhrBaseline: 58.0,
+            sleepDuration: 28800, // 8 hours
+            sleepBaseline: 28800,
+            respiratoryRate: 16.0,
+            respiratoryBaseline: 16.5,
+            atl: 50.0,
+            ctl: 60.0,
+            recentStrain: 100.0,
+            sleepScore: sleepScore
+        )
+        
+        let mockSubScores = SubScores(
+            hrv: 70,
+            rhr: 80,
+            sleep: sleepScore?.score ?? 85,
+            form: 75,
+            respiratory: 90
+        )
+        
+        return RecoveryScore(
+            score: score,
+            band: actualBand,
+            subScores: mockSubScores,
+            inputs: mockInputs,
+            calculatedAt: Date(),
+            isPersonalized: false,
+            mlConfidence: nil,
+            illnessDetected: false,
+            illnessSeverity: nil
+        )
+    }
+}
+#endif

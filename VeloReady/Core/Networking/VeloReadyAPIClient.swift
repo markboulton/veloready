@@ -198,8 +198,10 @@ class VeloReadyAPIClient: ObservableObject {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             Logger.debug("🔐 [VeloReady API] Added auth header")
         } else {
-            Logger.warning("⚠️ [VeloReady API] No auth token available")
-            throw VeloReadyAPIError.notAuthenticated
+            print("❌ [VeloReady API] No Supabase session - API calls will fail!")
+            print("💡 [VeloReady API] Fix: Disconnect and reconnect Strava in Settings to create session")
+            Logger.warning("⚠️ [VeloReady API] No auth token available - disconnect/reconnect Strava to fix")
+            // Don't throw - let the request fail and fall back to direct Strava API
         }
         
         Logger.debug("📡 [VeloReady API] Making request to: \(url.absoluteString)")

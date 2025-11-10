@@ -40,6 +40,10 @@ actor UnifiedCacheManager {
     private let migrationKey = "UnifiedCacheManager.MigrationVersion"
     private let currentMigrationVersion = 3 // Increment when adding new migrations
     
+    // MARK: - Cache Version Management
+    // Version is now centralized in CacheVersion.swift - single source of truth!
+    // DO NOT add version constants here - use CacheVersion.current instead
+    
     // MARK: - Initialization
     private init() {
         Logger.debug("🗄️ [UnifiedCache] Initialized (actor-based, thread-safe)")
@@ -409,6 +413,31 @@ actor UnifiedCacheManager {
     /// Run migrations if needed
     /// FIX #5: Persistent migration tracking
     private func runMigrationsIfNeeded() {
+        // Check cache version FIRST - if changed, clear everything
+        // Using centralized CacheVersion.current for version synchronization
+        if CacheVersion.needsCacheClear(for: CacheVersion.unifiedCacheKey) {
+            let lastVersion = UserDefaults.standard.string(forKey: CacheVersion.unifiedCacheKey) ?? "none"
+            Logger.warning("🗑️ [Cache VERSION] Cache format changed (\(lastVersion) → v\(CacheVersion.current))")
+            Logger.warning("🗑️ [Cache VERSION] Clearing all caches to prevent corruption")
+            
+            // Clear memory cache
+            memoryCache.removeAll()
+            
+            // Clear Core Data cache
+            Task {
+                await CachePersistenceLayer.shared.clearAll()
+            }
+            
+            // Clear disk cache
+            UserDefaults.standard.removeObject(forKey: diskCacheKey)
+            UserDefaults.standard.removeObject(forKey: diskCacheMetadataKey)
+            
+            // Save new version
+            CacheVersion.markAsCurrent(for: CacheVersion.unifiedCacheKey)
+            Logger.info("✅ [Cache VERSION] Cache cleared and version updated to v\(CacheVersion.current)")
+        }
+        
+        // Then run data migrations
         let lastVersion = UserDefaults.standard.integer(forKey: migrationKey)
         
         if lastVersion < currentMigrationVersion {

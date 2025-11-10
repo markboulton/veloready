@@ -18,7 +18,19 @@ class MapSnapshotService {
     private var activeGenerations = 0
     private var pendingGenerations: [(continuation: CheckedContinuation<Void, Never>, activityId: String)] = []
     
-    private init() {}
+    // MARK: - MapKit Initialization
+    private var isMapKitWarmedUp = false
+    private var warmUpTask: Task<Void, Never>?
+    
+    private init() {
+        Logger.debug("🗺️ [MapSnapshotService] Initializing service...")
+        // Pre-warm MapKit on initialization
+        warmUpTask = Task {
+            Logger.debug("🗺️ [MapSnapshotService] Starting warmup task...")
+            await self.warmUpMapKit()
+        }
+        Logger.debug("🗺️ [MapSnapshotService] Init complete, warmup task started")
+    }
     
     /// Generate a placeholder map with activity info (fast, non-blocking)
     /// Used during progressive loading to show immediate visual feedback
@@ -151,7 +163,7 @@ class MapSnapshotService {
         }
     }
     
-    /// Generate map snapshot asynchronously on background thread
+    /// Generate map snapshot asynchronously on background thread with retry logic
     /// - Parameters:
     ///   - coordinates: Array of GPS coordinates for the route
     ///   - activityId: Unique identifier for caching
@@ -162,6 +174,8 @@ class MapSnapshotService {
         activityId: String? = nil,
         size: CGSize = CGSize(width: 400, height: 300)
     ) async -> UIImage? {
+        Logger.debug("🗺️ [generateMapAsync] ENTRY - coordinates: \(coordinates.count), activityId: \(activityId ?? "nil")")
+        
         guard !coordinates.isEmpty else {
             Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
             return nil
@@ -175,74 +189,134 @@ class MapSnapshotService {
             }
         }
         
+        // Wait for MapKit warm-up if in progress
+        if !isMapKitWarmedUp {
+            Logger.debug("🗺️ [Background] Waiting for MapKit warm-up...")
+            await warmUpTask?.value
+            Logger.debug("🗺️ [Background] MapKit warm-up complete, proceeding with generation")
+        }
+        
         // Wait for available slot if at max concurrent generations
         await acquireGenerationSlot(activityId: activityId ?? "unknown")
         defer { Task { await releaseGenerationSlot() } }
         
-        // Run map generation on background thread to avoid blocking UI
-        return await Task.detached(priority: .utility) {
-            guard !coordinates.isEmpty else {
-                await Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
-                return nil
-            }
-            
-            await Logger.debug("🗺️ [Background] Generating map snapshot from \(coordinates.count) coordinates")
-            
-            // Calculate the region
-            guard let region = self.calculateRegionBackground(from: coordinates) else {
-                await Logger.debug("🗺️ [Background] Failed to calculate region from coordinates")
-                return nil
-            }
-            
-            // Validate size to prevent 0-height/width image creation
-            let validatedSize = CGSize(
-                width: max(size.width, 100),  // Minimum 100pt width
-                height: max(size.height, 100)  // Minimum 100pt height
-            )
-            
-            if validatedSize != size {
-                await Logger.warning("🗺️ [Background] Invalid size \(size), using \(validatedSize)")
-            }
-            
-            // Create map snapshot options
-            let options = MKMapSnapshotter.Options()
-            options.region = region
-            options.size = validatedSize
-            options.scale = await UIScreen.main.scale
-            options.mapType = .standard
-            options.showsBuildings = true
-            
-            // Use adaptive color scheme
-            if #available(iOS 13.0, *) {
-                let config = MKStandardMapConfiguration()
-                options.preferredConfiguration = config
-            }
-            
-            // Create snapshotter and generate snapshot
-            let snapshotter = MKMapSnapshotter(options: options)
-            
+        // Try with exponential backoff (3 attempts)
+        let maxAttempts = 3
+        var lastError: Error?
+        
+        for attempt in 1...maxAttempts {
+            // Run map generation on background thread to avoid blocking UI
             do {
-                let snapshot = try await snapshotter.start()
+                let image = try await Task.detached(priority: .utility) {
+                    guard !coordinates.isEmpty else {
+                        await Logger.debug("🗺️ [Background] No coordinates provided for map snapshot")
+                        throw MapSnapshotError.noCoordinates
+                    }
+                    
+                    await Logger.debug("🗺️ [Background] Generating map snapshot from \(coordinates.count) coordinates (attempt \(attempt)/\(maxAttempts))")
+            
+                    // Calculate the region
+                    guard let region = self.calculateRegionBackground(from: coordinates) else {
+                        await Logger.debug("🗺️ [Background] Failed to calculate region from coordinates")
+                        throw MapSnapshotError.invalidRegion
+                    }
+            
+                    // Validate size to prevent 0-height/width image creation
+                    let validatedSize = CGSize(
+                        width: max(size.width, 100),  // Minimum 100pt width
+                        height: max(size.height, 100)  // Minimum 100pt height
+                    )
+                    
+                    if validatedSize != size {
+                        await Logger.warning("🗺️ [Background] Invalid size \(size), using \(validatedSize)")
+                    }
+                    
+                    // Create map snapshot options
+                    let options = MKMapSnapshotter.Options()
+                    options.region = region
+                    options.size = validatedSize
+                    options.scale = await UIScreen.main.scale
+                    options.mapType = .standard
+                    options.showsBuildings = true
+                    
+                    // Use adaptive color scheme
+                    if #available(iOS 13.0, *) {
+                        let config = MKStandardMapConfiguration()
+                        options.preferredConfiguration = config
+                    }
+                    
+                    // Create snapshotter and generate snapshot
+                    let snapshotter = MKMapSnapshotter(options: options)
+                    let snapshot = try await snapshotter.start()
+                    
+                    // Draw the route on the snapshot (also on background thread)
+                    let image = self.drawRouteBackground(
+                        on: snapshot,
+                        coordinates: coordinates
+                    )
+                    
+                    await Logger.debug("🗺️ [Background] ✅ Map snapshot generated successfully")
+                    
+                    // Cache the generated snapshot
+                    if let activityId = activityId {
+                        await self.cacheSnapshot(image: image, activityId: activityId)
+                    }
+                    
+                    return image
+                }.value
                 
-                // Draw the route on the snapshot (also on background thread)
-                let image = self.drawRouteBackground(
-                    on: snapshot,
-                    coordinates: coordinates
-                )
-                
-                await Logger.debug("🗺️ [Background] ✅ Map snapshot generated successfully")
-                
-                // Cache the generated snapshot
-                if let activityId = activityId {
-                    await self.cacheSnapshot(image: image, activityId: activityId)
-                }
-                
+                // Success!
                 return image
+                
             } catch {
-                await Logger.error("🗺️ [Background] Failed to generate map snapshot: \(error)")
-                return nil
+                // Failed - store error and maybe retry
+                lastError = error
+                await Logger.error("🗺️ [Background] Attempt \(attempt)/\(maxAttempts) failed: \(error)")
+                
+                if attempt < maxAttempts {
+                    let delaySeconds = Double(attempt) * 0.5 // 0.5s, 1.0s delays
+                    Logger.warning("🗺️ [Background] Retrying in \(delaySeconds)s...")
+                    try? await Task.sleep(nanoseconds: UInt64(delaySeconds * 1_000_000_000))
+                } else {
+                    Logger.error("🗺️ [Background] All \(maxAttempts) attempts failed for map generation")
+                }
             }
-        }.value
+        }
+        
+        // All retries failed
+        if let error = lastError {
+            Logger.error("🗺️ [Background] Map generation failed after \(maxAttempts) attempts: \(error)")
+        }
+        return nil
+    }
+    
+    /// Pre-warm MapKit by creating a tiny snapshot to initialize internal resources
+    /// This prevents "default.csv not found" errors on first actual map generation
+    private func warmUpMapKit() async {
+        Logger.debug("🗺️ [WarmUp] Starting MapKit initialization...")
+        
+        // Create a minimal snapshot to force MapKit resource loading
+        let testCoordinate = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194) // San Francisco
+        let region = MKCoordinateRegion(
+            center: testCoordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+        
+        let options = MKMapSnapshotter.Options()
+        options.region = region
+        options.size = CGSize(width: 100, height: 100) // Tiny size for speed
+        options.scale = 1.0 // Low scale for speed
+        
+        let snapshotter = MKMapSnapshotter(options: options)
+        
+        do {
+            _ = try await snapshotter.start()
+            isMapKitWarmedUp = true
+            Logger.debug("🗺️ [WarmUp] ✅ MapKit successfully initialized")
+        } catch {
+            Logger.warning("🗺️ [WarmUp] ⚠️ MapKit warm-up failed (will retry on actual use): \(error)")
+            // Don't set warmed up flag - will retry on actual map generation
+        }
     }
     
     /// Clear the map snapshot cache
@@ -516,4 +590,12 @@ class MapSnapshotService {
             next.continuation.resume()
         }
     }
+}
+
+// MARK: - MapSnapshotError
+
+enum MapSnapshotError: Error {
+    case noCoordinates
+    case invalidRegion
+    case generationFailed(Error)
 }

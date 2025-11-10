@@ -63,6 +63,7 @@ struct AIBriefView: View {
                         Text(text)
                             .bodyStyle()
                             .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(nil) // Remove any line limits to prevent truncation
                         
                         // ML Data Collection Progress (if not sufficient data yet)
                         if mlService.trainingDataCount < 30 {
@@ -108,7 +109,9 @@ struct AIBriefView: View {
                         Logger.debug("✅ [AI Brief] Recovery score ready - fetching brief")
                         await service.fetchBrief()
                     } else {
-                        Logger.warning("⚠️ [AI Brief] Timeout waiting for recovery score")
+                        Logger.warning("⚠️ [AI Brief] Timeout waiting for recovery score - may be due to auth issues")
+                        // Show a helpful error message instead of infinite spinner
+                        await service.setErrorMessage("Recovery score not available. Check authentication in Settings.")
                     }
                 }
             }

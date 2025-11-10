@@ -200,11 +200,24 @@ class MLTrainingDataService: ObservableObject {
     /// Refresh training data count from Core Data
     /// Useful for updating UI when data is processed in background
     func refreshTrainingDataCount() async {
-        let dataset = await getTrainingDataset(days: 90)
-        if let dataset = dataset {
-            trainingDataCount = dataset.validDays
-            dataQualityScore = dataset.completeness
-            saveState()
+        // Query Core Data directly for accurate count
+        let request = MLTrainingData.fetchRequest()
+        request.predicate = NSPredicate(format: "isValidTrainingData == YES")
+        
+        let records = persistence.fetch(request)
+        let count = records.count
+        Logger.debug("📊 [ML] Refreshed training data count from Core Data: \(count) valid days")
+        
+        trainingDataCount = count
+        saveState()
+        
+        // Also update quality score if we have data
+        if count > 0 {
+            let dataset = await getTrainingDataset(days: 90)
+            if let dataset = dataset {
+                dataQualityScore = dataset.completeness
+                saveState()
+            }
         }
     }
     

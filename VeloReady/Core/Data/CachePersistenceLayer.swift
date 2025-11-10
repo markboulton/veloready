@@ -10,8 +10,8 @@ actor CachePersistenceLayer {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
-    // Cache schema version - increment when models change to invalidate old caches
-    private let cacheVersion = 3 // v3: Added HealthKit metrics + StravaActivity array support
+    // Cache version is now centralized in CacheVersion.swift - single source of truth!
+    // DO NOT add version constants here - use CacheVersion.current instead
     
     // Statistics
     private var saveCount = 0
@@ -19,25 +19,58 @@ actor CachePersistenceLayer {
     private var hitCount = 0
     private var missCount = 0
     
+    // Track initialization to prevent data access before cache clear
+    private var isInitialized = false
+    private let initLock = NSLock()
+    
     private init() {
         // Deferred initialization - don't access Core Data until needed
         Logger.debug("💾 [CachePersistence] Initialized (lazy)")
         
-        // Clear old cache on version change
+        // CRITICAL: Clear old cache SYNCHRONOUSLY before allowing data access
         Task {
             await checkAndClearOldCache()
+            await markInitComplete()
         }
     }
     
-    /// Check and clear cache if version changed
-    private func checkAndClearOldCache() async {
-        let versionKey = "CachePersistenceVersion"
-        let storedVersion = UserDefaults.standard.integer(forKey: versionKey)
+    /// Mark initialization as complete (must be called from async context)
+    private func markInitComplete() async {
+        initLock.lock()
+        isInitialized = true
+        initLock.unlock()
+        Logger.debug("💾 [CachePersistence] Initialization complete")
+    }
+    
+    /// Wait for initialization to complete (cache clear if needed)
+    private func ensureInitialized() async {
+        // Poll until initialized (cache clear complete)
+        var attempts = 0
+        while attempts < 100 {  // Max 10 seconds
+            initLock.lock()
+            let initialized = isInitialized
+            initLock.unlock()
+            
+            if initialized {
+                return
+            }
+            
+            try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+            attempts += 1
+        }
         
-        if storedVersion != cacheVersion {
-            Logger.debug("💾 [CachePersistence] Cache version mismatch (stored: \(storedVersion), current: \(cacheVersion)) - clearing old cache")
+        Logger.warning("⚠️ [CachePersistence] Initialization timeout - proceeding anyway")
+    }
+    
+    /// Check and clear cache if version changed
+    /// Using centralized CacheVersion for synchronization with UnifiedCacheManager
+    private func checkAndClearOldCache() async {
+        if CacheVersion.needsCacheClear(for: CacheVersion.persistenceKey) {
+            let storedVersion = UserDefaults.standard.integer(forKey: CacheVersion.persistenceKey)
+            Logger.debug("💾 [CachePersistence] Cache version mismatch (stored: \(storedVersion), current: \(CacheVersion.current)) - clearing old cache")
             await clearAll()
-            UserDefaults.standard.set(cacheVersion, forKey: versionKey)
+            CacheVersion.markAsCurrent(for: CacheVersion.persistenceKey)
+            Logger.info("✅ [CachePersistence] Cache cleared and version updated to v\(CacheVersion.current)")
         }
     }
     
@@ -50,6 +83,9 @@ actor CachePersistenceLayer {
     ///   - cachedAt: Timestamp when cached
     ///   - ttl: Time-to-live in seconds
     func saveToCoreData<T: Codable>(key: String, value: T, cachedAt: Date = Date(), ttl: TimeInterval) async {
+        // Wait for cache clear to complete before accessing data
+        await ensureInitialized()
+        
         do {
             let context = persistenceController.newBackgroundContext()
             
@@ -91,6 +127,9 @@ actor CachePersistenceLayer {
     ///   - key: Cache key to load
     /// - Returns: Decoded value if found and not expired, nil otherwise
     func loadFromCoreData<T: Codable>(key: String, as type: T.Type) async -> (value: T, cachedAt: Date)? {
+        // Wait for cache clear to complete before accessing data
+        await ensureInitialized()
+        
         let context = persistenceController.newBackgroundContext()
         
         return await context.perform {

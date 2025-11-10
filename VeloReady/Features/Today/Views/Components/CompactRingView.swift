@@ -11,6 +11,7 @@ struct CompactRingView: View {
     let centerText: String? // Optional custom text for center (e.g., "12.5" for strain)
     let animationTrigger: UUID // Triggers re-animation when changed
     var isLoading: Bool = false // Shows grey ring with shimmer when true
+    var isRefreshing: Bool = false // Shows "Calculating" status without grey ring (for refreshes)
     
     @State private var animatedProgress: Double = 0.0
     @State private var numberOpacity: Double = 0.0
@@ -23,7 +24,9 @@ struct CompactRingView: View {
     private let numberFadeDuration: Double = 0.28 // Number fade duration (30% faster than 0.4s)
     
     var body: some View {
-        VStack(spacing: Spacing.sm) {
+        let _ = Logger.info("🎨 [CompactRingView] Rendering - title: '\(title)', isLoading: \(isLoading), isRefreshing: \(isRefreshing), score: \(score?.description ?? "nil")")
+        
+        return VStack(spacing: Spacing.sm) {
             ZStack {
                 if isLoading {
                     // Loading state: Grey ring with subtle shimmer
@@ -76,8 +79,8 @@ struct CompactRingView: View {
                 }
             }
             
-            // Title - show "Calculating" when loading, otherwise show band
-            if isLoading {
+            // Title - show "Calculating" when loading or refreshing, otherwise show band
+            if isLoading || isRefreshing {
                 Text("Calculating")
                     .font(.caption)
                     .fontWeight(.medium)
@@ -93,10 +96,29 @@ struct CompactRingView: View {
                     .padding(.top, 8)
             }
         }
-        .onChange(of: animationTrigger) { _, _ in
-            // Animate when spinner disappears or pull-to-refresh completes
-            guard score != nil else { return }
+        .onAppear {
+            Logger.info("🎬 [CompactRingView] onAppear for '\(title)' - isLoading: \(isLoading), score: \(score?.description ?? "nil")")
+            // Trigger animation when view appears with a score (not in loading state)
+            guard !isLoading, score != nil else {
+                Logger.info("🎬 [CompactRingView] Skipping onAppear animation for '\(title)' - isLoading: \(isLoading), score: \(score?.description ?? "nil")")
+                return
+            }
             
+            Logger.info("🎬 [CompactRingView] Starting animation on appear for '\(title)' with score: \(score!)")
+            // Small delay to ensure view is laid out
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.animateRing()
+            }
+        }
+        .onChange(of: animationTrigger) { oldValue, newValue in
+            Logger.info("🎬 [CompactRingView] animationTrigger CHANGED for '\(title)' - \(oldValue) → \(newValue)")
+            // Animate when trigger changes (for refreshes)
+            guard score != nil else {
+                Logger.info("🎬 [CompactRingView] Skipping onChange animation for '\(title)' - score is nil")
+                return
+            }
+            
+            Logger.info("🎬 [CompactRingView] Starting animation on change for '\(title)' with score: \(score!)")
             // Reset and animate
             animatedProgress = 0.0
             numberOpacity = 0.0

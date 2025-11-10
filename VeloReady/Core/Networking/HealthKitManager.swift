@@ -3,7 +3,8 @@ import HealthKit
 import UIKit
 
 /// Lightweight coordinator for HealthKit operations
-/// Delegates to specialized components: HealthKitAuthorization, HealthKitDataFetcher, HealthKitTransformer
+/// Uses HealthKitAuthorizationCoordinator for centralized, Apple-recommended authorization
+/// Delegates to: HealthKitDataFetcher, HealthKitTransformer for data operations
 class HealthKitManager: ObservableObject {
     
     // MARK: - Singleton
@@ -11,96 +12,93 @@ class HealthKitManager: ObservableObject {
     
     // MARK: - Components
     private let healthStore = HKHealthStore()
-    let authorization: HealthKitAuthorization
+    
+    // Centralized authorization coordinator (Apple's recommendations implemented)
+    let authorizationCoordinator: HealthKitAuthorizationCoordinator
+    
     let dataFetcher: HealthKitDataFetcher
     let transformer: HealthKitTransformer
     
-    // MARK: - Published Properties (delegated from authorization)
+    // MARK: - Published Properties (delegated from authorizationCoordinator)
     @Published var isAuthorized: Bool = false
     @Published var authorizationState: AuthorizationState = .notDetermined
+    @Published var isRequesting: Bool = false
     
     // MARK: - Initialization
     private init() {
-        self.authorization = HealthKitAuthorization(healthStore: healthStore)
         self.dataFetcher = HealthKitDataFetcher(healthStore: healthStore)
         self.transformer = HealthKitTransformer(healthStore: healthStore)
         
-        // Sync published properties with authorization component
+        // Initialize centralized coordinator
+        let coordinator = HealthKitAuthorizationCoordinator(healthStore: healthStore)
+        self.authorizationCoordinator = coordinator
+        
+        Logger.info("🔧 [HKMANAGER] Initialized with HealthKitAuthorizationCoordinator")
+        
+        // Sync published properties with coordinator
         Task { @MainActor in
-            self.isAuthorized = await authorization.isAuthorized
-            self.authorizationState = await authorization.authorizationState
+            await self.syncWithCoordinator()
         }
     }
     
-    // MARK: - Authorization (delegated to HealthKitAuthorization)
+    // MARK: - Private Sync
     
+    @MainActor
+    private func syncWithCoordinator() async {
+        // Observe coordinator state changes
+        authorizationCoordinator.$isAuthorized
+            .assign(to: &$isAuthorized)
+        
+        authorizationCoordinator.$authorizationState
+            .assign(to: &$authorizationState)
+        
+        authorizationCoordinator.$isRequesting
+            .assign(to: &$isRequesting)
+        
+        Logger.info("✅ [HKMANAGER] Synced with HealthKitAuthorizationCoordinator")
+    }
+    
+    // MARK: - Authorization (NOW delegated to HealthKitAuthorizationCoordinator)
+    
+    /// Request HealthKit authorization - CENTRALIZED through coordinator
     func requestAuthorization() async {
-        print("==========================================")
-        print("🟢🟢🟢 HKMANAGER requestAuthorization ENTRY")
-        print("==========================================")
-        print("🟢 [HKMANAGER] requestAuthorization() called")
-        print("🟢 [HKMANAGER] authorization instance: \(ObjectIdentifier(authorization))")
-        print("🟢 [HKMANAGER] Delegating to authorization component...")
-        await authorization.requestAuthorization()
-        print("🟢 [HKMANAGER] Returned from authorization.requestAuthorization()")
-        await syncAuth()
-        print("🟢 [HKMANAGER] syncAuth() completed, isAuthorized: \(isAuthorized)")
-        print("==========================================")
-        print("🟢🟢🟢 HKMANAGER requestAuthorization EXIT")
-        print("==========================================")
+        Logger.info("🔧 [HKMANAGER] requestAuthorization() - delegating to coordinator")
+        await authorizationCoordinator.requestAuthorization()
+        Logger.info("🔧 [HKMANAGER] requestAuthorization() complete - isAuthorized: \(isAuthorized)")
     }
     
-    func refreshAuthorizationStatus() async {
-        await authorization.refreshAuthorizationStatus()
-        await syncAuth()
-    }
-    
-    func requestWorkoutPermissions() async {
-        await authorization.requestWorkoutPermissions()
-        await syncAuth()
-    }
-    
-    func requestWorkoutRoutePermissions() async {
-        await authorization.requestWorkoutRoutePermissions()
-        await syncAuth()
-    }
-    
+    /// Check authorization after returning from Settings
     func checkAuthorizationAfterSettingsReturn() async {
-        await authorization.checkAuthorizationAfterSettingsReturn()
-        await syncAuth()
+        Logger.info("🔧 [HKMANAGER] checkAuthorizationAfterSettingsReturn() - delegating to coordinator")
+        await authorizationCoordinator.checkAuthorizationAfterSettingsReturn()
     }
     
+    /// Fast authorization check (for view appear)
+    func checkAuthorizationStatusFast() async {
+        await authorizationCoordinator.checkAuthorizationStatusFast()
+    }
+    
+    /// Comprehensive authorization status check
+    func checkAuthorizationStatus() async {
+        await authorizationCoordinator.checkAuthorizationStatus()
+    }
+    
+    /// Get detailed authorization info for debugging
     func getAuthorizationDetails() -> [String: String] {
-        return authorization.getAuthorizationDetails()
+        return authorizationCoordinator.getAuthorizationDetails()
     }
     
+    /// Get authorization status for a specific type
     func getAuthorizationStatus(for type: HKObjectType) -> HKAuthorizationStatus {
-        return authorization.getAuthorizationStatus(for: type)
+        return authorizationCoordinator.getAuthorizationStatus(for: type)
     }
     
+    /// Open iOS Settings app
     @MainActor
     func openSettings() {
-        authorization.openSettings()
+        authorizationCoordinator.openSettings()
     }
     
-    func checkAuthorizationStatusFast() async {
-        await authorization.checkAuthorizationStatusFast()
-        await syncAuth()
-    }
-    
-    @MainActor
-    func checkAuthorizationStatus() {
-        authorization.checkAuthorizationStatus()
-        Task {
-            await syncAuth()
-        }
-    }
-    
-    @MainActor
-    private func syncAuth() async {
-        self.isAuthorized = await authorization.isAuthorized
-        self.authorizationState = await authorization.authorizationState
-    }
     
     // MARK: - Data Fetching (delegated to HealthKitTransformer)
     

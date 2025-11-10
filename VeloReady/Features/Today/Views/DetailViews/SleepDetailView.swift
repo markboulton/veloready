@@ -539,7 +539,7 @@ struct SleepDetailView: View {
                 
                 GeometryReader { geometry in
                     HStack(alignment: .bottom, spacing: Spacing.xs) {
-                        ForEach(Array(results.enumerated()), id: \.element.date) { index, dailyScore in
+                        ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
                             let score = dailyScore.sleepScore
                             let height = max(4, (score / 100.0) * geometry.size.height)
                             let color: Color = score >= 80 ? ColorScale.greenAccent : score >= 60 ? ColorScale.yellowAccent : ColorScale.amberAccent
@@ -634,7 +634,7 @@ struct SleepDetailView: View {
                             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                         
                         // Data points
-                        ForEach(Array(results.enumerated()), id: \.element.date) { index, dailyScore in
+                        ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
                             let xPos = (CGFloat(index) / CGFloat(max(1, results.count - 1))) * geometry.size.width
                             let deviation = (dailyScore.sleepScore - avgScore) / 100.0
                             let yPos = geometry.size.height / 2 - (CGFloat(deviation) * geometry.size.height * 0.8)

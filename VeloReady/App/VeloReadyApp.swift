@@ -9,19 +9,30 @@ struct VeloReadyApp: App {
         // Log version information at startup
         AppVersion.logVersionInfo()
         
-        // CRITICAL: Refresh Supabase token BEFORE any API calls
+        // CRITICAL: Verify cache version synchronization on startup
+        // This prevents the bug where cache systems get out of sync
         Task { @MainActor in
+            _ = CacheVersion.verifySynchronization()
+        }
+        
+        // CRITICAL: Initialize in CORRECT ORDER to prevent race conditions
+        Task { @MainActor in
+            // 1. Refresh Supabase token FIRST
             await SupabaseClient.shared.refreshOnAppLaunch()
-        }
-        
-        // Initialize service container early for optimal performance
-        Task { @MainActor in
+            Logger.debug("✅ [APP LAUNCH] Supabase token refreshed")
+            
+            // 2. Check HealthKit authorization BEFORE other services start
+            Logger.debug("🏥 [APP LAUNCH] Checking HealthKit authorization...")
+            await HealthKitManager.shared.checkAuthorizationAfterSettingsReturn()
+            Logger.debug("🏥 [APP LAUNCH] HealthKit check complete - isAuthorized: \(HealthKitManager.shared.isAuthorized)")
+            
+            // 3. NOW initialize service container (services will see isAuthorized = true)
             ServiceContainer.shared.initialize()
-        }
-        
-        // Configure AI Brief
-        Task { @MainActor in
+            Logger.debug("✅ [APP LAUNCH] Service container initialized")
+            
+            // 4. Configure AI Brief
             AIBriefConfig.configure()
+            Logger.debug("✅ [APP LAUNCH] AI Brief configured")
         }
         
         // Migrate workout metadata from UserDefaults to Core Data

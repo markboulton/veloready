@@ -51,6 +51,7 @@ class TodayViewModel: ObservableObject {
     let recoveryScoreService: RecoveryScoreService
     let sleepScoreService: SleepScoreService
     let strainScoreService: StrainScoreService
+    let scoresCoordinator: ScoresCoordinator  // NEW: Week 2 - Single source of truth for scores
     
     // Observer for HealthKit authorization changes
     private var healthKitObserver: AnyCancellable?
@@ -89,10 +90,19 @@ class TodayViewModel: ObservableObject {
     }
     
     private init(container: ServiceContainer = .shared) {
+        Logger.info("🎬 [TodayViewModel] INIT starting...")
+        
         // Use score services from container
         self.recoveryScoreService = container.recoveryScoreService
+        Logger.info("🎬 [TodayViewModel] Got recoveryScoreService")
         self.sleepScoreService = container.sleepScoreService
+        Logger.info("🎬 [TodayViewModel] Got sleepScoreService")
         self.strainScoreService = container.strainScoreService
+        Logger.info("🎬 [TodayViewModel] Got strainScoreService")
+        
+        Logger.info("🎬 [TodayViewModel] About to get scoresCoordinator...")
+        self.scoresCoordinator = container.scoresCoordinator  // NEW: Week 2
+        Logger.info("🎬 [TodayViewModel] Got scoresCoordinator: \(type(of: self.scoresCoordinator))")
         
         Logger.debug("🎬 [SPINNER] TodayViewModel init - isInitializing=\(isInitializing)")
         
@@ -270,22 +280,15 @@ class TodayViewModel: ObservableObject {
         for activity in unifiedActivities.prefix(5) {
             Logger.debug("🔍 Activity: \(activity.name) - Type: \(activity.type.rawValue) - Source: \(activity.source)")
         }
-        Logger.debug("⚡ Starting parallel score calculations...")
+        Logger.info("⚡ Starting score calculations via ScoresCoordinator...")
+        Logger.info("🔍 [DEBUG] scoresCoordinator type: \(type(of: scoresCoordinator))")
+        Logger.info("🔍 [DEBUG] About to call scoresCoordinator.calculateAll(forceRefresh: \(forceRecoveryRecalculation))")
         
-        // OPTIMIZATION: Truly parallel execution using withTaskGroup
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.sleepScoreService.calculateSleepScore() }
-            group.addTask {
-                if forceRecoveryRecalculation {
-                    await self.recoveryScoreService.forceRefreshRecoveryScoreIgnoringDailyLimit()
-                } else {
-                    await self.recoveryScoreService.calculateRecoveryScore()
-                }
-            }
-            group.addTask { await self.strainScoreService.calculateStrainScore() }
-        }
+        // NEW: Use ScoresCoordinator for orchestrated score calculation
+        // This replaces 3 separate service calls with a single coordinated call
+        await scoresCoordinator.calculateAll(forceRefresh: forceRecoveryRecalculation)
         
-        Logger.debug("✅ All score calculations completed in parallel")
+        Logger.debug("✅ All score calculations completed via coordinator")
         
         // Save to Core Data cache after scores are calculated
         do {
@@ -406,10 +409,8 @@ class TodayViewModel: ObservableObject {
         let hasSleepData = sleepScoreService.currentSleepScore != nil
         loadingStateManager.updateState(.calculatingScores(hasHealthKit: true, hasSleepData: hasSleepData))
         
-        // Recalculate scores
-        await sleepScoreService.calculateSleepScore()
-        await recoveryScoreService.calculateRecoveryScore()
-        await strainScoreService.calculateStrainScore()
+        // NEW: Use ScoresCoordinator for orchestrated refresh
+        await scoresCoordinator.refresh()
         
         isLoading = false
         
@@ -425,7 +426,7 @@ class TodayViewModel: ObservableObject {
     }
     
     func refreshHealthKitAuthorizationStatus() async {
-        await healthKitManager.refreshAuthorizationStatus()
+        await healthKitManager.checkAuthorizationStatus()
     }
     
     /// Retry loading after an error
@@ -474,15 +475,11 @@ class TodayViewModel: ObservableObject {
             let phase2Start = CFAbsoluteTimeGetCurrent()
             Logger.debug("🎯 PHASE 2 (Background): Starting parallel score calculations during spinner")
             
-            // Calculate all scores in parallel while spinner shows
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { await self.sleepScoreService.calculateSleepScore() }
-                group.addTask { await self.recoveryScoreService.calculateRecoveryScore() }
-                group.addTask { await self.strainScoreService.calculateStrainScore() }
-            }
+            // NEW: Use ScoresCoordinator for orchestrated initial calculation
+            await self.scoresCoordinator.calculateAll()
             
             let phase2Time = CFAbsoluteTimeGetCurrent() - phase2Start
-            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - all scores ready")
+            Logger.debug("✅ PHASE 2 complete in \(String(format: "%.2f", phase2Time))s - all scores ready via coordinator")
         }
         
         // Show brand spinner for exactly 2 seconds (brand experience)

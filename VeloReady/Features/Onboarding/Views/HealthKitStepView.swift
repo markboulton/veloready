@@ -51,9 +51,7 @@ struct HealthKitStepView: View {
             
             // Buttons
             VStack(spacing: Spacing.lg) {
-                let _ = Logger.debug("[ONBOARDING] Rendering buttons - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                 if healthKitManager.isAuthorized {
-                    let _ = Logger.debug("[ONBOARDING] Showing 'Continue' button (already authorized)")
                     // Already authorized
                     HStack {
                         Image(systemName: Icons.Status.successFill)
@@ -77,25 +75,23 @@ struct HealthKitStepView: View {
                             .cornerRadius(16)
                     }
                 } else {
-                    let _ = print("🔵 [ONBOARDING] Showing 'Grant Access' button (NOT authorized)")
                     // Request permission
                     Button(action: {
-                        print("🔵 [ONBOARDING] Grant Access button tapped")
-                        print("🔵 [ONBOARDING] healthKitManager instance: \(ObjectIdentifier(healthKitManager))")
-                        print("🔵 [ONBOARDING] Starting authorization request...")
+                        Logger.info("🔵 [ONBOARDING] Grant Access button tapped")
+                        Logger.info("🔵 [ONBOARDING] Starting authorization request...")
                         Task {
                             isRequesting = true
-                            print("🔵 [ONBOARDING] About to call healthKitManager.requestAuthorization()")
+                            Logger.info("🔵 [ONBOARDING] Calling healthKitManager.requestAuthorization()...")
                             await healthKitManager.requestAuthorization()
-                            print("🔵 [ONBOARDING] Returned from requestAuthorization()")
-                            print("🔵 [ONBOARDING] healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
+                            Logger.info("🔵 [ONBOARDING] Returned from requestAuthorization()")
+                            Logger.info("🔵 [ONBOARDING] Result: isAuthorized = \(healthKitManager.isAuthorized)")
                             isRequesting = false
                             
                             if healthKitManager.isAuthorized {
-                                print("🔵 [ONBOARDING] Setting hasConnectedHealthKit = true")
+                                Logger.info("✅ [ONBOARDING] Authorization succeeded - marking hasConnectedHealthKit = true")
                                 onboardingManager.hasConnectedHealthKit = true
                             } else {
-                                print("🔵 [ONBOARDING] Authorization failed or denied")
+                                Logger.info("❌ [ONBOARDING] Authorization failed or denied")
                             }
                         }
                     }) {
@@ -129,12 +125,14 @@ struct HealthKitStepView: View {
             .padding(.bottom, 40)
         }
         .onAppear {
-            print("🔵 [ONBOARDING] HealthKitStepView appeared - checking permissions...")
+            Logger.info("🔵 [ONBOARDING] HealthKitStepView appeared - checking permissions...")
             Task {
-                // Check current authorization status using the iOS 26 workaround
-                await healthKitManager.checkAuthorizationAfterSettingsReturn()
+                // CRITICAL: Use checkAuthorizationStatusFast() here, NOT checkAuthorizationAfterSettingsReturn()
+                // The latter will REQUEST authorization if not determined, but we want to wait
+                // for the user to tap "Grant Access" button before showing the authorization sheet
+                await healthKitManager.checkAuthorizationStatusFast()
                 isCheckingPermissions = false
-                print("🔵 [ONBOARDING] Permission check complete - isAuthorized: \(healthKitManager.isAuthorized)")
+                Logger.info("🔵 [ONBOARDING] Permission check complete - isAuthorized: \(healthKitManager.isAuthorized)")
             }
         }
     }
