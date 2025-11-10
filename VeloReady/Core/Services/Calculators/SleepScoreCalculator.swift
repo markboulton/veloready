@@ -12,7 +12,7 @@ actor SleepDataCalculator {
     
     func calculateSleepScore(sleepNeed: Double) async -> SleepScore? {
         // Get detailed sleep data (with retry for HealthKit authorization timing issues)
-        var sleepInfo: (sleepDuration: TimeInterval?, timeInBed: TimeInterval?, deepSleepDuration: TimeInterval?, remSleepDuration: TimeInterval?, coreSleepDuration: TimeInterval?, awakeDuration: TimeInterval?, wakeEvents: Int?, bedtime: Date?, wakeTime: Date?, firstSleepTime: Date?)?
+        var sleepInfo: HealthKitSleepData?
         var retryCount = 0
         let maxRetries = 2
         
