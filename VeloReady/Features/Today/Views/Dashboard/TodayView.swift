@@ -172,11 +172,12 @@ struct TodayView: View {
                     }
                 }
                 
-                // Loading overlay - shows on top of content
-                if viewModel.isInitializing {
-                    LoadingOverlay()
-                        .transition(.opacity)
-                }
+                // Loading overlay - DISABLED to prevent flash
+                // Content shows immediately with cached scores, rings handle their own loading
+                // if viewModel.isInitializing {
+                //     LoadingOverlay()
+                //         .transition(.opacity)
+                // }
                 
                 // Navigation gradient mask (iOS Mail style)
                 if !viewModel.isInitializing {
