@@ -27,6 +27,7 @@ struct TodayView: View {
     @State private var wasHealthKitAuthorized = false
     @State private var scrollOffset: CGFloat = 0
     @State private var isViewActive = false
+    @State private var showInitialLoadingOverlay = true
     @Binding var showInitialSpinner: Bool
     @Environment(\.scenePhase) private var scenePhase
     @State private var previousScenePhase: ScenePhase = .inactive
@@ -48,17 +49,7 @@ struct TodayView: View {
                 Color.background.app
                     .ignoresSafeArea()
                 
-                // Skeleton screen with cached scores (shows immediately)
-                if viewModel.isInitializing {
-                    TodayViewSkeleton(
-                        cachedRecoveryScore: viewModel.scoresCoordinator.state.recovery?.score,
-                        cachedSleepScore: viewModel.scoresCoordinator.state.sleep?.score,
-                        cachedStrainScore: viewModel.scoresCoordinator.state.strain?.score
-                    )
-                    .transition(.opacity)
-                }
-
-                // Real content (fades in when ready)
+                // Real content
                 ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
@@ -179,13 +170,22 @@ struct TodayView: View {
                         await viewModel.refreshData()
                     }
                 }
-                .opacity(viewModel.isInitializing ? 0 : 1) // Fade in when ready
-                .animation(.easeInOut(duration: 0.3), value: viewModel.isInitializing)
                 
                 // Navigation gradient mask (iOS Mail style)
                 // Always show to prevent layout shift
                 NavigationGradientMask()
                     .opacity(viewModel.isInitializing ? 0 : 1)
+                
+                // Initial loading overlay with animated rings
+                if showInitialLoadingOverlay {
+                    InitialLoadingOverlay(
+                        cachedRecoveryScore: viewModel.scoresCoordinator.state.recovery?.score,
+                        cachedSleepScore: viewModel.scoresCoordinator.state.sleep?.score,
+                        cachedStrainScore: viewModel.scoresCoordinator.state.strain?.score,
+                        isVisible: $showInitialLoadingOverlay
+                    )
+                    .zIndex(100) // Ensure it's on top
+                }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -197,6 +197,7 @@ struct TodayView: View {
         }
         .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
         .onAppear {
+            Logger.info("🏠 [TodayView] onAppear - showInitialLoadingOverlay: \(showInitialLoadingOverlay)")
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
@@ -214,6 +215,11 @@ struct TodayView: View {
             if !newValue {
                 Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
                 showInitialSpinner = false
+                
+                // Hide the initial loading overlay after initialization completes
+                // The overlay has its own minimum 1.5s duration, so this just signals it can hide
+                Logger.info("🎬 [TodayView] Initialization complete - signaling overlay to hide")
+                showInitialLoadingOverlay = false
             }
         }
         .onChange(of: healthKitManager.isAuthorized) { _, newValue in
