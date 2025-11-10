@@ -194,10 +194,37 @@ class StravaAPIClient: ObservableObject {
             throw StravaAPIError.invalidURL
         }
         
-        let (data, response) = try await URLSession.shared.data(from: url)
+        // Refresh Supabase token if needed before making request
+        do {
+            try await SupabaseClient.shared.refreshTokenIfNeeded()
+        } catch {
+            Logger.warning("⚠️ [Strava API] Supabase token refresh failed: \(error)")
+            return nil
+        }
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        // Add Supabase auth header (CRITICAL - backend needs this!)
+        var request = URLRequest(url: url)
+        if let supabaseToken = SupabaseClient.shared.accessToken {
+            request.setValue("Bearer \(supabaseToken)", forHTTPHeaderField: "Authorization")
+            Logger.debug("🔐 [Strava API] Added Supabase auth header to token request")
+        } else {
+            Logger.error("❌ [Strava API] No Supabase session - cannot fetch Strava token!")
+            Logger.warning("💡 [Strava API] Fix: Disconnect and reconnect Strava in Settings")
+            return nil
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            Logger.error("❌ [Strava API] Invalid response from token endpoint")
+            return nil
+        }
+        
+        if httpResponse.statusCode != 200 {
+            Logger.error("❌ [Strava API] Token endpoint returned \(httpResponse.statusCode)")
+            if let errorBody = String(data: data, encoding: .utf8) {
+                Logger.debug("📄 Error body: \(errorBody)")
+            }
             return nil
         }
         
@@ -206,6 +233,7 @@ class StravaAPIClient: ObservableObject {
         }
         
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+        Logger.debug("✅ [Strava API] Successfully fetched Strava access token")
         return tokenResponse.access_token
     }
 }
