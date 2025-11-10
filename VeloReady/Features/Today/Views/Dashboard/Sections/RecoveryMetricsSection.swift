@@ -124,7 +124,7 @@ struct RecoveryMetricsSection: View {
                             },
                             centerText: nil,
                             animationTrigger: viewModel.ringAnimationTrigger,
-                            isLoading: false,
+                            isLoading: viewModel.isRecoveryLoading && viewModel.isInitialLoad,
                             isRefreshing: viewModel.isRecoveryLoading && !viewModel.isInitialLoad
                         )
                     }
@@ -214,7 +214,7 @@ struct RecoveryMetricsSection: View {
                                 },
                                 centerText: nil,
                                 animationTrigger: viewModel.ringAnimationTrigger,
-                                isLoading: false,
+                                isLoading: viewModel.isSleepLoading && viewModel.isInitialLoad,
                                 isRefreshing: viewModel.isSleepLoading && !viewModel.isInitialLoad
                             )
                         }
@@ -304,7 +304,7 @@ struct RecoveryMetricsSection: View {
                             },
                             centerText: viewModel.strainFormattedScore,
                             animationTrigger: viewModel.ringAnimationTrigger,
-                            isLoading: false,
+                            isLoading: viewModel.isStrainLoading && viewModel.isInitialLoad,
                             isRefreshing: viewModel.isStrainLoading && !viewModel.isInitialLoad
                         )
                     }
