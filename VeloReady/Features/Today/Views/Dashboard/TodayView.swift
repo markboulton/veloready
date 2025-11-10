@@ -567,66 +567,28 @@ struct TodayView: View {
     }
     
     private func handleHealthKitAuthChange(_ newValue: Bool) {
-        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
-        guard viewState.hasCompletedTodayInitialLoad else {
-            Logger.debug("⏭️ [SPINNER] Skipping HealthKit auth change handler - initial load not complete")
-            return
-        }
+        guard viewState.hasCompletedTodayInitialLoad else { return }
         
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
             Task {
-                await viewModel.recoveryScoreService.clearBaselineCache()
-                await viewModel.refreshData(forceRecoveryRecalculation: true)
+                await viewModel.handleHealthKitAuth() // Phase 3: Delegate to coordinator
                 liveActivityService.startAutoUpdates()
             }
         }
     }
     
     private func handleAppForeground() {
-        Logger.debug("🔄 [FOREGROUND] App entering foreground - preparing fresh data fetch")
+        Logger.debug("🔄 [FOREGROUND] App entering foreground")
         
         Task {
-            // Check scores BEFORE doing anything
-            Logger.debug("🔄 [FOREGROUND] Score state BEFORE handleAppForeground:")
-            Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-            Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-            Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-            
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
             
             if healthKitManager.isAuthorized {
-                Logger.debug("🔄 [FOREGROUND] HealthKit authorized - starting refresh")
-                
-                // Invalidate short-lived caches for fresh data
                 await invalidateShortLivedCaches()
-                
-                // Check scores AFTER cache invalidation
-                Logger.debug("🔄 [FOREGROUND] Score state AFTER cache invalidation:")
-                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-                
-                // Now refresh will get fresh data
+                await viewModel.handleAppForeground() // Phase 3: Delegate to coordinator
                 liveActivityService.startAutoUpdates()
-                
-                Logger.debug("🔄 [FOREGROUND] About to call viewModel.refreshData()")
-                await viewModel.refreshData()
-                
-                // Check scores AFTER refresh
-                Logger.debug("🔄 [FOREGROUND] Score state AFTER viewModel.refreshData():")
-                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-                
-                // PERFORMANCE FIX: Removed redundant illness detection call
-                // Illness detection already runs in Phase 3 background analysis (line 521)
-                // Running it here causes unnecessary cache lookups during chart rendering
-            } else {
-                Logger.debug("🔄 [FOREGROUND] HealthKit NOT authorized - skipping refresh")
             }
-            
-            Logger.debug("🔄 [FOREGROUND] handleAppForeground complete")
         }
     }
     
@@ -655,14 +617,10 @@ struct TodayView: View {
     }
     
     private func handleIntervalsConnection() {
-        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
-        guard viewState.hasCompletedTodayInitialLoad else {
-            Logger.debug("⏭️ [SPINNER] Skipping Intervals connection handler - initial load not complete")
-            return
-        }
+        guard viewState.hasCompletedTodayInitialLoad else { return }
         
         Task {
-            await viewModel.refreshData()
+            await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
             liveActivityService.startAutoUpdates()
         }
     }
