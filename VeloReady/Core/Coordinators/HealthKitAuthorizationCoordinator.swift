@@ -103,7 +103,8 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
         Task { @MainActor in
             self.setupLifecycleObservers()
             
-            // Initial authorization check (fast, non-blocking)
+            // Initial authorization check (PASSIVE - does not request)
+            // Only checks status, never triggers authorization sheet
             await self.checkAuthorizationStatusFast()
         }
     }
@@ -172,7 +173,8 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
     }
     
     /// Check authorization status after returning from Settings
-    /// CRITICAL: This now PROACTIVELY requests authorization if not determined
+    /// PASSIVE: Only checks status, NEVER automatically requests authorization
+    /// Authorization must be explicitly requested via requestAuthorization()
     func checkAuthorizationAfterSettingsReturn() async {
         Logger.info("🔍 [AUTH COORDINATOR] checkAuthorizationAfterSettingsReturn() called")
         
@@ -209,9 +211,10 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
             Logger.info("🔍 [AUTH COORDINATOR] HRV authorization status: \(status.rawValue) (\(AuthorizationState.fromHKStatus(status).description))")
             
             if status == .notDetermined {
-                // CRITICAL: Authorization has NEVER been requested - request it now!
-                Logger.info("🚀 [AUTH COORDINATOR] Authorization not determined - REQUESTING NOW")
-                await requestAuthorization()
+                // CHANGED: Do NOT automatically request authorization
+                // User must explicitly tap "Grant Access" button
+                Logger.info("⏸️ [AUTH COORDINATOR] Authorization not determined - waiting for user action")
+                await updateState(.notDetermined, false)
             } else if status == .sharingDenied {
                 Logger.info("❌ [AUTH COORDINATOR] Authorization explicitly denied by user")
                 await updateState(.denied, false)
