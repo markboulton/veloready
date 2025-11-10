@@ -29,7 +29,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var isSleepLoading: Bool = false
     @Published private(set) var isStrainLoading: Bool = false
     @Published private(set) var allScoresReady: Bool = false
-    @Published private(set) var isInitialLoad: Bool = true  // Maps from ScoresState.phase
+    @Published private(set) var isInitialLoad: Bool = true  // Tracks if this ViewModel has completed first load
     @Published var ringAnimationTrigger = UUID()
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
@@ -41,6 +41,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     
     private let coordinator: ScoresCoordinator
     private var cancellables = Set<AnyCancellable>()
+    private var hasCompletedFirstLoad = false  // Internal flag to track first load completion
     
     // MARK: - Initialization
     
@@ -127,13 +128,21 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         isSleepLoading = isLoading
         isStrainLoading = isLoading
         
-        // Update isInitialLoad from phase (initial/loading = initial load, others = refresh)
-        isInitialLoad = (state.phase == .initial || state.phase == .loading)
+        // Update isInitialLoad: stay true until first .ready transition
+        // This ensures grey rings + shimmer show on first load, even with cached data
+        if state.phase == .ready && !hasCompletedFirstLoad {
+            hasCompletedFirstLoad = true
+            isInitialLoad = false
+            Logger.debug("🎯 [VIEWMODEL] First load completed - isInitialLoad now false")
+        } else if state.phase == .loading && !hasCompletedFirstLoad {
+            isInitialLoad = true  // Ensure we stay in initial load mode during first calculation
+            Logger.debug("🔄 [VIEWMODEL] First load in progress - isInitialLoad remains true")
+        }
         
         // Update allScoresReady based on phase
         allScoresReady = (state.phase == .ready || state.phase == .refreshing) && state.allCoreScoresAvailable
         
-        Logger.debug("📊 [VIEWMODEL] State updated - phase: \(state.phase.description), isInitialLoad: \(isInitialLoad), allReady: \(allScoresReady), scores: R=\(recoveryScore?.score ?? -1) S=\(sleepScore?.score ?? -1) St=\(strainScore?.score ?? -1)")
+        Logger.debug("📊 [VIEWMODEL] State updated - phase: \(state.phase.description), isInitialLoad: \(isInitialLoad), hasCompletedFirstLoad: \(hasCompletedFirstLoad), allReady: \(allScoresReady), scores: R=\(recoveryScore?.score ?? -1) S=\(sleepScore?.score ?? -1) St=\(strainScore?.score ?? -1)")
     }
     
     // MARK: - Public Methods

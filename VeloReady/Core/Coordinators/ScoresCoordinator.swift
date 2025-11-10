@@ -174,6 +174,10 @@ class ScoresCoordinator: ObservableObject {
     
     /// Load cached scores from services (instant, no async needed)
     /// Called during initialization for instant UI display
+    /// 
+    /// **Important:** Even with cached scores, we stay in .initial phase
+    /// until the first calculateAll() is called. This ensures the UI has
+    /// a chance to display the loading state (grey rings + shimmer).
     private func loadCachedScores() {
         Logger.debug("📦 [ScoresCoordinator] Loading cached scores...")
         
@@ -182,15 +186,18 @@ class ScoresCoordinator: ObservableObject {
         state.sleep = sleepService.currentSleepScore
         state.strain = strainService.currentStrainScore
         
-        // If we have cached scores, mark as ready immediately
+        // ALWAYS stay in .initial phase on startup (even with cached data)
+        // This allows the UI to show the loading state properly
+        // The phase will transition to .loading → .ready when calculateAll() is called
+        state.phase = .initial
+        
         if state.allCoreScoresAvailable {
-            state.phase = .ready
-            Logger.debug("✅ [ScoresCoordinator] Loaded cached scores - phase: .ready")
-            Logger.debug("   Recovery: \(state.recovery?.score ?? -1)")
-            Logger.debug("   Sleep: \(state.sleep?.score ?? -1)")
-            Logger.debug("   Strain: \(state.strain != nil ? String(format: "%.1f", state.strain!.score) : "-1")")
+            Logger.debug("✅ [ScoresCoordinator] Loaded cached scores - phase: .initial (waiting for calculateAll)")
+            Logger.debug("   Recovery: \(state.recovery?.score ?? -1) (cached)")
+            Logger.debug("   Sleep: \(state.sleep?.score ?? -1) (cached)")
+            Logger.debug("   Strain: \(state.strain != nil ? String(format: "%.1f", state.strain!.score) : "-1") (cached)")
         } else {
-            Logger.debug("⏳ [ScoresCoordinator] No cached scores - phase: .initial")
+            Logger.debug("⏳ [ScoresCoordinator] Partial/no cached scores - phase: .initial")
             if state.recovery != nil {
                 Logger.debug("   Recovery: \(state.recovery!.score) (cached)")
             }
