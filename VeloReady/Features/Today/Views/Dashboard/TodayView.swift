@@ -51,7 +51,9 @@ struct TodayView: View {
                             Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                         }
 
-                    ScrollView {
+                    // Real content - hide while branding animation is showing
+                    if !showInitialSpinner {
+                        ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
@@ -179,6 +181,7 @@ struct TodayView: View {
                 // Always show to prevent layout shift
                 NavigationGradientMask()
                     .opacity(viewModel.isInitializing ? 0 : 1)
+                    } // End of if !showInitialSpinner
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
