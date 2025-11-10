@@ -41,6 +41,17 @@ final class ServiceContainer {
     lazy var strainScoreService = StrainScoreService.shared
     lazy var wellnessDetectionService = WellnessDetectionService.shared
     
+    // MARK: - Coordinators (NEW: Week 2)
+    
+    /// ScoresCoordinator - single source of truth for all score calculations
+    /// Orchestrates recovery, sleep, and strain score services
+    /// Part of: Today View Refactoring Plan - Week 2
+    lazy var scoresCoordinator = ScoresCoordinator(
+        recoveryService: recoveryScoreService,
+        sleepService: sleepScoreService,
+        strainService: strainScoreService
+    )
+    
     // MARK: - ViewModels Registry
     
     private var viewModels: [String: Any] = [:]

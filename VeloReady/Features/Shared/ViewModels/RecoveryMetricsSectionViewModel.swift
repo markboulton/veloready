@@ -2,7 +2,22 @@ import SwiftUI
 import Combine
 
 /// ViewModel for RecoveryMetricsSection
-/// Handles three score services, missing sleep banner state, and load score conversion
+/// NOW SIMPLIFIED: Uses ScoresCoordinator as single source of truth
+/// 
+/// BEFORE (Week 1):
+/// - Observed 3 separate services with 6+ @Published properties
+/// - 150+ lines of Combine observer setup
+/// - Complex loading state management
+/// - Manual animation trigger logic
+/// 
+/// AFTER (Week 2):
+/// - Observes ScoresCoordinator.state (single source of truth)
+/// - ~50 lines of clean observer setup
+/// - State management handled by coordinator
+/// - Animation logic delegated to ScoresState
+///
+/// Created: 2025-11-10 (Week 2 Day 1)
+/// Part of: Today View Refactoring Plan
 @MainActor
 class RecoveryMetricsSectionViewModel: ObservableObject {
     // MARK: - Published Properties
@@ -13,42 +28,38 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     @Published private(set) var isRecoveryLoading: Bool = false
     @Published private(set) var isSleepLoading: Bool = false
     @Published private(set) var isStrainLoading: Bool = false
-    @Published private(set) var allScoresReady: Bool = false // True when all scores are loaded
-    @Published var ringAnimationTrigger = UUID() // Triggers ring re-animation when scores change
+    @Published private(set) var allScoresReady: Bool = false
+    @Published private(set) var isInitialLoad: Bool = true  // Maps from ScoresState.phase
+    @Published var ringAnimationTrigger = UUID()
     @Published var missingSleepBannerDismissed: Bool {
         didSet {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
         }
     }
     
-    // Track if this is initial load (true) or refresh (false)
-    @Published var isInitialLoad: Bool = true
+    // MARK: - Dependencies (NEW: ScoresCoordinator replaces 3 services)
     
-    // MARK: - Dependencies
-    
-    private let recoveryScoreService: RecoveryScoreService
-    private let sleepScoreService: SleepScoreService
-    private let strainScoreService: StrainScoreService
+    private let coordinator: ScoresCoordinator
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
     
-    init(
-        recoveryScoreService: RecoveryScoreService = .shared,
-        sleepScoreService: SleepScoreService = .shared,
-        strainScoreService: StrainScoreService = .shared
-    ) {
-        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT starting")
-        self.recoveryScoreService = recoveryScoreService
-        self.sleepScoreService = sleepScoreService
-        self.strainScoreService = strainScoreService
+    init(coordinator: ScoresCoordinator? = nil) {
+        Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT (Week 2 - using ScoresCoordinator)")
+        self.coordinator = coordinator ?? ServiceContainer.shared.scoresCoordinator
         
         // Load banner dismissed state
         self.missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
         
-        Logger.debug("🏗️ [VIEWMODEL] Setting up observers for score services")
+        // Initialize scores from coordinator's current state
+        self.recoveryScore = self.coordinator.state.recovery
+        self.sleepScore = self.coordinator.state.sleep
+        self.strainScore = self.coordinator.state.strain
+        
+        Logger.debug("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
         setupObservers()
-        refreshData()
+        updateFromState(self.coordinator.state)
+        
         Logger.debug("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
     }
     
@@ -56,96 +67,31 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         Logger.debug("🗑️ [VIEWMODEL] RecoveryMetricsSectionViewModel DEINIT - was deinitialized")
     }
     
-    // MARK: - Setup
+    // MARK: - Setup (NEW: 90% reduction from 150+ lines to ~20 lines)
     
     private func setupObservers() {
-        // Observe recovery score
-        recoveryScoreService.$currentRecoveryScore
-            .sink { [weak self] score in
-                Logger.debug("🔄 [VIEWMODEL] Recovery score changed via Combine: \(score?.score ?? -1)")
-                let oldScore = self?.recoveryScore?.score
-                self?.recoveryScore = score
-                Logger.debug("🔄 [VIEWMODEL] ViewModel recoveryScore now: \(self?.recoveryScore?.score ?? -1)")
+        // Observe ScoresCoordinator state (single source of truth)
+        coordinator.$state
+            .sink { [weak self] newState in
+                guard let self = self else { return }
                 
-                // Trigger ring animation if score changed during refresh (not initial load)
-                if let old = oldScore, let new = score?.score, old != new, self?.isInitialLoad == false {
-                    Logger.debug("🎬 [VIEWMODEL] Recovery score changed from \(old) → \(new), triggering ring animation")
-                    self?.ringAnimationTrigger = UUID()
+                let oldState = ScoresState(
+                    recovery: self.recoveryScore,
+                    sleep: self.sleepScore,
+                    strain: self.strainScore,
+                    phase: newState.phase // Use same phase for comparison
+                )
+                
+                Logger.debug("🔄 [VIEWMODEL] ScoresCoordinator state changed - phase: \(newState.phase.description)")
+                
+                // Update scores and loading states
+                self.updateFromState(newState)
+                
+                // Handle animation triggers (logic from ScoresState)
+                if newState.shouldTriggerAnimation(from: oldState) {
+                    Logger.debug("🎬 [VIEWMODEL] Animation triggered by state transition")
+                    self.ringAnimationTrigger = UUID()
                 }
-                
-                self?.checkAllScoresReady()
-            }
-            .store(in: &cancellables)
-        
-        // Observe recovery loading state
-        recoveryScoreService.$isLoading
-            .sink { [weak self] loading in
-                Logger.debug("🔄 [VIEWMODEL] Recovery loading state changed: \(loading)")
-                self?.isRecoveryLoading = loading
-                self?.checkAllScoresReady()
-            }
-            .store(in: &cancellables)
-        
-        // Observe sleep score
-        sleepScoreService.$currentSleepScore
-            .sink { [weak self] score in
-                Logger.debug("🔄 [VIEWMODEL] Sleep score changed via Combine: \(score?.score ?? -1)")
-                let oldScore = self?.sleepScore?.score
-                self?.sleepScore = score
-                Logger.debug("🔄 [VIEWMODEL] ViewModel sleepScore now: \(self?.sleepScore?.score ?? -1)")
-                
-                // Trigger ring animation if score changed during refresh (not initial load)
-                if let old = oldScore, let new = score?.score, old != new, self?.isInitialLoad == false {
-                    Logger.debug("🎬 [VIEWMODEL] Sleep score changed from \(old) → \(new), triggering ring animation")
-                    self?.ringAnimationTrigger = UUID()
-                }
-                
-                self?.checkAllScoresReady()
-            }
-            .store(in: &cancellables)
-        
-        // Observe sleep loading state
-        sleepScoreService.$isLoading
-            .sink { [weak self] loading in
-                Logger.debug("🔄 [VIEWMODEL] Sleep loading state changed: \(loading)")
-                self?.isSleepLoading = loading
-                self?.checkAllScoresReady()
-            }
-            .store(in: &cancellables)
-        
-        // Observe strain score
-        strainScoreService.$currentStrainScore
-            .receive(on: DispatchQueue.main)  // CRITICAL: Ensure main thread for UI updates
-            .sink { [weak self] score in
-                print("💪 [VIEWMODEL] Strain score Combine fired: \(score?.score ?? -1)")
-                Logger.debug("🔄 [VIEWMODEL] Strain score changed via Combine: \(score?.score ?? -1)")
-                let oldScore = self?.strainScore?.score
-                self?.strainScore = score
-                print("💪 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
-                Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
-                
-                // Trigger ring animation if score changed
-                // On refresh (not initial load), this triggers animation immediately
-                // On initial load, animation is triggered by allScoresReady transition
-                if let old = oldScore, let new = score?.score, old != new {
-                    print("💪 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering animation")
-                    Logger.debug("🎬 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering ring animation")
-                    // Only trigger if not initial load (on initial load, wait for all scores)
-                    if self?.isInitialLoad == false {
-                        self?.ringAnimationTrigger = UUID()
-                    }
-                }
-                
-                self?.checkAllScoresReady()
-            }
-            .store(in: &cancellables)
-        
-        // Observe strain loading state
-        strainScoreService.$isLoading
-            .sink { [weak self] loading in
-                Logger.debug("🔄 [VIEWMODEL] Strain loading state changed: \(loading)")
-                self?.isStrainLoading = loading
-                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
         
@@ -154,75 +100,50 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         ProFeatureConfig.shared.$simulateNoSleepData
             .sink { [weak self] simulate in
                 if simulate {
-                    // Clear sleep score when simulation is ON
                     self?.sleepScore = nil
                     Logger.debug("🔄 [VIEWMODEL] Sleep simulation ON - cleared sleep score for rings")
                 } else {
-                    // Restore from service when simulation is OFF
-                    self?.sleepScore = self?.sleepScoreService.currentSleepScore
+                    self?.sleepScore = self?.coordinator.state.sleep
                     Logger.debug("🔄 [VIEWMODEL] Sleep simulation OFF - restored sleep score: \(self?.sleepScore?.score ?? -1)")
                 }
-                self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
         #endif
     }
     
-    /// Check if all scores are ready to display
-    /// On initial load: wait for ALL scores to be ready before showing (coordinated animation)
-    /// On refresh: show scores immediately with calculating status, animate when new scores arrive
-    private func checkAllScoresReady() {
-        let wasReady = allScoresReady
+    // MARK: - State Management (NEW: Single method replaces checkAllScoresReady + refreshData)
+    
+    /// Update ViewModel properties from ScoresCoordinator state
+    /// This replaces the old checkAllScoresReady() and refreshData() logic
+    private func updateFromState(_ state: ScoresState) {
+        // Update scores
+        recoveryScore = state.recovery
+        sleepScore = state.sleep
+        strainScore = state.strain
         
-        print("💪 [VIEWMODEL] checkAllScoresReady - isInitialLoad: \(isInitialLoad)")
-        print("💪 [VIEWMODEL] checkAllScoresReady - recovery: \(recoveryScore != nil), sleep: \(sleepScore != nil), strain: \(strainScore != nil)")
-        print("💪 [VIEWMODEL] checkAllScoresReady - loading: R=\(isRecoveryLoading), S=\(isSleepLoading), St=\(isStrainLoading)")
+        // Update loading states from phase
+        let isLoading = state.isLoading
+        isRecoveryLoading = isLoading
+        isSleepLoading = isLoading
+        isStrainLoading = isLoading
         
-        if isInitialLoad {
-            // INITIAL LOAD: Wait for ALL scores to be ready
-            // All loading must be complete before showing scores
-            let allLoadingComplete = !isRecoveryLoading && !isSleepLoading && !isStrainLoading
-            
-            // We need all core scores (recovery and strain are required, sleep is optional if no data)
-            let hasRequiredScores = recoveryScore != nil && strainScore != nil
-            
-            allScoresReady = allLoadingComplete && hasRequiredScores
-            
-            // Transition from initial load to refresh mode once scores are ready
-            if !wasReady && allScoresReady {
-                print("💪 [VIEWMODEL] ✅ All scores ready on initial load - transitioning to refresh mode")
-                Logger.debug("✅ [VIEWMODEL] All scores ready on initial load - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
-                isInitialLoad = false
-                // Trigger animation for all rings now that all scores are ready
-                ringAnimationTrigger = UUID()
-            }
-        } else {
-            // REFRESH MODE: Show scores immediately, they update with calculating status
-            // If we have ANY score, show the rings (don't hide them during refresh)
-            let hasAnyScore = recoveryScore != nil || sleepScore != nil || strainScore != nil
-            allScoresReady = hasAnyScore
-            
-            print("💪 [VIEWMODEL] checkAllScoresReady (refresh mode) - hasAnyScore: \(hasAnyScore), allScoresReady: \(allScoresReady)")
-        }
+        // Update isInitialLoad from phase (initial/loading = initial load, others = refresh)
+        isInitialLoad = (state.phase == .initial || state.phase == .loading)
         
-        if !allScoresReady {
-            Logger.debug("⏳ [VIEWMODEL] Still loading - recovery: \(isRecoveryLoading), sleep: \(isSleepLoading), strain: \(isStrainLoading)")
-        }
+        // Update allScoresReady based on phase
+        allScoresReady = (state.phase == .ready || state.phase == .refreshing) && state.allCoreScoresAvailable
+        
+        Logger.debug("📊 [VIEWMODEL] State updated - phase: \(state.phase.description), isInitialLoad: \(isInitialLoad), allReady: \(allScoresReady), scores: R=\(recoveryScore?.score ?? -1) S=\(sleepScore?.score ?? -1) St=\(strainScore?.score ?? -1)")
     }
     
     // MARK: - Public Methods
     
+    /// Refresh scores (delegates to coordinator)
     func refreshData() {
-        Logger.debug("🔄 [VIEWMODEL] refreshData() called")
-        Logger.debug("🔄 [VIEWMODEL] Service scores - recovery: \(recoveryScoreService.currentRecoveryScore?.score ?? -1), sleep: \(sleepScoreService.currentSleepScore?.score ?? -1), strain: \(strainScoreService.currentStrainScore?.score ?? -1)")
-        recoveryScore = recoveryScoreService.currentRecoveryScore
-        sleepScore = sleepScoreService.currentSleepScore
-        strainScore = strainScoreService.currentStrainScore
-        isRecoveryLoading = recoveryScoreService.isLoading
-        isSleepLoading = sleepScoreService.isLoading
-        isStrainLoading = strainScoreService.isLoading
-        checkAllScoresReady()
-        Logger.debug("🔄 [VIEWMODEL] After refresh - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1), loading states: R=\(isRecoveryLoading), S=\(isSleepLoading), St=\(isStrainLoading)")
+        Logger.debug("🔄 [VIEWMODEL] refreshData() - delegating to ScoresCoordinator")
+        Task {
+            await coordinator.refresh()
+        }
     }
     
     func reinstateSleepBanner() {
