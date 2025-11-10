@@ -70,6 +70,7 @@ class TodayCoordinator: ObservableObject {
     private let scoresCoordinator: ScoresCoordinator
     private let activitiesCoordinator: ActivitiesCoordinator
     private let services: ServiceContainer
+    private let loadingStateManager: LoadingStateManager
     
     // Lifecycle tracking
     private var hasLoadedOnce = false
@@ -84,11 +85,13 @@ class TodayCoordinator: ObservableObject {
     init(
         scoresCoordinator: ScoresCoordinator,
         activitiesCoordinator: ActivitiesCoordinator,
-        services: ServiceContainer = .shared
+        services: ServiceContainer = .shared,
+        loadingStateManager: LoadingStateManager
     ) {
         self.scoresCoordinator = scoresCoordinator
         self.activitiesCoordinator = activitiesCoordinator
         self.services = services
+        self.loadingStateManager = loadingStateManager
         
         Logger.info("🎯 [TodayCoordinator] Initialized")
     }
@@ -206,18 +209,28 @@ class TodayCoordinator: ObservableObject {
         error = nil
         
         do {
-            // Phase 1: Calculate scores (blocks on this)
+            // Phase 1: Fetch health data and calculate scores
             Logger.info("🔄 [TodayCoordinator] Phase 1: Calculating scores...")
+            loadingStateManager.updateState(.fetchingHealthData)
+            
+            // Check if HealthKit is authorized
+            let hasHealthKit = services.healthKitManager.isAuthorized
+            loadingStateManager.updateState(.calculatingScores(hasHealthKit: hasHealthKit, hasSleepData: false))
+            
             await scoresCoordinator.calculateAll()
             Logger.info("✅ [TodayCoordinator] Scores calculated")
             
             // Phase 2: Fetch activities (background, non-blocking)
             Logger.info("🔄 [TodayCoordinator] Phase 2: Fetching activities in background...")
+            loadingStateManager.updateState(.contactingIntegrations(sources: [.strava, .appleHealth]))
+            
             startBackgroundActivityFetch()
             
             // Mark as ready
             state = .ready
             lastLoadTime = Date()
+            
+            loadingStateManager.updateState(.complete)
             
             let duration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
@@ -226,6 +239,7 @@ class TodayCoordinator: ObservableObject {
             let errorMessage = "Failed to load initial data: \(error.localizedDescription)"
             state = .error(errorMessage)
             self.error = .dataFetchFailed(error.localizedDescription)
+            loadingStateManager.updateState(.error(.unknown(error.localizedDescription)))
             Logger.error("❌ [TodayCoordinator] Initial load failed: \(error)")
         }
     }
@@ -246,18 +260,33 @@ class TodayCoordinator: ObservableObject {
         error = nil
         
         do {
+            // Show "Contacting..." status (NOT "Calculating scores" since scores already visible)
+            loadingStateManager.updateState(.contactingIntegrations(sources: [.strava, .appleHealth]))
+            
             // Refresh scores and activities in parallel
             Logger.info("🔄 [TodayCoordinator] Refreshing scores and activities...")
             
             async let scoresRefresh = scoresCoordinator.refresh()
-            async let activitiesRefresh = activitiesCoordinator.fetchRecent(days: 90)
+            async let activitiesRefresh: Void = {
+                let activities = await activitiesCoordinator.fetchRecent(days: 90)
+                // Update with activity count if available
+                if activities.count > 0 {
+                    loadingStateManager.updateState(.downloadingActivities(count: activities.count, source: .strava))
+                }
+            }()
             
             // Wait for both to complete
             _ = await (scoresRefresh, activitiesRefresh)
             
+            // Processing and syncing states
+            loadingStateManager.updateState(.processingData)
+            loadingStateManager.updateState(.savingToICloud)
+            
             // Mark as ready
             state = .ready
             lastLoadTime = Date()
+            
+            loadingStateManager.updateState(.updated(Date()))
             
             let duration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [TodayCoordinator] ━━━ Refresh complete in \(String(format: "%.2f", duration))s ━━━")
@@ -266,6 +295,7 @@ class TodayCoordinator: ObservableObject {
             let errorMessage = "Failed to refresh data: \(error.localizedDescription)"
             state = oldState // Revert to previous state on error
             self.error = .dataFetchFailed(error.localizedDescription)
+            loadingStateManager.updateState(.error(.unknown(error.localizedDescription)))
             Logger.error("❌ [TodayCoordinator] Refresh failed: \(error)")
         }
     }

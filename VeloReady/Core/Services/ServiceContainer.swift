@@ -75,7 +75,8 @@ final class ServiceContainer {
         let coordinator = TodayCoordinator(
             scoresCoordinator: scoresCoordinator,
             activitiesCoordinator: activitiesCoordinator,
-            services: self
+            services: self,
+            loadingStateManager: TodayViewModel.shared.loadingStateManager
         )
         Logger.info("📦 [ServiceContainer] TodayCoordinator created successfully")
         return coordinator
