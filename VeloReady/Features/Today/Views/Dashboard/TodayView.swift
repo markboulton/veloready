@@ -44,12 +44,14 @@ struct TodayView: View {
     var body: some View {
         // Don't render NavigationStack at all until branding animation is done
         // This prevents the navigation bar from flashing before the overlay appears
+        let _ = Logger.info("🏠 [TodayView] BODY EVALUATED - showInitialSpinner: \(showInitialSpinner)")
+        
         if showInitialSpinner {
             // Black screen while branding animation shows (overlay is in MainTabView)
             Color.black
                 .ignoresSafeArea()
                 .onAppear {
-                    Logger.debug("🏠 [TodayView] Showing black screen for branding animation")
+                    Logger.info("🏠 [TodayView] Black screen APPEARED")
                 }
         } else {
             NavigationStack {

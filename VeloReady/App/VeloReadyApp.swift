@@ -277,7 +277,6 @@ struct MainTabView: View {
                     }
                     .tag(3)
             }
-            .toolbar(showInitialSpinner ? .hidden : .visible, for: .tabBar)  // Hide tab bar during branding
             .environmentObject(apiClient)
             .environmentObject(athleteZoneService)
             .onChange(of: selectedTab) { oldValue, newValue in
@@ -320,6 +319,10 @@ struct MainTabView: View {
                         }
                     }
             }
+        }
+        .toolbar(showInitialSpinner ? .hidden : .visible, for: .tabBar)
+        .onAppear {
+            Logger.info("📱 [MAINTABVIEW] nativeTabView appeared - showInitialSpinner: \(showInitialSpinner)")
         }
     }
     
