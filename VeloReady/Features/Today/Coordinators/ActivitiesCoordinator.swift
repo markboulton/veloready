@@ -126,6 +126,7 @@ class ActivitiesCoordinator: ObservableObject {
     /// - Returns: Array of UnifiedActivity
     private func fetchStravaActivities(days: Int) async -> [UnifiedActivity] {
         Logger.info("🔄 [ActivitiesCoordinator] Fetching Strava activities...")
+        Logger.info("🔄 [ActivitiesCoordinator] Connection state: \(services.stravaAuthService.connectionState)")
         
         // Check if authenticated
         guard case .connected = services.stravaAuthService.connectionState else {
@@ -133,8 +134,12 @@ class ActivitiesCoordinator: ObservableObject {
             return []
         }
         
-        // Fetch activities
-        await services.stravaDataService.fetchActivities(daysBack: days)
+        Logger.info("🔄 [ActivitiesCoordinator] Calling stravaDataService.fetchActivities(daysBack: \(days))")
+        
+        // Fetch activities using the backend-powered VeloReady API
+        // Note: StravaDataService.fetchActivities() uses the local Strava API client,
+        // but we should use the VeloReady backend for better caching and rate limiting
+        await services.stravaDataService.fetchActivitiesIfNeeded()
         let activities = services.stravaDataService.activities
         
         Logger.info("✅ [ActivitiesCoordinator] Strava: \(activities.count) activities")
