@@ -92,8 +92,9 @@ struct TodayView: View {
                         .padding(.bottom, Spacing.sm)
                         
                         // Recovery Metrics (Three Graphs)
-                        // Wait for initial auth check to complete to prevent flash of empty rings
-                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
+                        // Wait for BOTH auth check AND initial scores to prevent flash of empty rings
+                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck 
+                            && !viewModel.isInitializing {
                             RecoveryMetricsSection(
                                 isHealthKitAuthorized: healthKitManager.isAuthorized,
                                 animationTrigger: viewModel.animationTrigger,
