@@ -213,18 +213,34 @@ class TodayCoordinator: ObservableObject {
             Logger.info("🔄 [TodayCoordinator] Phase 1: Calculating scores...")
             loadingStateManager.updateState(.fetchingHealthData)
             
-            // Check if HealthKit is authorized
+            // Start score calculation in background, but show status updates in foreground
+            let scoreTask = Task {
+                await scoresCoordinator.calculateAll()
+            }
+            
+            // Wait a bit, then transition to "calculating" state
+            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
+            
             let hasHealthKit = services.healthKitManager.isAuthorized
             loadingStateManager.updateState(.calculatingScores(hasHealthKit: hasHealthKit, hasSleepData: false))
             
-            await scoresCoordinator.calculateAll()
+            // Wait for scores to complete
+            await scoreTask.value
             Logger.info("✅ [TodayCoordinator] Scores calculated")
             
             // Phase 2: Fetch activities (foreground for initial load to show all states)
             Logger.info("🔄 [TodayCoordinator] Phase 2: Fetching activities...")
             loadingStateManager.updateState(.contactingIntegrations(sources: [.strava, .appleHealth]))
             
-            let activities = await activitiesCoordinator.fetchRecent(days: 90)
+            // Start activity fetch, show "contacting" for a bit
+            let activityTask = Task {
+                await activitiesCoordinator.fetchRecent(days: 90)
+            }
+            
+            // Wait a bit before transitioning to "downloading"
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+            
+            let activities = await activityTask.value
             
             if activities.count > 0 {
                 loadingStateManager.updateState(.downloadingActivities(count: activities.count, source: .strava))
@@ -232,7 +248,9 @@ class TodayCoordinator: ObservableObject {
             
             // Phase 3: Processing and saving
             loadingStateManager.updateState(.processingData)
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
             loadingStateManager.updateState(.savingToICloud)
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
             
             // Mark as ready
             state = .ready
