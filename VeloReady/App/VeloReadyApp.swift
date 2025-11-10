@@ -250,38 +250,59 @@ struct MainTabView: View {
     
     @available(iOS 26.0, *)
     private var nativeTabView: some View {
-        TabView(selection: $selectedTab) {
-            TodayView(showInitialSpinner: $showInitialSpinner)
-                .tabItem {
-                    Label(CommonContent.TabLabels.today, systemImage: "house.fill")
-                }
-                .tag(0)
-            
-            ActivitiesView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
-                }
-                .tag(1)
-            
-            TrendsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
-                }
-                .tag(2)
-            
-            SettingsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
-                }
-                .tag(3)
-        }
-        .environmentObject(apiClient)
-        .environmentObject(athleteZoneService)
-        .onChange(of: selectedTab) { oldValue, newValue in
-            if oldValue == newValue {
-                NotificationCenter.default.post(name: .popToRootView, object: nil)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                TodayView(showInitialSpinner: $showInitialSpinner)
+                    .tabItem {
+                        Label(CommonContent.TabLabels.today, systemImage: "house.fill")
+                    }
+                    .tag(0)
+                
+                ActivitiesView()
+                    .tabItem {
+                        Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
+                    }
+                    .tag(1)
+                
+                TrendsView()
+                    .tabItem {
+                        Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
+                    }
+                    .tag(2)
+                
+                SettingsView()
+                    .tabItem {
+                        Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
+                    }
+                    .tag(3)
             }
-            previousTab = oldValue
+            .environmentObject(apiClient)
+            .environmentObject(athleteZoneService)
+            .onChange(of: selectedTab) { oldValue, newValue in
+                if oldValue == newValue {
+                    NotificationCenter.default.post(name: .popToRootView, object: nil)
+                }
+                previousTab = oldValue
+            }
+            
+            // Central branding animation - shows on app launch
+            if showInitialSpinner {
+                LoadingOverlay()
+                    .zIndex(999)
+                    .transition(.opacity)
+                    .onAppear {
+                        Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
+                        Task { @MainActor in
+                            // Show for 2 seconds
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            Logger.info("🎬 [BRANDING] 2 seconds elapsed - hiding animation")
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showInitialSpinner = false
+                            }
+                            Logger.info("🎬 [BRANDING] Animation hidden - showInitialSpinner now: \(showInitialSpinner)")
+                        }
+                    }
+            }
         }
     }
     
