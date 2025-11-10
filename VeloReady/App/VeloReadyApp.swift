@@ -226,6 +226,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var showInitialSpinner = true
+    @State private var brandingOpacity: Double = 0.0  // Start at 0 for fade-in animation
     
     private let tabs = [
         TabItem(title: CommonContent.TabLabels.today, icon: "house.fill"),
@@ -250,38 +251,85 @@ struct MainTabView: View {
     
     @available(iOS 26.0, *)
     private var nativeTabView: some View {
-        TabView(selection: $selectedTab) {
-            TodayView(showInitialSpinner: $showInitialSpinner)
-                .tabItem {
-                    Label(CommonContent.TabLabels.today, systemImage: "house.fill")
+        ZStack {
+            if showInitialSpinner {
+                // During branding animation: Show ONLY black screen + overlay
+                // Don't render TabView at all to prevent tab bar flash
+                Color.black
+                    .ignoresSafeArea()
+                    .onAppear {
+                        Logger.info("📱 [MAINTABVIEW] Showing black screen for branding (iOS 26+)")
+                    }
+                
+                LoadingOverlay()
+                    .opacity(brandingOpacity)
+                    .zIndex(999)
+                    .onAppear {
+                        Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
+                        Logger.info("🔵 [BRANDING] Starting fade-in animation")
+                        
+                        // Phase 1: Fade in immediately (0.3s)
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            brandingOpacity = 1.0
+                        }
+                        
+                        Task { @MainActor in
+                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
+                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            
+                            // Phase 3: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                brandingOpacity = 0.0
+                            }
+                            
+                            // Wait for fade-out to complete before removing from hierarchy
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
+                            showInitialSpinner = false
+                            Logger.info("✅ [BRANDING] Branding sequence complete")
+                        }
+                    }
+            } else {
+                // After branding animation: Show TabView with content
+                TabView(selection: $selectedTab) {
+                    TodayView(showInitialSpinner: $showInitialSpinner)
+                        .tabItem {
+                            Label(CommonContent.TabLabels.today, systemImage: "house.fill")
+                        }
+                        .tag(0)
+                    
+                    ActivitiesView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
+                        }
+                        .tag(1)
+                    
+                    TrendsView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
+                        }
+                        .tag(2)
+                    
+                    SettingsView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
+                        }
+                        .tag(3)
                 }
-                .tag(0)
-            
-            ActivitiesView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
+                .environmentObject(apiClient)
+                .environmentObject(athleteZoneService)
+                .onChange(of: selectedTab) { oldValue, newValue in
+                    if oldValue == newValue {
+                        NotificationCenter.default.post(name: .popToRootView, object: nil)
+                    }
+                    previousTab = oldValue
                 }
-                .tag(1)
-            
-            TrendsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
+                .onAppear {
+                    Logger.info("📱 [MAINTABVIEW] TabView appeared after branding")
                 }
-                .tag(2)
-            
-            SettingsView()
-                .tabItem {
-                    Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
-                }
-                .tag(3)
-        }
-        .environmentObject(apiClient)
-        .environmentObject(athleteZoneService)
-        .onChange(of: selectedTab) { oldValue, newValue in
-            if oldValue == newValue {
-                NotificationCenter.default.post(name: .popToRootView, object: nil)
             }
-            previousTab = oldValue
         }
     }
     
@@ -307,6 +355,40 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .environmentObject(apiClient)
             .environmentObject(athleteZoneService)
+            
+            // Central branding animation - shows on app launch
+            if showInitialSpinner {
+                LoadingOverlay()
+                    .opacity(brandingOpacity)
+                    .zIndex(999)
+                    .onAppear {
+                        Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
+                        Logger.info("🔵 [BRANDING] Starting fade-in animation")
+                        
+                        // Phase 1: Fade in immediately (0.3s)
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            brandingOpacity = 1.0
+                        }
+                        
+                        Task { @MainActor in
+                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
+                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            
+                            // Phase 3: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                brandingOpacity = 0.0
+                            }
+                            
+                            // Wait for fade-out to complete before removing from hierarchy
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
+                            showInitialSpinner = false
+                            Logger.info("✅ [BRANDING] Branding sequence complete")
+                        }
+                    }
+            }
             
             // Floating Tab Bar - only show after initial spinner
             if !showInitialSpinner {

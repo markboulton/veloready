@@ -30,11 +30,13 @@ struct PulseScaleLoader: View {
                 .scaleEffect(innerScale)
         }
         .onAppear {
+            Logger.info("🎬 [PULSE-SCALE] onAppear - starting animation")
             startAnimation()
         }
     }
     
     private func startAnimation() {
+        Logger.info("🎬 [PULSE-SCALE] startAnimation() called")
         // Outer circle: pulse animation
         // 0-60%: 1.0, 80%: 1.2, 100%: 1.0
         animateOuterCircle()
@@ -42,6 +44,7 @@ struct PulseScaleLoader: View {
         // Inner circle: scale up animation
         // 0-60%: 0, 60-100%: 1
         animateInnerCircle()
+        Logger.info("🎬 [PULSE-SCALE] Both animations started (outer pulse + inner scale)")
     }
     
     private func animateOuterCircle() {

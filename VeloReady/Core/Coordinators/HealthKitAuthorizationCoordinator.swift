@@ -23,6 +23,9 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
     /// Whether an authorization request is currently in progress
     @Published private(set) var isRequesting: Bool = false
     
+    /// Whether the initial authorization check has completed (prevents UI flash)
+    @Published private(set) var hasCompletedInitialCheck: Bool = false
+    
     // MARK: - Private Properties
     
     private let healthStore: HKHealthStore
@@ -144,11 +147,14 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
             try await healthStore.requestAuthorization(toShare: [], read: readTypes)
             
             Logger.info("✅ [AUTH COORDINATOR] Authorization sheet completed (user made selection)")
-            Logger.info("⏳ [AUTH COORDINATOR] Waiting 2 seconds for iOS to process authorization...")
+            Logger.info("⏳ [AUTH COORDINATOR] Waiting 5 seconds for iOS to process authorization...")
+            Logger.info("💡 [AUTH COORDINATOR] iOS 26 needs extra time for sleep data to become available")
             
             // Apple's Recommendation: Delayed check after authorization
             // iOS needs time to update authorization status internally
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            // INCREASED: 2s → 5s for iOS 26 sleep data availability
+            // On first install, sleep data takes longer to propagate than other data types
+            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
             
             Logger.info("🔍 [AUTH COORDINATOR] Testing actual data access (iOS 26 workaround)...")
             let canAccessData = await testDataAccess()
@@ -202,6 +208,7 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
         if canAccessData {
             Logger.info("✅ [AUTH COORDINATOR] Can access data! User has granted permissions.")
             await updateState(.authorized, true)
+            hasCompletedInitialCheck = true // Mark initial check complete
         } else {
             // Step 2: Cannot access data - check if it's "not determined" vs "denied"
             Logger.info("❌ [AUTH COORDINATOR] Cannot access data - checking authorization status...")
@@ -209,6 +216,8 @@ class HealthKitAuthorizationCoordinator: ObservableObject {
             let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
             let status = healthStore.authorizationStatus(for: hrvType)
             Logger.info("🔍 [AUTH COORDINATOR] HRV authorization status: \(status.rawValue) (\(AuthorizationState.fromHKStatus(status).description))")
+            
+            hasCompletedInitialCheck = true // Mark initial check complete (even if denied)
             
             if status == .notDetermined {
                 // CHANGED: Do NOT automatically request authorization

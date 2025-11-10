@@ -8,6 +8,7 @@ struct AIBriefView: View {
     @ObservedObject var recoveryScoreService = RecoveryScoreService.shared
     @ObservedObject var strainScoreService = StrainScoreService.shared
     @ObservedObject var profileManager = AthleteProfileManager.shared
+    @ObservedObject private var scoresCoordinator = ServiceContainer.shared.scoresCoordinator // Single source of truth
     @State private var showingMLInfoSheet = false
     @State private var showingUpgradeSheet = false
     
@@ -148,7 +149,9 @@ struct AIBriefView: View {
     // MARK: - Free Brief Generation
     
     private func generateBriefText() -> String {
-        guard let recoveryScore = recoveryScoreService.currentRecoveryScore else {
+        // Use ScoresCoordinator as single source of truth (Phase 3 fix)
+        // This ensures we always use the latest calculated score, not cached
+        guard let recoveryScore = scoresCoordinator.state.recovery else {
             return "Calculating your daily brief..."
         }
         

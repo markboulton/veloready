@@ -4,6 +4,7 @@ import SwiftUI
 /// ViewModel handles all score state management and calculations
 struct RecoveryMetricsSection: View {
     @StateObject private var viewModel = RecoveryMetricsSectionViewModel()
+    @ObservedObject private var healthKitManager = HealthKitManager.shared // For hasCompletedInitialCheck
     let isHealthKitAuthorized: Bool
     let animationTrigger: UUID // Triggers animations on change
     var hideBottomDivider: Bool = false
@@ -33,7 +34,8 @@ struct RecoveryMetricsSection: View {
             
             VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                 // Show empty state rings when HealthKit is not authorized
-                if !isHealthKitAuthorized {
+                // AND initial check has completed (prevents flash on app launch)
+                if !isHealthKitAuthorized && healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
                     HStack(spacing: Spacing.xxl) {
                         // Recovery (left)
                         EmptyStateRingView(

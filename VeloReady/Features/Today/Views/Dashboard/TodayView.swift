@@ -42,15 +42,27 @@ struct TodayView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
+        // Don't render NavigationStack at all until branding animation is done
+        // This prevents the navigation bar from flashing before the overlay appears
+        let _ = Logger.info("🏠 [TodayView] BODY EVALUATED - showInitialSpinner: \(showInitialSpinner)")
+        
+        if showInitialSpinner {
+            // Black screen while branding animation shows (overlay is in MainTabView)
+            Color.black
+                .ignoresSafeArea()
+                .onAppear {
+                    Logger.info("🏠 [TodayView] Black screen APPEARED")
+                }
+        } else {
+            NavigationStack {
+                ZStack(alignment: .top) {
                     // Adaptive background (light grey in light mode, black in dark mode)
                     Color.background.app
                         .ignoresSafeArea()
                         .onAppear {
                             Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                         }
-
+                    
                     ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
@@ -64,27 +76,36 @@ struct TodayView: View {
                         .frame(height: 0)
                         
                         // Loading status - scrolls with content, appears at top during pull-to-refresh
-                        if !viewModel.isInitializing {
+                        // Always visible to show loading state updates
+                        HStack {
                             LoadingStatusView(
                                 state: viewModel.loadingStateManager.currentState,
                                 onErrorTap: {
                                     viewModel.retryLoading()
                                 }
                             )
-                            .padding(.leading, 0)
-                            .padding(.top, 0)
-                            .padding(.bottom, Spacing.sm)
+                            Spacer()
                         }
+                        .padding(.leading, 0)
+                        .padding(.trailing, 0)
+                        .padding(.top, 0)
+                        .padding(.bottom, Spacing.sm)
                         
                         // Recovery Metrics (Three Graphs)
-                        RecoveryMetricsSection(
-                            isHealthKitAuthorized: healthKitManager.isAuthorized,
-                            animationTrigger: viewModel.animationTrigger,
-                            hideBottomDivider: true
-                        )
+                        // Wait for auth check to complete, then show rings (with loading state if calculating)
+                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
+                            RecoveryMetricsSection(
+                                isHealthKitAuthorized: healthKitManager.isAuthorized,
+                                animationTrigger: viewModel.animationTrigger,
+                                hideBottomDivider: true
+                            )
+                        }
                         
                         // HealthKit Enablement Section (only when not authorized)
-                        if !viewModel.isHealthKitAuthorized {
+                        // Wait for initial auth check AND verify coordinator also says not authorized
+                        // This prevents race condition where hasCompletedInitialCheck=true but isAuthorized hasn't synced yet
+                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck 
+                            && !healthKitManager.authorizationCoordinator.isAuthorized {
                             HealthKitEnablementSection(
                                 showingHealthKitPermissionsSheet: $showingHealthKitPermissionsSheet
                             )
@@ -160,7 +181,7 @@ struct TodayView: View {
                         }
                     }
                     .padding(.horizontal, Spacing.xl)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, Spacing.tabBarBottomPadding)
                 }
                 .coordinateSpace(name: "scroll")
                 .if(networkMonitor.isConnected) { view in
@@ -171,27 +192,24 @@ struct TodayView: View {
                     }
                 }
                 
-                // Loading overlay - shows on top of content
-                if viewModel.isInitializing {
-                    LoadingOverlay()
-                        .transition(.opacity)
-                }
+                // No loading overlay needed - content shows immediately with cached scores
+                // Rings handle their own loading/shimmer states
                 
                 // Navigation gradient mask (iOS Mail style)
-                if !viewModel.isInitializing {
-                    NavigationGradientMask()
+                // Always show to prevent layout shift
+                NavigationGradientMask()
+                    .opacity(viewModel.isInitializing ? 0 : 1)
                 }
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                    scrollOffset = value
+                }
+                .navigationTitle(TodayContent.title)
+                .navigationBarTitleDisplayMode(.large)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
             }
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
-            }
-            .navigationTitle(TodayContent.title)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
-        }
-        .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
-        .onAppear {
+            .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
+            .onAppear {
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
@@ -205,11 +223,9 @@ struct TodayView: View {
             viewModel.cancelBackgroundTasks()
         }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
-            Logger.debug("🔄 [SPINNER] TabBar visibility changed - isInitializing: \(oldValue) → \(newValue), toolbar: \(newValue ? ".hidden" : ".visible")")
-            if !newValue {
-                Logger.debug("🔄 [SPINNER] Setting showInitialSpinner = false to show FloatingTabBar")
-                showInitialSpinner = false
-            }
+            Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(newValue)")
+            // Note: showInitialSpinner is controlled by MainTabView's 3-second timer
+            // Don't set it here to avoid interrupting the branding animation
         }
         .onChange(of: healthKitManager.isAuthorized) { _, newValue in
             handleHealthKitAuthChange(newValue)
@@ -243,6 +259,7 @@ struct TodayView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+        } // End of else (NavigationStack content)
     }
     
     // MARK: - Loading Spinner
@@ -567,66 +584,28 @@ struct TodayView: View {
     }
     
     private func handleHealthKitAuthChange(_ newValue: Bool) {
-        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
-        guard viewState.hasCompletedTodayInitialLoad else {
-            Logger.debug("⏭️ [SPINNER] Skipping HealthKit auth change handler - initial load not complete")
-            return
-        }
+        guard viewState.hasCompletedTodayInitialLoad else { return }
         
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
             Task {
-                await viewModel.recoveryScoreService.clearBaselineCache()
-                await viewModel.refreshData(forceRecoveryRecalculation: true)
+                await viewModel.handleHealthKitAuth() // Phase 3: Delegate to coordinator
                 liveActivityService.startAutoUpdates()
             }
         }
     }
     
     private func handleAppForeground() {
-        Logger.debug("🔄 [FOREGROUND] App entering foreground - preparing fresh data fetch")
+        Logger.debug("🔄 [FOREGROUND] App entering foreground")
         
         Task {
-            // Check scores BEFORE doing anything
-            Logger.debug("🔄 [FOREGROUND] Score state BEFORE handleAppForeground:")
-            Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-            Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-            Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-            
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
             
             if healthKitManager.isAuthorized {
-                Logger.debug("🔄 [FOREGROUND] HealthKit authorized - starting refresh")
-                
-                // Invalidate short-lived caches for fresh data
                 await invalidateShortLivedCaches()
-                
-                // Check scores AFTER cache invalidation
-                Logger.debug("🔄 [FOREGROUND] Score state AFTER cache invalidation:")
-                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-                
-                // Now refresh will get fresh data
+                await viewModel.handleAppForeground() // Phase 3: Delegate to coordinator
                 liveActivityService.startAutoUpdates()
-                
-                Logger.debug("🔄 [FOREGROUND] About to call viewModel.refreshData()")
-                await viewModel.refreshData()
-                
-                // Check scores AFTER refresh
-                Logger.debug("🔄 [FOREGROUND] Score state AFTER viewModel.refreshData():")
-                Logger.debug("   Recovery: \(viewModel.recoveryScoreService.currentRecoveryScore?.score ?? -999)")
-                Logger.debug("   Sleep: \(viewModel.sleepScoreService.currentSleepScore?.score ?? -999)")
-                Logger.debug("   Strain: \(viewModel.strainScoreService.currentStrainScore?.score ?? -999)")
-                
-                // PERFORMANCE FIX: Removed redundant illness detection call
-                // Illness detection already runs in Phase 3 background analysis (line 521)
-                // Running it here causes unnecessary cache lookups during chart rendering
-            } else {
-                Logger.debug("🔄 [FOREGROUND] HealthKit NOT authorized - skipping refresh")
             }
-            
-            Logger.debug("🔄 [FOREGROUND] handleAppForeground complete")
         }
     }
     
@@ -655,14 +634,10 @@ struct TodayView: View {
     }
     
     private func handleIntervalsConnection() {
-        // Skip if initial load hasn't completed yet (prevents duplicate refresh on startup)
-        guard viewState.hasCompletedTodayInitialLoad else {
-            Logger.debug("⏭️ [SPINNER] Skipping Intervals connection handler - initial load not complete")
-            return
-        }
+        guard viewState.hasCompletedTodayInitialLoad else { return }
         
         Task {
-            await viewModel.refreshData()
+            await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
             liveActivityService.startAutoUpdates()
         }
     }

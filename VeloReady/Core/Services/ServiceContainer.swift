@@ -41,7 +41,7 @@ final class ServiceContainer {
     lazy var strainScoreService = StrainScoreService.shared
     lazy var wellnessDetectionService = WellnessDetectionService.shared
     
-    // MARK: - Coordinators (NEW: Week 2)
+    // MARK: - Coordinators (NEW: Week 2-3)
     
     /// ScoresCoordinator - single source of truth for all score calculations
     /// Orchestrates recovery, sleep, and strain score services
@@ -54,6 +54,37 @@ final class ServiceContainer {
             strainService: strainScoreService
         )
         Logger.info("📦 [ServiceContainer] ScoresCoordinator created successfully")
+        return coordinator
+    }()
+    
+    /// ActivitiesCoordinator - coordinates activity fetching from all sources
+    /// Handles Intervals.icu, Strava, and Apple Health integration
+    /// Part of: Today View Refactoring Plan - Week 3
+    lazy var activitiesCoordinator: ActivitiesCoordinator = {
+        Logger.info("📦 [ServiceContainer] Creating ActivitiesCoordinator...")
+        let coordinator = ActivitiesCoordinator(services: self)
+        Logger.info("📦 [ServiceContainer] ActivitiesCoordinator created successfully")
+        return coordinator
+    }()
+    
+    /// LoadingStateManager - manages loading state transitions for UI
+    /// Shared between TodayCoordinator and TodayViewModel
+    lazy var loadingStateManager: LoadingStateManager = {
+        LoadingStateManager()
+    }()
+    
+    /// TodayCoordinator - orchestrates Today feature lifecycle and data loading
+    /// Manages state machine, coordinates scores and activities
+    /// Part of: Today View Refactoring Plan - Week 3
+    lazy var todayCoordinator: TodayCoordinator = {
+        Logger.info("📦 [ServiceContainer] Creating TodayCoordinator...")
+        let coordinator = TodayCoordinator(
+            scoresCoordinator: scoresCoordinator,
+            activitiesCoordinator: activitiesCoordinator,
+            services: self,
+            loadingStateManager: loadingStateManager
+        )
+        Logger.info("📦 [ServiceContainer] TodayCoordinator created successfully")
         return coordinator
     }()
     
