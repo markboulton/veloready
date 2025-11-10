@@ -67,6 +67,12 @@ final class ServiceContainer {
         return coordinator
     }()
     
+    /// LoadingStateManager - manages loading state transitions for UI
+    /// Shared between TodayCoordinator and TodayViewModel
+    lazy var loadingStateManager: LoadingStateManager = {
+        LoadingStateManager()
+    }()
+    
     /// TodayCoordinator - orchestrates Today feature lifecycle and data loading
     /// Manages state machine, coordinates scores and activities
     /// Part of: Today View Refactoring Plan - Week 3
@@ -76,7 +82,7 @@ final class ServiceContainer {
             scoresCoordinator: scoresCoordinator,
             activitiesCoordinator: activitiesCoordinator,
             services: self,
-            loadingStateManager: TodayViewModel.shared.loadingStateManager
+            loadingStateManager: loadingStateManager
         )
         Logger.info("📦 [ServiceContainer] TodayCoordinator created successfully")
         return coordinator

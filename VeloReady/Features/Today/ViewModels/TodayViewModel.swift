@@ -53,13 +53,14 @@ class TodayViewModel: ObservableObject {
     @Published var wellnessData: [IntervalsWellness] = []
     
     // Loading state manager (kept for LoadingStateView compatibility)
-    @ObservedObject var loadingStateManager = LoadingStateManager()
+    // Shared with TodayCoordinator via ServiceContainer
+    @ObservedObject var loadingStateManager: LoadingStateManager
     
     // MARK: - Coordinators (NEW - Phase 3)
     
-    private let coordinator: TodayCoordinator
+    private lazy var coordinator: TodayCoordinator = services.todayCoordinator
     let scoresCoordinator: ScoresCoordinator // Public for RecoveryMetricsSection
-    private let activitiesCoordinator: ActivitiesCoordinator
+    private lazy var activitiesCoordinator: ActivitiesCoordinator = services.activitiesCoordinator
     
     // MARK: - Dependencies (Minimal)
     
@@ -81,17 +82,19 @@ class TodayViewModel: ObservableObject {
         
         self.services = container
         
+        // Loading state manager (shared with TodayCoordinator)
+        self.loadingStateManager = container.loadingStateManager
+        
         // Score services (still exposed for backwards compatibility)
         self.recoveryScoreService = container.recoveryScoreService
         self.sleepScoreService = container.sleepScoreService
         self.strainScoreService = container.strainScoreService
         
-        // NEW: Use coordinators instead of managing everything ourselves
-        self.coordinator = container.todayCoordinator
+        // ScoresCoordinator is eagerly initialized (needed for UI bindings)
         self.scoresCoordinator = container.scoresCoordinator
-        self.activitiesCoordinator = container.activitiesCoordinator
+        // coordinator and activitiesCoordinator are lazy (initialized on first use)
         
-        Logger.info("✅ [TodayViewModel] Coordinators initialized")
+        Logger.info("✅ [TodayViewModel] Core services initialized")
         
         // Setup observers
         setupCoordinatorObservers()
