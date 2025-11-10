@@ -92,9 +92,10 @@ struct TodayView: View {
                         .padding(.bottom, Spacing.sm)
                         
                         // Recovery Metrics (Three Graphs)
-                        // Wait for BOTH auth check AND initial scores to prevent flash of empty rings
+                        // Wait for BOTH auth check AND scores to be ready to prevent flash of empty rings
+                        // Don't check isInitializing - check scores phase directly to ensure they're calculated
                         if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck 
-                            && !viewModel.isInitializing {
+                            && viewModel.scoresCoordinator.state.phase == .ready {
                             RecoveryMetricsSection(
                                 isHealthKitAuthorized: healthKitManager.isAuthorized,
                                 animationTrigger: viewModel.animationTrigger,
