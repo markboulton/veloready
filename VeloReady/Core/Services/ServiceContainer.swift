@@ -46,11 +46,16 @@ final class ServiceContainer {
     /// ScoresCoordinator - single source of truth for all score calculations
     /// Orchestrates recovery, sleep, and strain score services
     /// Part of: Today View Refactoring Plan - Week 2
-    lazy var scoresCoordinator = ScoresCoordinator(
-        recoveryService: recoveryScoreService,
-        sleepService: sleepScoreService,
-        strainService: strainScoreService
-    )
+    lazy var scoresCoordinator: ScoresCoordinator = {
+        Logger.debug("📦 [ServiceContainer] Creating ScoresCoordinator...")
+        let coordinator = ScoresCoordinator(
+            recoveryService: recoveryScoreService,
+            sleepService: sleepScoreService,
+            strainService: strainScoreService
+        )
+        Logger.debug("📦 [ServiceContainer] ScoresCoordinator created successfully")
+        return coordinator
+    }()
     
     // MARK: - ViewModels Registry
     

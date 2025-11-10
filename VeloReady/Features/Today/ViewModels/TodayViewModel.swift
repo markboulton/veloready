@@ -90,11 +90,19 @@ class TodayViewModel: ObservableObject {
     }
     
     private init(container: ServiceContainer = .shared) {
+        Logger.debug("🎬 [TodayViewModel] INIT starting...")
+        
         // Use score services from container
         self.recoveryScoreService = container.recoveryScoreService
+        Logger.debug("🎬 [TodayViewModel] Got recoveryScoreService")
         self.sleepScoreService = container.sleepScoreService
+        Logger.debug("🎬 [TodayViewModel] Got sleepScoreService")
         self.strainScoreService = container.strainScoreService
+        Logger.debug("🎬 [TodayViewModel] Got strainScoreService")
+        
+        Logger.debug("🎬 [TodayViewModel] About to get scoresCoordinator...")
         self.scoresCoordinator = container.scoresCoordinator  // NEW: Week 2
+        Logger.debug("🎬 [TodayViewModel] Got scoresCoordinator: \(type(of: self.scoresCoordinator))")
         
         Logger.debug("🎬 [SPINNER] TodayViewModel init - isInitializing=\(isInitializing)")
         
@@ -273,6 +281,8 @@ class TodayViewModel: ObservableObject {
             Logger.debug("🔍 Activity: \(activity.name) - Type: \(activity.type.rawValue) - Source: \(activity.source)")
         }
         Logger.debug("⚡ Starting score calculations via ScoresCoordinator...")
+        Logger.debug("🔍 [DEBUG] scoresCoordinator type: \(type(of: scoresCoordinator))")
+        Logger.debug("🔍 [DEBUG] About to call scoresCoordinator.calculateAll(forceRefresh: \(forceRecoveryRecalculation))")
         
         // NEW: Use ScoresCoordinator for orchestrated score calculation
         // This replaces 3 separate service calls with a single coordinated call
