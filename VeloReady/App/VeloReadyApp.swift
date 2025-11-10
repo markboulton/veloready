@@ -252,42 +252,15 @@ struct MainTabView: View {
     @available(iOS 26.0, *)
     private var nativeTabView: some View {
         ZStack {
-            TabView(selection: $selectedTab) {
-                TodayView(showInitialSpinner: $showInitialSpinner)
-                    .tabItem {
-                        Label(CommonContent.TabLabels.today, systemImage: "house.fill")
-                    }
-                    .tag(0)
-                
-                ActivitiesView()
-                    .tabItem {
-                        Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
-                    }
-                    .tag(1)
-                
-                TrendsView()
-                    .tabItem {
-                        Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
-                    }
-                    .tag(2)
-                
-                SettingsView()
-                    .tabItem {
-                        Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
-                    }
-                    .tag(3)
-            }
-            .environmentObject(apiClient)
-            .environmentObject(athleteZoneService)
-            .onChange(of: selectedTab) { oldValue, newValue in
-                if oldValue == newValue {
-                    NotificationCenter.default.post(name: .popToRootView, object: nil)
-                }
-                previousTab = oldValue
-            }
-            
-            // Central branding animation - shows on app launch
             if showInitialSpinner {
+                // During branding animation: Show ONLY black screen + overlay
+                // Don't render TabView at all to prevent tab bar flash
+                Color.black
+                    .ignoresSafeArea()
+                    .onAppear {
+                        Logger.info("📱 [MAINTABVIEW] Showing black screen for branding (iOS 26+)")
+                    }
+                
                 LoadingOverlay()
                     .opacity(brandingOpacity)
                     .zIndex(999)
@@ -318,11 +291,45 @@ struct MainTabView: View {
                             Logger.info("✅ [BRANDING] Branding sequence complete")
                         }
                     }
+            } else {
+                // After branding animation: Show TabView with content
+                TabView(selection: $selectedTab) {
+                    TodayView(showInitialSpinner: $showInitialSpinner)
+                        .tabItem {
+                            Label(CommonContent.TabLabels.today, systemImage: "house.fill")
+                        }
+                        .tag(0)
+                    
+                    ActivitiesView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.activities, systemImage: "figure.run")
+                        }
+                        .tag(1)
+                    
+                    TrendsView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.trends, systemImage: "chart.xyaxis.line")
+                        }
+                        .tag(2)
+                    
+                    SettingsView()
+                        .tabItem {
+                            Label(CommonContent.TabLabels.settings, systemImage: "gearshape.fill")
+                        }
+                        .tag(3)
+                }
+                .environmentObject(apiClient)
+                .environmentObject(athleteZoneService)
+                .onChange(of: selectedTab) { oldValue, newValue in
+                    if oldValue == newValue {
+                        NotificationCenter.default.post(name: .popToRootView, object: nil)
+                    }
+                    previousTab = oldValue
+                }
+                .onAppear {
+                    Logger.info("📱 [MAINTABVIEW] TabView appeared after branding")
+                }
             }
-        }
-        .toolbar(showInitialSpinner ? .hidden : .visible, for: .tabBar)
-        .onAppear {
-            Logger.info("📱 [MAINTABVIEW] nativeTabView appeared - showInitialSpinner: \(showInitialSpinner)")
         }
     }
     
