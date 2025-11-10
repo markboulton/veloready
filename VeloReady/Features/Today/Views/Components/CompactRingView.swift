@@ -24,7 +24,7 @@ struct CompactRingView: View {
     private let numberFadeDuration: Double = 0.28 // Number fade duration (30% faster than 0.4s)
     
     var body: some View {
-        let _ = Logger.debug("🎨 [CompactRingView] Rendering - title: '\(title)', isLoading: \(isLoading), isRefreshing: \(isRefreshing), score: \(score?.description ?? "nil")")
+        let _ = Logger.info("🎨 [CompactRingView] Rendering - title: '\(title)', isLoading: \(isLoading), isRefreshing: \(isRefreshing), score: \(score?.description ?? "nil")")
         
         return VStack(spacing: Spacing.sm) {
             ZStack {
