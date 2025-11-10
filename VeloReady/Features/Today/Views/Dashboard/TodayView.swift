@@ -102,8 +102,10 @@ struct TodayView: View {
                         }
                         
                         // HealthKit Enablement Section (only when not authorized)
-                        // Wait for initial auth check to complete to prevent flash on app launch
-                        if !viewModel.isHealthKitAuthorized && healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
+                        // Wait for initial auth check AND verify coordinator also says not authorized
+                        // This prevents race condition where hasCompletedInitialCheck=true but isAuthorized hasn't synced yet
+                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck 
+                            && !healthKitManager.authorizationCoordinator.isAuthorized {
                             HealthKitEnablementSection(
                                 showingHealthKitPermissionsSheet: $showingHealthKitPermissionsSheet
                             )
