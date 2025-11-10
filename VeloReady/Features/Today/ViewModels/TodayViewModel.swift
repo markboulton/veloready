@@ -173,7 +173,7 @@ class TodayViewModel: ObservableObject {
                     if !isConnected {
                         self?.loadingStateManager.forceState(.offline)
                     } else if self?.isInitializing == false {
-                        self?.loadingStateManager.forceState(.ready)
+                        self?.loadingStateManager.forceState(.complete)
                     }
                 }
             }
