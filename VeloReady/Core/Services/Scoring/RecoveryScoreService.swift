@@ -354,7 +354,7 @@ class RecoveryScoreService: ObservableObject {
         
         return RecoveryScore(
             score: 50,
-            band: .limitedData,
+            band: .payAttention,
             subScores: placeholderSubScores,
             inputs: placeholderInputs,
             calculatedAt: Date(),

@@ -20,7 +20,7 @@ struct ScoresState {
     var phase: Phase
     
     /// Loading phase for score calculation
-    enum Phase {
+    enum Phase: Equatable {
         case initial         // Never loaded (app just launched)
         case loading         // Initial calculation in progress
         case ready           // Scores available and ready

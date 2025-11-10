@@ -779,8 +779,7 @@ extension RecoveryScore {
             case 80...100: return RecoveryBand.optimal
             case 60..<80: return RecoveryBand.good
             case 40..<60: return RecoveryBand.fair
-            case 20..<40: return RecoveryBand.poor
-            default: return RecoveryBand.limitedData
+            default: return RecoveryBand.payAttention
             }
         }()
         
