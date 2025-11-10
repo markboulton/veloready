@@ -64,17 +64,17 @@ struct TodayView: View {
                         .frame(height: 0)
                         
                         // Loading status - scrolls with content, appears at top during pull-to-refresh
-                        if !viewModel.isInitializing {
-                            LoadingStatusView(
-                                state: viewModel.loadingStateManager.currentState,
-                                onErrorTap: {
-                                    viewModel.retryLoading()
-                                }
-                            )
-                            .padding(.leading, 0)
-                            .padding(.top, 0)
-                            .padding(.bottom, Spacing.sm)
-                        }
+                        // Always show (removed isInitializing check to prevent layout shifts)
+                        LoadingStatusView(
+                            state: viewModel.loadingStateManager.currentState,
+                            onErrorTap: {
+                                viewModel.retryLoading()
+                            }
+                        )
+                        .padding(.leading, 0)
+                        .padding(.top, 0)
+                        .padding(.bottom, Spacing.sm)
+                        .opacity(viewModel.isInitializing ? 0 : 1) // Fade in after initializing
                         
                         // Recovery Metrics (Three Graphs)
                         RecoveryMetricsSection(
@@ -172,17 +172,17 @@ struct TodayView: View {
                     }
                 }
                 
-                // Loading overlay - DISABLED to prevent flash
-                // Content shows immediately with cached scores, rings handle their own loading
-                // if viewModel.isInitializing {
-                //     LoadingOverlay()
-                //         .transition(.opacity)
-                // }
+                // Loading overlay with animated rings (like onboarding)
+                // Shows smooth animation instead of flash
+                if viewModel.isInitializing {
+                    AnimatedRingsOverlay()
+                        .transition(.opacity)
+                }
                 
                 // Navigation gradient mask (iOS Mail style)
-                if !viewModel.isInitializing {
-                    NavigationGradientMask()
-                }
+                // Always show to prevent layout shift
+                NavigationGradientMask()
+                    .opacity(viewModel.isInitializing ? 0 : 1)
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                 scrollOffset = value
@@ -190,9 +190,9 @@ struct TodayView: View {
             .navigationTitle(TodayContent.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .navigationBar)
+            .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
         }
-        .toolbar(viewModel.isInitializing ? .hidden : .visible, for: .tabBar)
+        .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
         .onAppear {
             Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
