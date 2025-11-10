@@ -77,13 +77,17 @@ struct TodayView: View {
                         
                         // Loading status - scrolls with content, appears at top during pull-to-refresh
                         // Always show (removed isInitializing check to prevent layout shifts)
-                        LoadingStatusView(
-                            state: viewModel.loadingStateManager.currentState,
-                            onErrorTap: {
-                                viewModel.retryLoading()
-                            }
-                        )
-                        .padding(.leading, 0)
+                        HStack {
+                            LoadingStatusView(
+                                state: viewModel.loadingStateManager.currentState,
+                                onErrorTap: {
+                                    viewModel.retryLoading()
+                                }
+                            )
+                            Spacer()
+                        }
+                        .padding(.leading, 20) // Match iOS nav bar large title leading edge
+                        .padding(.trailing, 20)
                         .padding(.top, 0)
                         .padding(.bottom, Spacing.sm)
                         .opacity(viewModel.isInitializing ? 0 : 1) // Fade in after initializing
