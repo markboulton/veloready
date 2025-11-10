@@ -308,6 +308,23 @@ struct MainTabView: View {
             .environmentObject(apiClient)
             .environmentObject(athleteZoneService)
             
+            // Central branding animation - show for 2 seconds on first launch
+            if showInitialSpinner {
+                LoadingOverlay()
+                    .zIndex(999)
+                    .onAppear {
+                        Logger.info("🎬 [MainTabView] Central branding animation appeared")
+                        Task { @MainActor in
+                            // Show for 2 seconds
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            Logger.info("🎬 [MainTabView] Central branding complete - hiding")
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showInitialSpinner = false
+                            }
+                        }
+                    }
+            }
+            
             // Floating Tab Bar - only show after initial spinner
             if !showInitialSpinner {
                 FloatingTabBar(selectedTab: $selectedTab, tabs: tabs)
