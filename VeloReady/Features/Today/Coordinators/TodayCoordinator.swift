@@ -267,16 +267,14 @@ class TodayCoordinator: ObservableObject {
             Logger.info("🔄 [TodayCoordinator] Refreshing scores and activities...")
             
             async let scoresRefresh = scoresCoordinator.refresh()
-            async let activitiesRefresh: Void = {
-                let activities = await activitiesCoordinator.fetchRecent(days: 90)
-                // Update with activity count if available
-                if activities.count > 0 {
-                    loadingStateManager.updateState(.downloadingActivities(count: activities.count, source: .strava))
-                }
-            }()
             
-            // Wait for both to complete
-            _ = await (scoresRefresh, activitiesRefresh)
+            // Fetch activities and update loading state with count
+            await activitiesCoordinator.fetchRecent(days: 90)
+            // Note: Activity count is shown via coordinator's internal state
+            loadingStateManager.updateState(.downloadingActivities(count: nil, source: .strava))
+            
+            // Wait for scores to complete
+            await scoresRefresh
             
             // Processing and syncing states
             loadingStateManager.updateState(.processingData)
