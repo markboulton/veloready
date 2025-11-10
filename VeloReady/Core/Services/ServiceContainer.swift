@@ -47,13 +47,13 @@ final class ServiceContainer {
     /// Orchestrates recovery, sleep, and strain score services
     /// Part of: Today View Refactoring Plan - Week 2
     lazy var scoresCoordinator: ScoresCoordinator = {
-        Logger.debug("📦 [ServiceContainer] Creating ScoresCoordinator...")
+        Logger.info("📦 [ServiceContainer] Creating ScoresCoordinator...")
         let coordinator = ScoresCoordinator(
             recoveryService: recoveryScoreService,
             sleepService: sleepScoreService,
             strainService: strainScoreService
         )
-        Logger.debug("📦 [ServiceContainer] ScoresCoordinator created successfully")
+        Logger.info("📦 [ServiceContainer] ScoresCoordinator created successfully")
         return coordinator
     }()
     

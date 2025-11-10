@@ -48,7 +48,7 @@ class ScoresCoordinator: ObservableObject {
         self.sleepService = sleepService
         self.strainService = strainService
         
-        Logger.debug("🎯 [ScoresCoordinator] Initialized")
+        Logger.info("🎯 [ScoresCoordinator] Initialized")
         
         // Load cached scores immediately for instant display
         loadCachedScores()
@@ -69,7 +69,7 @@ class ScoresCoordinator: ObservableObject {
     /// - Parameter forceRefresh: If true, bypass daily calculation limits
     func calculateAll(forceRefresh: Bool = false) async {
         let startTime = Date()
-        Logger.debug("🔄 [ScoresCoordinator] ━━━ Starting calculateAll(forceRefresh: \(forceRefresh)) ━━━")
+        Logger.info("🔄 [ScoresCoordinator] ━━━ Starting calculateAll(forceRefresh: \(forceRefresh)) ━━━")
         
         let oldState = state
         state.phase = .loading
