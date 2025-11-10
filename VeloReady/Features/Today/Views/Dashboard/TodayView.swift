@@ -27,11 +27,11 @@ struct TodayView: View {
     @State private var wasHealthKitAuthorized = false
     @State private var scrollOffset: CGFloat = 0
     @State private var isViewActive = false
+    @State private var hasCompletedInitialLoad = false
     @Binding var showInitialSpinner: Bool
     @Environment(\.scenePhase) private var scenePhase
     @State private var previousScenePhase: ScenePhase = .inactive
     
-    private let viewState = ViewStateManager.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuth = StravaAuthService.shared
     @ObservedObject private var intervalsAuth = IntervalsOAuthManager.shared
@@ -532,14 +532,14 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
-        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(viewState.hasCompletedTodayInitialLoad), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(hasCompletedInitialLoad), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
         
         // Check if we're returning from navigation (was inactive, now becoming active)
         let wasInactive = !isViewActive
         isViewActive = true
         
         // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
-        if viewState.hasCompletedTodayInitialLoad && wasInactive && !viewModel.isInitializing {
+        if hasCompletedInitialLoad && wasInactive && !viewModel.isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
             
             // Reset scroll state for sparklines so they can animate again
@@ -554,11 +554,11 @@ struct TodayView: View {
         }
         
         // Only do full refresh on first appear
-        guard !viewState.hasCompletedTodayInitialLoad else {
+        guard !hasCompletedInitialLoad else {
             Logger.debug("⏭️ [SPINNER] Skipping handleViewAppear - already loaded")
             return
         }
-        viewState.hasCompletedTodayInitialLoad = true
+        hasCompletedInitialLoad = true
         Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
         
         Task {
@@ -584,7 +584,7 @@ struct TodayView: View {
     }
     
     private func handleHealthKitAuthChange(_ newValue: Bool) {
-        guard viewState.hasCompletedTodayInitialLoad else { return }
+        guard hasCompletedInitialLoad else { return }
         
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
@@ -634,7 +634,7 @@ struct TodayView: View {
     }
     
     private func handleIntervalsConnection() {
-        guard viewState.hasCompletedTodayInitialLoad else { return }
+        guard hasCompletedInitialLoad else { return }
         
         Task {
             await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
@@ -649,7 +649,7 @@ struct TodayView: View {
         
         // CRITICAL GUARDS to prevent triggering during initialization:
         // 1. Must have completed initial load
-        guard viewState.hasCompletedTodayInitialLoad else {
+        guard hasCompletedInitialLoad else {
             Logger.debug("⏭️ [SCENE] Skipping - initial load not complete")
             previousScenePhase = newPhase
             return

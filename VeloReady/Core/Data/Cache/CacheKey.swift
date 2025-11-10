@@ -120,26 +120,32 @@ enum CacheKey {
     // MARK: - HealthKit
     
     /// Heart rate variability for a specific date
-    /// - Parameter date: Date (normalized to start of day)
+    /// - Parameter date: Date (will be normalized to start of day)
     /// - Returns: Cache key string: `healthkit:hrv:{ISO8601Date}`
     static func hrv(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let dateString = ISO8601DateFormatter().string(from: startOfDay)
         return "healthkit:hrv:\(dateString)"
     }
     
     /// Resting heart rate for a specific date
-    /// - Parameter date: Date (normalized to start of day)
+    /// - Parameter date: Date (will be normalized to start of day)
     /// - Returns: Cache key string: `healthkit:rhr:{ISO8601Date}`
     static func rhr(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let dateString = ISO8601DateFormatter().string(from: startOfDay)
         return "healthkit:rhr:\(dateString)"
     }
     
     /// Sleep analysis for a specific date
-    /// - Parameter date: Date (normalized to start of day)
+    /// - Parameter date: Date (will be normalized to start of day)
     /// - Returns: Cache key string: `healthkit:sleep:{ISO8601Date}`
     static func sleep(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let dateString = ISO8601DateFormatter().string(from: startOfDay)
         return "healthkit:sleep:\(dateString)"
     }
     

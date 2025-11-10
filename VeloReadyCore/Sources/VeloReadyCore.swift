@@ -206,63 +206,11 @@ public enum CacheError: Error {
 
 // MARK: - Cache Key Generator
 
-/// Standardized cache key generation
-public enum CacheKey {
-    /// Generate key for Strava activities
-    public static func stravaActivities(daysBack: Int) -> String {
-        "strava:activities:\(daysBack)"
-    }
-    
-    /// Generate key for Intervals activities
-    public static func intervalsActivities(daysBack: Int) -> String {
-        "intervals:activities:\(daysBack)"
-    }
-    
-    /// Generate key for activity streams
-    public static func activityStreams(activityId: String, source: String) -> String {
-        "\(source):streams:\(activityId)"
-    }
-    
-    /// Generate key for HRV data
-    public static func hrv(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
-        return "healthkit:hrv:\(dateString)"
-    }
-    
-    /// Generate key for RHR data
-    public static func rhr(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
-        return "healthkit:rhr:\(dateString)"
-    }
-    
-    /// Generate key for sleep data
-    public static func sleep(date: Date) -> String {
-        let dateString = ISO8601DateFormatter().string(from: date)
-        return "healthkit:sleep:\(dateString)"
-    }
-    
-    /// Generate key for recovery score
-    public static func recoveryScore(date: Date) -> String {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let dateString = ISO8601DateFormatter().string(from: startOfDay)
-        return "score:recovery:\(dateString)"
-    }
-    
-    /// Generate key for sleep score
-    public static func sleepScore(date: Date) -> String {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let dateString = ISO8601DateFormatter().string(from: startOfDay)
-        return "score:sleep:\(dateString)"
-    }
-    
-    /// Validate cache key format
-    public static func validate(_ key: String) -> Bool {
-        let pattern = "^[a-z]+:[a-z]+:[a-zA-Z0-9-:]+$"
-        return key.range(of: pattern, options: .regularExpression) != nil
-    }
-}
+/// Cache key generation has been moved to VeloReady/Core/Data/Cache/CacheKey.swift
+/// This was a legacy duplicate that has been removed to maintain a single source of truth.
+/// 
+/// If VeloReadyCore needs cache key generation, import CacheKey from the main app.
+/// For now, VeloReadyCore only handles pure calculations and doesn't need caching logic.
 
 // MARK: - Example Business Logic (placeholder for demo)
 
