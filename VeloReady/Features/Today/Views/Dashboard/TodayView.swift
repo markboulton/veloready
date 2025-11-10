@@ -44,14 +44,22 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                    // Adaptive background (light grey in light mode, black in dark mode)
-                    Color.background.app
-                        .ignoresSafeArea()
-                        .onAppear {
-                            Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
-                        }
+                // Adaptive background (light grey in light mode, black in dark mode)
+                Color.background.app
+                    .ignoresSafeArea()
+                
+                // Skeleton screen with cached scores (shows immediately)
+                if viewModel.isInitializing {
+                    TodayViewSkeleton(
+                        cachedRecoveryScore: viewModel.scoresCoordinator.state.recovery?.score,
+                        cachedSleepScore: viewModel.scoresCoordinator.state.sleep?.score,
+                        cachedStrainScore: viewModel.scoresCoordinator.state.strain?.score
+                    )
+                    .transition(.opacity)
+                }
 
-                    ScrollView {
+                // Real content (fades in when ready)
+                ScrollView {
                     // Use LazyVStack as main container for better performance
                     LazyVStack(spacing: Spacing.md) {
                         // Invisible geometry reader to track scroll offset
@@ -171,9 +179,8 @@ struct TodayView: View {
                         await viewModel.refreshData()
                     }
                 }
-                
-                // No loading overlay needed - content shows immediately with cached scores
-                // Rings handle their own loading/shimmer states
+                .opacity(viewModel.isInitializing ? 0 : 1) // Fade in when ready
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isInitializing)
                 
                 // Navigation gradient mask (iOS Mail style)
                 // Always show to prevent layout shift
