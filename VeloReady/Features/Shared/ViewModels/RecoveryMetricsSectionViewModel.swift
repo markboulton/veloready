@@ -42,6 +42,7 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     private let coordinator: ScoresCoordinator
     private var cancellables = Set<AnyCancellable>()
     private var hasCompletedFirstLoad = false  // Internal flag to track first load completion
+    private var lastPhase: ScoresState.Phase = .initial  // Track last phase for animation triggers
     
     // MARK: - Initialization
     
@@ -80,16 +81,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                     recovery: self.recoveryScore,
                     sleep: self.sleepScore,
                     strain: self.strainScore,
-                    phase: newState.phase // Use same phase for comparison
+                    phase: self.lastPhase  // ✅ FIX: Use actual last phase, not new phase!
                 )
                 
-                Logger.info("🔄 [VIEWMODEL] ScoresCoordinator state changed - phase: \(newState.phase.description)")
+                Logger.info("🔄 [VIEWMODEL] ScoresCoordinator state changed - OLD phase: \(self.lastPhase.description), NEW phase: \(newState.phase.description)")
                 
                 // Update scores and loading states
                 self.updateFromState(newState)
                 
                 // Handle animation triggers (logic from ScoresState)
-                Logger.info("🎬 [VIEWMODEL] Checking if animation should trigger - newState.shouldTriggerAnimation(from: oldState)")
+                Logger.info("🎬 [VIEWMODEL] Checking if animation should trigger - oldPhase: \(self.lastPhase.description), newPhase: \(newState.phase.description)")
                 if newState.shouldTriggerAnimation(from: oldState) {
                     Logger.info("🎬 [VIEWMODEL] ✅ Animation WILL trigger - updating ringAnimationTrigger UUID")
                     let oldUUID = self.ringAnimationTrigger
@@ -98,6 +99,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 } else {
                     Logger.info("🎬 [VIEWMODEL] ❌ Animation will NOT trigger")
                 }
+                
+                // Update last phase for next comparison
+                self.lastPhase = newState.phase
             }
             .store(in: &cancellables)
         
