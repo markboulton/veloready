@@ -354,3 +354,57 @@ extension SleepScore {
         return "Performance: \(subScores.performance), Efficiency: \(subScores.efficiency), Quality: \(subScores.stageQuality), Disturbances: \(subScores.disturbances), Timing: \(subScores.timing)"
     }
 }
+
+// MARK: - Mock Data for Testing
+
+#if DEBUG
+extension SleepScore {
+    /// Create a mock SleepScore for testing
+    static func mock(score: Int = 85, band: SleepBand? = nil) -> SleepScore {
+        let actualBand = band ?? {
+            switch score {
+            case 80...100: return SleepBand.optimal
+            case 60..<80: return SleepBand.good
+            case 40..<60: return SleepBand.fair
+            default: return SleepBand.payAttention
+            }
+        }()
+        
+        let mockInputs = SleepInputs(
+            sleepDuration: 28800, // 8 hours
+            timeInBed: 30000,     // 8.33 hours
+            sleepNeed: 28800,     // 8 hours
+            deepSleepDuration: 7200,  // 2 hours
+            remSleepDuration: 7200,   // 2 hours
+            coreSleepDuration: 14400, // 4 hours
+            awakeDuration: 1200,      // 20 minutes
+            wakeEvents: 2,
+            bedtime: Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()),
+            wakeTime: Calendar.current.date(bySettingHour: 6, minute: 30, second: 0, of: Date()),
+            baselineBedtime: Calendar.current.date(bySettingHour: 22, minute: 15, second: 0, of: Date()),
+            baselineWakeTime: Calendar.current.date(bySettingHour: 6, minute: 30, second: 0, of: Date()),
+            hrvOvernight: 55.0,
+            hrvBaseline: 50.0,
+            sleepLatency: 900 // 15 minutes
+        )
+        
+        let mockSubScores = SubScores(
+            performance: 90,
+            efficiency: 85,
+            stageQuality: 85,
+            disturbances: 90,
+            timing: 95
+        )
+        
+        return SleepScore(
+            score: score,
+            band: actualBand,
+            subScores: mockSubScores,
+            inputs: mockInputs,
+            calculatedAt: Date(),
+            illnessDetected: false,
+            illnessSeverity: nil
+        )
+    }
+}
+#endif

@@ -893,3 +893,45 @@ extension StrainScore {
     }
     
 }
+
+// MARK: - Mock Data for Testing
+
+#if DEBUG
+extension StrainScore {
+    /// Create a mock StrainScore for testing
+    static func mock(score: Double = 12.0, band: StrainBand? = nil) -> StrainScore {
+        let actualBand = band ?? {
+            switch score {
+            case 0..<6: return StrainBand.light
+            case 6..<12: return StrainBand.moderate
+            case 12..<15: return StrainBand.hard
+            default: return StrainBand.veryHard
+            }
+        }()
+        
+        let mockInputs = StrainInputs(
+            cardioActivities: [],
+            strengthWorkouts: [],
+            dailyActiveCalories: 500,
+            dailySteps: 8000,
+            todayRecoveryScore: nil,
+            muscleSorenessData: []
+        )
+        
+        let mockSubScores = SubScores(
+            cardioLoad: 8.0,
+            strengthLoad: 3.0,
+            nonExerciseLoad: 1.0,
+            recoveryFactor: 1.0
+        )
+        
+        return StrainScore(
+            score: score,
+            band: actualBand,
+            subScores: mockSubScores,
+            inputs: mockInputs,
+            calculatedAt: Date()
+        )
+    }
+}
+#endif
