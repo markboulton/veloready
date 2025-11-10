@@ -123,8 +123,9 @@ struct RecoveryMetricsSection: View {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
                             centerText: nil,
-                            animationTrigger: animationTrigger,
-                            isLoading: false
+                            animationTrigger: viewModel.ringAnimationTrigger,
+                            isLoading: false,
+                            isRefreshing: viewModel.isRecoveryLoading && !viewModel.isInitialLoad
                         )
                     }
                     .frame(maxWidth: .infinity)
@@ -143,8 +144,9 @@ struct RecoveryMetricsSection: View {
                         animationDelay: 0.0,
                         action: {},
                         centerText: nil,
-                        animationTrigger: animationTrigger,
-                        isLoading: true
+                        animationTrigger: viewModel.ringAnimationTrigger,
+                        isLoading: true,
+                        isRefreshing: false
                     )
                 }
                 .frame(maxWidth: .infinity)
@@ -181,7 +183,9 @@ struct RecoveryMetricsSection: View {
                                     // Action handled by button wrapper
                                 },
                                 centerText: nil,
-                                animationTrigger: animationTrigger
+                                animationTrigger: viewModel.ringAnimationTrigger,
+                                isLoading: false,
+                                isRefreshing: false
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -209,7 +213,9 @@ struct RecoveryMetricsSection: View {
                                     // Empty action - navigation handled by parent NavigationLink
                                 },
                                 centerText: nil,
-                                animationTrigger: animationTrigger
+                                animationTrigger: viewModel.ringAnimationTrigger,
+                                isLoading: false,
+                                isRefreshing: viewModel.isSleepLoading && !viewModel.isInitialLoad
                             )
                         }
                         .frame(maxWidth: .infinity)
@@ -245,7 +251,9 @@ struct RecoveryMetricsSection: View {
                                     // Action handled by button wrapper
                                 },
                                 centerText: nil,
-                                animationTrigger: animationTrigger
+                                animationTrigger: viewModel.ringAnimationTrigger,
+                                isLoading: viewModel.isSleepLoading,
+                                isRefreshing: false
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -295,7 +303,9 @@ struct RecoveryMetricsSection: View {
                                 // Empty action - navigation handled by parent NavigationLink
                             },
                             centerText: viewModel.strainFormattedScore,
-                            animationTrigger: viewModel.ringAnimationTrigger // Use local trigger for score changes
+                            animationTrigger: viewModel.ringAnimationTrigger,
+                            isLoading: false,
+                            isRefreshing: viewModel.isStrainLoading && !viewModel.isInitialLoad
                         )
                     }
                     .frame(maxWidth: .infinity)
@@ -314,8 +324,9 @@ struct RecoveryMetricsSection: View {
                         animationDelay: 0.2,
                         action: {},
                         centerText: nil,
-                        animationTrigger: animationTrigger,
-                        isLoading: true
+                        animationTrigger: viewModel.ringAnimationTrigger,
+                        isLoading: true,
+                        isRefreshing: false
                     )
                 }
                 .frame(maxWidth: .infinity)
@@ -338,8 +349,9 @@ struct RecoveryMetricsSection: View {
                 animationDelay: delay,
                 action: {},
                 centerText: nil,
-                animationTrigger: animationTrigger,
-                isLoading: true
+                animationTrigger: viewModel.ringAnimationTrigger,
+                isLoading: true,
+                isRefreshing: false
             )
         }
         .frame(maxWidth: .infinity)

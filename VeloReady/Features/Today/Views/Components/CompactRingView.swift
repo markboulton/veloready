@@ -11,6 +11,7 @@ struct CompactRingView: View {
     let centerText: String? // Optional custom text for center (e.g., "12.5" for strain)
     let animationTrigger: UUID // Triggers re-animation when changed
     var isLoading: Bool = false // Shows grey ring with shimmer when true
+    var isRefreshing: Bool = false // Shows "Calculating" status without grey ring (for refreshes)
     
     @State private var animatedProgress: Double = 0.0
     @State private var numberOpacity: Double = 0.0
@@ -76,8 +77,8 @@ struct CompactRingView: View {
                 }
             }
             
-            // Title - show "Calculating" when loading, otherwise show band
-            if isLoading {
+            // Title - show "Calculating" when loading or refreshing, otherwise show band
+            if isLoading || isRefreshing {
                 Text("Calculating")
                     .font(.caption)
                     .fontWeight(.medium)

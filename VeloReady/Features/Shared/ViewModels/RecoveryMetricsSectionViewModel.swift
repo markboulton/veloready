@@ -21,6 +21,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         }
     }
     
+    // Track if this is initial load (true) or refresh (false)
+    @Published var isInitialLoad: Bool = true
+    
     // MARK: - Dependencies
     
     private let recoveryScoreService: RecoveryScoreService
@@ -60,8 +63,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         recoveryScoreService.$currentRecoveryScore
             .sink { [weak self] score in
                 Logger.debug("🔄 [VIEWMODEL] Recovery score changed via Combine: \(score?.score ?? -1)")
+                let oldScore = self?.recoveryScore?.score
                 self?.recoveryScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel recoveryScore now: \(self?.recoveryScore?.score ?? -1)")
+                
+                // Trigger ring animation if score changed during refresh (not initial load)
+                if let old = oldScore, let new = score?.score, old != new, self?.isInitialLoad == false {
+                    Logger.debug("🎬 [VIEWMODEL] Recovery score changed from \(old) → \(new), triggering ring animation")
+                    self?.ringAnimationTrigger = UUID()
+                }
+                
                 self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
@@ -79,8 +90,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         sleepScoreService.$currentSleepScore
             .sink { [weak self] score in
                 Logger.debug("🔄 [VIEWMODEL] Sleep score changed via Combine: \(score?.score ?? -1)")
+                let oldScore = self?.sleepScore?.score
                 self?.sleepScore = score
                 Logger.debug("🔄 [VIEWMODEL] ViewModel sleepScore now: \(self?.sleepScore?.score ?? -1)")
+                
+                // Trigger ring animation if score changed during refresh (not initial load)
+                if let old = oldScore, let new = score?.score, old != new, self?.isInitialLoad == false {
+                    Logger.debug("🎬 [VIEWMODEL] Sleep score changed from \(old) → \(new), triggering ring animation")
+                    self?.ringAnimationTrigger = UUID()
+                }
+                
                 self?.checkAllScoresReady()
             }
             .store(in: &cancellables)
@@ -105,18 +124,16 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 print("💪 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
                 Logger.debug("🔄 [VIEWMODEL] ViewModel strainScore now: \(self?.strainScore?.score ?? -1)")
                 
-                // Trigger ring animation if score changed (handles cached → real transition)
+                // Trigger ring animation if score changed
+                // On refresh (not initial load), this triggers animation immediately
+                // On initial load, animation is triggered by allScoresReady transition
                 if let old = oldScore, let new = score?.score, old != new {
                     print("💪 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering animation")
                     Logger.debug("🎬 [VIEWMODEL] Strain score changed from \(old) → \(new), triggering ring animation")
-                    self?.ringAnimationTrigger = UUID()
-                }
-                
-                // CRITICAL: Force allScoresReady = true if we have ANY score
-                // This fixes intermittent bug where view renders before checkAllScoresReady() runs
-                if score != nil || self?.recoveryScore != nil || self?.sleepScore != nil {
-                    print("💪 [VIEWMODEL] FORCING allScoresReady = true (have at least one score)")
-                    self?.allScoresReady = true
+                    // Only trigger if not initial load (on initial load, wait for all scores)
+                    if self?.isInitialLoad == false {
+                        self?.ringAnimationTrigger = UUID()
+                    }
                 }
                 
                 self?.checkAllScoresReady()
@@ -152,35 +169,43 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     }
     
     /// Check if all scores are ready to display
-    /// Shows cached scores immediately on navigation return, only waits for initial load
-    /// This prevents rings from disappearing when navigating back to Today page
+    /// On initial load: wait for ALL scores to be ready before showing (coordinated animation)
+    /// On refresh: show scores immediately with calculating status, animate when new scores arrive
     private func checkAllScoresReady() {
-        // All loading must be complete before showing scores
-        let allLoadingComplete = !isRecoveryLoading && !isSleepLoading && !isStrainLoading
-        
-        // At least one score must exist (could be that sleep has no data, which is OK)
-        let hasAnyScore = recoveryScore != nil || sleepScore != nil || strainScore != nil
-        
         let wasReady = allScoresReady
         
-        print("💪 [VIEWMODEL] checkAllScoresReady - hasAnyScore: \(hasAnyScore), recovery: \(recoveryScore != nil), sleep: \(sleepScore != nil), strain: \(strainScore != nil)")
-        print("💪 [VIEWMODEL] checkAllScoresReady - allLoadingComplete: \(allLoadingComplete), wasReady: \(wasReady)")
+        print("💪 [VIEWMODEL] checkAllScoresReady - isInitialLoad: \(isInitialLoad)")
+        print("💪 [VIEWMODEL] checkAllScoresReady - recovery: \(recoveryScore != nil), sleep: \(sleepScore != nil), strain: \(strainScore != nil)")
+        print("💪 [VIEWMODEL] checkAllScoresReady - loading: R=\(isRecoveryLoading), S=\(isSleepLoading), St=\(isStrainLoading)")
         
-        // FIX: Show scores if we have ANY score, even if still loading
-        // This prevents rings from disappearing when navigating back after toggling debug settings
-        // Only show loading rings if we have NO scores at all AND still loading
-        if hasAnyScore {
-            allScoresReady = true
+        if isInitialLoad {
+            // INITIAL LOAD: Wait for ALL scores to be ready
+            // All loading must be complete before showing scores
+            let allLoadingComplete = !isRecoveryLoading && !isSleepLoading && !isStrainLoading
+            
+            // We need all core scores (recovery and strain are required, sleep is optional if no data)
+            let hasRequiredScores = recoveryScore != nil && strainScore != nil
+            
+            allScoresReady = allLoadingComplete && hasRequiredScores
+            
+            // Transition from initial load to refresh mode once scores are ready
+            if !wasReady && allScoresReady {
+                print("💪 [VIEWMODEL] ✅ All scores ready on initial load - transitioning to refresh mode")
+                Logger.debug("✅ [VIEWMODEL] All scores ready on initial load - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+                isInitialLoad = false
+                // Trigger animation for all rings now that all scores are ready
+                ringAnimationTrigger = UUID()
+            }
         } else {
-            allScoresReady = allLoadingComplete && hasAnyScore
+            // REFRESH MODE: Show scores immediately, they update with calculating status
+            // If we have ANY score, show the rings (don't hide them during refresh)
+            let hasAnyScore = recoveryScore != nil || sleepScore != nil || strainScore != nil
+            allScoresReady = hasAnyScore
+            
+            print("💪 [VIEWMODEL] checkAllScoresReady (refresh mode) - hasAnyScore: \(hasAnyScore), allScoresReady: \(allScoresReady)")
         }
         
-        print("💪 [VIEWMODEL] checkAllScoresReady - allScoresReady NOW: \(allScoresReady)")
-        
-        if !wasReady && allScoresReady {
-            print("💪 [VIEWMODEL] ✅ All scores ready!")
-            Logger.debug("✅ [VIEWMODEL] All scores ready - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
-        } else if !allLoadingComplete {
+        if !allScoresReady {
             Logger.debug("⏳ [VIEWMODEL] Still loading - recovery: \(isRecoveryLoading), sleep: \(isSleepLoading), strain: \(isStrainLoading)")
         }
     }
