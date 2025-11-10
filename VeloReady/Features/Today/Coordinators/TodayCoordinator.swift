@@ -256,7 +256,8 @@ class TodayCoordinator: ObservableObject {
             state = .ready
             lastLoadTime = Date()
             
-            loadingStateManager.updateState(.complete)
+            // Show "Updated just now" persistently (not .complete which hides immediately)
+            loadingStateManager.updateState(.updated(Date()))
             
             let duration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
