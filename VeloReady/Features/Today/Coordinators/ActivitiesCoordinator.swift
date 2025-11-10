@@ -56,39 +56,32 @@ class ActivitiesCoordinator: ObservableObject {
         error = nil
         defer { isLoading = false }
         
-        do {
-            // Fetch from all sources in parallel
-            async let intervalsActivities = fetchIntervalsActivities(days: days)
-            async let stravaActivities = fetchStravaActivities(days: days)
-            async let healthWorkouts = fetchHealthWorkouts(days: days)
-            
-            let (intervals, strava, health) = await (intervalsActivities, stravaActivities, healthWorkouts)
-            
-            Logger.info("✅ [ActivitiesCoordinator] Fetched - Intervals: \(intervals.count), Strava: \(strava.count), Health: \(health.count)")
-            
-            // Deduplicate activities
-            let deduplicated = services.deduplicationService.deduplicateActivities(
-                intervalsActivities: intervals,
-                stravaActivities: strava,
-                appleHealthActivities: health
-            )
-            
-            Logger.info("✅ [ActivitiesCoordinator] Deduplicated: \(deduplicated.count) unique activities")
-            
-            // Sort by date descending and take top 15
-            activities = deduplicated
-                .sorted { $0.startDate > $1.startDate }
-                .prefix(15)
-                .map { $0 }
-            
-            let duration = Date().timeIntervalSince(startTime)
-            Logger.info("✅ [ActivitiesCoordinator] ━━━ Completed in \(String(format: "%.2f", duration))s - \(activities.count) activities ━━━")
-            
-        } catch {
-            let errorMessage = "Failed to fetch activities: \(error.localizedDescription)"
-            self.error = errorMessage
-            Logger.error("❌ [ActivitiesCoordinator] Fetch failed: \(error)")
-        }
+        // Fetch from all sources in parallel
+        async let intervalsActivities = fetchIntervalsActivities(days: days)
+        async let stravaActivities = fetchStravaActivities(days: days)
+        async let healthWorkouts = fetchHealthWorkouts(days: days)
+        
+        let (intervals, strava, health) = await (intervalsActivities, stravaActivities, healthWorkouts)
+        
+        Logger.info("✅ [ActivitiesCoordinator] Fetched - Intervals: \(intervals.count), Strava: \(strava.count), Health: \(health.count)")
+        
+        // Deduplicate activities
+        let deduplicated = services.deduplicationService.deduplicateActivities(
+            intervalsActivities: intervals,
+            stravaActivities: strava,
+            appleHealthActivities: health
+        )
+        
+        Logger.info("✅ [ActivitiesCoordinator] Deduplicated: \(deduplicated.count) unique activities")
+        
+        // Sort by date descending and take top 15
+        activities = deduplicated
+            .sorted { $0.startDate > $1.startDate }
+            .prefix(15)
+            .map { $0 }
+        
+        let duration = Date().timeIntervalSince(startTime)
+        Logger.info("✅ [ActivitiesCoordinator] ━━━ Completed in \(String(format: "%.2f", duration))s - \(activities.count) activities ━━━")
     }
     
     // MARK: - Private Fetching Methods
@@ -106,13 +99,15 @@ class ActivitiesCoordinator: ObservableObject {
         }
         
         do {
-            let activities = try await UnifiedActivityService.shared.fetchRecentActivities(
-                limit: 500,
-                daysBack: days
-            )
+            let activities = try await Task { @MainActor in
+                try await UnifiedActivityService.shared.fetchRecentActivities(
+                    limit: 500,
+                    daysBack: days
+                )
+            }.value
             
-            // Filter out Strava duplicates (those with external_id starting with "strava-")
-            let filtered = activities.filter { !$0.external_id.starts(with: "strava-") }
+            // Filter out Strava duplicates (those with source == "STRAVA")
+            let filtered = activities.filter { $0.source?.uppercased() != "STRAVA" }
             
             Logger.info("✅ [ActivitiesCoordinator] Intervals.icu: \(filtered.count) activities (filtered from \(activities.count))")
             
@@ -130,7 +125,7 @@ class ActivitiesCoordinator: ObservableObject {
         Logger.info("🔄 [ActivitiesCoordinator] Fetching Strava activities...")
         
         // Check if authenticated
-        guard services.stravaAuthService.hasValidAccessToken else {
+        guard case .connected = services.stravaAuthService.connectionState else {
             Logger.info("⏭️ [ActivitiesCoordinator] Strava not authenticated - skipping")
             return []
         }
@@ -172,19 +167,8 @@ class ActivitiesCoordinator: ObservableObject {
     }
     
     /// Get activity count for a specific source
-    func getActivityCount(for source: ActivitySource) -> Int {
+    func getActivityCount(for source: UnifiedActivity.ActivitySource) -> Int {
         activities.filter { $0.source == source }.count
-    }
-}
-
-// MARK: - Activity Source
-
-extension ActivitiesCoordinator {
-    enum ActivitySource {
-        case intervals
-        case strava
-        case appleHealth
-        case manual
     }
 }
 
@@ -201,9 +185,9 @@ extension ActivitiesCoordinator {
         
         if !activities.isEmpty {
             Logger.debug("  Activity breakdown:")
-            Logger.debug("    Intervals: \(activities.filter { $0.source == "Intervals.icu" }.count)")
-            Logger.debug("    Strava: \(activities.filter { $0.source == "Strava" }.count)")
-            Logger.debug("    Health: \(activities.filter { $0.source == "Apple Health" }.count)")
+            Logger.debug("    Intervals: \(activities.filter { $0.source == .intervalsICU }.count)")
+            Logger.debug("    Strava: \(activities.filter { $0.source == .strava }.count)")
+            Logger.debug("    Health: \(activities.filter { $0.source == .appleHealth }.count)")
         }
     }
 }
