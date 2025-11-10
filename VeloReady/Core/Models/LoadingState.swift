@@ -36,36 +36,37 @@ enum LoadingState: Equatable {
     
     /// Minimum time this state should be visible (for readability)
     /// CRITICAL: Keep these VERY short to prevent lag when operations complete quickly
+    /// Updated: Reduced from 0.4-0.6s to 0.1-0.15s for faster UX
     var minimumDisplayDuration: TimeInterval {
         switch self {
         case .initial:
             return 0
         case .contactingIntegrations:
-            return 0.5
+            return 0.15  // Reduced from 0.5s
         case .checkingForUpdates:
-            return 0.4
+            return 0.10  // Reduced from 0.4s
         case .fetchingHealthData:
-            return 0.4
+            return 0.10  // Reduced from 0.4s
         case .calculatingScores:
-            return 0.5
+            return 0.15  // Reduced from 0.5s
         case .downloadingActivities:
-            return 0.5
+            return 0.15  // Reduced from 0.5s
         case .generatingInsights:
-            return 0.5
+            return 0.15  // Reduced from 0.5s
         case .computingZones:
-            return 0.4
+            return 0.10  // Reduced from 0.4s
         case .processingData:
-            return 0.5
+            return 0.10  // Reduced from 0.5s
         case .savingToICloud:
-            return 0.6
+            return 0.15  // Reduced from 0.6s
         case .syncingData:
-            return 0.4
+            return 0.10  // Reduced from 0.4s
         case .refreshingScores:
-            return 0.4
+            return 0.10  // Reduced from 0.4s
         case .offline:
             return 2.0  // Persistent while offline
         case .complete:
-            return 0.2
+            return 0.05  // Reduced from 0.2s
         case .updated:
             return 2.0
         case .error:

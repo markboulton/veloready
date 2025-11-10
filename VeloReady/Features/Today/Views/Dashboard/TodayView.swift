@@ -92,11 +92,14 @@ struct TodayView: View {
                         .padding(.bottom, Spacing.sm)
                         
                         // Recovery Metrics (Three Graphs)
-                        RecoveryMetricsSection(
-                            isHealthKitAuthorized: healthKitManager.isAuthorized,
-                            animationTrigger: viewModel.animationTrigger,
-                            hideBottomDivider: true
-                        )
+                        // Wait for initial auth check to complete to prevent flash of empty rings
+                        if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
+                            RecoveryMetricsSection(
+                                isHealthKitAuthorized: healthKitManager.isAuthorized,
+                                animationTrigger: viewModel.animationTrigger,
+                                hideBottomDivider: true
+                            )
+                        }
                         
                         // HealthKit Enablement Section (only when not authorized)
                         // Wait for initial auth check to complete to prevent flash on app launch
