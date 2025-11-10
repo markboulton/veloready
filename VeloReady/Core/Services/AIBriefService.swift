@@ -80,6 +80,13 @@ class AIBriefService: ObservableObject {
         }
     }
     
+    /// Set error message manually (for timeout/auth failures)
+    func setErrorMessage(_ message: String) async {
+        briefText = message
+        isLoading = false
+        error = .networkError(message)
+    }
+    
     /// Refresh brief (only if not already generated today)
     func refresh() async {
         // Check if we already have a brief from today in Core Data

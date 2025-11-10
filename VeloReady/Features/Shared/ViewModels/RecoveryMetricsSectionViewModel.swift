@@ -197,7 +197,9 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     
     var hasSleepData: Bool {
         guard let score = sleepScore else { return false }
-        return score.inputs.sleepDuration != nil && score.inputs.sleepDuration != 0
+        // A valid sleep score (>= 0) indicates we have sleep data
+        // Score of -1 means no data available
+        return score.score >= 0 && (score.inputs.sleepDuration != nil && score.inputs.sleepDuration != 0)
     }
     
     var sleepTitle: String {

@@ -11,17 +11,39 @@ actor SleepDataCalculator {
     // MARK: - Main Calculation
     
     func calculateSleepScore(sleepNeed: Double) async -> SleepScore? {
-        // Get detailed sleep data
-        async let sleepData = healthKitManager.fetchDetailedSleepData()
+        // Get detailed sleep data (with retry for HealthKit authorization timing issues)
+        var sleepInfo: (sleepDuration: TimeInterval?, timeInBed: TimeInterval?, deepSleepDuration: TimeInterval?, remSleepDuration: TimeInterval?, coreSleepDuration: TimeInterval?, awakeDuration: TimeInterval?, wakeEvents: Int?, bedtime: Date?, wakeTime: Date?, firstSleepTime: Date?)?
+        var retryCount = 0
+        let maxRetries = 2
+        
+        // Retry up to 2 times with a 1-second delay between attempts
+        // This handles the race condition where HealthKit authorization was just granted
+        while sleepInfo == nil && retryCount <= maxRetries {
+            if retryCount > 0 {
+                Logger.info("🔄 [SleepCalculator] Retry \(retryCount)/\(maxRetries) - waiting 1s before fetching sleep data...")
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            }
+            
+            sleepInfo = await healthKitManager.fetchDetailedSleepData()
+            
+            if sleepInfo == nil {
+                Logger.warning("⚠️ [SleepCalculator] Attempt \(retryCount + 1)/\(maxRetries + 1) - no sleep data returned")
+                retryCount += 1
+            }
+        }
+        
+        // Fetch HRV and baselines in parallel (no retry needed for these)
         async let hrvData = healthKitManager.fetchLatestHRVData()
         async let baselines = baselineCalculator.calculateAllBaselines()
         
-        let (sleepInfo, hrv, (hrvBaseline, _, _, _)) = await (sleepData, hrvData, baselines)
+        let (hrv, (hrvBaseline, _, _, _)) = await (hrvData, baselines)
         
         guard let sleepInfo = sleepInfo else {
-            Logger.error("No sleep data available")
+            Logger.error("❌ [SleepCalculator] No sleep data available after \(maxRetries + 1) attempts")
             return nil
         }
+        
+        Logger.info("✅ [SleepCalculator] Sleep data fetched successfully (attempt \(retryCount + 1)/\(maxRetries + 1))")
         
         // Check if sleep data is from last night (within last 24 hours)
         let calendar = Calendar.current
