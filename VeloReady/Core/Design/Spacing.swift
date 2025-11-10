@@ -31,6 +31,7 @@ enum Spacing {
     static let navigationGradientHeight: CGFloat = 60  /// Height of gradient fade below navigation bar
     static let sectionHeaderHeight: CGFloat = 40  /// Height of sticky section headers
     static let sectionHeaderGradientHeight: CGFloat = 20  /// Height of gradient fade on section headers
+    static let tabBarBottomPadding: CGFloat = 120  /// Bottom padding for content to clear tab bar and safe area
 }
 
 /// Design system opacity tokens

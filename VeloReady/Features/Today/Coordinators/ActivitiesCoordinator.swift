@@ -48,7 +48,8 @@ class ActivitiesCoordinator: ObservableObject {
     /// 6. Set isLoading = false
     ///
     /// - Parameter days: Number of days of history to fetch
-    func fetchRecent(days: Int) async {
+    /// - Returns: Array of fetched activities (top 15)
+    func fetchRecent(days: Int) async -> [UnifiedActivity] {
         let startTime = Date()
         Logger.info("🔄 [ActivitiesCoordinator] ━━━ Fetching \(days) days of activities ━━━")
         
@@ -82,6 +83,8 @@ class ActivitiesCoordinator: ObservableObject {
         
         let duration = Date().timeIntervalSince(startTime)
         Logger.info("✅ [ActivitiesCoordinator] ━━━ Completed in \(String(format: "%.2f", duration))s - \(activities.count) activities ━━━")
+        
+        return activities
     }
     
     // MARK: - Private Fetching Methods

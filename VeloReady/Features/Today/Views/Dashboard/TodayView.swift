@@ -86,8 +86,8 @@ struct TodayView: View {
                             )
                             Spacer()
                         }
-                        .padding(.leading, 20) // Match iOS nav bar large title leading edge
-                        .padding(.trailing, 20)
+                        .padding(.leading, 0)
+                        .padding(.trailing, 0)
                         .padding(.top, 0)
                         .padding(.bottom, Spacing.sm)
                         .opacity(viewModel.isInitializing ? 0 : 1) // Fade in after initializing
@@ -177,7 +177,7 @@ struct TodayView: View {
                         }
                     }
                     .padding(.horizontal, Spacing.xl)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, Spacing.tabBarBottomPadding)
                 }
                 .coordinateSpace(name: "scroll")
                 .if(networkMonitor.isConnected) { view in

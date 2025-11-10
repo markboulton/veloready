@@ -220,11 +220,19 @@ class TodayCoordinator: ObservableObject {
             await scoresCoordinator.calculateAll()
             Logger.info("✅ [TodayCoordinator] Scores calculated")
             
-            // Phase 2: Fetch activities (background, non-blocking)
-            Logger.info("🔄 [TodayCoordinator] Phase 2: Fetching activities in background...")
+            // Phase 2: Fetch activities (foreground for initial load to show all states)
+            Logger.info("🔄 [TodayCoordinator] Phase 2: Fetching activities...")
             loadingStateManager.updateState(.contactingIntegrations(sources: [.strava, .appleHealth]))
             
-            startBackgroundActivityFetch()
+            let activities = await activitiesCoordinator.fetchRecent(days: 90)
+            
+            if activities.count > 0 {
+                loadingStateManager.updateState(.downloadingActivities(count: activities.count, source: .strava))
+            }
+            
+            // Phase 3: Processing and saving
+            loadingStateManager.updateState(.processingData)
+            loadingStateManager.updateState(.savingToICloud)
             
             // Mark as ready
             state = .ready
@@ -269,9 +277,10 @@ class TodayCoordinator: ObservableObject {
             async let scoresRefresh = scoresCoordinator.refresh()
             
             // Fetch activities and update loading state with count
-            await activitiesCoordinator.fetchRecent(days: 90)
-            // Note: Activity count is shown via coordinator's internal state
-            loadingStateManager.updateState(.downloadingActivities(count: nil, source: .strava))
+            let activities = await activitiesCoordinator.fetchRecent(days: 90)
+            if activities.count > 0 {
+                loadingStateManager.updateState(.downloadingActivities(count: activities.count, source: .strava))
+            }
             
             // Wait for scores to complete
             await scoresRefresh
@@ -302,12 +311,8 @@ class TodayCoordinator: ObservableObject {
     private func refreshActivitiesOnly() async {
         Logger.info("🔄 [TodayCoordinator] Refreshing activities only...")
         
-        do {
-            await activitiesCoordinator.fetchRecent(days: 90)
-            Logger.info("✅ [TodayCoordinator] Activities refreshed")
-        } catch {
-            Logger.error("❌ [TodayCoordinator] Activities refresh failed: \(error)")
-        }
+        let _ = await activitiesCoordinator.fetchRecent(days: 90)
+        Logger.info("✅ [TodayCoordinator] Activities refreshed")
     }
     
     // MARK: - Background Tasks
@@ -318,7 +323,7 @@ class TodayCoordinator: ObservableObject {
             guard let self = self else { return }
             
             Logger.info("📦 [TodayCoordinator] Background: Fetching activities...")
-            await self.activitiesCoordinator.fetchRecent(days: 90)
+            let _ = await self.activitiesCoordinator.fetchRecent(days: 90)
             Logger.info("✅ [TodayCoordinator] Background: Activities fetched")
         }
         
