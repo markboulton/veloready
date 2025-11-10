@@ -96,15 +96,29 @@ struct CompactRingView: View {
                     .padding(.top, 8)
             }
         }
-        .onChange(of: animationTrigger) { oldValue, newValue in
-            Logger.info("🎬 [CompactRingView] animationTrigger CHANGED for '\(title)' - \(oldValue) → \(newValue)")
-            // Animate when spinner disappears or pull-to-refresh completes
-            guard score != nil else {
-                Logger.info("🎬 [CompactRingView] Skipping animation for '\(title)' - score is nil")
+        .onAppear {
+            Logger.info("🎬 [CompactRingView] onAppear for '\(title)' - isLoading: \(isLoading), score: \(score?.description ?? "nil")")
+            // Trigger animation when view appears with a score (not in loading state)
+            guard !isLoading, score != nil else {
+                Logger.info("🎬 [CompactRingView] Skipping onAppear animation for '\(title)' - isLoading: \(isLoading), score: \(score?.description ?? "nil")")
                 return
             }
             
-            Logger.info("🎬 [CompactRingView] Starting animation for '\(title)' with score: \(score!)")
+            Logger.info("🎬 [CompactRingView] Starting animation on appear for '\(title)' with score: \(score!)")
+            // Small delay to ensure view is laid out
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.animateRing()
+            }
+        }
+        .onChange(of: animationTrigger) { oldValue, newValue in
+            Logger.info("🎬 [CompactRingView] animationTrigger CHANGED for '\(title)' - \(oldValue) → \(newValue)")
+            // Animate when trigger changes (for refreshes)
+            guard score != nil else {
+                Logger.info("🎬 [CompactRingView] Skipping onChange animation for '\(title)' - score is nil")
+                return
+            }
+            
+            Logger.info("🎬 [CompactRingView] Starting animation on change for '\(title)' with score: \(score!)")
             // Reset and animate
             animatedProgress = 0.0
             numberOpacity = 0.0
