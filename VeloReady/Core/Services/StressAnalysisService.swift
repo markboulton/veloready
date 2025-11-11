@@ -2,9 +2,11 @@ import Foundation
 import Combine
 import SwiftUI
 import CoreData
+import VeloReadyCore
 
 /// Service for stress analysis and monitoring
-/// Provides real-time stress calculation and historical tracking
+/// This service orchestrates data fetching and delegates calculation logic to VeloReadyCore
+/// for testability and reusability (matches RecoveryScoreService pattern)
 @MainActor
 class StressAnalysisService: ObservableObject {
     static let shared = StressAnalysisService()
@@ -273,161 +275,15 @@ class StressAnalysisService: ObservableObject {
         }
     }
     
-    /// Calculate real stress score based on physiological metrics
-    private func calculateStressScore() async -> StressScoreResult {
-        // Get services - these are main actor isolated
-        let recovery = await MainActor.run {
-            RecoveryScoreService.shared.currentRecoveryScore
-        }
-        let sleep = await MainActor.run {
-            SleepScoreService.shared.currentSleepScore
-        }
-        
-        var contributors: [StressScoreResult.ContributorData] = []
-        
-        // COMPONENT 1: Physiological Stress (0-40 points)
-        var physiologicalStress: Double = 0.0
-        
-        // HRV Stress (0-15 points)
-        if let recovery = recovery,
-           let hrvBaseline = recovery.inputs.hrvBaseline,
-           let hrv = recovery.inputs.hrv,
-           hrvBaseline > 0 {
-            let hrvDeviation = (hrvBaseline - hrv) / hrvBaseline * 100 // Percentage drop
-            let hrvStress = min(15.0, hrvDeviation * 0.5)
-            physiologicalStress += hrvStress
-            
-            let hrvScore = 100 - Int(hrvDeviation)
-            contributors.append(StressScoreResult.ContributorData(
-                type: .hrv,
-                value: max(0, hrvScore),
-                points: Int(hrvStress),
-                description: StressContent.Contributors.hrvDescription(deviationPercent: Int(-hrvDeviation)),
-                status: hrvScore >= 70 ? .optimal : hrvScore >= 50 ? .good : .elevated
-            ))
-        }
-        
-        // RHR Stress (0-15 points)
-        if let recovery = recovery,
-           let rhrBaseline = recovery.inputs.rhrBaseline,
-           let rhr = recovery.inputs.rhr,
-           rhrBaseline > 0 {
-            let rhrDeviation = (rhr - rhrBaseline) / rhrBaseline * 100 // Percentage increase
-            let rhrStress = min(15.0, rhrDeviation * 1.5)
-            physiologicalStress += rhrStress
-            
-            let rhrScore = 100 - Int(rhrDeviation * 2)
-            contributors.append(StressScoreResult.ContributorData(
-                type: .hrv,  // Changed from .rhr to .hrv since .rhr doesn't exist in ContributorType
-                value: max(0, rhrScore),
-                points: Int(rhrStress),
-                description: "RHR \(Int(rhr)) bpm (baseline: \(Int(rhrBaseline)) bpm)",
-                status: rhrScore >= 70 ? .optimal : rhrScore >= 50 ? .good : .elevated
-            ))
-        }
-        
-        // COMPONENT 2: Recovery Deficit (0-30 points)
-        var recoveryDeficit: Double = 0.0
-        var recoveryScore: Int = 70
-        
-        if let recovery = recovery {
-            recoveryScore = recovery.score
-            if recoveryScore < 70 {
-                recoveryDeficit = min(30.0, Double(70 - recoveryScore) * 0.5)
-            }
-        }
-        
-        // COMPONENT 3: Sleep Disruption (0-30 points)
-        var sleepDisruption: Double = 0.0
-        var sleepScore: Int = 100
-        var wakeEvents: Int = 0
-        
-        if let sleep = sleep {
-            sleepScore = sleep.score
-            wakeEvents = sleep.inputs.wakeEvents ?? 0
-            
-            let sleepBase = Double(100 - sleepScore) * 0.2 // Max 20 points
-            let wakeEventsPenalty = min(10.0, Double(wakeEvents) * 2.0)
-            sleepDisruption = sleepBase + wakeEventsPenalty
-            
-            let sleepDurationHours = (sleep.inputs.sleepDuration ?? 0) / 3600.0
-            contributors.append(StressScoreResult.ContributorData(
-                type: .sleepQuality,
-                value: sleepScore,
-                points: Int(sleepDisruption),
-                description: StressContent.Contributors.sleepQualityDescription(
-                    wakeEvents: wakeEvents,
-                    hours: sleepDurationHours
-                ),
-                status: sleepScore >= 80 ? .optimal : sleepScore >= 60 ? .good : .elevated
-            ))
-        }
-        
-        // Calculate Training Load contribution from Intervals/Strava data
-        var trainingLoadScore = 70
-        var trainingLoadPoints = 0
-        var trainingLoadDescription = "Training load normal"
-        
-        if let recovery = recovery,
-           let atl = recovery.inputs.atl,
-           let ctl = recovery.inputs.ctl,
-           ctl > 0 {
-            // Calculate ATL/CTL ratio for stress contribution
-            let ratio = atl / ctl
-            let trainingLoadStress: Double
-            
-            if ratio < 0.8 {
-                trainingLoadStress = 0 // Well recovered
-                trainingLoadScore = 100
-                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Well recovered"
-            } else if ratio < 1.0 {
-                trainingLoadStress = (ratio - 0.8) * 75 // Range: 0-15
-                trainingLoadScore = Int(100 - trainingLoadStress)
-                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Moderate load"
-            } else if ratio < 1.3 {
-                trainingLoadStress = 15 + ((ratio - 1.0) * 50) // Range: 15-30
-                trainingLoadScore = Int(100 - trainingLoadStress)
-                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - High load"
-            } else {
-                trainingLoadStress = 30 // Overreaching
-                trainingLoadScore = 40
-                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Overreaching"
-            }
-            
-            trainingLoadPoints = Int(trainingLoadStress)
-            physiologicalStress += trainingLoadStress // Add to physiological stress component
-        }
-        
-        contributors.append(StressScoreResult.ContributorData(
-            type: .trainingLoad,
-            value: trainingLoadScore,
-            points: trainingLoadPoints,
-            description: trainingLoadDescription,
-            status: trainingLoadScore >= 70 ? .good : .elevated
-        ))
-        
-        // Calculate Acute Stress (today's stress)
-        let acuteStress = Int(min(100, physiologicalStress + recoveryDeficit + sleepDisruption))
-        
-        // Calculate Chronic Stress (7-day rolling average from historical data)
-        let chronicStress = await calculateChronicStress(todayStress: acuteStress)
-        
-        return StressScoreResult(
-            acuteStress: acuteStress,
-            chronicStress: chronicStress,
-            physiologicalStress: physiologicalStress,
-            recoveryDeficit: recoveryDeficit,
-            sleepDisruption: sleepDisruption,
-            contributors: contributors
-        )
-    }
+    // OLD implementation removed - now uses VeloReadyCore.StressCalculations.calculateAcuteStress()
     
     /// Calculate chronic stress from 7-day rolling average
+    /// Fetches historical data and delegates calculation to VeloReadyCore
     private func calculateChronicStress(todayStress: Int) async -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
-        // Fetch last 7 days of stress scores (including today)
+        // Fetch last 6 days of stress scores (not including today)
         guard let startDate = calendar.date(byAdding: .day, value: -6, to: today) else {
             return todayStress // Fallback to today's stress
         }
@@ -438,24 +294,24 @@ class StressAnalysisService: ObservableObject {
         
         let historicalScores = persistence.fetch(request)
         
-        // Collect stress scores from past 6 days + today
-        var stressValues: [Double] = historicalScores.compactMap { score in
+        // Collect stress scores from past 6 days (today will be added by VeloReadyCore)
+        let stressValues: [Double] = historicalScores.compactMap { score in
             score.stressScore > 0 ? score.stressScore : nil
         }
-        stressValues.append(Double(todayStress)) // Add today
         
-        // Calculate average
-        guard !stressValues.isEmpty else {
-            return todayStress
-        }
+        // Delegate to VeloReadyCore for calculation
+        let chronic = VeloReadyCore.StressCalculations.calculateChronicStress(
+            historicalScores: stressValues,
+            todayStress: todayStress
+        )
         
-        let average = stressValues.reduce(0, +) / Double(stressValues.count)
-        logger.debug("🧠 [StressAnalysisService] Chronic stress calculated from \(stressValues.count) days: \(Int(average))")
+        logger.debug("🧠 [StressAnalysisService] Chronic stress calculated from \(stressValues.count + 1) days: \(chronic)")
         
-        return Int(average)
+        return chronic
     }
     
     /// Calculate smart threshold based on athlete profile and historical patterns
+    /// Fetches historical data and delegates calculation to VeloReadyCore
     private func calculateSmartThreshold() async -> Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -471,36 +327,22 @@ class StressAnalysisService: ObservableObject {
         
         let historicalScores = persistence.fetch(request)
         
-        // If insufficient data, use default threshold
-        guard historicalScores.count >= 7 else {
-            logger.debug("🧠 [StressAnalysisService] Insufficient historical data (\(historicalScores.count) days), using default threshold: 50")
-            return 50
-        }
-        
-        // Calculate athlete's normal stress range
+        // Collect historical stress values
         let stressValues = historicalScores.map { $0.stressScore }
-        let average = stressValues.reduce(0, +) / Double(stressValues.count)
-        let variance = stressValues.map { pow($0 - average, 2) }.reduce(0, +) / Double(stressValues.count)
-        let stdDev = sqrt(variance)
         
-        // Get current CTL to adjust for fitness level
+        // Get current CTL for fitness adjustment
         let recovery = await MainActor.run {
             RecoveryScoreService.shared.currentRecoveryScore
         }
-        let ctl = recovery?.inputs.ctl ?? 50
+        let ctl = recovery?.inputs.ctl ?? 70
         
-        // Adjust threshold based on:
-        // 1. Personal baseline + 1.5 standard deviations
-        // 2. Fitness level (higher CTL = can handle more stress)
-        let personalBaseline = average + (stdDev * 1.5)
+        // Delegate to VeloReadyCore for calculation
+        let smartThreshold = VeloReadyCore.StressCalculations.calculateSmartThreshold(
+            historicalScores: stressValues,
+            ctl: ctl
+        )
         
-        // Fitness adjustment: Higher CTL means higher threshold
-        // CTL 40 (beginner) = -10 points, CTL 100 (pro) = +10 points
-        let fitnessAdjustment = ((ctl - 70) / 60) * 10 // -10 to +10 range
-        
-        let smartThreshold = Int(max(40, min(70, personalBaseline + fitnessAdjustment)))
-        
-        logger.debug("🧠 [StressAnalysisService] Smart threshold: \(smartThreshold) (baseline: \(Int(average)), stdDev: \(Int(stdDev)), CTL: \(Int(ctl)), adj: \(Int(fitnessAdjustment)))")
+        logger.debug("🧠 [StressAnalysisService] Smart threshold: \(smartThreshold) (from \(stressValues.count) days, CTL: \(Int(ctl)))")
         
         return smartThreshold
     }
