@@ -19,17 +19,27 @@ The implementation is **ready for Phase 1 extraction** to VeloReadyCore when the
 ### Refactor Status (as of Nov 11, 2025)
 
 **Completed:**
-- ✅ Phase 0: VeloReadyCore package structure created
-- ✅ Phase 1 Setup: Placeholder calculation files
-- ✅ Baseline & TrainingLoad tests passing (1.5s)
+- ✅ Phase 0: Audits complete (Leanness, Design, Velocity)
+- ✅ Phase 1: VeloReadyCore extraction 100% COMPLETE
+  - ✅ RecoveryCalculations extracted (364 lines, 36 tests)
+  - ✅ SleepCalculations extracted (195 lines, 14 tests)
+  - ✅ StrainCalculations extracted (303 lines, 20 tests)
+  - ✅ BaselineCalculations consolidated (92 lines, 6 tests)
+  - ✅ TrainingLoadCalculations consolidated (102 lines, 6 tests)
+  - ✅ 82 tests passing in <2 seconds (39x faster!)
+- ✅ Phase 2: Core calculations migration complete
+  - ✅ All iOS services use `import VeloReadyCore`
+  - ✅ Services are thin orchestrators (data fetching only)
+  - ✅ 31/31 tests passing
 
 **Pending:**
-- ⏳ Phase 1 Extraction: Move business logic from services to VeloReadyCore
-- ⏳ Phase 2: Cache consolidation
-- ⏳ Phase 3: Remove @MainActor from calculations
-- ⏳ Phase 4-5: Organization & polish
+- ⏳ Phase 2+: Cache consolidation (future work)
+- ⏳ Phase 3+: Further @MainActor optimization (future work)
+- ⏳ Phase 4-5: Organization & polish (future work)
 
-**Reference:** `/documentation/refactor-2025-11-06/PHASE1_SETUP_COMPLETE.md`
+**Reference:** 
+- `/documentation/archive/phases/PHASE1_FINAL_COMPLETE.md`
+- `/documentation/implementation/PHASE_2_COMPLETE.md`
 
 ---
 
@@ -112,7 +122,10 @@ class SleepScoreService: ObservableObject {
 
 ## Refactor Readiness Assessment
 
-### Phase 1: Business Logic Extraction ✅
+### Phase 1: Business Logic Extraction 🟡
+
+**Status:** Recovery, Sleep, Strain **already extracted** ✅  
+**Status:** Stress calculations **ready for extraction** 🟡
 
 **Stress Calculations Ready for VeloReadyCore:**
 
@@ -264,21 +277,23 @@ actor StressDataCalculator {
 | Pattern | Recovery/Sleep Services | Stress Service | Match? |
 |---------|------------------------|----------------|--------|
 | @MainActor on service | ✅ | ✅ | ✅ |
+| Uses VeloReadyCore | ✅ (extracted) | 🟡 (not yet extracted) | ⚠️ |
 | Async calculations | ✅ | ✅ | ✅ |
 | Published state | ✅ | ✅ | ✅ |
 | Singleton pattern | ✅ | ✅ | ✅ |
 | Core Data persistence | ✅ | ✅ | ✅ |
 | Private calculation methods | ✅ | ✅ | ✅ |
-| Ready for actor extraction | ✅ | ✅ | ✅ |
+| Calculations extractable | ✅ (already done) | ✅ (ready) | ✅ |
 
-### ✅ Ready for Refactor Phases
+### 🟡 Ready for Refactor Extraction
 
-| Phase | Requirement | Stress Service Status |
-|-------|-------------|---------------------|
-| Phase 1 | Business logic extractable | ✅ Pure calculation functions ready |
-| Phase 2 | Cache-agnostic | ✅ Uses standard Core Data pattern |
-| Phase 3 | Can remove @MainActor | ✅ Calculations already async |
-| Phase 4 | Clear file organization | ✅ Single focused service file |
+| Phase | Requirement | Stress Service Status | Recovery/Sleep Status |
+|-------|-------------|---------------------|---------------------|
+| Phase 1 | Use VeloReadyCore | 🟡 Not yet extracted | ✅ Already extracted |
+| Phase 2 | Business logic pure | ✅ Calculations are pure | ✅ Already in VeloReadyCore |
+| Cache | Cache-agnostic | ✅ Uses standard Core Data pattern | ✅ Same pattern |
+| Async | Non-blocking | ✅ Calculations already async | ✅ Same pattern |
+| Org | Clear structure | ✅ Single focused service file | ✅ Same pattern |
 
 ### ✅ No Technical Debt
 
@@ -327,23 +342,30 @@ When Phase 1 extraction happens, stress feature requires:
 
 ## Conclusion
 
-### ✅ Fully Aligned with Refactor Plan
+### 🟡 Partially Aligned - Extraction Needed
 
 The stress feature implementation:
-1. **Follows existing patterns exactly** (Recovery/Sleep services)
-2. **Ready for Phase 1 extraction** (business logic is extractable)
-3. **No blocking technical debt** (clean, async, testable)
-4. **Will migrate cleanly** when refactor phases complete
+1. **Follows existing service patterns** (same structure as Recovery/Sleep) ✅
+2. **NOT yet extracted to VeloReadyCore** (Recovery/Sleep already are) ⚠️
+3. **Ready for extraction** (business logic is pure and extractable) ✅
+4. **No blocking technical debt** (clean, async, testable) ✅
 
-### No Changes Required Now
+### Action Required
 
-Since the refactor is **only at Phase 1 Setup** (VeloReadyCore structure created but not yet populated), the stress feature should **match existing services** - which it does perfectly.
+Since **Phase 1 and 2 are already COMPLETE** (Recovery, Sleep, Strain extracted to VeloReadyCore), the stress feature **should be extracted to match**:
 
-When the refactor continues:
-- Stress feature will migrate **alongside** Recovery/Sleep/Strain
-- Same extraction patterns
-- Same actor patterns
-- Same cache consolidation
+**Current State:**
+- ✅ Recovery: Uses `VeloReadyCore.RecoveryCalculations`
+- ✅ Sleep: Uses `VeloReadyCore.SleepCalculations`
+- ✅ Strain: Uses `VeloReadyCore.StrainCalculations`
+- ⚠️ **Stress: Still has calculations in service** (not extracted)
+
+**To Align:**
+- Extract `calculateStressScore()` → `StressCalculations.calculateAcuteStress()`
+- Extract `calculateChronicStress()` → `StressCalculations.calculateChronicStress()`  
+- Extract `calculateSmartThreshold()` → `StressCalculations.calculateSmartThreshold()`
+- Add comprehensive tests (target: 20+ tests like other calculations)
+- Service becomes thin orchestrator using `VeloReadyCore`
 
 ### Implementation Quality
 
