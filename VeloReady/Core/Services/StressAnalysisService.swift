@@ -275,7 +275,79 @@ class StressAnalysisService: ObservableObject {
         }
     }
     
-    // OLD implementation removed - now uses VeloReadyCore.StressCalculations.calculateAcuteStress()
+    /// Calculate stress score from multiple inputs
+    /// Delegates calculation to VeloReadyCore.StressCalculations
+    private func calculateStressScore() async -> StressScoreResult {
+        // Get services
+        let recoveryService = RecoveryScoreService.shared
+        let sleepService = SleepScoreService.shared
+        
+        // Get current scores
+        let recovery = recoveryService.currentRecoveryScore
+        let sleep = sleepService.currentSleepScore
+        
+        // Extract inputs for VeloReadyCore calculation
+        let hrv = recovery?.inputs.hrv
+        let hrvBaseline = recovery?.inputs.hrvBaseline
+        let rhr = recovery?.inputs.rhr
+        let rhrBaseline = recovery?.inputs.rhrBaseline
+        let recoveryScore = recovery?.score ?? 50
+        let sleepScore = sleep?.score ?? 50
+        let atl = recovery?.inputs.atl
+        let ctl = recovery?.inputs.ctl
+        
+        // Delegate to VeloReadyCore for pure calculation
+        let coreResult = VeloReadyCore.StressCalculations.calculateAcuteStress(
+            hrv: hrv,
+            hrvBaseline: hrvBaseline,
+            rhr: rhr,
+            rhrBaseline: rhrBaseline,
+            recoveryScore: recoveryScore,
+            sleepScore: sleepScore,
+            atl: atl,
+            ctl: ctl
+        )
+        
+        // Convert VeloReadyCore result to iOS model
+        let contributors: [StressScoreResult.ContributorData] = coreResult.contributors.map { coreContributor in
+            StressScoreResult.ContributorData(
+                type: convertContributorType(coreContributor.type),
+                value: coreContributor.value,
+                points: coreContributor.points,
+                description: coreContributor.description,
+                status: convertContributorStatus(coreContributor.status)
+            )
+        }
+        
+        return StressScoreResult(
+            acuteStress: coreResult.acuteStress,
+            chronicStress: coreResult.chronicStress,
+            physiologicalStress: coreResult.physiologicalStress,
+            recoveryDeficit: coreResult.recoveryDeficit,
+            sleepDisruption: coreResult.sleepDisruption,
+            contributors: contributors
+        )
+    }
+    
+    /// Convert VeloReadyCore ContributorType to iOS model
+    private func convertContributorType(_ coreType: VeloReadyCore.ContributorType) -> StressContributor.ContributorType {
+        switch coreType {
+        case .hrv: return .hrv
+        case .rhr: return .hrv  // Note: .rhr doesn't exist in iOS model, map to .hrv
+        case .recovery: return .recovery
+        case .sleepQuality: return .sleepQuality
+        case .trainingLoad: return .trainingLoad
+        }
+    }
+    
+    /// Convert VeloReadyCore ContributorStatus to iOS model
+    private func convertContributorStatus(_ coreStatus: VeloReadyCore.ContributorStatus) -> StressContributor.Status {
+        switch coreStatus {
+        case .optimal: return .good
+        case .good: return .good
+        case .elevated: return .elevated
+        }
+    }
     
     /// Calculate chronic stress from 7-day rolling average
     /// Fetches historical data and delegates calculation to VeloReadyCore
