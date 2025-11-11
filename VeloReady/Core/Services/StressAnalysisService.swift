@@ -1,9 +1,11 @@
 import Foundation
 import Combine
 import SwiftUI
+import CoreData
 
 /// Service for stress analysis and monitoring
-/// Provides mock data for testing until full implementation
+/// Provides real-time stress calculation and historical tracking
+@MainActor
 class StressAnalysisService: ObservableObject {
     static let shared = StressAnalysisService()
     
@@ -11,6 +13,8 @@ class StressAnalysisService: ObservableObject {
     @Published private(set) var isAnalyzing = false
     
     private let logger = Logger.self
+    private let persistence = PersistenceController.shared
+    private let cacheManager = CacheManager.shared
     
     private init() {
         // Initialize service
@@ -23,23 +27,24 @@ class StressAnalysisService: ObservableObject {
     func analyzeStress() async {
         logger.debug("🧠 [StressAnalysisService] Starting stress analysis")
         
-        await MainActor.run {
-            isAnalyzing = true
-        }
+        isAnalyzing = true
+        defer { isAnalyzing = false }
         
         // Calculate real stress score
         let stressScore = await calculateStressScore()
         
-        await MainActor.run {
-            // Generate alert if stress is elevated or high
-            if stressScore.acuteStress > 50 {  // Elevated threshold
-                currentAlert = generateAlertFrom(stressScore)
-                logger.debug("🧠 [StressAnalysisService] Generated stress alert - Acute: \(stressScore.acuteStress), Chronic: \(stressScore.chronicStress)")
-            } else {
-                currentAlert = nil
-                logger.debug("🧠 [StressAnalysisService] No alert - stress within normal range (\(stressScore.acuteStress))")
-            }
-            isAnalyzing = false
+        // Save to Core Data
+        await saveStressScore(stressScore)
+        
+        // Check if alert should be generated using smart thresholds
+        let threshold = await calculateSmartThreshold()
+        
+        if stressScore.acuteStress > threshold {
+            currentAlert = generateAlertFrom(stressScore)
+            logger.debug("🧠 [StressAnalysisService] Generated stress alert - Acute: \(stressScore.acuteStress), Chronic: \(stressScore.chronicStress), Threshold: \(threshold)")
+        } else {
+            currentAlert = nil
+            logger.debug("🧠 [StressAnalysisService] No alert - stress within normal range (\(stressScore.acuteStress) < threshold \(threshold))")
         }
     }
     
@@ -182,25 +187,38 @@ class StressAnalysisService: ObservableObject {
     }
     
     /// Get stress trend data for chart
-    @MainActor
     func getStressTrendData(for period: TrendPeriod) -> [TrendDataPoint] {
-        // Generate mock trend data showing increasing stress
         let days = period.days
-        var dataPoints: [TrendDataPoint] = []
         let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         
-        for i in 0..<days {
-            let date = calendar.date(byAdding: .day, value: -days + i + 1, to: Date()) ?? Date()
-            // Simulate increasing stress trend
-            let base: Double = 30.0
-            let increment: Double = Double(i) * (40.0 / Double(days))
-            let noise: Double = Double.random(in: -5...5)
-            let value = min(100, max(0, base + increment + noise))
-            
-            dataPoints.append(TrendDataPoint(
-                date: date,
-                value: value
-            ))
+        // Fetch historical stress scores from Core Data
+        guard let startDate = calendar.date(byAdding: .day, value: -days + 1, to: today) else {
+            return []
+        }
+        
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startDate as NSDate, today as NSDate)
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        let historicalScores = persistence.fetch(request)
+        
+        // Convert to TrendDataPoint
+        var dataPoints: [TrendDataPoint] = []
+        
+        for score in historicalScores where score.date != nil {
+            let stressValue = score.stressScore > 0 ? score.stressScore : nil
+            if let value = stressValue, let date = score.date {
+                dataPoints.append(TrendDataPoint(
+                    date: date,
+                    value: value
+                ))
+            }
+        }
+        
+        // Fill in missing days with nil (chart will interpolate or show gaps)
+        if dataPoints.count < days {
+            logger.debug("🧠 [StressAnalysisService] Only \(dataPoints.count) days of historical stress data available")
         }
         
         return dataPoints
@@ -345,23 +363,54 @@ class StressAnalysisService: ObservableObject {
             ))
         }
         
-        // Calculate Training Load contribution (mock for now, will use real ATL/CTL when available)
-        // TODO: Get real ATL/CTL from Intervals.icu
-        let trainingLoadScore = 65
+        // Calculate Training Load contribution from Intervals/Strava data
+        var trainingLoadScore = 70
+        var trainingLoadPoints = 0
+        var trainingLoadDescription = "Training load normal"
+        
+        if let recovery = recovery,
+           let atl = recovery.inputs.atl,
+           let ctl = recovery.inputs.ctl,
+           ctl > 0 {
+            // Calculate ATL/CTL ratio for stress contribution
+            let ratio = atl / ctl
+            let trainingLoadStress: Double
+            
+            if ratio < 0.8 {
+                trainingLoadStress = 0 // Well recovered
+                trainingLoadScore = 100
+                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Well recovered"
+            } else if ratio < 1.0 {
+                trainingLoadStress = (ratio - 0.8) * 75 // Range: 0-15
+                trainingLoadScore = Int(100 - trainingLoadStress)
+                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Moderate load"
+            } else if ratio < 1.3 {
+                trainingLoadStress = 15 + ((ratio - 1.0) * 50) // Range: 15-30
+                trainingLoadScore = Int(100 - trainingLoadStress)
+                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - High load"
+            } else {
+                trainingLoadStress = 30 // Overreaching
+                trainingLoadScore = 40
+                trainingLoadDescription = "ATL/CTL: \(String(format: "%.2f", ratio)) - Overreaching"
+            }
+            
+            trainingLoadPoints = Int(trainingLoadStress)
+            physiologicalStress += trainingLoadStress // Add to physiological stress component
+        }
+        
         contributors.append(StressScoreResult.ContributorData(
             type: .trainingLoad,
             value: trainingLoadScore,
-            points: Int((100.0 - Double(trainingLoadScore)) * 0.3),
-            description: "Recent training load is moderate",
+            points: trainingLoadPoints,
+            description: trainingLoadDescription,
             status: trainingLoadScore >= 70 ? .good : .elevated
         ))
         
         // Calculate Acute Stress (today's stress)
         let acuteStress = Int(min(100, physiologicalStress + recoveryDeficit + sleepDisruption))
         
-        // Calculate Chronic Stress (7-day average - for now, use acute * 0.9 as approximation)
-        // TODO: Implement real 7-day rolling average from historical data
-        let chronicStress = Int(Double(acuteStress) * 0.9)
+        // Calculate Chronic Stress (7-day rolling average from historical data)
+        let chronicStress = await calculateChronicStress(todayStress: acuteStress)
         
         return StressScoreResult(
             acuteStress: acuteStress,
@@ -371,6 +420,139 @@ class StressAnalysisService: ObservableObject {
             sleepDisruption: sleepDisruption,
             contributors: contributors
         )
+    }
+    
+    /// Calculate chronic stress from 7-day rolling average
+    private func calculateChronicStress(todayStress: Int) async -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Fetch last 7 days of stress scores (including today)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: today) else {
+            return todayStress // Fallback to today's stress
+        }
+        
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date >= %@ AND date < %@", startDate as NSDate, today as NSDate)
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        let historicalScores = persistence.fetch(request)
+        
+        // Collect stress scores from past 6 days + today
+        var stressValues: [Double] = historicalScores.compactMap { score in
+            score.stressScore > 0 ? score.stressScore : nil
+        }
+        stressValues.append(Double(todayStress)) // Add today
+        
+        // Calculate average
+        guard !stressValues.isEmpty else {
+            return todayStress
+        }
+        
+        let average = stressValues.reduce(0, +) / Double(stressValues.count)
+        logger.debug("🧠 [StressAnalysisService] Chronic stress calculated from \(stressValues.count) days: \(Int(average))")
+        
+        return Int(average)
+    }
+    
+    /// Calculate smart threshold based on athlete profile and historical patterns
+    private func calculateSmartThreshold() async -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Fetch last 30 days of stress scores for baseline calculation
+        guard let startDate = calendar.date(byAdding: .day, value: -29, to: today) else {
+            return 50 // Default threshold
+        }
+        
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date >= %@ AND date < %@ AND stressScore > 0", 
+                                       startDate as NSDate, today as NSDate)
+        
+        let historicalScores = persistence.fetch(request)
+        
+        // If insufficient data, use default threshold
+        guard historicalScores.count >= 7 else {
+            logger.debug("🧠 [StressAnalysisService] Insufficient historical data (\(historicalScores.count) days), using default threshold: 50")
+            return 50
+        }
+        
+        // Calculate athlete's normal stress range
+        let stressValues = historicalScores.map { $0.stressScore }
+        let average = stressValues.reduce(0, +) / Double(stressValues.count)
+        let variance = stressValues.map { pow($0 - average, 2) }.reduce(0, +) / Double(stressValues.count)
+        let stdDev = sqrt(variance)
+        
+        // Get current CTL to adjust for fitness level
+        let recovery = await MainActor.run {
+            RecoveryScoreService.shared.currentRecoveryScore
+        }
+        let ctl = recovery?.inputs.ctl ?? 50
+        
+        // Adjust threshold based on:
+        // 1. Personal baseline + 1.5 standard deviations
+        // 2. Fitness level (higher CTL = can handle more stress)
+        let personalBaseline = average + (stdDev * 1.5)
+        
+        // Fitness adjustment: Higher CTL means higher threshold
+        // CTL 40 (beginner) = -10 points, CTL 100 (pro) = +10 points
+        let fitnessAdjustment = ((ctl - 70) / 60) * 10 // -10 to +10 range
+        
+        let smartThreshold = Int(max(40, min(70, personalBaseline + fitnessAdjustment)))
+        
+        logger.debug("🧠 [StressAnalysisService] Smart threshold: \(smartThreshold) (baseline: \(Int(average)), stdDev: \(Int(stdDev)), CTL: \(Int(ctl)), adj: \(Int(fitnessAdjustment)))")
+        
+        return smartThreshold
+    }
+    
+    /// Save stress score to Core Data
+    private func saveStressScore(_ result: StressScoreResult) async {
+        let context = persistence.newBackgroundContext()
+        
+        await context.perform { [weak self] in
+            guard let self = self else { return }
+            
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            
+            // Fetch or create DailyScores for today
+            let request = DailyScores.fetchRequest()
+            request.predicate = NSPredicate(format: "date == %@", today as NSDate)
+            request.fetchLimit = 1
+            
+            let scores = (try? context.fetch(request).first) ?? DailyScores(context: context)
+            if scores.date == nil {
+                scores.date = today
+            }
+            
+            // Save stress data
+            scores.stressScore = Double(result.acuteStress)
+            scores.chronicStress = Double(result.chronicStress)
+            scores.physiologicalStress = result.physiologicalStress
+            scores.recoveryDeficit = result.recoveryDeficit
+            scores.sleepDisruption = result.sleepDisruption
+            
+            // Determine trend
+            let trend: String
+            if result.acuteStress > result.chronicStress + 5 {
+                trend = "increasing"
+            } else if result.acuteStress < result.chronicStress - 5 {
+                trend = "decreasing"
+            } else {
+                trend = "stable"
+            }
+            scores.stressTrend = trend
+            
+            scores.lastUpdated = Date()
+            
+            // Save context
+            do {
+                try context.save()
+                self.logger.debug("💾 [StressAnalysisService] Saved stress score to Core Data - Acute: \(result.acuteStress), Chronic: \(result.chronicStress)")
+            } catch {
+                self.logger.error("❌ [StressAnalysisService] Failed to save stress score: \(error.localizedDescription)")
+            }
+        }
     }
     
     /// Generate StressAlert from calculated scores
