@@ -77,6 +77,10 @@ struct VeloReadyApp: App {
             RootView()
                 .environment(\.managedObjectContext, persistenceController.viewContext)
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                    // Clear runtime flag so next launch will show branding (if app was killed)
+                    UserDefaults.standard.set(false, forKey: "app_was_running_flag")
+                    Logger.debug("🎬 [BRANDING] Cleared runtime flag - app going to background")
+                    
                     Self.scheduleBackgroundRefresh()
                 }
         }
@@ -259,27 +263,40 @@ struct MainTabView: View {
     ]
     
     init() {
-        // Check if this is a fresh launch (after app was killed)
-        // We check if the session date is from a different app launch
+        // BRANDING LOGIC:
+        // - ALWAYS show on fresh app launch (after kill/rebuild)
+        // - DON'T show when returning from background (if < 1 hour)
+        //
+        // We use a runtime-only flag to detect fresh launches
         let defaults = UserDefaults.standard
-        let lastSessionDate = defaults.object(forKey: Self.lastSessionDateKey) as? Date
+        let wasRunningKey = "app_was_running_flag"
+        let lastSessionDateKey = Self.lastSessionDateKey
         let now = Date()
         
-        // If no session date, or session is stale (>1 hour old), show branding
+        // Check if app was running in memory (this flag only exists if app wasn't killed)
+        let wasRunning = defaults.bool(forKey: wasRunningKey)
+        
         let shouldShowBranding: Bool
-        if let lastDate = lastSessionDate {
-            let timeSinceLastSession = now.timeIntervalSince(lastDate)
-            // Show branding if more than 1 hour has passed (app was killed)
-            shouldShowBranding = timeSinceLastSession > 3600
-            Logger.info("🎬 [BRANDING] Time since last session: \(String(format: "%.1f", timeSinceLastSession))s - showing: \(shouldShowBranding)")
+        if wasRunning {
+            // App was backgrounded, not killed - check if enough time passed
+            if let lastDate = defaults.object(forKey: lastSessionDateKey) as? Date {
+                let timeSinceLastSession = now.timeIntervalSince(lastDate)
+                shouldShowBranding = timeSinceLastSession > 3600 // 1 hour
+                Logger.info("🎬 [BRANDING] App backgrounded - time since last: \(String(format: "%.1f", timeSinceLastSession))s - showing: \(shouldShowBranding)")
+            } else {
+                // No session date but was running? Show branding to be safe
+                shouldShowBranding = true
+                Logger.info("🎬 [BRANDING] App was running but no session date - showing branding")
+            }
         } else {
-            // First launch ever - show branding
+            // App was killed/rebuilt - ALWAYS show branding
             shouldShowBranding = true
-            Logger.info("🎬 [BRANDING] First launch - showing branding")
+            Logger.info("🎬 [BRANDING] Fresh app launch (killed/rebuilt) - showing branding")
         }
         
-        // Update session date
-        defaults.set(now, forKey: Self.lastSessionDateKey)
+        // Set runtime flag to indicate app is now running
+        defaults.set(true, forKey: wasRunningKey)
+        defaults.set(now, forKey: lastSessionDateKey)
         
         _showInitialSpinner = State(initialValue: shouldShowBranding)
     }
