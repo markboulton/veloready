@@ -225,8 +225,12 @@ struct MainTabView: View {
     @StateObject private var athleteZoneService = AthleteZoneService()
     @State private var selectedTab = 0
     @State private var previousTab = 0
-    @State private var showInitialSpinner = true
+    @State private var showInitialSpinner: Bool
     @State private var brandingOpacity: Double = 0.0  // Start at 0 for fade-in animation
+    
+    // UserDefaults key for tracking app lifecycle
+    private static let hasShownBrandingKey = "hasShownBrandingAnimation"
+    private static let lastSessionDateKey = "lastSessionDate"
     
     private let tabs = [
         TabItem(title: CommonContent.TabLabels.today, icon: "house.fill"),
@@ -234,6 +238,32 @@ struct MainTabView: View {
         TabItem(title: CommonContent.TabLabels.trends, icon: "chart.xyaxis.line"),
         TabItem(title: CommonContent.TabLabels.settings, icon: "gearshape.fill")
     ]
+    
+    init() {
+        // Check if this is a fresh launch (after app was killed)
+        // We check if the session date is from a different app launch
+        let defaults = UserDefaults.standard
+        let lastSessionDate = defaults.object(forKey: Self.lastSessionDateKey) as? Date
+        let now = Date()
+        
+        // If no session date, or session is stale (>1 hour old), show branding
+        let shouldShowBranding: Bool
+        if let lastDate = lastSessionDate {
+            let timeSinceLastSession = now.timeIntervalSince(lastDate)
+            // Show branding if more than 1 hour has passed (app was killed)
+            shouldShowBranding = timeSinceLastSession > 3600
+            Logger.info("🎬 [BRANDING] Time since last session: \(String(format: "%.1f", timeSinceLastSession))s - showing: \(shouldShowBranding)")
+        } else {
+            // First launch ever - show branding
+            shouldShowBranding = true
+            Logger.info("🎬 [BRANDING] First launch - showing branding")
+        }
+        
+        // Update session date
+        defaults.set(now, forKey: Self.lastSessionDateKey)
+        
+        _showInitialSpinner = State(initialValue: shouldShowBranding)
+    }
     
     var body: some View {
         return Group {
