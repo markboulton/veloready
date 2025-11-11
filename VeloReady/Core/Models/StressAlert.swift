@@ -110,7 +110,7 @@ struct StressContributor: Identifiable {
             case .temperature:
                 return Icons.Health.thermometer
             case .recovery:
-                return Icons.Navigation.today
+                return Icons.Health.recovery
             case .strain:
                 return Icons.Activity.strength
             }

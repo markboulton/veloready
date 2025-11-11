@@ -41,6 +41,7 @@ class StressAnalysisService: ObservableObject {
     }
     
     /// Get recovery factors for the factors card
+    @MainActor
     func getRecoveryFactors() -> [RecoveryFactor] {
         // Get real data from services
         let recoveryService = RecoveryScoreService.shared
