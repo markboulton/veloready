@@ -73,6 +73,8 @@ enum Icons {
         static let boltHeart = "bolt.heart.fill"
         static let boltSlash = "bolt.slash.fill"
         static let drop = "drop.fill"
+        static let thermometer = "thermometer.medium"
+        static let brain = "brain.head.profile"
     }
     
     // MARK: - Status & Feedback

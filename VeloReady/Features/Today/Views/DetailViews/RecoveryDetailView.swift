@@ -21,6 +21,9 @@ struct RecoveryDetailView: View {
                     RecoveryHeaderSection(recoveryScore: recoveryScore)
                         .padding(.top, 60)
                     
+                    // Recovery Factors Card (new)
+                    RecoveryFactorsCard()
+                    
                     // Health warnings card
                     HealthWarningsCardV2()
                     
