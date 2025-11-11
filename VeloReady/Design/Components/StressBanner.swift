@@ -1,43 +1,89 @@
 import SwiftUI
 
 /// Banner for stress alerts - appears under the daily summary rings
-/// Matches WellnessBanner design exactly
+/// Matches IllnessAlertBanner design exactly
 struct StressBanner: View {
     let alert: StressAlert
     let onTap: () -> Void
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 8) {
-                // Warning icon with severity-based color
-                Image(systemName: alert.severity.icon)
-                    .font(.caption)
-                    .foregroundColor(alert.severity.color)
-                
-                // Banner message
-                Text(alert.bannerMessage)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(ColorScale.labelPrimary)
-                    .multilineTextAlignment(.leading)
-                
-                Spacer()
-                
-                // Chevron to indicate it's tappable
-                Image(systemName: Icons.System.chevronRight)
-                    .font(.caption)
-                    .foregroundColor(.white)
+            VStack(spacing: Spacing.xs / 2) {
+                HStack(spacing: Spacing.xs) {
+                    // Icon in circle (top-left aligned)
+                    ZStack {
+                        Circle()
+                            .fill(alert.severity.color.opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: alert.severity.icon)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(alert.severity.color)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        // Row 1: Heading + Badge
+                        HStack {
+                            Text(StressContent.Banner.title)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            
+                            Spacer()
+                            
+                            // Severity badge
+                            Text(alert.severity.rawValue)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(alert.severity.color)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(alert.severity.color.opacity(0.15))
+                                .cornerRadius(4)
+                        }
+                        
+                        // Row 2: Description in grey
+                        Text(alert.bannerMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        
+                        // Row 3: Contributor icons (show top 3)
+                        if !alert.contributors.isEmpty {
+                            HStack(spacing: 6) {
+                                ForEach(alert.contributors.prefix(3)) { contributor in
+                                    HStack(spacing: Spacing.xs) {
+                                        Image(systemName: contributor.type.icon)
+                                            .font(.caption2)
+                                        Text(contributor.type.label)
+                                            .font(.caption2)
+                                    }
+                                    .foregroundColor(.secondary)
+                                }
+                                
+                                if alert.contributors.count > 3 {
+                                    Text("+\(alert.contributors.count - 3)")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.top, 4)
+                        }
+                    }
+                    
+                    // Info icon (right-aligned)
+                    Image(systemName: Icons.Status.info)
+                        .font(.body)
+                        .foregroundColor(Color.text.secondary)
+                }
+                .padding()
+                .background(alert.severity.color.opacity(0.05))
+                .overlay(
+                    Rectangle()
+                        .frame(width: 4)
+                        .foregroundColor(alert.severity.color),
+                    alignment: .leading
+                )
             }
-            .padding(12)
-            .frame(maxWidth: .infinity)
-            .background(
-                Rectangle()
-                    .fill(alert.severity.color.opacity(0.1))
-                    .overlay(
-                        Rectangle()
-                            .stroke(alert.severity.color.opacity(0.3), lineWidth: 1)
-                    )
-            )
         }
         .buttonStyle(PlainButtonStyle())
     }

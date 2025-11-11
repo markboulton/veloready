@@ -9,6 +9,7 @@ enum StressContent {
     
     // MARK: - Banner Messages
     enum Banner {
+        static let title = "Training Stress Detected"  /// Banner heading
         static let elevated = "High Training Stress. Your body is showing signs of accumulated stress."  /// Elevated stress banner
         static let high = "Critical Stress Level. Your body needs immediate recovery."  /// High stress banner
     }
