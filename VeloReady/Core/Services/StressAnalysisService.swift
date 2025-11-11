@@ -153,12 +153,14 @@ class StressAnalysisService: ObservableObject {
     }
     
     /// Enable mock alert for testing
+    @MainActor
     func enableMockAlert() {
         logger.debug("🧠 [StressAnalysisService] Enabling mock stress alert")
         currentAlert = generateMockAlert()
     }
     
     /// Disable mock alert
+    @MainActor
     func disableMockAlert() {
         logger.debug("🧠 [StressAnalysisService] Disabling mock stress alert")
         currentAlert = nil

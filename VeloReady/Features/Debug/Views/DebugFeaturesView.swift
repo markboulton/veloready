@@ -126,12 +126,14 @@ struct DebugFeaturesView: View {
             // Stress Alert Toggle
             Toggle("Show Stress Alert", isOn: $config.showStressAlertForTesting)
                 .onChange(of: config.showStressAlertForTesting) { _, newValue in
-                    if newValue {
-                        StressAnalysisService.shared.enableMockAlert()
-                    } else {
-                        StressAnalysisService.shared.disableMockAlert()
+                    Task { @MainActor in
+                        if newValue {
+                            StressAnalysisService.shared.enableMockAlert()
+                        } else {
+                            StressAnalysisService.shared.disableMockAlert()
+                        }
+                        Logger.debug("🔄 [DEBUG] Stress alert simulation toggled: \(newValue)")
                     }
-                    Logger.debug("🔄 [DEBUG] Stress alert simulation toggled: \(newValue)")
                 }
             
             if config.showStressAlertForTesting {
