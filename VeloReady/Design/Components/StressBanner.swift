@@ -1,80 +1,45 @@
 import SwiftUI
 
 /// Banner for stress alerts - appears under the daily summary rings
-/// Follows the same pattern as WellnessBanner and IllnessAlertBanner
+/// Matches WellnessBanner design exactly
 struct StressBanner: View {
     let alert: StressAlert
     let onTap: () -> Void
     
     var body: some View {
-        VStack(spacing: Spacing.xs / 2) {
-            HStack(spacing: Spacing.xs) {
-                // Icon in circle (matching illness banner)
-                ZStack {
-                    Circle()
-                        .fill(severityColor.opacity(0.15))
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: alert.severity.icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(severityColor)
-                }
+        Button(action: onTap) {
+            HStack(spacing: 8) {
+                // Warning icon with severity-based color
+                Image(systemName: alert.severity.icon)
+                    .font(.caption)
+                    .foregroundColor(alert.severity.color)
                 
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack {
-                        Text(alert.bannerMessage)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                        
-                        // Severity badge (matching illness banner)
-                        Text(alert.severity.rawValue)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(severityColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(severityColor.opacity(0.15))
-                            .cornerRadius(4)
-                    }
-                    
-                    Text(alert.severity == .elevated ? StressContent.Banner.elevated : StressContent.Banner.high)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    
-                    // Info icon button (matching illness banner tap target)
-                    Button(action: onTap) {
-                        HStack(spacing: 4) {
-                            Image(systemName: Icons.Status.info)
-                                .font(.caption2)
-                            Text("Learn more")
-                                .font(.caption2)
-                        }
-                        .foregroundColor(.secondary)
-                        .padding(.top, 4)
-                    }
-                }
+                // Banner message
+                Text(alert.bannerMessage)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(ColorScale.labelPrimary)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
+                
+                // Chevron to indicate it's tappable
+                Image(systemName: Icons.System.chevronRight)
+                    .font(.caption)
+                    .foregroundColor(.white)
             }
-            .padding()
-            .background(severityColor.opacity(0.05))
-            .overlay(
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(
                 Rectangle()
-                    .frame(width: 4)
-                    .foregroundColor(severityColor),
-                alignment: .leading
+                    .fill(alert.severity.color.opacity(0.1))
+                    .overlay(
+                        Rectangle()
+                            .stroke(alert.severity.color.opacity(0.3), lineWidth: 1)
+                    )
             )
         }
-    }
-    
-    private var severityColor: Color {
-        switch alert.severity {
-        case .elevated:
-            return ColorScale.amberAccent
-        case .high:
-            return ColorScale.redAccent
-        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

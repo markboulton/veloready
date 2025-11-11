@@ -57,6 +57,11 @@ enum StressContent {
         }
     }
     
+    // MARK: - Disclaimer
+    enum Disclaimer {
+        static let text = "This analysis is based on training load patterns and physiological metrics. It's designed to help you optimize training, not diagnose medical conditions."
+    }
+    
     // MARK: - Recommendations
     enum Recommendations {
         static let implementRecoveryWeek = "✅ Implement recovery week NOW"  /// Main recommendation
@@ -64,6 +69,7 @@ enum StressContent {
         static let keepZ2 = "• Keep intensity at Z2 only"  /// Intensity guidance
         static let prioritizeSleep = "• Prioritize 8+ hours sleep"  /// Sleep guidance
         static let monitorHRV = "• Monitor HRV for recovery signs"  /// HRV monitoring
+        static let disclaimer = "These are training recommendations. If you feel unwell or have concerns about your health, please consult a healthcare provider."
         
         static func expectedRecovery(days: Int) -> String {
             return "Expected Recovery: \(days)-\(days+3) days"

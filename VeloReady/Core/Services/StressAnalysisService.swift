@@ -178,6 +178,31 @@ class StressAnalysisService: ObservableObject {
         currentAlert = nil
     }
     
+    /// Get stress trend data for chart
+    @MainActor
+    func getStressTrendData(for period: TrendPeriod) -> [TrendDataPoint] {
+        // Generate mock trend data showing increasing stress
+        let days = period.days
+        var dataPoints: [TrendDataPoint] = []
+        let calendar = Calendar.current
+        
+        for i in 0..<days {
+            let date = calendar.date(byAdding: .day, value: -days + i + 1, to: Date()) ?? Date()
+            // Simulate increasing stress trend
+            let base: Double = 30.0
+            let increment: Double = Double(i) * (40.0 / Double(days))
+            let noise: Double = Double.random(in: -5...5)
+            let value = min(100, max(0, base + increment + noise))
+            
+            dataPoints.append(TrendDataPoint(
+                date: date,
+                value: value
+            ))
+        }
+        
+        return dataPoints
+    }
+    
     // MARK: - Private Methods
     
     private func statusForScore(_ score: Int) -> RecoveryFactor.Status {
