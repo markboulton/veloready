@@ -50,6 +50,8 @@ class TodayCoordinator: ObservableObject {
         case networkUnavailable
         case authenticationFailed
         case dataFetchFailed(String)
+        case scoreCalculationTimeout
+        case scoreCalculationFailed
         case unknown(String)
         
         var errorDescription: String? {
@@ -60,6 +62,10 @@ class TodayCoordinator: ObservableObject {
                 return "Authentication failed. Please sign in again."
             case .dataFetchFailed(let details):
                 return "Failed to fetch data: \(details)"
+            case .scoreCalculationTimeout:
+                return "Score calculation timed out. Pull to refresh to try again."
+            case .scoreCalculationFailed:
+                return "Score calculation failed. Pull to refresh to try again."
             case .unknown(let details):
                 return "An error occurred: \(details)"
             }
@@ -145,7 +151,14 @@ class TodayCoordinator: ObservableObject {
             
         case (.appForegrounded, _) where isViewActive:
             // App came to foreground while view is active
-            if shouldRefreshOnReappear() {
+            // Safety check: If we're in .ready state but scores are still loading, something is wrong
+            let scoresStillLoading = scoresCoordinator.state.phase == .loading || 
+                                     scoresCoordinator.state.phase == .initial
+            
+            if scoresStillLoading {
+                Logger.warning("⚠️ [TodayCoordinator] Inconsistent state: coordinator \(state.description) but scores \(scoresCoordinator.state.phase) - forcing refresh")
+                await refresh()
+            } else if shouldRefreshOnReappear() {
                 await refresh()
             } else {
                 Logger.info("✅ [TodayCoordinator] App foregrounded - data still fresh, no refresh needed")
@@ -198,9 +211,9 @@ class TodayCoordinator: ObservableObject {
     /// **Flow:**
     /// 1. Set state to .loading
     /// 2. Load cached data (instant)
-    /// 3. Calculate scores (2-3 seconds)
+    /// 3. Calculate scores (2-3 seconds) WITH TIMEOUT
     /// 4. Fetch activities (background, non-blocking)
-    /// 5. Set state to .ready
+    /// 5. Set state to .ready (ONLY if scores succeeded)
     private func loadInitial() async {
         let startTime = Date()
         Logger.info("🔄 [TodayCoordinator] ━━━ Starting loadInitial() ━━━")
@@ -209,7 +222,7 @@ class TodayCoordinator: ObservableObject {
         error = nil
         
         do {
-            // Phase 1: Fetch health data and calculate scores
+            // Phase 1: Fetch health data and calculate scores WITH TIMEOUT
             Logger.info("🔄 [TodayCoordinator] Phase 1: Calculating scores...")
             loadingStateManager.updateState(.fetchingHealthData)
             
@@ -224,9 +237,32 @@ class TodayCoordinator: ObservableObject {
             let hasHealthKit = services.healthKitManager.isAuthorized
             loadingStateManager.updateState(.calculatingScores(hasHealthKit: hasHealthKit, hasSleepData: false))
             
-            // Wait for scores to complete
-            await scoreTask.value
-            Logger.info("✅ [TodayCoordinator] Scores calculated")
+            // Wait for scores to complete WITH TIMEOUT (20 seconds - generous for slow HealthKit)
+            let scoreResult = await withTimeout(seconds: 20) {
+                await scoreTask.value
+            }
+            
+            // CRITICAL: Verify scores actually completed successfully
+            guard scoreResult == .completed else {
+                Logger.error("❌ [TodayCoordinator] Score calculation timed out after 20s!")
+                // DON'T set lastLoadTime - this allows retry on next foreground (>5 min)
+                state = .error("Score calculation timed out")
+                self.error = .scoreCalculationTimeout
+                loadingStateManager.updateState(.error(.unknown("Score calculation timed out")))
+                return
+            }
+            
+            // Verify scores coordinator reached .ready phase
+            guard scoresCoordinator.state.phase == .ready else {
+                Logger.error("❌ [TodayCoordinator] Score calculation completed but phase is \(scoresCoordinator.state.phase), not .ready!")
+                // DON'T set lastLoadTime - this allows retry on next foreground (>5 min)
+                state = .error("Score calculation failed")
+                self.error = .scoreCalculationFailed
+                loadingStateManager.updateState(.error(.unknown("Score calculation failed")))
+                return
+            }
+            
+            Logger.info("✅ [TodayCoordinator] Scores calculated successfully")
             
             // Phase 2: Fetch activities (foreground for initial load to show all states)
             Logger.info("🔄 [TodayCoordinator] Phase 2: Fetching activities...")
@@ -252,7 +288,8 @@ class TodayCoordinator: ObservableObject {
             loadingStateManager.updateState(.savingToICloud)
             try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
             
-            // Mark as ready
+            // CRITICAL: Only mark as ready and set lastLoadTime if we got here
+            // (scores verified, activities fetched - everything succeeded)
             state = .ready
             lastLoadTime = Date()
             
@@ -263,11 +300,13 @@ class TodayCoordinator: ObservableObject {
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
             
         } catch {
+            // CRITICAL: DON'T set lastLoadTime on error
+            // This allows automatic retry on next foreground (>5 min)
             let errorMessage = "Failed to load initial data: \(error.localizedDescription)"
             state = .error(errorMessage)
             self.error = .dataFetchFailed(error.localizedDescription)
             loadingStateManager.updateState(.error(.unknown(error.localizedDescription)))
-            Logger.error("❌ [TodayCoordinator] Initial load failed: \(error)")
+            Logger.error("❌ [TodayCoordinator] Initial load failed: \(error) - will retry on next foreground")
         }
     }
     
@@ -373,6 +412,38 @@ class TodayCoordinator: ObservableObject {
         Logger.info("⏰ [TodayCoordinator] Time since last load: \(String(format: "%.0f", timeSinceLastLoad))s - shouldRefresh: \(shouldRefresh)")
         
         return shouldRefresh
+    }
+    
+    /// Execute an async operation with a timeout
+    /// - Parameters:
+    ///   - seconds: Timeout duration in seconds
+    ///   - operation: The async operation to execute
+    /// - Returns: `.completed` if operation finished in time, `.timedOut` otherwise
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) async -> TimeoutResult {
+        await withTaskGroup(of: TimeoutResult.self) { group in
+            // Task 1: Run the actual operation
+            group.addTask {
+                _ = await operation()
+                return .completed
+            }
+            
+            // Task 2: Timeout timer
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                return .timedOut
+            }
+            
+            // Return whichever completes first
+            let result = await group.next()!
+            group.cancelAll()
+            return result
+        }
+    }
+    
+    /// Result of a timeout operation
+    private enum TimeoutResult {
+        case completed
+        case timedOut
     }
     
     // MARK: - Public API for Manual Control
