@@ -16,21 +16,17 @@ struct VeloReadyApp: App {
         }
         
         // CRITICAL: Initialize in CORRECT ORDER to prevent race conditions
+        // NOTE: HealthKit check is now BLOCKING in RootView.onAppear to prevent race conditions
         Task { @MainActor in
             // 1. Refresh Supabase token FIRST
             await SupabaseClient.shared.refreshOnAppLaunch()
             Logger.debug("✅ [APP LAUNCH] Supabase token refreshed")
             
-            // 2. Check HealthKit authorization BEFORE other services start
-            Logger.debug("🏥 [APP LAUNCH] Checking HealthKit authorization...")
-            await HealthKitManager.shared.checkAuthorizationAfterSettingsReturn()
-            Logger.debug("🏥 [APP LAUNCH] HealthKit check complete - isAuthorized: \(HealthKitManager.shared.isAuthorized)")
-            
-            // 3. NOW initialize service container (services will see isAuthorized = true)
+            // 2. Initialize service container
             ServiceContainer.shared.initialize()
             Logger.debug("✅ [APP LAUNCH] Service container initialized")
             
-            // 4. Configure AI Brief
+            // 3. Configure AI Brief
             AIBriefConfig.configure()
             Logger.debug("✅ [APP LAUNCH] AI Brief configured")
         }
@@ -179,10 +175,33 @@ struct RootView: View {
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
     @ObservedObject private var stravaAuthService = StravaAuthService.shared
     @ObservedObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var healthKitManager = HealthKitManager.shared
+    
+    /// Track if app initialization is complete (BLOCKING)
+    /// This ensures HealthKit auth check completes BEFORE rendering TodayView
+    @State private var isInitialized = false
     
     var body: some View {
         Group {
-            if onboardingManager.hasCompletedOnboarding {
+            if !isInitialized {
+                // Show black screen while initializing (prevents race condition)
+                // This ensures HealthKit authorization check completes BEFORE TodayView renders
+                Color.black
+                    .ignoresSafeArea()
+                    .onAppear {
+                        Logger.info("🚀 [ROOT] Initializing app...")
+                        Task { @MainActor in
+                            // CRITICAL: Wait for HealthKit authorization check to complete
+                            // This prevents TodayCoordinator from racing with HealthKit check
+                            await HealthKitManager.shared.checkAuthorizationAfterSettingsReturn()
+                            Logger.info("✅ [ROOT] HealthKit check complete - isAuthorized: \(HealthKitManager.shared.isAuthorized)")
+                            
+                            // Mark as initialized - this will trigger UI to render
+                            isInitialized = true
+                            Logger.info("✅ [ROOT] App initialization complete - rendering UI")
+                        }
+                    }
+            } else if onboardingManager.hasCompletedOnboarding {
                 MainTabView()
             } else {
                 OnboardingFlowView()

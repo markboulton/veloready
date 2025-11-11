@@ -222,27 +222,9 @@ class TodayCoordinator: ObservableObject {
         error = nil
         
         do {
-            // Phase 0: CRITICAL - Wait for HealthKit authorization check to complete
-            // The coordinator does a "fast check" then a "slow check" (testDataAccess)
-            // We MUST wait for the slow check to complete before calculating scores
-            Logger.info("🔄 [TodayCoordinator] Phase 0: Waiting for HealthKit authorization check...")
-            var waitAttempts = 0
-            while !services.healthKitManager.authorizationCoordinator.hasCompletedInitialCheck && waitAttempts < 50 {
-                if waitAttempts % 10 == 0 {
-                    Logger.debug("⏳ [TodayCoordinator] Waiting for HealthKit auth check... (attempt \(waitAttempts + 1)/50)")
-                }
-                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
-                waitAttempts += 1
-            }
-            
-            if services.healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
-                let authStatus = services.healthKitManager.isAuthorized
-                Logger.info("✅ [TodayCoordinator] HealthKit auth check complete - isAuthorized: \(authStatus)")
-            } else {
-                Logger.warning("⚠️ [TodayCoordinator] HealthKit auth check timed out after 5s - proceeding anyway")
-            }
-            
             // Phase 1: Fetch health data and calculate scores WITH TIMEOUT
+            // NOTE: HealthKit authorization check is GUARANTEED to be complete at this point
+            // RootView.onAppear blocks UI rendering until checkAuthorizationAfterSettingsReturn() finishes
             Logger.info("🔄 [TodayCoordinator] Phase 1: Calculating scores...")
             loadingStateManager.updateState(.fetchingHealthData)
             
