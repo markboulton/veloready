@@ -13,9 +13,9 @@ struct StressAlert: Identifiable {
     let detectedAt: Date
     
     /// Severity level of stress alert
-    enum Severity {
-        case elevated  // 61-80
-        case high      // 81-100
+    enum Severity: String {
+        case elevated = "Elevated"  // 61-80
+        case high = "High"          // 81-100
         
         var color: Color {
             switch self {

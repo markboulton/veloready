@@ -87,8 +87,6 @@ struct StressAnalysisSheet: View {
     
     private var severityColor: Color {
         switch alert.severity {
-        case .normal:
-            return ColorScale.greenAccent
         case .elevated:
             return ColorScale.amberAccent
         case .high:
@@ -98,8 +96,6 @@ struct StressAnalysisSheet: View {
     
     private var severityTitle: String {
         switch alert.severity {
-        case .normal:
-            return "Normal Training Stress"
         case .elevated:
             return "Elevated Training Stress"
         case .high:

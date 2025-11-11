@@ -39,7 +39,7 @@ struct StressBanner: View {
                             .cornerRadius(4)
                     }
                     
-                    Text(StressContent.Alerts.bannerDescription)
+                    Text(alert.severity == .elevated ? StressContent.Banner.elevated : StressContent.Banner.high)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -70,8 +70,6 @@ struct StressBanner: View {
     
     private var severityColor: Color {
         switch alert.severity {
-        case .normal:
-            return ColorScale.greenAccent
         case .elevated:
             return ColorScale.amberAccent
         case .high:
