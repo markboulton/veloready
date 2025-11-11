@@ -8,278 +8,255 @@ struct StressAnalysisSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                // Background
-                Color.background.app
-                    .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: Spacing.lg) {
-                        // Current State Section
-                        currentStateSection
-                        
-                        // 30-Day Trend Section
-                        trendSection
-                        
-                        // Contributors Section
-                        contributorsSection
-                        
-                        // What This Means Section
-                        explanationSection
-                        
-                        // Recommendations Section
-                        recommendationsSection
-                    }
-                    .padding(.horizontal, Spacing.xl)
-                    .padding(.top, Spacing.lg)
-                    .padding(.bottom, 120)
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.xxl) {
+                    // Header with severity
+                    headerSection
+                    
+                    // 30-Day Trend Section
+                    trendSection
+                    
+                    // Contributors Section
+                    contributorsSection
+                    
+                    // What This Means Section
+                    explanationSection
+                    
+                    // Recommendations Section
+                    recommendationsSection
                 }
-                
-                // Navigation gradient mask
-                NavigationGradientMask()
+                .padding(Spacing.lg)
             }
+            .background(ColorScale.backgroundPrimary)
             .navigationTitle(StressContent.title)
             .navigationBarTitleDisplayMode(.inline)
-            .adaptiveToolbarBackground(.hidden, for: .navigationBar)
-            .adaptiveToolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { dismiss() }) {
-                        Text(StressContent.Actions.gotIt)
-                            .font(.headline)
-                            .foregroundColor(ColorScale.blueAccent)
+                    Button(action: {
+                        HapticFeedback.light()
+                        dismiss()
+                    }) {
+                        Image(systemName: Icons.Navigation.close)
+                            .foregroundColor(ColorScale.labelSecondary)
                     }
                 }
             }
         }
     }
     
-    // MARK: - Current State Section
+    // MARK: - Header Section
     
-    private var currentStateSection: some View {
-        StandardCard(title: StressContent.Sections.currentState) {
-            VStack(spacing: Spacing.md) {
-                // Acute Stress
-                stressMetricRow(
-                    label: StressContent.Metrics.acuteStress,
-                    value: alert.acuteStress,
-                    severity: alert.severity
-                )
+    private var headerSection: some View {
+        HStack(spacing: Spacing.md) {
+            // Severity icon
+            ZStack {
+                Circle()
+                    .fill(severityColor.opacity(0.15))
+                    .frame(width: 56, height: 56)
                 
-                Divider()
-                
-                // Chronic Stress
-                stressMetricRow(
-                    label: StressContent.Metrics.chronicStress,
-                    value: alert.chronicStress,
-                    severity: alert.severity
-                )
-                
-                Divider()
-                
-                // Trend
-                HStack {
-                    Text(StressContent.Metrics.trend)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.text.secondary)
-                    
-                    Spacer()
-                    
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: alert.trend.icon)
-                            .font(.caption)
-                        Text(alert.trend.description)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(alert.severity.color)
-                }
+                Image(systemName: alert.severity.icon)
+                    .font(.title2)
+                    .foregroundColor(severityColor)
             }
-        }
-    }
-    
-    private func stressMetricRow(label: String, value: Int, severity: StressAlert.Severity) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.text.secondary)
+            
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(severityTitle)
+                    .font(.title3.weight(.bold))
+                    .foregroundColor(ColorScale.labelPrimary)
+                
+                Text("Acute: \(alert.acuteStress) • Chronic: \(alert.chronicStress)")
+                    .font(.body)
+                    .foregroundColor(ColorScale.labelSecondary)
+                
+                Text("Detected \(timeAgoText)")
+                    .font(.caption)
+                    .foregroundColor(ColorScale.labelTertiary)
+            }
             
             Spacer()
-            
-            HStack(spacing: Spacing.sm) {
-                Text("\(value)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(severity.color)
-                
-                // Status badge
-                Text(statusLabel(for: value))
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.xs / 2)
-                    .background(
-                        Capsule()
-                            .fill(severity.color)
-                    )
-            }
+        }
+        .padding(Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                .fill(severityColor.opacity(0.08))
+        )
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var severityColor: Color {
+        switch alert.severity {
+        case .normal:
+            return ColorScale.greenAccent
+        case .elevated:
+            return ColorScale.amberAccent
+        case .high:
+            return ColorScale.redAccent
         }
     }
     
-    private func statusLabel(for value: Int) -> String {
-        switch value {
-        case 0...35:
-            return StressContent.Status.low
-        case 36...60:
-            return StressContent.Status.moderate
-        case 61...80:
-            return StressContent.Status.elevated
-        default:
-            return StressContent.Status.high
+    private var severityTitle: String {
+        switch alert.severity {
+        case .normal:
+            return "Normal Training Stress"
+        case .elevated:
+            return "Elevated Training Stress"
+        case .high:
+            return "High Training Stress"
+        }
+    }
+    
+    private var timeAgoText: String {
+        let interval = Date().timeIntervalSince(alert.detectedAt)
+        let hours = Int(interval / 3600)
+        
+        if hours < 1 {
+            return "just now"
+        } else if hours == 1 {
+            return "1 hour ago"
+        } else if hours < 24 {
+            return "\(hours) hours ago"
+        } else {
+            let days = hours / 24
+            return days == 1 ? "1 day ago" : "\(days) days ago"
         }
     }
     
     // MARK: - Trend Section
     
     private var trendSection: some View {
-        StandardCard(title: StressContent.Sections.trend) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // Mock trend chart
-                trendChart
-                
-                // Legend
-                HStack(spacing: Spacing.lg) {
-                    Spacer()
-                    
-                    legendItem(color: ColorScale.greenAccent, label: StressContent.Chart.lowLabel)
-                    legendItem(color: ColorScale.amberAccent, label: StressContent.Chart.moderateLabel)
-                    legendItem(color: ColorScale.redAccent, label: StressContent.Chart.highLabel)
-                }
-                .font(.caption)
-                
-                // "You are here" indicator
-                HStack {
-                    Spacer()
-                    Image(systemName: "arrow.up")
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
-                    Text(StressContent.Metrics.youAreHere)
-                        .font(.caption)
-                        .foregroundColor(.text.secondary)
-                }
-            }
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("30-Day Trend")
+                .font(.title3.weight(.bold))
+                .foregroundColor(ColorScale.labelPrimary)
+            
+            // Bar chart (matching recovery/sleep design)
+            trendChart
+            
+            Text("Tracking your training stress helps identify when you need recovery. The trend shows increasing stress leading to current state.")
+                .font(.body)
+                .foregroundColor(ColorScale.labelSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
     
     private var trendChart: some View {
-        // Simple bar chart visualization
-        HStack(alignment: .bottom, spacing: 4) {
-            ForEach(0..<30, id: \.self) { index in
-                let height = mockTrendHeight(for: index)
-                let color = mockTrendColor(for: height)
-                
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(color)
-                    .frame(width: 8, height: height)
+        VStack(spacing: Spacing.sm) {
+            // Chart
+            HStack(alignment: .bottom, spacing: 2) {
+                ForEach(0..<30, id: \.self) { index in
+                    let height = mockTrendHeight(for: index)
+                    let value = mockTrendValue(for: index)
+                    let color = mockTrendColor(for: value)
+                    
+                    VStack(spacing: 0) {
+                        // Colored top indicator (2-3px)
+                        Rectangle()
+                            .fill(color)
+                            .frame(width: 8, height: 3)
+                        
+                        // Main bar (dark grey matching recovery charts)
+                        Rectangle()
+                            .fill(ColorPalette.neutral300)
+                            .frame(width: 8, height: max(0, height - 3))
+                    }
+                }
             }
+            .frame(height: 100)
+            .padding(.vertical, Spacing.sm)
+            .background(
+                RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                    .fill(ColorScale.backgroundSecondary)
+            )
         }
-        .frame(height: 120)
+    }
+    
+    private func mockTrendValue(for index: Int) -> Int {
+        // Generate increasing trend (values 0-100)
+        let base: Double = 30
+        let increment: Double = 2.0
+        let noise: Double = Double.random(in: -5...5)
+        return min(100, max(0, Int(base + (Double(index) * increment) + noise)))
     }
     
     private func mockTrendHeight(for index: Int) -> CGFloat {
-        // Generate increasing trend
-        let base: CGFloat = 40
-        let increment: CGFloat = 2.5
-        let noise: CGFloat = CGFloat.random(in: -10...10)
-        return min(120, max(20, base + (CGFloat(index) * increment) + noise))
+        // Convert value to height
+        let value = mockTrendValue(for: index)
+        return CGFloat(value) * 0.9 + 10 // Scale to fit chart height
     }
     
-    private func mockTrendColor(for height: CGFloat) -> Color {
-        switch height {
+    private func mockTrendColor(for value: Int) -> Color {
+        switch value {
         case 0...40:
             return ColorScale.greenAccent
-        case 41...80:
+        case 41...70:
             return ColorScale.amberAccent
         default:
             return ColorScale.redAccent
         }
     }
     
-    private func legendItem(color: Color, label: String) -> some View {
-        HStack(spacing: Spacing.xs / 2) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text(label)
-                .foregroundColor(.text.secondary)
-        }
-    }
-    
     // MARK: - Contributors Section
     
     private var contributorsSection: some View {
-        StandardCard(title: StressContent.Sections.contributors) {
-            VStack(spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Key Contributors (\(alert.contributors.count))")
+                .font(.title3.weight(.bold))
+                .foregroundColor(ColorScale.labelPrimary)
+            
+            VStack(spacing: Spacing.sm) {
                 ForEach(alert.contributors) { contributor in
-                    contributorRow(contributor)
-                    
-                    if contributor.id != alert.contributors.last?.id {
-                        Divider()
-                    }
+                    contributorCard(contributor)
                 }
             }
         }
     }
     
-    private func contributorRow(_ contributor: StressContributor) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack {
-                // Icon and name
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: contributor.type.icon)
+    private func contributorCard(_ contributor: StressContributor) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: contributor.type.icon)
+                    .font(.title3)
+                    .foregroundColor(contributor.status.color)
+                    .frame(width: 32)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(contributor.name)
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(ColorScale.labelPrimary)
+                    
+                    Text("\(contributor.status.label) • +\(contributor.points) pts")
                         .font(.caption)
                         .foregroundColor(contributor.status.color)
-                        .frame(width: 20)
-                    
-                    Text(contributor.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
                 }
                 
                 Spacer()
-                
-                // Status and points
-                HStack(spacing: Spacing.sm) {
-                    Text(contributor.status.label)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(contributor.status.color)
-                    
-                    Text("(\(contributor.points) pts)")
-                        .font(.caption)
-                        .foregroundColor(.text.tertiary)
-                }
             }
             
-            // Description
             Text(contributor.description)
                 .font(.caption)
-                .foregroundColor(.text.secondary)
-                .padding(.leading, 32)
+                .foregroundColor(ColorScale.labelSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                .fill(ColorScale.backgroundSecondary)
+        )
     }
     
     // MARK: - Explanation Section
     
     private var explanationSection: some View {
-        StandardCard(title: StressContent.Sections.whatThisMeans) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("What This Means")
+                .font(.title3.weight(.bold))
+                .foregroundColor(ColorScale.labelPrimary)
+            
             Text(alert.recommendation)
-                .font(.subheadline)
-                .foregroundColor(.text.secondary)
+                .font(.body)
+                .foregroundColor(ColorScale.labelPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -287,36 +264,39 @@ struct StressAnalysisSheet: View {
     // MARK: - Recommendations Section
     
     private var recommendationsSection: some View {
-        StandardCard(title: StressContent.Sections.recommendation) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // Main recommendation
-                Text(StressContent.Recommendations.implementRecoveryWeek)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(ColorScale.greenAccent)
-                
-                // Action items
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    recommendationItem(StressContent.Recommendations.reduceVolume)
-                    recommendationItem(StressContent.Recommendations.keepZ2)
-                    recommendationItem(StressContent.Recommendations.prioritizeSleep)
-                    recommendationItem(StressContent.Recommendations.monitorHRV)
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Recommendations")
+                .font(.title3.weight(.bold))
+                .foregroundColor(ColorScale.labelPrimary)
+            
+            let recommendations = [
+                StressContent.Recommendations.reduceVolume,
+                StressContent.Recommendations.keepZ2,
+                StressContent.Recommendations.prioritizeSleep,
+                StressContent.Recommendations.monitorHRV
+            ]
+            
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                ForEach(recommendations, id: \.self) { recommendation in
+                    HStack(alignment: .top, spacing: Spacing.sm) {
+                        Image(systemName: Icons.Status.checkmark)
+                            .font(.caption)
+                            .foregroundColor(severityColor)
+                            .padding(.top, 2)
+                        
+                        Text(recommendation)
+                            .font(.body)
+                            .foregroundColor(ColorScale.labelPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                
-                Divider()
-                
-                // Expected recovery time
-                Text(StressContent.Recommendations.expectedRecovery(days: 7))
-                    .font(.caption)
-                    .foregroundColor(.text.secondary)
             }
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: Spacing.cardCornerRadius)
+                    .fill(ColorScale.backgroundSecondary)
+            )
         }
-    }
-    
-    private func recommendationItem(_ text: String) -> some View {
-        Text(text)
-            .font(.subheadline)
-            .foregroundColor(.text.secondary)
     }
 }
 

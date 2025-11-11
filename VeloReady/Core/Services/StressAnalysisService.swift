@@ -49,13 +49,25 @@ class StressAnalysisService: ObservableObject {
         
         var factors: [RecoveryFactor] = []
         
-        // Add stress factor (mock data for now)
-        factors.append(RecoveryFactor(
-            type: .stress,
-            value: 35,  // Low stress is good
-            status: .good,
-            weight: 0.2
-        ))
+        // Add stress factor (highest priority - will appear at top)
+        if let alert = currentAlert {
+            // Calculate stress score (inverted - lower stress = higher score)
+            let stressScore = 100 - alert.chronicStress
+            factors.append(RecoveryFactor(
+                type: .stress,
+                value: stressScore,
+                status: stressStatusForValue(stressScore),
+                weight: 0.5 // Highest weight to appear first
+            ))
+        } else {
+            // Default to good stress level when no alert
+            factors.append(RecoveryFactor(
+                type: .stress,
+                value: 75,
+                status: .good,
+                weight: 0.5 // Highest weight to appear first
+            ))
+        }
         
         // Add HRV factor
         if let recovery = recoveryService.currentRecoveryScore {
@@ -178,6 +190,20 @@ class StressAnalysisService: ObservableObject {
             return .fair
         default:
             return .low
+        }
+    }
+    
+    private func stressStatusForValue(_ value: Int) -> RecoveryFactor.Status {
+        // Inverted scale for stress - lower stress = better status
+        switch value {
+        case 70...100:
+            return .optimal  // Low stress (good)
+        case 50..<70:
+            return .good     // Moderate stress
+        case 30..<50:
+            return .fair     // Elevated stress
+        default:
+            return .low      // High stress (bad)
         }
     }
 }

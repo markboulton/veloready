@@ -7,48 +7,76 @@ struct StressBanner: View {
     let onTap: () -> Void
     
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: Spacing.sm) {
-                // Warning icon with severity-based color
-                Image(systemName: alert.severity.icon)
-                    .font(.caption)
-                    .foregroundColor(alert.severity.color)
-                
-                // Banner message
-                VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-                    Text(alert.bannerMessage)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(ColorScale.labelPrimary)
-                        .multilineTextAlignment(.leading)
+        VStack(spacing: Spacing.xs / 2) {
+            HStack(spacing: Spacing.xs) {
+                // Icon in circle (matching illness banner)
+                ZStack {
+                    Circle()
+                        .fill(severityColor.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: alert.severity.icon)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(severityColor)
                 }
                 
-                Spacer()
-                
-                // Details link with arrow
-                HStack(spacing: Spacing.xs / 2) {
-                    Text(StressContent.detailsLink)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(ColorScale.blueAccent)
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack {
+                        Text(alert.bannerMessage)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        // Severity badge (matching illness banner)
+                        Text(alert.severity.rawValue)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(severityColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(severityColor.opacity(0.15))
+                            .cornerRadius(4)
+                    }
                     
-                    Image(systemName: Icons.System.chevronRight)
+                    Text(StressContent.Alerts.bannerDescription)
                         .font(.caption)
-                        .foregroundColor(ColorScale.blueAccent)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    // Info icon button (matching illness banner tap target)
+                    Button(action: onTap) {
+                        HStack(spacing: 4) {
+                            Image(systemName: Icons.Status.info)
+                                .font(.caption2)
+                            Text("Learn more")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+                    }
                 }
             }
-            .padding(Spacing.md)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(alert.severity.color.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(alert.severity.color.opacity(0.3), lineWidth: 1)
-                    )
+            .padding()
+            .background(severityColor.opacity(0.05))
+            .overlay(
+                Rectangle()
+                    .frame(width: 4)
+                    .foregroundColor(severityColor),
+                alignment: .leading
             )
         }
-        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private var severityColor: Color {
+        switch alert.severity {
+        case .normal:
+            return ColorScale.greenAccent
+        case .elevated:
+            return ColorScale.amberAccent
+        case .high:
+            return ColorScale.redAccent
+        }
     }
 }
 

@@ -36,8 +36,9 @@ struct RecoveryFactorsCard: View {
                     .foregroundColor(factor.status.color)
             }
             
-            // Progress bar
+            // Progress bar with vertical padding
             progressBar(value: factor.value, color: factor.status.color)
+                .padding(.vertical, Spacing.xs / 2)  // ADD PADDING HERE: Spacing.xs / 2 above and below
         }
     }
     
