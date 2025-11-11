@@ -210,7 +210,7 @@ struct TodayView: View {
             }
             .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
             .onAppear {
-            Logger.debug("👁 [SPINNER] TodayView.onAppear called - isInitializing=\(viewModel.isInitializing)")
+            Logger.debug("👁 [SPINNER] NavigationStack.onAppear called - isInitializing=\(viewModel.isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
             Logger.debug("📋   Each card .padding(.vertical, Spacing.xxl / 2) = \(Spacing.xxl / 2)pt")
@@ -221,6 +221,16 @@ struct TodayView: View {
             Logger.debug("👋 [SPINNER] TodayView.onDisappear called - marking view as inactive")
             isViewActive = false
             viewModel.cancelBackgroundTasks()
+        }
+        .onChange(of: showInitialSpinner) { oldValue, newValue in
+            // CRITICAL FIX: Trigger initial load when branding animation completes
+            // The NavigationStack isn't rendered during the branding animation (showInitialSpinner=true),
+            // so .onAppear doesn't fire until after the animation ends. But we want to START loading
+            // as soon as the animation completes, not when onAppear eventually fires.
+            if oldValue == true && newValue == false {
+                Logger.info("🎬 [SPINNER] Branding animation completed - triggering handleViewAppear()")
+                handleViewAppear()
+            }
         }
         .onChange(of: viewModel.isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(newValue)")

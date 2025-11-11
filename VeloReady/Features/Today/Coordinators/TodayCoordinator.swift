@@ -223,6 +223,8 @@ class TodayCoordinator: ObservableObject {
         
         do {
             // Phase 1: Fetch health data and calculate scores WITH TIMEOUT
+            // NOTE: HealthKit authorization check is GUARANTEED to be complete at this point
+            // RootView.onAppear blocks UI rendering until checkAuthorizationAfterSettingsReturn() finishes
             Logger.info("🔄 [TodayCoordinator] Phase 1: Calculating scores...")
             loadingStateManager.updateState(.fetchingHealthData)
             
