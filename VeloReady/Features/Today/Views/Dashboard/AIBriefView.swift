@@ -92,27 +92,38 @@ struct AIBriefView: View {
             }
         }
         .onAppear {
-            // Fetch brief on appear if not already loaded
-            // CRITICAL: Wait for recovery score to be available (race condition fix)
+            // Fetch brief on appear - ALWAYS wait for fresh scores
+            // CRITICAL: Don't use cached brief from yesterday
             Logger.debug("🤖 [AI Brief] AIBriefView.onAppear - briefText: \(service.briefText == nil ? "nil" : "exists"), isLoading: \(service.isLoading)")
-            if service.briefText == nil && !service.isLoading {
+            Logger.debug("🤖 [AI Brief] ScoresCoordinator phase: \(scoresCoordinator.state.phase)")
+            
+            // Clear any stale cached brief from previous day
+            let calendar = Calendar.current
+            if let briefText = service.briefText {
+                // Check if brief is from today
+                // For now, always refresh on appear to ensure fresh data
+                Logger.info("🤖 [AI Brief] Clearing potentially stale cached brief")
+                service.briefText = nil
+            }
+            
+            if !service.isLoading {
                 Logger.debug("🤖 [AI Brief] Triggering fetchBrief() from onAppear")
                 Task {
-                    // Wait for recovery score to be calculated (max 10s)
+                    // Wait for ScoresCoordinator to be ready
                     var attempts = 0
-                    while RecoveryScoreService.shared.currentRecoveryScore == nil && attempts < 100 {
-                        Logger.debug("⏳ [AI Brief] Waiting for recovery score... (attempt \(attempts + 1))")
+                    while scoresCoordinator.state.phase != .ready && attempts < 200 {
+                        Logger.debug("⏳ [AI Brief] Waiting for scores... phase: \(scoresCoordinator.state.phase) (attempt \(attempts + 1))")
                         try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
                         attempts += 1
                     }
                     
-                    if RecoveryScoreService.shared.currentRecoveryScore != nil {
-                        Logger.debug("✅ [AI Brief] Recovery score ready - fetching brief")
+                    if scoresCoordinator.state.phase == .ready {
+                        Logger.info("✅ [AI Brief] All scores ready (R=\(scoresCoordinator.state.recovery?.score ?? -1), S=\(scoresCoordinator.state.sleep?.score ?? -1), St=\(scoresCoordinator.state.strain?.score ?? -1)) - fetching brief")
                         await service.fetchBrief()
                     } else {
-                        Logger.warning("⚠️ [AI Brief] Timeout waiting for recovery score - may be due to auth issues")
+                        Logger.warning("⚠️ [AI Brief] Timeout waiting for scores - phase: \(scoresCoordinator.state.phase)")
                         // Show a helpful error message instead of infinite spinner
-                        await service.setErrorMessage("Recovery score not available. Check authentication in Settings.")
+                        await service.setErrorMessage("Scores are still calculating. Pull to refresh to try again.")
                     }
                 }
             }
