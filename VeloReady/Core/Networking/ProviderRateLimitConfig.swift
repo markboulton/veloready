@@ -13,8 +13,9 @@ struct ProviderRateLimitConfig {
     static let allProviders: [ProviderRateLimitConfig] = [
         .strava,
         .intervalsICU,
+        .wahoo,
         .appleHealth,
-        // Future: .wahoo, .garmin
+        // Future: .garmin
     ]
     
     /// Strava API limits (official documentation)
@@ -47,15 +48,15 @@ struct ProviderRateLimitConfig {
         windowDuration: 60           // Nominal window for consistency
     )
     
-    // MARK: - Future Providers
+    // MARK: - Additional Providers
     
     /// Wahoo API limits
-    /// TODO: Research official Wahoo API documentation
+    /// Conservative estimates - adjust based on actual API behavior
     static let wahoo = ProviderRateLimitConfig(
-        provider: .strava, // Placeholder - will be .wahoo when added to DataSource
-        maxRequestsPer15Min: 60,     // TODO: Confirm with Wahoo docs
-        maxRequestsPerHour: 200,     // TODO: Confirm with Wahoo docs
-        maxRequestsPerDay: 1440,     // TODO: Confirm with Wahoo docs
+        provider: .wahoo,
+        maxRequestsPer15Min: 60,     // Conservative estimate
+        maxRequestsPerHour: 200,     // Conservative estimate
+        maxRequestsPerDay: 2000,     // Conservative estimate
         windowDuration: 900          // 15 minutes
     )
     
@@ -78,11 +79,11 @@ struct ProviderRateLimitConfig {
             return .strava
         case .intervalsICU:
             return .intervalsICU
+        case .wahoo:
+            return .wahoo
         case .appleHealth:
             return .appleHealth
         // Future:
-        // case .wahoo:
-        //     return .wahoo
         // case .garmin:
         //     return .garmin
         }

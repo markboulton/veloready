@@ -5,8 +5,9 @@ import SwiftUI
 enum DataSource: String, Codable, CaseIterable, Identifiable {
     case intervalsICU = "intervals_icu"
     case strava = "strava"
-    // case garmin = "garmin" // Removed - not implemented
+    case wahoo = "wahoo"
     case appleHealth = "apple_health"
+    // case garmin = "garmin" // Future integration
     
     var id: String { rawValue }
     
@@ -15,6 +16,7 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return "Intervals.icu"
         case .strava: return "Strava"
+        case .wahoo: return "Wahoo"
         case .appleHealth: return "Apple Health"
         }
     }
@@ -24,6 +26,7 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return Icons.DataSource.intervalsICU
         case .strava: return Icons.DataSource.strava
+        case .wahoo: return Icons.DataSource.wahoo
         case .appleHealth: return Icons.DataSource.appleHealth
         }
     }
@@ -33,6 +36,7 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .intervalsICU: return .blue
         case .strava: return .orange
+        case .wahoo: return Color(red: 0.2, green: 0.55, blue: 0.95) // Wahoo blue
         case .appleHealth: return .red
         }
     }
@@ -44,6 +48,8 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return [.activities, .wellness, .zones, .metrics]
         case .strava:
             return [.activities, .metrics]
+        case .wahoo:
+            return [.activities, .workouts, .zones, .metrics]
         case .appleHealth:
             return [.wellness, .workouts]
         }
@@ -56,6 +62,8 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return "Training platform with power analysis and performance metrics"
         case .strava:
             return "Activity tracking and social network for athletes"
+        case .wahoo:
+            return "Workouts, power data, and training plans from SYSTM and ELEMNT devices"
         case .appleHealth:
             return "Health metrics, workouts, HRV, sleep, and heart rate data"
         }
@@ -68,6 +76,8 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return (0/255, 122/255, 255/255) // Intervals blue
         case .strava:
             return (252/255, 76/255, 2/255) // Strava orange #FC4C02
+        case .wahoo:
+            return (51/255, 140/255, 242/255) // Wahoo blue #338CF2
         case .appleHealth:
             return (255/255, 45/255, 85/255) // Apple Health red
         }
@@ -83,6 +93,8 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return true  // ✅ API terms allow ML training on user data
         case .strava:
             return false // ❌ Cannot store/train on raw stream data per Strava TOS
+        case .wahoo:
+            return true  // ✅ User-owned workout data, permissible for ML
         case .appleHealth:
             return true  // ✅ On-device, user-owned data - fully compliant
         }
@@ -106,6 +118,8 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return "Training and wellness data used for personalized ML predictions"
         case .strava:
             return "Activity patterns analyzed (not raw data) to enhance predictions"
+        case .wahoo:
+            return "Workout and power data used for personalized training insights"
         case .appleHealth:
             return "Health data used on-device for personalized ML training"
         }
