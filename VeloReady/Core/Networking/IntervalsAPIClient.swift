@@ -41,12 +41,24 @@ class IntervalsAPIClient: ObservableObject {
     private func makeRequest(url: URL, authHeader: String? = nil) async throws -> Data {
         let requestKey = url.absoluteString
         
-        // Rate limiting protection
+        // NEW: Provider-aware rate limiting
+        let throttleResult = await RequestThrottler.shared.shouldAllowRequest(
+            provider: .intervalsICU,
+            endpoint: url.lastPathComponent
+        )
+        
+        if !throttleResult.allowed, let retryAfter = throttleResult.retryAfter {
+            Logger.warning("⏱️ [Intervals] Rate limited - waiting \(Int(retryAfter))s")
+            Logger.debug("⏱️ [Intervals] Reason: \(throttleResult.reason ?? "Rate limit exceeded")")
+            try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
+        }
+        
+        // Legacy: Minimum interval between requests (for backwards compatibility)
         if let lastRequest = lastRequestTime {
             let timeSinceLastRequest = Date().timeIntervalSince(lastRequest)
             if timeSinceLastRequest < minimumRequestInterval {
                 let delay = minimumRequestInterval - timeSinceLastRequest
-                Logger.warning("️ Rate limiting: waiting \(String(format: "%.1f", delay))s before request")
+                Logger.debug("⏱️ [Intervals] Minimum interval: waiting \(String(format: "%.1f", delay))s")
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
         }

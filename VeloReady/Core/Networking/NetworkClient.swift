@@ -72,15 +72,30 @@ actor NetworkClient {
     }
     
     /// Execute a request and return raw data
-    /// - Parameter request: The URLRequest to execute
+    /// - Parameters:
+    ///   - request: The URLRequest to execute
+    ///   - provider: Optional provider for rate limiting (e.g., .strava, .intervalsICU)
     /// - Returns: Raw response data
-    func execute(_ request: URLRequest) async throws -> Data {
-        return try await executeWithRetry(request)
+    func execute(_ request: URLRequest, provider: DataSource? = nil) async throws -> Data {
+        return try await executeWithRetry(request, provider: provider)
     }
     
     // MARK: - Private Methods
     
-    private func executeWithRetry(_ request: URLRequest) async throws -> Data {
+    private func executeWithRetry(_ request: URLRequest, provider: DataSource? = nil) async throws -> Data {
+        // NEW: Provider-aware rate limiting
+        if let provider = provider {
+            let throttleResult = await RequestThrottler.shared.shouldAllowRequest(
+                provider: provider,
+                endpoint: request.url?.lastPathComponent
+            )
+            
+            if !throttleResult.allowed, let retryAfter = throttleResult.retryAfter {
+                Logger.warning("⏱️ [NetworkClient] Rate limited for \(provider) - waiting \(Int(retryAfter))s")
+                try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
+            }
+        }
+        
         var lastError: Error?
         
         for attempt in 0...retryPolicy.maxRetries {
