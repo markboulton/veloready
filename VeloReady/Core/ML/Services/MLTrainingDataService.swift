@@ -11,9 +11,17 @@ class MLTrainingDataService: ObservableObject {
     // MARK: - Dependencies
     
     private let historicalAggregator = HistoricalDataAggregator()
+    private let hybridAggregator = HybridMLDataAggregator()
     private let featureEngineer = FeatureEngineer()
+    private let hybridFeatureEngineer = HybridFeatureEngineer()
     private let modelRegistry = MLModelRegistry.shared
     private let persistence = PersistenceController.shared
+    
+    // MARK: - Configuration
+    
+    /// Use hybrid ML approach (ingestible sources + pattern augmentation)
+    /// Set to false to use legacy approach (requires updating FeatureEngineer for new fields)
+    private let useHybridApproach = true
     
     // MARK: - Published State
     
@@ -79,15 +87,41 @@ class MLTrainingDataService: ObservableObject {
         
         isProcessing = true
         Logger.debug("🚀 [ML] Starting historical data processing for \(days) days...")
+        Logger.debug("🔧 [ML] Using \(useHybridApproach ? "HYBRID" : "LEGACY") approach")
         
         do {
-            // Step 1: Aggregate historical data from all sources
-            let historicalData = await historicalAggregator.aggregateHistoricalData(days: days)
-            Logger.debug("📊 [ML] Step 1 complete: Aggregated \(historicalData.count) days of data")
+            let dataset: MLTrainingDataset
             
-            // Step 2: Extract features
-            let dataset = await featureEngineer.extractFeatures(from: historicalData)
-            Logger.debug("🔧 [ML] Step 2 complete: Extracted \(dataset.dataPoints.count) training samples")
+            if useHybridApproach {
+                // NEW: Hybrid approach with API compliance
+                // Step 1: Aggregate hybrid data (ingestible + patterns)
+                let hybridData = await hybridAggregator.aggregateTrainingData(days: days)
+                Logger.debug("📊 [ML] Step 1 complete: Aggregated hybrid data")
+                Logger.debug("   - Training activities: \(hybridData.trainingActivities.count)")
+                Logger.debug("   - Wellness data: \(hybridData.wellnessData.count)")
+                Logger.debug("   - Pattern features: \(hybridData.patternAugmentations.count)")
+                
+                // 🔒 CRITICAL: Runtime assertion to prevent API violations
+                let hasStravaRawData = hybridData.trainingActivities.contains { $0.source == .strava }
+                assert(!hasStravaRawData, """
+                    ❌ CRITICAL API VIOLATION:
+                    Strava raw data detected in ML training set!
+                    This violates Strava's API terms of service.
+                    Only pattern-based features should be used from Strava.
+                    """)
+                
+                // Step 2: Extract features with hybrid approach
+                dataset = await hybridFeatureEngineer.extractFeatures(from: hybridData)
+                Logger.debug("🔧 [ML] Step 2 complete: Extracted \(dataset.dataPoints.count) training samples")
+                
+            } else {
+                // LEGACY: Original approach (kept for backwards compatibility)
+                let historicalData = await historicalAggregator.aggregateHistoricalData(days: days)
+                Logger.debug("📊 [ML] Step 1 complete: Aggregated \(historicalData.count) days of data")
+                
+                dataset = await featureEngineer.extractFeatures(from: historicalData)
+                Logger.debug("🔧 [ML] Step 2 complete: Extracted \(dataset.dataPoints.count) training samples")
+            }
             
             // Step 3: Store to Core Data
             try await storeTrainingData(dataset: dataset)
@@ -135,42 +169,14 @@ class MLTrainingDataService: ObservableObject {
             guard let date = record.date,
                   let featureVector = record.featureVector else { return nil }
             
-            // Reconstruct feature vector
-            let features = MLFeatureVector(
-                hrv: featureVector["hrv"],
-                hrvBaseline: featureVector["hrv_baseline"],
-                hrvDelta: featureVector["hrv_delta"],
-                hrvCoefficientOfVariation: featureVector["hrv_cv"],
-                rhr: featureVector["rhr"],
-                rhrBaseline: featureVector["rhr_baseline"],
-                rhrDelta: featureVector["rhr_delta"],
-                sleepDuration: featureVector["sleep_duration"],
-                sleepBaseline: featureVector["sleep_baseline"],
-                sleepDelta: featureVector["sleep_delta"],
-                respiratoryRate: featureVector["respiratory_rate"],
-                yesterdayStrain: featureVector["yesterday_strain"],
-                yesterdayTSS: featureVector["yesterday_tss"],
-                ctl: featureVector["ctl"],
-                atl: featureVector["atl"],
-                tsb: featureVector["tsb"],
-                acuteChronicRatio: featureVector["acute_chronic_ratio"],
-                trainingMonotony: featureVector["training_monotony"],
-                trainingStrain: featureVector["training_strain"],
-                recoveryTrend7d: featureVector["recovery_trend_7d"],
-                recoveryTrend3d: featureVector["recovery_trend_3d"],
-                yesterdayRecovery: featureVector["yesterday_recovery"],
-                recoveryChange: featureVector["recovery_change"],
-                sleepTrend7d: featureVector["sleep_trend_7d"],
-                sleepDebt7d: featureVector["sleep_debt_7d"],
-                sleepQualityScore: featureVector["sleep_quality"],
-                dayOfWeek: Int(featureVector["day_of_week"] ?? 1),
-                daysSinceHardWorkout: featureVector["days_since_hard_workout"].map(Int.init),
-                trainingBlockDay: featureVector["training_block_day"].map(Int.init),
-                alcoholDetected: featureVector["alcohol_detected"].map { $0 > 0 },
-                illnessMarker: featureVector["illness_marker"].map { $0 > 0 },
-                monthOfYear: Int(featureVector["month_of_year"] ?? 1),
-                timestamp: date
-            )
+            // Reconstruct feature vector using the fromDictionary method
+            let features: MLFeatureVector
+            do {
+                features = try MLFeatureVector.fromDictionary(featureVector)
+            } catch {
+                Logger.error("[ML] Failed to reconstruct feature vector: \(error)")
+                return nil
+            }
             
             return MLTrainingDataPoint(
                 features: features,

@@ -259,7 +259,14 @@ class FeatureEngineer {
             alcoholDetected: alcoholDetected,
             illnessMarker: illnessMarker,
             monthOfYear: monthOfYear,
-            timestamp: Date()
+            stravaPatternCTLTrend: nil, // Legacy path - no pattern features
+            stravaPatternATLTrend: nil,
+            stravaPatternTSBTrend: nil,
+            stravaPatternIntensityTrend: nil,
+            stravaPatternVolumeTrend: nil,
+            timestamp: Date(),
+            primaryTrainingSource: nil, // Legacy path - no source tracking
+            hasStravaAugmentation: false
         )
     }
     

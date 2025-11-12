@@ -110,10 +110,34 @@ struct MLFeatureVector: Codable {
     /// Month of year (1-12, for seasonal patterns)
     let monthOfYear: Int
     
+    // MARK: - Pattern-Based Features (from non-ingestible sources)
+    
+    /// Strava pattern: CTL trend (aggregate metric, not raw data)
+    /// Compliant with Strava API terms - uses metadata only
+    let stravaPatternCTLTrend: Double?
+    
+    /// Strava pattern: ATL trend (7-day average)
+    let stravaPatternATLTrend: Double?
+    
+    /// Strava pattern: TSB trend (stress balance)
+    let stravaPatternTSBTrend: Double?
+    
+    /// Strava pattern: Intensity trend (average IF over 14 days)
+    let stravaPatternIntensityTrend: Double?
+    
+    /// Strava pattern: Volume trend (hours per week)
+    let stravaPatternVolumeTrend: Double?
+    
     // MARK: - Data Quality
     
     /// Timestamp when features were extracted
     let timestamp: Date
+    
+    /// Primary training data source (for model interpretation)
+    let primaryTrainingSource: DataSource?
+    
+    /// Whether this feature vector includes Strava pattern augmentation
+    let hasStravaAugmentation: Bool
     
     /// Completeness score (0-1, based on missing features)
     var completeness: Double {
@@ -182,6 +206,13 @@ struct MLFeatureVector: Codable {
         if let illnessMarker = illnessMarker { dict["illness_marker"] = illnessMarker ? 1.0 : 0.0 }
         dict["month_of_year"] = Double(monthOfYear)
         
+        // Pattern-based features
+        if let stravaPatternCTLTrend = stravaPatternCTLTrend { dict["strava_pattern_ctl"] = stravaPatternCTLTrend }
+        if let stravaPatternATLTrend = stravaPatternATLTrend { dict["strava_pattern_atl"] = stravaPatternATLTrend }
+        if let stravaPatternTSBTrend = stravaPatternTSBTrend { dict["strava_pattern_tsb"] = stravaPatternTSBTrend }
+        if let stravaPatternIntensityTrend = stravaPatternIntensityTrend { dict["strava_pattern_intensity"] = stravaPatternIntensityTrend }
+        if let stravaPatternVolumeTrend = stravaPatternVolumeTrend { dict["strava_pattern_volume"] = stravaPatternVolumeTrend }
+        
         return dict
     }
     
@@ -231,7 +262,17 @@ struct MLFeatureVector: Codable {
             alcoholDetected: dict["alcohol_detected"].map { $0 > 0.5 },
             illnessMarker: dict["illness_marker"].map { $0 > 0.5 },
             monthOfYear: Int(dict["month_of_year"] ?? 1),
-            timestamp: Date() // Use current time for reconstructed vectors
+            
+            // Pattern-based features
+            stravaPatternCTLTrend: dict["strava_pattern_ctl"],
+            stravaPatternATLTrend: dict["strava_pattern_atl"],
+            stravaPatternTSBTrend: dict["strava_pattern_tsb"],
+            stravaPatternIntensityTrend: dict["strava_pattern_intensity"],
+            stravaPatternVolumeTrend: dict["strava_pattern_volume"],
+            
+            timestamp: Date(), // Use current time for reconstructed vectors
+            primaryTrainingSource: nil, // Not stored in dictionary
+            hasStravaAugmentation: dict["strava_pattern_ctl"] != nil
         )
     }
     
@@ -260,7 +301,11 @@ struct MLFeatureVector: Codable {
             "day_of_week", "days_since_hard_workout", "training_block_day",
             
             // Contextual
-            "alcohol_detected", "illness_marker", "month_of_year"
+            "alcohol_detected", "illness_marker", "month_of_year",
+            
+            // Pattern-based features
+            "strava_pattern_ctl", "strava_pattern_atl", "strava_pattern_tsb",
+            "strava_pattern_intensity", "strava_pattern_volume"
         ]
     }
 }

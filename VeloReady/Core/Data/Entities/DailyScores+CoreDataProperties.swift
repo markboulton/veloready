@@ -18,6 +18,14 @@ extension DailyScores {
     @NSManaged public var physio: DailyPhysio?
     @NSManaged public var load: DailyLoad?
     
+    // Stress tracking fields
+    @NSManaged public var stressScore: Double
+    @NSManaged public var chronicStress: Double
+    @NSManaged public var physiologicalStress: Double
+    @NSManaged public var recoveryDeficit: Double
+    @NSManaged public var sleepDisruption: Double
+    @NSManaged public var stressTrend: String?
+    
 }
 
 extension DailyScores : Identifiable {
