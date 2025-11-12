@@ -72,6 +72,44 @@ enum DataSource: String, Codable, CaseIterable, Identifiable {
             return (255/255, 45/255, 85/255) // Apple Health red
         }
     }
+    
+    // MARK: - ML Data Usage Policies
+    
+    /// Whether raw data from this source can be used for ML training
+    /// Based on API terms of service and data ownership policies
+    var isMLIngestible: Bool {
+        switch self {
+        case .intervalsICU:
+            return true  // ✅ API terms allow ML training on user data
+        case .strava:
+            return false // ❌ Cannot store/train on raw stream data per Strava TOS
+        case .appleHealth:
+            return true  // ✅ On-device, user-owned data - fully compliant
+        }
+    }
+    
+    /// Whether this source supports pattern-based analysis (aggregate metrics)
+    /// without raw data ingestion
+    var supportsPatternAnalysis: Bool {
+        switch self {
+        case .strava:
+            return true  // ✅ Can analyze patterns from metadata (CTL, volume, intensity)
+        default:
+            return isMLIngestible // If ingestible, patterns are implicit
+        }
+    }
+    
+    /// Description of ML usage policy for user-facing transparency
+    var mlUsageDescription: String {
+        switch self {
+        case .intervalsICU:
+            return "Training and wellness data used for personalized ML predictions"
+        case .strava:
+            return "Activity patterns analyzed (not raw data) to enhance predictions"
+        case .appleHealth:
+            return "Health data used on-device for personalized ML training"
+        }
+    }
 }
 
 /// Types of data that can be provided by sources
