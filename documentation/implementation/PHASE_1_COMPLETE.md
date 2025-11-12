@@ -328,7 +328,7 @@ Extract and test:
 
 ### Phase 3: Data Models (1-2 days)
 Extract and test:
-- `StravaActivity`, `IntervalsActivity`
+- `StravaActivity`, `Activity`
 - `HealthMetric`
 - `AthleteProfile`
 

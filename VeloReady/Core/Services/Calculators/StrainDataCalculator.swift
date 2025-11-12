@@ -177,7 +177,7 @@ actor StrainDataCalculator {
         return workouts
     }
     
-    private func fetchTodaysUnifiedActivities() async -> [IntervalsActivity] {
+    private func fetchTodaysUnifiedActivities() async -> [Activity] {
         do {
             let activities = try await UnifiedActivityService.shared.fetchTodaysActivities()
             Logger.debug("🔍 Found \(activities.count) unified activities for today (Intervals.icu or Strava)")
@@ -188,7 +188,7 @@ actor StrainDataCalculator {
         }
     }
     
-    private func calculateTRIMPFromStravaActivities(activities: [IntervalsActivity], ftp: Double?, maxHR: Double?, restingHR: Double?) -> Double {
+    private func calculateTRIMPFromStravaActivities(activities: [Activity], ftp: Double?, maxHR: Double?, restingHR: Double?) -> Double {
         var totalTRIMP: Double = 0
         
         for activity in activities {

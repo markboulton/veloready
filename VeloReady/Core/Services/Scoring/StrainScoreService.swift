@@ -275,7 +275,7 @@ class StrainScoreService: ObservableObject {
     
     // MARK: - TRIMP Calculation
     
-    private func calculateTRIMPFromActivities(activities: [IntervalsActivity]) -> Double {
+    private func calculateTRIMPFromActivities(activities: [Activity]) -> Double {
         var totalTRIMP: Double = 0
         
         for activity in activities {
@@ -321,7 +321,7 @@ class StrainScoreService: ObservableObject {
         return max(0, min(1, hrReserve))
     }
     
-    private func calculateAverageIntensityFactor(activities: [IntervalsActivity]) -> Double? {
+    private func calculateAverageIntensityFactor(activities: [Activity]) -> Double? {
         let activitiesWithIF = activities.compactMap { activity in
             activity.intensityFactor
         }

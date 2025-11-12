@@ -134,14 +134,14 @@ actor CoreDataCacheLayer: CacheLayer {
                 }
             }
             
-            // Try as array of IntervalsActivity (most common)
-            if let result = await persistenceLayer.loadFromCoreData(key: key, as: [IntervalsActivity].self) {
+            // Try as array of Activity (most common)
+            if let result = await persistenceLayer.loadFromCoreData(key: key, as: [Activity].self) {
                 return (result.value, result.cachedAt)
             }
         }
         
-        // Try as single IntervalsActivity
-        if let result = await persistenceLayer.loadFromCoreData(key: key, as: IntervalsActivity.self) {
+        // Try as single Activity
+        if let result = await persistenceLayer.loadFromCoreData(key: key, as: Activity.self) {
             return (result.value, result.cachedAt)
         }
         

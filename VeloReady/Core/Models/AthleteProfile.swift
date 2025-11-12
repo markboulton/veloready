@@ -233,7 +233,7 @@ class AthleteProfileManager: ObservableObject {
     /// UPDATED: Uses Strava as PRIMARY data source, Intervals.icu as secondary
     /// Uses Critical Power model, power curve analysis, and HR lactate threshold detection
     /// Pro: 365 days, Free: 90 days
-    func computeFromActivities(_ activities: [IntervalsActivity]) async {
+    func computeFromActivities(_ activities: [Activity]) async {
         Logger.data("========== COMPUTING ADAPTIVE ZONES FROM PERFORMANCE DATA ==========")
         Logger.data("Using modern sports science algorithms (CP model, power distribution, HR analysis)")
         Logger.data("Data source priority: 1) Strava (primary), 2) Intervals.icu (secondary)")
@@ -310,7 +310,7 @@ class AthleteProfileManager: ObservableObject {
     /// Compute FTP using Enhanced Critical Power model with confidence scoring
     /// Based on Leo et al. (2022), Burnley & Jones (2018), Decroix et al. (2016)
     /// Target accuracy: ±2-5% with proper data
-    private func computeFTPFromPerformanceData(_ activities: [IntervalsActivity]) async {
+    private func computeFTPFromPerformanceData(_ activities: [Activity]) async {
         Logger.data("========== FTP COMPUTATION (ENHANCED v2) ==========")
         Logger.data("Target: ±2-5% accuracy with confidence-based buffer")
         
@@ -541,7 +541,7 @@ class AthleteProfileManager: ObservableObject {
     }
     
     /// Build power-duration profile from activities (Leo et al. 2022)
-    private func buildPowerDurationProfile(activities: [IntervalsActivity]) -> PowerDurationProfile {
+    private func buildPowerDurationProfile(activities: [Activity]) -> PowerDurationProfile {
         var profile = PowerDurationProfile()
         
         // ENHANCED: Recognize long endurance rides as strong FTP indicators
@@ -611,7 +611,7 @@ class AthleteProfileManager: ObservableObject {
     }
     
     /// Estimate W' (anaerobic work capacity) - Jones et al. (2010)
-    private func estimateWPrime(activities: [IntervalsActivity], ftp: Double) -> Double? {
+    private func estimateWPrime(activities: [Activity], ftp: Double) -> Double? {
         // W' = work performed above CP (FTP) during maximal efforts
         // Simplified estimation: Use joules above FTP from activities
         
@@ -642,7 +642,7 @@ class AthleteProfileManager: ObservableObject {
     }
     
     /// Assess data quality - Bellinger & Minahan (2016)
-    private func assessDataQuality(activities: [IntervalsActivity], hasNP: Bool, hasLongRides: Bool) -> DataQuality {
+    private func assessDataQuality(activities: [Activity], hasNP: Bool, hasLongRides: Bool) -> DataQuality {
         let sampleSize = activities.count
         
         // Calculate variability index (coefficient of variation)
@@ -671,7 +671,7 @@ class AthleteProfileManager: ObservableObject {
     
     /// Compute HR zones using lactate threshold detection and Max HR analysis
     /// Based on Karvonen method and modern HR training zone research
-    private func computeHRZonesFromPerformanceData(_ activities: [IntervalsActivity]) async {
+    private func computeHRZonesFromPerformanceData(_ activities: [Activity]) async {
         Logger.data("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
         
         // Get max HR from activities (highest recorded)
@@ -853,7 +853,7 @@ class AthleteProfileManager: ObservableObject {
         }
     }
     
-    private func updateAuxiliaryMetrics(_ activities: [IntervalsActivity]) async {
+    private func updateAuxiliaryMetrics(_ activities: [Activity]) async {
         // Update resting HR and weight from most recent values
         // Note: LTHR is computed from performance data, not copied from Intervals.icu
         

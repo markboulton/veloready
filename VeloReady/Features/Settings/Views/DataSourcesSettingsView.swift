@@ -267,8 +267,8 @@ struct DataSourcesSettingsView: View {
                     }
                 }
                 
-            case .appleHealth:
-                // Generic button for Apple Health
+            case .appleHealth, .wahoo:
+                // Generic button for Apple Health and Wahoo
                 Button(action: {
                     if !isConnected {
                         Task {

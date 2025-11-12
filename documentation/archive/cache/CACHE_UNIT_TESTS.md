@@ -319,9 +319,9 @@ final class UnifiedCacheManagerTests: XCTestCase {
         }
     }
     
-    private func createMockIntervalsActivities(count: Int) -> [IntervalsActivity] {
+    private func createMockIntervalsActivities(count: Int) -> [Activity] {
         (0..<count).map { i in
-            IntervalsActivity(
+            Activity(
                 id: "intervals_\(i)",
                 startDateLocal: Date(),
                 type: "Ride",

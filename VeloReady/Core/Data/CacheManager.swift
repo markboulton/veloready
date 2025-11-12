@@ -199,7 +199,7 @@ final class CacheManager: ObservableObject {
     
     private func fetchIntervalsData(for date: Date = Date()) async throws -> IntervalsData {
         // Fetch activities for adaptive FTP calculation
-        var activities: [IntervalsActivity] = []
+        var activities: [Activity] = []
         
         // Check if authenticated with Intervals.icu
         if oauthManager.isAuthenticated {
@@ -765,5 +765,5 @@ struct IntervalsData {
     let tsb: Double?
     let tss: Double?
     let eftp: Double?
-    let workout: IntervalsActivity?
+    let workout: Activity?
 }

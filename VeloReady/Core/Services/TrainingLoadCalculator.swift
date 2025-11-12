@@ -20,7 +20,7 @@ actor TrainingLoadCalculator {
     /// Calculate CTL and ATL from Strava activities using TSS
     /// - Parameter activities: Array of activities with TSS values
     /// - Returns: Tuple of (ctl, atl) for the most recent date
-    func calculateTrainingLoadFromActivities(_ activities: [IntervalsActivity]) -> (ctl: Double, atl: Double) {
+    func calculateTrainingLoadFromActivities(_ activities: [Activity]) -> (ctl: Double, atl: Double) {
         Logger.data("📊 Calculating CTL/ATL from \(activities.count) activities...")
         
         // Group activities by date and sum TSS
@@ -62,7 +62,7 @@ actor TrainingLoadCalculator {
     /// Calculate progressive CTL/ATL values for each activity date
     /// - Parameter activities: Array of activities with TSS values
     /// - Returns: Dictionary mapping activity dates to (ctl, atl) tuples
-    func calculateProgressiveTrainingLoad(_ activities: [IntervalsActivity]) -> [Date: (ctl: Double, atl: Double)] {
+    func calculateProgressiveTrainingLoad(_ activities: [Activity]) -> [Date: (ctl: Double, atl: Double)] {
         Logger.data("📊 Calculating progressive CTL/ATL from \(activities.count) activities...")
         
         var result: [Date: (ctl: Double, atl: Double)] = [:]
@@ -160,7 +160,7 @@ actor TrainingLoadCalculator {
     /// Get daily TSS values from activities
     /// - Parameter activities: Array of activities with TSS values
     /// - Returns: Dictionary mapping dates to total TSS for that day
-    func getDailyTSSFromActivities(_ activities: [IntervalsActivity]) -> [Date: Double] {
+    func getDailyTSSFromActivities(_ activities: [Activity]) -> [Date: Double] {
         var dailyTSS: [Date: Double] = [:]
         let calendar = Calendar.current
         

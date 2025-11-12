@@ -49,8 +49,8 @@ class LatestActivityCardViewModel: ObservableObject {
         Logger.debug("🔄 [LoadData] ENTRY for activity: \(activity.name)")
         print("🔄 [LoadData] Activity details - type: \(activity.type), shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")
         Logger.debug("🔄 [LoadData] Activity details - type: \(activity.type), shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")
-        print("🔄 [LoadData] Activity sources - strava: \(activity.stravaActivity != nil), intervals: \(activity.intervalsActivity != nil), healthkit: \(activity.healthKitWorkout != nil)")
-        Logger.debug("🔄 [LoadData] Activity sources - strava: \(activity.stravaActivity != nil), intervals: \(activity.intervalsActivity != nil), healthkit: \(activity.healthKitWorkout != nil)")
+        print("🔄 [LoadData] Activity sources - strava: \(activity.stravaActivity != nil), activity: \(activity.activity != nil), healthkit: \(activity.healthKitWorkout != nil)")
+        Logger.debug("🔄 [LoadData] Activity sources - strava: \(activity.stravaActivity != nil), activity: \(activity.activity != nil), healthkit: \(activity.healthKitWorkout != nil)")
         
         // Mark as loaded to track state
         hasLoadedData = true
@@ -199,7 +199,7 @@ class LatestActivityCardViewModel: ObservableObject {
     }
     
     private func getGPSCoordinates() async -> [CLLocationCoordinate2D]? {
-        print("🗺️ [GPS] Getting coordinates - strava: \(activity.stravaActivity != nil), intervals: \(activity.intervalsActivity != nil)")
+        print("🗺️ [GPS] Getting coordinates - strava: \(activity.stravaActivity != nil), activity: \(activity.activity != nil)")
         
         // Try Strava first if available
         if let stravaActivity = activity.stravaActivity {
@@ -207,17 +207,17 @@ class LatestActivityCardViewModel: ObservableObject {
             return await fetchStravaGPSCoordinates(activityId: stravaActivity.id)
         }
         
-        // If Intervals activity, check if it's from Strava
-        if let intervalsActivity = activity.intervalsActivity {
-            print("🗺️ [GPS] Have Intervals activity - source: \(intervalsActivity.source ?? "nil"), id: \(intervalsActivity.id)")
+        // If Activity model, check if it's from Strava
+        if let sourceActivity = activity.activity {
+            print("🗺️ [GPS] Have Activity model - source: \(sourceActivity.source ?? "nil"), id: \(sourceActivity.id)")
             
             // Check if ID has "strava_" prefix (indicates synced from Strava)
-            let isFromStrava = intervalsActivity.source?.uppercased() == "STRAVA" || 
-                              intervalsActivity.id.hasPrefix("strava_")
+            let isFromStrava = sourceActivity.source?.uppercased() == "STRAVA" || 
+                              sourceActivity.id.hasPrefix("strava_")
             
             if isFromStrava {
                 // Extract Strava ID from the ID string (format: "strava_16403607746")
-                let stravaIdString = intervalsActivity.id.replacingOccurrences(of: "strava_", with: "")
+                let stravaIdString = sourceActivity.id.replacingOccurrences(of: "strava_", with: "")
                 if let stravaId = Int(stravaIdString) {
                     print("🗺️ [GPS] Activity from Strava (ID: \(stravaId)), fetching GPS from Strava API")
                     let coords = await fetchStravaGPSCoordinates(activityId: stravaId)
@@ -231,7 +231,7 @@ class LatestActivityCardViewModel: ObservableObject {
             
             // Fallback to Intervals API
             print("🗺️ [GPS] Fetching from Intervals API")
-            return await fetchIntervalsGPSCoordinates(activityId: intervalsActivity.id)
+            return await fetchIntervalsGPSCoordinates(activityId: sourceActivity.id)
         }
         
         // For HealthKit workouts (Walking, etc), fetch route data

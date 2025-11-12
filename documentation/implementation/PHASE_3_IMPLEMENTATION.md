@@ -36,7 +36,7 @@ Phase 3 focuses on extracting data models from the iOS app into `VeloReadyCore`.
 
 The iOS app has several data models with platform dependencies (UIKit, SwiftUI, HealthKit) that need to be made platform-agnostic:
 
-1. **Activity Models** - `UnifiedActivity`, `IntervalsActivity`, `StravaActivity`
+1. **Activity Models** - `UnifiedActivity`, `Activity`, `StravaActivity`
 2. **Score Models** - `RecoveryScore`, `SleepScore`, `StrainScore`, `ReadinessScore`
 3. **Profile Models** - `AthleteProfile`, `UserSettings`
 4. **Health Models** - `HealthMetric`, `SleepData`
@@ -77,7 +77,7 @@ Let's focus on **data validation and parsing tests** for the most critical data 
 ```swift
 // VeloReadyCore/Tests/ActivityDataTests.swift
 
-func testIntervalsActivityParsing() {
+func testActivityParsing() {
     // Test parsing real Intervals.icu JSON
     let json = """
     {
@@ -274,7 +274,7 @@ public struct ActivityParser {
     }
     
     /// Parse Intervals.icu activity JSON
-    public static func parseIntervalsActivity(_ json: String) throws -> ActivityData {
+    public static func parseActivity(_ json: String) throws -> ActivityData {
         guard let data = json.data(using: .utf8) else {
             throw ParsingError.invalidJSON
         }
@@ -322,7 +322,7 @@ import Foundation
 
 extension VeloReadyCoreTests {
     
-    static func testIntervalsActivityParsing() async -> Bool {
+    static func testActivityParsing() async -> Bool {
         print("\n🧪 Test 32: Intervals.icu Activity Parsing")
         print("   Testing JSON parsing for Intervals activities...")
         
@@ -341,7 +341,7 @@ extension VeloReadyCoreTests {
         """
         
         do {
-            let activity = try ActivityParser.parseIntervalsActivity(json)
+            let activity = try ActivityParser.parseActivity(json)
             
             guard activity.id == "12345" else {
                 print("   ❌ FAIL: ID mismatch")

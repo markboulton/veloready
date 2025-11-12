@@ -54,7 +54,7 @@ func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90)
 // Free users: 90 days
 // Pro users: 365 days
 
-func fetchRecentActivities(limit: Int, daysBack: Int) async throws -> [IntervalsActivity] {
+func fetchRecentActivities(limit: Int, daysBack: Int) async throws -> [Activity] {
     let proConfig = await MainActor.run { ProFeatureConfig.shared }
     let maxDays = proConfig.hasProAccess ? 365 : 90
     let actualDays = min(daysBack, maxDays)
@@ -84,8 +84,8 @@ func fetchRecentActivities(limit: Int, daysBack: Int) async throws -> [Intervals
 **Proposed:**
 ```
 /Core/Services/AdaptiveZonesService.swift
-- computeFTP(activities: [IntervalsActivity]) -> FTPResult
-- computeHRZones(activities: [IntervalsActivity]) -> HRZonesResult
+- computeFTP(activities: [Activity]) -> FTPResult
+- computeHRZones(activities: [Activity]) -> HRZonesResult
 - generatePowerZones(ftp: Double) -> [Double]
 - generateHRZones(maxHR: Double, lthr: Double?) -> [Double]
 ```
@@ -100,7 +100,7 @@ func fetchRecentActivities(limit: Int, daysBack: Int) async throws -> [Intervals
 
 **Verify:**
 1. Strava activities fetch correctly
-2. Strava activities convert to `IntervalsActivity` format
+2. Strava activities convert to `Activity` format
 3. Zone computation works with Strava data
 4. Results are identical for same performance data
 

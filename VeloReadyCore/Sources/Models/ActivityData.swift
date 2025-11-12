@@ -89,7 +89,7 @@ public struct ActivityParser {
     }
     
     /// Parse Intervals.icu activity JSON
-    public static func parseIntervalsActivity(_ json: String) throws -> ActivityData {
+    public static func parseActivity(_ json: String) throws -> ActivityData {
         guard let data = json.data(using: .utf8) else {
             throw ParsingError.invalidJSON
         }

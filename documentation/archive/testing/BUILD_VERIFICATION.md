@@ -20,8 +20,8 @@
    - **Error:** 'catch' block is unreachable because no errors are thrown in 'do' block
    - **Fix:** Removed `do-catch`, no throws present
 
-3. ✅ **IntervalsActivity.external_id** - Line 115
-   - **Error:** Value of type 'IntervalsActivity' has no member 'external_id'
+3. ✅ **Activity.external_id** - Line 115
+   - **Error:** Value of type 'Activity' has no member 'external_id'
    - **Fix:** Changed to `$0.source?.uppercased() != "STRAVA"`
 
 4. ✅ **StravaAuthService.hasValidAccessToken** - Line 133
@@ -74,7 +74,7 @@ Checked:
 
 ### **Dependencies**
 ```bash
-✅ UnifiedActivity(from: IntervalsActivity)
+✅ UnifiedActivity(from: Activity)
 ✅ UnifiedActivity(from: StravaActivity)
 ✅ UnifiedActivity(from: HKWorkout)
 ✅ ServiceContainer wiring complete

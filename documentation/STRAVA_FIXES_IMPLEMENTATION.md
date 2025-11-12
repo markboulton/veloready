@@ -38,7 +38,7 @@ func useStravaFTPIfAvailable() async {
 
 **Call it:** Add at top of `computeFromActivities()`:
 ```swift
-func computeFromActivities(_ activities: [IntervalsActivity]) async {
+func computeFromActivities(_ activities: [Activity]) async {
     await useStravaFTPIfAvailable() // NEW LINE
     
     Logger.data("=========================================")
@@ -97,7 +97,7 @@ if let np = normalizedPower, let ftpValue = ftp, ftpValue > 0, np > 0 {
     Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftpValue))W)")
     
     // Create new activity with TSS and IF
-    enriched = IntervalsActivity(
+    enriched = Activity(
         id: enriched.id,
         name: enriched.name,
         description: enriched.description,
@@ -243,7 +243,7 @@ class TrainingLoadCalculator {
     /// Calculate CTL and ATL for activities
     /// - Parameter activities: Array of activities sorted by date (oldest first)
     /// - Returns: Dictionary mapping activity ID to (CTL, ATL, TSB)
-    static func calculateTrainingLoad(for activities: [IntervalsActivity]) -> [String: (ctl: Double, atl: Double, tsb: Double)] {
+    static func calculateTrainingLoad(for activities: [Activity]) -> [String: (ctl: Double, atl: Double, tsb: Double)] {
         var result: [String: (ctl: Double, atl: Double, tsb: Double)] = [:]
         
         // Sort by date (oldest first)
@@ -281,7 +281,7 @@ class TrainingLoadCalculator {
 }
 ```
 
-**Usage:** Call this after fetching activities and update the `IntervalsActivity` objects with CTL/ATL values.
+**Usage:** Call this after fetching activities and update the `Activity` objects with CTL/ATL values.
 
 ---
 

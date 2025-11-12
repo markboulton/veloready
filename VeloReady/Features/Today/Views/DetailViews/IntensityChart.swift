@@ -4,7 +4,7 @@ import Charts
 /// Intensity chart showing IF and TSS with visual indicators and comparison
 /// PRO Feature
 struct IntensityChart: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     
     var body: some View {

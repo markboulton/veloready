@@ -305,10 +305,10 @@ struct LatestActivityCardV2: View {
     
     @ViewBuilder
     private var destinationView: some View {
-        if let intervalsActivity = viewModel.activity.intervalsActivity {
-            RideDetailSheet(activity: intervalsActivity)
+        if let sourceActivity = viewModel.activity.activity {
+            RideDetailSheet(activity: sourceActivity)
         } else if let stravaActivity = viewModel.activity.stravaActivity {
-            RideDetailSheet(activity: ActivityConverter.stravaToIntervals(stravaActivity))
+            RideDetailSheet(activity: ActivityConverter.stravaToActivity(stravaActivity))
         } else if let healthWorkout = viewModel.activity.healthKitWorkout {
             WalkingDetailView(workout: healthWorkout)
         }
@@ -316,7 +316,7 @@ struct LatestActivityCardV2: View {
 }
 
 #Preview {
-    LatestActivityCardV2(activity: UnifiedActivity(from: IntervalsActivity(
+    LatestActivityCardV2(activity: UnifiedActivity(from: Activity(
         id: "1",
         name: "Morning Ride",
         description: "Easy spin",

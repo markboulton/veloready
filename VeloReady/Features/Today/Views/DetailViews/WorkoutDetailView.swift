@@ -40,7 +40,7 @@ struct ShimmerModifier: ViewModifier {
 
 @MainActor
 struct WorkoutDetailView: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @ObservedObject var viewModel: RideDetailViewModel
     let ftp: Double?
     let maxHR: Double?
@@ -59,7 +59,7 @@ struct WorkoutDetailView: View {
     }
     
     // Use enriched activity if available, otherwise use original
-    private var displayActivity: IntervalsActivity {
+    private var displayActivity: Activity {
         viewModel.enrichedActivity ?? activity
     }
     
@@ -265,7 +265,7 @@ struct WorkoutDetailView: View {
 // MARK: - Workout Info Header
 
 struct WorkoutInfoHeader: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @State private var locationString: String? = nil
     
     var body: some View {
@@ -396,7 +396,7 @@ struct WorkoutInfoHeader: View {
     
     private func loadLocation() async {
         // For Intervals activities, location data is not directly available
-        // Would need to be added to IntervalsActivity model from API
+        // Would need to be added to Activity model from API
         // For now, return nil
         locationString = nil
     }
@@ -518,7 +518,7 @@ struct WorkoutMapSection: View {
 // MARK: - Additional Data Section
 
 struct AdditionalDataSection: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
@@ -645,7 +645,7 @@ struct AdditionalDataSection: View {
 
 #Preview {
     WorkoutDetailView(
-        activity: IntervalsActivity(
+        activity: Activity(
             id: "preview-activity",
             name: "Morning Training Ride",
             description: "Great morning session with intervals",

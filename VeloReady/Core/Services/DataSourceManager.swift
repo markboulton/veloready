@@ -165,7 +165,10 @@ class DataSourceManager: ObservableObject {
             // Connection handled by StravaAuthService
             stravaAuthService.startAuth()
             
-        // Garmin case removed - not implemented
+        case .wahoo:
+            // Connection handled by WahooAuthService
+            Logger.data("DataSourceManager: Wahoo requires OAuth flow")
+            // WahooAuthService.shared.startAuth() - implementation pending
         }
         
         updateConnectionStatuses()
@@ -187,7 +190,10 @@ class DataSourceManager: ObservableObject {
             // Disconnect from Strava
             stravaAuthService.disconnect()
             
-        // Garmin case removed - not implemented
+        case .wahoo:
+            // Disconnect from Wahoo
+            Logger.data("DataSourceManager: Wahoo disconnect")
+            // WahooAuthService.shared.disconnect() - implementation pending
         }
         
         disableSource(source)

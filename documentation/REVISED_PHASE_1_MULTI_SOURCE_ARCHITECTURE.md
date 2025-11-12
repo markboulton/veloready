@@ -259,7 +259,7 @@ class VeloReadyAPIClient {
     // Existing Strava methods...
     
     // NEW: Intervals.icu methods
-    func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [IntervalsActivity] {
+    func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [Activity] {
         let endpoint = "\(baseURL)/api/data/activities?source=intervals&daysBack=\(daysBack)&limit=\(limit)"
         let response: IntervalsActivitiesResponse = try await makeRequest(url: URL(string: endpoint)!)
         return response.activities
@@ -284,7 +284,7 @@ class VeloReadyAPIClient {
 class IntervalsAPIClient {
     private let backendClient = VeloReadyAPIClient.shared
     
-    func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [IntervalsActivity] {
+    func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [Activity] {
         // Route through backend instead of direct API call
         return try await backendClient.fetchIntervalsActivities(daysBack: daysBack, limit: limit)
     }

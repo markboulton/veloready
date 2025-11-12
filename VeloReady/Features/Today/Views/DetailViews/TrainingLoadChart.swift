@@ -6,9 +6,9 @@ import Charts
 /// Works with both Strava and Intervals.icu data
 /// PRO Feature
 struct TrainingLoadChart: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @ObservedObject private var proConfig = ProFeatureConfig.shared
-    @State private var historicalActivities: [IntervalsActivity] = []
+    @State private var historicalActivities: [Activity] = []
     @State private var isLoading = false
     @State private var loadedActivityId: String? = nil // Track which activity we've loaded data for
     
@@ -358,13 +358,13 @@ struct TrainingLoadChart: View {
             
             // For historical rides beyond 120 days, fetch directly from backend to bypass the cap
             // UnifiedActivityService has a 120-day cap, but we need more for old rides
-            let activities: [IntervalsActivity]
+            let activities: [Activity]
             if totalDaysBack > 120 {
                 Logger.data("TrainingLoadChart: Historical ride detected - fetching \(totalDaysBack) days directly from backend")
                 // Request more activities (500 instead of 200) to ensure we get older rides
                 // Backend may have its own daysBack cap, but we can get more activities per request
                 let stravaActivities = try await VeloReadyAPIClient.shared.fetchActivities(daysBack: totalDaysBack, limit: 500)
-                activities = ActivityConverter.stravaToIntervals(stravaActivities)
+                activities = ActivityConverter.stravaToActivity(stravaActivities)
             } else {
                 activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: totalDaysBack)
             }
@@ -392,7 +392,7 @@ struct TrainingLoadChart: View {
             iso8601Formatter.timeZone = TimeZone.current
             
             // Add CTL/ATL to activities that have TSS
-            let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity -> IntervalsActivity in
+            let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.map { activity -> Activity in
                 // Get CTL/ATL for this activity's date
                 var activityCTL: Double = 0
                 var activityATL: Double = 0
@@ -410,7 +410,7 @@ struct TrainingLoadChart: View {
                     Logger.error("  ❌ Failed to parse date: \(activity.startDateLocal) for activity: \(activity.name ?? "Unknown")")
                 }
                 
-                return IntervalsActivity(
+                return Activity(
                     id: activity.id,
                     name: activity.name,
                     description: activity.description,
@@ -475,7 +475,7 @@ struct TrainingLoadChart: View {
         ctlAfter: Double,
         atlAfter: Double,
         tss: Double,
-        activities: [IntervalsActivity]
+        activities: [Activity]
     ) -> [LoadDataPoint] {
         var data: [LoadDataPoint] = []
         let calendar = Calendar.current
@@ -591,7 +591,7 @@ struct TrainingLoadChart: View {
         Logger.debug("📱 [OFFLINE] Loaded \(dailyScores.count) days from Core Data")
         
         // Convert to activities with CTL/ATL
-        var activitiesWithLoad: [IntervalsActivity] = []
+        var activitiesWithLoad: [Activity] = []
         
         for score in dailyScores {
             guard let date = score.date,
@@ -604,7 +604,7 @@ struct TrainingLoadChart: View {
             dateFormatter.timeZone = TimeZone.current
             let dateString = dateFormatter.string(from: date)
             
-            let syntheticActivity = IntervalsActivity(
+            let syntheticActivity = Activity(
                 id: "core-data-\(dateString)",
                 name: "Training Load",
                 description: nil,

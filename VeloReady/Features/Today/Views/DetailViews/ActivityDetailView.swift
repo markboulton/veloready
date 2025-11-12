@@ -128,7 +128,7 @@ struct UnifiedActivityData {
     let calories: Int?
     
     // Source-specific data
-    let intervalsActivity: IntervalsActivity?
+    let intervalsActivity: Activity?
     let healthKitWorkout: HKWorkout?
     
     // Indoor ride detection
@@ -167,7 +167,7 @@ struct UnifiedActivityData {
     }
     
     // Convenience initializers
-    static func fromIntervals(_ activity: IntervalsActivity) -> UnifiedActivityData {
+    static func fromIntervals(_ activity: Activity) -> UnifiedActivityData {
         UnifiedActivityData(
             type: .cycling,
             title: activity.name ?? ActivityContent.ActivityTypes.untitledWorkout,

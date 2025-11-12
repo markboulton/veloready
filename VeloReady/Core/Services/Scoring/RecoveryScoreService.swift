@@ -557,9 +557,9 @@ class RecoveryScoreService: ObservableObject {
     
     /// Estimate TSS for a unified activity
     private func estimateTSS(for activity: UnifiedActivity) -> Double {
-        // If we have TSS from Intervals.icu, use it
-        if let intervalsTSS = activity.intervalsActivity?.tss {
-            return intervalsTSS
+        // If we have TSS from the activity model, use it
+        if let activityTSS = activity.activity?.tss {
+            return activityTSS
         }
         
         // Otherwise estimate from duration and intensity

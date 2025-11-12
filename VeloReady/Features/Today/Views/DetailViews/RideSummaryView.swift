@@ -2,7 +2,7 @@ import SwiftUI
 
 /// View displaying AI-generated ride summary (PRO feature)
 struct RideSummaryView: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @ObservedObject var service = RideSummaryService.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var hasLoaded = false
@@ -76,7 +76,7 @@ private struct LoadingView: View {
 
 private struct ErrorView: View {
     let error: RideSummaryError
-    let activity: IntervalsActivity
+    let activity: Activity
     @ObservedObject var service = RideSummaryService.shared
     
     var body: some View {

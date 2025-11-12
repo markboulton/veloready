@@ -98,7 +98,7 @@ private func useStravaFTPIfAvailable() async {
 
 **Called automatically before zone computation:**
 ```swift
-func computeFromActivities(_ activities: [IntervalsActivity]) async {
+func computeFromActivities(_ activities: [Activity]) async {
     await useStravaFTPIfAvailable() // NEW LINE
     // ... rest of computation
 }

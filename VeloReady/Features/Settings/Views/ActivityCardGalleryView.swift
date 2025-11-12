@@ -29,7 +29,7 @@ struct ActivityCardGalleryView: View {
                 
                 ActivityCard(
                     activity: UnifiedActivity(
-                        from: IntervalsActivity(
+                        from: Activity(
                             id: "1",
                             name: "Morning Ride",
                             description: "Great ride through the hills",
@@ -65,7 +65,7 @@ struct ActivityCardGalleryView: View {
                 
                 ActivityCard(
                     activity: UnifiedActivity(
-                        from: IntervalsActivity(
+                        from: Activity(
                             id: "2",
                             name: "2 x 20 Threshold",
                             description: "Indoor trainer session",
@@ -139,7 +139,7 @@ struct ActivityCardGalleryView: View {
                 
                 ActivityCard(
                     activity: UnifiedActivity(
-                        from: IntervalsActivity(
+                        from: Activity(
                             id: "3",
                             name: "Recovery Spin",
                             description: "Easy recovery ride",

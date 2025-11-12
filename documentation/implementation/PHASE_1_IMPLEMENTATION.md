@@ -488,7 +488,7 @@ class ActivityRepository: BaseRepository<UnifiedActivity> {
 
 ```swift
 class IntervalsAPIClient {
-    func fetchActivities() async throws -> [IntervalsActivity] {
+    func fetchActivities() async throws -> [Activity] {
         guard let url = URL(string: "https://intervals.icu/api/v1/activities") else {
             throw IntervalsAPIError.invalidURL
         }
@@ -506,7 +506,7 @@ class IntervalsAPIClient {
             throw IntervalsAPIError.httpError(statusCode: httpResponse.statusCode)
         }
         
-        return try JSONDecoder().decode([IntervalsActivity].self, from: data)
+        return try JSONDecoder().decode([Activity].self, from: data)
     }
     
     // ... 800 more lines
@@ -516,7 +516,7 @@ class IntervalsAPIClient {
 ### After (IntervalsRepository.swift - ~100 lines):
 
 ```swift
-class IntervalsRepository: BaseRepository<IntervalsActivity> {
+class IntervalsRepository: BaseRepository<Activity> {
     
     convenience init(authManager: IntervalsOAuthManager) {
         let client = NetworkClient(
@@ -528,7 +528,7 @@ class IntervalsRepository: BaseRepository<IntervalsActivity> {
         self.init(client: client)
     }
     
-    override func list() async throws -> [IntervalsActivity] {
+    override func list() async throws -> [Activity] {
         let endpoint = Endpoint(
             path: "/activities",
             method: .get,

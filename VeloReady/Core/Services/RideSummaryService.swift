@@ -40,7 +40,7 @@ class RideSummaryService: ObservableObject {
     }
     
     /// Fetch AI summary for a ride
-    func fetchSummary(for activity: IntervalsActivity, bypassCache: Bool = false) async {
+    func fetchSummary(for activity: Activity, bypassCache: Bool = false) async {
         isLoading = true
         error = nil
         
@@ -64,12 +64,12 @@ class RideSummaryService: ObservableObject {
     }
     
     /// Refresh summary (bypass cache)
-    func refresh(for activity: IntervalsActivity) async {
+    func refresh(for activity: Activity) async {
         Logger.debug("🔄 Refreshing ride summary (bypass cache)")
         await fetchSummary(for: activity, bypassCache: true)
     }
     
-    private func buildRequest(from activity: IntervalsActivity) -> RideSummaryRequest {
+    private func buildRequest(from activity: Activity) -> RideSummaryRequest {
         // Get recovery data if available
         let recoveryService = RecoveryScoreService.shared
         let recovery = recoveryService.currentRecoveryScore
@@ -193,7 +193,7 @@ class RideSummaryService: ObservableObject {
     
     /// Calculate HR drift percentage (first half vs second half)
     /// Positive drift indicates fatigue/poor pacing, negative indicates warm-up effect
-    private func calculateHRDrift(activity: IntervalsActivity) -> Double? {
+    private func calculateHRDrift(activity: Activity) -> Double? {
         // Check if we have HR zone times data (as a proxy for HR stream availability)
         guard let hrZoneTimes = activity.icuHrZoneTimes,
               !hrZoneTimes.isEmpty,
@@ -220,7 +220,7 @@ class RideSummaryService: ObservableObject {
     
     /// Calculate power variability (Variability Index - 1, as percentage)
     /// Higher values indicate more variable/erratic pacing
-    private func calculatePowerVariability(activity: IntervalsActivity) -> Double? {
+    private func calculatePowerVariability(activity: Activity) -> Double? {
         guard let avgPower = activity.averagePower,
               let normalizedPower = activity.normalizedPower,
               avgPower > 0 else {

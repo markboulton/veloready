@@ -78,7 +78,7 @@ if let cachedSamples = StreamCacheService.shared.getCachedStreams() {
 - Extracted from `loadStravaActivityData()`
 - Reusable for both cached and fresh data
 - Handles all FTP fallbacks
-- Creates proper `IntervalsActivity` with TSS/IF
+- Creates proper `Activity` with TSS/IF
 
 ---
 

@@ -116,7 +116,7 @@ struct DebugTodayView: View {
 // MARK: - Supporting Views
 
 struct ActivityRowView: View {
-    let activity: MockIntervalsActivity
+    let activity: MockActivity
     
     var body: some View {
         HStack {

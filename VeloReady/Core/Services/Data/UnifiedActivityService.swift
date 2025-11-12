@@ -27,8 +27,8 @@ class UnifiedActivityService: ObservableObject {
     /// - Parameters:
     ///   - limit: Maximum number of activities to fetch
     ///   - daysBack: Number of days of history to fetch (capped by subscription tier)
-    /// - Returns: Unified array of IntervalsActivity regardless of source
-    func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [IntervalsActivity] {
+    /// - Returns: Unified array of Activity regardless of source
+    func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [Activity] {
         // Apply subscription-based limits
         let maxDays = proConfig.hasProAccess ? maxDaysForPro : maxDaysForFree
         let actualDays = min(daysBack, maxDays)
@@ -62,7 +62,7 @@ class UnifiedActivityService: ObservableObject {
         ) {
             Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
             let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
-            let convertedActivities = ActivityConverter.stravaToIntervals(stravaActivities)
+            let convertedActivities = ActivityConverter.stravaToActivity(stravaActivities)
             Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend")
             return convertedActivities
         }
@@ -70,7 +70,7 @@ class UnifiedActivityService: ObservableObject {
     
     /// Fetch today's activities from all available sources
     /// - Returns: Array of activities from today only
-    func fetchTodaysActivities() async throws -> [IntervalsActivity] {
+    func fetchTodaysActivities() async throws -> [Activity] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
@@ -89,7 +89,7 @@ class UnifiedActivityService: ObservableObject {
     /// - Returns: Activities from last 90-120 days (based on tier) with power data
     /// Research shows 90 days is optimal for >90% accuracy (Stryd standard)
     /// Pro users get 120 days (no evidence >120 days improves accuracy)
-    func fetchActivitiesForFTP() async throws -> [IntervalsActivity] {
+    func fetchActivitiesForFTP() async throws -> [Activity] {
         // Request max days for user's tier (will be capped automatically)
         let requestedDays = proConfig.hasProAccess ? 120 : 90
         Logger.data("📊 [FTP] Fetching activities for FTP computation (\(requestedDays) days, research-backed window)")
@@ -107,7 +107,7 @@ class UnifiedActivityService: ObservableObject {
     
     /// Fetch activities for training load calculation (CTL/ATL)
     /// - Returns: Activities from last 42 days for accurate load calculation
-    func fetchActivitiesForTrainingLoad() async throws -> [IntervalsActivity] {
+    func fetchActivitiesForTrainingLoad() async throws -> [Activity] {
         return try await fetchRecentActivities(limit: 200, daysBack: 42)
     }
     

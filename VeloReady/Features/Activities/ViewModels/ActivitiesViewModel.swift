@@ -112,7 +112,7 @@ class ActivitiesViewModel: ObservableObject {
         Logger.debug("📊 [Activities] Loading activities: \(daysBack) days (PRO: \(proConfig.hasProAccess))")
         
         // Try to fetch activities from Intervals.icu (optional)
-        var intervalsActivities: [IntervalsActivity] = []
+        var intervalsActivities: [Activity] = []
         do {
             intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: daysBack)
             Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) activities from Intervals.icu")
@@ -178,7 +178,7 @@ class ActivitiesViewModel: ObservableObject {
             Logger.debug("📊 [Activities] Loading extended activities: 31-90 days")
             
             // Fetch activities from Intervals.icu if authenticated
-            var intervalsActivities: [IntervalsActivity] = []
+            var intervalsActivities: [Activity] = []
             if IntervalsOAuthManager.shared.isAuthenticated {
                 intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)) ?? []
                 Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) extended Intervals activities")

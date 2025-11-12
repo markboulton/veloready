@@ -594,7 +594,7 @@ struct ElevationChartView: View {
 // MARK: - Preview
 
 #Preview {
-    let activity = IntervalsActivity(
+    let activity = Activity(
         id: "1",
         name: "2 x 10 min Threshold Intervals",
         description: "Threshold intervals with recovery",

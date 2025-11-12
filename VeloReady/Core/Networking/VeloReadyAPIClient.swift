@@ -85,7 +85,7 @@ class VeloReadyAPIClient: ObservableObject {
     ///   - daysBack: Number of days to fetch (default: 30, max: 120)
     ///   - limit: Maximum activities to return (default: 50, max: 200)
     /// - Returns: Array of Intervals activities
-    func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [IntervalsActivity] {
+    func fetchIntervalsActivities(daysBack: Int = 30, limit: Int = 50) async throws -> [Activity] {
         let endpoint = "\(baseURL)/api/intervals/activities?daysBack=\(daysBack)&limit=\(limit)"
         
         guard let url = URL(string: endpoint) else {
@@ -372,7 +372,7 @@ struct ActivitiesMetadata: Codable {
 }
 
 struct IntervalsActivitiesResponse: Codable {
-    let activities: [IntervalsActivity]
+    let activities: [Activity]
     let metadata: IntervalsMetadata
 }
 

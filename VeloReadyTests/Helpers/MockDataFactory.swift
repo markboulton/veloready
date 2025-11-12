@@ -91,17 +91,17 @@ struct MockDataFactory {
     
     // MARK: - Activity Mocks
     
-    static func createIntervalsActivity(
+    static func createActivity(
         id: String = "12345",
         name: String = "Morning Ride",
         date: Date = Date(),
         tss: Double? = 100.0,
         duration: TimeInterval = 3600.0,
         distance: Double = 50000.0
-    ) -> IntervalsActivity {
+    ) -> Activity {
         let dateString = ISO8601DateFormatter().string(from: date)
         
-        return IntervalsActivity(
+        return Activity(
             id: id,
             name: name,
             description: "Test activity",

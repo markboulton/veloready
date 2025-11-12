@@ -22,7 +22,7 @@ class TrendsViewModel: ObservableObject {
     @Published var sleepData: [TrendDataPoint] = []  // Sleep quality 0-100
     @Published var restingHRData: [TrendDataPoint] = []
     @Published var stressData: [TrendDataPoint] = []  // Inferred stress score
-    @Published var activitiesForLoad: [IntervalsActivity] = []  // For training load chart
+    @Published var activitiesForLoad: [Activity] = []  // For training load chart
     
     // Correlation data
     @Published var recoveryVsPowerData: [CorrelationDataPoint] = []
@@ -102,7 +102,7 @@ class TrendsViewModel: ObservableObject {
         // PERFORMANCE FIX: Fetch activities once, share between methods
         // Previously, loadWeeklyTSSTrend() and loadRecoveryVsPowerCorrelation() 
         // both fetched the same activities independently (duplicate work)
-        let sharedActivities: [IntervalsActivity]? = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
+        let sharedActivities: [Activity]? = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 90)
         
         // Load all trends in parallel
         await withTaskGroup(of: Void.self) { group in
@@ -221,7 +221,7 @@ class TrendsViewModel: ObservableObject {
     
     // MARK: - Weekly TSS Trend
     
-    private func loadWeeklyTSSTrend(activities: [IntervalsActivity]?) async {
+    private func loadWeeklyTSSTrend(activities: [Activity]?) async {
         // Use shared activities (already fetched in loadTrendData)
         guard let activities = activities else {
             Logger.warning("️ No activities available for weekly TSS trend")
@@ -256,7 +256,7 @@ class TrendsViewModel: ObservableObject {
     
     // MARK: - Recovery vs Power Correlation
     
-    private func loadRecoveryVsPowerCorrelation(activities: [IntervalsActivity]?) async {
+    private func loadRecoveryVsPowerCorrelation(activities: [Activity]?) async {
         // Use shared activities (already fetched in loadTrendData)
         guard let activities = activities else {
             Logger.warning("️ No activities available for correlation analysis")
@@ -379,7 +379,7 @@ class TrendsViewModel: ObservableObject {
     
     // MARK: - Daily Load Trend
     
-    private func loadDailyLoadTrend(activities: [IntervalsActivity]?) async {
+    private func loadDailyLoadTrend(activities: [Activity]?) async {
         if proConfig.showMockDataForTesting {
             dailyLoadData = generateMockDailyLoadData()
             activitiesForLoad = generateMockActivitiesForLoad()
@@ -677,10 +677,10 @@ class TrendsViewModel: ObservableObject {
         return data
     }
     
-    private func generateMockActivitiesForLoad() -> [IntervalsActivity] {
+    private func generateMockActivitiesForLoad() -> [Activity] {
         let calendar = Calendar.current
         let startDate = selectedTimeRange.startDate
-        var activities: [IntervalsActivity] = []
+        var activities: [Activity] = []
         
         var ctl = 60.0
         var atl = 65.0
@@ -701,7 +701,7 @@ class TrendsViewModel: ObservableObject {
             atl = atl + (tss - atl) / 7.0
             
             if tss > 0 {
-                let activity = IntervalsActivity(
+                let activity = Activity(
                     id: "mock-\(dayOffset)",
                     name: "Mock Ride \(dayOffset)",
                     description: nil,
