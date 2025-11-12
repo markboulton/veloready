@@ -18,11 +18,13 @@ struct TodayView: View {
     @ObservedObject private var healthKitManager = HealthKitManager.shared  // CRITICAL: Must be @ObservedObject not @StateObject!
     @ObservedObject private var wellnessService = WellnessDetectionService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var illnessService = IllnessDetectionService.shared  // CRITICAL: Observe shared instance
+    @ObservedObject private var stressService = StressAnalysisService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var liveActivityService = LiveActivityService.shared
     @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
     @State private var showingIllnessDetailSheet = false
+    @State private var showingStressDetailSheet = false
     @State private var showMissingSleepInfo = false
     @State private var wasHealthKitAuthorized = false
     @State private var scrollOffset: CGFloat = 0
@@ -99,6 +101,16 @@ struct TodayView: View {
                                 animationTrigger: viewModel.animationTrigger,
                                 hideBottomDivider: true
                             )
+                        }
+                        
+                        // Stress Alert Banner (appears under rings when elevated)
+                        if healthKitManager.isAuthorized,
+                           let alert = stressService.currentAlert,
+                           alert.isSignificant {
+                            StressBanner(alert: alert) {
+                                showingStressDetailSheet = true
+                            }
+                            .padding(.top, Spacing.md)
                         }
                         
                         // HealthKit Enablement Section (only when not authorized)
@@ -265,6 +277,13 @@ struct TodayView: View {
         .sheet(isPresented: $showingIllnessDetailSheet) {
             if let indicator = illnessService.currentIndicator {
                 IllnessDetailSheet(indicator: indicator)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
+        }
+        .sheet(isPresented: $showingStressDetailSheet) {
+            if let alert = stressService.currentAlert {
+                StressAnalysisSheet(alert: alert)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }

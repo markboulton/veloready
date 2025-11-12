@@ -123,6 +123,27 @@ struct DebugFeaturesView: View {
                 }
             }
             
+            // Stress Alert Toggle
+            Toggle("Show Stress Alert", isOn: $config.showStressAlertForTesting)
+                .onChange(of: config.showStressAlertForTesting) { _, newValue in
+                    Task { @MainActor in
+                        if newValue {
+                            StressAnalysisService.shared.enableMockAlert()
+                        } else {
+                            StressAnalysisService.shared.disableMockAlert()
+                        }
+                        Logger.debug("🔄 [DEBUG] Stress alert simulation toggled: \(newValue)")
+                    }
+                }
+            
+            if config.showStressAlertForTesting {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.warningFill)
+                        .foregroundColor(ColorScale.amberAccent)
+                    VRText("Mock stress alert enabled", style: .caption, color: ColorScale.amberAccent)
+                }
+            }
+            
             // No Network Toggle
             Toggle("Simulate No Network", isOn: $config.simulateNoNetwork)
             

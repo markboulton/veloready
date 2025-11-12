@@ -46,6 +46,11 @@ class ProFeatureConfig: ObservableObject {
         didSet { UserDefaults.standard.set(simulateNoNetwork, forKey: "simulateNoNetwork") }
     }
     
+    // For development/testing: force stress alert to show
+    @Published var showStressAlertForTesting: Bool = UserDefaults.standard.bool(forKey: "showStressAlertForTesting") {
+        didSet { UserDefaults.standard.set(showStressAlertForTesting, forKey: "showStressAlertForTesting") }
+    }
+    
     private init() {
         // Load subscription state from UserDefaults or RevenueCat
         loadSubscriptionState()

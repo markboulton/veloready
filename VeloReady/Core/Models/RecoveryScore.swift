@@ -258,7 +258,14 @@ class RecoveryScoreCalculator {
             alcoholDetected: nil,
             illnessMarker: nil,
             monthOfYear: Calendar.current.component(.month, from: Date()),
-            timestamp: Date()
+            stravaPatternCTLTrend: nil, // No pattern features in rule-based approach
+            stravaPatternATLTrend: nil,
+            stravaPatternTSBTrend: nil,
+            stravaPatternIntensityTrend: nil,
+            stravaPatternVolumeTrend: nil,
+            timestamp: Date(),
+            primaryTrainingSource: nil,
+            hasStravaAugmentation: false
         )
     }
     
