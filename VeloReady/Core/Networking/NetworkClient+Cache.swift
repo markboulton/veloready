@@ -9,16 +9,19 @@ extension NetworkClient {
     ///   - request: The URLRequest to execute
     ///   - cacheKey: Unique cache key for this request
     ///   - ttl: Time-to-live for cache (from UnifiedCacheManager.CacheTTL)
+    ///   - provider: Optional provider for rate limiting (e.g., .strava, .intervalsICU)
     /// - Returns: Decoded response (from cache or network)
     func executeWithCache<T: Decodable>(
         _ request: URLRequest,
         cacheKey: String,
-        ttl: TimeInterval
+        ttl: TimeInterval,
+        provider: DataSource? = nil
     ) async throws -> T {
         let cache = await UnifiedCacheManager.shared
         
         return try await cache.fetch(key: cacheKey, ttl: ttl) {
-            try await self.execute(request) as T
+            let data: Data = try await self.execute(request, provider: provider)
+            return try JSONDecoder().decode(T.self, from: data)
         }
     }
     
@@ -27,16 +30,18 @@ extension NetworkClient {
     ///   - request: The URLRequest to execute
     ///   - cacheKey: Unique cache key for this request
     ///   - ttl: Time-to-live for cache (from UnifiedCacheManager.CacheTTL)
+    ///   - provider: Optional provider for rate limiting (e.g., .strava, .intervalsICU)
     /// - Returns: Raw data (from cache or network)
     func executeWithCacheRaw(
         _ request: URLRequest,
         cacheKey: String,
-        ttl: TimeInterval
+        ttl: TimeInterval,
+        provider: DataSource? = nil
     ) async throws -> Data {
         let cache = await UnifiedCacheManager.shared
         
         return try await cache.fetch(key: cacheKey, ttl: ttl) {
-            try await self.execute(request)
+            try await self.execute(request, provider: provider)
         }
     }
 }

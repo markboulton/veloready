@@ -30,7 +30,8 @@ extension StravaAPIClient {
             let athlete: StravaAthlete = try await networkClient.executeWithCache(
                 request,
                 cacheKey: "strava_athlete",
-                ttl: 86400 // 24 hours
+                ttl: 86400, // 24 hours
+                provider: .strava // Provider-aware rate limiting
             )
             isLoading = false
             
@@ -90,7 +91,8 @@ extension StravaAPIClient {
             let activities: [StravaActivity] = try await networkClient.executeWithCache(
                 request,
                 cacheKey: cacheKey,
-                ttl: UnifiedCacheManager.CacheTTL.activities // 1 hour
+                ttl: UnifiedCacheManager.CacheTTL.activities, // 1 hour
+                provider: .strava // Provider-aware rate limiting
             )
             isLoading = false
             
@@ -128,7 +130,8 @@ extension StravaAPIClient {
             let detail: StravaActivityDetail = try await networkClient.executeWithCache(
                 request,
                 cacheKey: "strava_activity_\(id)",
-                ttl: 86400 // 24 hours - activity details are immutable
+                ttl: 86400, // 24 hours - activity details are immutable
+                provider: .strava // Provider-aware rate limiting
             )
             isLoading = false
             
@@ -180,7 +183,8 @@ extension StravaAPIClient {
             let data = try await networkClient.executeWithCacheRaw(
                 request,
                 cacheKey: cacheKey,
-                ttl: UnifiedCacheManager.CacheTTL.streams // 7 days
+                ttl: UnifiedCacheManager.CacheTTL.streams, // 7 days
+                provider: .strava // Provider-aware rate limiting
             )
             
             // Strava returns a dictionary when key_by_type=true
