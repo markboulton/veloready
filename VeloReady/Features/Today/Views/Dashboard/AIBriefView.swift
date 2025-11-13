@@ -67,8 +67,9 @@ struct AIBriefView: View {
                             .lineLimit(nil) // Remove any line limits to prevent truncation
                         
                         // ML Data Collection Progress
-                        // Show progress bar until we have 30+ days
-                        if mlService.trainingDataCount > 0 && mlService.trainingDataCount < 30 {
+                        // Show progress bar while collecting data (< 30 days)
+                        // Show full-width analysis indicator when threshold met (>= 30 days)
+                        if mlService.trainingDataCount > 0 {
                             MLDataCollectionView(
                                 currentDays: mlService.trainingDataCount,
                                 totalDays: 30,
@@ -265,16 +266,54 @@ private struct MLDataCollectionView: View {
     }
     
     private var progress: Double {
-        Double(currentDays) / Double(totalDays)
+        min(1.0, Double(currentDays) / Double(totalDays))
+    }
+    
+    // Calculate confidence percentage based on data quality
+    // As we collect more days, confidence increases
+    private var confidencePercentage: Int {
+        // Start at 60% when we hit 30 days
+        // Increase by ~0.5% per additional day
+        // Cap at 95% (ML predictions always have some uncertainty)
+        let baseConfidence = 60
+        let additionalDays = currentDays - totalDays
+        let bonusConfidence = additionalDays / 2
+        return min(95, baseConfidence + bonusConfidence)
+    }
+    
+    private var isAnalyzing: Bool {
+        currentDays >= totalDays
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Text with info button on the right
             HStack {
-                Text(TodayContent.AIBrief.mlCollecting)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if isAnalyzing {
+                    // Analysis mode: Show gradient text with confidence
+                    HStack(spacing: Spacing.xs) {
+                        Text(TodayContent.AIBrief.mlAnalyzing)
+                            .font(.caption)
+                            .rainbowGradient()
+                        
+                        Text("·")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("\(confidencePercentage)% \(TodayContent.AIBrief.confidenceLabel)")
+                            .font(.caption)
+                            .rainbowGradient()
+                        
+                        Image(systemName: Icons.Arrow.upRight)
+                            .font(.caption2)
+                            .rainbowGradient()
+                    }
+                } else {
+                    // Collection mode: Show standard text
+                    Text(TodayContent.AIBrief.mlCollecting)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 Spacer()
                 
@@ -292,12 +331,15 @@ private struct MLDataCollectionView: View {
             // Progress bar (similar to chart progress bars)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background (grey)
-                    Rectangle()
-                        .fill(ColorPalette.neutral200)
-                        .frame(height: 2)
+                    // Background (grey) - only show in collection mode
+                    if !isAnalyzing {
+                        Rectangle()
+                            .fill(ColorPalette.neutral200)
+                            .frame(height: 2)
+                    }
                     
-                    // Progress - full-width gradient revealed by mask
+                    // Progress - full-width gradient revealed by mask (collection mode)
+                    // Or full-width gradient (analysis mode)
                     LinearGradient(
                         gradient: Gradient(colors: ColorPalette.aiGradientColors),
                         startPoint: .leading,
@@ -306,27 +348,35 @@ private struct MLDataCollectionView: View {
                     .frame(height: 2)
                     .mask(
                         HStack(spacing: 0) {
-                            // Revealed portion (progress)
-                            Rectangle()
-                                .frame(width: geometry.size.width * progress)
-                            
-                            Spacer()
+                            if isAnalyzing {
+                                // Full width in analysis mode
+                                Rectangle()
+                            } else {
+                                // Revealed portion (progress) in collection mode
+                                Rectangle()
+                                    .frame(width: geometry.size.width * progress)
+                                
+                                Spacer()
+                            }
                         }
                     )
                 }
             }
             .frame(height: 2)
             
-            HStack {
-                Text("\(currentDays) days")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text("\(daysRemaining) \(TodayContent.AIBrief.mlDaysRemaining)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+            // Only show day counts in collection mode
+            if !isAnalyzing {
+                HStack {
+                    Text("\(currentDays) days")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(daysRemaining) \(TodayContent.AIBrief.mlDaysRemaining)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }

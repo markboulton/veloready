@@ -107,8 +107,10 @@ enum TodayContent {
         static let targetTSS = "Target TSS Today:"  /// Target TSS label
         static let tssDescription = "Training Stress Score - aim for this range based on your fitness"  /// TSS description
         static let mlCollecting = "Learning your patterns to personalize insights"  /// ML data collection message
+        static let mlAnalyzing = "Analyzing your data for personalized insights"  /// ML analysis in progress message
         static let mlDaysRemaining = "more days needed"  /// ML days remaining label
         static let daysLabel = "days"  /// Days label
+        static let confidenceLabel = "confidence"  /// Confidence label
         static let hideDebugInfo = "Hide Debug Info"  /// Hide debug info button
         static let showDebugInfo = "Show Debug Info"  /// Show debug info button
     }
