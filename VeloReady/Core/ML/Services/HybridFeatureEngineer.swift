@@ -55,14 +55,17 @@ class HybridFeatureEngineer {
             let targetRecovery = calculateRecoveryScore(from: tomorrowWellness) ?? 0
             let targetReadiness = calculateReadinessScore(from: tomorrowWellness) ?? 0
             
-            // Debug logging for date matching
+            // Debug logging for date matching AND features
             if index < 3 || targetRecovery > 0 {
                 Logger.debug("📅 [ML] Date: \(date), Tomorrow: \(tomorrow)")
+                Logger.debug("   Today features: HRV=\(augmentedFeatures.hrv?.description ?? "nil") RHR=\(augmentedFeatures.rhr?.description ?? "nil")")
                 Logger.debug("   Found tomorrow wellness: \(tomorrowWellness != nil)")
                 if let tw = tomorrowWellness {
                     Logger.debug("   Tomorrow recovery score: \(tw.recoveryScore ?? -1)")
                 }
                 Logger.debug("   Target recovery: \(targetRecovery)")
+                Logger.debug("   Features completeness: \(augmentedFeatures.completeness)")
+                Logger.debug("   isValid: dq=\(augmentedFeatures.completeness >= 0.7) hrv=\(augmentedFeatures.hrv != nil) rhr=\(augmentedFeatures.rhr != nil) target=\(targetRecovery > 0)")
             }
             
             if targetRecovery > 0 {
