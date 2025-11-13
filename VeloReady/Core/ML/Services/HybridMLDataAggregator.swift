@@ -235,7 +235,8 @@ class HybridMLDataAggregator {
         for (index, wellness) in daysWithRecovery.enumerated() {
             let hrvStr = wellness.hrv != nil ? String(format: "%.1f", wellness.hrv!) : "nil"
             let rhrStr = wellness.rhr != nil ? String(format: "%.1f", wellness.rhr!) : "nil"
-            let sleepStr = wellness.sleepDuration != nil ? String(format: "%.1fh", wellness.sleepDuration! / 3600) : "nil"
+            // sleepDuration is already in hours, don't divide by 3600 again
+            let sleepStr = wellness.sleepDuration != nil ? String(format: "%.1fh", wellness.sleepDuration!) : "nil"
             Logger.debug("      [\(index)]: \(formatter.string(from: wellness.date)) recovery=\(wellness.recoveryScore!) hrv=\(hrvStr) rhr=\(rhrStr) sleep=\(sleepStr)")
         }
         

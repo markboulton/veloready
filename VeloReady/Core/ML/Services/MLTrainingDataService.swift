@@ -257,7 +257,8 @@ class MLTrainingDataService: ObservableObject {
         // Log why records are invalid if we have a significant mismatch
         if totalRecords.count > count + 2 {
             Logger.debug("⚠️ [ML] \(totalRecords.count - count) records are invalid")
-            Logger.debug("   Valid records need: dataQuality ≥ 0.7, HRV, RHR, sleep duration, AND targetRecovery > 0")
+            Logger.debug("   Valid records need: dataQuality ≥ 0.7, HRV, RHR, AND targetRecovery > 0")
+            Logger.debug("   (Sleep data is optional - not all users wear watches to bed)")
             Logger.debug("   Tip: Training data requires consecutive days with recovery scores to predict tomorrow's score")
         }
         

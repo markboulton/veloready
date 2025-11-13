@@ -329,10 +329,10 @@ struct MLTrainingDataPoint {
     /// Whether this is valid for training (no missing critical features)
     var isValidForTraining: Bool {
         // Require minimum completeness and critical features
+        // Sleep is optional - not all users wear watches to bed
         return dataQuality >= 0.7 &&
                features.hrv != nil &&
                features.rhr != nil &&
-               features.sleepDuration != nil &&
                targetRecovery > 0
     }
 }
