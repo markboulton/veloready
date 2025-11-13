@@ -181,11 +181,118 @@ actor StrainDataCalculator {
         do {
             let activities = try await UnifiedActivityService.shared.fetchTodaysActivities()
             Logger.debug("🔍 Found \(activities.count) unified activities for today (Intervals.icu or Strava)")
-            return activities
+            
+            // Enrich activities with HR from streams if needed (30-day window only)
+            let enriched = await enrichActivitiesWithHeartRate(activities)
+            return enriched
         } catch {
             Logger.warning("⚠️ Failed to fetch unified activities: \(error)")
             return []
         }
+    }
+    
+    /// Enrich activities with HR from streams when summary data is missing
+    /// Only enriches activities from the last 30 days to limit API calls
+    private func enrichActivitiesWithHeartRate(_ activities: [Activity]) async -> [Activity] {
+        var enrichedActivities = activities
+        let thirtyDaysAgo = Date().addingTimeInterval(-30 * 24 * 3600)
+        
+        for (index, activity) in activities.enumerated() {
+            // Skip if activity already has HR data (from summary or previous enrichment)
+            if activity.averageHeartRate != nil || activity.enrichedAverageHeartRate != nil {
+                continue
+            }
+            
+            // Skip if activity has TSS or power (don't need HR)
+            if activity.tss != nil || activity.normalizedPower != nil {
+                continue
+            }
+            
+            // Skip if activity doesn't have duration
+            guard let duration = activity.duration, duration > 0 else {
+                continue
+            }
+            
+            // Only enrich recent activities (30-day window)
+            guard let activityDate = parseActivityDate(activity.startDateLocal),
+                  activityDate >= thirtyDaysAgo else {
+                Logger.debug("   ⏭️ Skipping enrichment for '\(activity.name ?? "Unknown")' - older than 30 days")
+                continue
+            }
+            
+            // Fetch HR from streams
+            if let avgHR = await fetchHeartRateFromStreams(activityId: activity.id, source: activity.source) {
+                Logger.info("💓 Enriched '\(activity.name ?? "Unknown")' with HR from streams: \(Int(avgHR)) bpm")
+                enrichedActivities[index].enrichedAverageHeartRate = avgHR
+            } else {
+                Logger.debug("   ⚠️ Could not enrich '\(activity.name ?? "Unknown")' - no HR data in streams")
+            }
+        }
+        
+        return enrichedActivities
+    }
+    
+    /// Fetch heart rate data from activity streams and calculate average
+    /// Returns nil if streams are unavailable or contain no HR data
+    private func fetchHeartRateFromStreams(activityId: String, source: String?) async -> Double? {
+        // Determine data source (default to Strava)
+        let dataSource: APIDataSource = (source?.lowercased() == "intervals.icu") ? .intervals : .strava
+        
+        do {
+            // Fetch streams from backend (cached for 7 days in Netlify Blobs)
+            let streams = try await VeloReadyAPIClient.shared.fetchActivityStreams(
+                activityId: activityId,
+                source: dataSource
+            )
+            
+            // Extract heartrate stream
+            guard let hrStream = streams["heartrate"] else {
+                Logger.debug("   ⚠️ No heartrate stream found for activity \(activityId)")
+                return nil
+            }
+            
+            // Extract HR values from StreamDataRaw enum
+            let hrValues: [Double]
+            switch hrStream.data {
+            case .simple(let values):
+                hrValues = values
+            case .latlng:
+                Logger.debug("   ⚠️ Unexpected latlng format for heartrate stream")
+                return nil
+            }
+            
+            guard !hrValues.isEmpty else {
+                Logger.debug("   ⚠️ Heartrate stream is empty for activity \(activityId)")
+                return nil
+            }
+            
+            // Filter out invalid values (0 or negative)
+            let validHRValues = hrValues.filter { $0 > 0 }
+            
+            guard !validHRValues.isEmpty else {
+                Logger.debug("   ⚠️ No valid HR data in stream for activity \(activityId)")
+                return nil
+            }
+            
+            let averageHR = validHRValues.reduce(0, +) / Double(validHRValues.count)
+            Logger.debug("   ✅ Calculated average HR from stream: \(Int(averageHR)) bpm (from \(validHRValues.count) samples)")
+            
+            return averageHR
+        } catch {
+            Logger.warning("⚠️ Failed to fetch streams for activity \(activityId): \(error)")
+            return nil
+        }
+    }
+    
+    /// Parse activity date from ISO8601 string
+    private func parseActivityDate(_ dateString: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.date(from: dateString) ?? {
+            // Fallback without fractional seconds
+            formatter.formatOptions = [.withInternetDateTime]
+            return formatter.date(from: dateString)
+        }()
     }
     
     private func calculateTRIMPFromStravaActivities(activities: [Activity], ftp: Double?, maxHR: Double?, restingHR: Double?) -> Double {
@@ -211,7 +318,7 @@ actor StrainDataCalculator {
                 continue
             }
             
-            // Priority 3: Estimate from HR
+            // Priority 3: Estimate from HR (summary data)
             if let avgHR = activity.averageHeartRate,
                let duration = activity.duration,
                let maxHRValue = maxHR,
@@ -221,10 +328,21 @@ actor StrainDataCalculator {
                 let percentHRR = workingHR / hrReserve
                 let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
                 totalTRIMP += trimp
-                Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP (summary): \(String(format: "%.1f", trimp))")
+            } else if let enrichedHR = activity.enrichedAverageHeartRate,
+                      let duration = activity.duration,
+                      let maxHRValue = maxHR,
+                      let restingHRValue = restingHR {
+                // Priority 3.5: Estimate from enriched HR (calculated from streams)
+                let hrReserve = maxHRValue - restingHRValue
+                let workingHR = enrichedHR - restingHRValue
+                let percentHRR = workingHR / hrReserve
+                let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
+                totalTRIMP += trimp
+                Logger.info("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP (enriched from streams): \(String(format: "%.1f", trimp))")
             } else if let duration = activity.duration, duration > 0 {
                 // Priority 4: FALLBACK - Estimate from duration alone (for activities without HR/power data)
-                // This handles cases where Strava doesn't include HR in summary even though streams have it
+                // This handles cases where stream enrichment failed or activity is older than 30 days
                 // Use moderate intensity assumption (HR reserve ~0.6)
                 let durationMinutes = duration / 60
                 let estimatedHRReserve = 0.6  // Moderate intensity

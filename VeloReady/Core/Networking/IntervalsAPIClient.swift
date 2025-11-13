@@ -547,6 +547,9 @@ struct Activity: Codable, Identifiable {
     let normalizedPower: Double?
     var averageHeartRate: Double?
     var maxHeartRate: Double?
+    
+    // Stream-enriched data (calculated from streams when summary data is missing)
+    var enrichedAverageHeartRate: Double? // Calculated from HR streams, cached locally
     var averageCadence: Double?
     var averageSpeed: Double?
     var maxSpeed: Double?
@@ -601,6 +604,7 @@ struct Activity: Codable, Identifiable {
     init(id: String, name: String?, description: String?, startDateLocal: String, type: String?, 
          source: String? = nil, duration: TimeInterval?, distance: Double?, elevationGain: Double?, averagePower: Double?, 
          normalizedPower: Double?, averageHeartRate: Double?, maxHeartRate: Double?, 
+         enrichedAverageHeartRate: Double? = nil,
          averageCadence: Double?, averageSpeed: Double?, maxSpeed: Double?, calories: Int?, 
          fileType: String?, tss: Double?, intensityFactor: Double?, atl: Double?, ctl: Double?,
          icuZoneTimes: [Double]?, icuHrZoneTimes: [Double]?,
@@ -619,6 +623,7 @@ struct Activity: Codable, Identifiable {
         self.normalizedPower = normalizedPower
         self.averageHeartRate = averageHeartRate
         self.maxHeartRate = maxHeartRate
+        self.enrichedAverageHeartRate = enrichedAverageHeartRate
         self.averageCadence = averageCadence
         self.averageSpeed = averageSpeed
         self.maxSpeed = maxSpeed
@@ -658,6 +663,7 @@ struct Activity: Codable, Identifiable {
         normalizedPower = try container.decodeIfPresent(Double.self, forKey: .normalizedPower)
         averageHeartRate = try container.decodeIfPresent(Double.self, forKey: .averageHeartRate)
         maxHeartRate = try container.decodeIfPresent(Double.self, forKey: .maxHeartRate)
+        enrichedAverageHeartRate = nil // Not from JSON, computed locally
         averageCadence = try container.decodeIfPresent(Double.self, forKey: .averageCadence)
         averageSpeed = try container.decodeIfPresent(Double.self, forKey: .averageSpeed)
         maxSpeed = try container.decodeIfPresent(Double.self, forKey: .maxSpeed)
