@@ -196,6 +196,26 @@ class LiveActivityService: ObservableObject {
         // Fetch HealthKit data
         let healthData = await healthKitManager.fetchTodayActivity()
         
+        // Check if HealthKit data is valid (device might be locked)
+        // If steps and activeCalories are both 0, and we have cached values > 0, device is likely locked
+        let deviceLikelyLocked = (healthData.steps == 0 && healthData.activeCalories == 0) && 
+                                 (dailySteps > 0 || activeCalories > 0)
+        
+        if deviceLikelyLocked {
+            Logger.warning("⚠️ HealthKit returned 0 steps/calories - device may be locked - keeping cached values")
+            // Keep existing values, don't overwrite with zeros
+            // But still update BMR and Intervals data
+            let intervalsCaloriesValue = await fetchTodayIntervalsCalories()
+            let bmrCaloriesValue = calculateTodayBMR()
+            
+            bmrCalories = bmrCaloriesValue
+            intervalsCalories = intervalsCaloriesValue
+            dailyCalories = activeCalories + intervalsCaloriesValue + bmrCaloriesValue
+            
+            Logger.debug("📱 Preserved cached values - Steps: \(dailySteps), Active: \(activeCalories)")
+            return
+        }
+        
         // Fetch Intervals.icu calories for today's rides
         let intervalsCaloriesValue = await fetchTodayIntervalsCalories()
         

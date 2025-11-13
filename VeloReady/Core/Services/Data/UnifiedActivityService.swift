@@ -91,10 +91,27 @@ class UnifiedActivityService: ObservableObject {
         let activities = try await fetchRecentActivitiesWithCustomTTL(limit: 50, daysBack: 7, ttl: 300)
         
         // Filter to today only
-        return activities.filter { activity in
-            guard let date = parseDate(from: activity.startDateLocal) else { return false }
-            return calendar.isDate(date, inSameDayAs: today)
+        let todaysActivities = activities.filter { activity in
+            guard let date = parseDate(from: activity.startDateLocal) else { 
+                Logger.warning("⚠️ [TodaysActivities] Failed to parse date: \(activity.startDateLocal)")
+                return false 
+            }
+            let isToday = calendar.isDate(date, inSameDayAs: today)
+            if !isToday {
+                Logger.debug("🗓️ [TodaysActivities] Activity '\(activity.name ?? "Unnamed")' is not today: \(date) vs \(today)")
+            }
+            return isToday
         }
+        
+        Logger.debug("📊 [TodaysActivities] Found \(todaysActivities.count) activities for today out of \(activities.count) total")
+        if !todaysActivities.isEmpty {
+            Logger.debug("📊 [TodaysActivities] Today's activities:")
+            for activity in todaysActivities {
+                Logger.debug("   - '\(activity.name ?? "Unnamed")' at \(activity.startDateLocal)")
+            }
+        }
+        
+        return todaysActivities
     }
     
     /// Fetch activities for adaptive FTP calculation
@@ -142,20 +159,40 @@ class UnifiedActivityService: ObservableObject {
     // MARK: - Helper Methods
     
     private func parseDate(from dateString: String) -> Date? {
-        // Try ISO8601 first (handles 'Z' suffix)
+        // Strava's start_date_local should be in local time, but sometimes includes 'Z' suffix
+        // which can cause confusion. We need to handle both cases:
+        // 1. "2025-11-13T06:24:24Z" - UTC time with Z (convert to local)
+        // 2. "2025-11-13T06:24:24" - Local time without Z
+        
         let iso8601Formatter = ISO8601DateFormatter()
         iso8601Formatter.formatOptions = [.withInternetDateTime]
-        iso8601Formatter.timeZone = TimeZone.current
         
+        // If the string has 'Z', it's UTC - parse as UTC
+        if dateString.hasSuffix("Z") {
+            iso8601Formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            if let date = iso8601Formatter.date(from: dateString) {
+                return date
+            }
+        } else {
+            // No 'Z' suffix means it's already in local time
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone.current
+            if let date = formatter.date(from: dateString) {
+                return date
+            }
+        }
+        
+        // Fallback: try both formatters without timezone assumptions
+        iso8601Formatter.timeZone = nil
         if let date = iso8601Formatter.date(from: dateString) {
             return date
         }
         
-        // Fallback to manual parsing without 'Z'
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
         return formatter.date(from: dateString)
     }
 }

@@ -62,7 +62,9 @@ class MLTrainingDataService: ObservableObject {
                 Logger.info("🔄 [ML] New day detected - updating training data...")
                 shouldProcess = true
             } else {
-                Logger.debug("📊 [ML] Training data already processed today (\(trainingDataCount) days)")
+                // Even if processed today, refresh the count from Core Data to ensure accuracy
+                Logger.debug("📊 [ML] Training data already processed today - refreshing count from Core Data...")
+                await refreshTrainingDataCount()
                 shouldProcess = false
             }
         } else {

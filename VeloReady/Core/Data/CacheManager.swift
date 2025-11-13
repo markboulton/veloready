@@ -391,25 +391,31 @@ final class CacheManager: ObservableObject {
             scores.physio = physio
             scores.load = load
             
-            // Only update scores for today - don't overwrite historical scores
+            // Always update scores for today (may change throughout the day)
+            // For historical dates, only set if no data exists
             if isToday {
                 let recoveryScoreValue = Double(recoveryScore?.score ?? 50)
                 let sleepScoreValue = Double(sleepScore?.score ?? 50)
                 let strainScoreValue = Double(strainScore?.score ?? 0)
                 let effortTarget = self.calculateEffortTarget(recovery: recoveryScoreValue, ctl: intervals.ctl)
                 
+                // Always update today's scores (even if previously saved)
                 scores.recoveryScore = recoveryScoreValue
                 scores.recoveryBand = recoveryScore?.band.rawValue ?? self.recoveryBand(for: recoveryScoreValue)
                 scores.sleepScore = sleepScoreValue
                 scores.strainScore = strainScoreValue
                 scores.effortTarget = effortTarget
+                
+                Logger.debug("💾 [DailyScores] Updated today's scores: R=\(recoveryScoreValue), S=\(sleepScoreValue), St=\(strainScoreValue)")
             } else if scores.recoveryScore == 0 {
-                // Only set defaults if no data exists
+                // Only set defaults for historical dates if no data exists
                 scores.recoveryScore = 50
                 scores.recoveryBand = "amber"
                 scores.sleepScore = 50
                 scores.strainScore = 0
                 scores.effortTarget = self.calculateEffortTarget(recovery: 50, ctl: intervals.ctl)
+                
+                Logger.debug("💾 [DailyScores] Set default scores for historical date: \(startOfDay)")
             }
             // Always set lastUpdated, even for historical dates
             scores.lastUpdated = Date()
