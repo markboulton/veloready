@@ -229,13 +229,14 @@ class HybridMLDataAggregator {
         let daysWithRecovery = wellnessDataPoints.filter { $0.recoveryScore != nil && $0.recoveryScore! > 0 }
         Logger.debug("   - \(daysWithRecovery.count) wellness days have recovery scores populated")
         
-        // Debug: Show dates with recovery scores
+        // Debug: Show ALL dates with recovery scores AND their other metrics
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
         for (index, wellness) in daysWithRecovery.enumerated() {
-            if index < 5 {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                Logger.debug("      [\(index)]: \(formatter.string(from: wellness.date)) recovery=\(wellness.recoveryScore!)")
-            }
+            let hrvStr = wellness.hrv != nil ? String(format: "%.1f", wellness.hrv!) : "nil"
+            let rhrStr = wellness.rhr != nil ? String(format: "%.1f", wellness.rhr!) : "nil"
+            let sleepStr = wellness.sleepDuration != nil ? String(format: "%.1fh", wellness.sleepDuration! / 3600) : "nil"
+            Logger.debug("      [\(index)]: \(formatter.string(from: wellness.date)) recovery=\(wellness.recoveryScore!) hrv=\(hrvStr) rhr=\(rhrStr) sleep=\(sleepStr)")
         }
         
         return wellnessDataPoints
