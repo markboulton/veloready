@@ -109,6 +109,12 @@ class ScoresCoordinator: ObservableObject {
             do {
                 try await CacheManager.shared.refreshToday()
                 Logger.info("✅ [ScoresCoordinator] Scores saved to Core Data")
+                
+                // Trigger ML training data refresh now that we have new recovery scores
+                // This ensures the ML progress bar updates properly
+                Task.detached(priority: .background) {
+                    await MLTrainingDataService.shared.refreshTrainingDataCount()
+                }
             } catch {
                 Logger.error("❌ [ScoresCoordinator] Failed to save scores: \(error)")
             }

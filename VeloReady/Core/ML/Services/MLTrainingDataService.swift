@@ -65,7 +65,16 @@ class MLTrainingDataService: ObservableObject {
                 // Even if processed today, refresh the count from Core Data to ensure accuracy
                 Logger.debug("📊 [ML] Training data already processed today - refreshing count from Core Data...")
                 await refreshTrainingDataCount()
-                shouldProcess = false
+                
+                // Check if we have new DailyScores in Core Data that might create more valid training data
+                // This handles the case where scores were calculated after ML processing ran
+                let hasNewScores = await checkForNewDailyScores(since: lastDate)
+                if hasNewScores {
+                    Logger.info("🔄 [ML] New recovery scores detected since last processing - reprocessing...")
+                    shouldProcess = true
+                } else {
+                    shouldProcess = false
+                }
             }
         } else {
             shouldProcess = false
@@ -74,6 +83,23 @@ class MLTrainingDataService: ObservableObject {
         if shouldProcess {
             await processHistoricalData(days: 90)
         }
+    }
+    
+    /// Check if new DailyScores have been created since the last processing date
+    /// This helps detect when recovery scores are calculated after ML processing has already run
+    private func checkForNewDailyScores(since date: Date) async -> Bool {
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "lastUpdated > %@ AND recoveryScore > 0",
+            date as NSDate
+        )
+        
+        let newScores = persistence.fetch(request)
+        if !newScores.isEmpty {
+            Logger.debug("📊 [ML] Found \(newScores.count) DailyScores updated since last ML processing")
+            return true
+        }
+        return false
     }
     
     // MARK: - Public API
@@ -205,6 +231,13 @@ class MLTrainingDataService: ObservableObject {
         return validDays >= minimumDays
     }
     
+    /// Force reprocess of training data (useful after new scores are calculated)
+    /// This will update the ML dataset with the latest recovery scores
+    func reprocessTrainingData() async {
+        Logger.info("🔄 [ML] Manual reprocess requested - updating training data...")
+        await processHistoricalData(days: 90)
+    }
+    
     /// Refresh training data count from Core Data
     /// Useful for updating UI when data is processed in background
     func refreshTrainingDataCount() async {
@@ -215,6 +248,18 @@ class MLTrainingDataService: ObservableObject {
         let records = persistence.fetch(request)
         let count = records.count
         Logger.debug("📊 [ML] Refreshed training data count from Core Data: \(count) valid days")
+        
+        // Also log how many TOTAL days we have (including invalid ones) for debugging
+        let totalRequest = MLTrainingData.fetchRequest()
+        let totalRecords = persistence.fetch(totalRequest)
+        Logger.debug("📊 [ML] Total training records in Core Data: \(totalRecords.count) (valid: \(count))")
+        
+        // Log why records are invalid if we have a significant mismatch
+        if totalRecords.count > count + 2 {
+            Logger.debug("⚠️ [ML] \(totalRecords.count - count) records are invalid")
+            Logger.debug("   Valid records need: dataQuality ≥ 0.7, HRV, RHR, sleep duration, AND targetRecovery > 0")
+            Logger.debug("   Tip: Training data requires consecutive days with recovery scores to predict tomorrow's score")
+        }
         
         trainingDataCount = count
         saveState()
