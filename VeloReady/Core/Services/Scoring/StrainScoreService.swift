@@ -303,8 +303,19 @@ class StrainScoreService: ObservableObject {
                 
                 Logger.debug("   ✅ Using HR-based TRIMP: \(trimpForActivity) (duration: \(durationMinutes)m, avgHR: \(avgHR))")
                 totalTRIMP += trimpForActivity
+            } else if let duration = activity.duration, duration > 0 {
+                // FALLBACK: Estimate TRIMP from duration alone for cycling activities
+                // This handles the case where Strava doesn't include HR in summary but streams have it
+                // Use a conservative estimate: assume moderate intensity (HR reserve ~0.6)
+                let durationMinutes = duration / 60
+                let estimatedHRReserve = 0.6  // Moderate intensity assumption
+                let estimatedTRIMP = durationMinutes * estimatedHRReserve
+                
+                Logger.debug("   ⚠️ No HR data in summary - using duration-based estimate")
+                Logger.debug("   ✅ Estimated TRIMP: \(estimatedTRIMP) (duration: \(durationMinutes)m, assumed moderate intensity)")
+                totalTRIMP += estimatedTRIMP
             } else {
-                Logger.debug("   ⚠️ No TSS or HR data available, skipping activity")
+                Logger.debug("   ⚠️ No TSS, HR, or duration data available, skipping activity")
                 Logger.debug("   🔍 Missing: duration=\(activity.duration == nil ? "YES" : "NO"), avgHR=\(activity.averageHeartRate == nil ? "YES" : "NO")")
             }
         }
