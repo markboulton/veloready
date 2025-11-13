@@ -407,8 +407,13 @@ class HybridFeatureEngineer {
     private func calculateRecoveryScore(from wellness: WellnessData?) -> Double? {
         guard let wellness = wellness else { return nil }
         
-        // Simplified recovery score calculation
-        // In production, use the full recovery score algorithm
+        // Use actual recovery score from DailyScores if available
+        if let recoveryScore = wellness.recoveryScore, recoveryScore > 0 {
+            return recoveryScore
+        }
+        
+        // Fallback: Simplified recovery score calculation if no actual score
+        // This should rarely be used now that we fetch from DailyScores
         var score: Double = 50 // Base score
         
         if let hrv = wellness.hrv {

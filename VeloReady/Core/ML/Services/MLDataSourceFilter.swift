@@ -260,5 +260,6 @@ struct WellnessData {
     let rhr: Double?
     let sleepDuration: Double?
     let respiratoryRate: Double?
+    let recoveryScore: Double?  // Added for ML target prediction
 }
 

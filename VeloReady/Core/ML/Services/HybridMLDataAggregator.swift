@@ -116,7 +116,8 @@ class HybridMLDataAggregator {
                 hrv: nil,
                 rhr: nil,
                 sleepDuration: nil,
-                respiratoryRate: nil
+                respiratoryRate: nil,
+                recoveryScore: nil
             )
             data = WellnessData(
                 source: data.source,
@@ -124,7 +125,8 @@ class HybridMLDataAggregator {
                 hrv: sample.quantity.doubleValue(for: .secondUnit(with: .milli)),
                 rhr: data.rhr,
                 sleepDuration: data.sleepDuration,
-                respiratoryRate: data.respiratoryRate
+                respiratoryRate: data.respiratoryRate,
+                recoveryScore: data.recoveryScore
             )
             dataByDate[date] = data
         }
@@ -138,7 +140,8 @@ class HybridMLDataAggregator {
                 hrv: nil,
                 rhr: nil,
                 sleepDuration: nil,
-                respiratoryRate: nil
+                respiratoryRate: nil,
+                recoveryScore: nil
             )
             data = WellnessData(
                 source: data.source,
@@ -146,7 +149,8 @@ class HybridMLDataAggregator {
                 hrv: data.hrv,
                 rhr: sample.quantity.doubleValue(for: .hertz()) * 60, // Convert to BPM
                 sleepDuration: data.sleepDuration,
-                respiratoryRate: data.respiratoryRate
+                respiratoryRate: data.respiratoryRate,
+                recoveryScore: data.recoveryScore
             )
             dataByDate[date] = data
         }
@@ -160,7 +164,8 @@ class HybridMLDataAggregator {
                 hrv: nil,
                 rhr: nil,
                 sleepDuration: nil,
-                respiratoryRate: nil
+                respiratoryRate: nil,
+                recoveryScore: nil
             )
             let duration = session.wakeTime.timeIntervalSince(session.bedtime) / 3600 // Hours
             data = WellnessData(
@@ -169,14 +174,57 @@ class HybridMLDataAggregator {
                 hrv: data.hrv,
                 rhr: data.rhr,
                 sleepDuration: duration,
-                respiratoryRate: data.respiratoryRate
+                respiratoryRate: data.respiratoryRate,
+                recoveryScore: data.recoveryScore
             )
             dataByDate[date] = data
+        }
+        
+        // Add recovery scores from DailyScores Core Data
+        let persistence = PersistenceController.shared
+        let dailyScoresRequest = DailyScores.fetchRequest()
+        dailyScoresRequest.predicate = NSPredicate(
+            format: "date >= %@ AND date <= %@ AND recoveryScore > 0",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        
+        let dailyScores = persistence.fetch(dailyScoresRequest)
+        for score in dailyScores {
+            guard let scoreDate = score.date else { continue }
+            let date = Calendar.current.startOfDay(for: scoreDate)
+            
+            if var existingData = dataByDate[date] {
+                // Update existing wellness data with recovery score
+                existingData = WellnessData(
+                    source: existingData.source,
+                    date: existingData.date,
+                    hrv: existingData.hrv,
+                    rhr: existingData.rhr,
+                    sleepDuration: existingData.sleepDuration,
+                    respiratoryRate: existingData.respiratoryRate,
+                    recoveryScore: score.recoveryScore
+                )
+                dataByDate[date] = existingData
+            } else {
+                // Create new wellness data with just recovery score
+                let newData = WellnessData(
+                    source: .appleHealth,
+                    date: date,
+                    hrv: nil,
+                    rhr: nil,
+                    sleepDuration: nil,
+                    respiratoryRate: nil,
+                    recoveryScore: score.recoveryScore
+                )
+                dataByDate[date] = newData
+            }
         }
         
         wellnessDataPoints = Array(dataByDate.values).sorted { $0.date < $1.date }
         
         Logger.debug("💤 [HybridML] Aggregated wellness data for \(wellnessDataPoints.count) days")
+        Logger.debug("   - \(dailyScores.count) days have recovery scores")
         
         return wellnessDataPoints
     }
