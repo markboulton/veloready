@@ -57,8 +57,22 @@ class HybridFeatureEngineer {
             
             // Debug logging for date matching AND features
             if index < 3 || targetRecovery > 0 {
+                let todayWellness = dataset.wellnessData.first { $0.date == date }
+                
+                // Determine RHR source for logging (3-level fallback)
+                let rhrSource: String
+                if let tw = todayWellness, tw.rhr != nil {
+                    rhrSource = "day"
+                } else if augmentedFeatures.rhrBaseline != nil {
+                    rhrSource = "baseline"
+                } else if augmentedFeatures.rhr != nil {
+                    rhrSource = "profile"
+                } else {
+                    rhrSource = "missing"
+                }
+                
                 Logger.debug("📅 [ML] Date: \(date), Tomorrow: \(tomorrow)")
-                Logger.debug("   Today features: HRV=\(augmentedFeatures.hrv?.description ?? "nil") RHR=\(augmentedFeatures.rhr?.description ?? "nil")")
+                Logger.debug("   Today features: HRV=\(augmentedFeatures.hrv?.description ?? "nil") RHR=\(augmentedFeatures.rhr?.description ?? "nil") (from: \(rhrSource))")
                 Logger.debug("   Found tomorrow wellness: \(tomorrowWellness != nil)")
                 if let tw = tomorrowWellness {
                     Logger.debug("   Tomorrow recovery score: \(tw.recoveryScore ?? -1)")
@@ -128,6 +142,15 @@ class HybridFeatureEngineer {
         let rhrBaseline = calculateRHRBaseline(wellness: wellness, upToDate: date)
         let sleepBaseline = calculateSleepBaseline(wellness: wellness, upToDate: date)
         
+        // RHR fallback strategy (3 levels):
+        // 1. Use today's specific RHR if available
+        // 2. Use 30-day baseline RHR if available
+        // 3. Use athlete's current known RHR as last resort (from AthleteProfile)
+        // This is critical for ML training as RHR is a key predictor of recovery
+        let effectiveRHR: Double? = todayWellness?.rhr 
+            ?? rhrBaseline 
+            ?? AthleteProfileManager.shared.profile.restingHR
+        
         // Create feature vector
         return MLFeatureVector(
             // Physiological
@@ -135,9 +158,9 @@ class HybridFeatureEngineer {
             hrvBaseline: hrvBaseline,
             hrvDelta: todayWellness?.hrv.map { ($0 - (hrvBaseline ?? $0)) / (hrvBaseline ?? $0) },
             hrvCoefficientOfVariation: calculateHRVCV(wellness: wellness, upToDate: date),
-            rhr: todayWellness?.rhr,
+            rhr: effectiveRHR,
             rhrBaseline: rhrBaseline,
-            rhrDelta: todayWellness?.rhr.map { ($0 - (rhrBaseline ?? $0)) / (rhrBaseline ?? $0) },
+            rhrDelta: effectiveRHR.map { ($0 - (rhrBaseline ?? $0)) / (rhrBaseline ?? $0) },
             sleepDuration: todayWellness?.sleepDuration,
             sleepBaseline: sleepBaseline,
             sleepDelta: todayWellness?.sleepDuration.map { $0 - (sleepBaseline ?? $0) },
