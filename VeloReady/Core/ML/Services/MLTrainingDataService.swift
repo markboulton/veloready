@@ -231,10 +231,26 @@ class MLTrainingDataService: ObservableObject {
         return validDays >= minimumDays
     }
     
+    /// Clear all existing ML training data from Core Data
+    func clearTrainingData() async {
+        Logger.info("🗑️ [ML] Clearing all training data from Core Data...")
+        
+        let request = MLTrainingData.fetchRequest()
+        let records = persistence.fetch(request)
+        
+        for record in records {
+            persistence.delete(record)
+        }
+        
+        Logger.info("✅ [ML] Cleared \(records.count) training records")
+        await refreshTrainingDataCount()
+    }
+    
     /// Force reprocess of training data (useful after new scores are calculated)
-    /// This will update the ML dataset with the latest recovery scores
+    /// This will clear existing data and regenerate with current validation rules
     func reprocessTrainingData() async {
-        Logger.info("🔄 [ML] Manual reprocess requested - updating training data...")
+        Logger.info("🔄 [ML] Manual reprocess requested - clearing old data and regenerating...")
+        await clearTrainingData()
         await processHistoricalData(days: 90)
     }
     
