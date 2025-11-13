@@ -69,7 +69,7 @@ Supporting logic and utilities
 | Component | File | Why Important | Test Focus |
 |-----------|------|---------------|------------|
 | **StravaActivity** | `Core/Models/StravaActivity.swift` | Activity data structure | Parsing, optional fields, validation |
-| **IntervalsActivity** | `Core/Models/IntervalsActivity.swift` | Intervals.icu data | Format conversion, field mapping |
+| **Activity** | `Core/Models/Activity.swift` | Intervals.icu data | Format conversion, field mapping |
 | **HealthMetric** | `Core/Models/HealthMetric.swift` | HealthKit data structure | Data validation, unit conversion |
 | **ActivityData** | Various models | Shared activity representation | Cross-platform compatibility |
 | **AthleteProfile** | `Core/Models/AthleteProfile.swift` | User profile & zones | FTP calculation, zone generation, max HR |

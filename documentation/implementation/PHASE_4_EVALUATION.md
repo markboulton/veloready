@@ -635,7 +635,7 @@ func calculateRecoveryScore() async {
 }
 
 // In UnifiedActivityService
-func fetchRecentActivities() async throws -> [IntervalsActivity] {
+func fetchRecentActivities() async throws -> [Activity] {
     return try await PerformanceMonitor.shared.measure("Fetch Activities") {
         // ... fetch logic
     }

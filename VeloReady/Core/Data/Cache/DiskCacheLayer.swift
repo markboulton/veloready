@@ -73,7 +73,7 @@ actor DiskCacheLayer: CacheLayer {
         // If we have data, try to decode it
         if let data = data, let source = source {
             // Simple approach: try JSONDecoder for common types
-            if let decoded = try? JSONDecoder().decode([IntervalsActivity].self, from: data) as? T {
+            if let decoded = try? JSONDecoder().decode([Activity].self, from: data) as? T {
                 Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
                 return decoded
             }

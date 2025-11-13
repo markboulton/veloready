@@ -110,7 +110,7 @@ swift run VeloReadyCoreTests
 1. **Phase 0** (✅ COMPLETE): Basic test structure to prove concept
 2. **Phase 1** (NEXT - 1-2 hours): **Cache logic & Strava integration** - Prevents cache bugs like the one you found
 3. **Phase 2** (1-2 days): **Core calculations** (CTL, ATL, strain, recovery, sleep scores)
-4. **Phase 3** (1-2 days): **Data models** (StravaActivity, IntervalsActivity, HealthMetric)
+4. **Phase 3** (1-2 days): **Data models** (StravaActivity, Activity, HealthMetric)
 5. **Phase 4** (2-3 days): **ML & personalization** (Recovery predictor, baselines, forecasts)
 6. **Phase 5** (1 day): **Utilities & helpers** (date utils, formatting, validation)
 

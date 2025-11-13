@@ -129,7 +129,7 @@ class IntervalsAPIClient: ObservableObject {
     
     /// Fetch recent activities
     /// Based on official intervals.icu documentation
-    func fetchRecentActivities(limit: Int = 10, daysBack: Int = 30) async throws -> [IntervalsActivity] {
+    func fetchRecentActivities(limit: Int = 10, daysBack: Int = 30) async throws -> [Activity] {
         guard await ensureAuthenticated() else {
             throw IntervalsAPIError.notAuthenticated
         }
@@ -168,7 +168,7 @@ class IntervalsAPIClient: ObservableObject {
             Logger.debug("🔍 Raw API Response (first 200 chars): \(String(jsonString.prefix(200)))")
         }
         
-        let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)
+        let activities = try JSONDecoder().decode([Activity].self, from: data)
         Logger.debug("✅ Fetched \(activities.count) activities")
         
         // Debug: Show what fields we actually parsed
@@ -185,7 +185,7 @@ class IntervalsAPIClient: ObservableObject {
     }
     
     /// Fetch a specific activity by ID
-    func fetchActivity(id: Int) async throws -> IntervalsActivity {
+    func fetchActivity(id: Int) async throws -> Activity {
         guard await ensureAuthenticated() else {
             throw IntervalsAPIError.notAuthenticated
         }
@@ -207,7 +207,7 @@ class IntervalsAPIClient: ObservableObject {
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
-        let activity = try JSONDecoder().decode(IntervalsActivity.self, from: data)
+        let activity = try JSONDecoder().decode(Activity.self, from: data)
         return activity
     }
     
@@ -311,7 +311,7 @@ class IntervalsAPIClient: ObservableObject {
     }
     
     /// Fetch recent activities for strain calculation (last 7 days)
-    func fetchRecentActivitiesForStrain() async throws -> [IntervalsActivity] {
+    func fetchRecentActivitiesForStrain() async throws -> [Activity] {
         let calendar = Calendar.current
         let endDate = Date()
         let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) ?? endDate
@@ -324,7 +324,7 @@ class IntervalsAPIClient: ObservableObject {
     }
     
     /// Enhanced fetch recent activities with oldest parameter
-    private func fetchRecentActivities(limit: Int, oldest: String) async throws -> [IntervalsActivity] {
+    private func fetchRecentActivities(limit: Int, oldest: String) async throws -> [Activity] {
         guard await ensureAuthenticated() else {
             throw IntervalsAPIError.notAuthenticated
         }
@@ -359,7 +359,7 @@ class IntervalsAPIClient: ObservableObject {
             throw IntervalsAPIError.httpError(httpResponse.statusCode)
         }
         
-        let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)
+        let activities = try JSONDecoder().decode([Activity].self, from: data)
         Logger.debug("✅ Fetched \(activities.count) activities for strain calculation")
         return activities
     }
@@ -528,9 +528,12 @@ struct HeartRateZoneSettings: Codable {
     }
 }
 
-// MARK: - Intervals Activity Model
+// MARK: - Activity Model (Universal Format)
 
-struct IntervalsActivity: Codable, Identifiable {
+/// Universal activity model that represents workouts from any source
+/// Previously named Activity - renamed to be source-agnostic
+/// All external formats (Strava, Wahoo, Intervals.icu, etc.) convert to this
+struct Activity: Codable, Identifiable {
     let id: String
     let name: String?
     let description: String?

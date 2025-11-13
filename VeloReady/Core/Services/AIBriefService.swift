@@ -255,9 +255,9 @@ class AIBriefService: ObservableObject {
         // This ensures we capture activities regardless of which service user has connected
         
         // Method 1: Try unified cache (Intervals.icu activities from UserDefaults)
-        var cachedActivities: [IntervalsActivity] = []
+        var cachedActivities: [Activity] = []
         if let data = UserDefaults.standard.data(forKey: "intervals_activities_cache"),
-           let activities = try? JSONDecoder().decode([IntervalsActivity].self, from: data) {
+           let activities = try? JSONDecoder().decode([Activity].self, from: data) {
             cachedActivities = activities
         }
         

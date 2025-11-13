@@ -139,7 +139,7 @@ To redirect old URL to new URL, add to `netlify.toml`:
 **Recommended Fix:**
 ```swift
 // Option 1: Check if historical activities are already loaded
-@State private var historicalActivities: [IntervalsActivity] = []
+@State private var historicalActivities: [Activity] = []
 @State private var lastFetchDate: Date?
 
 // In .task:

@@ -198,7 +198,7 @@ class MyService {
 
 ### **Before:**
 ```swift
-func fetchRecentActivities() async throws -> [IntervalsActivity] {
+func fetchRecentActivities() async throws -> [Activity] {
     // No caching
     // No deduplication
     // Direct API call every time
@@ -209,7 +209,7 @@ func fetchRecentActivities() async throws -> [IntervalsActivity] {
 
 ### **After:**
 ```swift
-func fetchRecentActivities() async throws -> [IntervalsActivity] {
+func fetchRecentActivities() async throws -> [Activity] {
     let cacheKey = CacheKey.intervalsActivities(daysBack: actualDays)
     
     return try await cache.fetch(

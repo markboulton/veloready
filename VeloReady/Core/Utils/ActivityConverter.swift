@@ -1,13 +1,13 @@
 import Foundation
 
-/// Unified converter for converting external activity data sources (Strava, etc.) to IntervalsActivity format
+/// Unified converter for converting external activity data sources (Strava, Wahoo, etc.) to Activity format
 /// This ensures consistent handling of all activity sources throughout the app
 enum ActivityConverter {
     
-    /// Convert Strava activity to unified IntervalsActivity format
-    /// This is the single source of truth for Strava → Intervals conversion
-    static func stravaToIntervals(_ strava: StravaActivity) -> IntervalsActivity {
-        IntervalsActivity(
+    /// Convert Strava activity to unified Activity format
+    /// This is the single source of truth for Strava → Activity conversion
+    static func stravaToActivity(_ strava: StravaActivity) -> Activity {
+        Activity(
             id: "strava_\(strava.id)",
             name: strava.name,
             description: nil,
@@ -35,18 +35,18 @@ enum ActivityConverter {
     }
     
     /// Convert batch of Strava activities
-    static func stravaToIntervals(_ stravaActivities: [StravaActivity]) -> [IntervalsActivity] {
-        return stravaActivities.map { stravaToIntervals($0) }
+    static func stravaToActivity(_ stravaActivities: [StravaActivity]) -> [Activity] {
+        return stravaActivities.map { stravaToActivity($0) }
     }
     
     /// Enrich activity with calculated metrics (TSS, IF, CTL, ATL)
     /// This should be used after conversion to add computed metrics
-    /// Note: IntervalsActivity is a struct with let properties, so we create a new instance
+    /// Note: Activity is a struct with let properties, so we create a new instance
     static func enrichWithMetrics(
-        _ activity: IntervalsActivity,
+        _ activity: Activity,
         ftp: Double?,
-        historicalActivities: [IntervalsActivity] = []
-    ) -> IntervalsActivity {
+        historicalActivities: [Activity] = []
+    ) -> Activity {
         // Calculate TSS if we have power data and FTP
         var tss: Double? = activity.tss
         var intensityFactor: Double? = activity.intensityFactor
@@ -62,7 +62,7 @@ enum ActivityConverter {
         
         // Create new activity with calculated metrics
         // Note: CTL/ATL calculation would be added here when needed
-        return IntervalsActivity(
+        return Activity(
             id: activity.id,
             name: activity.name,
             description: activity.description,

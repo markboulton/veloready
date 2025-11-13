@@ -19,10 +19,10 @@ struct UnifiedActivity: Identifiable {
     let tss: Double?
     let intensityFactor: Double?
     
-    // For navigation to detail view
-    let intervalsActivity: IntervalsActivity?
-    let stravaActivity: StravaActivity?
-    let healthKitWorkout: HKWorkout?
+    // For navigation to detail view (raw source data)
+    let activity: Activity?  // The universal activity model (from any source)
+    let stravaActivity: StravaActivity?  // Raw Strava response (if applicable)
+    let healthKitWorkout: HKWorkout?  // HealthKit workout (if applicable)
     
     enum ActivitySource {
         case intervalsICU
@@ -80,24 +80,24 @@ struct UnifiedActivity: Identifiable {
     
     // MARK: - Initializers
     
-    /// Create from Intervals.icu activity
-    init(from intervalsActivity: IntervalsActivity) {
-        self.id = intervalsActivity.id
-        self.name = intervalsActivity.name ?? "Unnamed Ride"
-        self.startDate = Self.parseDate(intervalsActivity.startDateLocal) ?? Date()
-        self.type = Self.mapIntervalsType(intervalsActivity.type)
-        self.rawType = intervalsActivity.type // Store raw type for badge display
-        self.source = .intervalsICU
-        self.duration = intervalsActivity.duration
-        self.distance = intervalsActivity.distance
-        self.calories = intervalsActivity.calories
-        self.averageHeartRate = intervalsActivity.averageHeartRate
-        self.maxHeartRate = intervalsActivity.maxHeartRate
-        self.averagePower = intervalsActivity.averagePower
-        self.normalizedPower = intervalsActivity.normalizedPower
-        self.tss = intervalsActivity.tss
-        self.intensityFactor = intervalsActivity.intensityFactor
-        self.intervalsActivity = intervalsActivity
+    /// Create from Activity (universal model)
+    init(from sourceActivity: Activity) {
+        self.id = sourceActivity.id
+        self.name = sourceActivity.name ?? "Unnamed Activity"
+        self.startDate = Self.parseDate(sourceActivity.startDateLocal) ?? Date()
+        self.type = Self.mapActivityType(sourceActivity.type)
+        self.rawType = sourceActivity.type // Store raw type for badge display
+        self.source = .intervalsICU  // Default to Intervals.icu, can be overridden
+        self.duration = sourceActivity.duration
+        self.distance = sourceActivity.distance
+        self.calories = sourceActivity.calories
+        self.averageHeartRate = sourceActivity.averageHeartRate
+        self.maxHeartRate = sourceActivity.maxHeartRate
+        self.averagePower = sourceActivity.averagePower
+        self.normalizedPower = sourceActivity.normalizedPower
+        self.tss = sourceActivity.tss
+        self.intensityFactor = sourceActivity.intensityFactor
+        self.activity = sourceActivity
         self.stravaActivity = nil
         self.healthKitWorkout = nil
     }
@@ -119,7 +119,7 @@ struct UnifiedActivity: Identifiable {
         self.normalizedPower = stravaActivity.weighted_average_watts.map { Double($0) }
         self.tss = nil // Strava doesn't provide TSS directly
         self.intensityFactor = nil // Strava doesn't provide IF directly
-        self.intervalsActivity = nil
+        self.activity = nil
         self.stravaActivity = stravaActivity
         self.healthKitWorkout = nil
     }
@@ -153,7 +153,7 @@ struct UnifiedActivity: Identifiable {
         self.normalizedPower = nil
         self.tss = nil
         self.intensityFactor = nil
-        self.intervalsActivity = nil
+        self.activity = nil
         self.stravaActivity = nil
         self.healthKitWorkout = workout
     }
@@ -172,7 +172,7 @@ struct UnifiedActivity: Identifiable {
         return localFormatter.date(from: dateString)
     }
     
-    private static func mapIntervalsType(_ type: String?) -> ActivityType {
+    private static func mapActivityType(_ type: String?) -> ActivityType {
         guard let type = type?.lowercased() else { return .other }
         
         if type.contains("ride") || type.contains("cycling") {
@@ -270,11 +270,11 @@ struct UnifiedActivity: Identifiable {
             }
         }
         
-        // Check Intervals.icu source - only if extremely minimal distance (< 500m)
+        // Check activity source - only if extremely minimal distance (< 500m)
         // Reduced from 1000m to be less aggressive
-        if let intervalsActivity = intervalsActivity,
-           intervalsActivity.source?.uppercased() == "STRAVA",
-           let distance = intervalsActivity.distance,
+        if let sourceActivity = activity,
+           sourceActivity.source?.uppercased() == "STRAVA",
+           let distance = sourceActivity.distance,
            distance < 500 { // Less than 500m
             return true
         }
@@ -293,8 +293,8 @@ struct UnifiedActivity: Identifiable {
         }
         
         // Check if activity has GPS coordinates from any source
-        // Strava and Intervals activities with coordinates should show maps
-        if stravaActivity != nil || intervalsActivity != nil {
+        // Strava and Activity models with coordinates should show maps
+        if stravaActivity != nil || activity != nil {
             // Has data source that typically includes GPS - show map
             return true
         }

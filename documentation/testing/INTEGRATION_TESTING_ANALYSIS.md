@@ -161,7 +161,7 @@ let mockJSON = """
     "icu_training_load": 85.5
 }
 """
-let activity = try ActivityParser.parseIntervalsActivity(mockJSON)
+let activity = try ActivityParser.parseActivity(mockJSON)
 // ✅ Passes
 
 // What could happen in production
@@ -171,7 +171,7 @@ let realAPIResponse = """
     "training_stress_score": 85.5  // ❌ Field renamed!
 }
 """
-let activity = try ActivityParser.parseIntervalsActivity(realAPIResponse)
+let activity = try ActivityParser.parseActivity(realAPIResponse)
 // ❌ activity.tss == nil, but our test still passes!
 ```
 
@@ -446,7 +446,7 @@ curl "https://intervals.icu/api/v1/athlete/i123456/activities" \
 ```swift
 @Test func testIntervalsAPIContract() throws {
     let fixture = try loadFixture("intervals_activities_2025.json")
-    let activities = try ActivityParser.parseIntervalsActivity(fixture)
+    let activities = try ActivityParser.parseActivity(fixture)
     
     // Test critical fields exist
     for activity in activities {

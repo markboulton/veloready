@@ -3,7 +3,7 @@ import Charts
 
 /// Zone analysis pie charts for heart rate and power with free/pro versions
 struct ZonePieChartSection: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @StateObject private var profileManager = AthleteProfileManager.shared
     @StateObject private var userSettings = UserSettings.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
@@ -410,7 +410,7 @@ struct ZonePieChartSection: View {
 
 #Preview {
     ScrollView {
-        ZonePieChartSection(activity: IntervalsActivity(
+        ZonePieChartSection(activity: Activity(
             id: "1",
             name: "Test Ride",
             description: nil,

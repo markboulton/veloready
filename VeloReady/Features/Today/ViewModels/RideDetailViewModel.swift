@@ -6,9 +6,9 @@ class RideDetailViewModel: ObservableObject {
     @Published private(set) var samples: [WorkoutSample] = []
     @Published private(set) var isLoading = false
     @Published private(set) var error: String?
-    @Published var enrichedActivity: IntervalsActivity?
+    @Published var enrichedActivity: Activity?
     
-    func loadActivityData(activity: IntervalsActivity, apiClient: IntervalsAPIClient, profileManager: AthleteProfileManager) async {
+    func loadActivityData(activity: Activity, apiClient: IntervalsAPIClient, profileManager: AthleteProfileManager) async {
         Logger.debug("🚴 ========== RIDE DETAIL VIEW MODEL: LOAD ACTIVITY DATA ==========")
         Logger.debug("🚴 Activity ID: \(activity.id)")
         Logger.debug("🚴 Activity Name: \(activity.name ?? "Unknown")")
@@ -140,7 +140,7 @@ class RideDetailViewModel: ObservableObject {
     }
     
     /// Enrich activity summary with calculated values from stream data when API data is missing
-    private func enrichActivityWithStreamData(activity: IntervalsActivity, samples: [WorkoutSample], profileManager: AthleteProfileManager) -> IntervalsActivity {
+    private func enrichActivityWithStreamData(activity: Activity, samples: [WorkoutSample], profileManager: AthleteProfileManager) -> Activity {
         Logger.debug("🔧 ========== ENRICHING ACTIVITY WITH STREAM DATA ==========")
         Logger.debug("🔧 Checking which fields need calculation...")
         
@@ -428,7 +428,7 @@ class RideDetailViewModel: ObservableObject {
     
     // MARK: - Strava Data Loading
     
-    private func loadStravaActivityData(activity: IntervalsActivity, profileManager: AthleteProfileManager) async {
+    private func loadStravaActivityData(activity: Activity, profileManager: AthleteProfileManager) async {
         Logger.debug("🟠 ========== LOADING STRAVA ACTIVITY DATA ==========")
         
         // CRITICAL: Ensure zones are available before enriching activity
@@ -585,7 +585,7 @@ class RideDetailViewModel: ObservableObject {
                     Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftpValue))W)")
                     
                     // Create new activity with TSS and IF
-                    enriched = IntervalsActivity(
+                    enriched = Activity(
                         id: enriched.id,
                         name: enriched.name,
                         description: enriched.description,
@@ -787,7 +787,7 @@ class RideDetailViewModel: ObservableObject {
     
     /// Calculate TSS and IF for an activity
     /// This is extracted so it can be called for both cached and fresh data
-    private func calculateTSSAndIF(for activity: IntervalsActivity, profileManager: AthleteProfileManager) async -> IntervalsActivity {
+    private func calculateTSSAndIF(for activity: Activity, profileManager: AthleteProfileManager) async -> Activity {
         Logger.debug("🟠 ========== TSS CALCULATION START ==========")
         Logger.debug("🟠 Activity Average Power: \(activity.averagePower?.description ?? "nil")")
         Logger.debug("🟠 Activity Normalized Power: \(activity.normalizedPower?.description ?? "nil")")
@@ -864,7 +864,7 @@ class RideDetailViewModel: ObservableObject {
             Logger.debug("🟠 Calculated TSS: \(Int(tss)) (NP: \(Int(np))W, IF: \(String(format: "%.2f", intensityFactor)), FTP: \(Int(ftpValue))W)")
             
             // Create enriched activity with TSS and IF
-            let enriched = IntervalsActivity(
+            let enriched = Activity(
                 id: activity.id,
                 name: activity.name,
                 description: activity.description,

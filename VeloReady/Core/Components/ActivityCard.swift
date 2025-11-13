@@ -486,7 +486,7 @@ struct ActivityCard: View {
     ScrollView {
         ActivityCard(
             activity: UnifiedActivity(
-                from: IntervalsActivity(
+                from: Activity(
                     id: "1",
                     name: "Morning Ride",
                     description: "Great ride through the hills",
@@ -523,7 +523,7 @@ struct ActivityCard: View {
     ScrollView {
         ActivityCard(
             activity: UnifiedActivity(
-                from: IntervalsActivity(
+                from: Activity(
                     id: "2",
                     name: "2 x 20 Threshold",
                     description: "Indoor trainer session",
@@ -605,7 +605,7 @@ struct ActivityCard: View {
             // Outdoor Ride
             ActivityCard(
                 activity: UnifiedActivity(
-                    from: IntervalsActivity(
+                    from: Activity(
                         id: "1",
                         name: "Morning Ride",
                         description: nil,
@@ -637,7 +637,7 @@ struct ActivityCard: View {
             // Indoor Ride
             ActivityCard(
                 activity: UnifiedActivity(
-                    from: IntervalsActivity(
+                    from: Activity(
                         id: "2",
                         name: "2 x 20 Threshold",
                         description: nil,

@@ -49,7 +49,7 @@ if key.starts(with: "strava:activities:") ||
 // In saveToDisk method
 if let activities = value as? [StravaActivity] {
     diskData = try encoder.encode(activities)
-} else if let activities = value as? [IntervalsActivity] {
+} else if let activities = value as? [Activity] {
     diskData = try encoder.encode(activities)
 } else if let stream = value as? [WorkoutSample] {
     // ADD THIS

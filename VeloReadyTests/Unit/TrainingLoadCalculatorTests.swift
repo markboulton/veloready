@@ -63,7 +63,7 @@ struct TrainingLoadCalculatorTests {
     func testEmptyActivitiesHandling() async {
         let calculator = TrainingLoadCalculator()
         
-        let emptyActivities: [IntervalsActivity] = []
+        let emptyActivities: [Activity] = []
         
         let result = await calculator.calculateTrainingLoadFromActivities(emptyActivities)
         
@@ -88,16 +88,16 @@ struct TrainingLoadCalculatorTests {
 }
 
 // Helper functions to create mock activities
-func createMockActivities() -> [IntervalsActivity] {
+func createMockActivities() -> [Activity] {
     let calendar = Calendar.current
-    var activities: [IntervalsActivity] = []
+    var activities: [Activity] = []
     
     // Create activities for the last 10 days with varying TSS values
     for i in 0..<10 {
         guard let date = calendar.date(byAdding: .day, value: -i, to: Date()) else { continue }
         let dateString = ISO8601DateFormatter().string(from: date)
         
-        let activity = IntervalsActivity(
+        let activity = Activity(
             id: "\(1000 + i)",
             name: "Test Ride \(i)",
             description: "Test ride description",
@@ -137,16 +137,16 @@ func createMockActivities() -> [IntervalsActivity] {
     return activities
 }
 
-func createMockActivitiesWithoutTSS() -> [IntervalsActivity] {
+func createMockActivitiesWithoutTSS() -> [Activity] {
     let calendar = Calendar.current
-    var activities: [IntervalsActivity] = []
+    var activities: [Activity] = []
     
     // Create activities without TSS values
     for i in 0..<5 {
         guard let date = calendar.date(byAdding: .day, value: -i, to: Date()) else { continue }
         let dateString = ISO8601DateFormatter().string(from: date)
         
-        let activity = IntervalsActivity(
+        let activity = Activity(
             id: "\(2000 + i)",
             name: "Test Ride Without TSS \(i)",
             description: "Test ride without TSS",

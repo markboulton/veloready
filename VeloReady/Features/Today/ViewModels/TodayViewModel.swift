@@ -48,7 +48,7 @@ class TodayViewModel: ObservableObject {
     @Published var isDataLoaded = false
     
     // Legacy activity lists (kept for backwards compatibility)
-    @Published var recentActivities: [IntervalsActivity] = []
+    @Published var recentActivities: [Activity] = []
     @Published var unifiedActivities: [UnifiedActivity] = []
     @Published var wellnessData: [IntervalsWellness] = []
     

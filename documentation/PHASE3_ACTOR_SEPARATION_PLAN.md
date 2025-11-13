@@ -32,7 +32,7 @@ actor RecoveryScoreCalculator {
         return score
     }
     
-    func calculateTrainingLoads(activities: [IntervalsActivity]) async -> (ctl: Double, atl: Double, tsb: Double) {
+    func calculateTrainingLoads(activities: [Activity]) async -> (ctl: Double, atl: Double, tsb: Double) {
         // Training load calculations
     }
 }

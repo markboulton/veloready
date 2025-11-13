@@ -213,7 +213,7 @@ struct ActivitiesView: View {
                 let duration: Double = {
                     if let dur = activity.duration, dur > 0 {
                         return dur / 60.0
-                    } else if activity.intervalsActivity != nil {
+                    } else if activity.activity != nil {
                         return 60.0
                     } else {
                         return 0.0

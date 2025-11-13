@@ -8,7 +8,7 @@ VeloReady now provides an **identical user experience** regardless of whether yo
 ## Architecture Principles
 
 ### 1. Single Source of Truth
-- **All activity data** is converted to `IntervalsActivity` format internally
+- **All activity data** is converted to `Activity` format internally
 - **No duplicate conversion logic** - one converter utility handles all conversions
 - **Same calculations** apply to both data sources (TSS, IF, CTL, ATL, zones)
 
@@ -18,7 +18,7 @@ VeloReady now provides an **identical user experience** regardless of whether yo
 - User sees no difference in functionality
 
 ### 3. No Model Duplication
-- Both sources feed into the same `IntervalsActivity` model
+- Both sources feed into the same `Activity` model
 - All features work identically: ride detail, charts, strain, recovery, adaptive FTP
 - Same UI components render both data sources
 
@@ -106,7 +106,7 @@ UnifiedActivityService
     ↓
     ├── Intervals.icu authenticated? → IntervalsAPIClient
     │                                      ↓
-    │                                  IntervalsActivity
+    │                                  Activity
     │
     └── Fallback to Strava → StravaAPIClient
                                   ↓
@@ -114,12 +114,12 @@ UnifiedActivityService
                                   ↓
                           ActivityConverter
                                   ↓
-                          IntervalsActivity
+                          Activity
 ```
 
 ### Activity Enrichment (TSS/CTL/ATL)
 ```
-IntervalsActivity (from any source)
+Activity (from any source)
     ↓
 RideDetailViewModel.loadActivityData()
     ↓
@@ -233,7 +233,7 @@ The architecture makes it trivial to add new sources:
 
 1. Add converter to `ActivityConverter`:
    ```swift
-   static func garminToIntervals(_ garmin: GarminActivity) -> IntervalsActivity
+   static func garminToIntervals(_ garmin: GarminActivity) -> Activity
    ```
 
 2. Add fetch logic to `UnifiedActivityService`:

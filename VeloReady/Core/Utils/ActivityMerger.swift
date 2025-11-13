@@ -1,30 +1,30 @@
 import Foundation
 
-/// Merges activities from multiple sources (Strava, Intervals.icu) with deduplication
+/// Merges activities from multiple sources (Strava, Intervals.icu, Wahoo, etc.) with deduplication
 enum ActivityMerger {
     
-    /// Merge Strava and Intervals activities, deduplicating by time/distance match
+    /// Merge Strava and other source activities, deduplicating by time/distance match
     /// Strava activities take priority for duplicates (more granular data)
     static func merge(
         strava: [StravaActivity],
-        intervals: [IntervalsActivity]
-    ) -> [IntervalsActivity] {
-        Logger.debug("🔀 Merging activities: \(strava.count) Strava + \(intervals.count) Intervals")
+        intervals: [Activity]
+    ) -> [Activity] {
+        Logger.debug("🔀 Merging activities: \(strava.count) Strava + \(intervals.count) other sources")
         
         // Convert Strava to unified format
-        var merged = ActivityConverter.stravaToIntervals(strava)
+        var merged = ActivityConverter.stravaToActivity(strava)
         Logger.debug("🔀 Converted \(merged.count) Strava activities to unified format")
         
-        // Add Intervals activities that aren't duplicates
+        // Add activities from other sources that aren't duplicates
         var addedCount = 0
-        for intervalsActivity in intervals {
-            if !isDuplicate(intervalsActivity, in: merged) {
-                merged.append(intervalsActivity)
+        for sourceActivity in intervals {
+            if !isDuplicate(sourceActivity, in: merged) {
+                merged.append(sourceActivity)
                 addedCount += 1
             }
         }
         
-        Logger.debug("🔀 Added \(addedCount) unique Intervals activities")
+        Logger.debug("🔀 Added \(addedCount) unique activities from other sources")
         Logger.debug("🔀 Total merged: \(merged.count) activities")
         
         // Sort by date (newest first)
@@ -34,8 +34,8 @@ enum ActivityMerger {
     /// Check if activity is a duplicate based on start time and distance
     /// Uses 5-minute time window and 1% distance tolerance
     private static func isDuplicate(
-        _ activity: IntervalsActivity,
-        in activities: [IntervalsActivity]
+        _ activity: Activity,
+        in activities: [Activity]
     ) -> Bool {
         // Parse dates from ISO8601 strings
         guard let activityDate = parseDate(activity.startDateLocal) else {
@@ -79,11 +79,11 @@ enum ActivityMerger {
     /// Merge with detailed logging for debugging
     static func mergeWithLogging(
         strava: [StravaActivity],
-        intervals: [IntervalsActivity]
-    ) -> [IntervalsActivity] {
+        intervals: [Activity]
+    ) -> [Activity] {
         Logger.info("🔀 ========== MERGING ACTIVITIES FROM MULTIPLE SOURCES ==========")
         Logger.info("🔀 Strava activities: \(strava.count)")
-        Logger.info("🔀 Intervals activities: \(intervals.count)")
+        Logger.info("🔀 Activities from other sources: \(intervals.count)")
         
         let merged = merge(strava: strava, intervals: intervals)
         

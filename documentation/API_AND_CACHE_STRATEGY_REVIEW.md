@@ -239,9 +239,9 @@ IntervalsCache.shared.clearCache()           // Invalidates intervals
 #### **Problem 3: Memory Bloat**
 ```swift
 // TodayViewModel alone keeps:
-@Published var todayActivities: [IntervalsActivity] = []        // ~500KB
-@Published var recentActivities: [IntervalsActivity] = []       // ~2MB
-@Published var weekActivities: [[IntervalsActivity]] = []       // ~10MB
+@Published var todayActivities: [Activity] = []        // ~500KB
+@Published var recentActivities: [Activity] = []       // ~2MB
+@Published var weekActivities: [[Activity]] = []       // ~10MB
 @Published var weatherCache: [String: WeatherData] = [:]        // ~100KB
 
 // TOTAL: ~13MB in memory for one view!

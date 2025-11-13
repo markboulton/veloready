@@ -3,7 +3,7 @@ import Charts
 
 /// Detailed ride analysis sheet showing comprehensive ride data, charts, and zone analysis
 struct RideDetailSheet: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = RideDetailViewModel()
     @EnvironmentObject private var apiClient: IntervalsAPIClient
@@ -625,7 +625,7 @@ struct RideMetricCard: View {
 // MARK: - Preview
 
 #Preview {
-    RideDetailSheet(activity: IntervalsActivity(
+    RideDetailSheet(activity: Activity(
         id: "1",
         name: "2 x 10 min Threshold Intervals",
         description: "Threshold intervals with recovery",

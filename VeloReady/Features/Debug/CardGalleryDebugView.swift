@@ -56,7 +56,7 @@ struct CardGalleryDebugView: View {
                     sectionHeader("Activity Cards", subtitle: "Workout/activity summaries")
                     
                     LatestActivityCardV2(
-                        activity: UnifiedActivity(from: sampleIntervalsActivity)
+                        activity: UnifiedActivity(from: sampleActivity)
                     )
                     .annotated("LatestActivityCardV2", "Latest ride/workout with map")
                     
@@ -440,8 +440,8 @@ struct CardGalleryDebugView: View {
         )
     }
     
-    private var sampleIntervalsActivity: IntervalsActivity {
-        IntervalsActivity(
+    private var sampleActivity: Activity {
+        Activity(
             id: "debug-1",
             name: "Morning Ride",
             description: "Easy spin",

@@ -151,7 +151,7 @@ class StreamCacheService {
 #### Update RideDetailViewModel:
 
 ```swift
-func loadActivityData(activity: IntervalsActivity, ...) async {
+func loadActivityData(activity: Activity, ...) async {
     isLoading = true
     
     // 1. Check cache first

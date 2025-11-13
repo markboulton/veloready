@@ -330,7 +330,7 @@ let activities = try await UnifiedCacheManager.shared.fetchCacheFirst(
 ```swift
 // In a service
 class UnifiedActivityService {
-    func fetchRecentActivities() async throws -> [IntervalsActivity] {
+    func fetchRecentActivities() async throws -> [Activity] {
         return try await cache.fetchCacheFirst(
             key: "strava:activities:7",
             ttl: 3600  // 1 hour

@@ -457,12 +457,12 @@ struct TodayView: View {
                     }
                 }()
                 
-                // Use duration if available, otherwise calculate from intervalsActivity or use a default
+                // Use duration if available, otherwise calculate from activity model or use a default
                 let duration: Double = {
                     if let dur = activity.duration, dur > 0 {
                         return dur / 60.0 // Convert seconds to minutes
-                    } else if activity.intervalsActivity != nil {
-                        // For Intervals activities, use TSS as a proxy for duration/intensity
+                    } else if activity.activity != nil {
+                        // For Activity models, use TSS as a proxy for duration/intensity
                         // TSS roughly correlates to workout duration and intensity
                         // Use a fixed height for visibility (e.g., 60 minutes)
                         return 60.0
@@ -782,7 +782,7 @@ struct StatCard: View {
 }
 
 struct RecentActivityCard: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     
     var body: some View {
         NavigationLink(destination: RideDetailSheet(activity: activity)) {

@@ -6,7 +6,7 @@ struct ActivityDataTransformer {
     /// Generate time-series data from activity summary
     /// - Parameter activity: The activity summary from Intervals.icu
     /// - Returns: Array of WorkoutSample data points
-    static func generateSamples(from activity: IntervalsActivity) -> [WorkoutSample] {
+    static func generateSamples(from activity: Activity) -> [WorkoutSample] {
         Logger.debug("🔄 ========== ACTIVITY DATA TRANSFORMER: GENERATE SAMPLES ==========")
         Logger.debug("🔄 Activity: \(activity.name ?? "Unknown")")
         Logger.debug("🔄 Activity ID: \(activity.id)")

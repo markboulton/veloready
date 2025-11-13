@@ -49,7 +49,7 @@
 private var maxDaysForFree: Int { 90 }
 private var maxDaysForPro: Int { 365 }
 
-func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [IntervalsActivity] {
+func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [Activity] {
     // Apply subscription-based limits
     let maxDays = proConfig.hasProAccess ? maxDaysForPro : maxDaysForFree
     let actualDays = min(daysBack, maxDays)

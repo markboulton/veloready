@@ -275,7 +275,7 @@
 
 ### **Challenges Overcome:**
 - 🐛 TSS/IF disappearing on cached loads (found & fixed)
-- 🔧 IntervalsActivity initialization (corrected field names)
+- 🔧 Activity initialization (corrected field names)
 - 📊 Cache persistence across restarts (verified working)
 
 ---

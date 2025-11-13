@@ -97,6 +97,7 @@ enum Icons {
     enum DataSource {
         static let intervalsICU = "chart.line.uptrend.xyaxis"
         static let strava = "figure.outdoor.cycle"
+        static let wahoo = "sensor"  // Wahoo sensors/devices
         static let garmin = "applewatch"
         static let appleHealth = "heart"
     }

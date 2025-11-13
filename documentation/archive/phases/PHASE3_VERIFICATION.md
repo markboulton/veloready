@@ -97,7 +97,7 @@ All referenced types exist
 
 **Verified Types:**
 - ✅ `UnifiedActivity` - Used in ActivitiesCoordinator
-- ✅ `IntervalsActivity` - Used in ActivitiesCoordinator
+- ✅ `Activity` - Used in ActivitiesCoordinator
 - ✅ `ScoresCoordinator` - Used in TodayCoordinator
 - ✅ `ServiceContainer` - Used everywhere
 - ✅ `Logger` - Used for logging (59 usages in coordinators)

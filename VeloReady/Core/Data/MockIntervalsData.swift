@@ -3,7 +3,7 @@ import Foundation
 /// Mock intervals.icu data for development and testing
 /// Provides realistic sample data without requiring actual API access
 class MockIntervalsData: ObservableObject {
-    @Published var activities: [MockIntervalsActivity] = []
+    @Published var activities: [MockActivity] = []
     @Published var wellness: [MockIntervalsWellness] = []
     @Published var user: MockIntervalsUser?
     
@@ -43,7 +43,7 @@ class MockIntervalsData: ObservableObject {
             let activityType = activityTypes.randomElement()!
             let location = locations.randomElement()!
             
-            let activity = MockIntervalsActivity(
+            let activity = MockActivity(
                 id: "activity_\(i)",
                 name: "\(activityType) at \(location)",
                 description: "Great workout today!",
@@ -109,7 +109,7 @@ struct MockIntervalsUser: Codable, Identifiable {
     let updatedAt: Date
 }
 
-struct MockIntervalsActivity: Codable, Identifiable {
+struct MockActivity: Codable, Identifiable {
     let id: String
     let name: String?
     let description: String?

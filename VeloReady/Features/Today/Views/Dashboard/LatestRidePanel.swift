@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Latest ride panel showing the most recent activity
 struct LatestRidePanel: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     
     var body: some View {
         NavigationLink(destination: RideDetailSheet(activity: activity)) {
@@ -109,7 +109,7 @@ struct LatestRidePanel: View {
 }
 
 #Preview {
-    LatestRidePanel(activity: IntervalsActivity(
+    LatestRidePanel(activity: Activity(
         id: "1",
         name: "2 x 10 min Threshold",
         description: "Threshold intervals",

@@ -259,7 +259,7 @@ struct IntervalsAPIDebugView: View {
 // MARK: - Activity Debug Card
 
 struct ActivityDebugCard: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -352,7 +352,7 @@ struct MetricDebugRow: View {
 @MainActor
 class IntervalsAPIDebugViewModel: ObservableObject {
     @Published var athleteData: IntervalsAthlete?
-    @Published var activities: [IntervalsActivity] = []
+    @Published var activities: [Activity] = []
     @Published var isLoading = false
     @Published var athleteRawJSON: String?
     @Published var activitiesRawJSON: String?
@@ -477,7 +477,7 @@ class IntervalsAPIDebugViewModel: ObservableObject {
         return profile.athlete
     }
     
-    private func fetchActivitiesWithRawJSON(apiClient: IntervalsAPIClient) async throws -> [IntervalsActivity] {
+    private func fetchActivitiesWithRawJSON(apiClient: IntervalsAPIClient) async throws -> [Activity] {
         // Use athlete ID 0 which returns current authenticated user
         // Add oldest parameter (30 days back)
         let calendar = Calendar.current
@@ -506,7 +506,7 @@ class IntervalsAPIDebugViewModel: ObservableObject {
             Logger.debug("🔍 ==========================================")
         }
         
-        let activities = try JSONDecoder().decode([IntervalsActivity].self, from: data)
+        let activities = try JSONDecoder().decode([Activity].self, from: data)
         return activities
     }
 }

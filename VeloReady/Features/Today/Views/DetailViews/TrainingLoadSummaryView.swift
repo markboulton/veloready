@@ -3,7 +3,7 @@ import SwiftUI
 /// Simple Training Load summary showing CTL, ATL, and TSB (Form)
 /// Works with Strava-calculated values
 struct TrainingLoadSummaryView: View {
-    let activity: IntervalsActivity
+    let activity: Activity
     
     private var ctl: Double { activity.ctl ?? 0 }
     private var atl: Double { activity.atl ?? 0 }
@@ -125,7 +125,7 @@ struct TrainingLoadMetric: View {
 
 #Preview {
     TrainingLoadSummaryView(
-        activity: IntervalsActivity(
+        activity: Activity(
             id: "test",
             name: "Test Ride",
             description: nil,
