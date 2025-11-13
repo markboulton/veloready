@@ -222,6 +222,17 @@ actor StrainDataCalculator {
                 let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
                 totalTRIMP += trimp
                 Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP: \(String(format: "%.1f", trimp))")
+            } else if let duration = activity.duration, duration > 0 {
+                // Priority 4: FALLBACK - Estimate from duration alone (for activities without HR/power data)
+                // This handles cases where Strava doesn't include HR in summary even though streams have it
+                // Use moderate intensity assumption (HR reserve ~0.6)
+                let durationMinutes = duration / 60
+                let estimatedHRReserve = 0.6  // Moderate intensity
+                let estimatedTRIMP = durationMinutes * estimatedHRReserve
+                totalTRIMP += estimatedTRIMP
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - Duration-based estimate: \(String(format: "%.1f", estimatedTRIMP)) (duration: \(String(format: "%.1f", durationMinutes))m)")
+            } else {
+                Logger.debug("   Activity: \(activity.name ?? "Unknown") - NO DATA, skipping (duration: \(activity.duration == nil ? "nil" : "\(activity.duration!)s"), avgHR: \(activity.averageHeartRate == nil ? "nil" : "\(activity.averageHeartRate!)"))")
             }
         }
         
