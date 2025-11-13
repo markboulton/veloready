@@ -386,7 +386,15 @@ final class CacheManager: ObservableObject {
             scoresRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
             scoresRequest.fetchLimit = 1
             
-            let scores = (try? context.fetch(scoresRequest).first) ?? DailyScores(context: context)
+            Logger.debug("🔍 [DailyScores] Fetching existing scores for date: \(startOfDay)")
+            let existingScores = try? context.fetch(scoresRequest).first
+            if let existing = existingScores {
+                Logger.debug("✅ [DailyScores] Found existing scores for \(startOfDay) - will update")
+            } else {
+                Logger.debug("❌ [DailyScores] No existing scores for \(startOfDay) - creating new")
+            }
+            
+            let scores = existingScores ?? DailyScores(context: context)
             scores.date = startOfDay
             scores.physio = physio
             scores.load = load

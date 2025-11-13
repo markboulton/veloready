@@ -90,6 +90,11 @@ class UnifiedActivityService: ObservableObject {
         // This ensures we catch new activities quickly without hammering the API
         let activities = try await fetchRecentActivitiesWithCustomTTL(limit: 50, daysBack: 7, ttl: 300)
         
+        Logger.debug("📊 [TodaysActivities] Filtering \(activities.count) activities - showing all dates:")
+        for (index, activity) in activities.enumerated() {
+            Logger.debug("   Activity \(index + 1): '\(activity.name ?? "Unnamed")' - startDateLocal: '\(activity.startDateLocal)'")
+        }
+        
         // Filter to today only
         let todaysActivities = activities.filter { activity in
             guard let date = parseDate(from: activity.startDateLocal) else { 
@@ -99,6 +104,8 @@ class UnifiedActivityService: ObservableObject {
             let isToday = calendar.isDate(date, inSameDayAs: today)
             if !isToday {
                 Logger.debug("🗓️ [TodaysActivities] Activity '\(activity.name ?? "Unnamed")' is not today: \(date) vs \(today)")
+            } else {
+                Logger.debug("✅ [TodaysActivities] Activity '\(activity.name ?? "Unnamed")' IS today: \(date)")
             }
             return isToday
         }

@@ -104,7 +104,16 @@ class ScoresCoordinator: ObservableObject {
             state.strain = strain
             Logger.info("✅ [ScoresCoordinator] Strain calculated in \(String(format: "%.2f", strainDuration))s - Score: \(strain != nil ? String(format: "%.1f", strain!.score) : "-1")")
             
-            // STEP 4: Mark as ready (triggers animation if transitioning from loading)
+            // STEP 4: Save scores to Core Data for historical tracking
+            Logger.info("💾 [ScoresCoordinator] Saving scores to Core Data...")
+            do {
+                try await CacheManager.shared.refreshToday()
+                Logger.info("✅ [ScoresCoordinator] Scores saved to Core Data")
+            } catch {
+                Logger.error("❌ [ScoresCoordinator] Failed to save scores: \(error)")
+            }
+            
+            // STEP 5: Mark as ready (triggers animation if transitioning from loading)
             state.phase = .ready
             let totalDuration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [ScoresCoordinator] ━━━ All scores ready in \(String(format: "%.2f", totalDuration))s - phase: .ready ━━━")
