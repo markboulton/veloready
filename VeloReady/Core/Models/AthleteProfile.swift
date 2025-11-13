@@ -862,6 +862,18 @@ class AthleteProfileManager: ObservableObject {
                 profile.restingHR = restingHR
             }
             Logger.data("Updated Resting HR: \(Int(restingHR))bpm")
+        } else {
+            // For Strava-only users, fetch RHR from HealthKit
+            Logger.data("📊 No Intervals.icu RHR - fetching from HealthKit...")
+            let healthKitRHR = await HealthKitManager.shared.fetchLatestRHRData()
+            if let rhrValue = healthKitRHR.value {
+                await MainActor.run {
+                    profile.restingHR = rhrValue
+                }
+                Logger.data("Updated Resting HR from HealthKit: \(Int(rhrValue))bpm")
+            } else {
+                Logger.data("⚠️ No RHR data available from HealthKit")
+            }
         }
         
         if let weight = activities.compactMap({ $0.icuWeight }).first {
