@@ -205,7 +205,7 @@ class StrainScoreService: ObservableObject {
             sleepScore: sleepScoreService.currentSleepScore,
             ftp: getUserFTP(),
             maxHeartRate: getUserMaxHR(),
-            restingHeartRate: getUserRestingHR(),
+            restingHeartRate: await getUserRestingHR(),
             bodyMass: getUserBodyMass()
         )
     }
@@ -325,7 +325,7 @@ class StrainScoreService: ObservableObject {
     }
     
     private func calculateHeartRateReserve(averageHR: Double) -> Double {
-        let restingHR = getUserRestingHR() ?? 60
+        let restingHR = AthleteProfileManager.shared.profile.restingHR ?? 60
         let maxHR = getUserMaxHR() ?? 180
         
         guard maxHR > restingHR else { return 0 }
@@ -376,9 +376,24 @@ class StrainScoreService: ObservableObject {
         return AthleteProfileManager.shared.profile.maxHR
     }
     
-    private func getUserRestingHR() -> Double? {
+    private func getUserRestingHR() async -> Double? {
         // Use resting HR from AthleteProfileManager
-        return AthleteProfileManager.shared.profile.restingHR
+        if let restingHR = AthleteProfileManager.shared.profile.restingHR {
+            return restingHR
+        }
+        
+        // Fallback: For Strava-only users, fetch RHR from HealthKit directly
+        // This ensures strain calculation has RHR even before zone computation completes
+        Logger.debug("⚠️ [STRAIN] No restingHR in profile - fetching from HealthKit")
+        
+        let healthKitRHR = await HealthKitManager.shared.fetchLatestRHRData()
+        if let rhrValue = healthKitRHR.value {
+            Logger.debug("✅ [STRAIN] Using RHR from HealthKit: \(Int(rhrValue))bpm")
+            return rhrValue
+        }
+        
+        Logger.warning("⚠️ [STRAIN] No RHR available - HR-based TRIMP will be skipped")
+        return nil
     }
     
     private func getUserBodyMass() -> Double? {
