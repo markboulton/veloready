@@ -309,6 +309,8 @@ actor StrainDataCalculator {
     private func calculateTRIMPFromStravaActivities(activities: [Activity], ftp: Double?, maxHR: Double?, restingHR: Double?) -> Double {
         var totalTRIMP: Double = 0
         
+        Logger.debug("💓 [TRIMP] Calculating with: ftp=\(ftp?.description ?? "nil"), maxHR=\(maxHR?.description ?? "nil"), restingHR=\(restingHR?.description ?? "nil")")
+        
         for activity in activities {
             // Priority 1: Use power data if available
             if let np = activity.normalizedPower,
