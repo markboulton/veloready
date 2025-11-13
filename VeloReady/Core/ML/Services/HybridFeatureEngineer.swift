@@ -55,6 +55,16 @@ class HybridFeatureEngineer {
             let targetRecovery = calculateRecoveryScore(from: tomorrowWellness) ?? 0
             let targetReadiness = calculateReadinessScore(from: tomorrowWellness) ?? 0
             
+            // Debug logging for date matching
+            if index < 3 || targetRecovery > 0 {
+                Logger.debug("📅 [ML] Date: \(date), Tomorrow: \(tomorrow)")
+                Logger.debug("   Found tomorrow wellness: \(tomorrowWellness != nil)")
+                if let tw = tomorrowWellness {
+                    Logger.debug("   Tomorrow recovery score: \(tw.recoveryScore ?? -1)")
+                }
+                Logger.debug("   Target recovery: \(targetRecovery)")
+            }
+            
             if targetRecovery > 0 {
                 let trainingPoint = MLTrainingDataPoint(
                     features: augmentedFeatures,

@@ -224,7 +224,18 @@ class HybridMLDataAggregator {
         wellnessDataPoints = Array(dataByDate.values).sorted { $0.date < $1.date }
         
         Logger.debug("💤 [HybridML] Aggregated wellness data for \(wellnessDataPoints.count) days")
-        Logger.debug("   - \(dailyScores.count) days have recovery scores")
+        Logger.debug("   - \(dailyScores.count) DailyScores fetched from Core Data")
+        let daysWithRecovery = wellnessDataPoints.filter { $0.recoveryScore != nil && $0.recoveryScore! > 0 }
+        Logger.debug("   - \(daysWithRecovery.count) wellness days have recovery scores populated")
+        
+        // Debug: Show dates with recovery scores
+        for (index, wellness) in daysWithRecovery.enumerated() {
+            if index < 5 {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                Logger.debug("      [\(index)]: \(formatter.string(from: wellness.date)) recovery=\(wellness.recoveryScore!)")
+            }
+        }
         
         return wellnessDataPoints
     }
