@@ -196,9 +196,10 @@ class HybridMLDataAggregator {
             
             if var existingData = dataByDate[date] {
                 // Update existing wellness data with recovery score
+                // Use the normalized date to ensure consistency
                 existingData = WellnessData(
                     source: existingData.source,
-                    date: existingData.date,
+                    date: date,  // Use normalized startOfDay date
                     hrv: existingData.hrv,
                     rhr: existingData.rhr,
                     sleepDuration: existingData.sleepDuration,
