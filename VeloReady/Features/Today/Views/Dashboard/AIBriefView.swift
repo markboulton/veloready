@@ -66,8 +66,9 @@ struct AIBriefView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .lineLimit(nil) // Remove any line limits to prevent truncation
                         
-                        // ML Data Collection Progress (if not sufficient data yet)
-                        if mlService.trainingDataCount < 30 {
+                        // ML Data Collection Progress
+                        // Show progress bar until we have 30+ days
+                        if mlService.trainingDataCount > 0 && mlService.trainingDataCount < 30 {
                             MLDataCollectionView(
                                 currentDays: mlService.trainingDataCount,
                                 totalDays: 30,

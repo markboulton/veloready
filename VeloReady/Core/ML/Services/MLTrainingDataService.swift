@@ -251,7 +251,8 @@ class MLTrainingDataService: ObservableObject {
     func reprocessTrainingData() async {
         Logger.info("🔄 [ML] Manual reprocess requested - clearing old data and regenerating...")
         await clearTrainingData()
-        await processHistoricalData(days: 90)
+        // Use 180 days to ensure we have enough history for 30-day baselines on all dates
+        await processHistoricalData(days: 180)
     }
     
     /// Refresh training data count from Core Data
