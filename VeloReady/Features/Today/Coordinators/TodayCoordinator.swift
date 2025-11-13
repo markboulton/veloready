@@ -171,7 +171,7 @@ class TodayCoordinator: ObservableObject {
             
         case (.pullToRefresh, .ready), (.pullToRefresh, .background):
             // User explicitly triggered pull-to-refresh - invalidate caches first
-            invalidateActivityCaches()
+            await invalidateActivityCaches()
             await refresh()
             
         case (.intervalsAuthChanged, .ready):
@@ -404,22 +404,22 @@ class TodayCoordinator: ObservableObject {
     
     /// Invalidate activity caches (for pull-to-refresh)
     /// Forces fresh fetch from Strava/Intervals on next request
-    private func invalidateActivityCaches() {
+    private func invalidateActivityCaches() async {
         Logger.info("🗑️ [TodayCoordinator] Invalidating activity caches for pull-to-refresh")
         
         let cacheManager = UnifiedCacheManager.shared
         
         // Invalidate Strava activity caches (all time ranges)
-        cacheManager.invalidate(key: "strava:activities:7")
-        cacheManager.invalidate(key: "strava:activities:30")
-        cacheManager.invalidate(key: "strava:activities:90")
-        cacheManager.invalidate(key: "strava:activities:365")
+        await cacheManager.invalidate(key: "strava:activities:7")
+        await cacheManager.invalidate(key: "strava:activities:30")
+        await cacheManager.invalidate(key: "strava:activities:90")
+        await cacheManager.invalidate(key: "strava:activities:365")
         
         // Invalidate Intervals activity caches
-        cacheManager.invalidate(key: "intervals:activities:7")
-        cacheManager.invalidate(key: "intervals:activities:30")
-        cacheManager.invalidate(key: "intervals:activities:90")
-        cacheManager.invalidate(key: "intervals:activities:120")
+        await cacheManager.invalidate(key: "intervals:activities:7")
+        await cacheManager.invalidate(key: "intervals:activities:30")
+        await cacheManager.invalidate(key: "intervals:activities:90")
+        await cacheManager.invalidate(key: "intervals:activities:120")
         
         Logger.debug("✅ [TodayCoordinator] Activity caches invalidated")
     }
