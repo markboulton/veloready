@@ -113,7 +113,7 @@ class ScoresCoordinator: ObservableObject {
                 // Trigger ML training data reprocessing now that we have new recovery scores
                 // This ensures the ML progress bar updates properly with valid training data
                 Task.detached(priority: .background) {
-                    await MLTrainingDataService.shared.autoProcessIfNeeded()
+                    await MLTrainingDataService.shared.reprocessTrainingData()
                 }
             } catch {
                 Logger.error("❌ [ScoresCoordinator] Failed to save scores: \(error)")
