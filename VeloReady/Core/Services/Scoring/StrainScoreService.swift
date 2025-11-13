@@ -280,6 +280,7 @@ class StrainScoreService: ObservableObject {
         
         for activity in activities {
             Logger.debug("🔍 Processing activity '\(activity.name ?? "Unknown")' for TRIMP:")
+            Logger.debug("   📊 Activity data: duration=\(activity.duration?.description ?? "nil"), avgHR=\(activity.averageHeartRate?.description ?? "nil"), tss=\(activity.tss?.description ?? "nil"), normalizedPower=\(activity.normalizedPower?.description ?? "nil")")
             
             // First try to use TSS (Training Stress Score) if available
             // TSS is a better metric for cycling and is directly comparable to TRIMP
@@ -304,6 +305,7 @@ class StrainScoreService: ObservableObject {
                 totalTRIMP += trimpForActivity
             } else {
                 Logger.debug("   ⚠️ No TSS or HR data available, skipping activity")
+                Logger.debug("   🔍 Missing: duration=\(activity.duration == nil ? "YES" : "NO"), avgHR=\(activity.averageHeartRate == nil ? "YES" : "NO")")
             }
         }
         
