@@ -106,8 +106,8 @@ class MLTrainingDataService: ObservableObject {
     
     /// Process historical data and generate training dataset
     /// This is the main entry point for Phase 1
-    /// - Parameter days: Number of days to look back (default: 90)
-    func processHistoricalData(days: Int = 90) async {
+    /// - Parameter days: Number of days to look back (default: 180, allows 30-day baselines for 150 days of training data)
+    func processHistoricalData(days: Int = 180) async {
         guard !isProcessing else {
             Logger.warning("[ML] Already processing historical data")
             return
@@ -172,9 +172,9 @@ class MLTrainingDataService: ObservableObject {
     }
     
     /// Get training dataset from Core Data
-    /// - Parameter days: Number of days to fetch (default: 90)
+    /// - Parameter days: Number of days to fetch (default: 180)
     /// - Returns: ML training dataset ready for model training
-    func getTrainingDataset(days: Int = 90) async -> MLTrainingDataset? {
+    func getTrainingDataset(days: Int = 180) async -> MLTrainingDataset? {
         let calendar = Calendar.current
         guard let startDate = calendar.date(byAdding: .day, value: -days, to: Date()) else {
             return nil
@@ -273,7 +273,7 @@ class MLTrainingDataService: ObservableObject {
         // Log why records are invalid if we have a significant mismatch
         if totalRecords.count > count + 2 {
             Logger.debug("⚠️ [ML] \(totalRecords.count - count) records are invalid")
-            Logger.debug("   Valid records need: dataQuality ≥ 0.7, HRV, RHR, AND targetRecovery > 0")
+            Logger.debug("   Valid records need: dataQuality ≥ 0.15 (≥5 features), HRV, RHR, AND targetRecovery > 0")
             Logger.debug("   (Sleep data is optional - not all users wear watches to bed)")
             Logger.debug("   Tip: Training data requires consecutive days with recovery scores to predict tomorrow's score")
         }

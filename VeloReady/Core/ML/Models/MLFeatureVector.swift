@@ -330,7 +330,10 @@ struct MLTrainingDataPoint {
     var isValidForTraining: Bool {
         // Require minimum completeness and critical features
         // Sleep is optional - not all users wear watches to bed
-        return dataQuality >= 0.7 &&
+        // Note: dataQuality = completeness of feature vector (% of non-nil features)
+        // We have ~36 optional features, but only need core ones (HRV, RHR) for basic predictions
+        // Threshold of 0.15 = ~5-6 features minimum
+        return dataQuality >= 0.15 &&
                features.hrv != nil &&
                features.rhr != nil &&
                targetRecovery > 0
