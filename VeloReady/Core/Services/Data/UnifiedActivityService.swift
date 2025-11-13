@@ -74,15 +74,6 @@ class UnifiedActivityService: ObservableObject {
             let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
             let convertedActivities = ActivityConverter.stravaToActivity(stravaActivities)
             Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend")
-            
-            // Log first 3 activities to verify dates are correct
-            if convertedActivities.count > 0 {
-                Logger.debug("🔍 [Activities] First 3 activities from backend:")
-                for (index, activity) in convertedActivities.prefix(3).enumerated() {
-                    Logger.debug("  \(index + 1). '\(activity.name ?? "Unnamed")' - startDateLocal: '\(activity.startDateLocal)'")
-                }
-            }
-            
             return convertedActivities
         }
     }

@@ -122,10 +122,6 @@ class TodayCoordinator: ObservableObject {
         case (.viewAppeared, .initial):
             // First time view appears - load everything
             isViewActive = true
-            
-            // CRITICAL: Invalidate activity caches on app launch to prevent stale data
-            await invalidateActivityCachesOnLaunch()
-            
             await loadInitial()
             hasLoadedOnce = true
             
@@ -417,7 +413,6 @@ class TodayCoordinator: ObservableObject {
         await cacheManager.invalidate(key: "strava:activities:7")
         await cacheManager.invalidate(key: "strava:activities:30")
         await cacheManager.invalidate(key: "strava:activities:90")
-        await cacheManager.invalidate(key: "strava:activities:120")
         await cacheManager.invalidate(key: "strava:activities:365")
         
         // Invalidate Intervals activity caches
@@ -427,25 +422,6 @@ class TodayCoordinator: ObservableObject {
         await cacheManager.invalidate(key: "intervals:activities:120")
         
         Logger.debug("✅ [TodayCoordinator] Activity caches invalidated")
-    }
-    
-    /// Conditionally invalidate activity caches on app launch if data might be stale
-    /// Only invalidates recent activity caches (7, 30 days) if > 5 minutes old
-    /// This prevents unnecessary API calls while ensuring fresh data
-    private func invalidateActivityCachesOnLaunch() async {
-        Logger.info("🔍 [TodayCoordinator] Checking if activity caches need invalidation on app launch")
-        
-        let cacheManager = UnifiedCacheManager.shared
-        
-        // Only invalidate recent activity caches (7, 30 days) - these need to be fresh
-        // Older caches (90, 120, 365 days) can stay cached longer since historical data doesn't change
-        Logger.info("🗑️ [TodayCoordinator] Invalidating recent activity caches (7, 30 days) on launch")
-        await cacheManager.invalidate(key: "strava:activities:7")
-        await cacheManager.invalidate(key: "strava:activities:30")
-        await cacheManager.invalidate(key: "intervals:activities:7")
-        await cacheManager.invalidate(key: "intervals:activities:30")
-        
-        Logger.debug("✅ [TodayCoordinator] Launch cache invalidation complete (recent activities only)")
     }
     
     /// Determine if data should be refreshed when view reappears
