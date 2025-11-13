@@ -182,8 +182,10 @@ actor StrainDataCalculator {
             let activities = try await UnifiedActivityService.shared.fetchTodaysActivities()
             Logger.debug("🔍 Found \(activities.count) unified activities for today (Intervals.icu or Strava)")
             
+            Logger.info("💓 [ENRICHMENT] Starting enrichment for \(activities.count) activities...")
             // Enrich activities with HR from streams if needed (30-day window only)
             let enriched = await enrichActivitiesWithHeartRate(activities)
+            Logger.info("💓 [ENRICHMENT] Enrichment complete - returning \(enriched.count) activities")
             return enriched
         } catch {
             Logger.warning("⚠️ Failed to fetch unified activities: \(error)")
@@ -197,19 +199,26 @@ actor StrainDataCalculator {
         var enrichedActivities = activities
         let thirtyDaysAgo = Date().addingTimeInterval(-30 * 24 * 3600)
         
+        Logger.info("💓 [ENRICHMENT] Processing \(activities.count) activities (30-day window)")
+        
         for (index, activity) in activities.enumerated() {
+            Logger.debug("💓 [ENRICHMENT] Activity \(index + 1): '\(activity.name ?? "Unknown")' - avgHR: \(activity.averageHeartRate?.description ?? "nil"), enrichedHR: \(activity.enrichedAverageHeartRate?.description ?? "nil"), TSS: \(activity.tss?.description ?? "nil"), NP: \(activity.normalizedPower?.description ?? "nil")")
+            
             // Skip if activity already has HR data (from summary or previous enrichment)
             if activity.averageHeartRate != nil || activity.enrichedAverageHeartRate != nil {
+                Logger.debug("   ⏭️ Skipping '\(activity.name ?? "Unknown")' - already has HR")
                 continue
             }
             
             // Skip if activity has TSS or power (don't need HR)
             if activity.tss != nil || activity.normalizedPower != nil {
+                Logger.debug("   ⏭️ Skipping '\(activity.name ?? "Unknown")' - has TSS or power")
                 continue
             }
             
             // Skip if activity doesn't have duration
             guard let duration = activity.duration, duration > 0 else {
+                Logger.debug("   ⏭️ Skipping '\(activity.name ?? "Unknown")' - no duration")
                 continue
             }
             
@@ -220,15 +229,17 @@ actor StrainDataCalculator {
                 continue
             }
             
+            Logger.info("💓 [ENRICHMENT] Fetching streams for '\(activity.name ?? "Unknown")' (ID: \(activity.id))...")
             // Fetch HR from streams
             if let avgHR = await fetchHeartRateFromStreams(activityId: activity.id, source: activity.source) {
                 Logger.info("💓 Enriched '\(activity.name ?? "Unknown")' with HR from streams: \(Int(avgHR)) bpm")
                 enrichedActivities[index].enrichedAverageHeartRate = avgHR
             } else {
-                Logger.debug("   ⚠️ Could not enrich '\(activity.name ?? "Unknown")' - no HR data in streams")
+                Logger.warning("   ⚠️ Could not enrich '\(activity.name ?? "Unknown")' - no HR data in streams")
             }
         }
         
+        Logger.info("💓 [ENRICHMENT] Finished processing - \(enrichedActivities.filter { $0.enrichedAverageHeartRate != nil }.count) activities enriched")
         return enrichedActivities
     }
     

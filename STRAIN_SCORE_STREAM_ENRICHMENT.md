@@ -41,9 +41,10 @@ To minimize API calls while maximizing accuracy:
 
 ## Rate Limit Analysis
 
-### Strava's Actual Limits (Per User)
-- **15 minutes**: 100 requests (non-upload)
-- **Daily**: 1,000 requests (non-upload)
+### Strava's Actual Limits (Per Application - ALL Users Combined!)
+- **15 minutes**: 200 requests (entire app)
+- **Daily**: 2,000 requests (entire app)
+- **Critical**: This is shared across ALL users, not per-user!
 
 ### Our Backend Caching
 
@@ -52,27 +53,28 @@ To minimize API calls while maximizing accuracy:
 
 ### Rate Limit Math (1,000 Users at Scale)
 
-**Daily new virtual rides:**
+**Steady State (after migration):**
 - 1,000 users × 0.71 rides/day × 40% virtual = **284 virtual rides/day**
 - Each NEW ride needs 1 stream fetch = **+284 API calls/day**
-
-**Existing (cached) virtual rides:**
-- Streams cached 7 days in Netlify Blobs
-- Subsequent requests = **0 Strava API calls**
-
-**Total API calls/day:**
-- Activities endpoint: ~300 calls/day (cached, shared)
+- Activities endpoint: ~350 calls/day (Edge Cache, shared)
 - Streams for NEW virtual rides: ~284 calls/day
-- **Total: ~584 calls/day** ✅
-- **58% of 1,000/day limit** (excellent safety margin)
+- **Total: ~634 calls/day** ✅
+- **31.7% of 2,000/day budget** (excellent safety margin)
 
-**Migration period (first 12 days):**
-- When users first update the app
-- Historical enrichment: 12 virtual rides/user × 100 users/day = 1,200 calls/day
+**15-Minute Burst (peak morning rush):**
+- 30% of users active (7-9am) = 300 users
+- Activities: ~30 calls (90% cache hit rate)
+- Stream enrichment: ~24 calls (for rides since yesterday)
+- **Peak burst: ~54 calls/15min** ✅
+- **27% of 200/15min budget** (safe)
+
+**Migration Period (first 12 days):**
+- Historical enrichment: 83 users/day × 12 virtual rides = 996 calls/day
 - New rides: 284 calls/day
-- Activities: 300 calls/day
-- **Total: ~1,784 calls/day** (under 2,000 overall limit, but close to 1,000 non-upload)
-- **Mitigation**: 30-day window (not 90-day) reduces impact by 67%
+- Activities: 350 calls/day
+- **Total: ~1,630 calls/day** ⚠️
+- **81.5% of 2,000/day budget** (tight but acceptable)
+- **Mitigation**: 30-day window (not 90-day) reduces by 67%
 
 ---
 
