@@ -304,11 +304,13 @@ class TodayCoordinator: ObservableObject {
             
             // Phase 4: Background cleanup and backfill of training load data (non-blocking)
             Task.detached(priority: .background) {
-                Logger.info("🔄 [TodayCoordinator] Starting background training load cleanup and backfill...")
-                // Step 1: Clean up corrupt data from previous bugs
+                Logger.info("🔄 [TodayCoordinator] Starting background cleanup and backfill...")
+                // Step 1: Clean up corrupt training load data from previous bugs
                 await CacheManager.shared.cleanupCorruptTrainingLoadData()
-                // Step 2: Backfill missing/cleaned data with correct values
+                // Step 2: Backfill missing/cleaned training load data with correct values
                 await CacheManager.shared.calculateMissingCTLATL(forceRefresh: true)
+                // Step 3: Backfill historical recovery scores from existing physio data
+                await CacheManager.shared.backfillHistoricalRecoveryScores(days: 60, forceRefresh: true)
             }
             
         } catch {

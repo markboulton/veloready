@@ -1,13 +1,11 @@
 import SwiftUI
 import Charts
 
-/// Simplified training load chart with smooth colored lines for Today page
-struct TodayTrainingLoadChart: View {
+/// Reusable Training Load chart component showing CTL/ATL/TSB trend
+/// Used in both Today page and Activity detail views
+struct TrainingLoadChartView: View {
     let data: [TrainingLoadDataPoint]
-
-    // State for interactive tooltip
     @State private var selectedIndex: Int?
-    @GestureState private var dragLocation: CGPoint = .zero
 
     // Find today's index or use most recent as default
     private var defaultSelectedIndex: Int {
@@ -21,48 +19,15 @@ struct TodayTrainingLoadChart: View {
         return data[index]
     }
 
-    // Calculate adaptive Y axis range based on data
-    private var yAxisRange: ClosedRange<Double> {
-        guard !data.isEmpty else { return 0...100 }
-
-        let allValues = data.flatMap { [$0.ctl, $0.atl, $0.tsb] }
-        let minValue = allValues.min() ?? 0
-        let maxValue = allValues.max() ?? 100
-
-        // Add 10% padding to top and bottom
-        let padding = (maxValue - minValue) * 0.1
-        let lower = (minValue - padding).rounded(.down)
-        let upper = (maxValue + padding).rounded(.up)
-
-        return lower...upper
-    }
-
-    // Get color for TSB (form) based on zone
-    private func tsbColor(for value: Double, isFuture: Bool) -> Color {
-        if isFuture {
-            return ColorScale.gray400
-        }
-
-        switch value {
-        case 20...: // Transition Zone (>+20)
-            return ColorScale.yellowAccent
-        case 5..<20: // Fresh Zone (+5 to +20)
-            return ColorScale.cyanAccent
-        case -10..<5: // Grey Zone (-10 to +5)
-            return ColorScale.gray500
-        case -30..<(-10): // Optimal (-30 to -10)
-            return ColorScale.greenAccent
-        default: // High Risk (<-30)
-            return ColorScale.redAccent
-        }
-    }
-
     var body: some View {
-        let _ = Logger.debug("📈 [Chart] Rendering with \(data.count) points")
-
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Full-width interactive tooltip
             interactiveTooltip
+            
+            // Chart
             chart
+
+            // Zone Legend
             zoneLegend
         }
         .onAppear {
@@ -74,40 +39,40 @@ struct TodayTrainingLoadChart: View {
     }
 
     private var chart: some View {
-        Chart(data) { point in
+        Chart(data) { dataPoint in
             // CTL Line (Fitness) - Purple
             LineMark(
-                x: .value("Date", point.date),
-                y: .value("CTL", point.ctl),
+                x: .value("Date", dataPoint.date),
+                y: .value("CTL", dataPoint.ctl),
                 series: .value("Metric", "CTL")
             )
-            .foregroundStyle(point.isFuture ? ColorScale.gray400 : ColorScale.purpleAccent)
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: point.isFuture ? [5, 3] : []))
+            .foregroundStyle(dataPoint.isFuture ? ColorScale.gray400 : ColorScale.purpleAccent)
+            .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
 
             // ATL Line (Fatigue) - Pink
             LineMark(
-                x: .value("Date", point.date),
-                y: .value("ATL", point.atl),
+                x: .value("Date", dataPoint.date),
+                y: .value("ATL", dataPoint.atl),
                 series: .value("Metric", "ATL")
             )
-            .foregroundStyle(point.isFuture ? ColorScale.gray400 : ColorScale.pinkAccent)
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: point.isFuture ? [5, 3] : []))
+            .foregroundStyle(dataPoint.isFuture ? ColorScale.gray400 : ColorScale.pinkAccent)
+            .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
 
             // TSB Line (Form) - Gradient colored by zone
             LineMark(
-                x: .value("Date", point.date),
-                y: .value("TSB", point.tsb),
+                x: .value("Date", dataPoint.date),
+                y: .value("TSB", dataPoint.tsb),
                 series: .value("Metric", "TSB")
             )
-            .foregroundStyle(tsbColor(for: point.tsb, isFuture: point.isFuture))
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: point.isFuture ? [5, 3] : []))
+            .foregroundStyle(tsbColor(for: dataPoint.tsb, isFuture: dataPoint.isFuture))
+            .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
-            
+
             // Selected marker - draggable vertical line
-            if let selectedPoint = selectedPoint, point.date == selectedPoint.date {
-                RuleMark(x: .value("Selected", point.date))
+            if let selectedPoint = selectedPoint, dataPoint.date == selectedPoint.date {
+                RuleMark(x: .value("Selected", dataPoint.date))
                     .foregroundStyle(.white.opacity(0.7))
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .annotation(position: .top, spacing: 0) {
@@ -124,7 +89,7 @@ struct TodayTrainingLoadChart: View {
             }
         }
         .chartXAxis {
-            AxisMarks(values: .stride(by: .weekOfYear, count: 2)) { value in
+            AxisMarks(values: .stride(by: .day, count: 4)) { value in
                 if let date = value.as(Date.self) {
                     AxisValueLabel {
                         Text(date, format: .dateTime.month(.abbreviated).day())
@@ -145,13 +110,12 @@ struct TodayTrainingLoadChart: View {
                     .foregroundStyle(Color.text.secondary)
             }
         }
-        .chartYScale(domain: yAxisRange)
         .frame(height: 200)
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
-                    updateSelection(at: value.location.x, chartWidth: UIScreen.main.bounds.width - 40)
+                    updateSelection(at: value.location.x, chartWidth: 350) // Approximate chart width
                 }
         )
     }
@@ -183,7 +147,7 @@ struct TodayTrainingLoadChart: View {
                         .foregroundColor(.white)
                 }
 
-                // TSB
+                // TSB (Form)
                 HStack(spacing: 4) {
                     Circle().fill(tsbColor(for: point.tsb, isFuture: point.isFuture)).frame(width: 6, height: 6)
                     Text("Form \(Int(point.tsb))")
@@ -198,16 +162,6 @@ struct TodayTrainingLoadChart: View {
         .cornerRadius(0)
     }
 
-    private func updateSelection(at x: CGFloat, chartWidth: CGFloat) {
-        guard !data.isEmpty, chartWidth > 0 else { return }
-
-        // Calculate which data point based on x position
-        let index = Int((x / chartWidth) * CGFloat(data.count))
-        let clampedIndex = max(0, min(data.count - 1, index))
-
-        selectedIndex = clampedIndex
-    }
-
     private var zoneLegend: some View {
         HStack(spacing: 12) {
             legendItem(color: ColorScale.redAccent, label: "High Risk")
@@ -216,8 +170,9 @@ struct TodayTrainingLoadChart: View {
             legendItem(color: ColorScale.cyanAccent, label: "Fresh")
             legendItem(color: ColorScale.yellowAccent, label: "Transition")
         }
-        .font(.caption2)
+        .font(.caption)
         .padding(.horizontal, 8)
+        .padding(.top, 8)
     }
 
     private func legendItem(color: Color, label: String) -> some View {
@@ -229,44 +184,43 @@ struct TodayTrainingLoadChart: View {
                 .foregroundColor(Color.text.secondary)
         }
     }
-}
 
-// MARK: - Triangle Shape for Tooltip Arrow
+    private func updateSelection(at x: CGFloat, chartWidth: CGFloat) {
+        guard !data.isEmpty, chartWidth > 0 else { return }
 
-struct Triangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.closeSubpath()
-        return path
+        // Calculate which data point based on x position
+        let index = Int((x / chartWidth) * CGFloat(data.count))
+        let clampedIndex = max(0, min(data.count - 1, index))
+
+        selectedIndex = clampedIndex
+    }
+
+    /// Get color for TSB (form) based on zone
+    private func tsbColor(for value: Double, isFuture: Bool) -> Color {
+        if isFuture {
+            return ColorScale.gray400
+        }
+
+        switch value {
+        case 20...: // Transition Zone (>+20)
+            return ColorScale.yellowAccent
+        case 5..<20: // Fresh Zone (+5 to +20)
+            return ColorScale.cyanAccent
+        case -10..<5: // Grey Zone (-10 to +5)
+            return ColorScale.gray500
+        case -30..<(-10): // Optimal (-30 to -10)
+            return ColorScale.greenAccent
+        default: // High Risk (<-30)
+            return ColorScale.redAccent
+        }
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    let calendar = Calendar.current
-    let today = Date()
-    
-    let mockData = (-60...7).compactMap { offset -> TrainingLoadDataPoint? in
-        guard let date = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
-        
-        let ctl = 70.0 + Double(offset) * 0.3 + sin(Double(offset) / 7.0) * 5
-        let atl = 65.0 + Double(offset) * 0.2 + sin(Double(offset) / 7.0) * 3
-        let tsb = ctl - atl
-        
-        return TrainingLoadDataPoint(
-            date: date,
-            ctl: ctl,
-            atl: atl,
-            tsb: tsb,
-            isFuture: offset > 0
-        )
-    }
-    
-    TodayTrainingLoadChart(data: mockData)
-        .padding()
-        .background(Color.background.primary)
+struct TrainingLoadDataPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let ctl: Double
+    let atl: Double
+    let tsb: Double
+    let isFuture: Bool
 }

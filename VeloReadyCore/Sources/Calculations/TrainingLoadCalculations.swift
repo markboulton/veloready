@@ -42,6 +42,11 @@ public struct TrainingLoadCalculations {
             // Exponential weighted moving average (Banister/Coggan formula)
             ctl = ctl * decay + tss * (1.0 - decay)
         }
+        
+        // Debug: Log calculation details for verification
+        #if DEBUG
+        print("📊 CTL Calculation: decay=\(String(format: "%.4f", decay)), days=\(dailyTSS.count), result=\(String(format: "%.1f", ctl))")
+        #endif
 
         return ctl
     }
@@ -65,6 +70,11 @@ public struct TrainingLoadCalculations {
             // Exponential weighted moving average (Banister/Coggan formula)
             atl = atl * decay + tss * (1.0 - decay)
         }
+        
+        // Debug: Log calculation details for verification
+        #if DEBUG
+        print("📊 ATL Calculation: decay=\(String(format: "%.4f", decay)), days=\(dailyTSS.count), result=\(String(format: "%.1f", atl))")
+        #endif
 
         return atl
     }

@@ -720,7 +720,139 @@ final class CacheManager: ObservableObject {
     }
     
     // MARK: - Historical Data Backfill
-    
+
+    /// Backfill historical recovery scores from existing physio data
+    /// This calculates recovery scores for days that have HRV/RHR/sleep data but placeholder recovery scores (50)
+    func backfillHistoricalRecoveryScores(days: Int = 60, forceRefresh: Bool = false) async {
+        // Check if backfill ran recently (within 24 hours) unless forcing
+        let lastBackfillKey = "lastRecoveryBackfill"
+        if !forceRefresh, let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
+            let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
+            if hoursSinceBackfill < 24 {
+                Logger.data("⏭️ [RECOVERY BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
+                return
+            }
+        }
+
+        Logger.data("📊 [RECOVERY BACKFILL] Starting backfill for last \(days) days...")
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
+
+        let context = persistence.newBackgroundContext()
+        let calculator = RecoveryDataCalculator()
+
+        await context.perform {
+            // Fetch all DailyScores in the period
+            let request = DailyScores.fetchRequest()
+            request.predicate = NSPredicate(
+                format: "date >= %@ AND date < %@",
+                startDate as NSDate,
+                today as NSDate
+            )
+            request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+
+            guard let allScores = try? context.fetch(request) else {
+                Logger.error("❌ [RECOVERY BACKFILL] Failed to fetch DailyScores")
+                return
+            }
+
+            Logger.data("📊 [RECOVERY BACKFILL] Found \(allScores.count) days to process")
+
+            var updatedCount = 0
+            var skippedCount = 0
+
+            for scores in allScores {
+                guard let date = scores.date else { continue }
+
+                // Only process days with placeholder recovery score (50)
+                // Skip if score is not 50 (already calculated)
+                guard scores.recoveryScore == 50 else {
+                    skippedCount += 1
+                    continue
+                }
+
+                // Check if we have physio data
+                guard let physio = scores.physio else {
+                    skippedCount += 1
+                    continue
+                }
+
+                // Only calculate if we have at least HRV and RHR
+                guard physio.hrv > 0, physio.rhr > 0 else {
+                    skippedCount += 1
+                    continue
+                }
+
+                // Calculate baselines for this date (7-day average ending on this date)
+                let hrvBaseline = physio.hrvBaseline > 0 ? physio.hrvBaseline : nil
+                let rhrBaseline = physio.rhrBaseline > 0 ? physio.rhrBaseline : nil
+                let sleepBaseline = physio.sleepBaseline > 0 ? physio.sleepBaseline : nil
+
+                // Calculate recovery score from physio data
+                // Use simplified algorithm similar to calculateRecoveryScore() above
+                var recoveryScore = 50.0
+
+                // HRV component (30 points)
+                if let baseline = hrvBaseline, baseline > 0 {
+                    let hrvRatio = physio.hrv / baseline
+                    recoveryScore += (hrvRatio - 1.0) * 30
+                }
+
+                // RHR component (20 points)
+                if let baseline = rhrBaseline, baseline > 0 {
+                    let rhrRatio = physio.rhr / baseline
+                    recoveryScore += (1.0 - rhrRatio) * 20
+                }
+
+                // Sleep component (20 points)
+                if physio.sleepDuration > 0, let baseline = sleepBaseline, baseline > 0 {
+                    let sleepRatio = physio.sleepDuration / baseline
+                    recoveryScore += (sleepRatio - 1.0) * 20
+                }
+
+                // Clamp to 0-100 range
+                recoveryScore = max(0, min(100, recoveryScore))
+
+                // Determine band
+                let band: String
+                if recoveryScore >= 70 {
+                    band = "green"
+                } else if recoveryScore >= 40 {
+                    band = "amber"
+                } else {
+                    band = "red"
+                }
+
+                // Update the score
+                scores.recoveryScore = recoveryScore
+                scores.recoveryBand = band
+                scores.lastUpdated = Date()
+                updatedCount += 1
+
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MMM dd"
+                Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(Int(recoveryScore)) (was 50, HRV=\(physio.hrv), RHR=\(physio.rhr))")
+            }
+
+            // Save changes
+            if context.hasChanges {
+                do {
+                    try context.save()
+                    Logger.data("✅ [RECOVERY BACKFILL] Updated \(updatedCount) days, skipped \(skippedCount)")
+                } catch {
+                    Logger.error("❌ [RECOVERY BACKFILL] Failed to save: \(error)")
+                }
+            } else {
+                Logger.data("📊 [RECOVERY BACKFILL] No changes to save (\(skippedCount) days skipped)")
+            }
+        }
+
+        // Save timestamp of successful backfill (outside context.perform)
+        UserDefaults.standard.set(Date(), forKey: lastBackfillKey)
+    }
+
     /// Backfill historical HRV/RHR/Sleep data from HealthKit for chart display
     func backfillHistoricalPhysioData(days: Int = 60) async {
         Logger.data("📊 [PHYSIO BACKFILL] Starting backfill for last \(days) days...")

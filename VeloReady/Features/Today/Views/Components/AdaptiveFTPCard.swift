@@ -220,7 +220,7 @@ struct RAGSparkline: View {
                     }
                 }
             }
-            .stroke(gradient, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            .stroke(gradient, style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round))
         }
         .frame(height: height)
     }

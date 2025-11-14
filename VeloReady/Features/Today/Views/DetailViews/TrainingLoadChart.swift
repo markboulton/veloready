@@ -81,243 +81,66 @@ struct TrainingLoadChart: View {
             activities: historicalActivities
         )
         
+        // Convert LoadDataPoint to TrainingLoadDataPoint for the unified component
+        let chartViewData = chartData.map { point in
+            TrainingLoadDataPoint(
+                date: point.date,
+                ctl: point.ctl,
+                atl: point.atl,
+                tsb: point.tsb,
+                isFuture: point.isFuture
+            )
+        }
+        
         return AnyView(
             ChartCard(
                 title: TrainingLoadContent.title,
                 subtitle: "21-day CTL/ATL/TSB trend"
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                // 37-day line chart with ride impact zone
-                Chart {
-                    // Ride impact zone (highlighting this ride)
-                    if let ridePoint = chartData.first(where: { $0.isRide }) {
-                        RectangleMark(
-                            xStart: .value("Start", ridePoint.date.addingTimeInterval(-86400)),
-                            xEnd: .value("End", ridePoint.date.addingTimeInterval(86400)),
-                            yStart: .value("Min", -50),
-                            yEnd: .value("Max", max(ridePoint.ctl, ridePoint.atl) + 20)
-                        )
-                        .foregroundStyle(Color.primary.opacity(0.08))
-                    }
-                    
-                    // Vertical line marking today
-                    if let ridePoint = chartData.first(where: { $0.isRide }) {
-                        RuleMark(x: .value("Today", ridePoint.date))
-                            .foregroundStyle(Color.text.tertiary)
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                    }
-                    
-                    // CTL (Fitness) line
-                    ForEach(chartData) { dataPoint in
-                        LineMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.ctl),
-                            series: .value("Metric", "CTL")
-                        )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.blueAccent.opacity(0.5) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
-                        .interpolationMethod(.linear)
-                        
-                        // Dots for each day
-                        if !dataPoint.isFuture {
-                            PointMark(
-                                x: .value("Date", dataPoint.date),
-                                y: .value("Value", dataPoint.ctl)
-                            )
-                            .foregroundStyle(Color.clear)
-                            .symbolSize(dataPoint.isRide ? 100 : 64)
-                            .symbol {
-                                if dataPoint.isRide {
-                                    ZStack {
-                                        Circle()
-                                            .fill(ColorScale.blueAccent)
-                                            .frame(width: 10, height: 10)
-                                        Circle()
-                                            .stroke(Color.background.primary, lineWidth: 3)
-                                            .frame(width: 10, height: 10)
-                                    }
-                                } else {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.background.primary)
-                                            .frame(width: 8, height: 8)
-                                        Circle()
-                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
-                                            .frame(width: 8, height: 8)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // ATL (Fatigue) line
-                    ForEach(chartData) { dataPoint in
-                        LineMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.atl),
-                            series: .value("Metric", "ATL")
-                        )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.amberAccent.opacity(0.5) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
-                        .interpolationMethod(.linear)
-                        
-                        // Dots for each day
-                        if !dataPoint.isFuture {
-                            PointMark(
-                                x: .value("Date", dataPoint.date),
-                                y: .value("Value", dataPoint.atl)
-                            )
-                            .foregroundStyle(Color.clear)
-                            .symbolSize(dataPoint.isRide ? 100 : 64)
-                            .symbol {
-                                if dataPoint.isRide {
-                                    ZStack {
-                                        Circle()
-                                            .fill(ColorScale.amberAccent)
-                                            .frame(width: 10, height: 10)
-                                        Circle()
-                                            .stroke(Color.background.primary, lineWidth: 3)
-                                            .frame(width: 10, height: 10)
-                                    }
-                                } else {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.background.primary)
-                                            .frame(width: 8, height: 8)
-                                        Circle()
-                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
-                                            .frame(width: 8, height: 8)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // TSB (Form) line
-                    ForEach(chartData) { dataPoint in
-                        LineMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", dataPoint.tsb),
-                            series: .value("Metric", "TSB")
-                        )
-                        .foregroundStyle(dataPoint.isFuture ? ColorScale.greenAccent.opacity(0.5) : Color.text.tertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 1))
-                        .interpolationMethod(.linear)
-                        
-                        // Dots for each day
-                        if !dataPoint.isFuture {
-                            PointMark(
-                                x: .value("Date", dataPoint.date),
-                                y: .value("Value", dataPoint.tsb)
-                            )
-                            .foregroundStyle(Color.clear)
-                            .symbolSize(dataPoint.isRide ? 100 : 64)
-                            .symbol {
-                                if dataPoint.isRide {
-                                    ZStack {
-                                        Circle()
-                                            .fill(ColorScale.greenAccent)
-                                            .frame(width: 10, height: 10)
-                                        Circle()
-                                            .stroke(Color.background.primary, lineWidth: 3)
-                                            .frame(width: 10, height: 10)
-                                    }
-                                } else {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.background.primary)
-                                            .frame(width: 8, height: 8)
-                                        Circle()
-                                            .stroke(Color.text.tertiary.opacity(0.6), lineWidth: 2)
-                                            .frame(width: 8, height: 8)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: 3)) { value in
-                        if let date = value.as(Date.self) {
-                            AxisValueLabel {
-                                Text(date, format: .dateTime.month(.abbreviated).day())
-                            }
-                            .font(.caption2)
-                            .foregroundStyle(Color.text.secondary)
-                        }
-                        AxisGridLine()
-                            .foregroundStyle(ColorPalette.neutral300)
-                    }
-                }
-                .chartYAxis {
-                    AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
-                        AxisGridLine()
-                            .foregroundStyle(ColorPalette.neutral300)
-                        AxisValueLabel()
-                            .font(.caption2)
-                            .foregroundStyle(Color.text.tertiary)
-                    }
-                }
-                .frame(height: 200)
-                
-                // Legend and metrics
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    HStack(spacing: Spacing.md) {
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(Color.button.primary)
-                                .frame(width: 8, height: 8)
-                            Text(TrainingLoadContent.Metrics.ctl)
-                                .font(.caption2)
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.1f", ctlAfter))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(Color.semantic.warning)
-                                .frame(width: 8, height: 8)
-                            Text(TrainingLoadContent.Metrics.atl)
-                                .font(.caption2)
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.1f", atlAfter))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(ColorScale.greenAccent)
-                                .frame(width: 8, height: 8)
-                            Text(TrainingLoadContent.Metrics.tsb)
-                                .font(.caption2)
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.1f", tsbAfter))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                        }
-                    }
+                    // Use unified chart component
+                    TrainingLoadChartView(data: chartViewData)
                     
                     Divider()
                     
-                    // TSB Description
-                    HStack {
-                        Text(TrainingLoadContent.Metrics.form)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                        Spacer()
-                        Text(String(format: "%.1f", tsbAfter))
-                            .font(.caption)
-                            .foregroundColor(tsbColor(tsbAfter))
-                            .fontWeight(.semibold)
+                    // Current metrics
+                    HStack(spacing: Spacing.sm) {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(ColorScale.blueAccent)
+                                .frame(width: 7, height: 7)
+                            Text(TrainingLoadContent.Metrics.ctl)
+                                .font(.system(size: 10))
+                                .foregroundColor(Color.text.secondary)
+                            Text(String(format: "%.0f", ctlAfter))
+                                .font(.system(size: 10))
+                                .fontWeight(.semibold)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(ColorScale.amberAccent)
+                                .frame(width: 7, height: 7)
+                            Text(TrainingLoadContent.Metrics.atl)
+                                .font(.system(size: 10))
+                                .foregroundColor(Color.text.secondary)
+                            Text(String(format: "%.0f", atlAfter))
+                                .font(.system(size: 10))
+                                .fontWeight(.semibold)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(tsbGradientColor(tsbAfter))
+                                .frame(width: 7, height: 7)
+                            Text(TrainingLoadContent.Metrics.tsb)
+                                .font(.system(size: 10))
+                                .foregroundColor(Color.text.secondary)
+                            Text(String(format: "%.0f", tsbAfter))
+                                .font(.system(size: 10))
+                                .fontWeight(.semibold)
+                        }
                     }
-                    
-                    Text(tsbDescription(tsbAfter))
-                        .font(.caption)
-                        .foregroundColor(Color.text.secondary)
-                }
                 }
             }
             .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
@@ -651,16 +474,26 @@ struct TrainingLoadChart: View {
         }
     }
     
-    private func tsbColor(_ tsb: Double) -> Color {
+    /// TSB gradient color based on training zones
+    /// High Risk (<-30): Red, Optimal (-30 to -10): Green, Grey Zone (-10 to +5): Grey,
+    /// Fresh (+5 to +20): Blue, Transition (>+20): Yellow
+    private func tsbGradientColor(_ tsb: Double) -> Color {
         if tsb < -30 {
-            return ColorScale.redAccent
+            return ColorScale.redAccent  // High Risk
         } else if tsb < -10 {
-            return ColorScale.amberAccent
-        } else if tsb > 25 {
-            return ColorScale.blueAccent
+            return ColorScale.greenAccent  // Optimal
+        } else if tsb < 5 {
+            return Color.text.tertiary  // Grey Zone
+        } else if tsb < 20 {
+            return ColorScale.blueAccent  // Fresh
         } else {
-            return ColorScale.greenAccent
+            return ColorScale.amberAccent  // Transition
         }
+    }
+    
+    private func tsbColor(_ tsb: Double) -> Color {
+        // Keep old function for backwards compatibility
+        return tsbGradientColor(tsb)
     }
     
     private func tsbDescription(_ tsb: Double) -> String {

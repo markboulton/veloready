@@ -9,9 +9,11 @@ struct LatestActivityCardV2: View {
     @State private var isInitialLoad = true
     @State private var showingRPESheet = false
     @State private var hasRPE = false
-    
-    init(activity: UnifiedActivity) {
+    let showAsLatestActivity: Bool // If true, shows "Latest Activity" as title; if false, shows activity name
+
+    init(activity: UnifiedActivity, showAsLatestActivity: Bool = false) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
+        self.showAsLatestActivity = showAsLatestActivity
         print("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
         Logger.debug("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
     }
@@ -54,9 +56,9 @@ struct LatestActivityCardV2: View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
-                    title: TodayContent.latestActivity,
-                    subtitle: viewModel.activity.name,
-                    subtitleIcon: viewModel.activity.type.icon,
+                    title: showAsLatestActivity ? TodayContent.latestActivity : viewModel.activity.name,
+                    subtitle: showAsLatestActivity ? viewModel.activity.name : nil,
+                    subtitleIcon: showAsLatestActivity ? viewModel.activity.type.icon : nil,
                     badge: viewModel.activity.isIndoorRide ? .init(text: "VIRTUAL", style: .info) : nil,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),

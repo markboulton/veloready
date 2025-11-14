@@ -137,7 +137,7 @@ struct TodayView: View {
                             Group {
                                 if hasConnectedDataSource {
                                     if let latestActivity = getLatestActivity() {
-                                        LatestActivityCardV2(activity: latestActivity)
+                                        LatestActivityCardV2(activity: latestActivity, showAsLatestActivity: true)
                                             .onAppear {
                                                 Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
                                             }
