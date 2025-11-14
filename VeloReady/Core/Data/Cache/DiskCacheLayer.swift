@@ -72,12 +72,48 @@ actor DiskCacheLayer: CacheLayer {
         
         // If we have data, try to decode it
         if let data = data, let source = source {
-            // Simple approach: try JSONDecoder for common types
+            // Try common types in order of likelihood
+            // This gracefully handles format changes without spamming errors
+            
+            // Try Activity array (most common)
             if let decoded = try? JSONDecoder().decode([Activity].self, from: data) as? T {
                 Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
                 return decoded
             }
-            // Add more type attempts as needed
+            
+            // Try single Activity
+            if let decoded = try? JSONDecoder().decode(Activity.self, from: data) as? T {
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                return decoded
+            }
+            
+            // Try StravaActivity array
+            if let decoded = try? JSONDecoder().decode([StravaActivity].self, from: data) as? T {
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                return decoded
+            }
+            
+            // Try numeric types (Double, Int)
+            if let decoded = try? JSONDecoder().decode(Double.self, from: data) as? T {
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                return decoded
+            }
+            
+            if let decoded = try? JSONDecoder().decode(Int.self, from: data) as? T {
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                return decoded
+            }
+            
+            // Try String
+            if let decoded = try? JSONDecoder().decode(String.self, from: data) as? T {
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                return decoded
+            }
+            
+            // Decode failed - delete corrupted cache and treat as miss
+            // Only log at debug level to avoid spam from format changes
+            Logger.debug("💾 [DiskCache] Could not decode \(key) - deleting and treating as miss")
+            await remove(key: key)
         }
         
         Logger.debug("❌ [DiskCache MISS] \(key)")
@@ -276,6 +312,7 @@ actor DiskCacheLayer: CacheLayer {
 private struct CacheMetadata {
     let cachedAt: Date
     let size: Int
+    let version: Int = 1  // Version for future format changes
     
     func isValid(ttl: TimeInterval) -> Bool {
         return Date().timeIntervalSince(cachedAt) < ttl

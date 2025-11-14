@@ -285,37 +285,52 @@ private struct MLDataCollectionView: View {
         currentDays >= totalDays
     }
     
+    /// RAG status color based on confidence
+    private var ragStatusColor: Color {
+        switch confidencePercentage {
+        case 0..<60:
+            return ColorScale.redAccent  // Red: < 60%
+        case 60..<80:
+            return ColorScale.amberAccent  // Amber: 60-79%
+        default:
+            return ColorScale.greenAccent  // Green: 80%+
+        }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Text with info button on the right
-            HStack {
+            HStack(spacing: Spacing.sm) {
                 if isAnalyzing {
-                    // Analysis mode: Show gradient text with confidence
+                    // Analysis mode: Show label + confidence % (right-aligned) + up arrow
+                    Text(TodayContent.AIBrief.mlAnalyzing)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
                     HStack(spacing: Spacing.xs) {
-                        Text(TodayContent.AIBrief.mlAnalyzing)
-                            .font(.caption)
-                            .rainbowGradient()
-                        
-                        Text("·")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(confidencePercentage)% \(TodayContent.AIBrief.confidenceLabel)")
-                            .font(.caption)
-                            .rainbowGradient()
-                        
                         Image(systemName: Icons.Arrow.upRight)
                             .font(.caption2)
-                            .rainbowGradient()
+                            .foregroundColor(ragStatusColor)
+                        
+                        Text("\(confidencePercentage)%")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(ragStatusColor)
                     }
                 } else {
-                    // Collection mode: Show standard text
+                    // Collection mode: Show label on left, days remaining on right
                     Text(TodayContent.AIBrief.mlCollecting)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(daysRemaining) remaining")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                
-                Spacer()
                 
                 Button(action: {
                     HapticFeedback.light()
@@ -328,56 +343,21 @@ private struct MLDataCollectionView: View {
                 .buttonStyle(.plain)
             }
             
-            // Progress bar (similar to chart progress bars)
+            // Progress bar with RAG coloring
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background (grey) - only show in collection mode
-                    if !isAnalyzing {
-                        Rectangle()
-                            .fill(ColorPalette.neutral200)
-                            .frame(height: 2)
-                    }
+                    // Background (light grey)
+                    Rectangle()
+                        .fill(ColorPalette.neutral200)
+                        .frame(height: 3)
                     
-                    // Progress - full-width gradient revealed by mask (collection mode)
-                    // Or full-width gradient (analysis mode)
-                    LinearGradient(
-                        gradient: Gradient(colors: ColorPalette.aiGradientColors),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(height: 2)
-                    .mask(
-                        HStack(spacing: 0) {
-                            if isAnalyzing {
-                                // Full width in analysis mode
-                                Rectangle()
-                            } else {
-                                // Revealed portion (progress) in collection mode
-                                Rectangle()
-                                    .frame(width: geometry.size.width * progress)
-                                
-                                Spacer()
-                            }
-                        }
-                    )
+                    // Progress fill with RAG color
+                    Rectangle()
+                        .fill(ragStatusColor)
+                        .frame(width: geometry.size.width * progress, height: 3)
                 }
             }
-            .frame(height: 2)
-            
-            // Only show day counts in collection mode
-            if !isAnalyzing {
-                HStack {
-                    Text("\(currentDays) days")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Text("\(daysRemaining) \(TodayContent.AIBrief.mlDaysRemaining)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
+            .frame(height: 3)
         }
     }
 }
