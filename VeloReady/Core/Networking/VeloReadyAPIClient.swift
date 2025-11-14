@@ -16,6 +16,10 @@ class VeloReadyAPIClient: ObservableObject {
     // MARK: - Published State
     @Published var isLoading = false
     @Published var lastError: String?
+    @Published var rateLimitedUntil: Date?
+    
+    // MARK: - Request Deduplication
+    private var streamTasks: [String: Task<[String: StravaStreamData], Error>] = [:]
     
     // MARK: - Initialization
     private init() {}
@@ -47,11 +51,20 @@ class VeloReadyAPIClient: ObservableObject {
     }
     
     /// Fetch activity streams from backend (cached for 24 hours)
+    /// Deduplicates simultaneous requests for the same activity
     /// - Parameters:
     ///   - activityId: The activity ID (Strava or Intervals)
     ///   - source: Data source ("strava" or "intervals")
     /// - Returns: Dictionary of stream types to stream data
     func fetchActivityStreams(activityId: String, source: APIDataSource = .strava) async throws -> [String: StravaStreamData] {
+        let cacheKey = "streams:\(source.rawValue):\(activityId)"
+        
+        // Check if request already in-flight (deduplication)
+        if let existingTask = streamTasks[cacheKey] {
+            Logger.debug("🔄 [VeloReady API DEDUPE] \(cacheKey) - reusing existing request")
+            return try await existingTask.value
+        }
+        
         let endpoint: String
         switch source {
         case .strava:
@@ -64,18 +77,31 @@ class VeloReadyAPIClient: ObservableObject {
             throw VeloReadyAPIError.invalidURL
         }
 
-        // Check client-side throttling before making request
-        try await checkThrottle(endpoint: "/api/streams")
+        // Create task for this request
+        let task = Task<[String: StravaStreamData], Error> {
+            defer {
+                // Clean up task from dictionary when done
+                self.streamTasks.removeValue(forKey: cacheKey)
+            }
+            
+            // Check client-side throttling before making request
+            try await checkThrottle(endpoint: "/api/streams")
 
-        Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId) (source: \(source))")
+            Logger.debug("🌐 [VeloReady API] Fetching streams for activity: \(activityId) (source: \(source))")
 
-        // Backend returns: { altitude: {...}, cadence: {...}, metadata: {tier: "free"} }
-        // We need to decode this structure and extract just the streams
-        let response: StreamsResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/streams")
+            // Backend returns: { altitude: {...}, cadence: {...}, metadata: {tier: "free"} }
+            // We need to decode this structure and extract just the streams
+            let response: StreamsResponse = try await makeRequestWithRetry(url: url, endpoint: "/api/streams")
+            
+            Logger.debug("✅ [VeloReady API] Received \(response.streams.count) stream types for activity \(activityId)")
+            
+            return response.streams
+        }
         
-        Logger.debug("✅ [VeloReady API] Received \(response.streams.count) stream types for activity \(activityId)")
+        // Store task for deduplication
+        streamTasks[cacheKey] = task
         
-        return response.streams
+        return try await task.value
     }
     
     // MARK: - Intervals.icu Methods
@@ -129,8 +155,15 @@ class VeloReadyAPIClient: ObservableObject {
         let result = await RequestThrottler.shared.shouldAllowRequest(endpoint: endpoint)
 
         if !result.allowed {
-            Logger.warning("🛑 [VeloReady API] Request throttled for \(endpoint)")
-            throw VeloReadyAPIError.throttled(retryAfter: result.retryAfter ?? 60)
+            let retryAfter = result.retryAfter ?? 60
+            Logger.warning("⏱️ [RequestThrottler] Rate limited: Please wait \(Int(retryAfter)) seconds")
+            
+            // Update UI-visible rate limit state
+            DispatchQueue.main.async {
+                self.rateLimitedUntil = Date().addingTimeInterval(retryAfter)
+            }
+            
+            throw VeloReadyAPIError.throttled(retryAfter: retryAfter)
         }
     }
 

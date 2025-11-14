@@ -11,11 +11,18 @@ struct TrainingLoadChart: View {
     @State private var historicalActivities: [Activity] = []
     @State private var isLoading = false
     @State private var loadedActivityId: String? = nil // Track which activity we've loaded data for
+    @State private var loadingState: LoadingState = .initial // Track CTL/ATL loading state
     
     // Cache metadata (persists across app restarts)
     @AppStorage("trainingLoadLastFetch") private var lastFetchTimestamp: Double = 0
     @AppStorage("trainingLoadActivityCount") private var cachedActivityCount: Int = 0
     private let cacheValidityDuration: TimeInterval = 3600  // 1 hour
+    
+    enum LoadingState {
+        case initial
+        case loading
+        case loaded
+    }
     
     // Computed property to parse date once
     private var parsedRideDate: Date? {
@@ -51,14 +58,17 @@ struct TrainingLoadChart: View {
             return AnyView(EmptyView())
         }
         
-        Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
-        
         // Find this activity in historicalActivities to get its actual CTL/ATL
         let matchedActivity = historicalActivities.first(where: { $0.id == activity.id })
         let ctlAfter = matchedActivity?.ctl ?? activity.ctl ?? 0
         let atlAfter = matchedActivity?.atl ?? activity.atl ?? 0
         
-        Logger.data("TrainingLoadChart: Using CTL=\(String(format: "%.1f", ctlAfter)), ATL=\(String(format: "%.1f", atlAfter)) for legend")
+        // Only log when state actually changes
+        if loadingState == .loaded {
+            Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(String(format: "%.1f", ctlAfter)), ATL: \(String(format: "%.1f", atlAfter))")
+        } else if loadingState == .loading {
+            Logger.data("TrainingLoadChart: Loading training load data...")
+        }
         
         let tsbAfter = ctlAfter - atlAfter
         
@@ -319,7 +329,9 @@ struct TrainingLoadChart: View {
                 
                 // Fetch historical activities for chart
                 Logger.data("TrainingLoadChart: .task triggered for NEW activity: \(activity.id)")
+                loadingState = .loading
                 await loadHistoricalActivities(rideDate: rideDate)
+                loadingState = .loaded
                 loadedActivityId = activity.id
             }
             .onAppear {

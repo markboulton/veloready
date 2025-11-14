@@ -18,6 +18,8 @@ class iCloudSyncService: ObservableObject {
     
     private let ubiquityIdentityToken: (NSCoding & NSCopying & NSObjectProtocol)?
     private var cancellables = Set<AnyCancellable>()
+    private var lastSyncTime: Date = Date.distantPast
+    private let syncDebounceInterval: TimeInterval = 300  // 5 minutes minimum between syncs
     
     // MARK: - Keys
     
@@ -87,15 +89,24 @@ class iCloudSyncService: ObservableObject {
     
     // MARK: - Sync Operations
     
-    /// Sync all data to iCloud
+    /// Sync all data to iCloud (debounced to prevent excessive syncs)
     func syncToCloud() async {
         guard isCloudAvailable else {
             syncError = "iCloud is not available"
             return
         }
         
+        // Debounce: skip if synced within last 5 minutes
+        let timeSinceLastSync = Date().timeIntervalSince(lastSyncTime)
+        if timeSinceLastSync < syncDebounceInterval {
+            let remainingWait = Int(syncDebounceInterval - timeSinceLastSync)
+            Logger.debug("☁️ [iCloud] Sync skipped - last sync was \(Int(timeSinceLastSync))s ago (wait \(remainingWait)s)")
+            return
+        }
+        
         isSyncing = true
         syncError = nil
+        lastSyncTime = Date()
         
         do {
             // Sync UserDefaults data to iCloud
