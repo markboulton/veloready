@@ -54,8 +54,8 @@ struct LatestActivityCardV2: View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
-                    title: viewModel.activity.name,
-                    subtitle: formattedDateAndTime,
+                    title: TodayContent.latestActivity,
+                    subtitle: viewModel.activity.name,
                     subtitleIcon: viewModel.activity.type.icon,
                     badge: viewModel.activity.isIndoorRide ? .init(text: "VIRTUAL", style: .info) : nil,
                     action: .init(icon: Icons.System.chevronRight, action: {})
@@ -63,6 +63,8 @@ struct LatestActivityCardV2: View {
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
+                    VRText(formattedDateAndTime, style: .caption)
+                        .foregroundColor(.secondary)
                     // Metadata row with RPE badge on right
                     HStack(alignment: .top, spacing: 0) {
                         metadataGrid

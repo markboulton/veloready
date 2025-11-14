@@ -25,41 +25,47 @@ public struct TrainingLoadCalculations {
     
     /// Calculate CTL (Chronic Training Load) - 42-day exponentially weighted average
     /// This represents fitness/training capacity
+    /// Uses standard Banister/Coggan exponential decay formula matching Training Peaks, Strava, Intervals.icu
+    /// Formula: CTL_today = CTL_yesterday * exp(-1/42) + TSS_today * (1 - exp(-1/42))
     /// - Parameter dailyTSS: Array of daily TSS values (most recent last)
     /// - Returns: CTL value
     public static func calculateCTL(
         dailyTSS: [Double]
     ) -> Double {
         guard !dailyTSS.isEmpty else { return 0.0 }
-        
+
         let timeConstant = 42.0
-        let decay = 1.0 / timeConstant
-        
+        let decay = exp(-1.0 / timeConstant)  // e^(-1/42) ≈ 0.9763
+
         var ctl = 0.0
         for tss in dailyTSS {
-            ctl = ctl + (tss - ctl) * decay
+            // Exponential weighted moving average (Banister/Coggan formula)
+            ctl = ctl * decay + tss * (1.0 - decay)
         }
-        
+
         return ctl
     }
-    
+
     /// Calculate ATL (Acute Training Load) - 7-day exponentially weighted average
     /// This represents recent fatigue/training stress
+    /// Uses standard Banister/Coggan exponential decay formula matching Training Peaks, Strava, Intervals.icu
+    /// Formula: ATL_today = ATL_yesterday * exp(-1/7) + TSS_today * (1 - exp(-1/7))
     /// - Parameter dailyTSS: Array of daily TSS values (most recent last)
     /// - Returns: ATL value
     public static func calculateATL(
         dailyTSS: [Double]
     ) -> Double {
         guard !dailyTSS.isEmpty else { return 0.0 }
-        
+
         let timeConstant = 7.0
-        let decay = 1.0 / timeConstant
-        
+        let decay = exp(-1.0 / timeConstant)  // e^(-1/7) ≈ 0.8668
+
         var atl = 0.0
         for tss in dailyTSS {
-            atl = atl + (tss - atl) * decay
+            // Exponential weighted moving average (Banister/Coggan formula)
+            atl = atl * decay + tss * (1.0 - decay)
         }
-        
+
         return atl
     }
     
@@ -79,6 +85,8 @@ public struct TrainingLoadCalculations {
     // MARK: - Exponential Weighted Average (Generic)
     
     /// Calculate exponentially weighted moving average
+    /// Uses standard exponential decay formula matching Training Peaks, Strava, Intervals.icu
+    /// Formula: EMA_today = EMA_yesterday * exp(-1/τ) + value_today * (1 - exp(-1/τ))
     /// - Parameters:
     ///   - values: Array of values (most recent last)
     ///   - timeConstant: Time constant for decay (e.g., 7 for ATL, 42 for CTL)
@@ -88,14 +96,15 @@ public struct TrainingLoadCalculations {
         timeConstant: Double
     ) -> Double {
         guard !values.isEmpty else { return 0.0 }
-        
-        let decay = 1.0 / timeConstant
+
+        let decay = exp(-1.0 / timeConstant)
         var average = 0.0
-        
+
         for value in values {
-            average = average + (value - average) * decay
+            // Exponential weighted moving average (Banister/Coggan formula)
+            average = average * decay + value * (1.0 - decay)
         }
-        
+
         return average
     }
 }

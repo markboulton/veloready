@@ -90,34 +90,21 @@ actor TrainingLoadCalculator {
         Logger.data("📊 Date range with TSS: \(sortedDates.first!.description) to \(sortedDates.last!.description)")
         Logger.data("📊 Daily TSS values: \(dailyTSS.map { "\(calendar.startOfDay(for: $0.key)): \(String(format: "%.0f", $0.value))" }.sorted().joined(separator: ", "))")
         
-        // Calculate CTL/ATL progressively using incremental EMA formula
-        // EMA_today = (value_today × alpha) + (EMA_yesterday × (1 - alpha))
-        // where alpha = 2 / (N + 1)
+        // Calculate CTL/ATL progressively using exponential decay formula
+        // CTL_today = CTL_yesterday * exp(-1/τ) + TSS_today * (1 - exp(-1/τ))
+        // where τ is the time constant in days
+        // 
+        // This matches Training Peaks / TrainingPeaks formula:
+        // - CTL: 42-day time constant → decay = exp(-1/42) ≈ 0.9763 per day
+        // - ATL: 7-day time constant → decay = exp(-1/7) ≈ 0.8668 per day
         
-        let ctlAlpha = 2.0 / 43.0  // 42-day time constant
-        let atlAlpha = 2.0 / 8.0   // 7-day time constant
+        let ctlDecay = exp(-1.0 / 42.0)  // ≈ 0.9763
+        let atlDecay = exp(-1.0 / 7.0)   // ≈ 0.8668
         
-        // Estimate starting CTL/ATL based on early training pattern
-        // This prevents "cold start" problem where we reset fitness to zero
-        
-        // Look at first 2 weeks of activity to establish baseline
-        let firstTwoWeeks = sortedDates.prefix(min(14, sortedDates.count))
-        let totalTSS = firstTwoWeeks.compactMap { dailyTSS[$0] }.reduce(0.0, +)
-        let activityCount = firstTwoWeeks.count
-        
-        // Calculate average TSS per activity day
-        let avgTSSPerActivity = totalTSS / Double(max(1, activityCount))
-        
-        // Estimate CTL: assume training at this level for ~42 days
-        // CTL represents accumulated fitness, so use a multiplier
-        // At steady state with 3-4 activities/week: CTL ≈ avgTSS * ~0.7
-        var currentCTL = avgTSSPerActivity * 0.7
-        
-        // ATL represents recent fatigue (7-day window)
-        // Start lower than CTL since it's a shorter window
-        var currentATL = avgTSSPerActivity * 0.4
-        
-        Logger.data("📊 Baseline estimate from \(activityCount) early activities (avg TSS=\(String(format: "%.1f", avgTSSPerActivity))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
+        // Start from zero (Training Peaks standard approach)
+        // CTL and ATL build up naturally using exponential weighted moving average
+        var currentCTL = 0.0
+        var currentATL = 0.0
         
         // Start from earliest date in data
         let startDate = sortedDates.first!
@@ -131,9 +118,10 @@ actor TrainingLoadCalculator {
         while currentDate <= today {
             let tss = dailyTSS[currentDate] ?? 0
             
-            // Incremental EMA update
-            currentCTL = (tss * ctlAlpha) + (currentCTL * (1 - ctlAlpha))
-            currentATL = (tss * atlAlpha) + (currentATL * (1 - atlAlpha))
+            // Exponential decay formula (matches Training Peaks)
+            // CTL_today = CTL_yesterday * decay + TSS_today * (1 - decay)
+            currentCTL = (currentCTL * ctlDecay) + (tss * (1 - ctlDecay))
+            currentATL = (currentATL * atlDecay) + (tss * (1 - atlDecay))
             
             // Store for this date
             result[currentDate] = (currentCTL, currentATL)
@@ -212,28 +200,13 @@ actor TrainingLoadCalculator {
             return [:]
         }
         
-        // Calculate baseline from early activities using more realistic approach
-        // CTL represents ~42 days of accumulated training, ATL represents ~7 days
-        let firstTwoWeeks = sortedDates.prefix(min(14, sortedDates.count))
-        let totalTRIMP = firstTwoWeeks.compactMap { dailyTRIMP[$0] }.reduce(0.0, +)
-        let activityCount = firstTwoWeeks.count
-        let avgDailyTRIMP = totalTRIMP / Double(max(1, activityCount))
-
-        // More realistic baseline: assume athlete has been training at this level
-        // CTL = average daily TSS accumulated over ~21 days (half of 42-day time constant)
-        // ATL = average daily TSS accumulated over ~3-4 days (half of 7-day time constant)
-        var currentCTL = avgDailyTRIMP * 21.0
-        var currentATL = avgDailyTRIMP * 3.5
-
-        // Minimum realistic values for active cyclists (prevent showing near-zero)
-        currentCTL = max(currentCTL, 30.0)
-        currentATL = max(currentATL, 20.0)
-
-        Logger.data("📊 Baseline from \(activityCount) activities (avg TRIMP/day=\(String(format: "%.1f", avgDailyTRIMP))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
+        // Start from zero (Training Peaks standard approach)
+        var currentCTL = 0.0
+        var currentATL = 0.0
         
-        // Progressive calculation
-        let ctlAlpha = 2.0 / 43.0
-        let atlAlpha = 2.0 / 8.0
+        // Progressive calculation using exponential decay (matches Training Peaks)
+        let ctlDecay = exp(-1.0 / 42.0)  // ≈ 0.9763
+        let atlDecay = exp(-1.0 / 7.0)   // ≈ 0.8668
         
         var result: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
         var currentDate = sortedDates.first!
@@ -241,9 +214,9 @@ actor TrainingLoadCalculator {
         while currentDate <= today {
             let trimp = dailyTRIMP[currentDate] ?? 0
             
-            // Incremental EMA update
-            currentCTL = (trimp * ctlAlpha) + (currentCTL * (1 - ctlAlpha))
-            currentATL = (trimp * atlAlpha) + (currentATL * (1 - atlAlpha))
+            // Exponential decay formula (matches Training Peaks)
+            currentCTL = (currentCTL * ctlDecay) + (trimp * (1 - ctlDecay))
+            currentATL = (currentATL * atlDecay) + (trimp * (1 - atlDecay))
             
             // Store with TRIMP as TSS equivalent
             result[currentDate] = (ctl: currentCTL, atl: currentATL, tss: trimp)

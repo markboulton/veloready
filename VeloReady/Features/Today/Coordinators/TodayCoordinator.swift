@@ -302,6 +302,15 @@ class TodayCoordinator: ObservableObject {
             let duration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
             
+            // Phase 4: Background cleanup and backfill of training load data (non-blocking)
+            Task.detached(priority: .background) {
+                Logger.info("🔄 [TodayCoordinator] Starting background training load cleanup and backfill...")
+                // Step 1: Clean up corrupt data from previous bugs
+                await CacheManager.shared.cleanupCorruptTrainingLoadData()
+                // Step 2: Backfill missing/cleaned data with correct values
+                await CacheManager.shared.calculateMissingCTLATL(forceRefresh: true)
+            }
+            
         } catch {
             // CRITICAL: DON'T set lastLoadTime on error
             // This allows automatic retry on next foreground (>5 min)

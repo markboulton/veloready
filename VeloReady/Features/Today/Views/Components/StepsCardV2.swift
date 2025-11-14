@@ -28,23 +28,28 @@ struct StepsCardV2: View {
                     }
                 }
                 
-                // Sparkline (if data available)
-                if viewModel.hasHourlyData {
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        VRText("Today's Activity", style: .caption, color: Color.text.secondary)
-                        
-                        StepsSparkline(hourlySteps: viewModel.hourlySteps)
-                            .frame(height: 32)
-                    }
-                }
+                Divider()
+                    .padding(.vertical, Spacing.xs)
                 
-                // Distance
-                if viewModel.hasDistance {
-                    HStack {
-                        Image(systemName: "arrow.right")
-                            .font(.caption)
-                            .foregroundColor(Color.text.secondary)
-                        VRText(viewModel.formattedDistance, style: .caption, color: Color.text.secondary)
+                // Breakdown section (matches Calories card structure)
+                VStack(spacing: Spacing.sm) {
+                    // Sparkline (if data available)
+                    if viewModel.hasHourlyData {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                            VRText("Today's Activity", style: .body, color: Color.text.secondary)
+                            
+                            StepsSparkline(hourlySteps: viewModel.hourlySteps)
+                                .frame(height: 32)
+                        }
+                    }
+                    
+                    // Distance
+                    if viewModel.hasDistance {
+                        HStack {
+                            VRText("Distance", style: .body, color: Color.text.secondary)
+                            Spacer()
+                            VRText(viewModel.formattedDistance, style: .headline)
+                        }
                     }
                 }
             }

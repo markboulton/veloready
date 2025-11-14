@@ -502,20 +502,68 @@ final class CacheManager: ObservableObject {
     
     // MARK: - CTL/ATL Calculation
     
+    /// Clean up corrupt training load data from previous bugs
+    /// Called once on app launch to fix historical data issues
+    func cleanupCorruptTrainingLoadData() async {
+        Logger.data("🧹 [CTL/ATL CLEANUP] Checking for corrupt training load data...")
+        
+        let context = persistence.newBackgroundContext()
+        
+        await context.perform {
+            let request = DailyLoad.fetchRequest()
+            // Fetch all DailyLoad entries
+            guard let allLoads = try? context.fetch(request) else {
+                Logger.error("❌ [CTL/ATL CLEANUP] Failed to fetch DailyLoad entries")
+                return
+            }
+            
+            var corruptCount = 0
+            
+            for load in allLoads {
+                // Normal CTL/ATL for recreational cyclists: 0-200 max
+                // Values >500 indicate data corruption from previous bugs
+                let isCorrupt = load.ctl > 500 || load.atl > 500 || abs(load.tsb) > 1000
+                
+                if isCorrupt {
+                    corruptCount += 1
+                    Logger.data("   🗑️ Deleting corrupt entry: date=\(load.date?.description ?? "nil"), CTL=\(load.ctl), ATL=\(load.atl)")
+                    context.delete(load)
+                }
+            }
+            
+            if corruptCount > 0 {
+                Logger.data("   Deleted \(corruptCount) corrupt entries")
+                
+                do {
+                    try context.save()
+                    Logger.data("✅ [CTL/ATL CLEANUP] Cleanup complete - deleted \(corruptCount) corrupt entries")
+                } catch {
+                    Logger.error("❌ [CTL/ATL CLEANUP] Failed to save: \(error)")
+                }
+            } else {
+                Logger.data("✅ [CTL/ATL CLEANUP] No corrupt data found")
+            }
+        }
+    }
+    
     /// Calculate missing CTL/ATL values from activities
     /// Called when Intervals.icu doesn't provide CTL/ATL data
     /// Optimized to backfill last 42 days and save TSS values
     /// Smart caching: Only runs once per day to avoid redundant calculations
-    func calculateMissingCTLATL() async {
+    func calculateMissingCTLATL(forceRefresh: Bool = false) async {
         // Check if backfill ran recently (within 24 hours)
         let lastBackfillKey = "lastCTLBackfill"
-        if let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
+        if !forceRefresh, let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
             let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
             if hoursSinceBackfill < 24 {
                 Logger.data("⏭️ [CTL/ATL BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
                 return
             }
             Logger.data("🔄 [CTL/ATL BACKFILL] Last run was \(String(format: "%.1f", hoursSinceBackfill))h ago - running fresh backfill")
+        }
+        
+        if forceRefresh {
+            Logger.data("🔄 [CTL/ATL BACKFILL] Force refresh requested - running immediately")
         }
         
         Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
@@ -626,11 +674,34 @@ final class CacheManager: ObservableObject {
                     let formatter = DateFormatter()
                     formatter.dateFormat = "MMM dd"
                     Logger.data("  ✅ \(formatter.string(from: startOfDay)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss)) \(isNew ? "[NEW]" : "[UPDATED]")")
+                }
+                
+                // CRITICAL FIX: Link DailyLoad to DailyScores (was missing!)
+                // This ensures the Training Load chart can read the data
+                let scoresRequest = DailyScores.fetchRequest()
+                scoresRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
+                scoresRequest.fetchLimit = 1
+                
+                let scores: DailyScores
+                if let existingScores = try? context.fetch(scoresRequest).first {
+                    scores = existingScores
                 } else {
+                    scores = DailyScores(context: context)
+                    scores.date = startOfDay
+                    scores.recoveryScore = 50  // Default placeholder
+                    scores.sleepScore = 50
+                    scores.strainScore = 0
+                }
+                
+                // Link the load data to scores
+                scores.load = existingLoad
+                scores.lastUpdated = Date()
+                
+                if !shouldUpdate {
                     skippedCount += 1
                     let formatter = DateFormatter()
                     formatter.dateFormat = "MMM dd"
-                    Logger.data("  ⏭️ \(formatter.string(from: startOfDay)): Skipped (has existing data: CTL=\(existingLoad.ctl), TSS=\(existingLoad.tss))")
+                    Logger.data("  ⏭️ \(formatter.string(from: startOfDay)): Skipped load update (has data: CTL=\(existingLoad.ctl), TSS=\(existingLoad.tss)) but linked to scores")
                 }
             }
             

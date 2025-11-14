@@ -8,7 +8,7 @@ struct AdaptiveVO2MaxCard: View {
     var body: some View {
         CardContainer(
             header: CardHeader(
-                title: "Adaptive VO₂ Max",
+                title: "Adaptive VO₂",
                 subtitle: nil,
                 action: .init(icon: Icons.System.chevronRight, action: onTap)
             ),

@@ -157,15 +157,15 @@ struct TodayView: View {
                             
                             // FTP and VO2 Max cards (50% width, side by side, equal height)
                             HStack(alignment: .top, spacing: Spacing.md) {
-                                AdaptiveFTPCard(onTap: {
-                                    // TODO: Navigate to FTP detail
-                                })
-                                .frame(maxWidth: .infinity)
+                                HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
+                                    AdaptiveFTPCard(onTap: {})
+                                        .frame(maxWidth: .infinity)
+                                }
                                 
-                                AdaptiveVO2MaxCard(onTap: {
-                                    // TODO: Navigate to VO2 Max detail
-                                })
-                                .frame(maxWidth: .infinity)
+                                HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
+                                    AdaptiveVO2MaxCard(onTap: {})
+                                        .frame(maxWidth: .infinity)
+                                }
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             
@@ -540,9 +540,10 @@ struct TodayView: View {
         
         Logger.debug("🔍 [LatestActivity] Total activities: \(activities.count)")
         
-        // Filter to only Strava/Intervals activities (not Apple Health)
+        // Prefer Strava/Intervals activities, but allow Apple Health strength workouts
         let result = activities.first { activity in
-            activity.source == .strava || activity.source == .intervalsICU
+            activity.source == .strava || activity.source == .intervalsICU ||
+            (activity.source == .appleHealth && activity.type == .strength)
         }
         
         if let activity = result {
@@ -613,10 +614,10 @@ struct TodayView: View {
                 // Wait for Phase 2 to complete (it takes ~5-10s)
                 // This prevents resource contention with strain calculation
                 try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 second delay
-                await Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
+                Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
                 await wellnessService.analyzeHealthTrends()
                 await illnessService.analyzeHealthTrends()
-                await Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
+                Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
             }
         }
         wasHealthKitAuthorized = healthKitManager.isAuthorized
@@ -663,7 +664,7 @@ struct TodayView: View {
         
         let cacheManager = UnifiedCacheManager.shared
         for key in healthKitCaches {
-            cacheManager.invalidate(key: key)
+            await cacheManager.invalidate(key: key)
         }
         
         Logger.debug("🗑️ Invalidated HealthKit caches for foreground refresh")
