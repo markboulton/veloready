@@ -15,16 +15,17 @@ struct StepsCardV2: View {
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 // Main metric
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Health.steps)
-                        .font(.title)
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    Image(systemName: "figure.walk")
+                        .font(.largeTitle)
+                        .fontWeight(.thin)
                         .foregroundColor(Color.text.secondary)
                     
-                    CardMetric(
-                        value: viewModel.formattedSteps,
-                        label: viewModel.formattedGoal,
-                        size: .large
-                    )
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        VRText(viewModel.formattedSteps, style: .largeTitle)
+                        VRText(viewModel.formattedGoal, style: .body)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 // Sparkline (if data available)

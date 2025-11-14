@@ -212,16 +212,24 @@ actor TrainingLoadCalculator {
             return [:]
         }
         
-        // Calculate baseline from early activities
+        // Calculate baseline from early activities using more realistic approach
+        // CTL represents ~42 days of accumulated training, ATL represents ~7 days
         let firstTwoWeeks = sortedDates.prefix(min(14, sortedDates.count))
         let totalTRIMP = firstTwoWeeks.compactMap { dailyTRIMP[$0] }.reduce(0.0, +)
         let activityCount = firstTwoWeeks.count
-        let avgTRIMPPerActivity = totalTRIMP / Double(max(1, activityCount))
-        
-        var currentCTL = avgTRIMPPerActivity * 0.7
-        var currentATL = avgTRIMPPerActivity * 0.4
-        
-        Logger.data("📊 Baseline from \(activityCount) activities (avg TRIMP=\(String(format: "%.1f", avgTRIMPPerActivity))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
+        let avgDailyTRIMP = totalTRIMP / Double(max(1, activityCount))
+
+        // More realistic baseline: assume athlete has been training at this level
+        // CTL = average daily TSS accumulated over ~21 days (half of 42-day time constant)
+        // ATL = average daily TSS accumulated over ~3-4 days (half of 7-day time constant)
+        var currentCTL = avgDailyTRIMP * 21.0
+        var currentATL = avgDailyTRIMP * 3.5
+
+        // Minimum realistic values for active cyclists (prevent showing near-zero)
+        currentCTL = max(currentCTL, 30.0)
+        currentATL = max(currentATL, 20.0)
+
+        Logger.data("📊 Baseline from \(activityCount) activities (avg TRIMP/day=\(String(format: "%.1f", avgDailyTRIMP))): CTL=\(String(format: "%.1f", currentCTL)), ATL=\(String(format: "%.1f", currentATL))")
         
         // Progressive calculation
         let ctlAlpha = 2.0 / 43.0

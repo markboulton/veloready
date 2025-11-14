@@ -521,21 +521,34 @@ class AthleteProfileManager: ObservableObject {
             
             computedFTP = smoothedFTP
         }
-        
+
+        // Capture immutable copy for Swift 6 concurrency safety
+        let finalFTP = computedFTP
+
         await MainActor.run {
-            profile.ftp = computedFTP
+            profile.ftp = finalFTP
             profile.ftpSource = .computed
-            
+
             // Generate adaptive power zones from computed FTP
-            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: computedFTP)
-            
+            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: finalFTP)
+
             // Assess and store data quality
             let hasNP = !activities.compactMap({ $0.normalizedPower }).isEmpty
             let hasLongRides = !activities.filter({ ($0.duration ?? 0) >= 2700 }).isEmpty
             profile.dataQuality = assessDataQuality(activities: activities, hasNP: hasNP, hasLongRides: hasLongRides)
+
+            // Calculate VO2max estimate from FTP
+            if let weight = profile.weight, weight > 0 {
+                profile.vo2maxEstimate = estimateVO2max(ftp: finalFTP, weight: weight)
+            }
         }
-        
+
         Logger.data("✅ Adaptive FTP: \(Int(computedFTP))W")
+        if let vo2max = profile.vo2maxEstimate {
+            Logger.data("✅ Estimated VO2max: \(Int(vo2max)) ml/kg/min (from FTP + weight)")
+        } else {
+            Logger.data("⚠️ Cannot estimate VO2max - weight not available")
+        }
         Logger.data("Adaptive Power Zones: \(profile.powerZones!.map { Int($0) })")
         Logger.data("Data Quality: \(Int(profile.dataQuality!.confidenceScore * 100))% confidence from \(profile.dataQuality!.sampleSize) activities")
     }
@@ -762,28 +775,32 @@ class AthleteProfileManager: ObservableObject {
             
             computedMaxHR = smoothedMaxHR
         }
-        
+
+        // Capture immutable copies for Swift 6 concurrency safety
+        let finalMaxHR = computedMaxHR
+        let finalLTHR = lthrEstimate
+
         await MainActor.run {
-            profile.maxHR = computedMaxHR
+            profile.maxHR = finalMaxHR
             profile.hrZonesSource = .computed
-            
+
             // Step 4: Generate HR zones - adaptive if LTHR is valid, otherwise percentage-based
-            if let lthr = lthrEstimate {
-                let lthrPercentage = lthr / computedMaxHR
+            if let lthr = finalLTHR {
+                let lthrPercentage = lthr / finalMaxHR
                 // Only use LTHR if it's in a physiologically reasonable range (82-93% of max)
                 // Below 82% = likely detecting endurance pace, not threshold
                 // Above 93% = too close to max, not enough room for higher zones
                 if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
-                    profile.hrZones = generateAdaptiveHRZones(maxHR: computedMaxHR, lthr: lthr)
+                    profile.hrZones = generateAdaptiveHRZones(maxHR: finalMaxHR, lthr: lthr)
                     Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
                     Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
                 } else {
-                    profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
+                    profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
                     Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
                     Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
                 }
             } else {
-                profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
+                profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
                 Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
                 Logger.data("⚠️ No LTHR detected - using Coggan zones")
             }

@@ -16,16 +16,17 @@ struct CaloriesCardV2: View {
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 // Main metric - Total calories
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Health.caloriesFill)
-                        .font(.title)
+                HStack(alignment: .top, spacing: Spacing.sm) {
+                    Image(systemName: "flame")
+                        .font(.largeTitle)
+                        .fontWeight(.thin)
                         .foregroundColor(Color.text.secondary)
                     
-                    CardMetric(
-                        value: viewModel.formattedTotal,
-                        label: "Total burned",
-                        size: .large
-                    )
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        VRText(viewModel.formattedTotal, style: .largeTitle)
+                        VRText("Total burned", style: .body)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 Divider()

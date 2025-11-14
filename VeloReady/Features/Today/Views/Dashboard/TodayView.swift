@@ -138,8 +138,6 @@ struct TodayView: View {
                                 if hasConnectedDataSource {
                                     if let latestActivity = getLatestActivity() {
                                         LatestActivityCardV2(activity: latestActivity)
-                                            // Removed .id() modifier - was causing view to recreate
-                                            // and cancel async loadData() task before map could load
                                             .onAppear {
                                                 Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
                                             }
@@ -157,31 +155,43 @@ struct TodayView: View {
                                 }
                             }
                             
-                            // Steps
-                            StepsCardV2()
-                                .opacity(liveActivityService.isLoading ? 0 : 1)
-                                .overlay {
-                                    if liveActivityService.isLoading {
-                                        SkeletonStatsCard()
+                            // FTP and VO2 Max cards (50% width, side by side, equal height)
+                            HStack(alignment: .top, spacing: Spacing.md) {
+                                AdaptiveFTPCard(onTap: {
+                                    // TODO: Navigate to FTP detail
+                                })
+                                .frame(maxWidth: .infinity)
+                                
+                                AdaptiveVO2MaxCard(onTap: {
+                                    // TODO: Navigate to VO2 Max detail
+                                })
+                                .frame(maxWidth: .infinity)
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
+                            
+                            // Training Load Graph (full width)
+                            TrainingLoadGraphCard()
+                            
+                            // Steps and Calories cards (50% width, side by side, equal height)
+                            HStack(alignment: .top, spacing: Spacing.md) {
+                                StepsCardV2()
+                                    .frame(maxWidth: .infinity)
+                                    .opacity(liveActivityService.isLoading ? 0 : 1)
+                                    .overlay {
+                                        if liveActivityService.isLoading {
+                                            SkeletonStatsCard()
+                                        }
                                     }
+                                
+                                if liveActivityService.isLoading {
+                                    SkeletonStatsCard()
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    CaloriesCardV2()
+                                        .frame(maxWidth: .infinity)
                                 }
-                            
-                            // Calories
-                            if liveActivityService.isLoading {
-                                SkeletonStatsCard()
-                            } else {
-                                CaloriesCardV2()
                             }
-                            
-                            // Recent Activities
-                            if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
-                                SkeletonRecentActivities()
-                            } else {
-                                RecentActivitiesSection(
-                                    allActivities: getActivitiesForSection(),
-                                    dailyActivityData: generateDailyActivityData()
-                                )
-                            }
+                            .fixedSize(horizontal: false, vertical: true)
                         }
                         
                         // Pro upgrade CTA (only for free users)

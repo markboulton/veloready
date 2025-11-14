@@ -75,6 +75,7 @@ enum Icons {
         static let drop = "drop.fill"
         static let thermometer = "thermometer.medium"
         static let brain = "brain.head.profile"
+        static let vo2max = "lungs.fill"
     }
     
     // MARK: - Status & Feedback
@@ -238,6 +239,7 @@ enum Icons {
     enum Arrow {
         static let up = "arrow.up"
         static let down = "arrow.down"
+        static let right = "arrow.right"
         static let upRight = "arrow.up.right"
         static let downRight = "arrow.down.right"
         static let clockwise = "arrow.clockwise"
