@@ -23,7 +23,8 @@ struct AdaptivePerformanceDetailView: View {
                     vo2Value: viewModel.vo2Value,
                     vo2Category: viewModel.vo2Category,
                     lastUpdated: viewModel.lastUpdated,
-                    dataQuality: viewModel.dataQuality
+                    dataQuality: viewModel.dataQuality,
+                    dataSource: viewModel.dataSource
                 )
                 
                 // Historical Performance Chart (6 months)
@@ -81,6 +82,7 @@ struct HeroMetricsCard: View {
     let vo2Category: String
     let lastUpdated: String
     let dataQuality: Double
+    let dataSource: String
     
     var body: some View {
         CardContainer(
@@ -120,7 +122,10 @@ struct HeroMetricsCard: View {
                 
                 // Metadata
                 HStack {
-                    VRText("Last updated: \(lastUpdated)", style: .caption, color: .secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        VRText("Last updated: \(lastUpdated)", style: .caption, color: .secondary)
+                        VRText("Data source: \(dataSource)", style: .caption, color: .secondary)
+                    }
                     Spacer()
                     HStack(spacing: Spacing.xs) {
                         ForEach(0..<5) { index in
@@ -350,25 +355,69 @@ class AdaptivePerformanceViewModel: ObservableObject {
     @Published var maxHR: String = "—"
     @Published var lthr: String = "—"
     @Published var ftpTrend: String = "—"
-    
+    @Published var dataSource: String = "Estimated" // "Estimated", "HR-based", or "Power-based"
+
     private let profileManager = AthleteProfileManager.shared
-    
+    private let proConfig = ProFeatureConfig.shared
+
     func load() async {
         let profile = profileManager.profile
-        
+        let hasPro = proConfig.hasProAccess
+
+        // Determine data source and values based on three-tier system
+        var ftp: Double = 0
+        var vo2: Double?
+
+        if hasPro {
+            // Pro user: Check for power meter data
+            do {
+                let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 50, daysBack: 90)
+                let hasPowerMeter = AthleteProfileManager.hasPowerMeterData(activities: activities)
+
+                if hasPowerMeter {
+                    // Tier 3: Pro with power meter - use adaptive values
+                    ftp = profile.ftp ?? 0
+                    vo2 = profile.vo2maxEstimate
+                    dataSource = "Power-based"
+                } else {
+                    // Tier 2: Pro without power meter - estimate from HR
+                    if let maxHR = profile.maxHR, let lthr = profile.lthr, let weight = profile.weight {
+                        ftp = AthleteProfileManager.estimateFTPFromHR(maxHR: maxHR, lthr: lthr, weight: weight) ?? 0
+                        vo2 = AthleteProfileManager.estimateVO2MaxFromHR(maxHR: maxHR, restingHR: profile.restingHR, age: nil)
+                        dataSource = "HR-based"
+                    } else {
+                        // Fallback to Coggan defaults
+                        ftp = AthleteProfileManager.getCogganDefaultFTP(weight: profile.weight)
+                        vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                        dataSource = "Estimated"
+                    }
+                }
+            } catch {
+                // Fallback to existing values or Coggan defaults
+                ftp = profile.ftp ?? AthleteProfileManager.getCogganDefaultFTP(weight: profile.weight)
+                vo2 = profile.vo2maxEstimate ?? AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                dataSource = profile.ftp != nil ? "Power-based" : "Estimated"
+            }
+        } else {
+            // Tier 1: Free user - use Coggan defaults
+            ftp = AthleteProfileManager.getCogganDefaultFTP(weight: profile.weight)
+            vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+            dataSource = "Estimated"
+        }
+
         // FTP Data
-        if let ftp = profile.ftp {
+        if ftp > 0 {
             ftpValue = "\(Int(ftp))"
-            
+
             if let weight = profile.weight, weight > 0 {
                 let wPerKg = ftp / weight
                 ftpWPerKg = "\(String(format: "%.1f", wPerKg)) W/kg"
                 ftpCategory = categorizeFTPWPerKg(wPerKg)
             }
         }
-        
+
         // VO2 Data
-        if let vo2 = profile.vo2maxEstimate {
+        if let vo2 = vo2 {
             vo2Value = String(format: "%.1f", vo2)
             vo2Category = categorizeVO2Max(vo2)
         }

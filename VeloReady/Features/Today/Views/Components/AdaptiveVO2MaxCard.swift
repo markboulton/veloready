@@ -52,13 +52,15 @@ struct AdaptiveVO2MaxCard: View {
                             }
                         }
                     } else {
-                        // Non-PRO fallback
+                        // Data source indicator (for non-PRO or users without sparkline data)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             HStack(spacing: Spacing.xs) {
-                                Image(systemName: Icons.System.lock)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                VRText("Estimated", style: .caption)
+                                if viewModel.dataSource == "Estimated" {
+                                    Image(systemName: Icons.System.lock)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                VRText(viewModel.dataSource, style: .caption)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -84,39 +86,81 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
     @Published var trendIcon: String = Icons.Arrow.right
     @Published var trendText: String = "No change"
     @Published var hasData: Bool = false
-    
+    @Published var dataSource: String = "Estimated" // "Estimated", "HR-based", or "Power-based"
+
     private let profileManager = AthleteProfileManager.shared
     private let proConfig = ProFeatureConfig.shared
-    
+
     func load() async {
-        // Use estimated VO2 from profile (calculated from adaptive zones)
-        let estimatedVO2 = profileManager.profile.vo2maxEstimate
+        let profile = profileManager.profile
         let hasPro = proConfig.hasProAccess
-        
+
         Logger.debug("🏃 [VO2MaxCard] Loading card data")
-        Logger.debug("   estimatedVO2: \(estimatedVO2?.description ?? "nil")")
         Logger.debug("   hasPro: \(hasPro)")
-        
+
+        // Determine data source and VO2 Max value based on three-tier system
+        var vo2: Double?
+
+        if hasPro {
+            // Pro user: Check for power meter data
+            do {
+                let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 50, daysBack: 90)
+                let hasPowerMeter = AthleteProfileManager.hasPowerMeterData(activities: activities)
+
+                if hasPowerMeter {
+                    // Tier 3: Pro with power meter - use VO2 calculated from FTP
+                    vo2 = profile.vo2maxEstimate
+                    dataSource = "Power-based"
+                    Logger.debug("🔋 Pro user with power meter - using VO2 from FTP: \(vo2?.description ?? "nil")")
+                } else {
+                    // Tier 2: Pro without power meter - estimate from HR
+                    if let maxHR = profile.maxHR {
+                        vo2 = AthleteProfileManager.estimateVO2MaxFromHR(
+                            maxHR: maxHR,
+                            restingHR: profile.restingHR,
+                            age: nil  // Age not available in profile
+                        )
+                        dataSource = "HR-based"
+                        Logger.debug("❤️ Pro user without power meter - HR-based VO2: \(vo2?.description ?? "nil")")
+                    } else {
+                        // Fallback to Coggan default if HR data incomplete
+                        vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                        dataSource = "Estimated"
+                        Logger.debug("📊 Pro user with incomplete data - using Coggan default VO2")
+                    }
+                }
+            } catch {
+                Logger.error("Failed to fetch activities: \(error)")
+                // Fallback to existing VO2 or Coggan default
+                vo2 = profile.vo2maxEstimate ?? AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                dataSource = profile.vo2maxEstimate != nil ? "Power-based" : "Estimated"
+            }
+        } else {
+            // Tier 1: Free user - use Coggan default
+            vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+            dataSource = "Estimated"
+            Logger.debug("🆓 Free user - using Coggan default VO2: \(String(format: "%.1f", vo2 ?? 0))")
+        }
+
         // Format VO2
-        if let vo2 = estimatedVO2 {
+        if let vo2 = vo2 {
             vo2Value = String(format: "%.1f", vo2)
             fitnessLevel = classifyVO2Max(vo2)
-            
+
             Logger.debug("   vo2Value set to: \(vo2Value)")
             Logger.debug("   fitnessLevel: \(fitnessLevel ?? "nil")")
-            
+
             // Show sparkline for PRO users
             if hasPro {
                 hasData = true
-                
+
                 // TODO: Fetch actual VO2 Max history from Core Data
                 // For now, generate realistic mock trend with ups and downs
                 let trend = generateRealisticTrend(current: vo2)
                 sparklineValues = trend.values
-                
+
                 Logger.debug("   Generated \(sparklineValues.count) sparkline values")
-                Logger.debug("   First 3 values: \(sparklineValues.prefix(3).map { String(format: "%.1f", $0) }.joined(separator: ", "))")
-                
+
                 // Determine RAG color based on overall trend
                 let change = trend.percentChange
                 if change > 2 {
@@ -140,7 +184,7 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
                     trendIcon = Icons.Arrow.right
                     trendText = "Stable"
                 }
-                
+
                 Logger.debug("   hasData: true, trendText: \(trendText)")
             } else {
                 hasData = false

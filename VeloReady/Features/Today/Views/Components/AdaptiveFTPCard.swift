@@ -56,13 +56,15 @@ struct AdaptiveFTPCard: View {
                         }
                     }
                     } else {
-                        // Non-PRO fallback
+                        // Data source indicator (for non-PRO or users without sparkline data)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             HStack(spacing: Spacing.xs) {
-                                Image(systemName: Icons.System.lock)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                VRText("Estimated", style: .caption)
+                                if viewModel.dataSource == "Estimated" {
+                                    Image(systemName: Icons.System.lock)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                VRText(viewModel.dataSource, style: .caption)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -89,19 +91,63 @@ class AdaptiveFTPCardViewModel: ObservableObject {
     @Published var trendIcon: String = Icons.Arrow.right
     @Published var trendText: String = "No change"
     @Published var hasData: Bool = false
-    
+    @Published var dataSource: String = "Estimated" // "Estimated", "HR-based", or "Power-based"
+
     private let profileManager = AthleteProfileManager.shared
     private let proConfig = ProFeatureConfig.shared
-    
+
     func load() async {
-        let ftp = profileManager.profile.ftp ?? 0
-        let weight = profileManager.profile.weight
+        let profile = profileManager.profile
+        let weight = profile.weight
         let hasPro = proConfig.hasProAccess
-        
+
+        // Determine data source and FTP value based on three-tier system
+        var ftp: Double = 0
+
+        if hasPro {
+            // Pro user: Check for power meter data
+            do {
+                let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 50, daysBack: 90)
+                let hasPowerMeter = AthleteProfileManager.hasPowerMeterData(activities: activities)
+
+                if hasPowerMeter {
+                    // Tier 3: Pro with power meter - use adaptive FTP
+                    ftp = profile.ftp ?? 0
+                    dataSource = "Power-based"
+                    Logger.debug("🔋 Pro user with power meter - using adaptive FTP: \(Int(ftp))W")
+                } else {
+                    // Tier 2: Pro without power meter - estimate from HR
+                    if let maxHR = profile.maxHR,
+                       let lthr = profile.lthr,
+                       let weight = weight,
+                       let estimatedFTP = AthleteProfileManager.estimateFTPFromHR(maxHR: maxHR, lthr: lthr, weight: weight) {
+                        ftp = estimatedFTP
+                        dataSource = "HR-based"
+                        Logger.debug("❤️ Pro user without power meter - HR-based FTP: \(Int(ftp))W")
+                    } else {
+                        // Fallback to Coggan default if HR data incomplete
+                        ftp = AthleteProfileManager.getCogganDefaultFTP(weight: weight)
+                        dataSource = "Estimated"
+                        Logger.debug("📊 Pro user with incomplete data - using Coggan default: \(Int(ftp))W")
+                    }
+                }
+            } catch {
+                Logger.error("Failed to fetch activities: \(error)")
+                // Fallback to existing FTP or Coggan default
+                ftp = profile.ftp ?? AthleteProfileManager.getCogganDefaultFTP(weight: weight)
+                dataSource = ftp == profile.ftp ? "Power-based" : "Estimated"
+            }
+        } else {
+            // Tier 1: Free user - use Coggan default
+            ftp = AthleteProfileManager.getCogganDefaultFTP(weight: weight)
+            dataSource = "Estimated"
+            Logger.debug("🆓 Free user - using Coggan default FTP: \(Int(ftp))W")
+        }
+
         // Format FTP
         if ftp > 0 {
             ftpValue = "\(Int(ftp))"
-            
+
             // Calculate W/kg if weight available
             if let weight = weight, weight > 0 {
                 let wPerKgVal = ftp / weight
@@ -111,16 +157,16 @@ class AdaptiveFTPCardViewModel: ObservableObject {
         } else {
             ftpValue = "—"
         }
-        
-        // Only show sparkline for PRO users with data
+
+        // Only show sparkline for PRO users with FTP data
         if hasPro, ftp > 0 {
             hasData = true
-            
+
             // TODO: Fetch actual FTP history from Core Data
             // For now, generate realistic mock trend with ups and downs
             let trend = generateRealisticTrend(current: ftp)
             sparklineValues = trend.values
-            
+
             // Determine RAG color based on overall trend
             let change = trend.percentChange
             if change > 2 {
