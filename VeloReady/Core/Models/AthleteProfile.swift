@@ -1216,9 +1216,9 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day window AROUND this date (45 days before, 45 days after)
-            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: targetDate),
-                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: targetDate) else {
+            // Get activities within 90-day TRAILING window (90 days BEFORE this date, not centered)
+            // This represents "FTP based on training in the 90 days leading up to this point"
+            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: targetDate) else {
                 continue
             }
 
@@ -1228,10 +1228,10 @@ class AthleteProfileManager: ObservableObject {
                 formatter.timeZone = TimeZone.current
 
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate >= windowStart && activityDate <= windowEnd
+                return activityDate >= windowStart && activityDate <= targetDate
             }
 
-            // Calculate FTP from rolling window
+            // Calculate FTP from trailing window
             let ftp = calculateFTPFromActivities(activitiesInWindow) ?? (profile.ftp ?? 200.0)
             sparklineValues.append(ftp)
         }
@@ -1341,9 +1341,8 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day window AROUND this date (45 days before, 45 days after)
-            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: targetDate),
-                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: targetDate) else {
+            // Get activities within 90-day TRAILING window (90 days BEFORE this date)
+            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: targetDate) else {
                 continue
             }
 
@@ -1353,10 +1352,10 @@ class AthleteProfileManager: ObservableObject {
                 formatter.timeZone = TimeZone.current
 
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate >= windowStart && activityDate <= windowEnd
+                return activityDate >= windowStart && activityDate <= targetDate
             }
 
-            // Calculate FTP from rolling window, then estimate VO2
+            // Calculate FTP from trailing window, then estimate VO2
             if let ftp = calculateFTPFromActivities(activitiesInWindow) {
                 // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
                 let vo2 = (10.8 * ftp) / weight + 7
@@ -1521,9 +1520,9 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day window AROUND this week (45 days before, 45 days after)
-            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: weekDate),
-                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: weekDate) else {
+            // Get activities within 90-day TRAILING window (90 days BEFORE this week)
+            // This represents "FTP based on training in the 90 days leading up to this week"
+            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: weekDate) else {
                 continue
             }
 
@@ -1533,10 +1532,10 @@ class AthleteProfileManager: ObservableObject {
                 formatter.timeZone = TimeZone.current
 
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate >= windowStart && activityDate <= windowEnd
+                return activityDate >= windowStart && activityDate <= weekDate
             }
 
-            // Calculate FTP from rolling window
+            // Calculate FTP from trailing window
             if let ftp = calculateFTPFromActivities(activitiesInWindow) {
                 // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
                 let vo2 = (10.8 * ftp) / weight + 7
