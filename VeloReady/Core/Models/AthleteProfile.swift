@@ -1194,12 +1194,12 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Calculate 30-day FTP trend from REAL historical activities (daily granularity)
-    /// Uses 90-day rolling window for each data point
+    /// Uses 30-day rolling window for each data point
     private func calculateHistoricalFTP() async -> [Double] {
         Logger.debug("📊 [Historical FTP] Calculating from REAL activity data with daily granularity...")
 
-        // Fetch activities from last 120 days (90-day window + 30 days of data)
-        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 120) else {
+        // Fetch activities from last 180 days (30-day window + 150 days of history to capture peaks)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 180) else {
             Logger.warning("⚠️ [Historical FTP] Failed to fetch activities - using simulated data")
             return generateRealisticFTPProgression(current: profile.ftp ?? 200.0, days: 30)
         }
@@ -1216,9 +1216,9 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day TRAILING window (90 days BEFORE this date, not centered)
-            // This represents "FTP based on training in the 90 days leading up to this point"
-            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: targetDate) else {
+            // Get activities within 30-day TRAILING window (30 days BEFORE this date)
+            // Smaller window = more granularity, less overlap between consecutive days
+            guard let windowStart = calendar.date(byAdding: .day, value: -30, to: targetDate) else {
                 continue
             }
 
@@ -1318,12 +1318,12 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Calculate 30-day VO2 trend from REAL historical activities (daily granularity)
-    /// Uses 90-day rolling window for each data point, estimating VO2 from FTP
+    /// Uses 30-day rolling window for each data point, estimating VO2 from FTP
     private func calculateHistoricalVO2() async -> [Double] {
         Logger.debug("📊 [Historical VO2] Calculating from REAL activity data with daily granularity...")
 
-        // Fetch activities from last 120 days (90-day window + 30 days of data)
-        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 120) else {
+        // Fetch activities from last 180 days (30-day window + 150 days of history to capture peaks)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 180) else {
             Logger.warning("⚠️ [Historical VO2] Failed to fetch activities - using simulated data")
             return generateRealisticVO2Progression(current: profile.vo2maxEstimate ?? 45.0, days: 30)
         }
@@ -1341,8 +1341,9 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day TRAILING window (90 days BEFORE this date)
-            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: targetDate) else {
+            // Get activities within 30-day TRAILING window (30 days BEFORE this date)
+            // Smaller window = more granularity, less overlap between consecutive days
+            guard let windowStart = calendar.date(byAdding: .day, value: -30, to: targetDate) else {
                 continue
             }
 
@@ -1476,7 +1477,7 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Calculate 6-month historical performance from REAL activity data (weekly data points)
-    /// Uses 90-day rolling window for each week to get accurate historical FTP/VO2
+    /// Uses 60-day rolling window for each week to get accurate historical FTP/VO2 with better granularity
     private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double)] {
         Logger.debug("📊 [6-Month Historical] Calculating from REAL activity data with rolling windows...")
 
@@ -1488,14 +1489,14 @@ class AthleteProfileManager: ObservableObject {
         let weight = profile.weight ?? 75.0
 
         // Fetch activities synchronously from UnifiedActivityService cache
-        // Fetch more activities to cover 6 months + 90-day windows
+        // Fetch 12 months of activities to capture historical peaks and provide enough data for rolling windows
         var cachedActivities: [Activity] = []
         let semaphore = DispatchSemaphore(value: 0)
 
         Task {
             do {
-                // Fetch 9 months of activities to have enough data for rolling windows
-                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 270)
+                // Fetch 12 months of activities (increased from 9 months) to capture June's 210-220W FTP
+                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 2000, daysBack: 365)
                 semaphore.signal()
             } catch {
                 Logger.error("❌ [6-Month Historical] Failed to fetch activities: \(error)")
@@ -1520,9 +1521,9 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // Get activities within 90-day TRAILING window (90 days BEFORE this week)
-            // This represents "FTP based on training in the 90 days leading up to this week"
-            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: weekDate) else {
+            // Get activities within 60-day TRAILING window (60 days BEFORE this week)
+            // Smaller window = better granularity, less overlap between consecutive weeks
+            guard let windowStart = calendar.date(byAdding: .day, value: -60, to: weekDate) else {
                 continue
             }
 
