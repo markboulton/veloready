@@ -1141,15 +1141,15 @@ class AthleteProfileManager: ObservableObject {
         let cacheKey = "historicalFTP_sparkline"
         let cacheTimestampKey = "historicalFTP_timestamp"
 
-        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
+        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
         if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
-            if minutesSinceCache < 5 {
-                Logger.debug("📊 Using cached FTP sparkline (\(String(format: "%.1f", minutesSinceCache))min old)")
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 10 {
+                Logger.debug("📊 Using cached FTP sparkline (\(String(format: "%.1f", secondsSinceCache))s old)")
                 return cachedData
             } else {
-                Logger.debug("📊 FTP sparkline cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
+                Logger.debug("📊 FTP sparkline cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
             }
         }
 
@@ -1170,15 +1170,15 @@ class AthleteProfileManager: ObservableObject {
         let cacheKey = "historicalVO2_sparkline"
         let cacheTimestampKey = "historicalVO2_timestamp"
 
-        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
+        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
         if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
-            if minutesSinceCache < 5 {
-                Logger.debug("📊 Using cached VO2 sparkline (\(String(format: "%.1f", minutesSinceCache))min old)")
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 10 {
+                Logger.debug("📊 Using cached VO2 sparkline (\(String(format: "%.1f", secondsSinceCache))s old)")
                 return cachedData
             } else {
-                Logger.debug("📊 VO2 sparkline cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
+                Logger.debug("📊 VO2 sparkline cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
             }
         }
 
@@ -1443,12 +1443,12 @@ class AthleteProfileManager: ObservableObject {
         let cacheKey = "historical6Month_performance"
         let cacheTimestampKey = "historical6Month_timestamp"
 
-        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
+        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
         if let cachedDataDict = UserDefaults.standard.array(forKey: cacheKey) as? [[String: Any]],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
-            if minutesSinceCache < 5 {
-                Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", minutesSinceCache))min old)")
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 10 {
+                Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", secondsSinceCache))s old)")
                 // Convert cached dict back to tuples
                 let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double)? in
                     guard let date = dict["date"] as? Date,
@@ -1460,7 +1460,7 @@ class AthleteProfileManager: ObservableObject {
                     return data
                 }
             } else {
-                Logger.debug("📊 6-month performance cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
+                Logger.debug("📊 6-month performance cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
             }
         }
 
