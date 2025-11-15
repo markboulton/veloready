@@ -1010,4 +1010,126 @@ class AthleteProfileManager: ObservableObject {
             maxHR * 1.00    // Z7 start: Max (100%)
         ]
     }
+
+    // MARK: - Power Meter Detection & HR-Based Estimation
+
+    /// Check if user has power meter data in recent activities
+    static func hasPowerMeterData(activities: [Activity]) -> Bool {
+        // Check if at least 3 recent activities have power data
+        let activitiesWithPower = activities.filter { activity in
+            activity.averagePower != nil && activity.averagePower! > 0 ||
+            activity.normalizedPower != nil && activity.normalizedPower! > 0
+        }
+
+        Logger.debug("Power meter detection: \(activitiesWithPower.count)/\(activities.count) activities have power data")
+        return activitiesWithPower.count >= 3
+    }
+
+    /// Estimate FTP from heart rate data (for users without power meters)
+    /// Uses LTHR (Lactate Threshold Heart Rate) and body weight
+    /// Based on Coggan's HR-power relationships
+    static func estimateFTPFromHR(maxHR: Double, lthr: Double, weight: Double) -> Double? {
+        guard maxHR > 0, lthr > 0, lthr < maxHR, weight > 0 else {
+            Logger.warning("Invalid inputs for HR-based FTP estimation")
+            return nil
+        }
+
+        // LTHR as percentage of max HR (typically 85-92% for trained athletes)
+        let lthrPercentage = lthr / maxHR
+
+        Logger.debug("📊 HR-Based FTP Estimation:")
+        Logger.debug("   Max HR: \(Int(maxHR)) bpm")
+        Logger.debug("   LTHR: \(Int(lthr)) bpm (\(Int(lthrPercentage * 100))% of max)")
+        Logger.debug("   Weight: \(String(format: "%.1f", weight)) kg")
+
+        // Estimate FTP in W/kg based on LTHR percentage
+        // Athletes with higher LTHR% tend to have better FTP/kg ratios
+        // Base: 85% LTHR = ~2.5 W/kg (recreational)
+        // For each 1% above 85%, add ~0.3 W/kg
+        let baseWPerKg = 2.5
+        let lthrBonus = (lthrPercentage - 0.85) * 30.0  // 30 W/kg per 100% difference
+        let estimatedWPerKg = baseWPerKg + lthrBonus
+
+        // Clamp to realistic values (1.5 - 6.0 W/kg)
+        let clampedWPerKg = min(max(estimatedWPerKg, 1.5), 6.0)
+
+        let estimatedFTP = clampedWPerKg * weight
+
+        Logger.debug("   Estimated W/kg: \(String(format: "%.2f", clampedWPerKg))")
+        Logger.debug("   Estimated FTP: \(Int(estimatedFTP))W")
+
+        return estimatedFTP
+    }
+
+    /// Estimate VO2 Max from heart rate data (Cooper formula, age-adjusted)
+    /// For users without power meters
+    static func estimateVO2MaxFromHR(maxHR: Double, restingHR: Double?, age: Int?) -> Double? {
+        guard maxHR > 0 else { return nil }
+
+        // Use Cooper formula if we have resting HR
+        var vo2max: Double
+        if let rhr = restingHR, rhr > 0, rhr < maxHR {
+            // Cooper formula: VO2max = 15.3 × (maxHR / restingHR)
+            vo2max = 15.3 * (maxHR / rhr)
+        } else {
+            // Fallback: estimate from max HR alone (less accurate)
+            // Typical: VO2max ≈ (maxHR / 3.5) - very rough estimate
+            vo2max = (maxHR / 3.5)
+        }
+
+        // Apply age adjustment if available
+        if let age = age, age >= 25 {
+            // VO2 max declines ~1% per year after age 25
+            let yearsAfter25 = age - 25
+            let ageFactor = 1.0 - (Double(yearsAfter25) * 0.01)
+            vo2max *= ageFactor
+        }
+
+        // Clamp to realistic values (20-80 ml/kg/min)
+        vo2max = min(max(vo2max, 20), 80)
+
+        Logger.debug("📊 HR-Based VO2 Max Estimation:")
+        Logger.debug("   Max HR: \(Int(maxHR)) bpm")
+        if let rhr = restingHR {
+            Logger.debug("   Resting HR: \(Int(rhr)) bpm")
+        }
+        if let age = age {
+            Logger.debug("   Age: \(age) years")
+        }
+        Logger.debug("   Estimated VO2 Max: \(String(format: "%.1f", vo2max)) ml/kg/min")
+
+        return vo2max
+    }
+
+    /// Get Coggan default FTP for free users (basic estimate)
+    static func getCogganDefaultFTP(weight: Double?) -> Double {
+        guard let weight = weight, weight > 0 else {
+            // No weight available: use fixed default
+            return 200.0  // Average recreational cyclist
+        }
+
+        // Use 2.5 W/kg as baseline for average recreational cyclist
+        return weight * 2.5
+    }
+
+    /// Get Coggan default VO2 Max for free users (age/gender-based estimate)
+    static func getCogganDefaultVO2Max(age: Int?, gender: String?) -> Double {
+        let baseVO2: Double
+
+        // Gender-based baseline
+        if gender?.uppercased() == "F" || gender?.uppercased() == "FEMALE" {
+            baseVO2 = 45.0  // Average for female
+        } else {
+            baseVO2 = 50.0  // Average for male (default)
+        }
+
+        // Age adjustment (decline ~0.5 ml/kg/min per year after 25)
+        if let age = age, age >= 25 {
+            let yearsAfter25 = age - 25
+            let ageAdjustment = Double(yearsAfter25) * 0.5
+            return max(baseVO2 - ageAdjustment, 25.0)  // Min 25
+        }
+
+        return baseVO2
+    }
 }
