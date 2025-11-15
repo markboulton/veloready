@@ -42,7 +42,7 @@ struct AdaptiveFTPCard: View {
                             color: viewModel.trendColor,
                             height: 32
                         )
-                        
+
                         // Trend indicator with period label
                         HStack(spacing: Spacing.xs) {
                             Image(systemName: viewModel.trendIcon)
@@ -55,6 +55,9 @@ struct AdaptiveFTPCard: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .opacity(viewModel.sparklineValues.isEmpty ? 0 : 1)
+                    .offset(x: viewModel.sparklineValues.isEmpty ? 20 : 0)
+                    .animation(.easeOut(duration: 0.4), value: viewModel.sparklineValues.count)
                     } else {
                         // Data source indicator (for non-PRO or users without sparkline data)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -162,39 +165,48 @@ class AdaptiveFTPCardViewModel: ObservableObject {
         if hasPro, ftp > 0 {
             hasData = true
 
-            // TODO: Fetch actual FTP history from Core Data
-            // For now, generate realistic mock trend with ups and downs
-            let trend = generateRealisticTrend(current: ftp)
-            sparklineValues = trend.values
+            // Load sparkline data asynchronously (cached, performant)
+            Task {
+                let sparkline = await profileManager.fetchHistoricalFTPSparkline()
 
-            // Determine RAG color based on overall trend
-            let change = trend.percentChange
-            if change > 2 {
-                trendColor = ColorScale.greenAccent
-                trendIcon = Icons.Arrow.upRight
-                trendText = "+\(Int(change))%"
-            } else if change < -2 {
-                trendColor = ColorScale.redAccent
-                trendIcon = Icons.Arrow.downRight
-                trendText = "\(Int(change))%"
-            } else if change > 0 {
-                trendColor = ColorScale.greenAccent.opacity(0.7)
-                trendIcon = Icons.Arrow.up
-                trendText = "+\(Int(change))%"
-            } else if change < 0 {
-                trendColor = ColorScale.amberAccent
-                trendIcon = Icons.Arrow.down
-                trendText = "\(Int(change))%"
-            } else {
-                trendColor = .secondary
-                trendIcon = Icons.Arrow.right
-                trendText = "Stable"
+                // Calculate trend from sparkline
+                if let first = sparkline.first, let last = sparkline.last, first > 0 {
+                    let change = ((last - first) / first) * 100
+
+                    await MainActor.run {
+                        sparklineValues = sparkline
+
+                        // Determine RAG color based on overall trend
+                        if change > 2 {
+                            trendColor = ColorScale.greenAccent
+                            trendIcon = Icons.Arrow.upRight
+                            trendText = "+\(Int(change))%"
+                        } else if change < -2 {
+                            trendColor = ColorScale.redAccent
+                            trendIcon = Icons.Arrow.downRight
+                            trendText = "\(Int(change))%"
+                        } else if change > 0 {
+                            trendColor = ColorScale.greenAccent.opacity(0.7)
+                            trendIcon = Icons.Arrow.up
+                            trendText = "+\(Int(change))%"
+                        } else if change < 0 {
+                            trendColor = ColorScale.amberAccent
+                            trendIcon = Icons.Arrow.down
+                            trendText = "\(Int(change))%"
+                        } else {
+                            trendColor = .secondary
+                            trendIcon = Icons.Arrow.right
+                            trendText = "Stable"
+                        }
+                    }
+                }
             }
         } else {
             hasData = false
         }
     }
-    
+
+    // Deprecated - now using cached historical data
     private func generateRealisticTrend(current: Double) -> (values: [Double], percentChange: Double) {
         // Generate 30-day trend with realistic ups and downs
         let days = 30
