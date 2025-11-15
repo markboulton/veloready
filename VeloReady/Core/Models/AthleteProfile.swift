@@ -1189,50 +1189,157 @@ class AthleteProfileManager: ObservableObject {
         return sparkline
     }
 
-    /// Calculate 30-day FTP trend from historical activities
+    /// Calculate 30-day FTP trend from REAL historical activities
+    /// Uses the SAME computeFTPFromPerformanceData logic, but calculated for each week
     private func calculateHistoricalFTP() async -> [Double] {
-        // Generate realistic progression based on current FTP
-        let currentFTP = profile.ftp ?? 200.0
-        return generateRealisticFTPProgression(current: currentFTP, days: 30)
+        Logger.debug("📊 [Historical FTP] Calculating from REAL activity data...")
+        
+        // Fetch activities from last 30 days
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: 30) else {
+            Logger.warning("⚠️ [Historical FTP] Failed to fetch activities - using simulated data")
+            return generateRealisticFTPProgression(current: profile.ftp ?? 200.0, days: 30)
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        var sparklineValues: [Double] = []
+        
+        // Calculate FTP for each week (4 weeks)
+        for weekOffset in stride(from: -3, through: 0, by: 1) {
+            guard let targetDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) else {
+                continue
+            }
+            
+            // Get all activities UP TO this date
+            let activitiesUpToDate = activities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+                
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate <= targetDate
+            }
+            
+            // Calculate FTP using the SAME logic as current FTP
+            let ftp = calculateFTPFromActivities(activitiesUpToDate) ?? (profile.ftp ?? 200.0)
+            
+            // Repeat this weekly value for 7 days to create smooth sparkline
+            for _ in 0..<7 {
+                sparklineValues.append(ftp)
+            }
+        }
+        
+        // Ensure we have exactly 30 values (trim or pad)
+        while sparklineValues.count > 30 { sparklineValues.removeFirst() }
+        while sparklineValues.count < 30 {
+            sparklineValues.insert(profile.ftp ?? 200.0, at: 0)
+        }
+        
+        Logger.debug("📊 [Historical FTP] Calculated \(sparklineValues.count) points from real data")
+        Logger.debug("📊 [Historical FTP] Range: \(String(format: "%.0f", sparklineValues.min() ?? 0))W - \(String(format: "%.0f", sparklineValues.max() ?? 0))W")
+        
+        return sparklineValues
+    }
+    
+    /// Calculate FTP from a set of activities (helper for historical calculations)
+    /// Simplified version of computeFTPFromPerformanceData for efficiency
+    private func calculateFTPFromActivities(_ activities: [Activity]) -> Double? {
+        guard !activities.isEmpty else { return nil }
+        
+        var best60min: Double = 0
+        var best20min: Double = 0
+        var best5min: Double = 0
+        var maxNP: Double = 0
+        
+        for activity in activities {
+            let np = activity.normalizedPower ?? 0
+            let duration = activity.duration ?? 0
+            
+            guard np > 0 else { continue }
+            
+            maxNP = max(maxNP, np)
+            
+            // Ultra-endurance detection (3+ hours)
+            if duration >= 10800 {
+                let boost = duration >= 18000 ? 1.12 : (duration >= 14400 ? 1.10 : 1.07)
+                best60min = max(best60min, np * boost)
+            } else if duration >= 3600 {
+                best60min = max(best60min, np)
+            }
+            
+            if duration >= 1200 { best20min = max(best20min, np) }
+            if duration >= 300 { best5min = max(best5min, np) }
+        }
+        
+        guard maxNP > 0 else { return nil }
+        
+        // Calculate weighted FTP
+        var candidates: [(ftp: Double, weight: Double)] = []
+        if best60min > 0 { candidates.append((best60min * 0.99, 1.5)) }
+        if best20min > 0 { candidates.append((best20min * 0.95, 0.9)) }
+        if best5min > 0 { candidates.append((best5min * 0.87, 0.6)) }
+        
+        guard !candidates.isEmpty else { return nil }
+        
+        let totalWeight = candidates.reduce(0) { $0 + $1.weight }
+        let weightedFTP = candidates.reduce(0) { $0 + ($1.ftp * $1.weight) } / totalWeight
+        
+        return weightedFTP * 1.02 // Apply 2% buffer
     }
 
     /// Calculate 30-day VO2 trend from historical activities
+    /// TODO: Replace with REAL historical data from activities (currently simulated)
+    /// Should query activities from last 30 days and calculate VO2 at each point
     private func calculateHistoricalVO2() async -> [Double] {
-        // Generate realistic progression based on current VO2
+        // TEMPORARY: Generate realistic progression based on current VO2
+        // This should be replaced with real activity-based historical VO2 calculation
         let currentVO2 = profile.vo2maxEstimate ?? 45.0
         return generateRealisticVO2Progression(current: currentVO2, days: 30)
     }
 
     /// Generate realistic FTP progression with training-like patterns
+    /// TEMPORARY SOLUTION - should be replaced with real activity data
     private func generateRealisticFTPProgression(current: Double, days: Int) -> [Double] {
         var values: [Double] = []
         let start = current * 0.96  // Start 4% lower than current
         let overallGain = current - start
 
         for day in 0..<days {
-            // Base progression toward current value
-            let baseProgress = overallGain * (Double(day) / Double(days))
+            // CRITICAL FIX: Last point must EXACTLY match current value
+            if day == days - 1 {
+                values.append(current)
+            } else {
+                // Base progression toward current value
+                let baseProgress = overallGain * (Double(day) / Double(days))
 
-            // Add realistic noise (±1.5% daily variation)
-            let noise = Double.random(in: -0.015...0.015) * current
+                // Add realistic noise (±1.5% daily variation)
+                let noise = Double.random(in: -0.015...0.015) * current
 
-            // Add weekly training/recovery cycles
-            let weeklyVariation = sin(Double(day) / 7.0 * .pi * 2) * (current * 0.01)
+                // Add weekly training/recovery cycles
+                let weeklyVariation = sin(Double(day) / 7.0 * .pi * 2) * (current * 0.01)
 
-            let value = start + baseProgress + noise + weeklyVariation
-            values.append(value)
+                let value = start + baseProgress + noise + weeklyVariation
+                values.append(value)
+            }
         }
 
         return values
     }
 
     /// Generate realistic VO2 progression with training-like patterns
+    /// TEMPORARY SOLUTION - should be replaced with real activity data
     private func generateRealisticVO2Progression(current: Double, days: Int) -> [Double] {
         var values: [Double] = []
         let start = current * 0.97  // Start 3% lower than current
         let overallGain = current - start
 
         for day in 0..<days {
+            // CRITICAL FIX: Last point must EXACTLY match current value
+            if day == days - 1 {
+                values.append(current)
+                continue
+            }
+            
             // Base progression toward current value
             let baseProgress = overallGain * (Double(day) / Double(days))
 
@@ -1286,21 +1393,25 @@ class AthleteProfileManager: ObservableObject {
         return data
     }
 
-    /// Calculate 6-month historical performance (weekly data points)
+    /// Calculate 6-month historical performance from REAL activity data (weekly data points)
     private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double)] {
+        Logger.debug("📊 [6-Month Historical] Calculating from REAL activity data...")
+        
         let currentFTP = profile.ftp ?? 200.0
         let currentVO2 = profile.vo2maxEstimate ?? 45.0
         let now = Date()
         let calendar = Calendar.current
-
-        // Generate 26 weekly data points (6 months)
         let weeks = 26
-        var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
 
-        let ftpStart = currentFTP * 0.90  // Start 10% lower (longer time period)
-        let vo2Start = currentVO2 * 0.92  // Start 8% lower
-        let ftpGain = currentFTP - ftpStart
-        let vo2Gain = currentVO2 - vo2Start
+        // Fetch ALL activities from last 6 months synchronously (already cached)
+        // Note: This is called synchronously, so we use the existing activity cache
+        guard let cachedActivitiesData = UserDefaults.standard.data(forKey: "strava_activities_cache"),
+              let cachedActivities = try? JSONDecoder().decode([Activity].self, from: cachedActivitiesData) else {
+            Logger.warning("⚠️ [6-Month Historical] No activity cache - using simulated data")
+            return generateSimulated6MonthData(currentFTP: currentFTP, currentVO2: currentVO2)
+        }
+
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
 
         for week in 0..<weeks {
             // Date for this week (going backwards from now)
@@ -1308,19 +1419,65 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // FTP progression
-            let ftpBaseProgress = ftpGain * (Double(week) / Double(weeks))
-            let ftpNoise = Double.random(in: -0.02...0.02) * currentFTP
-            let ftpMonthlyVariation = sin(Double(week) / 4.0 * .pi * 2) * (currentFTP * 0.015)
-            let ftp = ftpStart + ftpBaseProgress + ftpNoise + ftpMonthlyVariation
-
-            // VO2 progression
-            let vo2BaseProgress = vo2Gain * (Double(week) / Double(weeks))
-            let vo2Noise = Double.random(in: -0.025...0.025) * currentVO2
-            let vo2MonthlyVariation = sin(Double(week) / 4.0 * .pi * 2) * (currentVO2 * 0.02)
-            let vo2 = vo2Start + vo2BaseProgress + vo2Noise + vo2MonthlyVariation
-
+            // For last week, use current values exactly
+            if week == weeks - 1 {
+                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+                continue
+            }
+            
+            // Get all activities UP TO this week
+            let activitiesUpToDate = cachedActivities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+                
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate <= weekDate
+            }
+            
+            // Calculate FTP and VO2 from activities up to this point
+            let ftp = calculateFTPFromActivities(activitiesUpToDate) ?? currentFTP
+            
+            // VO2 estimation from FTP (VO2max ≈ 10.8 × FTP/weight)
+            let weight = profile.weight ?? 75.0
+            let vo2 = (10.8 * ftp) / weight
+            
             dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+        }
+
+        Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly points from real data")
+        if let first = dataPoints.first, let last = dataPoints.last {
+            Logger.debug("📊 [6-Month Historical] FTP range: \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W")
+        }
+
+        return dataPoints
+    }
+    
+    /// Fallback: Generate simulated 6-month data if no activity cache available
+    private func generateSimulated6MonthData(currentFTP: Double, currentVO2: Double) -> [(date: Date, ftp: Double, vo2: Double)] {
+        let now = Date()
+        let calendar = Calendar.current
+        let weeks = 26
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
+
+        let ftpStart = currentFTP * 0.90
+        let vo2Start = currentVO2 * 0.92
+        let ftpGain = currentFTP * 0.10
+        let vo2Gain = currentVO2 * 0.08
+
+        for week in 0..<weeks {
+            guard let weekDate = calendar.date(byAdding: .weekOfYear, value: -(weeks - week - 1), to: now) else {
+                continue
+            }
+
+            if week == weeks - 1 {
+                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+            } else {
+                let progress = Double(week) / Double(weeks)
+                let ftp = ftpStart + (ftpGain * progress)
+                let vo2 = vo2Start + (vo2Gain * progress)
+                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+            }
         }
 
         return dataPoints

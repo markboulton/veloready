@@ -181,16 +181,7 @@ struct HistoricalPerformanceCard: View {
                             x: .value("Date", dataPoint.date),
                             y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
                         )
-                        .foregroundStyle(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    (selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent).opacity(0.2),
-                                    (selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent).opacity(0.0)
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+                        .foregroundStyle(selectedMetric == .ftp ? Gradients.ChartFill.ftp : Gradients.ChartFill.vo2)
                     }
                     .chartXAxis {
                         AxisMarks(values: .stride(by: .month)) { value in

@@ -38,12 +38,21 @@ class AIBriefService: ObservableObject {
     
     /// Fetch AI brief for today
     func fetchBrief(bypassCache: Bool = false) async {
+        Logger.debug("🤖 [AI Brief] fetchBrief called - bypassCache: \(bypassCache)")
+        
         // Check Core Data cache first (unless bypassing)
-        if !bypassCache, let cachedBrief = loadFromCoreData() {
-            briefText = cachedBrief
-            isCached = true
-            Logger.debug("📦 Using cached AI brief from Core Data")
-            return
+        if !bypassCache {
+            Logger.debug("🤖 [AI Brief] Checking Core Data for today's cached brief...")
+            if let cachedBrief = loadFromCoreData() {
+                briefText = cachedBrief
+                isCached = true
+                Logger.debug("✅ [AI Brief] Using cached AI brief from Core Data (\(cachedBrief.count) chars)")
+                return
+            } else {
+                Logger.debug("📭 [AI Brief] No cached brief found in Core Data for today")
+            }
+        } else {
+            Logger.debug("⏭️ [AI Brief] Bypassing Core Data cache (force refresh)")
         }
         
         // Always fetch if recovery is available (even with missing sleep)
@@ -360,17 +369,26 @@ extension AIBriefService {
     /// Load AI brief from Core Data for today
     private func loadFromCoreData() -> String? {
         let today = Calendar.current.startOfDay(for: Date())
+        Logger.debug("📂 [AI Brief] Loading from Core Data for date: \(today)")
         
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date == %@", today as NSDate)
         request.fetchLimit = 1
         
-        guard let scores = persistence.fetch(request).first,
-              let briefText = scores.aiBriefText,
-              !briefText.isEmpty else {
+        let results = persistence.fetch(request)
+        Logger.debug("📂 [AI Brief] Core Data query returned \(results.count) DailyScores")
+        
+        guard let scores = results.first else {
+            Logger.debug("❌ [AI Brief] No DailyScores entity found for today")
             return nil
         }
         
+        guard let briefText = scores.aiBriefText, !briefText.isEmpty else {
+            Logger.debug("❌ [AI Brief] DailyScores exists but aiBriefText is nil or empty")
+            return nil
+        }
+        
+        Logger.debug("✅ [AI Brief] Found cached brief (\(briefText.count) chars)")
         return briefText
     }
     
