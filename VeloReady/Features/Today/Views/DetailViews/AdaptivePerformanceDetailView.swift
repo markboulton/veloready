@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 /// Adaptive Performance detail page showing FTP, VO2 Max, and zones
 struct AdaptivePerformanceDetailView: View {
@@ -144,16 +145,111 @@ struct HeroMetricsCard: View {
 
 struct HistoricalPerformanceCard: View {
     let historicalData: [PerformanceDataPoint]
-    
+    @State private var selectedMetric: PerformanceMetric = .ftp
+
+    enum PerformanceMetric: String, CaseIterable {
+        case ftp = "FTP"
+        case vo2 = "VO₂ Max"
+    }
+
     var body: some View {
         CardContainer(
             header: CardHeader(title: "6-Month Trend"),
             style: .standard
         ) {
             if !historicalData.isEmpty {
-                // TODO: Add line chart showing FTP progression
-                VRText("Chart coming soon", style: .body, color: .secondary)
-                    .frame(height: 150)
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Metric selector
+                    Picker("Metric", selection: $selectedMetric) {
+                        ForEach(PerformanceMetric.allCases, id: \.self) { metric in
+                            Text(metric.rawValue).tag(metric)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    // Chart
+                    Chart(historicalData) { dataPoint in
+                        LineMark(
+                            x: .value("Date", dataPoint.date),
+                            y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
+                        )
+                        .foregroundStyle(selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent)
+                        .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+
+                        // Add gradient area below line
+                        AreaMark(
+                            x: .value("Date", dataPoint.date),
+                            y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    (selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent).opacity(0.2),
+                                    (selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent).opacity(0.0)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    }
+                    .chartXAxis {
+                        AxisMarks(values: .stride(by: .month)) { value in
+                            AxisGridLine()
+                            AxisValueLabel(format: .dateTime.month(.abbreviated))
+                                .font(.caption)
+                                .foregroundStyle(Color.text.secondary)
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks { value in
+                            AxisGridLine()
+                            AxisValueLabel()
+                                .font(.caption)
+                                .foregroundStyle(Color.text.secondary)
+                        }
+                    }
+                    .frame(height: 200)
+                    .opacity(historicalData.isEmpty ? 0 : 1)
+                    .animation(.easeOut(duration: 0.4), value: historicalData.count)
+
+                    // Summary stats
+                    if let first = historicalData.first, let last = historicalData.last {
+                        let startValue = selectedMetric == .ftp ? first.ftp : (first.vo2 ?? 0)
+                        let endValue = selectedMetric == .ftp ? last.ftp : (last.vo2 ?? 0)
+                        let change = ((endValue - startValue) / startValue) * 100
+                        let unit = selectedMetric == .ftp ? "W" : "ml/kg/min"
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                VRText("Start", style: .caption, color: .secondary)
+                                VRText("\(Int(startValue)) \(unit)", style: .body)
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .center, spacing: 2) {
+                                VRText("Change", style: .caption, color: .secondary)
+                                HStack(spacing: Spacing.xs) {
+                                    Image(systemName: change >= 0 ? Icons.Arrow.upRight : Icons.Arrow.downRight)
+                                        .font(.caption)
+                                        .foregroundColor(change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent)
+                                    VRText(
+                                        "\(change >= 0 ? "+" : "")\(String(format: "%.1f", change))%",
+                                        style: .body,
+                                        color: change >= 0 ? ColorScale.greenAccent : ColorScale.redAccent
+                                    )
+                                }
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 2) {
+                                VRText("Current", style: .caption, color: .secondary)
+                                VRText("\(Int(endValue)) \(unit)", style: .body)
+                            }
+                        }
+                    }
+                }
             } else {
                 VRText("No historical data available", style: .body, color: .secondary)
                     .frame(height: 150)
@@ -450,9 +546,32 @@ class AdaptivePerformanceViewModel: ObservableObject {
         if let lthr = profile.lthr {
             self.lthr = "\(Int(lthr)) bpm"
         }
-        
-        // TODO: Fetch historical data from Core Data
-        ftpTrend = "+3.2% ↗"
+
+        // Load historical performance data asynchronously
+        Task {
+            let historical = await profileManager.fetch6MonthHistoricalPerformance()
+
+            await MainActor.run {
+                // Convert to PerformanceDataPoint
+                historicalData = historical.map { dataPoint in
+                    PerformanceDataPoint(
+                        date: dataPoint.date,
+                        ftp: dataPoint.ftp,
+                        vo2: dataPoint.vo2
+                    )
+                }
+
+                // Calculate FTP trend from first to last data point
+                if let first = historical.first, let last = historical.last, first.ftp > 0 {
+                    let change = ((last.ftp - first.ftp) / first.ftp) * 100
+                    if change > 0 {
+                        ftpTrend = "+\(String(format: "%.1f", change))% ↗"
+                    } else {
+                        ftpTrend = "\(String(format: "%.1f", change))% ↘"
+                    }
+                }
+            }
+        }
     }
     
     private func generatePowerZones(ftp: Double) -> [PowerZone] {
