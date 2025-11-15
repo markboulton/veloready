@@ -61,14 +61,23 @@ class TrainingLoadGraphCardViewModel: ObservableObject {
             let ftp = profileManager.profile.ftp
             
             // Enrich activities with TSS
+            Logger.debug("   📊 FTP: \(ftp?.description ?? "nil")")
             let enrichedActivities = activities.map { activity in
                 ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
             }
-            
+
+            // Log TSS values for debugging
+            let activitiesWithTSS = enrichedActivities.filter { $0.tss != nil && $0.tss! > 0 }
+            Logger.debug("   📊 Activities with TSS: \(activitiesWithTSS.count)/\(enrichedActivities.count)")
+            if !activitiesWithTSS.isEmpty {
+                let tssValues = activitiesWithTSS.prefix(5).compactMap { $0.tss }.map { String(format: "%.0f", $0) }
+                Logger.debug("   📊 First 5 TSS values: \(tssValues.joined(separator: ", "))")
+            }
+
             // Calculate progressive CTL/ATL using TrainingLoadCalculator
             let calculator = TrainingLoadCalculator()
             let progressiveLoad = await calculator.calculateProgressiveTrainingLoad(enrichedActivities)
-            
+
             Logger.debug("   Calculated progressive load for \(progressiveLoad.count) days")
 
             // Convert to data points - only show last 14 days

@@ -5,41 +5,25 @@ import Charts
 /// Used in both Today page and Activity detail views
 struct TrainingLoadChartView: View {
     let data: [TrainingLoadDataPoint]
-    @State private var selectedIndex: Int?
 
-    // Find today's index or use most recent as default
-    private var defaultSelectedIndex: Int {
-        data.firstIndex { Calendar.current.isDateInToday($0.date) } ?? data.count - 1
-    }
-
+    // Find today's data point or use most recent
     private var selectedPoint: TrainingLoadDataPoint? {
-        guard let index = selectedIndex, index < data.count else {
-            return data.indices.contains(defaultSelectedIndex) ? data[defaultSelectedIndex] : nil
-        }
-        return data[index]
+        data.first { Calendar.current.isDateInToday($0.date) } ?? data.last
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Full-width interactive tooltip
-            interactiveTooltip
-            
             // Chart
             chart
 
-            // Zone Legend
-            zoneLegend
-        }
-        .onAppear {
-            // Set initial selection to today or most recent
-            if selectedIndex == nil {
-                selectedIndex = defaultSelectedIndex
-            }
+            // Metrics Legend
+            metricsLegend
         }
     }
 
     private var chart: some View {
-        Chart(data) { dataPoint in
+        Chart {
+            ForEach(data) { dataPoint in
             // CTL Line (Fitness) - Purple
             LineMark(
                 x: .value("Date", dataPoint.date),
@@ -69,23 +53,6 @@ struct TrainingLoadChartView: View {
             .foregroundStyle(tsbColor(for: dataPoint.tsb, isFuture: dataPoint.isFuture))
             .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
-
-            // Selected marker - draggable vertical line
-            if let selectedPoint = selectedPoint, dataPoint.date == selectedPoint.date {
-                RuleMark(x: .value("Selected", dataPoint.date))
-                    .foregroundStyle(.white.opacity(0.7))
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                    .annotation(position: .top, spacing: 0) {
-                        // Draggable handle
-                        VStack(spacing: 0) {
-                            Image(systemName: "line.3.horizontal")
-                                .font(.caption2)
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(Color.white.opacity(0.3))
-                                .clipShape(Circle())
-                        }
-                    }
             }
         }
         .chartXAxis {
@@ -102,7 +69,7 @@ struct TrainingLoadChartView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading) { _ in
+            AxisMarks(position: .leading) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(Color.text.tertiary.opacity(0.2))
                 AxisValueLabel()
@@ -111,108 +78,59 @@ struct TrainingLoadChartView: View {
             }
         }
         .frame(height: 200)
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    updateSelection(at: value.location.x, chartWidth: 350) // Approximate chart width
-                }
-        )
     }
 
-    private var interactiveTooltip: some View {
+    private var metricsLegend: some View {
         HStack(spacing: 16) {
-            if let point = selectedPoint {
-                // Date
-                Text(point.date, format: .dateTime.month(.abbreviated).day())
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-
-                Spacer()
-
-                // CTL
-                HStack(spacing: 4) {
-                    Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
-                    Text("CTL \(Int(point.ctl))")
+            // CTL
+            HStack(spacing: 4) {
+                Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
+                Text("CTL")
+                    .font(.caption)
+                    .foregroundColor(Color.text.secondary)
+                if let point = selectedPoint {
+                    Text("\(Int(point.ctl))")
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.text.primary)
                 }
+            }
 
-                // ATL
-                HStack(spacing: 4) {
-                    Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
-                    Text("ATL \(Int(point.atl))")
+            // ATL
+            HStack(spacing: 4) {
+                Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
+                Text("ATL")
+                    .font(.caption)
+                    .foregroundColor(Color.text.secondary)
+                if let point = selectedPoint {
+                    Text("\(Int(point.atl))")
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.text.primary)
                 }
+            }
 
-                // TSB (Form)
-                HStack(spacing: 4) {
-                    Circle().fill(tsbColor(for: point.tsb, isFuture: point.isFuture)).frame(width: 6, height: 6)
-                    Text("Form \(Int(point.tsb))")
+            // Form (TSB)
+            HStack(spacing: 4) {
+                Circle().fill(ColorScale.blueAccent).frame(width: 6, height: 6)
+                Text("Form")
+                    .font(.caption)
+                    .foregroundColor(Color.text.secondary)
+                if let point = selectedPoint {
+                    Text("\(Int(point.tsb))")
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color.text.primary)
                 }
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.black)
-        .cornerRadius(0)
+        .padding(.top, 12)
     }
 
-    private var zoneLegend: some View {
-        HStack(spacing: 12) {
-            legendItem(color: ColorScale.redAccent, label: "High Risk")
-            legendItem(color: ColorScale.greenAccent, label: "Optimal")
-            legendItem(color: ColorScale.gray500, label: "Grey Zone")
-            legendItem(color: ColorScale.cyanAccent, label: "Fresh")
-            legendItem(color: ColorScale.yellowAccent, label: "Transition")
-        }
-        .font(.caption)
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
-    }
-
-    private func legendItem(color: Color, label: String) -> some View {
-        HStack(spacing: 3) {
-            Circle()
-                .fill(color)
-                .frame(width: 6, height: 6)
-            Text(label)
-                .foregroundColor(Color.text.secondary)
-        }
-    }
-
-    private func updateSelection(at x: CGFloat, chartWidth: CGFloat) {
-        guard !data.isEmpty, chartWidth > 0 else { return }
-
-        // Calculate which data point based on x position
-        let index = Int((x / chartWidth) * CGFloat(data.count))
-        let clampedIndex = max(0, min(data.count - 1, index))
-
-        selectedIndex = clampedIndex
-    }
-
-    /// Get color for TSB (form) based on zone
+    /// Get color for TSB (form) line
     private func tsbColor(for value: Double, isFuture: Bool) -> Color {
-        if isFuture {
-            return ColorScale.gray400
-        }
-
-        switch value {
-        case 20...: // Transition Zone (>+20)
-            return ColorScale.yellowAccent
-        case 5..<20: // Fresh Zone (+5 to +20)
-            return ColorScale.cyanAccent
-        case -10..<5: // Grey Zone (-10 to +5)
-            return ColorScale.gray500
-        case -30..<(-10): // Optimal (-30 to -10)
-            return ColorScale.greenAccent
-        default: // High Risk (<-30)
-            return ColorScale.redAccent
-        }
+        return isFuture ? ColorScale.gray400 : ColorScale.blueAccent
     }
 }
 
