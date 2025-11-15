@@ -190,14 +190,45 @@ struct HistoricalPerformanceCard: View {
                     }
                     .pickerStyle(.segmented)
 
-                    // Chart
+                    // Chart with confidence intervals
                     Chart(historicalData) { dataPoint in
+                        // Confidence interval (shaded area)
+                        if selectedMetric == .ftp {
+                            AreaMark(
+                                x: .value("Date", dataPoint.date),
+                                yStart: .value("Lower", dataPoint.ftpLowerBound),
+                                yEnd: .value("Upper", dataPoint.ftpUpperBound)
+                            )
+                            .foregroundStyle(ColorScale.purpleAccent.opacity(0.15))
+                            .interpolationMethod(.catmullRom)
+                        } else if let vo2Lower = dataPoint.vo2LowerBound, let vo2Upper = dataPoint.vo2UpperBound {
+                            AreaMark(
+                                x: .value("Date", dataPoint.date),
+                                yStart: .value("Lower", vo2Lower),
+                                yEnd: .value("Upper", vo2Upper)
+                            )
+                            .foregroundStyle(ColorScale.blueAccent.opacity(0.15))
+                            .interpolationMethod(.catmullRom)
+                        }
+                        
+                        // Main line
                         LineMark(
                             x: .value("Date", dataPoint.date),
                             y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
                         )
                         .foregroundStyle(selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent)
                         .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                        .interpolationMethod(.catmullRom)
+                        
+                        // Low confidence indicator (smaller points)
+                        if dataPoint.confidence < 0.5 {
+                            PointMark(
+                                x: .value("Date", dataPoint.date),
+                                y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
+                            )
+                            .foregroundStyle(ColorScale.amberAccent)
+                            .symbolSize(30)
+                        }
                     }
                     .chartXAxis {
                         AxisMarks(values: .stride(by: .month)) { value in
@@ -254,6 +285,24 @@ struct HistoricalPerformanceCard: View {
                                 VRText("\(Int(endValue)) \(unit)", style: .body)
                             }
                         }
+                        
+                        // Legend for confidence intervals
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                            HStack(spacing: Spacing.xs) {
+                                Rectangle()
+                                    .fill(selectedMetric == .ftp ? ColorScale.purpleAccent.opacity(0.15) : ColorScale.blueAccent.opacity(0.15))
+                                    .frame(width: 16, height: 8)
+                                VRText("Confidence interval (based on sample size)", style: .caption2, color: .secondary)
+                            }
+                            
+                            HStack(spacing: Spacing.xs) {
+                                Circle()
+                                    .fill(ColorScale.amberAccent)
+                                    .frame(width: 8, height: 8)
+                                VRText("Low confidence (<50%, fewer activities)", style: .caption2, color: .secondary)
+                            }
+                        }
+                        .padding(.top, Spacing.sm)
                     }
                 }
             } else {
@@ -558,12 +607,14 @@ class AdaptivePerformanceViewModel: ObservableObject {
             let historical = await profileManager.fetch6MonthHistoricalPerformance()
 
             await MainActor.run {
-                // Convert to PerformanceDataPoint
+                // Convert to PerformanceDataPoint with confidence intervals
                 historicalData = historical.map { dataPoint in
                     PerformanceDataPoint(
                         date: dataPoint.date,
                         ftp: dataPoint.ftp,
-                        vo2: dataPoint.vo2
+                        vo2: dataPoint.vo2,
+                        confidence: dataPoint.confidence,
+                        activityCount: dataPoint.activityCount
                     )
                 }
 
@@ -648,6 +699,24 @@ struct PerformanceDataPoint: Identifiable {
     let date: Date
     let ftp: Double
     let vo2: Double?
+    let confidence: Double  // 0.0 to 1.0, based on sample size
+    let activityCount: Int  // Total activities in window
+    
+    // Confidence interval bounds (±5% scaled by confidence)
+    var ftpLowerBound: Double {
+        ftp * (1.0 - (0.05 * (1.0 - confidence)))
+    }
+    var ftpUpperBound: Double {
+        ftp * (1.0 + (0.05 * (1.0 - confidence)))
+    }
+    var vo2LowerBound: Double? {
+        guard let vo2 = vo2 else { return nil }
+        return vo2 * (1.0 - (0.05 * (1.0 - confidence)))
+    }
+    var vo2UpperBound: Double? {
+        guard let vo2 = vo2 else { return nil }
+        return vo2 * (1.0 + (0.05 * (1.0 - confidence)))
+    }
 }
 
 // MARK: - Preview

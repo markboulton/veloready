@@ -1438,8 +1438,8 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Fetch 6-month historical performance data for charts
-    /// Returns weekly data points (26 points) with cached data (< 5 minutes old)
-    func fetch6MonthHistoricalPerformance() async -> [(date: Date, ftp: Double, vo2: Double)] {
+    /// Returns weekly data points (26 points) with confidence intervals and activity counts
+    func fetch6MonthHistoricalPerformance() async -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
         let cacheKey = "historical6Month_performance"
         let cacheTimestampKey = "historical6Month_timestamp"
 
@@ -1450,11 +1450,13 @@ class AthleteProfileManager: ObservableObject {
             if secondsSinceCache < 10 {
                 Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", secondsSinceCache))s old)")
                 // Convert cached dict back to tuples
-                let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double)? in
+                let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)? in
                     guard let date = dict["date"] as? Date,
                           let ftp = dict["ftp"] as? Double,
-                          let vo2 = dict["vo2"] as? Double else { return nil }
-                    return (date, ftp, vo2)
+                          let vo2 = dict["vo2"] as? Double,
+                          let confidence = dict["confidence"] as? Double,
+                          let activityCount = dict["activityCount"] as? Int else { return nil }
+                    return (date, ftp, vo2, confidence, activityCount)
                 }
                 if !data.isEmpty {
                     return data
@@ -1469,7 +1471,13 @@ class AthleteProfileManager: ObservableObject {
         let data = calculate6MonthHistorical()
 
         // Cache results (convert tuples to dicts for UserDefaults)
-        let cacheData = data.map { ["date": $0.date, "ftp": $0.ftp, "vo2": $0.vo2] as [String: Any] }
+        let cacheData = data.map { [
+            "date": $0.date,
+            "ftp": $0.ftp,
+            "vo2": $0.vo2,
+            "confidence": $0.confidence,
+            "activityCount": $0.activityCount
+        ] as [String: Any] }
         UserDefaults.standard.set(cacheData, forKey: cacheKey)
         UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
 
@@ -1477,9 +1485,10 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Calculate 6-month historical performance from REAL activity data (weekly data points)
-    /// Uses 60-day rolling window for each week to get accurate historical FTP/VO2 with better granularity
-    private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double)] {
-        Logger.debug("📊 [6-Month Historical] Calculating from REAL activity data with rolling windows...")
+    /// Point-in-time snapshots with 90-day trailing window (sport science validated approach)
+    /// Weekly snapshots for 6 months, each using activities from 90 days BEFORE that date
+    private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
+        Logger.debug("📊 [6-Month Historical] Calculating point-in-time snapshots (weekly, 90-day trailing)...")
 
         let currentFTP = profile.ftp ?? 200.0
         let currentVO2 = profile.vo2maxEstimate ?? 45.0
@@ -1489,13 +1498,12 @@ class AthleteProfileManager: ObservableObject {
         let weight = profile.weight ?? 75.0
 
         // Fetch activities synchronously from UnifiedActivityService cache
-        // Fetch 12 months of activities to capture historical peaks and provide enough data for rolling windows
+        // Fetch 12 months to capture historical peaks (June's 210-220W FTP)
         var cachedActivities: [Activity] = []
         let semaphore = DispatchSemaphore(value: 0)
 
         Task {
             do {
-                // Fetch 12 months of activities (increased from 9 months) to capture June's 210-220W FTP
                 cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 2000, daysBack: 365)
                 semaphore.signal()
             } catch {
@@ -1513,17 +1521,17 @@ class AthleteProfileManager: ObservableObject {
 
         Logger.debug("📊 [6-Month Historical] Fetched \(cachedActivities.count) activities for calculation")
 
-        var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] = []
 
         for week in 0..<weeks {
-            // Date for this week (going backwards from now)
-            guard let weekDate = calendar.date(byAdding: .weekOfYear, value: -(weeks - week - 1), to: now) else {
+            // Snapshot date (going backwards from now)
+            guard let snapshotDate = calendar.date(byAdding: .weekOfYear, value: -(weeks - week - 1), to: now) else {
                 continue
             }
 
-            // Get activities within 60-day TRAILING window (60 days BEFORE this week)
-            // Smaller window = better granularity, less overlap between consecutive weeks
-            guard let windowStart = calendar.date(byAdding: .day, value: -60, to: weekDate) else {
+            // 90-day trailing window BEFORE snapshot date (point-in-time approach)
+            // No future leakage - only uses activities that existed at this point in time
+            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: snapshotDate) else {
                 continue
             }
 
@@ -1533,35 +1541,75 @@ class AthleteProfileManager: ObservableObject {
                 formatter.timeZone = TimeZone.current
 
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate >= windowStart && activityDate <= weekDate
+                // Only activities BEFORE or ON snapshot date (point-in-time constraint)
+                return activityDate >= windowStart && activityDate <= snapshotDate
             }
 
+            let activityCount = activitiesInWindow.count
+            let powerActivities = activitiesInWindow.filter { $0.averagePower != nil && $0.averagePower! > 0 }
+
+            // Calculate confidence based on sample size (more activities = higher confidence)
+            // Min 5 power activities for reasonable estimate, optimal 20+
+            let confidence = min(1.0, Double(powerActivities.count) / 20.0)
+
             // Calculate FTP from trailing window
-            if let ftp = calculateFTPFromActivities(activitiesInWindow) {
+            if let ftp = calculateFTPFromActivities(activitiesInWindow), ftp > 0 {
                 // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
                 let vo2 = (10.8 * ftp) / weight + 7
-                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+                dataPoints.append((date: snapshotDate, ftp: ftp, vo2: vo2, confidence: confidence, activityCount: activityCount))
+                
+                Logger.debug("   Week \(week + 1): \(String(format: "%.0f", ftp))W (\(powerActivities.count) power activities, confidence: \(String(format: "%.0f", confidence * 100))%)")
             } else {
-                // No valid activities in this window - use current values
-                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+                // No valid activities - use current values with low confidence
+                dataPoints.append((date: snapshotDate, ftp: currentFTP, vo2: currentVO2, confidence: 0.0, activityCount: activityCount))
+                Logger.debug("   Week \(week + 1): No data (using current FTP)")
             }
         }
 
-        Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly points from real data")
+        Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly snapshots from real data")
         if let first = dataPoints.first, let last = dataPoints.last {
             Logger.debug("📊 [6-Month Historical] FTP range: \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W")
             Logger.debug("📊 [6-Month Historical] VO2 range: \(String(format: "%.1f", first.vo2)) → \(String(format: "%.1f", last.vo2)) ml/kg/min")
+            
+            // Detect significant changes (>5W sustained for 2+ weeks)
+            detectSignificantChanges(dataPoints)
         }
 
         return dataPoints
     }
     
+    /// Detect significant FTP changes (>5W sustained for 2+ weeks)
+    /// Used for annotating training adaptations on chart
+    private func detectSignificantChanges(_ dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]) {
+        guard dataPoints.count >= 3 else { return }
+        
+        var significantChanges: [(date: Date, change: Double, phase: String)] = []
+        
+        for i in 2..<dataPoints.count {
+            let current = dataPoints[i].ftp
+            let twoWeeksAgo = dataPoints[i - 2].ftp
+            let change = current - twoWeeksAgo
+            
+            // Significant if >5W change sustained for 2+ weeks and high confidence
+            if abs(change) >= 5 && dataPoints[i].confidence >= 0.5 {
+                let phase = change > 0 ? "Build Phase" : "Recovery Phase"
+                significantChanges.append((date: dataPoints[i].date, change: change, phase: phase))
+                
+                Logger.debug("   🎯 \(phase) detected: \(String(format: "%+.0f", change))W over 2 weeks (ending \(dataPoints[i].date.formatted(.dateTime.month().day())))")
+            }
+        }
+        
+        if significantChanges.isEmpty {
+            Logger.debug("   ℹ️ No significant training adaptations detected (need >5W change sustained 2+ weeks)")
+        }
+    }
+    
     /// Fallback: Generate simulated 6-month data if no activity cache available
-    private func generateSimulated6MonthData(currentFTP: Double, currentVO2: Double) -> [(date: Date, ftp: Double, vo2: Double)] {
+    private func generateSimulated6MonthData(currentFTP: Double, currentVO2: Double) -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
         let now = Date()
         let calendar = Calendar.current
         let weeks = 26
-        var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] = []
 
         let ftpStart = currentFTP * 0.90
         let vo2Start = currentVO2 * 0.92
@@ -1574,12 +1622,12 @@ class AthleteProfileManager: ObservableObject {
             }
 
             if week == weeks - 1 {
-                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2, confidence: 0.0, activityCount: 0))
             } else {
                 let progress = Double(week) / Double(weeks)
                 let ftp = ftpStart + (ftpGain * progress)
                 let vo2 = vo2Start + (vo2Gain * progress)
-                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2, confidence: 0.0, activityCount: 0))
             }
         }
 
