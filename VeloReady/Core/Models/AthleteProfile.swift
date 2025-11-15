@@ -1136,18 +1136,20 @@ class AthleteProfileManager: ObservableObject {
     // MARK: - Historical Performance Data (Cached)
 
     /// Fetch historical FTP sparkline data (30 days)
-    /// Returns cached data if available (< 24 hours old), otherwise calculates from activities
+    /// Returns cached data if available (< 5 minutes old), otherwise calculates from activities
     func fetchHistoricalFTPSparkline() async -> [Double] {
         let cacheKey = "historicalFTP_sparkline"
         let cacheTimestampKey = "historicalFTP_timestamp"
 
-        // Check cache first
+        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
         if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let hoursSinceCache = Date().timeIntervalSince(cachedTimestamp) / 3600
-            if hoursSinceCache < 24 {
-                Logger.debug("📊 Using cached FTP sparkline (\(String(format: "%.1f", hoursSinceCache))h old)")
+            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
+            if minutesSinceCache < 5 {
+                Logger.debug("📊 Using cached FTP sparkline (\(String(format: "%.1f", minutesSinceCache))min old)")
                 return cachedData
+            } else {
+                Logger.debug("📊 FTP sparkline cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
             }
         }
 
@@ -1163,18 +1165,20 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Fetch historical VO2 sparkline data (30 days)
-    /// Returns cached data if available (< 24 hours old), otherwise calculates from activities
+    /// Returns cached data if available (< 5 minutes old), otherwise calculates from activities
     func fetchHistoricalVO2Sparkline() async -> [Double] {
         let cacheKey = "historicalVO2_sparkline"
         let cacheTimestampKey = "historicalVO2_timestamp"
 
-        // Check cache first
+        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
         if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let hoursSinceCache = Date().timeIntervalSince(cachedTimestamp) / 3600
-            if hoursSinceCache < 24 {
-                Logger.debug("📊 Using cached VO2 sparkline (\(String(format: "%.1f", hoursSinceCache))h old)")
+            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
+            if minutesSinceCache < 5 {
+                Logger.debug("📊 Using cached VO2 sparkline (\(String(format: "%.1f", minutesSinceCache))min old)")
                 return cachedData
+            } else {
+                Logger.debug("📊 VO2 sparkline cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
             }
         }
 
@@ -1357,17 +1361,17 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Fetch 6-month historical performance data for charts
-    /// Returns weekly data points (26 points) with cached data (< 24 hours old)
+    /// Returns weekly data points (26 points) with cached data (< 5 minutes old)
     func fetch6MonthHistoricalPerformance() async -> [(date: Date, ftp: Double, vo2: Double)] {
         let cacheKey = "historical6Month_performance"
         let cacheTimestampKey = "historical6Month_timestamp"
 
-        // Check cache first
+        // Check cache first (5 minute TTL for testing - change to 24 hours for production)
         if let cachedDataDict = UserDefaults.standard.array(forKey: cacheKey) as? [[String: Any]],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
-            let hoursSinceCache = Date().timeIntervalSince(cachedTimestamp) / 3600
-            if hoursSinceCache < 24 {
-                Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", hoursSinceCache))h old)")
+            let minutesSinceCache = Date().timeIntervalSince(cachedTimestamp) / 60
+            if minutesSinceCache < 5 {
+                Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", minutesSinceCache))min old)")
                 // Convert cached dict back to tuples
                 let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double)? in
                     guard let date = dict["date"] as? Date,
@@ -1378,6 +1382,8 @@ class AthleteProfileManager: ObservableObject {
                 if !data.isEmpty {
                     return data
                 }
+            } else {
+                Logger.debug("📊 6-month performance cache expired (\(String(format: "%.1f", minutesSinceCache))min old) - recalculating from REAL data")
             }
         }
 
@@ -1403,13 +1409,29 @@ class AthleteProfileManager: ObservableObject {
         let calendar = Calendar.current
         let weeks = 26
 
-        // Fetch ALL activities from last 6 months synchronously (already cached)
-        // Note: This is called synchronously, so we use the existing activity cache
-        guard let cachedActivitiesData = UserDefaults.standard.data(forKey: "strava_activities_cache"),
-              let cachedActivities = try? JSONDecoder().decode([Activity].self, from: cachedActivitiesData) else {
-            Logger.warning("⚠️ [6-Month Historical] No activity cache - using simulated data")
+        // Fetch activities synchronously from UnifiedActivityService cache
+        // This is blocking, but should be fast since activities are already cached
+        var cachedActivities: [Activity] = []
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        Task {
+            do {
+                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: 180)
+                semaphore.signal()
+            } catch {
+                Logger.error("❌ [6-Month Historical] Failed to fetch activities: \(error)")
+                semaphore.signal()
+            }
+        }
+        
+        _ = semaphore.wait(timeout: .now() + 5.0)
+        
+        guard !cachedActivities.isEmpty else {
+            Logger.warning("⚠️ [6-Month Historical] No activities found - using simulated data")
             return generateSimulated6MonthData(currentFTP: currentFTP, currentVO2: currentVO2)
         }
+        
+        Logger.debug("📊 [6-Month Historical] Fetched \(cachedActivities.count) activities for calculation")
 
         var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
 

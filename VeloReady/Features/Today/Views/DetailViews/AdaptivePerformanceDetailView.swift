@@ -151,6 +151,21 @@ struct HistoricalPerformanceCard: View {
         case ftp = "FTP"
         case vo2 = "VO₂ Max"
     }
+    
+    // Calculate adaptive Y-axis domain with ±10% padding
+    private var yAxisDomain: ClosedRange<Double> {
+        let values = historicalData.map { selectedMetric == .ftp ? $0.ftp : ($0.vo2 ?? 0) }
+        guard let minValue = values.min(), let maxValue = values.max(), minValue > 0 else {
+            return 0...100
+        }
+        
+        let range = maxValue - minValue
+        let padding = range * 0.1
+        let lowerBound = max(0, minValue - padding)
+        let upperBound = maxValue + padding
+        
+        return lowerBound...upperBound
+    }
 
     var body: some View {
         CardContainer(
@@ -175,13 +190,6 @@ struct HistoricalPerformanceCard: View {
                         )
                         .foregroundStyle(selectedMetric == .ftp ? ColorScale.purpleAccent : ColorScale.blueAccent)
                         .lineStyle(StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-
-                        // Add gradient area below line
-                        AreaMark(
-                            x: .value("Date", dataPoint.date),
-                            y: .value("Value", selectedMetric == .ftp ? dataPoint.ftp : (dataPoint.vo2 ?? 0))
-                        )
-                        .foregroundStyle(selectedMetric == .ftp ? Gradients.ChartFill.ftp : Gradients.ChartFill.vo2)
                     }
                     .chartXAxis {
                         AxisMarks(values: .stride(by: .month)) { value in
@@ -199,9 +207,8 @@ struct HistoricalPerformanceCard: View {
                                 .foregroundStyle(Color.text.secondary)
                         }
                     }
+                    .chartYScale(domain: yAxisDomain)
                     .frame(height: 200)
-                    .opacity(historicalData.isEmpty ? 0 : 1)
-                    .animation(.easeOut(duration: 0.4), value: historicalData.count)
 
                     // Summary stats
                     if let first = historicalData.first, let last = historicalData.last {

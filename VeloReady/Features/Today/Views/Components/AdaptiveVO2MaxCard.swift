@@ -51,9 +51,6 @@ struct AdaptiveVO2MaxCard: View {
                                     .foregroundColor(.secondary)
                             }
                         }
-                        .opacity(viewModel.sparklineValues.isEmpty ? 0 : 1)
-                        .offset(x: viewModel.sparklineValues.isEmpty ? 20 : 0)
-                        .animation(.easeOut(duration: 0.4), value: viewModel.sparklineValues.count)
                     } else {
                         // Data source indicator (for non-PRO or users without sparkline data)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
