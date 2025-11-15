@@ -30,39 +30,28 @@ struct AdaptiveVO2MaxCard: View {
                         }
                     }
                 
-                    // RAG-colored sparkline (30-day trend)
+                    // Trend indicator with period label (no sparkline)
                     if viewModel.hasData {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            RAGSparkline(
-                                values: viewModel.sparklineValues,
-                                color: viewModel.trendColor,
-                                height: 32
-                            )
-
-                            // Trend indicator with period label
-                            HStack(spacing: Spacing.xs) {
-                                Image(systemName: viewModel.trendIcon)
-                                    .font(.caption2)
-                                    .foregroundColor(viewModel.trendColor)
-                                VRText(viewModel.trendText, style: .caption2)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                VRText("30 days", style: .caption2)
-                                    .foregroundColor(.secondary)
-                            }
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: viewModel.trendIcon)
+                                .font(.caption2)
+                                .foregroundColor(viewModel.trendColor)
+                            VRText(viewModel.trendText, style: .caption2)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            VRText("30 days", style: .caption2)
+                                .foregroundColor(.secondary)
                         }
                     } else {
                         // Data source indicator (for non-PRO or users without sparkline data)
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            HStack(spacing: Spacing.xs) {
-                                if viewModel.dataSource == "Estimated" {
-                                    Image(systemName: Icons.System.lock)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                VRText(viewModel.dataSource, style: .caption)
+                        HStack(spacing: Spacing.xs) {
+                            if viewModel.dataSource == "Estimated" {
+                                Image(systemName: Icons.System.lock)
+                                    .font(.caption)
                                     .foregroundColor(.secondary)
                             }
+                            VRText(viewModel.dataSource, style: .caption)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
@@ -150,49 +139,14 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
             Logger.debug("   vo2Value set to: \(vo2Value)")
             Logger.debug("   fitnessLevel: \(fitnessLevel ?? "nil")")
 
-            // Show sparkline for PRO users
+            // Show trend for PRO users (no sparkline calculation needed)
             if hasPro {
                 hasData = true
-
-                // Load sparkline data asynchronously with 0.2s delay (staggered animation)
-                Task {
-                    // Delay by 0.2s to stagger animation with FTP card
-                    try? await Task.sleep(nanoseconds: 200_000_000)
-
-                    let sparkline = await profileManager.fetchHistoricalVO2Sparkline()
-
-                    // Calculate trend from sparkline
-                    if let first = sparkline.first, let last = sparkline.last, first > 0 {
-                        let change = ((last - first) / first) * 100
-
-                        await MainActor.run {
-                            sparklineValues = sparkline
-
-                            // Determine RAG color based on overall trend
-                            if change > 2 {
-                                trendColor = ColorScale.greenAccent
-                                trendIcon = Icons.Arrow.upRight
-                                trendText = "+\(Int(change))%"
-                            } else if change < -2 {
-                                trendColor = ColorScale.redAccent
-                                trendIcon = Icons.Arrow.downRight
-                                trendText = "\(Int(change))%"
-                            } else if change > 0 {
-                                trendColor = ColorScale.greenAccent.opacity(0.7)
-                                trendIcon = Icons.Arrow.up
-                                trendText = "+\(Int(change))%"
-                            } else if change < 0 {
-                                trendColor = ColorScale.amberAccent
-                                trendIcon = Icons.Arrow.down
-                                trendText = "\(Int(change))%"
-                            } else {
-                                trendColor = .secondary
-                                trendIcon = Icons.Arrow.right
-                                trendText = "Stable"
-                            }
-                        }
-                    }
-                }
+                
+                // Show stable trend by default (no expensive calculations)
+                trendColor = .secondary
+                trendIcon = Icons.Arrow.right
+                trendText = "Stable"
             } else {
                 hasData = false
                 Logger.debug("   hasData: false (no PRO)")
