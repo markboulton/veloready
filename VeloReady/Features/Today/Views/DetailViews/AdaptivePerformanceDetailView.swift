@@ -152,18 +152,26 @@ struct HistoricalPerformanceCard: View {
         case vo2 = "VO₂ Max"
     }
     
-    // Calculate adaptive Y-axis domain with ±10% padding
+    // Calculate very adaptive Y-axis domain to show variation
+    // Uses ±20% padding OR minimum 10% range to ensure variation is visible
     private var yAxisDomain: ClosedRange<Double> {
         let values = historicalData.map { selectedMetric == .ftp ? $0.ftp : ($0.vo2 ?? 0) }
         guard let minValue = values.min(), let maxValue = values.max(), minValue > 0 else {
             return 0...100
         }
-        
+
         let range = maxValue - minValue
-        let padding = range * 0.1
+
+        // Use 20% padding OR minimum 10% of mean value (whichever is larger)
+        // This ensures we always zoom in enough to see variation
+        let meanValue = (maxValue + minValue) / 2
+        let minRange = meanValue * 0.1  // Minimum 10% range of mean value
+        let effectiveRange = max(range, minRange)
+
+        let padding = effectiveRange * 0.2  // 20% padding around the effective range
         let lowerBound = max(0, minValue - padding)
         let upperBound = maxValue + padding
-        
+
         return lowerBound...upperBound
     }
 
