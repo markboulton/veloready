@@ -1193,76 +1193,93 @@ class AthleteProfileManager: ObservableObject {
         return sparkline
     }
 
-    /// Calculate 30-day FTP trend from REAL historical activities
-    /// Uses the SAME computeFTPFromPerformanceData logic, but calculated for each week
+    /// Calculate 30-day FTP trend from REAL historical activities (daily granularity)
+    /// Uses 90-day rolling window for each data point
     private func calculateHistoricalFTP() async -> [Double] {
-        Logger.debug("📊 [Historical FTP] Calculating from REAL activity data...")
-        
-        // Fetch activities from last 30 days
-        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: 30) else {
+        Logger.debug("📊 [Historical FTP] Calculating from REAL activity data with daily granularity...")
+
+        // Fetch activities from last 120 days (90-day window + 30 days of data)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 120) else {
             Logger.warning("⚠️ [Historical FTP] Failed to fetch activities - using simulated data")
             return generateRealisticFTPProgression(current: profile.ftp ?? 200.0, days: 30)
         }
-        
+
+        Logger.debug("📊 [Historical FTP] Fetched \(activities.count) activities for calculation")
+
         let calendar = Calendar.current
         let now = Date()
         var sparklineValues: [Double] = []
-        
-        // Calculate FTP for each week (4 weeks)
-        for weekOffset in stride(from: -3, through: 0, by: 1) {
-            guard let targetDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) else {
+
+        // Calculate FTP for each day (30 daily points for granularity)
+        for dayOffset in stride(from: -29, through: 0, by: 1) {
+            guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else {
                 continue
             }
-            
-            // Get all activities UP TO this date
-            let activitiesUpToDate = activities.filter { activity in
+
+            // Get activities within 90-day window AROUND this date (45 days before, 45 days after)
+            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: targetDate),
+                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: targetDate) else {
+                continue
+            }
+
+            let activitiesInWindow = activities.filter { activity in
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
                 formatter.timeZone = TimeZone.current
-                
+
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate <= targetDate
+                return activityDate >= windowStart && activityDate <= windowEnd
             }
-            
-            // Calculate FTP using the SAME logic as current FTP
-            let ftp = calculateFTPFromActivities(activitiesUpToDate) ?? (profile.ftp ?? 200.0)
-            
-            // Repeat this weekly value for 7 days to create smooth sparkline
-            for _ in 0..<7 {
-                sparklineValues.append(ftp)
-            }
+
+            // Calculate FTP from rolling window
+            let ftp = calculateFTPFromActivities(activitiesInWindow) ?? (profile.ftp ?? 200.0)
+            sparklineValues.append(ftp)
         }
-        
-        // Ensure we have exactly 30 values (trim or pad)
+
+        // Ensure we have exactly 30 values
         while sparklineValues.count > 30 { sparklineValues.removeFirst() }
         while sparklineValues.count < 30 {
             sparklineValues.insert(profile.ftp ?? 200.0, at: 0)
         }
-        
-        Logger.debug("📊 [Historical FTP] Calculated \(sparklineValues.count) points from real data")
+
+        Logger.debug("📊 [Historical FTP] Calculated \(sparklineValues.count) daily points from real data")
         Logger.debug("📊 [Historical FTP] Range: \(String(format: "%.0f", sparklineValues.min() ?? 0))W - \(String(format: "%.0f", sparklineValues.max() ?? 0))W")
-        
+
         return sparklineValues
     }
     
     /// Calculate FTP from a set of activities (helper for historical calculations)
     /// Simplified version of computeFTPFromPerformanceData for efficiency
     private func calculateFTPFromActivities(_ activities: [Activity]) -> Double? {
-        guard !activities.isEmpty else { return nil }
-        
+        guard !activities.isEmpty else {
+            Logger.debug("   📊 FTP calc: No activities in window")
+            return nil
+        }
+
+        // Filter activities with power data
+        let activitiesWithPower = activities.filter { ($0.normalizedPower ?? 0) > 0 || ($0.averagePower ?? 0) > 0 }
+
+        Logger.debug("   📊 FTP calc: \(activities.count) total activities, \(activitiesWithPower.count) with power data")
+
+        guard !activitiesWithPower.isEmpty else {
+            Logger.debug("   📊 FTP calc: No activities with power data")
+            return nil
+        }
+
         var best60min: Double = 0
         var best20min: Double = 0
         var best5min: Double = 0
         var maxNP: Double = 0
-        
-        for activity in activities {
-            let np = activity.normalizedPower ?? 0
+
+        for activity in activitiesWithPower {
+            // Prefer normalized power, fall back to average power
+            let np = activity.normalizedPower ?? activity.averagePower ?? 0
             let duration = activity.duration ?? 0
-            
+
             guard np > 0 else { continue }
-            
+
             maxNP = max(maxNP, np)
-            
+
             // Ultra-endurance detection (3+ hours)
             if duration >= 10800 {
                 let boost = duration >= 18000 ? 1.12 : (duration >= 14400 ? 1.10 : 1.07)
@@ -1270,35 +1287,95 @@ class AthleteProfileManager: ObservableObject {
             } else if duration >= 3600 {
                 best60min = max(best60min, np)
             }
-            
+
             if duration >= 1200 { best20min = max(best20min, np) }
             if duration >= 300 { best5min = max(best5min, np) }
         }
-        
-        guard maxNP > 0 else { return nil }
-        
+
+        guard maxNP > 0 else {
+            Logger.debug("   📊 FTP calc: No valid power data found")
+            return nil
+        }
+
         // Calculate weighted FTP
         var candidates: [(ftp: Double, weight: Double)] = []
         if best60min > 0 { candidates.append((best60min * 0.99, 1.5)) }
         if best20min > 0 { candidates.append((best20min * 0.95, 0.9)) }
         if best5min > 0 { candidates.append((best5min * 0.87, 0.6)) }
-        
-        guard !candidates.isEmpty else { return nil }
-        
+
+        guard !candidates.isEmpty else {
+            Logger.debug("   📊 FTP calc: No valid duration efforts found")
+            return nil
+        }
+
         let totalWeight = candidates.reduce(0) { $0 + $1.weight }
         let weightedFTP = candidates.reduce(0) { $0 + ($1.ftp * $1.weight) } / totalWeight
-        
-        return weightedFTP * 1.02 // Apply 2% buffer
+        let finalFTP = weightedFTP * 1.02
+
+        Logger.debug("   📊 FTP calc: Calculated FTP = \(String(format: "%.0f", finalFTP))W (60min: \(String(format: "%.0f", best60min))W, 20min: \(String(format: "%.0f", best20min))W, 5min: \(String(format: "%.0f", best5min))W)")
+
+        return finalFTP
     }
 
-    /// Calculate 30-day VO2 trend from historical activities
-    /// TODO: Replace with REAL historical data from activities (currently simulated)
-    /// Should query activities from last 30 days and calculate VO2 at each point
+    /// Calculate 30-day VO2 trend from REAL historical activities (daily granularity)
+    /// Uses 90-day rolling window for each data point, estimating VO2 from FTP
     private func calculateHistoricalVO2() async -> [Double] {
-        // TEMPORARY: Generate realistic progression based on current VO2
-        // This should be replaced with real activity-based historical VO2 calculation
-        let currentVO2 = profile.vo2maxEstimate ?? 45.0
-        return generateRealisticVO2Progression(current: currentVO2, days: 30)
+        Logger.debug("📊 [Historical VO2] Calculating from REAL activity data with daily granularity...")
+
+        // Fetch activities from last 120 days (90-day window + 30 days of data)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 500, daysBack: 120) else {
+            Logger.warning("⚠️ [Historical VO2] Failed to fetch activities - using simulated data")
+            return generateRealisticVO2Progression(current: profile.vo2maxEstimate ?? 45.0, days: 30)
+        }
+
+        Logger.debug("📊 [Historical VO2] Fetched \(activities.count) activities for calculation")
+
+        let calendar = Calendar.current
+        let now = Date()
+        var sparklineValues: [Double] = []
+        let weight = profile.weight ?? 75.0
+
+        // Calculate VO2 for each day (30 daily points for granularity)
+        for dayOffset in stride(from: -29, through: 0, by: 1) {
+            guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else {
+                continue
+            }
+
+            // Get activities within 90-day window AROUND this date (45 days before, 45 days after)
+            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: targetDate),
+                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: targetDate) else {
+                continue
+            }
+
+            let activitiesInWindow = activities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate >= windowStart && activityDate <= windowEnd
+            }
+
+            // Calculate FTP from rolling window, then estimate VO2
+            if let ftp = calculateFTPFromActivities(activitiesInWindow) {
+                // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
+                let vo2 = (10.8 * ftp) / weight + 7
+                sparklineValues.append(vo2)
+            } else {
+                sparklineValues.append(profile.vo2maxEstimate ?? 45.0)
+            }
+        }
+
+        // Ensure we have exactly 30 values
+        while sparklineValues.count > 30 { sparklineValues.removeFirst() }
+        while sparklineValues.count < 30 {
+            sparklineValues.insert(profile.vo2maxEstimate ?? 45.0, at: 0)
+        }
+
+        Logger.debug("📊 [Historical VO2] Calculated \(sparklineValues.count) daily points from real data")
+        Logger.debug("📊 [Historical VO2] Range: \(String(format: "%.1f", sparklineValues.min() ?? 0)) - \(String(format: "%.1f", sparklineValues.max() ?? 0)) ml/kg/min")
+
+        return sparklineValues
     }
 
     /// Generate realistic FTP progression with training-like patterns
@@ -1400,37 +1477,40 @@ class AthleteProfileManager: ObservableObject {
     }
 
     /// Calculate 6-month historical performance from REAL activity data (weekly data points)
+    /// Uses 90-day rolling window for each week to get accurate historical FTP/VO2
     private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double)] {
-        Logger.debug("📊 [6-Month Historical] Calculating from REAL activity data...")
-        
+        Logger.debug("📊 [6-Month Historical] Calculating from REAL activity data with rolling windows...")
+
         let currentFTP = profile.ftp ?? 200.0
         let currentVO2 = profile.vo2maxEstimate ?? 45.0
         let now = Date()
         let calendar = Calendar.current
         let weeks = 26
+        let weight = profile.weight ?? 75.0
 
         // Fetch activities synchronously from UnifiedActivityService cache
-        // This is blocking, but should be fast since activities are already cached
+        // Fetch more activities to cover 6 months + 90-day windows
         var cachedActivities: [Activity] = []
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         Task {
             do {
-                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 200, daysBack: 180)
+                // Fetch 9 months of activities to have enough data for rolling windows
+                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 270)
                 semaphore.signal()
             } catch {
                 Logger.error("❌ [6-Month Historical] Failed to fetch activities: \(error)")
                 semaphore.signal()
             }
         }
-        
+
         _ = semaphore.wait(timeout: .now() + 5.0)
-        
+
         guard !cachedActivities.isEmpty else {
             Logger.warning("⚠️ [6-Month Historical] No activities found - using simulated data")
             return generateSimulated6MonthData(currentFTP: currentFTP, currentVO2: currentVO2)
         }
-        
+
         Logger.debug("📊 [6-Month Historical] Fetched \(cachedActivities.count) activities for calculation")
 
         var dataPoints: [(date: Date, ftp: Double, vo2: Double)] = []
@@ -1441,35 +1521,36 @@ class AthleteProfileManager: ObservableObject {
                 continue
             }
 
-            // For last week, use current values exactly
-            if week == weeks - 1 {
-                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+            // Get activities within 90-day window AROUND this week (45 days before, 45 days after)
+            guard let windowStart = calendar.date(byAdding: .day, value: -45, to: weekDate),
+                  let windowEnd = calendar.date(byAdding: .day, value: 45, to: weekDate) else {
                 continue
             }
-            
-            // Get all activities UP TO this week
-            let activitiesUpToDate = cachedActivities.filter { activity in
+
+            let activitiesInWindow = cachedActivities.filter { activity in
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
                 formatter.timeZone = TimeZone.current
-                
+
                 guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
-                return activityDate <= weekDate
+                return activityDate >= windowStart && activityDate <= windowEnd
             }
-            
-            // Calculate FTP and VO2 from activities up to this point
-            let ftp = calculateFTPFromActivities(activitiesUpToDate) ?? currentFTP
-            
-            // VO2 estimation from FTP (VO2max ≈ 10.8 × FTP/weight)
-            let weight = profile.weight ?? 75.0
-            let vo2 = (10.8 * ftp) / weight
-            
-            dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+
+            // Calculate FTP from rolling window
+            if let ftp = calculateFTPFromActivities(activitiesInWindow) {
+                // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
+                let vo2 = (10.8 * ftp) / weight + 7
+                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2))
+            } else {
+                // No valid activities in this window - use current values
+                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2))
+            }
         }
 
         Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly points from real data")
         if let first = dataPoints.first, let last = dataPoints.last {
             Logger.debug("📊 [6-Month Historical] FTP range: \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W")
+            Logger.debug("📊 [6-Month Historical] VO2 range: \(String(format: "%.1f", first.vo2)) → \(String(format: "%.1f", last.vo2)) ml/kg/min")
         }
 
         return dataPoints
