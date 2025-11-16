@@ -45,6 +45,12 @@ class LatestActivityCardViewModel: ObservableObject {
     // MARK: - Public Methods
     
     func loadData() async {
+        // Guard against redundant loads - critical for scroll performance
+        guard !hasLoadedData else {
+            Logger.debug("⏭️ [LatestActivityCardViewModel] Data already loaded, skipping")
+            return
+        }
+        
         print("🔄 [LoadData] ENTRY for activity: \(activity.name)")
         Logger.debug("🔄 [LoadData] ENTRY for activity: \(activity.name)")
         print("🔄 [LoadData] Activity details - type: \(activity.type), shouldShowMap: \(activity.shouldShowMap), isIndoorRide: \(activity.isIndoorRide)")

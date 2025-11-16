@@ -9,7 +9,6 @@ struct LatestActivityCardV2: View {
     @State private var isInitialLoad = true
     @State private var showingRPESheet = false
     @State private var hasRPE = false
-    @State private var hasLoadedData = false
     let showAsLatestActivity: Bool // If true, shows "Latest Activity" as title; if false, shows activity name
 
     init(activity: UnifiedActivity, showAsLatestActivity: Bool = false) {
@@ -30,14 +29,9 @@ struct LatestActivityCardV2: View {
         }
         .task(id: viewModel.activity.id) {
             // Use .task(id:) to automatically handle cancellation and only trigger when activity changes
-            guard !hasLoadedData else { 
-                Logger.debug("⏭️ [LatestActivityCardV2] Data already loaded, skipping")
-                return 
-            }
-            
+            // Guard is now in ViewModel to survive view recreation
             Logger.debug("👁 [LatestActivityCardV2] Loading data for: \(viewModel.activity.name)")
             await viewModel.loadData()
-            hasLoadedData = true
             
             // Mark initial load complete after data is ready
             await MainActor.run {
@@ -48,10 +42,6 @@ struct LatestActivityCardV2: View {
         }
         .onAppear {
             checkRPEStatus()
-        }
-        .onDisappear {
-            // Reset flag when card disappears so it reloads if user navigates away and back
-            hasLoadedData = false
         }
         .sheet(isPresented: $showingRPESheet) {
             if let workout = viewModel.activity.healthKitWorkout {
