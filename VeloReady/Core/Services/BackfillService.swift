@@ -119,15 +119,89 @@ final class BackfillService {
             }
         }
         
-        // If no Intervals data, we'll rely on the regular sync process
-        // Strava activities will be imported and CTL/ATL calculated through the normal flow
+        // If no Intervals data, fetch from Strava
+        if progressiveLoad.isEmpty {
+            Logger.data("📊 [CTL/ATL BACKFILL] Step 2: Fetching Strava activities...")
+            
+            do {
+                let stravaActivities = try await VeloReadyAPIClient.shared.fetchActivities(daysBack: days, limit: 200)
+                let activities = ActivityConverter.stravaToActivity(stravaActivities)
+                Logger.data("📊 [CTL/ATL BACKFILL] Found \(activities.count) Strava activities")
+                
+                // Get FTP for TSS calculation
+                let athleteProfile = AthleteProfileManager.shared.profile
+                let ftp = athleteProfile.ftp ?? 200.0
+                let maxHR = athleteProfile.maxHR ?? 180.0
+                let restingHR = athleteProfile.restingHR ?? 60.0
+                
+                // Sort activities by date (oldest first for progressive calculation)
+                let sortedActivities = activities.sorted(by: { $0.startDate < $1.startDate })
+                
+                for activity in sortedActivities {
+                    let date = Calendar.current.startOfDay(for: activity.startDate)
+                    
+                    // Calculate TSS for this activity
+                    var tss: Double = 0
+                    
+                    // 1. Try power-based TSS (most accurate)
+                    if let np = activity.normalizedPower,
+                       let duration = activity.duration,
+                       np > 0, ftp > 0 {
+                        let intensityFactor = np / ftp
+                        tss = (duration / 3600) * intensityFactor * intensityFactor * 100
+                        Logger.debug("   \(activity.name ?? "Unknown"): Power-based TSS: \(String(format: "%.1f", tss))")
+                    }
+                    // 2. Fall back to HR-based TRIMP
+                    else if let avgHR = activity.averageHeartRate,
+                            let duration = activity.duration,
+                            duration > 0, avgHR > 0 {
+                        let hrReserve = (avgHR - restingHR) / (maxHR - restingHR)
+                        let trimp = (duration / 60) * hrReserve * 0.64 * exp(1.92 * hrReserve)
+                        tss = trimp
+                        Logger.debug("   \(activity.name ?? "Unknown"): HR-based TRIMP: \(String(format: "%.1f", tss))")
+                    }
+                    // 3. Estimate from duration and activity type
+                    else if let duration = activity.duration {
+                        tss = (duration / 3600) * 50 // Assume moderate intensity
+                        Logger.debug("   \(activity.name ?? "Unknown"): Estimated TSS from duration: \(String(format: "%.1f", tss))")
+                    }
+                    
+                    if tss > 0 {
+                        // Progressive CTL/ATL calculation
+                        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: date)!
+                        let priorLoad = progressiveLoad[yesterday] ?? (ctl: 0, atl: 0, tss: 0)
+                        
+                        let ctlDecay = exp(-1.0 / 42.0)
+                        let newCTL = priorLoad.ctl * ctlDecay + tss * (1.0 - ctlDecay)
+                        
+                        let atlDecay = exp(-1.0 / 7.0)
+                        let newATL = priorLoad.atl * atlDecay + tss * (1.0 - atlDecay)
+                        
+                        // Accumulate TSS if multiple activities on same day
+                        let existingTSS = progressiveLoad[date]?.tss ?? 0
+                        progressiveLoad[date] = (ctl: newCTL, atl: newATL, tss: tss + existingTSS)
+                    }
+                }
+                
+                Logger.data("📊 [CTL/ATL BACKFILL] Calculated load for \(progressiveLoad.count) days from Strava")
+            } catch {
+                Logger.error("❌ [CTL/ATL BACKFILL] Strava fetch failed: \(error)")
+            }
+        }
+        
+        // If still empty, try HealthKit workouts
+        if progressiveLoad.isEmpty {
+            Logger.data("📊 [CTL/ATL BACKFILL] Step 3: Falling back to HealthKit workouts...")
+            progressiveLoad = await calculator.calculateProgressiveTrainingLoadFromHealthKit()
+            Logger.data("📊 [CTL/ATL BACKFILL] Calculated load for \(progressiveLoad.count) days from HealthKit")
+        }
         
         if progressiveLoad.isEmpty {
-            Logger.data("📊 [CTL/ATL BACKFILL] No activities found to backfill")
+            Logger.data("📊 [CTL/ATL BACKFILL] No activities found to backfill from any source")
             return
         }
         
-        Logger.data("📊 [CTL/ATL BACKFILL] Step 3: Saving \(progressiveLoad.count) days to Core Data...")
+        Logger.data("📊 [CTL/ATL BACKFILL] Saving \(progressiveLoad.count) days to Core Data...")
         
         // Batch update DailyLoad entities for performance
             await self.updateDailyLoadBatch(progressiveLoad)
