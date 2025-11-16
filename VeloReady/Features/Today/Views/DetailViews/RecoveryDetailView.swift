@@ -499,7 +499,7 @@ struct RecoveryDetailView: View {
         
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -(requiredDays - 1), to: endDate) else {
             return AnyView(EmptyView())
         }
         

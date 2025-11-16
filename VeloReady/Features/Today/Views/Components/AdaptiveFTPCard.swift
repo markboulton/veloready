@@ -14,16 +14,17 @@ struct AdaptiveFTPCard: View {
             ),
             style: .standard
         ) {
+            HStack(alignment: .top, spacing: Spacing.lg) {
+                // Left 50%: Content
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Primary metric - large and white
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                            VRText(viewModel.ftpValue, style: .largeTitle)
-                            VRText("W", style: .body)
-                                .foregroundColor(.secondary)
-                        }
-                    
-                    // Secondary metric - smaller and grey
+                    // Primary metric
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        VRText(viewModel.ftpValue, style: .largeTitle)
+                        VRText("W", style: .body)
+                            .foregroundColor(.secondary)
+                    }
+
+                    // Secondary metric
                     if let wPerKg = viewModel.wPerKg {
                         HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                             VRText(viewModel.wPerKgValue, style: .body)
@@ -32,34 +33,41 @@ struct AdaptiveFTPCard: View {
                                 .foregroundColor(.secondary)
                         }
                     }
-                }
-                
-                // Trend indicator with period label (no sparkline)
-                if viewModel.hasData {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: viewModel.trendIcon)
-                            .font(.caption2)
-                            .foregroundColor(viewModel.trendColor)
-                        VRText(viewModel.trendText, style: .caption2)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        VRText("30 days", style: .caption2)
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    // Data source indicator (for non-PRO or users without sparkline data)
+
+                    // Data source
                     HStack(spacing: Spacing.xs) {
                         if viewModel.dataSource == "Estimated" {
                             Image(systemName: Icons.System.lock)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
-                        VRText(viewModel.dataSource, style: .caption)
+                        VRText(viewModel.dataSource, style: .caption2)
                             .foregroundColor(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Right 50%: Visualization
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                    if viewModel.hasData && !viewModel.historicalValues.isEmpty {
+                        VRText("30 days", style: .caption, color: Color.text.secondary)
+
+                        PerformanceSparkline(values: viewModel.historicalValues, color: ColorScale.greenAccent)
+                            .frame(height: 60)
+                    } else {
+                        // Placeholder when no data
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.title)
+                                .foregroundColor(Color.text.secondary.opacity(0.3))
+                            VRText(viewModel.hasData ? "Loading" : "Pro feature", style: .caption, color: Color.text.secondary)
+                        }
+                        .frame(height: 60)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
+        }
         .onAppear {
             Task {
                 await viewModel.load()
@@ -75,7 +83,7 @@ class AdaptiveFTPCardViewModel: ObservableObject {
     @Published var ftpValue: String = "—"
     @Published var wPerKg: String?
     @Published var wPerKgValue: String = ""
-    @Published var sparklineValues: [Double] = []
+    @Published var historicalValues: [Double] = []
     @Published var trendColor: Color = .secondary
     @Published var trendIcon: String = Icons.Arrow.right
     @Published var trendText: String = "No change"
@@ -147,14 +155,43 @@ class AdaptiveFTPCardViewModel: ObservableObject {
             ftpValue = "—"
         }
 
-        // Only show trend for PRO users with FTP data (no sparkline calculation needed)
+        // Only show trend for PRO users with FTP data
         if hasPro, ftp > 0 {
             hasData = true
-            
-            // Show stable trend by default (no expensive calculations)
-            trendColor = .secondary
-            trendIcon = Icons.Arrow.right
-            trendText = "Stable"
+
+            // Load historical data for sparkline
+            Task {
+                let historical = await profileManager.fetch6MonthHistoricalPerformance()
+
+                await MainActor.run {
+                    // Get last 30 days of FTP data
+                    let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                    let recentData = historical.filter { $0.date >= thirtyDaysAgo && $0.ftp > 0 }
+
+                    if !recentData.isEmpty {
+                        historicalValues = recentData.map { $0.ftp }
+
+                        // Calculate trend
+                        if let first = recentData.first, let last = recentData.last, first.ftp > 0 {
+                            let change = ((last.ftp - first.ftp) / first.ftp) * 100
+
+                            if change > 2 {
+                                trendColor = ColorScale.greenAccent
+                                trendIcon = Icons.Arrow.upRight
+                                trendText = "Improving"
+                            } else if change < -2 {
+                                trendColor = ColorScale.redAccent
+                                trendIcon = Icons.Arrow.downRight
+                                trendText = "Declining"
+                            } else {
+                                trendColor = .secondary
+                                trendIcon = Icons.Arrow.right
+                                trendText = "Stable"
+                            }
+                        }
+                    }
+                }
+            }
         } else {
             hasData = false
         }
@@ -189,52 +226,68 @@ class AdaptiveFTPCardViewModel: ObservableObject {
     }
 }
 
-// MARK: - RAG Sparkline Component with Gradient
+// MARK: - Performance Sparkline Component
 
-struct RAGSparkline: View {
+struct PerformanceSparkline: View {
     let values: [Double]
     let color: Color
-    let height: CGFloat
-    
+
     var body: some View {
         GeometryReader { geometry in
-            // Calculate baseline (midpoint between min and max)
+            guard !values.isEmpty else {
+                return AnyView(EmptyView())
+            }
+
             let maxValue = values.max() ?? 1
             let minValue = values.min() ?? 0
-            let baseline = (maxValue + minValue) / 2
             let range = maxValue - minValue
-            
-            // Create gradient based on baseline
-            let gradient = LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: ColorScale.redAccent, location: 0.0),      // Below baseline
-                    .init(color: ColorScale.amberAccent, location: 0.4),    // Near baseline
-                    .init(color: ColorScale.greenAccent, location: 1.0)     // Above baseline
-                ]),
-                startPoint: .bottom,
-                endPoint: .top
-            )
-            
-            Path { path in
-                guard !values.isEmpty else { return }
-                
-                let stepX = geometry.size.width / CGFloat(values.count - 1)
-                
-                for (index, value) in values.enumerated() {
-                    let x = CGFloat(index) * stepX
-                    let normalizedValue = range > 0 ? (value - minValue) / range : 0.5
-                    let y = geometry.size.height * (1 - normalizedValue)
-                    
-                    if index == 0 {
-                        path.move(to: CGPoint(x: x, y: y))
-                    } else {
-                        path.addLine(to: CGPoint(x: x, y: y))
+
+            return AnyView(
+                ZStack(alignment: .bottom) {
+                    // Area under the curve
+                    Path { path in
+                        let stepX = geometry.size.width / CGFloat(max(values.count - 1, 1))
+
+                        path.move(to: CGPoint(x: 0, y: geometry.size.height))
+
+                        for (index, value) in values.enumerated() {
+                            let x = CGFloat(index) * stepX
+                            let normalizedValue = range > 0 ? (value - minValue) / range : 0.5
+                            let y = geometry.size.height * (1 - normalizedValue)
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+
+                        path.addLine(to: CGPoint(x: geometry.size.width, y: geometry.size.height))
+                        path.closeSubpath()
                     }
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.3), color.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                    // Line
+                    Path { path in
+                        let stepX = geometry.size.width / CGFloat(max(values.count - 1, 1))
+
+                        for (index, value) in values.enumerated() {
+                            let x = CGFloat(index) * stepX
+                            let normalizedValue = range > 0 ? (value - minValue) / range : 0.5
+                            let y = geometry.size.height * (1 - normalizedValue)
+
+                            if index == 0 {
+                                path.move(to: CGPoint(x: x, y: y))
+                            } else {
+                                path.addLine(to: CGPoint(x: x, y: y))
+                            }
+                        }
+                    }
+                    .stroke(color, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
                 }
-            }
-            .stroke(gradient, style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round))
+            )
         }
-        .frame(height: height)
     }
 }
 

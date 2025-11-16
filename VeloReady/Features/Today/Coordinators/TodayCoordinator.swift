@@ -86,6 +86,22 @@ class TodayCoordinator: ObservableObject {
     // Background task management
     private var backgroundTasks: [Task<Void, Never>] = []
     
+    // MARK: - State Helpers
+    
+    private var scoresNeedCalculation: Bool {
+        [.loading, .initial].contains(scoresCoordinator.state.phase)
+    }
+    
+    private var shouldAutoRefresh: Bool {
+        guard let lastLoad = lastLoadTime else { return true }
+        return Date().timeIntervalSince(lastLoad) > 300 // 5 minutes
+    }
+    
+    private func needsRefresh(minimumInterval: TimeInterval = 300) -> Bool {
+        guard let lastLoad = lastLoadTime else { return true }
+        return Date().timeIntervalSince(lastLoad) > minimumInterval
+    }
+    
     // MARK: - Initialization
     
     init(
@@ -128,11 +144,11 @@ class TodayCoordinator: ObservableObject {
         case (.viewAppeared, .background):
             // View reappeared after backgrounding
             isViewActive = true
-            if shouldRefreshOnReappear() {
+            if shouldAutoRefresh {
                 await refresh()
             } else {
                 state = .ready
-                Logger.info("✅ [TodayCoordinator] View reappeared - data still fresh, no refresh needed")
+                Logger.info("✅ [TodayCoordinator] View reappeared - data still fresh")
             }
             
         case (.viewAppeared, _):
@@ -152,13 +168,10 @@ class TodayCoordinator: ObservableObject {
         case (.appForegrounded, _) where isViewActive:
             // App came to foreground while view is active
             // Safety check: If we're in .ready state but scores are still loading, something is wrong
-            let scoresStillLoading = scoresCoordinator.state.phase == .loading || 
-                                     scoresCoordinator.state.phase == .initial
-            
-            if scoresStillLoading {
+            if scoresNeedCalculation {
                 Logger.warning("⚠️ [TodayCoordinator] Inconsistent state: coordinator \(state.description) but scores \(scoresCoordinator.state.phase) - forcing refresh")
                 await refresh()
-            } else if shouldRefreshOnReappear() {
+            } else if shouldAutoRefresh {
                 await refresh()
             } else {
                 Logger.info("✅ [TodayCoordinator] App foregrounded - data still fresh, no refresh needed")
@@ -302,15 +315,33 @@ class TodayCoordinator: ObservableObject {
             let duration = Date().timeIntervalSince(startTime)
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
             
-            // Phase 4: Background cleanup and backfill of training load data (non-blocking)
+            // Phase 4: Background cleanup and backfill of all historical data (non-blocking)
             Task.detached(priority: .background) {
                 Logger.info("🔄 [TodayCoordinator] Starting background cleanup and backfill...")
+                
                 // Step 1: Clean up corrupt training load data from previous bugs
                 await CacheManager.shared.cleanupCorruptTrainingLoadData()
-                // Step 2: Backfill missing/cleaned training load data with correct values
+                
+                // Step 2: Backfill raw physio data from HealthKit (HRV/RHR/Sleep - 60 days)
+                // This must run BEFORE score backfills since they depend on this data
+                await CacheManager.shared.backfillHistoricalPhysioData(days: 60)
+                
+                // Step 3: Backfill training load data (CTL/ATL/TSS - 42 days)
                 await CacheManager.shared.calculateMissingCTLATL(forceRefresh: true)
-                // Step 3: Backfill historical recovery scores from existing physio data
+                
+                // Step 4: Backfill calculated scores (all depend on physio/load data above)
+                Logger.info("🔄 [TodayCoordinator] Backfilling calculated scores...")
+                
+                // Recovery scores (60 days) - uses HRV/RHR/Sleep from DailyPhysio
                 await CacheManager.shared.backfillHistoricalRecoveryScores(days: 60, forceRefresh: true)
+                
+                // Sleep scores (60 days) - uses sleep duration from DailyPhysio
+                await CacheManager.shared.backfillSleepScores(days: 60, forceRefresh: false)
+                
+                // Strain scores (60 days) - uses TSS from DailyLoad
+                await CacheManager.shared.backfillStrainScores(daysBack: 60, forceRefresh: false)
+                
+                Logger.info("✅ [TodayCoordinator] Background backfill complete")
             }
             
         } catch {
@@ -435,20 +466,6 @@ class TodayCoordinator: ObservableObject {
         Logger.debug("✅ [TodayCoordinator] Activity caches invalidated")
     }
     
-    /// Determine if data should be refreshed when view reappears
-    /// - Returns: True if data is stale (> 5 minutes old)
-    private func shouldRefreshOnReappear() -> Bool {
-        guard hasLoadedOnce else { return true }
-        
-        guard let lastLoadTime = lastLoadTime else { return true }
-        
-        let timeSinceLastLoad = Date().timeIntervalSince(lastLoadTime)
-        let shouldRefresh = timeSinceLastLoad > 300 // 5 minutes
-        
-        Logger.info("⏰ [TodayCoordinator] Time since last load: \(String(format: "%.0f", timeSinceLastLoad))s - shouldRefresh: \(shouldRefresh)")
-        
-        return shouldRefresh
-    }
     
     /// Execute an async operation with a timeout
     /// - Parameters:

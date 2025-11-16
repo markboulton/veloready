@@ -53,8 +53,8 @@ class SleepDetailViewModel: ObservableObject {
         let context = persistenceController.container.viewContext
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("💤 [SLEEP CHART] Failed to calculate start date")
             return []
         }

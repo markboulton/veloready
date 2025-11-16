@@ -132,8 +132,10 @@ class StrainDetailViewModel: ObservableObject {
             let minStrain = strainValues.min() ?? 0
             let maxStrain = strainValues.max() ?? 0
             let avgStrain = strainValues.reduce(0, +) / Double(strainValues.count)
+            let nonZeroDays = strainValues.filter { $0 > 0 }.count
             Logger.debug("📊 [LOAD CHART] Strain range: min=\(String(format: "%.1f", minStrain)), max=\(String(format: "%.1f", maxStrain)), avg=\(String(format: "%.1f", avgStrain))")
-            Logger.debug("📊 [LOAD CHART] Filled \(completeDataPoints.count - dataPoints.count) missing days with 0 strain")
+            Logger.debug("📊 [LOAD CHART] Activity breakdown: \(nonZeroDays) days with training, \(completeDataPoints.count - nonZeroDays) rest days")
+            Logger.debug("📊 [LOAD CHART] Filled \(completeDataPoints.count - dataPointsByDate.count) missing days with 0 strain")
         }
         
         if completeDataPoints.isEmpty {

@@ -13,45 +13,49 @@ struct StepsCardV2: View {
             ),
             style: .standard
         ) {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                // Main metric
-                HStack(alignment: .top, spacing: Spacing.sm) {
-                    Image(systemName: "figure.walk")
-                        .font(.largeTitle)
-                        .fontWeight(.thin)
-                        .foregroundColor(Color.text.secondary)
-                    
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        VRText(viewModel.formattedSteps, style: .largeTitle)
-                        VRText(viewModel.formattedGoal, style: .body)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Divider()
-                    .padding(.vertical, Spacing.xs)
-                
-                // Breakdown section (matches Calories card structure)
-                VStack(spacing: Spacing.sm) {
-                    // Sparkline (if data available)
-                    if viewModel.hasHourlyData {
+            HStack(alignment: .top, spacing: Spacing.lg) {
+                // Left 50%: Content
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Main metric
+                    HStack(alignment: .top, spacing: Spacing.sm) {
+                        Image(systemName: "figure.walk")
+                            .font(.largeTitle)
+                            .fontWeight(.thin)
+                            .foregroundColor(Color.text.secondary)
+
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            VRText("Today's Activity", style: .body, color: Color.text.secondary)
-                            
-                            StepsSparkline(hourlySteps: viewModel.hourlySteps)
-                                .frame(height: 32)
+                            VRText(viewModel.formattedSteps, style: .largeTitle)
+                            VRText(viewModel.formattedGoal, style: .body)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    
+
                     // Distance
                     if viewModel.hasDistance {
-                        HStack {
-                            VRText("Distance", style: .body, color: Color.text.secondary)
-                            Spacer()
-                            VRText(viewModel.formattedDistance, style: .headline)
-                        }
+                        VRText(viewModel.formattedDistance, style: .body, color: Color.text.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Right 50%: Visualization
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                    if viewModel.hasHourlyData {
+                        VRText("Today", style: .caption, color: Color.text.secondary)
+
+                        StepsSparkline(hourlySteps: viewModel.hourlySteps)
+                            .frame(height: 60)
+                    } else {
+                        // Placeholder when no data
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.title)
+                                .foregroundColor(Color.text.secondary.opacity(0.3))
+                            VRText("No data", style: .caption, color: Color.text.secondary)
+                        }
+                        .frame(height: 60)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .onAppear {

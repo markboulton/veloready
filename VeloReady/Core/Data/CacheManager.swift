@@ -551,22 +551,12 @@ final class CacheManager: ObservableObject {
     /// Optimized to backfill last 42 days and save TSS values
     /// Smart caching: Only runs once per day to avoid redundant calculations
     func calculateMissingCTLATL(forceRefresh: Bool = false) async {
-        // Check if backfill ran recently (within 24 hours)
-        let lastBackfillKey = "lastCTLBackfill"
-        if !forceRefresh, let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
-            let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
-            if hoursSinceBackfill < 24 {
-                Logger.data("⏭️ [CTL/ATL BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
-                return
-            }
-            Logger.data("🔄 [CTL/ATL BACKFILL] Last run was \(String(format: "%.1f", hoursSinceBackfill))h ago - running fresh backfill")
-        }
-        
-        if forceRefresh {
-            Logger.data("🔄 [CTL/ATL BACKFILL] Force refresh requested - running immediately")
-        }
-        
-        Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
+        await throttledBackfill(
+            key: "lastCTLBackfill",
+            logPrefix: "CTL/ATL BACKFILL",
+            forceRefresh: forceRefresh
+        ) {
+            Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
         
         let calculator = TrainingLoadCalculator()
         var progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
@@ -617,12 +607,10 @@ final class CacheManager: ObservableObject {
         Logger.data("📊 [CTL/ATL BACKFILL] Step 3: Saving \(progressiveLoad.count) days to Core Data...")
         
         // Batch update DailyLoad entities for performance
-        await updateDailyLoadBatch(progressiveLoad)
-        
-        // Save timestamp of successful backfill
-        UserDefaults.standard.set(Date(), forKey: "lastCTLBackfill")
-        
-        Logger.data("✅ [CTL/ATL BACKFILL] Complete! (Next run allowed in 24h)")
+            await updateDailyLoadBatch(progressiveLoad)
+            
+            Logger.data("✅ [CTL/ATL BACKFILL] Complete! (Next run allowed in 24h)")
+        }
     }
     
     /// Batch update DailyLoad entities for performance
@@ -983,4 +971,235 @@ struct IntervalsData {
     let tss: Double?
     let eftp: Double?
     let workout: Activity?
+}
+
+// MARK: - Refactoring Helpers
+
+extension CacheManager {
+    /// Execute a backfill operation with throttling (once per 24h unless forced)
+    private func throttledBackfill(
+        key: String,
+        logPrefix: String,
+        forceRefresh: Bool,
+        operation: () async throws -> Void
+    ) async rethrows {
+        // Check throttle
+        if !forceRefresh, let lastRun = UserDefaults.standard.object(forKey: key) as? Date {
+            let hoursSince = Date().timeIntervalSince(lastRun) / 3600
+            if hoursSince < 24 {
+                Logger.data("⏭️ [\(logPrefix)] Skipping - last run was \(String(format: "%.1f", hoursSince))h ago (< 24h)")
+                return
+            }
+        }
+        
+        // Execute operation
+        try await operation()
+        
+        // Save timestamp
+        UserDefaults.standard.set(Date(), forKey: key)
+    }
+    
+    /// Execute Core Data batch operations with progress tracking
+    private func performBatchInBackground(
+        logPrefix: String,
+        operation: @escaping (NSManagedObjectContext) throws -> (updated: Int, skipped: Int)
+    ) async {
+        let context = persistence.newBackgroundContext()
+        
+        await context.perform {
+            do {
+                let counts = try operation(context)
+                
+                // Save if changes exist
+                if context.hasChanges {
+                    try context.save()
+                    if counts.updated > 0 {
+                        Logger.debug("✅ [\(logPrefix)] Updated \(counts.updated) days, skipped \(counts.skipped)")
+                    } else {
+                        Logger.debug("📊 [\(logPrefix)] No changes to save (\(counts.skipped) days skipped)")
+                    }
+                } else {
+                    Logger.debug("📊 [\(logPrefix)] No changes to save (\(counts.skipped) days skipped)")
+                }
+            } catch {
+                Logger.error("❌ [\(logPrefix)] Failed to save: \(error)")
+            }
+        }
+    }
+    
+    /// Generate a sequence of historical dates (excluding today)
+    private func historicalDates(daysBack: Int) -> [Date] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        return (1...daysBack).compactMap { offset in
+            guard let date = calendar.date(byAdding: .day, value: -offset, to: today) else { return nil }
+            return calendar.startOfDay(for: date)
+        }
+    }
+}
+
+// MARK: - Strain Score Backfill
+
+extension CacheManager {
+    /// Backfill strain scores for the last 60 days from existing DailyLoad (TSS) data
+    /// This ensures historical days show accurate strain scores instead of 0
+    /// Uses the same algorithm as today's strain calculation but from historical TSS
+    func backfillStrainScores(daysBack: Int = 60, forceRefresh: Bool = false) async {
+        await throttledBackfill(
+            key: "lastStrainBackfill",
+            logPrefix: "STRAIN BACKFILL",
+            forceRefresh: forceRefresh
+        ) {
+            Logger.debug("🔄 [STRAIN BACKFILL] Starting backfill for last \(daysBack) days...")
+            
+            await performBatchInBackground(logPrefix: "STRAIN BACKFILL") { context in
+                var updatedCount = 0
+                var skippedCount = 0
+                
+                for date in self.historicalDates(daysBack: daysBack) {
+                    // Fetch DailyScores for this day
+                    let scoresRequest = DailyScores.fetchRequest()
+                    scoresRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
+                    scoresRequest.fetchLimit = 1
+                    
+                    guard let scores = try context.fetch(scoresRequest).first else {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Skip if already has a strain score > 0 (unless forced)
+                    if !forceRefresh && scores.strainScore > 0 {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Fetch DailyLoad for TSS data
+                    let loadRequest = DailyLoad.fetchRequest()
+                    loadRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
+                    loadRequest.fetchLimit = 1
+                    
+                    guard let load = try context.fetch(loadRequest).first else {
+                        // No training load data, set minimal NEAT strain
+                        scores.strainScore = 2.0
+                        updatedCount += 1
+                        continue
+                    }
+                    
+                    // Calculate strain from TSS
+                    let tss = load.tss
+                    let strainScore: Double
+                    
+                    if tss < 150 {
+                        strainScore = max(2.0, min((tss / 150) * 6, 6))
+                    } else if tss < 300 {
+                        strainScore = 6 + min(((tss - 150) / 150) * 5, 5)
+                    } else if tss < 450 {
+                        strainScore = 11 + min(((tss - 300) / 150) * 5, 5)
+                    } else {
+                        strainScore = 16 + min(((tss - 450) / 150) * 2, 2)
+                    }
+                    
+                    scores.strainScore = strainScore
+                    scores.lastUpdated = Date()
+                    updatedCount += 1
+                    
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "MMM dd"
+                    Logger.debug("📊 [STRAIN BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.1f", strainScore)) (TSS: \(String(format: "%.0f", tss)))")
+                }
+                
+                return (updated: updatedCount, skipped: skippedCount)
+            }
+        }
+    }
+    
+    /// Backfill sleep scores for the last 60 days from existing DailyPhysio sleep data
+    /// This ensures historical days show accurate sleep scores instead of placeholder (50)
+    /// Uses the same algorithm as today's sleep calculation
+    func backfillSleepScores(days: Int = 60, forceRefresh: Bool = false) async {
+        await throttledBackfill(
+            key: "lastSleepBackfill",
+            logPrefix: "SLEEP BACKFILL",
+            forceRefresh: forceRefresh
+        ) {
+            Logger.debug("🔄 [SLEEP BACKFILL] Starting backfill for last \(days) days...")
+            
+            await performBatchInBackground(logPrefix: "SLEEP BACKFILL") { context in
+                var updatedCount = 0
+                var skippedCount = 0
+                
+                for date in self.historicalDates(daysBack: days) {
+                    // Fetch DailyScores for this day
+                    let scoresRequest = DailyScores.fetchRequest()
+                    scoresRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
+                    scoresRequest.fetchLimit = 1
+                    
+                    guard let scores = try context.fetch(scoresRequest).first else {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Skip if already has a sleep score != 50 (unless forced)
+                    if !forceRefresh && scores.sleepScore != 50 {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Fetch DailyPhysio for sleep data
+                    guard let physio = scores.physio else {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Only calculate if we have sleep duration
+                    guard physio.sleepDuration > 0 else {
+                        skippedCount += 1
+                        continue
+                    }
+                    
+                    // Calculate sleep score
+                    let sleepHours = physio.sleepDuration / 3600.0
+                    var sleepScore = 50.0
+                    
+                    // Duration component (40 points)
+                    if sleepHours >= 7 && sleepHours <= 9 {
+                        sleepScore += 40
+                    } else if sleepHours >= 6 && sleepHours < 7 {
+                        sleepScore += 30
+                    } else if sleepHours > 9 && sleepHours <= 10 {
+                        sleepScore += 30
+                    } else if sleepHours >= 5 && sleepHours < 6 {
+                        sleepScore += 20
+                    } else if sleepHours > 10 && sleepHours <= 11 {
+                        sleepScore += 20
+                    } else {
+                        sleepScore += 10
+                    }
+                    
+                    // Consistency component (10 points)
+                    if physio.sleepBaseline > 0 {
+                        let sleepRatio = physio.sleepDuration / physio.sleepBaseline
+                        if sleepRatio >= 0.9 && sleepRatio <= 1.1 {
+                            sleepScore += 10
+                        } else if sleepRatio >= 0.8 && sleepRatio <= 1.2 {
+                            sleepScore += 5
+                        }
+                    }
+                    
+                    sleepScore = max(0, min(100, sleepScore))
+                    
+                    scores.sleepScore = sleepScore
+                    scores.lastUpdated = Date()
+                    updatedCount += 1
+                    
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "MMM dd"
+                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.0f", sleepScore)) (\(String(format: "%.1f", sleepHours))h sleep)")
+                }
+                
+                return (updated: updatedCount, skipped: skippedCount)
+            }
+        }
+    }
 }

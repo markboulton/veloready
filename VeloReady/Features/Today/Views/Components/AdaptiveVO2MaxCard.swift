@@ -14,48 +14,56 @@ struct AdaptiveVO2MaxCard: View {
             ),
             style: .standard
         ) {
+            HStack(alignment: .top, spacing: Spacing.lg) {
+                // Left 50%: Content
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Primary metric - large and white
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                            VRText(viewModel.vo2Value, style: .largeTitle)
-                            VRText("ml/kg/min", style: .caption)
-                                .foregroundColor(.secondary)
-                        }
-                    
-                        // Secondary metric - smaller and grey
-                        if let level = viewModel.fitnessLevel {
-                            VRText(level, style: .body)
-                                .foregroundColor(.secondary)
-                        }
+                    // Primary metric
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        VRText(viewModel.vo2Value, style: .largeTitle)
+                        VRText("ml/kg/min", style: .caption)
+                            .foregroundColor(.secondary)
                     }
-                
-                    // Trend indicator with period label (no sparkline)
-                    if viewModel.hasData {
-                        HStack(spacing: Spacing.xs) {
-                            Image(systemName: viewModel.trendIcon)
+
+                    // Secondary metric (fitness level)
+                    if let level = viewModel.fitnessLevel {
+                        VRText(level, style: .body)
+                            .foregroundColor(.secondary)
+                    }
+
+                    // Data source
+                    HStack(spacing: Spacing.xs) {
+                        if viewModel.dataSource == "Estimated" {
+                            Image(systemName: Icons.System.lock)
                                 .font(.caption2)
-                                .foregroundColor(viewModel.trendColor)
-                            VRText(viewModel.trendText, style: .caption2)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            VRText("30 days", style: .caption2)
                                 .foregroundColor(.secondary)
                         }
-                    } else {
-                        // Data source indicator (for non-PRO or users without sparkline data)
-                        HStack(spacing: Spacing.xs) {
-                            if viewModel.dataSource == "Estimated" {
-                                Image(systemName: Icons.System.lock)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            VRText(viewModel.dataSource, style: .caption)
-                                .foregroundColor(.secondary)
-                        }
+                        VRText(viewModel.dataSource, style: .caption2)
+                            .foregroundColor(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Right 50%: Visualization
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                    if viewModel.hasData && !viewModel.historicalValues.isEmpty {
+                        VRText("30 days", style: .caption, color: Color.text.secondary)
+
+                        PerformanceSparkline(values: viewModel.historicalValues, color: ColorScale.cyanAccent)
+                            .frame(height: 60)
+                    } else {
+                        // Placeholder when no data
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.title)
+                                .foregroundColor(Color.text.secondary.opacity(0.3))
+                            VRText(viewModel.hasData ? "Loading" : "Pro feature", style: .caption, color: Color.text.secondary)
+                        }
+                        .frame(height: 60)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
+        }
         .onAppear {
             Task {
                 await viewModel.load()
@@ -70,7 +78,7 @@ struct AdaptiveVO2MaxCard: View {
 class AdaptiveVO2MaxCardViewModel: ObservableObject {
     @Published var vo2Value: String = "—"
     @Published var fitnessLevel: String?
-    @Published var sparklineValues: [Double] = []
+    @Published var historicalValues: [Double] = []
     @Published var trendColor: Color = .secondary
     @Published var trendIcon: String = Icons.Arrow.right
     @Published var trendText: String = "No change"
@@ -139,14 +147,43 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
             Logger.debug("   vo2Value set to: \(vo2Value)")
             Logger.debug("   fitnessLevel: \(fitnessLevel ?? "nil")")
 
-            // Show trend for PRO users (no sparkline calculation needed)
+            // Show trend for PRO users
             if hasPro {
                 hasData = true
-                
-                // Show stable trend by default (no expensive calculations)
-                trendColor = .secondary
-                trendIcon = Icons.Arrow.right
-                trendText = "Stable"
+
+                // Load historical data for sparkline
+                Task {
+                    let historical = await profileManager.fetch6MonthHistoricalPerformance()
+
+                    await MainActor.run {
+                        // Get last 30 days of VO2 data
+                        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                        let recentData = historical.filter { $0.date >= thirtyDaysAgo && $0.vo2 > 0 }
+
+                        if !recentData.isEmpty {
+                            historicalValues = recentData.map { $0.vo2 }
+
+                            // Calculate trend
+                            if let first = recentData.first, let last = recentData.last, first.vo2 > 0 {
+                                let change = ((last.vo2 - first.vo2) / first.vo2) * 100
+
+                                if change > 2 {
+                                    trendColor = ColorScale.greenAccent
+                                    trendIcon = Icons.Arrow.upRight
+                                    trendText = "Improving"
+                                } else if change < -2 {
+                                    trendColor = ColorScale.redAccent
+                                    trendIcon = Icons.Arrow.downRight
+                                    trendText = "Declining"
+                                } else {
+                                    trendColor = .secondary
+                                    trendIcon = Icons.Arrow.right
+                                    trendText = "Stable"
+                                }
+                            }
+                        }
+                    }
+                }
             } else {
                 hasData = false
                 Logger.debug("   hasData: false (no PRO)")
@@ -204,10 +241,10 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
 }
 
 // MARK: - Preview
+// Note: PerformanceSparkline is defined in AdaptiveFTPCard.swift and shared between both cards
 
 #Preview {
-    HStack(spacing: Spacing.md) {
-        AdaptiveVO2MaxCard(onTap: {})
+    VStack(spacing: Spacing.md) {
         AdaptiveVO2MaxCard(onTap: {})
     }
     .padding()

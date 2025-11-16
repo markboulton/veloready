@@ -59,7 +59,7 @@ class RecoveryDetailViewModel: ObservableObject {
         Logger.debug("📊 [RECOVERY CHART] 🔍 FETCHING DATA FOR \(period.days) DAYS")
         Logger.debug("📊 [RECOVERY CHART] 📅 End date: \(endDate)")
 
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("📊 [RECOVERY CHART] ❌ Failed to calculate start date")
             return []
         }
@@ -158,8 +158,8 @@ class RecoveryDetailViewModel: ObservableObject {
         let context = persistenceController.container.viewContext
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("❤️ [HRV CHART] Failed to calculate start date")
             return []
         }
@@ -213,8 +213,8 @@ class RecoveryDetailViewModel: ObservableObject {
     func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("💔 [RHR CHART] Failed to calculate start date")
             return []
         }

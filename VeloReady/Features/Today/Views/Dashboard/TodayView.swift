@@ -155,43 +155,32 @@ struct TodayView: View {
                                 }
                             }
                             
-                            // FTP and VO2 Max cards (50% width, side by side, equal height)
-                            HStack(alignment: .top, spacing: Spacing.md) {
-                                HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
-                                    AdaptiveFTPCard(onTap: {})
-                                        .frame(maxWidth: .infinity)
-                                }
-                                
-                                HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
-                                    AdaptiveVO2MaxCard(onTap: {})
-                                        .frame(maxWidth: .infinity)
-                                }
-                            }
-                            .fixedSize(horizontal: false, vertical: true)
-                            
                             // Training Load Graph (full width)
                             TrainingLoadGraphCard()
-                            
-                            // Steps and Calories cards (50% width, side by side, equal height)
-                            HStack(alignment: .top, spacing: Spacing.md) {
+
+                            // Steps card (full width with left/right split)
+                            if liveActivityService.isLoading {
+                                SkeletonStatsCard()
+                            } else {
                                 StepsCardV2()
-                                    .frame(maxWidth: .infinity)
-                                    .opacity(liveActivityService.isLoading ? 0 : 1)
-                                    .overlay {
-                                        if liveActivityService.isLoading {
-                                            SkeletonStatsCard()
-                                        }
-                                    }
-                                
-                                if liveActivityService.isLoading {
-                                    SkeletonStatsCard()
-                                        .frame(maxWidth: .infinity)
-                                } else {
-                                    CaloriesCardV2()
-                                        .frame(maxWidth: .infinity)
-                                }
                             }
-                            .fixedSize(horizontal: false, vertical: true)
+
+                            // Calories card (full width with left/right split)
+                            if liveActivityService.isLoading {
+                                SkeletonStatsCard()
+                            } else {
+                                CaloriesCardV2()
+                            }
+
+                            // FTP card (full width with left/right split)
+                            HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
+                                AdaptiveFTPCard(onTap: {})
+                            }
+
+                            // VO2 Max card (full width with left/right split)
+                            HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
+                                AdaptiveVO2MaxCard(onTap: {})
+                            }
                         }
                         
                         // Pro upgrade CTA (only for free users)
