@@ -727,8 +727,11 @@ actor UnifiedCacheManager {
             return (result.value, result.cachedAt)
         }
         
-        // Log if we couldn't decode the type
-        Logger.warning("⚠️ [CachePersistence] Could not determine type for key: \(key)")
+        // Couldn't find cached data - this is normal for first-time fetches
+        // Only log for non-historical data to reduce spam
+        if !key.contains("T21:38:") && !key.contains("T00:00:00Z") {
+            Logger.debug("💾 [CachePersistence] No cached data found for key: \(key)")
+        }
         
         return nil
     }
