@@ -3,6 +3,7 @@ import SwiftUI
 /// Training Load graph card using FitnessTrajectoryChart
 struct TrainingLoadGraphCard: View {
     @StateObject private var viewModel = TrainingLoadGraphCardViewModel()
+    @State private var hasLoadedData = false
     
     var body: some View {
         CardContainer(
@@ -23,10 +24,17 @@ struct TrainingLoadGraphCard: View {
                 .frame(height: 200)
             }
         }
-        .onAppear {
-            Task {
-                await viewModel.load()
+        .task {
+            guard !hasLoadedData else {
+                Logger.debug("⏭️ [TrainingLoadCard] Data already loaded, skipping")
+                return
             }
+            
+            await viewModel.load()
+            hasLoadedData = true
+        }
+        .onDisappear {
+            hasLoadedData = false
         }
     }
 }
@@ -37,7 +45,22 @@ struct TrainingLoadGraphCard: View {
 class TrainingLoadGraphCardViewModel: ObservableObject {
     @Published var chartData: [TrainingLoadDataPoint] = []
     
+    // In-memory cache with 5-minute TTL
+    private var cachedChartData: [TrainingLoadDataPoint]?
+    private var cacheTimestamp: Date?
+    private let cacheTTL: TimeInterval = 300 // 5 minutes
+    
     func load() async {
+        // Check in-memory cache first
+        if let cached = cachedChartData,
+           let timestamp = cacheTimestamp,
+           Date().timeIntervalSince(timestamp) < cacheTTL {
+            Logger.debug("⚡ [TrainingLoadCard] Using in-memory cache")
+            chartData = cached
+            return
+        }
+        
+        Logger.debug("🔄 [TrainingLoadCard] Fetching fresh data")
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
@@ -157,6 +180,10 @@ class TrainingLoadGraphCardViewModel: ObservableObject {
             Logger.debug("   Added \(projection.count) projection points")
 
             chartData = past14Days + projection
+            
+            // Cache the results
+            cachedChartData = chartData
+            cacheTimestamp = Date()
 
             Logger.debug("   ✅ Total chart data points: \(chartData.count) (14 historical + 7 future)")
         } catch {

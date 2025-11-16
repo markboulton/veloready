@@ -1443,11 +1443,11 @@ class AthleteProfileManager: ObservableObject {
         let cacheKey = "historical6Month_performance"
         let cacheTimestampKey = "historical6Month_timestamp"
 
-        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
+        // Check cache first (5 minute TTL - performance data doesn't change frequently)
         if let cachedDataDict = UserDefaults.standard.array(forKey: cacheKey) as? [[String: Any]],
            let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
             let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
-            if secondsSinceCache < 10 {
+            if secondsSinceCache < 300 {
                 Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", secondsSinceCache))s old)")
                 // Convert cached dict back to tuples
                 let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)? in

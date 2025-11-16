@@ -3,6 +3,7 @@ import SwiftUI
 /// Adaptive VO₂ Max card (50% width) with RAG-colored sparkline
 struct AdaptiveVO2MaxCard: View {
     @StateObject private var viewModel = AdaptiveVO2MaxCardViewModel()
+    @State private var hasLoadedData = false
     let onTap: () -> Void
     
     var body: some View {
@@ -64,10 +65,19 @@ struct AdaptiveVO2MaxCard: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
-        .onAppear {
-            Task {
-                await viewModel.load()
+        .task {
+            // Use .task to automatically handle cancellation
+            guard !hasLoadedData else {
+                Logger.debug("⏭️ [VO2MaxCard] Data already loaded, skipping")
+                return
             }
+            
+            await viewModel.load()
+            hasLoadedData = true
+        }
+        .onDisappear {
+            // Reset flag to reload if user navigates away and back
+            hasLoadedData = false
         }
     }
 }
@@ -87,6 +97,11 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
 
     private let profileManager = AthleteProfileManager.shared
     private let proConfig = ProFeatureConfig.shared
+    
+    // In-memory cache with 5-minute TTL
+    private var cachedHistoricalData: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]?
+    private var cacheTimestamp: Date?
+    private let cacheTTL: TimeInterval = 300 // 5 minutes
 
     func load() async {
         let profile = profileManager.profile
@@ -153,7 +168,19 @@ class AdaptiveVO2MaxCardViewModel: ObservableObject {
 
                 // Load historical data for sparkline
                 Task {
-                    let historical = await profileManager.fetch6MonthHistoricalPerformance()
+                    // Check in-memory cache first
+                    let historical: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]
+                    if let cached = cachedHistoricalData,
+                       let timestamp = cacheTimestamp,
+                       Date().timeIntervalSince(timestamp) < cacheTTL {
+                        Logger.debug("⚡ [VO2MaxCard] Using in-memory cache for historical data")
+                        historical = cached
+                    } else {
+                        Logger.debug("🔄 [VO2MaxCard] Fetching fresh historical data")
+                        historical = await profileManager.fetch6MonthHistoricalPerformance()
+                        cachedHistoricalData = historical
+                        cacheTimestamp = Date()
+                    }
 
                     await MainActor.run {
                         // Get last 30 days of VO2 data

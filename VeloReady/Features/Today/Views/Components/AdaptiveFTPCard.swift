@@ -3,6 +3,7 @@ import SwiftUI
 /// Adaptive FTP card (50% width) with RAG-colored sparkline
 struct AdaptiveFTPCard: View {
     @StateObject private var viewModel = AdaptiveFTPCardViewModel()
+    @State private var hasLoadedData = false
     let onTap: () -> Void
     
     var body: some View {
@@ -68,10 +69,17 @@ struct AdaptiveFTPCard: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
-        .onAppear {
-            Task {
-                await viewModel.load()
+        .task {
+            guard !hasLoadedData else {
+                Logger.debug("⏭️ [FTPCard] Data already loaded, skipping")
+                return
             }
+            
+            await viewModel.load()
+            hasLoadedData = true
+        }
+        .onDisappear {
+            hasLoadedData = false
         }
     }
 }

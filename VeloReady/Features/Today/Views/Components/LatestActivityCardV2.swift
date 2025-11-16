@@ -9,6 +9,7 @@ struct LatestActivityCardV2: View {
     @State private var isInitialLoad = true
     @State private var showingRPESheet = false
     @State private var hasRPE = false
+    @State private var hasLoadedData = false
     let showAsLatestActivity: Bool // If true, shows "Latest Activity" as title; if false, shows activity name
 
     init(activity: UnifiedActivity, showAsLatestActivity: Bool = false) {
@@ -27,20 +28,30 @@ struct LatestActivityCardV2: View {
                 cardContent
             }
         }
-        .onAppear {
-            print("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
-            Logger.debug("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
-            Task {
-                print("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
-                Logger.debug("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
-                await viewModel.loadData()
-                print("✅ [LatestActivityCardV2] loadData() completed for: \(viewModel.activity.name)")
-                // Mark initial load complete after data is ready
+        .task(id: viewModel.activity.id) {
+            // Use .task(id:) to automatically handle cancellation and only trigger when activity changes
+            guard !hasLoadedData else { 
+                Logger.debug("⏭️ [LatestActivityCardV2] Data already loaded, skipping")
+                return 
+            }
+            
+            Logger.debug("👁 [LatestActivityCardV2] Loading data for: \(viewModel.activity.name)")
+            await viewModel.loadData()
+            hasLoadedData = true
+            
+            // Mark initial load complete after data is ready
+            await MainActor.run {
                 withAnimation(.easeOut(duration: 0.2)) {
                     isInitialLoad = false
                 }
             }
+        }
+        .onAppear {
             checkRPEStatus()
+        }
+        .onDisappear {
+            // Reset flag when card disappears so it reloads if user navigates away and back
+            hasLoadedData = false
         }
         .sheet(isPresented: $showingRPESheet) {
             if let workout = viewModel.activity.healthKitWorkout {
