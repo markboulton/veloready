@@ -752,7 +752,7 @@ class WeeklyReportViewModel: ObservableObject {
             Logger.warning("   Attempting to calculate CTL/ATL from activities...")
             
             // Try to calculate missing CTL/ATL
-            await CacheManager.shared.calculateMissingCTLATL()
+            await BackfillService.shared.backfillTrainingLoad()
             
             // Reload data after calculation
             let reloadedWeek = getLast7Days()

@@ -58,7 +58,7 @@ struct VeloReadyApp: App {
             let hasBackfilled = UserDefaults.standard.bool(forKey: "hasBackfilledPhysioData")
             if !hasBackfilled {
                 Logger.data("📊 [PHYSIO BACKFILL] First launch - backfilling historical data in background...")
-                await CacheManager.shared.backfillHistoricalPhysioData(days: 60)
+                await BackfillService.shared.backfillHistoricalPhysioData(days: 60)
                 await MainActor.run {
                     UserDefaults.standard.set(true, forKey: "hasBackfilledPhysioData")
                     Logger.debug("✅ [PHYSIO BACKFILL] Completed in background")

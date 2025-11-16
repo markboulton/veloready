@@ -322,24 +322,9 @@ class TodayCoordinator: ObservableObject {
                 // Step 1: Clean up corrupt training load data from previous bugs
                 await CacheManager.shared.cleanupCorruptTrainingLoadData()
                 
-                // Step 2: Backfill raw physio data from HealthKit (HRV/RHR/Sleep - 60 days)
-                // This must run BEFORE score backfills since they depend on this data
-                await CacheManager.shared.backfillHistoricalPhysioData(days: 60)
-                
-                // Step 3: Backfill training load data (CTL/ATL/TSS - 42 days)
-                await CacheManager.shared.calculateMissingCTLATL(forceRefresh: true)
-                
-                // Step 4: Backfill calculated scores (all depend on physio/load data above)
-                Logger.info("🔄 [TodayCoordinator] Backfilling calculated scores...")
-                
-                // Recovery scores (60 days) - uses HRV/RHR/Sleep from DailyPhysio
-                await CacheManager.shared.backfillHistoricalRecoveryScores(days: 60, forceRefresh: true)
-                
-                // Sleep scores (60 days) - uses sleep duration from DailyPhysio
-                await CacheManager.shared.backfillSleepScores(days: 60, forceRefresh: false)
-                
-                // Strain scores (60 days) - uses TSS from DailyLoad
-                await CacheManager.shared.backfillStrainScores(daysBack: 60, forceRefresh: false)
+                // Step 2: Use BackfillService for all historical data backfilling
+                // This orchestrates: physio data → training load → scores (in correct order)
+                await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
                 
                 Logger.info("✅ [TodayCoordinator] Background backfill complete")
             }
