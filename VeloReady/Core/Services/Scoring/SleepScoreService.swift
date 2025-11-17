@@ -11,10 +11,10 @@ class SleepScoreService: ObservableObject {
     static let shared = SleepScoreService()
     
     @Published var currentSleepScore: SleepScore?
-    @Published var currentSleepDebt: SleepDebt?
-    @Published var currentSleepConsistency: SleepConsistency?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var currentSleepDebt: SleepDebt?
+    var currentSleepConsistency: SleepConsistency?
+    var isLoading = false
+    var errorMessage: String?
     
     private let calculator = SleepDataCalculator()
     private let healthKitManager = HealthKitManager.shared

@@ -10,6 +10,8 @@ import Foundation
 /// - v2: Legacy cache keys cleared
 /// - v3: Disk persistence added
 /// - v4: Clear corrupted cache from format changes (Nov 9, 2025)
+/// - v5: Force clear corrupted cache (Nov 9, 2025 19:00)
+/// - v6: Clear cache to fix sleep score and Strava activities format issues (Nov 17, 2025)
 ///
 /// # When to Increment
 /// - ✅ Changing data model structure (e.g., adding fields to Codable types)
@@ -27,7 +29,7 @@ import Foundation
 enum CacheVersion {
     /// Current cache version - increment when cache format changes
     /// **IMPORTANT**: This is the ONLY place to change the version number
-    static let current = 5  // Nov 9 19:00 - Force clear corrupted cache
+    static let current = 6  // Nov 17 19:45 - Fix sleep score + Strava activities cache corruption
     
     /// UserDefaults key for UnifiedCacheManager version
     static let unifiedCacheKey = "UnifiedCacheManager.CacheVersion"

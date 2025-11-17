@@ -13,7 +13,7 @@ class TrainingLoadService: ObservableObject {
     @Published var monthData: [FitnessTrajectoryChart.DataPoint] = []
     @Published var threeMonthData: [FitnessTrajectoryChart.DataPoint] = []
     @Published var isLoading = false
-    @Published var lastUpdated: Date?
+    var lastUpdated: Date?
     
     // MARK: - Cache
     

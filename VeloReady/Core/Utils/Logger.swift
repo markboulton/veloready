@@ -92,6 +92,35 @@ enum Logger {
     
     // MARK: - Logging Methods
     
+    /// Log trace information (DEBUG builds only, requires manual flag AND debug toggle)
+    /// Use for extremely verbose logging like view body evaluations
+    private static var isTraceLoggingEnabled: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "com.veloready.traceLoggingEnabled")
+        #else
+        return false
+        #endif
+    }
+    
+    /// Enable/disable trace logging (most verbose level)
+    static func setTraceLogging(_ enabled: Bool) {
+        #if DEBUG
+        UserDefaults.standard.set(enabled, forKey: "com.veloready.traceLoggingEnabled")
+        Logger.debug("🔧 Trace logging \(enabled ? "ENABLED" : "DISABLED")")
+        #endif
+    }
+    
+    /// Log trace information (DEBUG builds only, requires manual flag)
+    /// Use this for extremely verbose logging that would normally flood the console
+    static func trace(_ message: String, category: Category = .performance) {
+        #if DEBUG
+        guard isDebugLoggingEnabled && isTraceLoggingEnabled else { return }
+        let logMessage = "🔬 [TRACE][\(category.rawValue)] \(message)"
+        print(logMessage)
+        writeToFile(logMessage)
+        #endif
+    }
+    
     /// Log debug information (DEBUG builds only, respects debug toggle)
     static func debug(_ message: String, category: Category = .performance) {
         #if DEBUG

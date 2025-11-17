@@ -374,7 +374,7 @@ final class BackfillService {
                         continue
                     }
                     
-                    Logger.data("  🔄 \(formatter.string(from: date)): Processing (oldScore=\(Int(oldScore)), HRV=\(physio.hrv), RHR=\(physio.rhr))")
+                    Logger.trace("  🔄 \(formatter.string(from: date)): Processing (oldScore=\(Int(oldScore)), HRV=\(physio.hrv), RHR=\(physio.rhr))")
                     
                     // Build inputs from historical data
                     let inputs = RecoveryScore.RecoveryInputs(
@@ -397,7 +397,7 @@ final class BackfillService {
                     // Uses synchronous overload (rule-based) for backfill
                     let result = RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
                     
-                    Logger.data("  📊 \(formatter.string(from: date)): Calculated newScore=\(result.score), band=\(result.band.rawValue)")
+                    Logger.trace("  📊 \(formatter.string(from: date)): Calculated newScore=\(result.score), band=\(result.band.rawValue)")
                     
                     // Update the score
                     scores.recoveryScore = Double(result.score)
@@ -405,7 +405,7 @@ final class BackfillService {
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
-                    Logger.data("  ✅ \(formatter.string(from: date)): Updated recovery: \(Int(oldScore)) → \(result.score) (Band=\(result.band.rawValue))")
+                    Logger.trace("  ✅ \(formatter.string(from: date)): Updated recovery: \(Int(oldScore)) → \(result.score) (Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -501,7 +501,7 @@ final class BackfillService {
 
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMM dd"
-                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.0f", sleepScore)) (\(String(format: "%.1f", sleepHours))h sleep)")
+                    Logger.trace("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.0f", sleepScore)) (\(String(format: "%.1f", sleepHours))h sleep)")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -513,14 +513,14 @@ final class BackfillService {
     /// This ensures historical days show accurate strain scores instead of 0
     /// Uses the same algorithm as today's strain calculation but from historical TSS
     func backfillStrainScores(daysBack: Int = 60, forceRefresh: Bool = false) async {
-        Logger.info("🔄 [STRAIN BACKFILL] ✅ FUNCTION CALLED - daysBack: \(daysBack), forceRefresh: \(forceRefresh)")
+        Logger.debug("🔄 [STRAIN BACKFILL] Starting backfill for \(daysBack) days (force: \(forceRefresh))")
         
         await throttledBackfill(
             key: "lastStrainBackfill",
             logPrefix: "STRAIN BACKFILL",
             forceRefresh: forceRefresh
         ) {
-            Logger.debug("🔄 [STRAIN BACKFILL] ✅ THROTTLE PASSED - Starting backfill for last \(daysBack) days...")
+            Logger.trace("🔄 [STRAIN BACKFILL] Throttle passed, processing...")
             
             // Fetch athlete profile once before batch operation (avoid await inside closure)
             let athleteProfile = await AthleteProfileManager.shared.profile
@@ -602,7 +602,7 @@ final class BackfillService {
                     
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMM dd"
-                    Logger.debug("📊 [STRAIN BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.1f", result.score)) (TSS: \(String(format: "%.0f", load.tss)), Band: \(result.band.rawValue))")
+                    Logger.trace("📊 [STRAIN BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.1f", result.score)) (TSS: \(String(format: "%.0f", load.tss)), Band: \(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -614,7 +614,7 @@ final class BackfillService {
     
     /// Backfill historical HRV/RHR/Sleep data from HealthKit for chart display
     func backfillHistoricalPhysioData(days: Int = 60) async {
-        Logger.data("📊 [PHYSIO BACKFILL] ✅ FUNCTION ENTERED - Starting backfill for last \(days) days...")
+        Logger.debug("📊 [PHYSIO BACKFILL] Starting for last \(days) days")
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -622,24 +622,24 @@ final class BackfillService {
         // Fetch HRV, RHR, and Sleep data from HealthKit for the entire period
         let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
         
-        Logger.data("📊 [PHYSIO BACKFILL] Date range: \(startDate) to \(Date())")
-        Logger.data("📊 [PHYSIO BACKFILL] Step 1/3: Fetching HRV samples...")
+        Logger.trace("📊 [PHYSIO BACKFILL] Date range: \(startDate) to \(Date())")
+        Logger.trace("📊 [PHYSIO BACKFILL] Step 1/3: Fetching HRV samples...")
         
         // Fetch all HRV samples (use HealthKitManager.shared directly to avoid MainActor isolation)
         let hrvSamples = await HealthKitManager.shared.fetchHRVSamples(from: startDate, to: Date())
-        Logger.data("📊 [PHYSIO BACKFILL] ✅ HRV fetch complete: \(hrvSamples.count) samples")
+        Logger.trace("📊 [PHYSIO BACKFILL] HRV: \(hrvSamples.count) samples")
         
-        Logger.data("📊 [PHYSIO BACKFILL] Step 2/3: Fetching RHR samples...")
+        Logger.trace("📊 [PHYSIO BACKFILL] Fetching RHR samples...")
         // Fetch all RHR samples
         let rhrSamples = await HealthKitManager.shared.fetchRHRSamples(from: startDate, to: Date())
-        Logger.data("📊 [PHYSIO BACKFILL] ✅ RHR fetch complete: \(rhrSamples.count) samples")
+        Logger.trace("📊 [PHYSIO BACKFILL] RHR: \(rhrSamples.count) samples")
         
-        Logger.data("📊 [PHYSIO BACKFILL] Step 3/3: Fetching sleep samples...")
+        Logger.trace("📊 [PHYSIO BACKFILL] Fetching sleep samples...")
         // Fetch all sleep samples
         let sleepSamples = (try? await HealthKitManager.shared.fetchSleepData(from: startDate, to: Date())) ?? []
-        Logger.data("📊 [PHYSIO BACKFILL] ✅ Sleep fetch complete: \(sleepSamples.count) samples")
+        Logger.trace("📊 [PHYSIO BACKFILL] Sleep: \(sleepSamples.count) samples")
         
-        Logger.data("📊 [PHYSIO BACKFILL] 📊 SUMMARY: Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSamples.count) sleep samples")
+        Logger.debug("📊 [PHYSIO BACKFILL] Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSamples.count) sleep samples")
         
         if hrvSamples.isEmpty && rhrSamples.isEmpty && sleepSamples.isEmpty {
             Logger.error("❌ [PHYSIO BACKFILL] NO DATA FETCHED - HealthKit may not have historical data for this period")

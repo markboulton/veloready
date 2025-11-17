@@ -325,7 +325,7 @@ class TodayCoordinator: ObservableObject {
                 do {
                     Logger.info("🔄 [TodayCoordinator] Step 1: Cleanup corrupt data...")
                     // Step 1: Clean up corrupt training load data from previous bugs
-                    await CacheManager.shared.cleanupCorruptTrainingLoadData()
+                    await DailyDataService.shared.cleanupCorruptTrainingLoadData()
                     Logger.info("🔄 [TodayCoordinator] ✅ Step 1 complete")
                     
                     Logger.info("🔄 [TodayCoordinator] Step 2: Starting backfillAll...")

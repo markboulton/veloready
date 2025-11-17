@@ -7,21 +7,42 @@ import VeloReadyCore
 /// Actor-isolated to run heavy calculations on background threads
 actor BaselineCalculator {
     private let healthStore = HKHealthStore()
-    
+
     // HealthKit types
     private let respiratoryRateType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate)!
-    
-    // Cache baselines for 1 hour to improve performance (balances freshness vs speed)
+
+    // MARK: - Configuration Constants
+
+    /// Baseline calculation window in days
+    /// 7-day rolling average matches Whoop methodology for adaptive baselines
+    private static let baselineWindowDays = 7
+
+    /// Minimum sleep duration to include in baseline (5 minutes)
+    /// Filters out brief awakenings or data artifacts
+    private static let minimumSleepSegmentDuration: TimeInterval = 300
+
+    /// Hour threshold for next-day sleep attribution (6 PM)
+    /// Sleep starting after 6 PM is attributed to next day
+    private static let nextDaySleepHourThreshold = 18
+
+    /// Minimum total sleep duration to count as valid night (1 hour)
+    /// Prevents naps or incomplete data from skewing baseline
+    private static let minimumNightSleepDuration: TimeInterval = 3600
+
+    /// Cache expiry interval in seconds (1 hour)
+    /// Balances freshness vs performance for baseline calculations
+    private static let cacheExpiryInterval: TimeInterval = 3600
+
+    // Cache baselines to improve performance
     private var cachedBaselines: (hrv: Double?, rhr: Double?, sleep: Double?, respiratory: Double?)?
     private var cacheTimestamp: Date?
-    private let cacheExpiryInterval: TimeInterval = 3600 // 1 hour
     
     // MARK: - Public Methods
     
     /// Calculate 7-day HRV baseline (rolling average)
     func calculateHRVBaseline() async -> Double? {
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
+        let startDate = Calendar.current.date(byAdding: .day, value: -Self.baselineWindowDays, to: endDate) ?? endDate
         
         let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
         let predicate = HKQuery.predicateForSamples(
@@ -56,7 +77,7 @@ actor BaselineCalculator {
     /// Calculate 7-day RHR baseline (rolling average)
     func calculateRHRBaseline() async -> Double? {
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
+        let startDate = Calendar.current.date(byAdding: .day, value: -Self.baselineWindowDays, to: endDate) ?? endDate
         
         let rhrType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate)!
         let predicate = HKQuery.predicateForSamples(
@@ -91,7 +112,7 @@ actor BaselineCalculator {
     /// Calculate 7-day sleep baseline (rolling average duration in seconds)
     func calculateSleepBaseline() async -> Double? {
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
+        let startDate = Calendar.current.date(byAdding: .day, value: -Self.baselineWindowDays, to: endDate) ?? endDate
         
         let sleepType = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis)!
         let predicate = HKQuery.predicateForSamples(
@@ -124,12 +145,12 @@ actor BaselineCalculator {
                     for sample in sleepSamples {
                         let duration = sample.endDate.timeIntervalSince(sample.startDate)
                         let isActualSleep = sample.value != HKCategoryValueSleepAnalysis.inBed.rawValue
-                        
-                        if duration >= 300 && isActualSleep { // 5+ minutes and actually sleeping
+
+                        if duration >= Self.minimumSleepSegmentDuration && isActualSleep {
                             // Use the start date to determine which "night" this belongs to
-                            // For sleep that starts after 6 PM, consider it part of the next day's sleep
+                            // For sleep that starts after threshold hour, consider it part of the next day's sleep
                             let hour = calendar.component(.hour, from: sample.startDate)
-                            let sleepDate = hour >= 18 ? 
+                            let sleepDate = hour >= Self.nextDaySleepHourThreshold ? 
                                 calendar.date(byAdding: .day, value: 1, to: sample.startDate) ?? sample.startDate : 
                                 sample.startDate
                             
@@ -146,8 +167,8 @@ actor BaselineCalculator {
                         }
                     }
                     
-                    // Get total sleep durations per night (only nights with 1+ hour total)
-                    let actualSleepDurations = sleepByDate.values.filter { $0 >= 3600 }
+                    // Get total sleep durations per night (only nights with minimum total sleep)
+                    let actualSleepDurations = sleepByDate.values.filter { $0 >= Self.minimumNightSleepDuration }
                     
                     // Debug sleep baseline calculation
                     Logger.debug("🔍 Sleep Baseline Debug:")
@@ -174,14 +195,14 @@ actor BaselineCalculator {
     /// This is different from calculateSleepBaseline() which returns duration in seconds
     func calculateSleepScoreBaseline() async -> Double? {
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
-        
+        let startDate = Calendar.current.date(byAdding: .day, value: -Self.baselineWindowDays, to: endDate) ?? endDate
+
         // Fetch sleep scores from cache (0-100 values)
         var scores: [Int] = []
         let calendar = Calendar.current
         let cacheManager = UnifiedCacheManager.shared
-        
-        for dayOffset in 0..<7 {
+
+        for dayOffset in 0..<Self.baselineWindowDays {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: endDate) else { continue }
             
             let cacheKey = CacheKey.sleepScore(date: date)
@@ -223,7 +244,7 @@ actor BaselineCalculator {
     /// Calculate 7-day respiratory rate baseline (rolling average)
     func calculateRespiratoryBaseline() async -> Double? {
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: endDate) ?? endDate
+        let startDate = Calendar.current.date(byAdding: .day, value: -Self.baselineWindowDays, to: endDate) ?? endDate
         
         let respiratoryType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate)!
         let predicate = HKQuery.predicateForSamples(
@@ -260,7 +281,7 @@ actor BaselineCalculator {
         // Check if we have valid cached baselines
         if let cached = cachedBaselines,
            let timestamp = cacheTimestamp,
-           Date().timeIntervalSince(timestamp) < cacheExpiryInterval {
+           Date().timeIntervalSince(timestamp) < Self.cacheExpiryInterval {
             Logger.debug("📱 Using cached baselines (age: \(String(format: "%.1f", Date().timeIntervalSince(timestamp) / 60)) minutes)")
             return cached
         }

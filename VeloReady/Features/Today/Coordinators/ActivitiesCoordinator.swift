@@ -94,17 +94,19 @@ class ActivitiesCoordinator: ObservableObject {
     /// - Returns: Array of UnifiedActivity
     private func fetchIntervalsActivities(days: Int) async -> [UnifiedActivity] {
         Logger.info("🔄 [ActivitiesCoordinator] Fetching Intervals.icu activities...")
-        
+
         // Check if authenticated
         guard services.intervalsOAuthManager.isAuthenticated else {
             Logger.info("⏭️ [ActivitiesCoordinator] Intervals.icu not authenticated - skipping")
             return []
         }
-        
+
         do {
+            // OPTIMIZATION: Reduce from 500 → 50 for faster initial load
+            // We only need 15 for Today view, so 50 provides buffer
             let activities = try await Task { @MainActor in
                 try await UnifiedActivityService.shared.fetchRecentActivities(
-                    limit: 500,
+                    limit: 50,
                     daysBack: days
                 )
             }.value

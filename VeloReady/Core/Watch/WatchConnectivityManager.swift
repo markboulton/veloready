@@ -11,7 +11,7 @@ class WatchConnectivityManager: NSObject, ObservableObject {
     @Published var isWatchPaired = false
     @Published var isWatchAppInstalled = false
     @Published var isReachable = false
-    @Published var lastSyncDate: Date?
+    var lastSyncDate: Date?
     
     private var session: WCSession?
     

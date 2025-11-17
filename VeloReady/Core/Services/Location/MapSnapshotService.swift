@@ -7,9 +7,27 @@ import UIKit
 class MapSnapshotService {
     static let shared = MapSnapshotService()
     
-    // MARK: - Cache
-    private var snapshotCache: [String: UIImage] = [:]
-    private let cacheLimit = 50 // Keep last 50 map snapshots in memory
+    // MARK: - Cache (OPTIMIZATION: Using NSCache for automatic memory management)
+    // NSCache provides:
+    // - Automatic eviction under memory pressure
+    // - Built-in LRU eviction policy
+    // - Thread-safe operations
+    // - Count and cost (memory) limits
+    private let snapshotCache = NSCache<NSString, UIImage>()
+
+    private func setupCache() {
+        // Limit: 50 cached images
+        snapshotCache.countLimit = 50
+
+        // Memory limit: 50MB (50 * 1024 * 1024 bytes)
+        // Average map snapshot ~1MB, so this allows ~50 images before eviction
+        snapshotCache.totalCostLimit = 50 * 1024 * 1024
+
+        // Automatically evict under memory pressure
+        snapshotCache.evictsObjectsWithDiscardedContent = true
+
+        Logger.debug("🗺️ [Cache] NSCache configured - limit: 50 images, 50MB max")
+    }
     
     // MARK: - Concurrency Control
     // Limit concurrent map generations to prevent memory issues
@@ -24,6 +42,10 @@ class MapSnapshotService {
     
     private init() {
         Logger.debug("🗺️ [MapSnapshotService] Initializing service...")
+
+        // OPTIMIZATION: Setup NSCache with limits
+        setupCache()
+
         // Pre-warm MapKit on initialization
         warmUpTask = Task {
             Logger.debug("🗺️ [MapSnapshotService] Starting warmup task...")
@@ -102,7 +124,7 @@ class MapSnapshotService {
         }
         
         // Check cache first (progressive loading optimization)
-        if let activityId = activityId, let cached = snapshotCache[activityId] {
+        if let activityId = activityId, let cached = snapshotCache.object(forKey: activityId as NSString) {
             Logger.debug("🗺️ ⚡ Using cached map snapshot for activity \(activityId)")
             return cached
         }
@@ -143,17 +165,15 @@ class MapSnapshotService {
             )
             
             Logger.debug("🗺️ ✅ Map snapshot generated successfully")
-            
+
             // Cache the generated snapshot for future use
+            // NSCache automatically handles eviction under memory pressure
             if let activityId = activityId {
-                snapshotCache[activityId] = image
-                // Enforce cache limit (LRU-style: keep most recent)
-                if snapshotCache.count > cacheLimit {
-                    // Remove oldest entries (simplified approach)
-                    let keysToRemove = Array(snapshotCache.keys.prefix(snapshotCache.count - cacheLimit))
-                    keysToRemove.forEach { snapshotCache.removeValue(forKey: $0) }
-                    Logger.debug("🗺️ 🧹 Pruned map cache - removed \(keysToRemove.count) old snapshots")
-                }
+                // Estimate image size for cost-based caching
+                // Average map snapshot is ~1MB (width * height * 4 bytes per pixel)
+                let estimatedSize = Int(image.size.width * image.size.height * image.scale * image.scale * 4)
+                snapshotCache.setObject(image, forKey: activityId as NSString, cost: estimatedSize)
+                Logger.debug("🗺️ 💾 Cached map snapshot for activity \(activityId) (cost: ~\(estimatedSize / 1024 / 1024)MB)")
             }
             
             return image
@@ -321,24 +341,23 @@ class MapSnapshotService {
     
     /// Clear the map snapshot cache
     func clearCache() {
-        snapshotCache.removeAll()
+        snapshotCache.removeAllObjects()
         Logger.debug("🗺️ 🗑️ Cleared map snapshot cache")
     }
     
     // MARK: - Cache Helpers
-    
+
     private func getCachedSnapshot(activityId: String) -> UIImage? {
-        return snapshotCache[activityId]
+        return snapshotCache.object(forKey: activityId as NSString)
     }
     
     private func cacheSnapshot(image: UIImage, activityId: String) {
-        snapshotCache[activityId] = image
-        // Enforce cache limit
-        if snapshotCache.count > cacheLimit {
-            let keysToRemove = Array(snapshotCache.keys.prefix(snapshotCache.count - cacheLimit))
-            keysToRemove.forEach { snapshotCache.removeValue(forKey: $0) }
-            Logger.debug("🗺️ 🧹 Pruned map cache - removed \(keysToRemove.count) old snapshots")
-        }
+        // Estimate image size for cost-based caching
+        // Average map snapshot is ~1MB (width * height * 4 bytes per pixel)
+        let estimatedSize = Int(image.size.width * image.size.height * image.scale * image.scale * 4)
+        snapshotCache.setObject(image, forKey: activityId as NSString, cost: estimatedSize)
+        // NSCache automatically handles eviction based on count/cost limits and memory pressure
+        Logger.debug("🗺️ 💾 Cached map snapshot for activity \(activityId) (cost: ~\(estimatedSize / 1024 / 1024)MB)")
     }
     
     // MARK: - Private Helpers

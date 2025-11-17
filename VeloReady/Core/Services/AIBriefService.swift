@@ -9,13 +9,13 @@ class AIBriefService: ObservableObject {
     @Published var briefText: String?
     @Published var isLoading = false
     @Published var error: AIBriefError?
-    @Published var isCached = false
+    var isCached = false
     
     private let client: AIBriefClientProtocol
     private let recoveryService = RecoveryScoreService.shared
     private let sleepService = SleepScoreService.shared
     private let illnessService = IllnessDetectionService.shared
-    private let cacheManager = CacheManager.shared
+    private let cacheManager = DailyDataService.shared
     private let persistence = PersistenceController.shared
     
     // Anonymous user ID (persisted across app launches)

@@ -300,15 +300,15 @@ class RecoveryScoreCalculator {
             sleepFactor = 0.0 // Sleep excluded
             respiratoryFactor = Double(subScores.respiratory) * 0.143
             loadFactor = Double(subScores.form) * 0.143
-            Logger.debug("💤 NO SLEEP MODE: Using rebalanced weights (HRV 42.8%, RHR 28.6%, Resp 14.3%, Load 14.3%)")
+            Logger.trace("🐤 NO SLEEP MODE: Using rebalanced weights (HRV 42.8%, RHR 28.6%, Resp 14.3%, Load 14.3%)")
         }
         
         var finalScore = hrvFactor + rhrFactor + sleepFactor + respiratoryFactor + loadFactor
         
-        Logger.debug("🏥 RECOVERY SCORE CALCULATION (NEW WEIGHTS):")
-        Logger.debug("   Sub-scores: HRV=\(subScores.hrv), RHR=\(subScores.rhr), Sleep=\(subScores.sleep), Resp=\(subScores.respiratory), Load=\(subScores.form)")
-        Logger.debug("   Weighted:   HRV=\(String(format: "%.1f", hrvFactor)) (30%), RHR=\(String(format: "%.1f", rhrFactor)) (20%), Sleep=\(String(format: "%.1f", sleepFactor)) (30%), Resp=\(String(format: "%.1f", respiratoryFactor)) (10%), Load=\(String(format: "%.1f", loadFactor)) (10%)")
-        Logger.debug("   Base Score: \(String(format: "%.1f", finalScore)) (before alcohol detection)")
+        Logger.trace("🏥 RECOVERY SCORE CALCULATION (NEW WEIGHTS):")
+        Logger.trace("   Sub-scores: HRV=\(subScores.hrv), RHR=\(subScores.rhr), Sleep=\(subScores.sleep), Resp=\(subScores.respiratory), Load=\(subScores.form)")
+        Logger.trace("   Weighted:   HRV=\(String(format: "%.1f", hrvFactor)) (30%), RHR=\(String(format: "%.1f", rhrFactor)) (20%), Sleep=\(String(format: "%.1f", sleepFactor)) (30%), Resp=\(String(format: "%.1f", respiratoryFactor)) (10%), Load=\(String(format: "%.1f", loadFactor)) (10%)")
+        Logger.trace("   Base Score: \(String(format: "%.1f", finalScore)) (before alcohol detection)")
         
         // Apply alcohol-specific compound effect detection
         finalScore = applyAlcoholCompoundEffect(
@@ -328,10 +328,10 @@ class RecoveryScoreCalculator {
         let illnessSeverity = illnessIndicator?.severity.rawValue
         
         if illnessDetected {
-            Logger.debug("   ⚠️ Body stress detected: \(illnessSeverity ?? "unknown") - Score should be interpreted cautiously")
+            Logger.trace("   ⚠️ Body stress detected: \(illnessSeverity ?? "unknown") - Score should be interpreted cautiously")
         }
         
-        Logger.debug("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
+        Logger.trace("   Final Score: \(Int(finalScore)) (\(band.rawValue.uppercased())) after alcohol detection")
         
         return RecoveryScore(
             score: Int(finalScore),

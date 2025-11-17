@@ -11,11 +11,11 @@ class RecoveryScoreService: ObservableObject {
     static let shared = RecoveryScoreService()
     
     @Published var currentRecoveryScore: RecoveryScore?
-    @Published var currentRecoveryDebt: RecoveryDebt?
-    @Published var currentReadinessScore: ReadinessScore?
-    @Published var currentResilienceScore: ResilienceScore?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var currentRecoveryDebt: RecoveryDebt?
+    var currentReadinessScore: ReadinessScore?
+    var currentResilienceScore: ResilienceScore?
+    var isLoading = false
+    var errorMessage: String?
     
     private let calculator = RecoveryDataCalculator()
     private let sleepScoreService = SleepScoreService.shared
@@ -363,43 +363,19 @@ class RecoveryScoreService: ObservableObject {
     }
     
     // MARK: - Real Data Calculation (DEPRECATED - uses hidden dependency)
-    
+    // This method is kept for backward compatibility but delegates to the new explicit API
+
     private func calculateRealRecoveryScore(forceRefresh: Bool = false) async -> RecoveryScore? {
-        // CRITICAL: Sleep score MUST be calculated first for accurate recovery calculation
-        // If sleep score is being calculated, wait for it. If not started, start it.
-        if sleepScoreService.currentSleepScore == nil {
-            if sleepScoreService.isLoading {
-                // Sleep calculation already in progress - wait for it
-                Logger.debug("⏳ Sleep calculation in progress - waiting for completion...")
-                
-                // Poll until sleep score is available or loading completes
-                var attempts = 0
-                while sleepScoreService.isLoading && attempts < 50 { // Max 5 seconds
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
-                    attempts += 1
-                }
-                
-                if sleepScoreService.currentSleepScore != nil {
-                    Logger.debug("✅ Sleep score now available after waiting: \(sleepScoreService.currentSleepScore!.score)")
-                } else {
-                    Logger.warning("⚠️ Sleep score still nil after waiting - recovery will show 'Limited Data'")
-                }
-            } else {
-                // Sleep not started yet - trigger it and wait
-                Logger.debug("⏳ Starting sleep score calculation...")
-                await sleepScoreService.calculateSleepScore()
-                
-                if sleepScoreService.currentSleepScore != nil {
-                    Logger.debug("✅ Sleep score now available: \(sleepScoreService.currentSleepScore!.score)")
-                } else {
-                    Logger.warning("⚠️ Sleep score still nil after calculation - recovery will show 'Limited Data'")
-                }
-            }
-        } else {
-            Logger.debug("✅ Sleep score already available: \(sleepScoreService.currentSleepScore!.score)")
+        // Get current sleep score from service (hidden dependency)
+        let sleepScore = sleepScoreService.currentSleepScore
+
+        // If no sleep score available, try calculating it
+        if sleepScore == nil && !sleepScoreService.isLoading {
+            Logger.debug("⏳ Sleep score missing - triggering calculation...")
+            await sleepScoreService.calculateSleepScore()
         }
-        
-        // Delegate to calculator (runs on background thread)
+
+        // Delegate to calculator with explicit sleep input
         return await calculator.calculateRecoveryScore(sleepScore: sleepScoreService.currentSleepScore)
     }
     

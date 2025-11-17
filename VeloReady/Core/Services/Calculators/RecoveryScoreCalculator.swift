@@ -7,6 +7,16 @@ import VeloReadyCore
 actor RecoveryDataCalculator {
     private let healthKitManager = HealthKitManager.shared
     private let baselineCalculator = BaselineCalculator()
+
+    // MARK: - Recovery Band Thresholds
+
+    /// Minimum score for optimal recovery band (75-100)
+    /// Based on Whoop's recovery scoring methodology where 75+ indicates full readiness
+    private static let optimalRecoveryThreshold = 75
+
+    /// Minimum score for good recovery band (50-74)
+    /// Scores above 50 indicate adequate recovery for moderate training
+    private static let goodRecoveryThreshold = 50
     
     // MARK: - Main Calculation
     
@@ -153,8 +163,8 @@ actor RecoveryDataCalculator {
     
     private func determineBand(score: Int) -> RecoveryScore.RecoveryBand {
         switch score {
-        case 75...100: return .optimal
-        case 50..<75: return .good
+        case Self.optimalRecoveryThreshold...100: return .optimal
+        case Self.goodRecoveryThreshold..<Self.optimalRecoveryThreshold: return .good
         default: return .fair
         }
     }

@@ -116,10 +116,7 @@ actor DiskCacheLayer: CacheLayer {
             await remove(key: key)
         }
         
-        // Only log misses for non-historical data (reduces spam from bulk fetches)
-        if !key.contains("T21:38:") && !key.contains("T00:00:00Z") {
-            Logger.debug("❌ [DiskCache MISS] \(key)")
-        }
+        // Don't log individual layer misses - CacheOrchestrator logs final result
         return nil
     }
     

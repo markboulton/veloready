@@ -696,14 +696,14 @@ class StrainScoreCalculator {
         let finalScore = max(0.0, min(18.0, adjustedStrain))
         let band = determineBand(score: finalScore)
         
-        Logger.debug("🏃 Whoop-Style Strain Calculation:")
-        Logger.debug("   Workout TRIMP: \(workoutTRIMP)")
-        Logger.debug("   Daily Activity Adjustment: \(dailyActivityAdjustment)")
-        Logger.debug("   Total TRIMP: \(totalTRIMP)")
-        Logger.debug("   EPOC: \(epoc)")
-        Logger.debug("   Raw Strain: \(strain)")
-        Logger.debug("   Recovery Factor: \(recoveryFactor)")
-        Logger.debug("   Final Score: \(finalScore)")
+        Logger.trace("🏃 Whoop-Style Strain Calculation:")
+        Logger.trace("   Workout TRIMP: \(workoutTRIMP)")
+        Logger.trace("   Daily Activity Adjustment: \(dailyActivityAdjustment)")
+        Logger.trace("   Total TRIMP: \(totalTRIMP)")
+        Logger.trace("   EPOC: \(epoc)")
+        Logger.trace("   Raw Strain: \(strain)")
+        Logger.trace("   Recovery Factor: \(recoveryFactor)")
+        Logger.trace("   Final Score: \(finalScore)")
         
         return (score: finalScore, band: band)
     }

@@ -6,13 +6,28 @@ import HealthKit
 actor WellnessDetectionCalculator {
     private let healthKitManager = HealthKitManager.shared
     private let baselineCalculator = BaselineCalculator()
-    
-    // Detection thresholds (conservative to avoid false positives)
-    private let rhrElevationThreshold = 0.15 // 15% above baseline
-    private let hrvDepressionThreshold = -0.20 // 20% below baseline
-    private let respiratoryElevationThreshold = 0.20 // 20% above baseline
-    private let bodyTempElevationThreshold = 0.5 // 0.5°C above baseline
-    private let minimumConsecutiveDays = 2 // Need at least 2 days of sustained changes
+
+    // MARK: - Detection Thresholds
+
+    /// RHR elevation threshold (15% above baseline)
+    /// Conservative threshold to avoid false positives
+    private let rhrElevationThreshold = 0.15
+
+    /// HRV depression threshold (20% below baseline)
+    /// Indicates potential overtraining or illness when sustained
+    private let hrvDepressionThreshold = -0.20
+
+    /// Respiratory rate elevation threshold (20% above baseline)
+    /// Elevated respiratory rate can indicate stress or illness
+    private let respiratoryElevationThreshold = 0.20
+
+    /// Body temperature elevation threshold (0.5°C above baseline)
+    /// Note: Body temp data is rare in HealthKit (requires manual entry or specific devices)
+    private let bodyTempElevationThreshold = 0.5
+
+    /// Minimum consecutive days for trend detection
+    /// Requires at least 2 days of sustained changes to avoid false positives
+    private let minimumConsecutiveDays = 2
     
     // MARK: - Trend Analysis Methods
     

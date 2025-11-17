@@ -3,12 +3,29 @@ import CoreData
 import Combine
 import HealthKit
 
-/// Manages caching and refresh strategies for daily data
+/// Orchestrates daily data fetching, calculation, and caching
+///
+/// **Responsibilities:**
+/// - Fetch health data from HealthKit (HRV, RHR, sleep)
+/// - Fetch training data from Intervals.icu
+/// - Calculate training load (CTL, ATL) and baselines
+/// - Coordinate athlete zone computation
+/// - Use UnifiedCacheManager for caching operations
+///
+/// **Architecture Note:**
+/// This service replaced the old CacheManager, which violated SRP by mixing
+/// domain logic with caching. Now caching is delegated to UnifiedCacheManager.
+///
+/// Created: 2025-11-17 (Phase 2 Architecture Cleanup)
 @MainActor
-final class CacheManager: ObservableObject {
+final class DailyDataService: ObservableObject {
     // MARK: - Singleton
-    
-    static let shared = CacheManager()
+
+    static let shared = DailyDataService()
+
+    // MARK: - Cache Manager
+
+    private let cacheManager = UnifiedCacheManager.shared
     
     // MARK: - Properties
     
@@ -25,7 +42,7 @@ final class CacheManager: ObservableObject {
     private let baselineCalculator = BaselineCalculator()
     
     @Published private(set) var isRefreshing = false
-    @Published private(set) var lastRefreshDate: Date?
+    private(set) var lastRefreshDate: Date?
     
     // MARK: - Cache Age Thresholds
     
@@ -185,7 +202,7 @@ final class CacheManager: ObservableObject {
         let rhrBaseline = await baselineCalculator.calculateRHRBaseline()
         let sleepBaseline = await baselineCalculator.calculateSleepBaseline()
         
-        Logger.debug("📊 [CacheManager] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
+        Logger.debug("📊 [DailyDataService] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
         
         return HealthData(
             hrv: hrvData.value,
@@ -243,13 +260,13 @@ final class CacheManager: ObservableObject {
         
         // If not authenticated with Intervals, calculate training load from HealthKit
         guard oauthManager.isAuthenticated else {
-            Logger.debug("📊 [CacheManager] Intervals.icu not authenticated - calculating training load from HealthKit")
-            
+            Logger.debug("📊 [DailyDataService] Intervals.icu not authenticated - calculating training load from HealthKit")
+
             // Calculate training load from HealthKit workouts
             let (ctl, atl) = await trainingLoadCalculator.calculateTrainingLoad()
             let tsb = ctl - atl
-            
-            Logger.debug("📊 [CacheManager] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
+
+            Logger.debug("📊 [DailyDataService] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
             
             return IntervalsData(
                 ctl: ctl,

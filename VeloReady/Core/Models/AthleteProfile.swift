@@ -311,18 +311,18 @@ class AthleteProfileManager: ObservableObject {
     /// Based on Leo et al. (2022), Burnley & Jones (2018), Decroix et al. (2016)
     /// Target accuracy: ±2-5% with proper data
     private func computeFTPFromPerformanceData(_ activities: [Activity]) async {
-        Logger.data("========== FTP COMPUTATION (ENHANCED v2) ==========")
-        Logger.data("Target: ±2-5% accuracy with confidence-based buffer")
+        Logger.trace("========== FTP COMPUTATION (ENHANCED v2) ==========")
+        Logger.trace("Target: ±2-5% accuracy with confidence-based buffer")
         
         guard !activities.isEmpty else {
-            Logger.data("❌ No activities available")
+            Logger.debug("❌ No activities available for FTP computation")
             return
         }
         
         // STAGE 1: Find best sustained powers at key durations
-        Logger.debug("📊")
-        Logger.data("STAGE 1: Building Power-Duration Curve")
-        Logger.data("Analyzing \(activities.count) activities...")
+        Logger.trace("📊")
+        Logger.trace("STAGE 1: Building Power-Duration Curve")
+        Logger.trace("Analyzing \(activities.count) activities...")
         
         var best60min: Double = 0
         var best20min: Double = 0
@@ -335,7 +335,7 @@ class AthleteProfileManager: ObservableObject {
             let duration = activity.duration ?? 0
             
             if np > 0 {
-                Logger.data("  Activity \(index + 1): \(activity.name ?? "Unnamed") - NP: \(Int(np))W, Duration: \(Int(duration/60))min")
+                Logger.trace("  Activity \(index + 1): \(activity.name ?? "Unnamed") - NP: \(Int(np))W, Duration: \(Int(duration/60))min")
                 
                 maxNP = max(maxNP, np)
                 
@@ -344,13 +344,13 @@ class AthleteProfileManager: ObservableObject {
                     let boost: Double
                     if duration >= 18000 { // 5+ hours
                         boost = 1.12 // NP is ~89% of FTP
-                        Logger.data("    ✓ Ultra-endurance (5+ hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
+                        Logger.trace("    ✓ Ultra-endurance (5+ hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
                     } else if duration >= 14400 { // 4-5 hours
                         boost = 1.10 // NP is ~91% of FTP
-                        Logger.data("    ✓ Ultra-endurance (4-5 hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
+                        Logger.trace("    ✓ Ultra-endurance (4-5 hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
                     } else { // 3-4 hours
                         boost = 1.07 // NP is ~93% of FTP
-                        Logger.data("    ✓ Ultra-endurance (3-4 hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
+                        Logger.trace("    ✓ Ultra-endurance (3-4 hours): \(Int(np))W → Estimated 60-min power: \(Int(np * boost))W")
                     }
                     
                     let estimatedPower = np * boost
@@ -361,40 +361,40 @@ class AthleteProfileManager: ObservableObject {
                 } else if duration >= 3600 { // 60-90 min (normal)
                     if np > best60min {
                         best60min = np
-                        Logger.data("    ✓ New best 60-min power: \(Int(np))W")
+                        Logger.trace("    ✓ New best 60-min power: \(Int(np))W")
                     }
                 }
                 
                 if duration >= 1200 { // 20+ min
                     if np > best20min {
                         best20min = np
-                        Logger.data("    ✓ New best 20-min power: \(Int(np))W")
+                        Logger.trace("    ✓ New best 20-min power: \(Int(np))W")
                     }
                 }
                 if duration >= 300 { // 5+ min
                     if np > best5min {
                         best5min = np
-                        Logger.data("    ✓ New best 5-min power: \(Int(np))W")
+                        Logger.trace("    ✓ New best 5-min power: \(Int(np))W")
                     }
                 }
             }
         }
         
-        Logger.debug("📊")
-        Logger.data("Power-Duration Curve Results:")
-        if best60min > 0 { print("📊   60-min: \(Int(best60min))W") }
-        if best20min > 0 { print("📊   20-min: \(Int(best20min))W") }
-        if best5min > 0 { print("📊   5-min: \(Int(best5min))W") }
-        Logger.data("  Max NP: \(Int(maxNP))W")
+        Logger.trace("📊")
+        Logger.trace("Power-Duration Curve Results:")
+        if best60min > 0 { Logger.trace("📊   60-min: \(Int(best60min))W") }
+        if best20min > 0 { Logger.trace("📊   20-min: \(Int(best20min))W") }
+        if best5min > 0 { Logger.trace("📊   5-min: \(Int(best5min))W") }
+        Logger.trace("  Max NP: \(Int(maxNP))W")
         
         guard maxNP > 0 else {
-            Logger.data("❌ No power data available - cannot compute FTP")
+            Logger.debug("❌ No power data available - cannot compute FTP")
             return
         }
         
         // STAGE 2: Compute FTP candidates with weighting
-        Logger.debug("📊")
-        Logger.data("STAGE 2: Computing FTP Candidates")
+        Logger.trace("📊")
+        Logger.trace("STAGE 2: Computing FTP Candidates")
         
         var candidates: [(ftp: Double, method: String, weight: Double)] = []
         
@@ -405,25 +405,25 @@ class AthleteProfileManager: ObservableObject {
             let weight = ultraEnduranceBoost != nil ? 1.5 : 1.0
             let method = ultraEnduranceBoost != nil ? "60-min × 0.99 (ultra-endurance)" : "60-min × 0.99"
             candidates.append((ftp: ftp, method: method, weight: weight))
-            Logger.data("  Method 1 (60-min): \(Int(best60min))W × 0.99 = \(Int(ftp))W (weight: \(String(format: "%.1f", weight)))")
+            Logger.trace("  Method 1 (60-min): \(Int(best60min))W × 0.99 = \(Int(ftp))W (weight: \(String(format: "%.1f", weight)))")
         }
         
         // Method 2: 20-min power (gold standard)
         if best20min > 0 {
             let ftp = best20min * 0.95
             candidates.append((ftp: ftp, method: "20-min × 0.95", weight: 0.9))
-            Logger.data("  Method 2 (20-min): \(Int(best20min))W × 0.95 = \(Int(ftp))W (weight: 0.9)")
+            Logger.trace("  Method 2 (20-min): \(Int(best20min))W × 0.95 = \(Int(ftp))W (weight: 0.9)")
         }
         
         // Method 3: 5-min power (VO2max proxy)
         if best5min > 0 {
             let ftp = best5min * 0.87
             candidates.append((ftp: ftp, method: "5-min × 0.87", weight: 0.6))
-            Logger.data("  Method 3 (5-min): \(Int(best5min))W × 0.87 = \(Int(ftp))W (weight: 0.6)")
+            Logger.trace("  Method 3 (5-min): \(Int(best5min))W × 0.87 = \(Int(ftp))W (weight: 0.6)")
         }
         
         guard !candidates.isEmpty else {
-            Logger.data("❌ No valid candidates - cannot compute FTP")
+            Logger.debug("❌ No valid candidates - cannot compute FTP")
             return
         }
         
@@ -431,93 +431,93 @@ class AthleteProfileManager: ObservableObject {
         let totalWeight = candidates.reduce(0) { $0 + $1.weight }
         let weightedFTP = candidates.reduce(0) { $0 + ($1.ftp * $1.weight) } / totalWeight
         
-        Logger.debug("📊")
-        Logger.data("  Total weight: \(String(format: "%.2f", totalWeight))")
-        Logger.data("  Weighted FTP: \(Int(weightedFTP))W")
+        Logger.trace("📊")
+        Logger.trace("  Total weight: \(String(format: "%.2f", totalWeight))")
+        Logger.trace("  Weighted FTP: \(Int(weightedFTP))W")
         
         // STAGE 3: Calculate confidence and apply buffer
-        Logger.debug("📊")
-        Logger.data("STAGE 3: Confidence Analysis & Buffer")
+        Logger.trace("📊")
+        Logger.trace("STAGE 3: Confidence Analysis & Buffer")
         
         let confidence = min(totalWeight / 2.5, 1.0)
-        Logger.data("  Confidence score: \(String(format: "%.2f", confidence)) (0.0-1.0 scale)")
+        Logger.trace("  Confidence score: \(String(format: "%.2f", confidence)) (0.0-1.0 scale)")
         
         var bufferedFTP: Double
         var bufferPercent: Double
         
         if confidence >= 0.9 {
             bufferPercent = 1.02
-            Logger.data("  Confidence: HIGH ≥0.9")
-            Logger.data("  Applying +2% buffer (conservative estimate)")
+            Logger.trace("  Confidence: HIGH ≥0.9")
+            Logger.trace("  Applying +2% buffer (conservative estimate)")
         } else if confidence >= 0.7 {
             bufferPercent = 1.03
-            Logger.data("  Confidence: MEDIUM ≥0.7")
-            Logger.data("  Applying +3% buffer")
+            Logger.trace("  Confidence: MEDIUM ≥0.7")
+            Logger.trace("  Applying +3% buffer")
         } else {
             bufferPercent = 1.05
-            Logger.data("  Confidence: LOW <0.7")
-            Logger.data("  Applying +5% buffer")
+            Logger.trace("  Confidence: LOW <0.7")
+            Logger.trace("  Applying +5% buffer")
         }
         
         bufferedFTP = weightedFTP * bufferPercent
-        Logger.data("  Buffered FTP: \(Int(weightedFTP))W × \(String(format: "%.2f", bufferPercent)) = \(Int(bufferedFTP))W")
+        Logger.trace("  Buffered FTP: \(Int(weightedFTP))W × \(String(format: "%.2f", bufferPercent)) = \(Int(bufferedFTP))W")
         
         // STAGE 4: Validation & Bounds
-        Logger.debug("📊")
-        Logger.data("STAGE 4: Validation & Bounds Check")
+        Logger.trace("📊")
+        Logger.trace("STAGE 4: Validation & Bounds Check")
         
         let lowerBound = maxNP * 0.85
         let upperBound = maxNP * 1.05
         
-        Logger.data("  Max NP: \(Int(maxNP))W")
-        Logger.data("  Lower bound (85% of max NP): \(Int(lowerBound))W")
-        Logger.data("  Upper bound (105% of max NP): \(Int(upperBound))W")
-        Logger.data("  Buffered FTP: \(Int(bufferedFTP))W")
+        Logger.trace("  Max NP: \(Int(maxNP))W")
+        Logger.trace("  Lower bound (85% of max NP): \(Int(lowerBound))W")
+        Logger.trace("  Upper bound (105% of max NP): \(Int(upperBound))W")
+        Logger.trace("  Buffered FTP: \(Int(bufferedFTP))W")
         
         var computedFTP = bufferedFTP
         
         if bufferedFTP < lowerBound {
             computedFTP = lowerBound
-            Logger.data("  ⚠️  Below lower bound! Adjusted to: \(Int(computedFTP))W")
+            Logger.trace("  ⚠️  Below lower bound! Adjusted to: \(Int(computedFTP))W")
         } else if bufferedFTP > upperBound {
             computedFTP = upperBound
-            Logger.data("  ⚠️  Above upper bound! Adjusted to: \(Int(computedFTP))W")
+            Logger.trace("  ⚠️  Above upper bound! Adjusted to: \(Int(computedFTP))W")
         } else {
-            Logger.data("  ✓ Within valid range")
+            Logger.trace("  ✓ Within valid range")
         }
         
         // STAGE 5: Final calculation
-        Logger.debug("📊")
-        Logger.data("STAGE 5: Final Result")
-        Logger.data("  COMPUTED FTP: \(Int(computedFTP))W")
-        Logger.data("  Confidence: \(String(format: "%.0f", confidence * 100))%")
-        Logger.data("  Data quality: \(candidates.count) duration points analyzed")
+        Logger.trace("📊")
+        Logger.trace("STAGE 5: Final Result")
+        Logger.trace("  COMPUTED FTP: \(Int(computedFTP))W")
+        Logger.trace("  Confidence: \(String(format: "%.0f", confidence * 100))%")
+        Logger.trace("  Data quality: \(candidates.count) duration points analyzed")
         
         // STAGE 6: Apply adaptive smoothing if previous FTP exists
         if let previousFTP = profile.ftp, previousFTP > 0 {
-            Logger.debug("📊")
-            Logger.data("STAGE 6: Adaptive Smoothing")
+            Logger.trace("📊")
+            Logger.trace("STAGE 6: Adaptive Smoothing")
             
             // Adjust smoothing based on confidence and data source
             // Ultra-endurance data = more aggressive update (50/50 instead of 70/30)
             let smoothingRatio: (old: Double, new: Double)
             if ultraEnduranceBoost != nil && confidence >= 0.9 {
                 smoothingRatio = (0.5, 0.5) // Equal weight for ultra-endurance data
-                Logger.data("  Using balanced smoothing (ultra-endurance data)")
+                Logger.trace("  Using balanced smoothing (ultra-endurance data)")
             } else if confidence >= 0.9 {
                 smoothingRatio = (0.6, 0.4) // Less conservative for high confidence
-                Logger.data("  Using moderate smoothing (high confidence)")
+                Logger.trace("  Using moderate smoothing (high confidence)")
             } else {
                 smoothingRatio = (0.7, 0.3) // Conservative for low confidence
-                Logger.data("  Using conservative smoothing (standard)")
+                Logger.trace("  Using conservative smoothing (standard)")
             }
             
             let smoothedFTP = (previousFTP * smoothingRatio.old) + (computedFTP * smoothingRatio.new)
             let change = ((smoothedFTP - previousFTP) / previousFTP) * 100
             
-            Logger.data("  Previous FTP: \(Int(previousFTP))W")
-            Logger.data("  Raw computed: \(Int(computedFTP))W")
-            Logger.data("  Smoothed FTP: \(Int(smoothedFTP))W (change: \(String(format: "%.1f", change))%)")
+            Logger.trace("  Previous FTP: \(Int(previousFTP))W")
+            Logger.trace("  Raw computed: \(Int(computedFTP))W")
+            Logger.trace("  Smoothed FTP: \(Int(smoothedFTP))W (change: \(String(format: "%.1f", change))%)")
             
             computedFTP = smoothedFTP
         }
@@ -685,14 +685,14 @@ class AthleteProfileManager: ObservableObject {
     /// Compute HR zones using lactate threshold detection and Max HR analysis
     /// Based on Karvonen method and modern HR training zone research
     private func computeHRZonesFromPerformanceData(_ activities: [Activity]) async {
-        Logger.data("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
+        Logger.trace("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
         
         // Get max HR from activities (highest recorded)
         let maxHRValues = activities.compactMap { $0.maxHeartRate }.filter { $0 > 0 }
         let durations = activities.compactMap { $0.duration }
         
         guard !maxHRValues.isEmpty else {
-            Logger.data("❌ No HR data available - cannot compute HR zones")
+            Logger.trace("❌ No HR data available - cannot compute HR zones")
             return
         }
         
@@ -704,10 +704,10 @@ class AthleteProfileManager: ObservableObject {
         // Add 2% buffer for true max (athletes rarely hit true max in training)
         var computedMaxHR = avgTop5HR * 1.02
         
-        Logger.data("Max HR Analysis:")
-        Logger.data("  Observed max: \(Int(observedMaxHR))bpm")
-        Logger.data("  Top 5% avg: \(Int(avgTop5HR))bpm")
-        Logger.data("  Computed max (with 2% buffer): \(Int(computedMaxHR))bpm")
+        Logger.trace("Max HR Analysis:")
+        Logger.trace("  Observed max: \(Int(observedMaxHR))bpm")
+        Logger.trace("  Top 5% avg: \(Int(avgTop5HR))bpm")
+        Logger.trace("  Computed max (with 2% buffer): \(Int(computedMaxHR))bpm")
         
         // Step 2: Detect Lactate Threshold HR (LTHR)
         // Use aggregate approach: look at max HR from sustained efforts across all activities
@@ -728,8 +728,8 @@ class AthleteProfileManager: ObservableObject {
             let sorted = sustainedMaxHREfforts.sorted()
             let median = sorted[sorted.count / 2]
             lthrEstimate = median
-            Logger.data("LTHR detected from \(sustainedMaxHREfforts.count) sustained efforts: \(Int(lthrEstimate!))bpm (median max HR)")
-            Logger.data("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm")
+            Logger.trace("LTHR detected from \(sustainedMaxHREfforts.count) sustained efforts: \(Int(lthrEstimate!))bpm (median max HR)")
+            Logger.trace("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm")
         } else {
             // Approach 2: Look at activities with high average power/intensity and take their max HR
             // This captures interval sessions where threshold is hit multiple times
@@ -748,11 +748,11 @@ class AthleteProfileManager: ObservableObject {
                 let trimmed = sorted.dropFirst(sorted.count / 4).dropLast(sorted.count / 4)
                 if !trimmed.isEmpty {
                     lthrEstimate = trimmed.reduce(0, +) / Double(trimmed.count)
-                    Logger.data("LTHR estimated from \(intensityBasedEfforts.count) high-intensity efforts: \(Int(lthrEstimate!))bpm")
-                    Logger.data("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm (trimmed mean)")
+                    Logger.trace("LTHR estimated from \(intensityBasedEfforts.count) high-intensity efforts: \(Int(lthrEstimate!))bpm")
+                    Logger.trace("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm (trimmed mean)")
                 }
             } else {
-                Logger.data("⚠️ No suitable threshold efforts found for LTHR estimation")
+                Logger.trace("⚠️ No suitable threshold efforts found for LTHR estimation")
             }
         }
         
@@ -768,10 +768,10 @@ class AthleteProfileManager: ObservableObject {
             let smoothedMaxHR = (previousMaxHR * 0.8) + (computedMaxHR * 0.2)
             let change = ((smoothedMaxHR - previousMaxHR) / previousMaxHR) * 100
             
-            Logger.data("Adaptive smoothing applied:")
-            Logger.data("  Previous Max HR: \(Int(previousMaxHR))bpm")
-            Logger.data("  Raw computed: \(Int(computedMaxHR))bpm")
-            Logger.data("  Smoothed Max HR: \(Int(smoothedMaxHR))bpm (change: \(String(format: "%.1f", change))%)")
+            Logger.trace("Adaptive smoothing applied:")
+            Logger.trace("  Previous Max HR: \(Int(previousMaxHR))bpm")
+            Logger.trace("  Raw computed: \(Int(computedMaxHR))bpm")
+            Logger.trace("  Smoothed Max HR: \(Int(smoothedMaxHR))bpm (change: \(String(format: "%.1f", change))%)")
             
             computedMaxHR = smoothedMaxHR
         }
@@ -792,23 +792,23 @@ class AthleteProfileManager: ObservableObject {
                 // Above 93% = too close to max, not enough room for higher zones
                 if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
                     profile.hrZones = generateAdaptiveHRZones(maxHR: finalMaxHR, lthr: lthr)
-                    Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
-                    Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
+                    Logger.trace("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
+                    Logger.trace("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
                 } else {
                     profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
-                    Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-                    Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
+                    Logger.trace("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
+                    Logger.trace("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
                 }
             } else {
                 profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
-                Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-                Logger.data("⚠️ No LTHR detected - using Coggan zones")
+                Logger.trace("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
+                Logger.trace("⚠️ No LTHR detected - using Coggan zones")
             }
         }
         
-        Logger.data("Max HR: \(Int(computedMaxHR))bpm")
+        Logger.trace("Max HR: \(Int(computedMaxHR))bpm")
         if let lthr = lthrEstimate {
-            Logger.data("LTHR: \(Int(lthr))bpm (\(Int((lthr / computedMaxHR) * 100))% of max)")
+            Logger.trace("LTHR: \(Int(lthr))bpm (\(Int((lthr / computedMaxHR) * 100))% of max)")
         }
     }
     
@@ -818,7 +818,7 @@ class AthleteProfileManager: ObservableObject {
         // Zones: Recovery, Endurance, Tempo, Threshold (LTHR), VO2max, Anaerobic, Max
         
         let lthrPercentage = lthr / maxHR
-        Logger.data("Adaptive zone computation: LTHR is \(Int(lthrPercentage * 100))% of max HR")
+        Logger.trace("Adaptive zone computation: LTHR is \(Int(lthrPercentage * 100))% of max HR")
         
         // Z1-Z2: Always percentage-based (low intensity zones)
         let z2 = maxHR * 0.68  // 68% max (endurance/recovery boundary)
@@ -1251,20 +1251,12 @@ class AthleteProfileManager: ObservableObject {
     /// Calculate FTP from a set of activities (helper for historical calculations)
     /// Simplified version of computeFTPFromPerformanceData for efficiency
     private func calculateFTPFromActivities(_ activities: [Activity]) -> Double? {
-        guard !activities.isEmpty else {
-            Logger.debug("   📊 FTP calc: No activities in window")
-            return nil
-        }
+        guard !activities.isEmpty else { return nil }
 
         // Filter activities with power data
         let activitiesWithPower = activities.filter { ($0.normalizedPower ?? 0) > 0 || ($0.averagePower ?? 0) > 0 }
 
-        Logger.debug("   📊 FTP calc: \(activities.count) total activities, \(activitiesWithPower.count) with power data")
-
-        guard !activitiesWithPower.isEmpty else {
-            Logger.debug("   📊 FTP calc: No activities with power data")
-            return nil
-        }
+        guard !activitiesWithPower.isEmpty else { return nil }
 
         var best60min: Double = 0
         var best20min: Double = 0
@@ -1292,10 +1284,7 @@ class AthleteProfileManager: ObservableObject {
             if duration >= 300 { best5min = max(best5min, np) }
         }
 
-        guard maxNP > 0 else {
-            Logger.debug("   📊 FTP calc: No valid power data found")
-            return nil
-        }
+        guard maxNP > 0 else { return nil }
 
         // Calculate weighted FTP
         var candidates: [(ftp: Double, weight: Double)] = []
@@ -1303,16 +1292,11 @@ class AthleteProfileManager: ObservableObject {
         if best20min > 0 { candidates.append((best20min * 0.95, 0.9)) }
         if best5min > 0 { candidates.append((best5min * 0.87, 0.6)) }
 
-        guard !candidates.isEmpty else {
-            Logger.debug("   📊 FTP calc: No valid duration efforts found")
-            return nil
-        }
+        guard !candidates.isEmpty else { return nil }
 
         let totalWeight = candidates.reduce(0) { $0 + $1.weight }
         let weightedFTP = candidates.reduce(0) { $0 + ($1.ftp * $1.weight) } / totalWeight
         let finalFTP = weightedFTP * 1.02
-
-        Logger.debug("   📊 FTP calc: Calculated FTP = \(String(format: "%.0f", finalFTP))W (60min: \(String(format: "%.0f", best60min))W, 20min: \(String(format: "%.0f", best20min))W, 5min: \(String(format: "%.0f", best5min))W)")
 
         return finalFTP
     }
@@ -1557,21 +1541,14 @@ class AthleteProfileManager: ObservableObject {
                 // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
                 let vo2 = (10.8 * ftp) / weight + 7
                 dataPoints.append((date: snapshotDate, ftp: ftp, vo2: vo2, confidence: confidence, activityCount: activityCount))
-                
-                Logger.debug("   Week \(week + 1): \(String(format: "%.0f", ftp))W (\(powerActivities.count) power activities, confidence: \(String(format: "%.0f", confidence * 100))%)")
             } else {
                 // No valid activities - use current values with low confidence
                 dataPoints.append((date: snapshotDate, ftp: currentFTP, vo2: currentVO2, confidence: 0.0, activityCount: activityCount))
-                Logger.debug("   Week \(week + 1): No data (using current FTP)")
             }
         }
 
-        Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly snapshots from real data")
         if let first = dataPoints.first, let last = dataPoints.last {
-            Logger.debug("📊 [6-Month Historical] FTP range: \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W")
-            Logger.debug("📊 [6-Month Historical] VO2 range: \(String(format: "%.1f", first.vo2)) → \(String(format: "%.1f", last.vo2)) ml/kg/min")
-            
-            // Detect significant changes (>5W sustained for 2+ weeks)
+            Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weeks: FTP \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W, VO2 \(String(format: "%.1f", first.vo2)) → \(String(format: "%.1f", last.vo2))")
             detectSignificantChanges(dataPoints)
         }
 

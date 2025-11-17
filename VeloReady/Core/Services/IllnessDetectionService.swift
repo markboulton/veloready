@@ -9,8 +9,8 @@ class IllnessDetectionService: ObservableObject {
     static let shared = IllnessDetectionService()
     
     @Published var currentIndicator: IllnessIndicator?
-    @Published var isAnalyzing = false
-    @Published var lastAnalysisDate: Date?
+    var isAnalyzing = false
+    var lastAnalysisDate: Date?
     
     private let calculator = IllnessDetectionCalculator()
     private let cacheManager = UnifiedCacheManager.shared
