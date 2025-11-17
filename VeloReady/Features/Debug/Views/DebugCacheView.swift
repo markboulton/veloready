@@ -206,7 +206,7 @@ struct DebugCacheView: View {
     private var backfillSection: some View {
         Section {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("Recalculate historical scores from existing data")
+                Text("Fetch historical HealthKit data and recalculate all scores")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -214,8 +214,8 @@ struct DebugCacheView: View {
                     Task {
                         isRunningBackfill = true
                         backfillComplete = false
-                        Logger.info("🔄 [DEBUG] Force backfill triggered - bypassing 24h throttle")
-                        await BackfillService.shared.backfillScores(days: 60, forceRefresh: true)
+                        Logger.info("🔄 [DEBUG] Force backfill triggered - fetching HealthKit data + recalculating scores")
+                        await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
                         Logger.info("✅ [DEBUG] Backfill complete")
                         isRunningBackfill = false
                         backfillComplete = true
@@ -248,7 +248,7 @@ struct DebugCacheView: View {
             Label("Historical Scores", systemImage: "chart.line.uptrend.xyaxis")
         } footer: {
             VRText(
-                "Bypasses 24-hour throttle to immediately recalculate all historical recovery, sleep, and strain scores",
+                "Fetches 60 days of HealthKit data (HRV, RHR, sleep), calculates training load, then recalculates all recovery, sleep, and strain scores. Takes ~30 seconds.",
                 style: .caption,
                 color: .secondary
             )
