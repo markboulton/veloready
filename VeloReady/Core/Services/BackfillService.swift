@@ -703,14 +703,14 @@ final class BackfillService {
                     physio.date = date
                 }
                 
-                // Update values (only if not already set)
-                if let hrv = data.hrv, physio.hrv == 0 {
+                // Update values (always update if we have new data)
+                if let hrv = data.hrv {
                     physio.hrv = hrv
                 }
-                if let rhr = data.rhr, physio.rhr == 0 {
+                if let rhr = data.rhr {
                     physio.rhr = rhr
                 }
-                if let sleep = data.sleep, physio.sleepDuration == 0 {
+                if let sleep = data.sleep {
                     physio.sleepDuration = sleep
                 }
                 
