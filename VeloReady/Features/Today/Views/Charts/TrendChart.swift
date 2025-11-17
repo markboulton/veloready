@@ -349,7 +349,7 @@ struct TrendChart: View {
         
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -selectedPeriod.days, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -(selectedPeriod.days - 1), to: endDate) else {
             return AnyView(
                 VStack(spacing: Spacing.sm) {
                     Image(systemName: Icons.DataSource.intervalsICU)
@@ -442,7 +442,7 @@ struct TrendChart: View {
         
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -selectedPeriod.days, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -(selectedPeriod.days - 1), to: endDate) else {
             return AnyView(EmptyView())
         }
         

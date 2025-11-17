@@ -191,9 +191,11 @@ class HealthKitDataFetcher {
     
     func fetchSleepData(from startDate: Date, to endDate: Date) async throws -> [HKCategorySample] {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            Logger.error("❌ [SLEEP FETCH] Sleep type not available")
             throw HealthKitError.notAvailable
         }
         
+        Logger.debug("🔍 [SLEEP FETCH] Querying from \(startDate) to \(endDate)")
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         
         return await withCheckedContinuation { continuation in
@@ -203,12 +205,15 @@ class HealthKitDataFetcher {
                 limit: HKObjectQueryNoLimit,
                 sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
             ) { _, samples, error in
-                if error != nil {
+                if let error = error {
+                    Logger.error("❌ [SLEEP FETCH] Query failed: \(error.localizedDescription)")
+                    Logger.error("❌ [SLEEP FETCH] Error domain: \((error as NSError).domain), code: \((error as NSError).code)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let sleepSamples = samples as? [HKCategorySample] ?? []
+                Logger.debug("✅ [SLEEP FETCH] Query succeeded: \(sleepSamples.count) samples")
                 continuation.resume(returning: sleepSamples)
             }
             healthStore.execute(query)
@@ -329,21 +334,25 @@ class HealthKitDataFetcher {
     
     func fetchHRVSamples(from startDate: Date, to endDate: Date) async -> [HKQuantitySample] {
         guard let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+            Logger.error("❌ [HRV FETCH] HRV type not available")
             return []
         }
         
+        Logger.debug("🔍 [HRV FETCH] Querying from \(startDate) to \(endDate)")
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
         
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: hrvType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
                 if let error = error {
-                    Logger.error("❌ Failed to fetch HRV samples: \(error)")
+                    Logger.error("❌ [HRV FETCH] Query failed: \(error.localizedDescription)")
+                    Logger.error("❌ [HRV FETCH] Error domain: \((error as NSError).domain), code: \((error as NSError).code)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let quantitySamples = (samples as? [HKQuantitySample]) ?? []
+                Logger.debug("✅ [HRV FETCH] Query succeeded: \(quantitySamples.count) samples")
                 continuation.resume(returning: quantitySamples)
             }
             
@@ -353,21 +362,25 @@ class HealthKitDataFetcher {
     
     func fetchRHRSamples(from startDate: Date, to endDate: Date) async -> [HKQuantitySample] {
         guard let rhrType = HKObjectType.quantityType(forIdentifier: .restingHeartRate) else {
+            Logger.error("❌ [RHR FETCH] RHR type not available")
             return []
         }
         
+        Logger.debug("🔍 [RHR FETCH] Querying from \(startDate) to \(endDate)")
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
         
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: rhrType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
                 if let error = error {
-                    Logger.error("❌ Failed to fetch RHR samples: \(error)")
+                    Logger.error("❌ [RHR FETCH] Query failed: \(error.localizedDescription)")
+                    Logger.error("❌ [RHR FETCH] Error domain: \((error as NSError).domain), code: \((error as NSError).code)")
                     continuation.resume(returning: [])
                     return
                 }
                 
                 let quantitySamples = (samples as? [HKQuantitySample]) ?? []
+                Logger.debug("✅ [RHR FETCH] Query succeeded: \(quantitySamples.count) samples")
                 continuation.resume(returning: quantitySamples)
             }
             

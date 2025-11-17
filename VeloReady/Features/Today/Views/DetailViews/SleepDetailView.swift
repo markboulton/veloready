@@ -518,18 +518,18 @@ struct SleepDetailView: View {
         
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else {
             return AnyView(EmptyView())
         }
-        
+
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
+
         guard let results = try? context.fetch(fetchRequest), !results.isEmpty else {
             return AnyView(EmptyView())
         }
-        
+
         return AnyView(
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(SleepContent.SleepDebt.trendTitle)
@@ -598,18 +598,18 @@ struct SleepDetailView: View {
         
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else {
             return AnyView(EmptyView())
         }
-        
+
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
+
         guard let results = try? context.fetch(fetchRequest), !results.isEmpty else {
             return AnyView(EmptyView())
         }
-        
+
         // Use sleep scores as a proxy for consistency
         let scores = results.compactMap { $0.sleepScore }
         guard !scores.isEmpty else {

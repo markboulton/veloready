@@ -521,21 +521,34 @@ class AthleteProfileManager: ObservableObject {
             
             computedFTP = smoothedFTP
         }
-        
+
+        // Capture immutable copy for Swift 6 concurrency safety
+        let finalFTP = computedFTP
+
         await MainActor.run {
-            profile.ftp = computedFTP
+            profile.ftp = finalFTP
             profile.ftpSource = .computed
-            
+
             // Generate adaptive power zones from computed FTP
-            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: computedFTP)
-            
+            profile.powerZones = AthleteProfileManager.generatePowerZones(ftp: finalFTP)
+
             // Assess and store data quality
             let hasNP = !activities.compactMap({ $0.normalizedPower }).isEmpty
             let hasLongRides = !activities.filter({ ($0.duration ?? 0) >= 2700 }).isEmpty
             profile.dataQuality = assessDataQuality(activities: activities, hasNP: hasNP, hasLongRides: hasLongRides)
+
+            // Calculate VO2max estimate from FTP
+            if let weight = profile.weight, weight > 0 {
+                profile.vo2maxEstimate = estimateVO2max(ftp: finalFTP, weight: weight)
+            }
         }
-        
+
         Logger.data("✅ Adaptive FTP: \(Int(computedFTP))W")
+        if let vo2max = profile.vo2maxEstimate {
+            Logger.data("✅ Estimated VO2max: \(Int(vo2max)) ml/kg/min (from FTP + weight)")
+        } else {
+            Logger.data("⚠️ Cannot estimate VO2max - weight not available")
+        }
         Logger.data("Adaptive Power Zones: \(profile.powerZones!.map { Int($0) })")
         Logger.data("Data Quality: \(Int(profile.dataQuality!.confidenceScore * 100))% confidence from \(profile.dataQuality!.sampleSize) activities")
     }
@@ -762,28 +775,32 @@ class AthleteProfileManager: ObservableObject {
             
             computedMaxHR = smoothedMaxHR
         }
-        
+
+        // Capture immutable copies for Swift 6 concurrency safety
+        let finalMaxHR = computedMaxHR
+        let finalLTHR = lthrEstimate
+
         await MainActor.run {
-            profile.maxHR = computedMaxHR
+            profile.maxHR = finalMaxHR
             profile.hrZonesSource = .computed
-            
+
             // Step 4: Generate HR zones - adaptive if LTHR is valid, otherwise percentage-based
-            if let lthr = lthrEstimate {
-                let lthrPercentage = lthr / computedMaxHR
+            if let lthr = finalLTHR {
+                let lthrPercentage = lthr / finalMaxHR
                 // Only use LTHR if it's in a physiologically reasonable range (82-93% of max)
                 // Below 82% = likely detecting endurance pace, not threshold
                 // Above 93% = too close to max, not enough room for higher zones
                 if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
-                    profile.hrZones = generateAdaptiveHRZones(maxHR: computedMaxHR, lthr: lthr)
+                    profile.hrZones = generateAdaptiveHRZones(maxHR: finalMaxHR, lthr: lthr)
                     Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
                     Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
                 } else {
-                    profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
+                    profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
                     Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
                     Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
                 }
             } else {
-                profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: computedMaxHR)
+                profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
                 Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
                 Logger.data("⚠️ No LTHR detected - using Coggan zones")
             }
@@ -992,5 +1009,628 @@ class AthleteProfileManager: ObservableObject {
             maxHR * 1.00,   // Z6 start: Anaerobic (100%)
             maxHR * 1.00    // Z7 start: Max (100%)
         ]
+    }
+
+    // MARK: - Power Meter Detection & HR-Based Estimation
+
+    /// Check if user has power meter data in recent activities
+    static func hasPowerMeterData(activities: [Activity]) -> Bool {
+        // Check if at least 3 recent activities have power data
+        let activitiesWithPower = activities.filter { activity in
+            activity.averagePower != nil && activity.averagePower! > 0 ||
+            activity.normalizedPower != nil && activity.normalizedPower! > 0
+        }
+
+        Logger.debug("Power meter detection: \(activitiesWithPower.count)/\(activities.count) activities have power data")
+        return activitiesWithPower.count >= 3
+    }
+
+    /// Estimate FTP from heart rate data (for users without power meters)
+    /// Uses LTHR (Lactate Threshold Heart Rate) and body weight
+    /// Based on Coggan's HR-power relationships
+    static func estimateFTPFromHR(maxHR: Double, lthr: Double, weight: Double) -> Double? {
+        guard maxHR > 0, lthr > 0, lthr < maxHR, weight > 0 else {
+            Logger.warning("Invalid inputs for HR-based FTP estimation")
+            return nil
+        }
+
+        // LTHR as percentage of max HR (typically 85-92% for trained athletes)
+        let lthrPercentage = lthr / maxHR
+
+        Logger.debug("📊 HR-Based FTP Estimation:")
+        Logger.debug("   Max HR: \(Int(maxHR)) bpm")
+        Logger.debug("   LTHR: \(Int(lthr)) bpm (\(Int(lthrPercentage * 100))% of max)")
+        Logger.debug("   Weight: \(String(format: "%.1f", weight)) kg")
+
+        // Estimate FTP in W/kg based on LTHR percentage
+        // Athletes with higher LTHR% tend to have better FTP/kg ratios
+        // Base: 85% LTHR = ~2.5 W/kg (recreational)
+        // For each 1% above 85%, add ~0.3 W/kg
+        let baseWPerKg = 2.5
+        let lthrBonus = (lthrPercentage - 0.85) * 30.0  // 30 W/kg per 100% difference
+        let estimatedWPerKg = baseWPerKg + lthrBonus
+
+        // Clamp to realistic values (1.5 - 6.0 W/kg)
+        let clampedWPerKg = min(max(estimatedWPerKg, 1.5), 6.0)
+
+        let estimatedFTP = clampedWPerKg * weight
+
+        Logger.debug("   Estimated W/kg: \(String(format: "%.2f", clampedWPerKg))")
+        Logger.debug("   Estimated FTP: \(Int(estimatedFTP))W")
+
+        return estimatedFTP
+    }
+
+    /// Estimate VO2 Max from heart rate data (Cooper formula, age-adjusted)
+    /// For users without power meters
+    static func estimateVO2MaxFromHR(maxHR: Double, restingHR: Double?, age: Int?) -> Double? {
+        guard maxHR > 0 else { return nil }
+
+        // Use Cooper formula if we have resting HR
+        var vo2max: Double
+        if let rhr = restingHR, rhr > 0, rhr < maxHR {
+            // Cooper formula: VO2max = 15.3 × (maxHR / restingHR)
+            vo2max = 15.3 * (maxHR / rhr)
+        } else {
+            // Fallback: estimate from max HR alone (less accurate)
+            // Typical: VO2max ≈ (maxHR / 3.5) - very rough estimate
+            vo2max = (maxHR / 3.5)
+        }
+
+        // Apply age adjustment if available
+        if let age = age, age >= 25 {
+            // VO2 max declines ~1% per year after age 25
+            let yearsAfter25 = age - 25
+            let ageFactor = 1.0 - (Double(yearsAfter25) * 0.01)
+            vo2max *= ageFactor
+        }
+
+        // Clamp to realistic values (20-80 ml/kg/min)
+        vo2max = min(max(vo2max, 20), 80)
+
+        Logger.debug("📊 HR-Based VO2 Max Estimation:")
+        Logger.debug("   Max HR: \(Int(maxHR)) bpm")
+        if let rhr = restingHR {
+            Logger.debug("   Resting HR: \(Int(rhr)) bpm")
+        }
+        if let age = age {
+            Logger.debug("   Age: \(age) years")
+        }
+        Logger.debug("   Estimated VO2 Max: \(String(format: "%.1f", vo2max)) ml/kg/min")
+
+        return vo2max
+    }
+
+    /// Get Coggan default FTP for free users (basic estimate)
+    static func getCogganDefaultFTP(weight: Double?) -> Double {
+        guard let weight = weight, weight > 0 else {
+            // No weight available: use fixed default
+            return 200.0  // Average recreational cyclist
+        }
+
+        // Use 2.5 W/kg as baseline for average recreational cyclist
+        return weight * 2.5
+    }
+
+    /// Get Coggan default VO2 Max for free users (age/gender-based estimate)
+    static func getCogganDefaultVO2Max(age: Int?, gender: String?) -> Double {
+        let baseVO2: Double
+
+        // Gender-based baseline
+        if gender?.uppercased() == "F" || gender?.uppercased() == "FEMALE" {
+            baseVO2 = 45.0  // Average for female
+        } else {
+            baseVO2 = 50.0  // Average for male (default)
+        }
+
+        // Age adjustment (decline ~0.5 ml/kg/min per year after 25)
+        if let age = age, age >= 25 {
+            let yearsAfter25 = age - 25
+            let ageAdjustment = Double(yearsAfter25) * 0.5
+            return max(baseVO2 - ageAdjustment, 25.0)  // Min 25
+        }
+
+        return baseVO2
+    }
+
+    // MARK: - Historical Performance Data (Cached)
+
+    /// Fetch historical FTP sparkline data (30 days)
+    /// Returns cached data if available (< 5 minutes old), otherwise calculates from activities
+    func fetchHistoricalFTPSparkline() async -> [Double] {
+        let cacheKey = "historicalFTP_sparkline"
+        let cacheTimestampKey = "historicalFTP_timestamp"
+
+        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
+        if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
+           let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 10 {
+                Logger.debug("📊 Using cached FTP sparkline (\(String(format: "%.1f", secondsSinceCache))s old)")
+                return cachedData
+            } else {
+                Logger.debug("📊 FTP sparkline cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
+            }
+        }
+
+        // Calculate from activities
+        Logger.debug("📊 Calculating FTP sparkline from activities...")
+        let sparkline = await calculateHistoricalFTP()
+
+        // Cache results
+        UserDefaults.standard.set(sparkline, forKey: cacheKey)
+        UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
+
+        return sparkline
+    }
+
+    /// Fetch historical VO2 sparkline data (30 days)
+    /// Returns cached data if available (< 5 minutes old), otherwise calculates from activities
+    func fetchHistoricalVO2Sparkline() async -> [Double] {
+        let cacheKey = "historicalVO2_sparkline"
+        let cacheTimestampKey = "historicalVO2_timestamp"
+
+        // Check cache first (10 second TTL for immediate testing - change to 24 hours for production)
+        if let cachedData = UserDefaults.standard.array(forKey: cacheKey) as? [Double],
+           let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 10 {
+                Logger.debug("📊 Using cached VO2 sparkline (\(String(format: "%.1f", secondsSinceCache))s old)")
+                return cachedData
+            } else {
+                Logger.debug("📊 VO2 sparkline cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
+            }
+        }
+
+        // Calculate from activities
+        Logger.debug("📊 Calculating VO2 sparkline from activities...")
+        let sparkline = await calculateHistoricalVO2()
+
+        // Cache results
+        UserDefaults.standard.set(sparkline, forKey: cacheKey)
+        UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
+
+        return sparkline
+    }
+
+    /// Calculate 30-day FTP trend from REAL historical activities (daily granularity)
+    /// Uses 30-day rolling window for each data point
+    private func calculateHistoricalFTP() async -> [Double] {
+        Logger.debug("📊 [Historical FTP] Calculating from REAL activity data with daily granularity...")
+
+        // Fetch activities from last 180 days (30-day window + 150 days of history to capture peaks)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 180) else {
+            Logger.warning("⚠️ [Historical FTP] Failed to fetch activities - using simulated data")
+            return generateRealisticFTPProgression(current: profile.ftp ?? 200.0, days: 30)
+        }
+
+        Logger.debug("📊 [Historical FTP] Fetched \(activities.count) activities for calculation")
+
+        let calendar = Calendar.current
+        let now = Date()
+        var sparklineValues: [Double] = []
+
+        // Calculate FTP for each day (30 daily points for granularity)
+        for dayOffset in stride(from: -29, through: 0, by: 1) {
+            guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else {
+                continue
+            }
+
+            // Get activities within 30-day TRAILING window (30 days BEFORE this date)
+            // Smaller window = more granularity, less overlap between consecutive days
+            guard let windowStart = calendar.date(byAdding: .day, value: -30, to: targetDate) else {
+                continue
+            }
+
+            let activitiesInWindow = activities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate >= windowStart && activityDate <= targetDate
+            }
+
+            // Calculate FTP from trailing window
+            let ftp = calculateFTPFromActivities(activitiesInWindow) ?? (profile.ftp ?? 200.0)
+            sparklineValues.append(ftp)
+        }
+
+        // Ensure we have exactly 30 values
+        while sparklineValues.count > 30 { sparklineValues.removeFirst() }
+        while sparklineValues.count < 30 {
+            sparklineValues.insert(profile.ftp ?? 200.0, at: 0)
+        }
+
+        Logger.debug("📊 [Historical FTP] Calculated \(sparklineValues.count) daily points from real data")
+        Logger.debug("📊 [Historical FTP] Range: \(String(format: "%.0f", sparklineValues.min() ?? 0))W - \(String(format: "%.0f", sparklineValues.max() ?? 0))W")
+
+        return sparklineValues
+    }
+    
+    /// Calculate FTP from a set of activities (helper for historical calculations)
+    /// Simplified version of computeFTPFromPerformanceData for efficiency
+    private func calculateFTPFromActivities(_ activities: [Activity]) -> Double? {
+        guard !activities.isEmpty else {
+            Logger.debug("   📊 FTP calc: No activities in window")
+            return nil
+        }
+
+        // Filter activities with power data
+        let activitiesWithPower = activities.filter { ($0.normalizedPower ?? 0) > 0 || ($0.averagePower ?? 0) > 0 }
+
+        Logger.debug("   📊 FTP calc: \(activities.count) total activities, \(activitiesWithPower.count) with power data")
+
+        guard !activitiesWithPower.isEmpty else {
+            Logger.debug("   📊 FTP calc: No activities with power data")
+            return nil
+        }
+
+        var best60min: Double = 0
+        var best20min: Double = 0
+        var best5min: Double = 0
+        var maxNP: Double = 0
+
+        for activity in activitiesWithPower {
+            // Prefer normalized power, fall back to average power
+            let np = activity.normalizedPower ?? activity.averagePower ?? 0
+            let duration = activity.duration ?? 0
+
+            guard np > 0 else { continue }
+
+            maxNP = max(maxNP, np)
+
+            // Ultra-endurance detection (3+ hours)
+            if duration >= 10800 {
+                let boost = duration >= 18000 ? 1.12 : (duration >= 14400 ? 1.10 : 1.07)
+                best60min = max(best60min, np * boost)
+            } else if duration >= 3600 {
+                best60min = max(best60min, np)
+            }
+
+            if duration >= 1200 { best20min = max(best20min, np) }
+            if duration >= 300 { best5min = max(best5min, np) }
+        }
+
+        guard maxNP > 0 else {
+            Logger.debug("   📊 FTP calc: No valid power data found")
+            return nil
+        }
+
+        // Calculate weighted FTP
+        var candidates: [(ftp: Double, weight: Double)] = []
+        if best60min > 0 { candidates.append((best60min * 0.99, 1.5)) }
+        if best20min > 0 { candidates.append((best20min * 0.95, 0.9)) }
+        if best5min > 0 { candidates.append((best5min * 0.87, 0.6)) }
+
+        guard !candidates.isEmpty else {
+            Logger.debug("   📊 FTP calc: No valid duration efforts found")
+            return nil
+        }
+
+        let totalWeight = candidates.reduce(0) { $0 + $1.weight }
+        let weightedFTP = candidates.reduce(0) { $0 + ($1.ftp * $1.weight) } / totalWeight
+        let finalFTP = weightedFTP * 1.02
+
+        Logger.debug("   📊 FTP calc: Calculated FTP = \(String(format: "%.0f", finalFTP))W (60min: \(String(format: "%.0f", best60min))W, 20min: \(String(format: "%.0f", best20min))W, 5min: \(String(format: "%.0f", best5min))W)")
+
+        return finalFTP
+    }
+
+    /// Calculate 30-day VO2 trend from REAL historical activities (daily granularity)
+    /// Uses 30-day rolling window for each data point, estimating VO2 from FTP
+    private func calculateHistoricalVO2() async -> [Double] {
+        Logger.debug("📊 [Historical VO2] Calculating from REAL activity data with daily granularity...")
+
+        // Fetch activities from last 180 days (30-day window + 150 days of history to capture peaks)
+        guard let activities = try? await UnifiedActivityService.shared.fetchRecentActivities(limit: 1000, daysBack: 180) else {
+            Logger.warning("⚠️ [Historical VO2] Failed to fetch activities - using simulated data")
+            return generateRealisticVO2Progression(current: profile.vo2maxEstimate ?? 45.0, days: 30)
+        }
+
+        Logger.debug("📊 [Historical VO2] Fetched \(activities.count) activities for calculation")
+
+        let calendar = Calendar.current
+        let now = Date()
+        var sparklineValues: [Double] = []
+        let weight = profile.weight ?? 75.0
+
+        // Calculate VO2 for each day (30 daily points for granularity)
+        for dayOffset in stride(from: -29, through: 0, by: 1) {
+            guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else {
+                continue
+            }
+
+            // Get activities within 30-day TRAILING window (30 days BEFORE this date)
+            // Smaller window = more granularity, less overlap between consecutive days
+            guard let windowStart = calendar.date(byAdding: .day, value: -30, to: targetDate) else {
+                continue
+            }
+
+            let activitiesInWindow = activities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                return activityDate >= windowStart && activityDate <= targetDate
+            }
+
+            // Calculate FTP from trailing window, then estimate VO2
+            if let ftp = calculateFTPFromActivities(activitiesInWindow) {
+                // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
+                let vo2 = (10.8 * ftp) / weight + 7
+                sparklineValues.append(vo2)
+            } else {
+                sparklineValues.append(profile.vo2maxEstimate ?? 45.0)
+            }
+        }
+
+        // Ensure we have exactly 30 values
+        while sparklineValues.count > 30 { sparklineValues.removeFirst() }
+        while sparklineValues.count < 30 {
+            sparklineValues.insert(profile.vo2maxEstimate ?? 45.0, at: 0)
+        }
+
+        Logger.debug("📊 [Historical VO2] Calculated \(sparklineValues.count) daily points from real data")
+        Logger.debug("📊 [Historical VO2] Range: \(String(format: "%.1f", sparklineValues.min() ?? 0)) - \(String(format: "%.1f", sparklineValues.max() ?? 0)) ml/kg/min")
+
+        return sparklineValues
+    }
+
+    /// Generate realistic FTP progression with training-like patterns
+    /// TEMPORARY SOLUTION - should be replaced with real activity data
+    private func generateRealisticFTPProgression(current: Double, days: Int) -> [Double] {
+        var values: [Double] = []
+        let start = current * 0.96  // Start 4% lower than current
+        let overallGain = current - start
+
+        for day in 0..<days {
+            // CRITICAL FIX: Last point must EXACTLY match current value
+            if day == days - 1 {
+                values.append(current)
+            } else {
+                // Base progression toward current value
+                let baseProgress = overallGain * (Double(day) / Double(days))
+
+                // Add realistic noise (±1.5% daily variation)
+                let noise = Double.random(in: -0.015...0.015) * current
+
+                // Add weekly training/recovery cycles
+                let weeklyVariation = sin(Double(day) / 7.0 * .pi * 2) * (current * 0.01)
+
+                let value = start + baseProgress + noise + weeklyVariation
+                values.append(value)
+            }
+        }
+
+        return values
+    }
+
+    /// Generate realistic VO2 progression with training-like patterns
+    /// TEMPORARY SOLUTION - should be replaced with real activity data
+    private func generateRealisticVO2Progression(current: Double, days: Int) -> [Double] {
+        var values: [Double] = []
+        let start = current * 0.97  // Start 3% lower than current
+        let overallGain = current - start
+
+        for day in 0..<days {
+            // CRITICAL FIX: Last point must EXACTLY match current value
+            if day == days - 1 {
+                values.append(current)
+                continue
+            }
+            
+            // Base progression toward current value
+            let baseProgress = overallGain * (Double(day) / Double(days))
+
+            // Add realistic noise (±2% daily variation)
+            let noise = Double.random(in: -0.02...0.02) * current
+
+            // Add weekly training/recovery cycles
+            let weeklyVariation = sin(Double(day) / 7.0 * .pi * 2) * (current * 0.015)
+
+            let value = start + baseProgress + noise + weeklyVariation
+            values.append(value)
+        }
+
+        return values
+    }
+
+    /// Fetch 6-month historical performance data for charts
+    /// Returns weekly data points (26 points) with confidence intervals and activity counts
+    func fetch6MonthHistoricalPerformance() async -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
+        let cacheKey = "historical6Month_performance"
+        let cacheTimestampKey = "historical6Month_timestamp"
+
+        // Check cache first (5 minute TTL - performance data doesn't change frequently)
+        if let cachedDataDict = UserDefaults.standard.array(forKey: cacheKey) as? [[String: Any]],
+           let cachedTimestamp = UserDefaults.standard.object(forKey: cacheTimestampKey) as? Date {
+            let secondsSinceCache = Date().timeIntervalSince(cachedTimestamp)
+            if secondsSinceCache < 300 {
+                Logger.debug("📊 Using cached 6-month performance (\(String(format: "%.1f", secondsSinceCache))s old)")
+                // Convert cached dict back to tuples
+                let data = cachedDataDict.compactMap { dict -> (date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)? in
+                    guard let date = dict["date"] as? Date,
+                          let ftp = dict["ftp"] as? Double,
+                          let vo2 = dict["vo2"] as? Double,
+                          let confidence = dict["confidence"] as? Double,
+                          let activityCount = dict["activityCount"] as? Int else { return nil }
+                    return (date, ftp, vo2, confidence, activityCount)
+                }
+                if !data.isEmpty {
+                    return data
+                }
+            } else {
+                Logger.debug("📊 6-month performance cache expired (\(String(format: "%.1f", secondsSinceCache))s old) - recalculating from REAL data")
+            }
+        }
+
+        // Calculate from current values
+        Logger.debug("📊 Calculating 6-month historical performance...")
+        let data = calculate6MonthHistorical()
+
+        // Cache results (convert tuples to dicts for UserDefaults)
+        let cacheData = data.map { [
+            "date": $0.date,
+            "ftp": $0.ftp,
+            "vo2": $0.vo2,
+            "confidence": $0.confidence,
+            "activityCount": $0.activityCount
+        ] as [String: Any] }
+        UserDefaults.standard.set(cacheData, forKey: cacheKey)
+        UserDefaults.standard.set(Date(), forKey: cacheTimestampKey)
+
+        return data
+    }
+
+    /// Calculate 6-month historical performance from REAL activity data (weekly data points)
+    /// Point-in-time snapshots with 90-day trailing window (sport science validated approach)
+    /// Weekly snapshots for 6 months, each using activities from 90 days BEFORE that date
+    private func calculate6MonthHistorical() -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
+        Logger.debug("📊 [6-Month Historical] Calculating point-in-time snapshots (weekly, 90-day trailing)...")
+
+        let currentFTP = profile.ftp ?? 200.0
+        let currentVO2 = profile.vo2maxEstimate ?? 45.0
+        let now = Date()
+        let calendar = Calendar.current
+        let weeks = 26
+        let weight = profile.weight ?? 75.0
+
+        // Fetch activities synchronously from UnifiedActivityService cache
+        // Fetch 12 months to capture historical peaks (June's 210-220W FTP)
+        var cachedActivities: [Activity] = []
+        let semaphore = DispatchSemaphore(value: 0)
+
+        Task {
+            do {
+                cachedActivities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 2000, daysBack: 365)
+                semaphore.signal()
+            } catch {
+                Logger.error("❌ [6-Month Historical] Failed to fetch activities: \(error)")
+                semaphore.signal()
+            }
+        }
+
+        _ = semaphore.wait(timeout: .now() + 5.0)
+
+        guard !cachedActivities.isEmpty else {
+            Logger.warning("⚠️ [6-Month Historical] No activities found - using simulated data")
+            return generateSimulated6MonthData(currentFTP: currentFTP, currentVO2: currentVO2)
+        }
+
+        Logger.debug("📊 [6-Month Historical] Fetched \(cachedActivities.count) activities for calculation")
+
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] = []
+
+        for week in 0..<weeks {
+            // Snapshot date (going backwards from now)
+            guard let snapshotDate = calendar.date(byAdding: .weekOfYear, value: -(weeks - week - 1), to: now) else {
+                continue
+            }
+
+            // 90-day trailing window BEFORE snapshot date (point-in-time approach)
+            // No future leakage - only uses activities that existed at this point in time
+            guard let windowStart = calendar.date(byAdding: .day, value: -90, to: snapshotDate) else {
+                continue
+            }
+
+            let activitiesInWindow = cachedActivities.filter { activity in
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+                formatter.timeZone = TimeZone.current
+
+                guard let activityDate = formatter.date(from: activity.startDateLocal) else { return false }
+                // Only activities BEFORE or ON snapshot date (point-in-time constraint)
+                return activityDate >= windowStart && activityDate <= snapshotDate
+            }
+
+            let activityCount = activitiesInWindow.count
+            let powerActivities = activitiesInWindow.filter { $0.averagePower != nil && $0.averagePower! > 0 }
+
+            // Calculate confidence based on sample size (more activities = higher confidence)
+            // Min 5 power activities for reasonable estimate, optimal 20+
+            let confidence = min(1.0, Double(powerActivities.count) / 20.0)
+
+            // Calculate FTP from trailing window
+            if let ftp = calculateFTPFromActivities(activitiesInWindow), ftp > 0 {
+                // VO2max estimation: VO2max (ml/kg/min) ≈ 10.8 × FTP/weight + 7
+                let vo2 = (10.8 * ftp) / weight + 7
+                dataPoints.append((date: snapshotDate, ftp: ftp, vo2: vo2, confidence: confidence, activityCount: activityCount))
+                
+                Logger.debug("   Week \(week + 1): \(String(format: "%.0f", ftp))W (\(powerActivities.count) power activities, confidence: \(String(format: "%.0f", confidence * 100))%)")
+            } else {
+                // No valid activities - use current values with low confidence
+                dataPoints.append((date: snapshotDate, ftp: currentFTP, vo2: currentVO2, confidence: 0.0, activityCount: activityCount))
+                Logger.debug("   Week \(week + 1): No data (using current FTP)")
+            }
+        }
+
+        Logger.debug("📊 [6-Month Historical] Generated \(dataPoints.count) weekly snapshots from real data")
+        if let first = dataPoints.first, let last = dataPoints.last {
+            Logger.debug("📊 [6-Month Historical] FTP range: \(String(format: "%.0f", first.ftp))W → \(String(format: "%.0f", last.ftp))W")
+            Logger.debug("📊 [6-Month Historical] VO2 range: \(String(format: "%.1f", first.vo2)) → \(String(format: "%.1f", last.vo2)) ml/kg/min")
+            
+            // Detect significant changes (>5W sustained for 2+ weeks)
+            detectSignificantChanges(dataPoints)
+        }
+
+        return dataPoints
+    }
+    
+    /// Detect significant FTP changes (>5W sustained for 2+ weeks)
+    /// Used for annotating training adaptations on chart
+    private func detectSignificantChanges(_ dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]) {
+        guard dataPoints.count >= 3 else { return }
+        
+        var significantChanges: [(date: Date, change: Double, phase: String)] = []
+        
+        for i in 2..<dataPoints.count {
+            let current = dataPoints[i].ftp
+            let twoWeeksAgo = dataPoints[i - 2].ftp
+            let change = current - twoWeeksAgo
+            
+            // Significant if >5W change sustained for 2+ weeks and high confidence
+            if abs(change) >= 5 && dataPoints[i].confidence >= 0.5 {
+                let phase = change > 0 ? "Build Phase" : "Recovery Phase"
+                significantChanges.append((date: dataPoints[i].date, change: change, phase: phase))
+                
+                Logger.debug("   🎯 \(phase) detected: \(String(format: "%+.0f", change))W over 2 weeks (ending \(dataPoints[i].date.formatted(.dateTime.month().day())))")
+            }
+        }
+        
+        if significantChanges.isEmpty {
+            Logger.debug("   ℹ️ No significant training adaptations detected (need >5W change sustained 2+ weeks)")
+        }
+    }
+    
+    /// Fallback: Generate simulated 6-month data if no activity cache available
+    private func generateSimulated6MonthData(currentFTP: Double, currentVO2: Double) -> [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] {
+        let now = Date()
+        let calendar = Calendar.current
+        let weeks = 26
+        var dataPoints: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)] = []
+
+        let ftpStart = currentFTP * 0.90
+        let vo2Start = currentVO2 * 0.92
+        let ftpGain = currentFTP * 0.10
+        let vo2Gain = currentVO2 * 0.08
+
+        for week in 0..<weeks {
+            guard let weekDate = calendar.date(byAdding: .weekOfYear, value: -(weeks - week - 1), to: now) else {
+                continue
+            }
+
+            if week == weeks - 1 {
+                dataPoints.append((date: weekDate, ftp: currentFTP, vo2: currentVO2, confidence: 0.0, activityCount: 0))
+            } else {
+                let progress = Double(week) / Double(weeks)
+                let ftp = ftpStart + (ftpGain * progress)
+                let vo2 = vo2Start + (vo2Gain * progress)
+                dataPoints.append((date: weekDate, ftp: ftp, vo2: vo2, confidence: 0.0, activityCount: 0))
+            }
+        }
+
+        return dataPoints
     }
 }

@@ -14,9 +14,9 @@ struct StepsSparkline: View {
                     x: .value("Hour", data.hour),
                     y: .value("Steps", data.steps)
                 )
+                .foregroundStyle(Color.text.tertiary)
+                .lineStyle(StrokeStyle(lineWidth: 1))
             }
-            .foregroundStyle(Color.text.tertiary)
-            .lineStyle(StrokeStyle(lineWidth: 1.5))
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)

@@ -9,9 +9,11 @@ struct LatestActivityCardV2: View {
     @State private var isInitialLoad = true
     @State private var showingRPESheet = false
     @State private var hasRPE = false
-    
-    init(activity: UnifiedActivity) {
+    let showAsLatestActivity: Bool // If true, shows "Latest Activity" as title; if false, shows activity name
+
+    init(activity: UnifiedActivity, showAsLatestActivity: Bool = false) {
         _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
+        self.showAsLatestActivity = showAsLatestActivity
         print("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
         Logger.debug("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
     }
@@ -25,19 +27,20 @@ struct LatestActivityCardV2: View {
                 cardContent
             }
         }
-        .onAppear {
-            print("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
-            Logger.debug("👁 [LatestActivityCardV2] onAppear called for: \(viewModel.activity.name)")
-            Task {
-                print("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
-                Logger.debug("🔄 [LatestActivityCardV2] Calling loadData() for: \(viewModel.activity.name)")
-                await viewModel.loadData()
-                print("✅ [LatestActivityCardV2] loadData() completed for: \(viewModel.activity.name)")
-                // Mark initial load complete after data is ready
+        .task(id: viewModel.activity.id) {
+            // Use .task(id:) to automatically handle cancellation and only trigger when activity changes
+            // Guard is now in ViewModel to survive view recreation
+            Logger.debug("👁 [LatestActivityCardV2] Loading data for: \(viewModel.activity.name)")
+            await viewModel.loadData()
+            
+            // Mark initial load complete after data is ready
+            await MainActor.run {
                 withAnimation(.easeOut(duration: 0.2)) {
                     isInitialLoad = false
                 }
             }
+        }
+        .onAppear {
             checkRPEStatus()
         }
         .sheet(isPresented: $showingRPESheet) {
@@ -54,15 +57,17 @@ struct LatestActivityCardV2: View {
         HapticNavigationLink(destination: destinationView) {
             CardContainer(
                 header: CardHeader(
-                    title: viewModel.activity.name,
-                    subtitle: formattedDateAndTime,
-                    subtitleIcon: viewModel.activity.type.icon,
+                    title: showAsLatestActivity ? TodayContent.latestActivity : viewModel.activity.name,
+                    subtitle: showAsLatestActivity ? viewModel.activity.name : nil,
+                    subtitleIcon: showAsLatestActivity ? viewModel.activity.type.icon : nil,
                     badge: viewModel.activity.isIndoorRide ? .init(text: "VIRTUAL", style: .info) : nil,
                     action: .init(icon: Icons.System.chevronRight, action: {})
                 ),
                 style: .standard
             ) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
+                    VRText(formattedDateAndTime, style: .caption)
+                        .foregroundColor(.secondary)
                     // Metadata row with RPE badge on right
                     HStack(alignment: .top, spacing: 0) {
                         metadataGrid

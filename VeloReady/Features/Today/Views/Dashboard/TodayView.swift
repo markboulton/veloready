@@ -137,9 +137,7 @@ struct TodayView: View {
                             Group {
                                 if hasConnectedDataSource {
                                     if let latestActivity = getLatestActivity() {
-                                        LatestActivityCardV2(activity: latestActivity)
-                                            // Removed .id() modifier - was causing view to recreate
-                                            // and cancel async loadData() task before map could load
+                                        LatestActivityCardV2(activity: latestActivity, showAsLatestActivity: true)
                                             .onAppear {
                                                 Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
                                             }
@@ -157,30 +155,31 @@ struct TodayView: View {
                                 }
                             }
                             
-                            // Steps
-                            StepsCardV2()
-                                .opacity(liveActivityService.isLoading ? 0 : 1)
-                                .overlay {
-                                    if liveActivityService.isLoading {
-                                        SkeletonStatsCard()
-                                    }
-                                }
-                            
-                            // Calories
+                            // Training Load Graph (full width)
+                            TrainingLoadGraphCard()
+
+                            // Steps card (full width with left/right split)
+                            if liveActivityService.isLoading {
+                                SkeletonStatsCard()
+                            } else {
+                                StepsCardV2()
+                            }
+
+                            // Calories card (full width with left/right split)
                             if liveActivityService.isLoading {
                                 SkeletonStatsCard()
                             } else {
                                 CaloriesCardV2()
                             }
-                            
-                            // Recent Activities
-                            if viewModel.isLoading && viewModel.unifiedActivities.isEmpty {
-                                SkeletonRecentActivities()
-                            } else {
-                                RecentActivitiesSection(
-                                    allActivities: getActivitiesForSection(),
-                                    dailyActivityData: generateDailyActivityData()
-                                )
+
+                            // FTP card (full width with left/right split)
+                            HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
+                                AdaptiveFTPCard(onTap: {})
+                            }
+
+                            // VO2 Max card (full width with left/right split)
+                            HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
+                                AdaptiveVO2MaxCard(onTap: {})
                             }
                         }
                         
@@ -530,9 +529,10 @@ struct TodayView: View {
         
         Logger.debug("🔍 [LatestActivity] Total activities: \(activities.count)")
         
-        // Filter to only Strava/Intervals activities (not Apple Health)
+        // Prefer Strava/Intervals activities, but allow Apple Health strength workouts
         let result = activities.first { activity in
-            activity.source == .strava || activity.source == .intervalsICU
+            activity.source == .strava || activity.source == .intervalsICU ||
+            (activity.source == .appleHealth && activity.type == .strength)
         }
         
         if let activity = result {
@@ -603,10 +603,10 @@ struct TodayView: View {
                 // Wait for Phase 2 to complete (it takes ~5-10s)
                 // This prevents resource contention with strain calculation
                 try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 second delay
-                await Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
+                Logger.debug("🔍 [PHASE 3] Starting illness/wellness analysis in background")
                 await wellnessService.analyzeHealthTrends()
                 await illnessService.analyzeHealthTrends()
-                await Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
+                Logger.debug("✅ [PHASE 3] Illness/wellness analysis complete")
             }
         }
         wasHealthKitAuthorized = healthKitManager.isAuthorized
@@ -653,7 +653,7 @@ struct TodayView: View {
         
         let cacheManager = UnifiedCacheManager.shared
         for key in healthKitCaches {
-            cacheManager.invalidate(key: key)
+            await cacheManager.invalidate(key: key)
         }
         
         Logger.debug("🗑️ Invalidated HealthKit caches for foreground refresh")

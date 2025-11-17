@@ -55,12 +55,18 @@ class RecoveryDetailViewModel: ObservableObject {
         let context = persistenceController.container.viewContext
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
-            Logger.error("📊 [RECOVERY CHART] Failed to calculate start date")
+
+        Logger.debug("📊 [RECOVERY CHART] 🔍 FETCHING DATA FOR \(period.days) DAYS")
+        Logger.debug("📊 [RECOVERY CHART] 📅 End date: \(endDate)")
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
+            Logger.error("📊 [RECOVERY CHART] ❌ Failed to calculate start date")
             return []
         }
-        
+
+        Logger.debug("📊 [RECOVERY CHART] 📅 Start date: \(startDate)")
+        Logger.debug("📊 [RECOVERY CHART] 📅 Date range: \(startDate) to \(endDate)")
+
         let fetchRequest = DailyScores.fetchRequest()
         fetchRequest.predicate = NSPredicate(
             format: "date >= %@ AND date <= %@ AND recoveryScore > 0",
@@ -71,18 +77,33 @@ class RecoveryDetailViewModel: ObservableObject {
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "date", ascending: false)
         ]
-        
+
+        Logger.debug("📊 [RECOVERY CHART] 🔎 Executing Core Data fetch...")
+
         guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("📊 [RECOVERY CHART] Core Data fetch failed")
+            Logger.error("📊 [RECOVERY CHART] ❌ Core Data fetch FAILED - likely database error")
             return []
         }
+
+        Logger.debug("📊 [RECOVERY CHART] ✅ Fetch returned \(results.count) total records")
         
+        // Log sample of raw results for debugging
+        if !results.isEmpty {
+            Logger.debug("📊 [RECOVERY CHART] 📋 First 3 raw records:")
+            for (index, record) in results.prefix(3).enumerated() {
+                Logger.debug("📊 [RECOVERY CHART]   Record \(index + 1): date=\(record.date?.description ?? "nil"), score=\(record.recoveryScore)")
+            }
+        }
+
         // Deduplicate by date: keep only the most recent entry per day
         var seenDates = Set<Date>()
         let deduplicatedResults = results.filter { dailyScore in
-            guard let date = dailyScore.date else { return false }
+            guard let date = dailyScore.date else {
+                Logger.warning("📊 [RECOVERY CHART] ⚠️ Found record with nil date - skipping")
+                return false
+            }
             let normalizedDate = calendar.startOfDay(for: date)
-            
+
             if seenDates.contains(normalizedDate) {
                 return false  // Skip duplicate
             } else {
@@ -90,17 +111,27 @@ class RecoveryDetailViewModel: ObservableObject {
                 return true  // Keep first (most recent) entry
             }
         }
-        
+
+        Logger.debug("📊 [RECOVERY CHART] 🔄 After deduplication: \(deduplicatedResults.count) unique days")
+
         // Convert to data points and sort ascending for chart display
         let dataPoints = deduplicatedResults.compactMap { dailyScore -> TrendDataPoint? in
-            guard let date = dailyScore.date else { return nil }
+            guard let date = dailyScore.date else {
+                Logger.warning("📊 [RECOVERY CHART] ⚠️ Skipping record with nil date during conversion")
+                return nil
+            }
             return TrendDataPoint(
                 date: date,
                 value: dailyScore.recoveryScore
             )
         }.sorted { $0.date < $1.date }
-        
-        Logger.debug("📊 [RECOVERY CHART] \(results.count) records → \(deduplicatedResults.count) unique days → \(dataPoints.count) points for \(period.days)d view")
+
+        if !dataPoints.isEmpty {
+            Logger.debug("📊 [RECOVERY CHART] 📋 First data point: \(dataPoints.first!.date) = \(dataPoints.first!.value)")
+            Logger.debug("📊 [RECOVERY CHART] 📋 Last data point: \(dataPoints.last!.date) = \(dataPoints.last!.value)")
+        }
+
+        Logger.debug("📊 [RECOVERY CHART] ✅ FINAL RESULT: \(results.count) records → \(deduplicatedResults.count) unique days → \(dataPoints.count) points for \(period.days)d view")
         
         if dataPoints.isEmpty {
             Logger.warning("📊 [RECOVERY CHART] No data available for \(period.days)d period")
@@ -127,8 +158,8 @@ class RecoveryDetailViewModel: ObservableObject {
         let context = persistenceController.container.viewContext
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("❤️ [HRV CHART] Failed to calculate start date")
             return []
         }
@@ -182,8 +213,8 @@ class RecoveryDetailViewModel: ObservableObject {
     func getHistoricalRHRData(for period: TrendPeriod) -> [RHRDataPoint] {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        
-        guard let startDate = calendar.date(byAdding: .day, value: -period.days, to: endDate) else {
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
             Logger.error("💔 [RHR CHART] Failed to calculate start date")
             return []
         }

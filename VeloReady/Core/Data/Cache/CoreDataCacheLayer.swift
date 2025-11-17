@@ -49,7 +49,10 @@ actor CoreDataCacheLayer: CacheLayer {
             }
         }
         
-        Logger.debug("❌ [CoreDataCache MISS] \(key)")
+        // Only log misses for non-historical data (reduces spam from bulk fetches)
+        if !key.contains("T21:38:") && !key.contains("T00:00:00Z") {
+            Logger.debug("❌ [CoreDataCache MISS] \(key)")
+        }
         return nil
     }
     

@@ -6,12 +6,16 @@ import SwiftUI
 /// Manages trend data aggregation and time range filtering
 @MainActor
 class TrendsViewModel: ObservableObject {
-    
+
     // MARK: - Published State
-    
+
     @Published var selectedTimeRange: TimeRange = .days90
     @Published var isLoading = false
     @Published var errorMessage: String?
+
+    // MARK: - Notification Observer
+
+    private var backfillObserver: NSObjectProtocol?
     
     // Trend data
     @Published var ftpTrendData: [TrendDataPoint] = []
@@ -33,14 +37,39 @@ class TrendsViewModel: ObservableObject {
     @Published var overtrainingRisk: OvertrainingRiskCalculator.RiskResult?
     
     // MARK: - Services
-    
+
     private let recoveryService = RecoveryScoreService.shared
     private let intervalsAPIClient = IntervalsAPIClient.shared
     // IntervalsCache deleted - using UnifiedActivityService instead
     private let profileManager = AthleteProfileManager.shared
     private let healthKitManager = HealthKitManager.shared
     private let proConfig = ProFeatureConfig.shared
-    
+
+    // MARK: - Lifecycle
+
+    init() {
+        // Setup notification observer for backfill completion
+        backfillObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("BackfillComplete"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Logger.info("📢 [TrendsViewModel] Received BackfillComplete notification - reloading trend data")
+            Task { @MainActor in
+                await self?.loadTrendData()
+            }
+        }
+
+        Logger.debug("📊 [TrendsViewModel] Initialized with backfill observer")
+    }
+
+    deinit {
+        if let observer = backfillObserver {
+            NotificationCenter.default.removeObserver(observer)
+            Logger.debug("📊 [TrendsViewModel] Removed backfill observer")
+        }
+    }
+
     // MARK: - Time Range
     
     enum TimeRange: String, CaseIterable {

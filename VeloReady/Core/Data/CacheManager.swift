@@ -502,261 +502,48 @@ final class CacheManager: ObservableObject {
     
     // MARK: - CTL/ATL Calculation
     
-    /// Calculate missing CTL/ATL values from activities
-    /// Called when Intervals.icu doesn't provide CTL/ATL data
-    /// Optimized to backfill last 42 days and save TSS values
-    /// Smart caching: Only runs once per day to avoid redundant calculations
-    func calculateMissingCTLATL() async {
-        // Check if backfill ran recently (within 24 hours)
-        let lastBackfillKey = "lastCTLBackfill"
-        if let lastBackfill = UserDefaults.standard.object(forKey: lastBackfillKey) as? Date {
-            let hoursSinceBackfill = Date().timeIntervalSince(lastBackfill) / 3600
-            if hoursSinceBackfill < 24 {
-                Logger.data("⏭️ [CTL/ATL BACKFILL] Skipping - last run was \(String(format: "%.1f", hoursSinceBackfill))h ago (< 24h)")
+    /// Clean up corrupt training load data from previous bugs
+    /// Called once on app launch to fix historical data issues
+    func cleanupCorruptTrainingLoadData() async {
+        Logger.data("🧹 [CTL/ATL CLEANUP] ✅ FUNCTION CALLED - Starting cleanup...")
+        Logger.data("🧹 [CTL/ATL CLEANUP] Current thread: \(Thread.current)")
+        
+        let context = persistence.newBackgroundContext()
+        Logger.data("🧹 [CTL/ATL CLEANUP] Background context created")
+        
+        await context.perform {
+            let request = DailyLoad.fetchRequest()
+            // Fetch all DailyLoad entries
+            guard let allLoads = try? context.fetch(request) else {
+                Logger.error("❌ [CTL/ATL CLEANUP] Failed to fetch DailyLoad entries")
                 return
             }
-            Logger.data("🔄 [CTL/ATL BACKFILL] Last run was \(String(format: "%.1f", hoursSinceBackfill))h ago - running fresh backfill")
-        }
-        
-        Logger.data("📊 [CTL/ATL BACKFILL] Starting calculation for last 42 days...")
-        
-        let calculator = TrainingLoadCalculator()
-        var progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
-        
-        // Try Intervals.icu first
-        Logger.data("📊 [CTL/ATL BACKFILL] Step 1: Checking Intervals.icu...")
-        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 200, daysBack: 60)) ?? []
-        
-        if !intervalsActivities.isEmpty {
-            let activitiesWithTSS = intervalsActivities.filter { ($0.tss ?? 0) > 0 }
-            Logger.data("📊 [CTL/ATL BACKFILL] Found \(activitiesWithTSS.count) Intervals activities with TSS")
             
-            if !activitiesWithTSS.isEmpty {
-                // Get progressive CTL/ATL with TSS per day
-                let ctlAtlData = await calculator.calculateProgressiveTrainingLoad(intervalsActivities)
-                let dailyTSS = await calculator.getDailyTSSFromActivities(intervalsActivities)
-                
-                Logger.data("📊 [CTL/ATL BACKFILL] Intervals gave us \(ctlAtlData.count) days of CTL/ATL")
-                Logger.data("📊 [CTL/ATL BACKFILL] Daily TSS has \(dailyTSS.count) entries")
-                
-                // Combine CTL/ATL with TSS
-                for (date, load) in ctlAtlData {
-                    let tss = dailyTSS[date] ?? 0
-                    progressiveLoad[date] = (ctl: load.ctl, atl: load.atl, tss: tss)
-                }
-            }
-        } else {
-            Logger.data("📊 [CTL/ATL BACKFILL] No Intervals activities found")
-        }
-        
-        // If no Intervals data, calculate from HealthKit using TRIMP
-        if progressiveLoad.isEmpty {
-            Logger.data("📊 [CTL/ATL BACKFILL] Step 2: Falling back to HealthKit workouts...")
-            progressiveLoad = await calculator.calculateProgressiveTrainingLoadFromHealthKit()
-            Logger.data("📊 [CTL/ATL BACKFILL] HealthKit calculation returned \(progressiveLoad.count) days")
+            var corruptCount = 0
             
-            // Log first few entries
-            let sortedDates = progressiveLoad.keys.sorted()
-            for date in sortedDates.prefix(5) {
-                if let load = progressiveLoad[date] {
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMM dd"
-                    Logger.data("📊   \(formatter.string(from: date)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss))")
-                }
-            }
-        }
-        
-        Logger.data("📊 [CTL/ATL BACKFILL] Step 3: Saving \(progressiveLoad.count) days to Core Data...")
-        
-        // Batch update DailyLoad entities for performance
-        await updateDailyLoadBatch(progressiveLoad)
-        
-        // Save timestamp of successful backfill
-        UserDefaults.standard.set(Date(), forKey: "lastCTLBackfill")
-        
-        Logger.data("✅ [CTL/ATL BACKFILL] Complete! (Next run allowed in 24h)")
-    }
-    
-    /// Batch update DailyLoad entities for performance
-    private func updateDailyLoadBatch(_ progressiveLoad: [Date: (ctl: Double, atl: Double, tss: Double)]) async {
-        let context = persistence.newBackgroundContext()
-        let calendar = Calendar.current
-        
-        Logger.data("📊 [BATCH UPDATE] Processing \(progressiveLoad.count) days...")
-        
-        await context.perform {
-            var updatedCount = 0
-            var skippedCount = 0
-            var createdCount = 0
-            
-            for (date, load) in progressiveLoad {
-                let startOfDay = calendar.startOfDay(for: date)
+            for load in allLoads {
+                // Normal CTL/ATL for recreational cyclists: 0-200 max
+                // Values >500 indicate data corruption from previous bugs
+                let isCorrupt = load.ctl > 500 || load.atl > 500 || abs(load.tsb) > 1000
                 
-                let loadRequest = DailyLoad.fetchRequest()
-                loadRequest.predicate = NSPredicate(format: "date == %@", startOfDay as NSDate)
-                loadRequest.fetchLimit = 1
-                
-                let existingLoad: DailyLoad
-                let isNew: Bool
-                if let fetched = try? context.fetch(loadRequest).first {
-                    existingLoad = fetched
-                    isNew = false
-                } else {
-                    // Create new DailyLoad if doesn't exist
-                    existingLoad = DailyLoad(context: context)
-                    existingLoad.date = startOfDay
-                    isNew = true
-                    createdCount += 1
-                }
-                
-                // Update if:
-                // 1. It's a new entry (just created), OR
-                // 2. TSS is currently 0 (needs backfill), OR
-                // 3. CTL/ATL are both 0 or very small
-                let shouldUpdate = isNew || existingLoad.tss == 0.0 || (existingLoad.ctl < 1.0 && existingLoad.atl < 1.0)
-                
-                if shouldUpdate {
-                    existingLoad.ctl = load.ctl
-                    existingLoad.atl = load.atl
-                    existingLoad.tsb = load.ctl - load.atl
-                    existingLoad.tss = load.tss
-                    existingLoad.lastUpdated = Date()
-                    updatedCount += 1
-                    
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMM dd"
-                    Logger.data("  ✅ \(formatter.string(from: startOfDay)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSS=\(String(format: "%.1f", load.tss)) \(isNew ? "[NEW]" : "[UPDATED]")")
-                } else {
-                    skippedCount += 1
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMM dd"
-                    Logger.data("  ⏭️ \(formatter.string(from: startOfDay)): Skipped (has existing data: CTL=\(existingLoad.ctl), TSS=\(existingLoad.tss))")
+                if isCorrupt {
+                    corruptCount += 1
+                    Logger.data("   🗑️ Deleting corrupt entry: date=\(load.date?.description ?? "nil"), CTL=\(load.ctl), ATL=\(load.atl)")
+                    context.delete(load)
                 }
             }
             
-            // Batch save for performance
-            if context.hasChanges {
+            if corruptCount > 0 {
+                Logger.data("   Deleted \(corruptCount) corrupt entries")
+                
                 do {
                     try context.save()
-                    Logger.data("✅ [BATCH UPDATE] Saved \(updatedCount) updates (\(createdCount) new, \(updatedCount - createdCount) modified, \(skippedCount) skipped)")
+                    Logger.data("✅ [CTL/ATL CLEANUP] Cleanup complete - deleted \(corruptCount) corrupt entries")
                 } catch {
-                    Logger.error("❌ [BATCH UPDATE] Failed to save: \(error)")
+                    Logger.error("❌ [CTL/ATL CLEANUP] Failed to save: \(error)")
                 }
             } else {
-                Logger.data("📊 [BATCH UPDATE] No changes to save (\(skippedCount) entries skipped)")
-            }
-        }
-    }
-    
-    // MARK: - Historical Data Backfill
-    
-    /// Backfill historical HRV/RHR/Sleep data from HealthKit for chart display
-    func backfillHistoricalPhysioData(days: Int = 60) async {
-        Logger.data("📊 [PHYSIO BACKFILL] Starting backfill for last \(days) days...")
-        
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // Fetch HRV, RHR, and Sleep data from HealthKit for the entire period
-        let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
-        
-        // Fetch all HRV samples (use HealthKitManager.shared directly to avoid MainActor isolation)
-        let hrvSamples = await HealthKitManager.shared.fetchHRVSamples(from: startDate, to: Date())
-        
-        // Fetch all RHR samples
-        let rhrSamples = await HealthKitManager.shared.fetchRHRSamples(from: startDate, to: Date())
-        
-        // Fetch all sleep sessions
-        let sleepSessions = await HealthKitManager.shared.fetchSleepSessions(from: startDate, to: Date())
-        
-        Logger.data("📊 [PHYSIO BACKFILL] Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSessions.count) sleep samples")
-        
-        // Group samples by day
-        var dailyData: [Date: (hrv: Double?, rhr: Double?, sleep: TimeInterval?)] = [:]
-        
-        // Group HRV by day (use average)
-        for sample in hrvSamples {
-            let day = calendar.startOfDay(for: sample.startDate)
-            let value = sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
-            
-            if let existing = dailyData[day]?.hrv {
-                dailyData[day] = (hrv: (existing + value) / 2, rhr: dailyData[day]?.rhr, sleep: dailyData[day]?.sleep)
-            } else {
-                dailyData[day] = (hrv: value, rhr: dailyData[day]?.rhr, sleep: dailyData[day]?.sleep)
-            }
-        }
-        
-        // Group RHR by day (use minimum)
-        for sample in rhrSamples {
-            let day = calendar.startOfDay(for: sample.startDate)
-            let value = sample.quantity.doubleValue(for: HKUnit(from: "count/min"))
-            
-            if let existing = dailyData[day]?.rhr {
-                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: min(existing, value), sleep: dailyData[day]?.sleep)
-            } else {
-                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: value, sleep: dailyData[day]?.sleep)
-            }
-        }
-        
-        // Group sleep by day (sum duration for each night)
-        for session in sleepSessions {
-            let day = calendar.startOfDay(for: session.wakeTime)
-            let duration = session.wakeTime.timeIntervalSince(session.bedtime)
-            
-            if let existing = dailyData[day]?.sleep {
-                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: dailyData[day]?.rhr, sleep: existing + duration)
-            } else {
-                dailyData[day] = (hrv: dailyData[day]?.hrv, rhr: dailyData[day]?.rhr, sleep: duration)
-            }
-        }
-        
-        Logger.data("📊 [PHYSIO BACKFILL] Grouped into \(dailyData.count) days with data")
-        
-        // Save to Core Data
-        let context = persistence.container.newBackgroundContext()
-        await context.perform {
-            var savedCount = 0
-            var skippedCount = 0
-            
-            for (date, data) in dailyData {
-                // Skip today (it's handled by normal refresh)
-                if calendar.isDateInToday(date) {
-                    skippedCount += 1
-                    continue
-                }
-                
-                // Fetch or create DailyPhysio
-                let request = DailyPhysio.fetchRequest()
-                request.predicate = NSPredicate(format: "date == %@", date as NSDate)
-                request.fetchLimit = 1
-                
-                let physio = (try? context.fetch(request).first) ?? DailyPhysio(context: context)
-                physio.date = date
-                
-                // Only update if we have new data and existing is 0 (don't overwrite)
-                if let hrv = data.hrv, physio.hrv == 0 {
-                    physio.hrv = hrv
-                    savedCount += 1
-                }
-                if let rhr = data.rhr, physio.rhr == 0 {
-                    physio.rhr = rhr
-                }
-                if let sleep = data.sleep, physio.sleepDuration == 0 {
-                    physio.sleepDuration = sleep
-                }
-                
-                physio.lastUpdated = Date()
-            }
-            
-            if savedCount > 0 {
-                do {
-                    try context.save()
-                    Logger.data("✅ [PHYSIO BACKFILL] Saved \(savedCount) days (\(skippedCount) skipped)")
-                } catch {
-                    Logger.error("❌ [PHYSIO BACKFILL] Failed to save: \(error)")
-                }
-            } else {
-                Logger.data("📊 [PHYSIO BACKFILL] No new data to save")
+                Logger.data("✅ [CTL/ATL CLEANUP] No corrupt data found")
             }
         }
     }

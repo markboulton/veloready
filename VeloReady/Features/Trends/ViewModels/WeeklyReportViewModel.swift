@@ -99,13 +99,17 @@ class WeeklyReportViewModel: ObservableObject {
     }
     
     // MARK: - Services
-    
+
     private let persistence = PersistenceController.shared
     private let healthKitManager = HealthKitManager.shared
     private let userId: String
-    
+
+    // MARK: - Notification Observer
+
+    private var backfillObserver: NSObjectProtocol?
+
     // MARK: - Initialization
-    
+
     init() {
         // Get anonymous user ID (same as AIBriefService)
         if let existing = UserDefaults.standard.string(forKey: "ai_brief_user_id") {
@@ -115,10 +119,31 @@ class WeeklyReportViewModel: ObservableObject {
             UserDefaults.standard.set(newId, forKey: "ai_brief_user_id")
             self.userId = newId
         }
-        
+
         // Calculate Monday of current week
         self.weekStartDate = Self.getMondayOfCurrentWeek()
         self.daysUntilNextReport = Self.daysUntilNextMonday()
+
+        // Setup notification observer for backfill completion
+        backfillObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("BackfillComplete"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Logger.info("📢 [WeeklyReportViewModel] Received BackfillComplete notification - reloading weekly report")
+            Task { @MainActor in
+                await self?.loadWeeklyReport()
+            }
+        }
+
+        Logger.debug("📊 [WeeklyReportViewModel] Initialized with backfill observer")
+    }
+
+    deinit {
+        if let observer = backfillObserver {
+            NotificationCenter.default.removeObserver(observer)
+            Logger.debug("📊 [WeeklyReportViewModel] Removed backfill observer")
+        }
     }
     
     // MARK: - Load Data
@@ -752,7 +777,7 @@ class WeeklyReportViewModel: ObservableObject {
             Logger.warning("   Attempting to calculate CTL/ATL from activities...")
             
             // Try to calculate missing CTL/ATL
-            await CacheManager.shared.calculateMissingCTLATL()
+            await BackfillService.shared.backfillTrainingLoad()
             
             // Reload data after calculation
             let reloadedWeek = getLast7Days()

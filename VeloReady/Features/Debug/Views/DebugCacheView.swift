@@ -10,6 +10,8 @@ struct DebugCacheView: View {
     @State private var coreDataCleared = false
     @State private var isCleaningDuplicates = false
     @State private var duplicatesCleanedCount: Int?
+    @State private var isRunningBackfill = false
+    @State private var backfillComplete = false
     
     var body: some View {
         Form {
@@ -19,6 +21,7 @@ struct DebugCacheView: View {
             healthKitSection
             scoresSection
             coreDataSection
+            backfillSection
             cleanupSection
         }
         .navigationTitle("Cache")
@@ -192,6 +195,60 @@ struct DebugCacheView: View {
         } footer: {
             VRText(
                 "Clear cached data to force a fresh fetch from APIs. Use with caution.",
+                style: .caption,
+                color: .secondary
+            )
+        }
+    }
+    
+    // MARK: - Backfill Section
+    
+    private var backfillSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Fetch historical HealthKit data and recalculate all scores")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Button(action: {
+                    Task {
+                        isRunningBackfill = true
+                        backfillComplete = false
+                        Logger.info("🔄 [DEBUG] Force backfill triggered - fetching HealthKit data + recalculating scores")
+                        await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
+                        Logger.info("✅ [DEBUG] Backfill complete")
+                        isRunningBackfill = false
+                        backfillComplete = true
+                    }
+                }) {
+                    HStack(spacing: Spacing.sm) {
+                        if isRunningBackfill {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        VRText(isRunningBackfill ? "Backfilling..." : "Force Backfill (60 days)", style: .body)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(ColorScale.blueAccent)
+                .disabled(isRunningBackfill)
+                
+                if backfillComplete {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.Status.successFill)
+                            .foregroundColor(ColorScale.greenAccent)
+                        VRText("Backfill complete - check charts", style: .caption, color: ColorScale.greenAccent)
+                    }
+                    .transition(.opacity)
+                }
+            }
+        } header: {
+            Label("Historical Scores", systemImage: "chart.line.uptrend.xyaxis")
+        } footer: {
+            VRText(
+                "Fetches 60 days of HealthKit data (HRV, RHR, sleep), calculates training load, then recalculates all recovery, sleep, and strain scores. Takes ~30 seconds.",
                 style: .caption,
                 color: .secondary
             )

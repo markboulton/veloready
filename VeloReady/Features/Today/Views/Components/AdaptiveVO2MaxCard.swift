@@ -1,0 +1,279 @@
+import SwiftUI
+
+/// Adaptive VO₂ Max card (50% width) with RAG-colored sparkline
+struct AdaptiveVO2MaxCard: View {
+    @StateObject private var viewModel = AdaptiveVO2MaxCardViewModel()
+    @State private var hasLoadedData = false
+    let onTap: () -> Void
+    
+    var body: some View {
+        CardContainer(
+            header: CardHeader(
+                title: "Adaptive VO₂",
+                subtitle: nil,
+                action: .init(icon: Icons.System.chevronRight, action: onTap)
+            ),
+            style: .standard
+        ) {
+            HStack(alignment: .top, spacing: Spacing.lg) {
+                // Left 50%: Content
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Primary metric
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        VRText(viewModel.vo2Value, style: .largeTitle)
+                        VRText("ml/kg/min", style: .caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    // Secondary metric (fitness level)
+                    if let level = viewModel.fitnessLevel {
+                        VRText(level, style: .body)
+                            .foregroundColor(.secondary)
+                    }
+
+                    // Data source
+                    HStack(spacing: Spacing.xs) {
+                        if viewModel.dataSource == "Estimated" {
+                            Image(systemName: Icons.System.lock)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        VRText(viewModel.dataSource, style: .caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Right 50%: Visualization
+                VStack(alignment: .trailing, spacing: Spacing.xs) {
+                    if viewModel.hasData && !viewModel.historicalValues.isEmpty {
+                        VRText("30 days", style: .caption, color: Color.text.secondary)
+
+                        PerformanceSparkline(values: viewModel.historicalValues, color: ColorScale.cyanAccent)
+                            .frame(height: 60)
+                    } else {
+                        // Placeholder when no data
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.title)
+                                .foregroundColor(Color.text.secondary.opacity(0.3))
+                            VRText(viewModel.hasData ? "Loading" : "Pro feature", style: .caption, color: Color.text.secondary)
+                        }
+                        .frame(height: 60)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .task {
+            // Use .task to automatically handle cancellation
+            guard !hasLoadedData else {
+                Logger.debug("⏭️ [VO2MaxCard] Data already loaded, skipping")
+                return
+            }
+            
+            await viewModel.load()
+            hasLoadedData = true
+        }
+        .onDisappear {
+            // Reset flag to reload if user navigates away and back
+            hasLoadedData = false
+        }
+    }
+}
+
+// MARK: - ViewModel
+
+@MainActor
+class AdaptiveVO2MaxCardViewModel: ObservableObject {
+    @Published var vo2Value: String = "—"
+    @Published var fitnessLevel: String?
+    @Published var historicalValues: [Double] = []
+    @Published var trendColor: Color = .secondary
+    @Published var trendIcon: String = Icons.Arrow.right
+    @Published var trendText: String = "No change"
+    @Published var hasData: Bool = false
+    @Published var dataSource: String = "Estimated" // "Estimated", "HR-based", or "Power-based"
+
+    private let profileManager = AthleteProfileManager.shared
+    private let proConfig = ProFeatureConfig.shared
+    
+    // In-memory cache with 5-minute TTL
+    private var cachedHistoricalData: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]?
+    private var cacheTimestamp: Date?
+    private let cacheTTL: TimeInterval = 300 // 5 minutes
+
+    func load() async {
+        let profile = profileManager.profile
+        let hasPro = proConfig.hasProAccess
+
+        Logger.debug("🏃 [VO2MaxCard] Loading card data")
+        Logger.debug("   hasPro: \(hasPro)")
+
+        // Determine data source and VO2 Max value based on three-tier system
+        var vo2: Double?
+
+        if hasPro {
+            // Pro user: Check for power meter data
+            do {
+                let activities = try await UnifiedActivityService.shared.fetchRecentActivities(limit: 50, daysBack: 90)
+                let hasPowerMeter = AthleteProfileManager.hasPowerMeterData(activities: activities)
+
+                if hasPowerMeter {
+                    // Tier 3: Pro with power meter - use VO2 calculated from FTP
+                    vo2 = profile.vo2maxEstimate
+                    dataSource = "Power-based"
+                    Logger.debug("🔋 Pro user with power meter - using VO2 from FTP: \(vo2?.description ?? "nil")")
+                } else {
+                    // Tier 2: Pro without power meter - estimate from HR
+                    if let maxHR = profile.maxHR {
+                        vo2 = AthleteProfileManager.estimateVO2MaxFromHR(
+                            maxHR: maxHR,
+                            restingHR: profile.restingHR,
+                            age: nil  // Age not available in profile
+                        )
+                        dataSource = "HR-based"
+                        Logger.debug("❤️ Pro user without power meter - HR-based VO2: \(vo2?.description ?? "nil")")
+                    } else {
+                        // Fallback to Coggan default if HR data incomplete
+                        vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                        dataSource = "Estimated"
+                        Logger.debug("📊 Pro user with incomplete data - using Coggan default VO2")
+                    }
+                }
+            } catch {
+                Logger.error("Failed to fetch activities: \(error)")
+                // Fallback to existing VO2 or Coggan default
+                vo2 = profile.vo2maxEstimate ?? AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+                dataSource = profile.vo2maxEstimate != nil ? "Power-based" : "Estimated"
+            }
+        } else {
+            // Tier 1: Free user - use Coggan default
+            vo2 = AthleteProfileManager.getCogganDefaultVO2Max(age: nil, gender: profile.sex)
+            dataSource = "Estimated"
+            Logger.debug("🆓 Free user - using Coggan default VO2: \(String(format: "%.1f", vo2 ?? 0))")
+        }
+
+        // Format VO2
+        if let vo2 = vo2 {
+            vo2Value = String(format: "%.1f", vo2)
+            fitnessLevel = classifyVO2Max(vo2)
+
+            Logger.debug("   vo2Value set to: \(vo2Value)")
+            Logger.debug("   fitnessLevel: \(fitnessLevel ?? "nil")")
+
+            // Show trend for PRO users
+            if hasPro {
+                hasData = true
+
+                // Load historical data for sparkline
+                Task {
+                    // Check in-memory cache first
+                    let historical: [(date: Date, ftp: Double, vo2: Double, confidence: Double, activityCount: Int)]
+                    if let cached = cachedHistoricalData,
+                       let timestamp = cacheTimestamp,
+                       Date().timeIntervalSince(timestamp) < cacheTTL {
+                        Logger.debug("⚡ [VO2MaxCard] Using in-memory cache for historical data")
+                        historical = cached
+                    } else {
+                        Logger.debug("🔄 [VO2MaxCard] Fetching fresh historical data")
+                        historical = await profileManager.fetch6MonthHistoricalPerformance()
+                        cachedHistoricalData = historical
+                        cacheTimestamp = Date()
+                    }
+
+                    await MainActor.run {
+                        // Get last 30 days of VO2 data
+                        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                        let recentData = historical.filter { $0.date >= thirtyDaysAgo && $0.vo2 > 0 }
+
+                        if !recentData.isEmpty {
+                            historicalValues = recentData.map { $0.vo2 }
+
+                            // Calculate trend
+                            if let first = recentData.first, let last = recentData.last, first.vo2 > 0 {
+                                let change = ((last.vo2 - first.vo2) / first.vo2) * 100
+
+                                if change > 2 {
+                                    trendColor = ColorScale.greenAccent
+                                    trendIcon = Icons.Arrow.upRight
+                                    trendText = "Improving"
+                                } else if change < -2 {
+                                    trendColor = ColorScale.redAccent
+                                    trendIcon = Icons.Arrow.downRight
+                                    trendText = "Declining"
+                                } else {
+                                    trendColor = .secondary
+                                    trendIcon = Icons.Arrow.right
+                                    trendText = "Stable"
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                hasData = false
+                Logger.debug("   hasData: false (no PRO)")
+            }
+        } else {
+            // No VO2 estimate available - show placeholder
+            vo2Value = "—"
+            fitnessLevel = "Not available"
+            hasData = false
+            Logger.debug("   ❌ No VO2 estimate available - showing placeholder")
+        }
+    }
+
+    // Deprecated - now using cached historical data
+    private func classifyVO2Max(_ vo2: Double) -> String {
+        // Simplified classification (would need age/gender for accuracy)
+        if vo2 >= 55 {
+            return "Superior"
+        } else if vo2 >= 50 {
+            return "Excellent"
+        } else if vo2 >= 45 {
+            return "Good"
+        } else if vo2 >= 40 {
+            return "Fair"
+        } else {
+            return "Average"
+        }
+    }
+    
+    private func generateRealisticTrend(current: Double) -> (values: [Double], percentChange: Double) {
+        // Generate 30-day trend with realistic ups and downs
+        let days = 30
+        let start = current * 0.96
+        let overallGain = current - start
+        
+        var values: [Double] = []
+        
+        for day in 0..<days {
+            // Add daily progression toward target
+            let baseProgress = overallGain * (Double(day) / Double(days))
+            
+            // Add realistic noise (±1.5% daily variation)
+            let noise = Double.random(in: -0.015...0.015) * current
+            
+            // Add weekly cycles (training/recovery)
+            let weeklyVariation = sin(Double(day) / 7.0 * .pi * 2) * (current * 0.01)
+            
+            let value = start + baseProgress + noise + weeklyVariation
+            values.append(value)
+        }
+        
+        let percentChange = ((current - start) / start) * 100
+        return (values, percentChange)
+    }
+}
+
+// MARK: - Preview
+// Note: PerformanceSparkline is defined in AdaptiveFTPCard.swift and shared between both cards
+
+#Preview {
+    VStack(spacing: Spacing.md) {
+        AdaptiveVO2MaxCard(onTap: {})
+    }
+    .padding()
+    .background(Color.background.primary)
+}
