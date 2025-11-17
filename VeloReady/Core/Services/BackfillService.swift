@@ -64,15 +64,22 @@ final class BackfillService {
     ///   - days: Number of days to backfill
     ///   - forceRefresh: Bypass throttling
     func backfillScores(days: Int = 60, forceRefresh: Bool = false) async {
-        Logger.info("🔄 [BACKFILL] Starting score backfills (parallel)...")
+        Logger.info("🔄 [BACKFILL SCORES] ✅ FUNCTION CALLED - Starting score backfills (parallel)...")
+        Logger.info("🔄 [BACKFILL SCORES] days: \(days), forceRefresh: \(forceRefresh)")
         
+        Logger.info("🔄 [BACKFILL SCORES] Starting recovery backfill...")
         async let recovery = backfillHistoricalRecoveryScores(days: days, forceRefresh: forceRefresh)
+        
+        Logger.info("🔄 [BACKFILL SCORES] Starting sleep backfill...")
         async let sleep = backfillSleepScores(days: days, forceRefresh: forceRefresh)
+        
+        Logger.info("🔄 [BACKFILL SCORES] Starting strain backfill...")
         async let strain = backfillStrainScores(daysBack: days, forceRefresh: forceRefresh)
         
+        Logger.info("🔄 [BACKFILL SCORES] Waiting for all three to complete...")
         await (recovery, sleep, strain)
         
-        Logger.info("✅ [BACKFILL] All scores complete")
+        Logger.info("✅ [BACKFILL SCORES] All scores complete")
     }
     
     // MARK: - Training Load Backfill
@@ -297,12 +304,14 @@ final class BackfillService {
     /// Backfill historical recovery scores from existing physio data
     /// This calculates recovery scores for days that have HRV/RHR/sleep data but placeholder recovery scores (50)
     func backfillHistoricalRecoveryScores(days: Int = 60, forceRefresh: Bool = false) async {
+        Logger.info("🔄 [RECOVERY BACKFILL] ✅ FUNCTION CALLED - days: \(days), forceRefresh: \(forceRefresh)")
+        
         await throttledBackfill(
             key: "lastRecoveryBackfill",
             logPrefix: "RECOVERY BACKFILL",
             forceRefresh: forceRefresh
         ) {
-            Logger.data("📊 [RECOVERY BACKFILL] Starting backfill for last \(days) days...")
+            Logger.data("📊 [RECOVERY BACKFILL] ✅ THROTTLE PASSED - Starting backfill for last \(days) days...")
             
             let calendar = Calendar.current
             let today = calendar.startOfDay(for: Date())
@@ -393,12 +402,14 @@ final class BackfillService {
     /// This ensures historical days show accurate sleep scores instead of placeholder (50)
     /// Uses the same algorithm as today's sleep calculation
     func backfillSleepScores(days: Int = 60, forceRefresh: Bool = false) async {
+        Logger.info("🔄 [SLEEP BACKFILL] ✅ FUNCTION CALLED - days: \(days), forceRefresh: \(forceRefresh)")
+        
         await throttledBackfill(
             key: "lastSleepBackfill",
             logPrefix: "SLEEP BACKFILL",
             forceRefresh: forceRefresh
         ) {
-            Logger.debug("🔄 [SLEEP BACKFILL] Starting backfill for last \(days) days...")
+            Logger.debug("🔄 [SLEEP BACKFILL] ✅ THROTTLE PASSED - Starting backfill for last \(days) days...")
             
             await self.performBatchInBackground(logPrefix: "SLEEP BACKFILL") { context in
                 var updatedCount = 0
@@ -475,12 +486,14 @@ final class BackfillService {
     /// This ensures historical days show accurate strain scores instead of 0
     /// Uses the same algorithm as today's strain calculation but from historical TSS
     func backfillStrainScores(daysBack: Int = 60, forceRefresh: Bool = false) async {
+        Logger.info("🔄 [STRAIN BACKFILL] ✅ FUNCTION CALLED - daysBack: \(daysBack), forceRefresh: \(forceRefresh)")
+        
         await throttledBackfill(
             key: "lastStrainBackfill",
             logPrefix: "STRAIN BACKFILL",
             forceRefresh: forceRefresh
         ) {
-            Logger.debug("🔄 [STRAIN BACKFILL] Starting backfill for last \(daysBack) days...")
+            Logger.debug("🔄 [STRAIN BACKFILL] ✅ THROTTLE PASSED - Starting backfill for last \(daysBack) days...")
             
             // Fetch athlete profile once before batch operation (avoid await inside closure)
             let athleteProfile = await AthleteProfileManager.shared.profile
@@ -691,13 +704,20 @@ final class BackfillService {
         forceRefresh: Bool,
         operation: () async throws -> Void
     ) async rethrows {
+        Logger.debug("🔍 [\(logPrefix)] THROTTLE CHECK - key: \(key), forceRefresh: \(forceRefresh)")
+        
         // Check throttle
         if !forceRefresh, let lastRun = UserDefaults.standard.object(forKey: key) as? Date {
             let hoursSince = Date().timeIntervalSince(lastRun) / 3600
+            Logger.debug("🔍 [\(logPrefix)] Last run: \(lastRun), hours since: \(String(format: "%.1f", hoursSince))h")
             if hoursSince < 24 {
-                Logger.data("⏭️ [\(logPrefix)] Skipping - last run was \(String(format: "%.1f", hoursSince))h ago (< 24h)")
+                Logger.data("⏭️ [\(logPrefix)] ❌ THROTTLED - Skipping (last run was \(String(format: "%.1f", hoursSince))h ago < 24h)")
                 return
+            } else {
+                Logger.debug("✅ [\(logPrefix)] Throttle passed - \(String(format: "%.1f", hoursSince))h > 24h")
             }
+        } else {
+            Logger.debug("✅ [\(logPrefix)] No previous run found OR forceRefresh=true - proceeding")
         }
         
         // Execute operation
