@@ -3,12 +3,29 @@ import CoreData
 import Combine
 import HealthKit
 
-/// Manages caching and refresh strategies for daily data
+/// Orchestrates daily data fetching, calculation, and caching
+///
+/// **Responsibilities:**
+/// - Fetch health data from HealthKit (HRV, RHR, sleep)
+/// - Fetch training data from Intervals.icu
+/// - Calculate training load (CTL, ATL) and baselines
+/// - Coordinate athlete zone computation
+/// - Use UnifiedCacheManager for caching operations
+///
+/// **Architecture Note:**
+/// This service replaced the old CacheManager, which violated SRP by mixing
+/// domain logic with caching. Now caching is delegated to UnifiedCacheManager.
+///
+/// Created: 2025-11-17 (Phase 2 Architecture Cleanup)
 @MainActor
-final class CacheManager: ObservableObject {
+final class DailyDataService: ObservableObject {
     // MARK: - Singleton
-    
-    static let shared = CacheManager()
+
+    static let shared = DailyDataService()
+
+    // MARK: - Cache Manager
+
+    private let cacheManager = UnifiedCacheManager.shared
     
     // MARK: - Properties
     
@@ -568,3 +585,9 @@ struct IntervalsData {
     let eftp: Double?
     let workout: Activity?
 }
+
+// MARK: - Backward Compatibility
+
+/// Typealias for backward compatibility
+/// TODO: Migrate all usages to DailyDataService.shared, then remove this
+typealias CacheManager = DailyDataService
