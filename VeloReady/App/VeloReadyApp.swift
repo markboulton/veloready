@@ -8,68 +8,56 @@ struct VeloReadyApp: App {
     init() {
         // Log version information at startup
         AppVersion.logVersionInfo()
-        
-        // CRITICAL: Verify cache version synchronization on startup
-        // This prevents the bug where cache systems get out of sync
+
+        // OPTIMIZATION: Consolidate critical tasks (8 → 3)
+        // Run ONLY critical tasks immediately, defer others to after UI loads
+
+        // CRITICAL TASK 1: Core infrastructure (runs sequentially for safety)
         Task { @MainActor in
+            // 1a. Verify cache version synchronization
             _ = CacheVersion.verifySynchronization()
-        }
-        
-        // CRITICAL: Initialize in CORRECT ORDER to prevent race conditions
-        // NOTE: HealthKit check is now BLOCKING in RootView.onAppear to prevent race conditions
-        Task { @MainActor in
-            // 1. Refresh Supabase token FIRST
+
+            // 1b. Refresh Supabase token
             await SupabaseClient.shared.refreshOnAppLaunch()
-            Logger.debug("✅ [APP LAUNCH] Supabase token refreshed")
-            
-            // 2. Initialize service container
+
+            // 1c. Initialize service container
             ServiceContainer.shared.initialize()
-            Logger.debug("✅ [APP LAUNCH] Service container initialized")
-            
-            // 3. Configure AI Brief
+
+            // 1d. Configure AI Brief
             AIBriefConfig.configure()
-            Logger.debug("✅ [APP LAUNCH] AI Brief configured")
+
+            Logger.debug("✅ [APP LAUNCH] Core infrastructure initialized")
         }
-        
-        // Migrate workout metadata from UserDefaults to Core Data
-        Task { @MainActor in
-            WorkoutMetadataService.shared.migrateAllLegacyData()
-        }
-        
-        // Clean up legacy Strava stream data from UserDefaults
-        Task { @MainActor in
-            Self.cleanupLegacyStravaStreams()
-        }
-        
-        // Migrate large stream data from UserDefaults to file-based cache (one-time)
-        Task { @MainActor in
-            // StreamCacheService deleted - migration no longer needed (handled by DiskCacheLayer)
-        }
-        
-        // Enable automatic iCloud sync
-        Task { @MainActor in
-            iCloudSyncService.shared.enableAutomaticSync()
-            Logger.debug("☁️ iCloud automatic sync initialized")
-        }
-        
-        // Backfill historical physio data for charts (one-time on first launch)
-        // Run in detached task so it doesn't block app startup
-        Task.detached {
-            let hasBackfilled = UserDefaults.standard.bool(forKey: "hasBackfilledPhysioData")
-            if !hasBackfilled {
-                Logger.data("📊 [PHYSIO BACKFILL] First launch - backfilling historical data in background...")
-                await BackfillService.shared.backfillHistoricalPhysioData(days: 60)
-                await MainActor.run {
-                    UserDefaults.standard.set(true, forKey: "hasBackfilledPhysioData")
-                    Logger.debug("✅ [PHYSIO BACKFILL] Completed in background")
-                }
-            }
-        }
-        
-        // Register background task
+
+        // CRITICAL TASK 2: Background task registration (sync, no Task needed)
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.veloready.app.refresh", using: nil) { task in
             Self.handleBackgroundRefresh(task: task as! BGAppRefreshTask)
         }
+
+        // CRITICAL TASK 3: Deferred non-critical tasks (runs after 3s delay)
+        Task.detached {
+            // Wait for UI to render and settle
+            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+
+            await MainActor.run {
+                Logger.debug("🔄 [APP LAUNCH] Starting deferred tasks...")
+
+                // Deferred: Workout metadata migration
+                WorkoutMetadataService.shared.migrateAllLegacyData()
+
+                // Deferred: Legacy cleanup
+                Self.cleanupLegacyStravaStreams()
+
+                // Deferred: iCloud sync
+                iCloudSyncService.shared.enableAutomaticSync()
+
+                Logger.debug("✅ [APP LAUNCH] Deferred tasks complete")
+            }
+        }
+
+        // NOTE: Historical physio backfill removed from automatic startup
+        // Users can manually trigger via Settings → Debug → "Sync Historical Data"
+        // This prevents potential 60-day backfill from slowing first launch
     }
     
     var body: some Scene {
