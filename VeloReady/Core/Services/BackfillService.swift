@@ -15,7 +15,6 @@ import HealthKit
 /// // Individual backfills
 /// await BackfillService.shared.backfillStrainScores()
 /// ```
-@MainActor
 final class BackfillService {
     // MARK: - Singleton
     
@@ -135,10 +134,21 @@ final class BackfillService {
                 let restingHR = athleteProfile.restingHR ?? 60.0
                 
                 // Sort activities by date (oldest first for progressive calculation)
-                let sortedActivities = activities.sorted(by: { $0.startDate < $1.startDate })
+                // Parse startDateLocal string to Date
+                let dateFormatter = ISO8601DateFormatter()
+                let sortedActivities = activities.sorted(by: { 
+                    guard let date1 = dateFormatter.date(from: $0.startDateLocal),
+                          let date2 = dateFormatter.date(from: $1.startDateLocal) else {
+                        return false
+                    }
+                    return date1 < date2
+                })
                 
                 for activity in sortedActivities {
-                    let date = Calendar.current.startOfDay(for: activity.startDate)
+                    guard let activityDate = dateFormatter.date(from: activity.startDateLocal) else {
+                        continue
+                    }
+                    let date = Calendar.current.startOfDay(for: activityDate)
                     
                     // Calculate TSS for this activity
                     var tss: Double = 0
