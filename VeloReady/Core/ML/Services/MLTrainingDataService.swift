@@ -26,7 +26,7 @@ class MLTrainingDataService: ObservableObject {
     // MARK: - Published State
     
     @Published var isProcessing = false
-    @Published var lastProcessingDate: Date?
+    var lastProcessingDate: Date?
     @Published var trainingDataCount: Int = 0
     @Published var dataQualityScore: Double = 0.0
     

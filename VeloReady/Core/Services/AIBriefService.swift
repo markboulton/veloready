@@ -9,7 +9,7 @@ class AIBriefService: ObservableObject {
     @Published var briefText: String?
     @Published var isLoading = false
     @Published var error: AIBriefError?
-    @Published var isCached = false
+    var isCached = false
     
     private let client: AIBriefClientProtocol
     private let recoveryService = RecoveryScoreService.shared

@@ -12,7 +12,7 @@ class StressAnalysisService: ObservableObject {
     static let shared = StressAnalysisService()
     
     @Published private(set) var currentAlert: StressAlert?
-    @Published private(set) var isAnalyzing = false
+    private(set) var isAnalyzing = false
     
     private let logger = Logger.self
     private let persistence = PersistenceController.shared

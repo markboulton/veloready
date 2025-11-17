@@ -42,7 +42,7 @@ final class DailyDataService: ObservableObject {
     private let baselineCalculator = BaselineCalculator()
     
     @Published private(set) var isRefreshing = false
-    @Published private(set) var lastRefreshDate: Date?
+    private(set) var lastRefreshDate: Date?
     
     // MARK: - Cache Age Thresholds
     

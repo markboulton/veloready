@@ -9,7 +9,7 @@ class StravaDataService: ObservableObject {
     
     @Published private(set) var activities: [StravaActivity] = []
     @Published private(set) var isLoading = false
-    @Published private(set) var lastFetchDate: Date?
+    private(set) var lastFetchDate: Date?
     
     private let stravaAuthService = StravaAuthService.shared
     private let stravaAPIClient = StravaAPIClient.shared

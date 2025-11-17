@@ -10,7 +10,7 @@ class iCloudSyncService: ObservableObject {
     // MARK: - Published Properties
     
     @Published var isSyncing = false
-    @Published var lastSyncDate: Date?
+    var lastSyncDate: Date?
     @Published var syncError: String?
     @Published var isCloudAvailable = false
     

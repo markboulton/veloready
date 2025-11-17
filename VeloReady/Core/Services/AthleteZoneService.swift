@@ -11,7 +11,7 @@ class AthleteZoneService: ObservableObject {
     
     @Published var athlete: IntervalsAthlete?
     @Published var isLoading = false
-    @Published var lastFetchDate: Date?
+    var lastFetchDate: Date?
     @Published var lastError: String?
     
     private let apiClient: IntervalsAPIClient

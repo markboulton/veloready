@@ -9,7 +9,7 @@ class WellnessDetectionService: ObservableObject {
     static let shared = WellnessDetectionService()
     
     @Published var currentAlert: WellnessAlert?
-    @Published var isAnalyzing = false
+    var isAnalyzing = false
     
     private let calculator = WellnessDetectionCalculator()
     private var lastAnalysisDate: Date?
