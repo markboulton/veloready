@@ -682,8 +682,12 @@ final class BackfillService {
         await context.perform {
             var savedCount = 0
             var skippedCount = 0
-            
-            for (date, data) in dailyData {
+
+            // CRITICAL: Process days in chronological order for baseline calculations
+            let sortedDates = dailyData.keys.sorted()
+
+            for date in sortedDates {
+                guard let data = dailyData[date] else { continue }
                 // Only save if we have at least one metric
                 guard data.hrv != nil || data.rhr != nil || data.sleep != nil else {
                     skippedCount += 1
@@ -715,6 +719,36 @@ final class BackfillService {
                 }
 
                 physio.lastUpdated = Date()
+
+                // CRITICAL FIX: Calculate baselines (7-day rolling average)
+                // Without baselines, recovery scores default to 50
+                let baselineWindow = 7
+                let startOfWindow = calendar.date(byAdding: .day, value: -baselineWindow, to: date) ?? date
+
+                // Fetch last 7 days of physio data for baseline calculation
+                let baselineRequest = DailyPhysio.fetchRequest()
+                baselineRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfWindow as NSDate, date as NSDate)
+                baselineRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+
+                if let recentPhysio = try? context.fetch(baselineRequest) {
+                    // Calculate HRV baseline
+                    let hrvValues = recentPhysio.compactMap { $0.hrv > 0 ? $0.hrv : nil }
+                    if !hrvValues.isEmpty {
+                        physio.hrvBaseline = hrvValues.reduce(0, +) / Double(hrvValues.count)
+                    }
+
+                    // Calculate RHR baseline
+                    let rhrValues = recentPhysio.compactMap { $0.rhr > 0 ? $0.rhr : nil }
+                    if !rhrValues.isEmpty {
+                        physio.rhrBaseline = rhrValues.reduce(0, +) / Double(rhrValues.count)
+                    }
+
+                    // Calculate sleep baseline
+                    let sleepValues = recentPhysio.compactMap { $0.sleepDuration > 0 ? $0.sleepDuration : nil }
+                    if !sleepValues.isEmpty {
+                        physio.sleepBaseline = sleepValues.reduce(0, +) / Double(sleepValues.count)
+                    }
+                }
 
                 // CRITICAL FIX: Ensure DailyScores exists and is linked to this physio
                 let scoresRequest = DailyScores.fetchRequest()
