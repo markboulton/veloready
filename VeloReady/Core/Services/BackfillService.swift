@@ -694,23 +694,35 @@ final class BackfillService {
         await context.perform {
             var savedCount = 0
             var skippedCount = 0
+            var daysWithoutPhysio = 0
 
-            // CRITICAL: Process days in chronological order for baseline calculations
-            let sortedDates = dailyData.keys.sorted()
+            // CRITICAL: Process ALL days in the period, not just days with physio data
+            // This ensures DailyScores exists for strain calculation even on rest days
+            var allDates = Set(dailyData.keys)
+
+            // Add any missing dates in the range (for days without physio data)
+            for dayOffset in 0..<days {
+                if let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) {
+                    allDates.insert(calendar.startOfDay(for: date))
+                }
+            }
+
+            let sortedDates = allDates.sorted()
+            Logger.data("📊 [PHYSIO BACKFILL] Processing \(sortedDates.count) total days (\(dailyData.count) with physio data, \(sortedDates.count - dailyData.count) without)")
 
             for date in sortedDates {
-                guard let data = dailyData[date] else { continue }
-                // Only save if we have at least one metric
-                guard data.hrv != nil || data.rhr != nil || data.sleep != nil else {
-                    skippedCount += 1
-                    continue
+                let data = dailyData[date]
+
+                // Track days without physio data
+                if data == nil || (data?.hrv == nil && data?.rhr == nil && data?.sleep == nil) {
+                    daysWithoutPhysio += 1
                 }
                 
-                // Fetch or create DailyPhysio
+                // Fetch or create DailyPhysio (even for days without physio data)
                 let request = DailyPhysio.fetchRequest()
                 request.predicate = NSPredicate(format: "date == %@", date as NSDate)
                 request.fetchLimit = 1
-                
+
                 let physio: DailyPhysio
                 if let existing = try? context.fetch(request).first {
                     physio = existing
@@ -718,19 +730,20 @@ final class BackfillService {
                     physio = DailyPhysio(context: context)
                     physio.date = date
                 }
-                
-                // Update values (always update if we have new data)
-                if let hrv = data.hrv {
-                    physio.hrv = hrv
-                }
-                if let rhr = data.rhr {
-                    physio.rhr = rhr
-                }
-                if let sleep = data.sleep {
-                    physio.sleepDuration = sleep
-                }
 
-                physio.lastUpdated = Date()
+                // Update values (only if we have new data for this day)
+                if let data = data {
+                    if let hrv = data.hrv {
+                        physio.hrv = hrv
+                    }
+                    if let rhr = data.rhr {
+                        physio.rhr = rhr
+                    }
+                    if let sleep = data.sleep {
+                        physio.sleepDuration = sleep
+                    }
+                    physio.lastUpdated = Date()
+                }
 
                 // CRITICAL FIX: Calculate baselines (7-day rolling average)
                 // Without baselines, recovery scores default to 50
@@ -791,7 +804,8 @@ final class BackfillService {
             if context.hasChanges {
                 do {
                     try context.save()
-                    Logger.data("✅ [PHYSIO BACKFILL] ✅ COMPLETE - Saved \(savedCount) days, skipped \(skippedCount)")
+                    Logger.data("✅ [PHYSIO BACKFILL] ✅ COMPLETE - Saved \(savedCount) days (\(daysWithoutPhysio) without physio data)")
+                    Logger.data("   📊 Days with physio: \(savedCount - daysWithoutPhysio), Days without: \(daysWithoutPhysio)")
                 } catch {
                     Logger.error("❌ [PHYSIO BACKFILL] Failed to save: \(error)")
                 }
