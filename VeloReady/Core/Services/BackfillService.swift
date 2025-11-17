@@ -351,53 +351,36 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Calculate baselines
-                    let hrvBaseline = physio.hrvBaseline > 0 ? physio.hrvBaseline : nil
-                    let rhrBaseline = physio.rhrBaseline > 0 ? physio.rhrBaseline : nil
-                    let sleepBaseline = physio.sleepBaseline > 0 ? physio.sleepBaseline : nil
+                    // Build inputs from historical data
+                    let inputs = RecoveryScore.RecoveryInputs(
+                        hrv: physio.hrv > 0 ? physio.hrv : nil,
+                        overnightHrv: physio.hrv > 0 ? physio.hrv : nil,
+                        hrvBaseline: physio.hrvBaseline > 0 ? physio.hrvBaseline : nil,
+                        rhr: physio.rhr > 0 ? physio.rhr : nil,
+                        rhrBaseline: physio.rhrBaseline > 0 ? physio.rhrBaseline : nil,
+                        sleepDuration: physio.sleepDuration > 0 ? physio.sleepDuration : nil,
+                        sleepBaseline: physio.sleepBaseline > 0 ? physio.sleepBaseline : nil,
+                        respiratoryRate: nil, // Not available historically
+                        respiratoryBaseline: nil,
+                        atl: nil, // Not available historically
+                        ctl: nil,
+                        recentStrain: nil,
+                        sleepScore: nil // SleepScore structure too complex for backfill - use sleep duration instead
+                    )
                     
-                    // Calculate recovery score
-                    var recoveryScore = 50.0
-                    
-                    // HRV component (30 points)
-                    if let baseline = hrvBaseline, baseline > 0 {
-                        let hrvRatio = physio.hrv / baseline
-                        recoveryScore += (hrvRatio - 1.0) * 30
-                    }
-                    
-                    // RHR component (20 points)
-                    if let baseline = rhrBaseline, baseline > 0 {
-                        let rhrRatio = physio.rhr / baseline
-                        recoveryScore += (1.0 - rhrRatio) * 20
-                    }
-                    
-                    // Sleep component (20 points)
-                    if physio.sleepDuration > 0, let baseline = sleepBaseline, baseline > 0 {
-                        let sleepRatio = physio.sleepDuration / baseline
-                        recoveryScore += (sleepRatio - 1.0) * 20
-                    }
-                    
-                    recoveryScore = max(0, min(100, recoveryScore))
-                    
-                    // Determine band
-                    let band: String
-                    if recoveryScore >= 70 {
-                        band = "green"
-                    } else if recoveryScore >= 40 {
-                        band = "amber"
-                    } else {
-                        band = "red"
-                    }
+                    // Use the SAME calculation as real-time (RecoveryScoreCalculator)
+                    // Uses synchronous overload (rule-based) for backfill
+                    let result = RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
                     
                     // Update the score
-                    scores.recoveryScore = recoveryScore
-                    scores.recoveryBand = band
+                    scores.recoveryScore = Double(result.score)
+                    scores.recoveryBand = result.band.color
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
                     let formatter = DateFormatter()
                     formatter.dateFormat = "MMM dd"
-                    Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(Int(recoveryScore)) (was 50, HRV=\(physio.hrv), RHR=\(physio.rhr))")
+                    Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(result.score) (was 50, HRV=\(physio.hrv), RHR=\(physio.rhr), Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -505,6 +488,9 @@ final class BackfillService {
         ) {
             Logger.debug("🔄 [STRAIN BACKFILL] Starting backfill for last \(daysBack) days...")
             
+            // Fetch athlete profile once before batch operation (avoid await inside closure)
+            let athleteProfile = await AthleteProfileManager.shared.profile
+            
             await self.performBatchInBackground(logPrefix: "STRAIN BACKFILL") { context in
                 var updatedCount = 0
                 var skippedCount = 0
@@ -520,9 +506,10 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Skip if already has a realistic strain score (> 2.1 to exclude NEAT baseline, unless forced)
-                    // Note: 2.0 is the NEAT baseline default, so we recalculate those
-                    if !forceRefresh && scores.strainScore > 2.1 {
+                    // Skip if already has a realistic strain score (> 5.0 to force recalculation of old formula values)
+                    // Old formula produced values like 2.0-2.4 which are incorrect
+                    // New Whoop-style formula produces 5-18 range for real workouts
+                    if !forceRefresh && scores.strainScore > 5.0 {
                         skippedCount += 1
                         continue
                     }
@@ -539,27 +526,49 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Calculate strain from TSS
-                    let tss = load.tss
-                    let strainScore: Double
+                    // Get historical data from Core Data
+                    let physio = scores.physio
                     
-                    if tss < 150 {
-                        strainScore = max(2.0, min((tss / 150) * 6, 6))
-                    } else if tss < 300 {
-                        strainScore = 6 + min(((tss - 150) / 150) * 5, 5)
-                    } else if tss < 450 {
-                        strainScore = 11 + min(((tss - 300) / 150) * 5, 5)
-                    } else {
-                        strainScore = 16 + min(((tss - 450) / 150) * 2, 2)
-                    }
+                    // Calculate strain using the SAME formula as real-time calculation
+                    // (athleteProfile already fetched outside the closure)
+                    // Build inputs from historical data
+                    let inputs = StrainScore.StrainInputs(
+                        continuousHRData: nil,
+                        dailyTRIMP: load.tss > 0 ? load.tss : nil, // Use TSS as TRIMP proxy
+                        cardioDailyTRIMP: load.tss > 0 ? load.tss : nil,
+                        cardioDurationMinutes: nil, // Not available historically
+                        averageIntensityFactor: nil,
+                        workoutTypes: nil,
+                        strengthSessionRPE: nil,
+                        strengthDurationMinutes: nil,
+                        strengthVolume: nil,
+                        strengthSets: nil,
+                        muscleGroupsTrained: nil,
+                        isEccentricFocused: nil,
+                        dailySteps: nil, // Not available historically
+                        activeEnergyCalories: nil, // Not available historically
+                        nonWorkoutMETmin: nil,
+                        hrvOvernight: physio?.hrv,
+                        hrvBaseline: physio?.hrvBaseline,
+                        rmrToday: physio?.rhr,
+                        rmrBaseline: physio?.rhrBaseline,
+                        sleepQuality: scores.sleepScore > 0 ? Int(scores.sleepScore) : nil,
+                        userFTP: athleteProfile.ftp,
+                        userMaxHR: athleteProfile.maxHR,
+                        userRestingHR: athleteProfile.restingHR,
+                        userBodyMass: nil
+                    )
                     
-                    scores.strainScore = strainScore
+                    // Use the SAME calculation as real-time (Whoop-style algorithm)
+                    let result = StrainScoreCalculator.calculate(inputs: inputs)
+                    
+                    scores.strainScore = result.score
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMM dd"
-                    Logger.debug("📊 [STRAIN BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.1f", strainScore)) (TSS: \(String(format: "%.0f", tss)))")
+                    Logger.debug("📊 [STRAIN BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.1f", result.score)) (TSS: \(String(format: "%.0f", load.tss)), Band: \(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
