@@ -79,7 +79,13 @@ final class BackfillService {
         Logger.info("🔄 [BACKFILL SCORES] Waiting for all three to complete...")
         await (recovery, sleep, strain)
         
-        Logger.info("✅ [BACKFILL SCORES] All scores complete")
+        Logger.info("✅ [BACKFILL SCORES] All backfills complete - Core Data should auto-merge to view context")
+        
+        // Post notification to refresh UI
+        await MainActor.run {
+            Logger.info("📢 [BACKFILL SCORES] Posting refresh notification to UI")
+            NotificationCenter.default.post(name: NSNotification.Name("BackfillComplete"), object: nil)
+        }
     }
     
     // MARK: - Training Load Backfill
@@ -342,24 +348,33 @@ final class BackfillService {
                 for scores in allScores {
                     guard let date = scores.date else { continue }
                     
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM dd"
+                    let oldScore = scores.recoveryScore
+                    
                     // Skip if already has a realistic recovery score (> 80 means properly calculated)
                     // Old simplified formula produced 40-70 range, new formula produces 0-100 with proper distribution
                     if !forceRefresh && scores.recoveryScore > 80 {
+                        Logger.data("  ⏭️ \(formatter.string(from: date)): Skipping (recovery=\(Int(oldScore)) > 80)")
                         skippedCount += 1
                         continue
                     }
                     
                     // Check if we have physio data
                     guard let physio = scores.physio else {
+                        Logger.data("  ⚠️ \(formatter.string(from: date)): Skipping (no physio data)")
                         skippedCount += 1
                         continue
                     }
                     
                     // Only calculate if we have at least HRV and RHR
                     guard physio.hrv > 0, physio.rhr > 0 else {
+                        Logger.data("  ⚠️ \(formatter.string(from: date)): Skipping (HRV=\(physio.hrv), RHR=\(physio.rhr) - insufficient data)")
                         skippedCount += 1
                         continue
                     }
+                    
+                    Logger.data("  🔄 \(formatter.string(from: date)): Processing (oldScore=\(Int(oldScore)), HRV=\(physio.hrv), RHR=\(physio.rhr))")
                     
                     // Build inputs from historical data
                     let inputs = RecoveryScore.RecoveryInputs(
@@ -382,15 +397,15 @@ final class BackfillService {
                     // Uses synchronous overload (rule-based) for backfill
                     let result = RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
                     
+                    Logger.data("  📊 \(formatter.string(from: date)): Calculated newScore=\(result.score), band=\(result.band.rawValue)")
+                    
                     // Update the score
                     scores.recoveryScore = Double(result.score)
                     scores.recoveryBand = result.band.color
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "MMM dd"
-                    Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(result.score) (was \(Int(scores.recoveryScore)), HRV=\(physio.hrv), RHR=\(physio.rhr), Band=\(result.band.rawValue))")
+                    Logger.data("  ✅ \(formatter.string(from: date)): Updated recovery: \(Int(oldScore)) → \(result.score) (Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -738,9 +753,14 @@ final class BackfillService {
             do {
                 let counts = try operation(context)
                 
+                Logger.debug("🔍 [\(logPrefix)] Operation complete - hasChanges: \(context.hasChanges), updated: \(counts.updated), skipped: \(counts.skipped)")
+                
                 // Save if changes exist
                 if context.hasChanges {
+                    Logger.debug("💾 [\(logPrefix)] Saving \(counts.updated) updated records to Core Data...")
                     try context.save()
+                    Logger.debug("✅ [\(logPrefix)] Core Data save COMPLETED - \(counts.updated) records persisted")
+                    
                     if counts.updated > 0 {
                         Logger.debug("✅ [\(logPrefix)] Updated \(counts.updated) days, skipped \(counts.skipped)")
                     } else {
@@ -753,6 +773,9 @@ final class BackfillService {
                 Logger.error("❌ [\(logPrefix)] Failed to save: \(error)")
             }
         }
+        
+        // After background context completes, give view context time to merge
+        Logger.debug("⏳ [\(logPrefix)] Background save complete, view context will auto-merge changes")
     }
     
     /// Generate a sequence of historical dates (excluding today)
