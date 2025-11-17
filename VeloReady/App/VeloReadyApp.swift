@@ -181,32 +181,20 @@ struct RootView: View {
     @ObservedObject private var themeManager = ThemeManager.shared
     @ObservedObject private var healthKitManager = HealthKitManager.shared
     
-    /// Track if app initialization is complete (BLOCKING)
-    /// This ensures HealthKit auth check completes BEFORE rendering TodayView
-    @State private var isInitialized = false
-    
     var body: some View {
         Group {
-            if !isInitialized {
-                // Show black screen while initializing (prevents race condition)
-                // This ensures HealthKit authorization check completes BEFORE TodayView renders
-                Color.black
-                    .ignoresSafeArea()
+            if onboardingManager.hasCompletedOnboarding {
+                MainTabView()
                     .onAppear {
-                        Logger.info("🚀 [ROOT] Initializing app...")
+                        // OPTIMIZATION: Run HealthKit check in background (non-blocking)
+                        // UI renders immediately with cached scores
+                        // Fresh scores calculate once HealthKit check completes
                         Task { @MainActor in
-                            // CRITICAL: Wait for HealthKit authorization check to complete
-                            // This prevents TodayCoordinator from racing with HealthKit check
+                            Logger.info("🚀 [ROOT] Running HealthKit check in background...")
                             await HealthKitManager.shared.checkAuthorizationAfterSettingsReturn()
                             Logger.info("✅ [ROOT] HealthKit check complete - isAuthorized: \(HealthKitManager.shared.isAuthorized)")
-                            
-                            // Mark as initialized - this will trigger UI to render
-                            isInitialized = true
-                            Logger.info("✅ [ROOT] App initialization complete - rendering UI")
                         }
                     }
-            } else if onboardingManager.hasCompletedOnboarding {
-                MainTabView()
             } else {
                 OnboardingFlowView()
             }
