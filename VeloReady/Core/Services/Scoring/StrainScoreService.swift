@@ -8,8 +8,8 @@ class StrainScoreService: ObservableObject {
     static let shared = StrainScoreService()
     
     @Published var currentStrainScore: StrainScore?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var isLoading = false
+    var errorMessage: String?
     
     private let calculator = StrainDataCalculator()
     private let sleepScoreService = SleepScoreService.shared

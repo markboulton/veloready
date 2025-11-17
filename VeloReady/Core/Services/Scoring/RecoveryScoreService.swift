@@ -11,11 +11,11 @@ class RecoveryScoreService: ObservableObject {
     static let shared = RecoveryScoreService()
     
     @Published var currentRecoveryScore: RecoveryScore?
-    @Published var currentRecoveryDebt: RecoveryDebt?
-    @Published var currentReadinessScore: ReadinessScore?
-    @Published var currentResilienceScore: ResilienceScore?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var currentRecoveryDebt: RecoveryDebt?
+    var currentReadinessScore: ReadinessScore?
+    var currentResilienceScore: ResilienceScore?
+    var isLoading = false
+    var errorMessage: String?
     
     private let calculator = RecoveryDataCalculator()
     private let sleepScoreService = SleepScoreService.shared
