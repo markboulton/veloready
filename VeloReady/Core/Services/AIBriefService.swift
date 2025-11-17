@@ -15,7 +15,7 @@ class AIBriefService: ObservableObject {
     private let recoveryService = RecoveryScoreService.shared
     private let sleepService = SleepScoreService.shared
     private let illnessService = IllnessDetectionService.shared
-    private let cacheManager = CacheManager.shared
+    private let cacheManager = DailyDataService.shared
     private let persistence = PersistenceController.shared
     
     // Anonymous user ID (persisted across app launches)

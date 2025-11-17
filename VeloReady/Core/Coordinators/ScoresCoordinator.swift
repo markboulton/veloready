@@ -109,7 +109,7 @@ class ScoresCoordinator: ObservableObject {
             // STEP 4: Save scores to Core Data for historical tracking
             Logger.info("💾 [ScoresCoordinator] Saving scores to Core Data...")
             do {
-                try await CacheManager.shared.refreshToday()
+                try await DailyDataService.shared.refreshToday()
                 Logger.info("✅ [ScoresCoordinator] Scores saved to Core Data")
                 
                 // Trigger ML training data reprocessing now that we have new recovery scores

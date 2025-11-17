@@ -98,7 +98,7 @@ struct VeloReadyApp: App {
             Logger.debug("🔄 [BACKGROUND] Prefetching critical data...")
             
             // Refresh Core Data cache first
-            let cacheManager = await CacheManager.shared
+            let cacheManager = await DailyDataService.shared
             do {
                 try await cacheManager.refreshToday()
                 Logger.debug("✅ [BACKGROUND] Core Data cache refreshed")

@@ -202,7 +202,7 @@ final class DailyDataService: ObservableObject {
         let rhrBaseline = await baselineCalculator.calculateRHRBaseline()
         let sleepBaseline = await baselineCalculator.calculateSleepBaseline()
         
-        Logger.debug("📊 [CacheManager] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
+        Logger.debug("📊 [DailyDataService] Calculated baselines: HRV=\(hrvBaseline?.description ?? "nil"), RHR=\(rhrBaseline?.description ?? "nil"), Sleep=\(sleepBaseline?.description ?? "nil")")
         
         return HealthData(
             hrv: hrvData.value,
@@ -260,13 +260,13 @@ final class DailyDataService: ObservableObject {
         
         // If not authenticated with Intervals, calculate training load from HealthKit
         guard oauthManager.isAuthenticated else {
-            Logger.debug("📊 [CacheManager] Intervals.icu not authenticated - calculating training load from HealthKit")
-            
+            Logger.debug("📊 [DailyDataService] Intervals.icu not authenticated - calculating training load from HealthKit")
+
             // Calculate training load from HealthKit workouts
             let (ctl, atl) = await trainingLoadCalculator.calculateTrainingLoad()
             let tsb = ctl - atl
-            
-            Logger.debug("📊 [CacheManager] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
+
+            Logger.debug("📊 [DailyDataService] HealthKit training load: CTL=\(ctl), ATL=\(atl), TSB=\(tsb)")
             
             return IntervalsData(
                 ctl: ctl,
@@ -585,9 +585,3 @@ struct IntervalsData {
     let eftp: Double?
     let workout: Activity?
 }
-
-// MARK: - Backward Compatibility
-
-/// Typealias for backward compatibility
-/// TODO: Migrate all usages to DailyDataService.shared, then remove this
-typealias CacheManager = DailyDataService

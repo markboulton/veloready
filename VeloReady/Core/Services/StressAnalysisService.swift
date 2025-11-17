@@ -16,7 +16,7 @@ class StressAnalysisService: ObservableObject {
     
     private let logger = Logger.self
     private let persistence = PersistenceController.shared
-    private let cacheManager = CacheManager.shared
+    private let cacheManager = DailyDataService.shared
     
     private init() {
         // Initialize service

@@ -15,9 +15,9 @@ final class ServiceContainer {
     private(set) var isInitialized = false
     
     // MARK: - Core Services
-    
+
     lazy var healthKitManager = HealthKitManager.shared
-    lazy var cacheManager = CacheManager.shared
+    lazy var cacheManager = DailyDataService.shared
     
     // MARK: - Data Services
     
