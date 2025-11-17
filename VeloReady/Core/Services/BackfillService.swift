@@ -602,7 +602,7 @@ final class BackfillService {
     
     /// Backfill historical HRV/RHR/Sleep data from HealthKit for chart display
     func backfillHistoricalPhysioData(days: Int = 60) async {
-        Logger.data("📊 [PHYSIO BACKFILL] Starting backfill for last \(days) days...")
+        Logger.data("📊 [PHYSIO BACKFILL] ✅ FUNCTION ENTERED - Starting backfill for last \(days) days...")
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -610,16 +610,30 @@ final class BackfillService {
         // Fetch HRV, RHR, and Sleep data from HealthKit for the entire period
         let startDate = calendar.date(byAdding: .day, value: -days, to: today)!
         
+        Logger.data("📊 [PHYSIO BACKFILL] Date range: \(startDate) to \(Date())")
+        Logger.data("📊 [PHYSIO BACKFILL] Step 1/3: Fetching HRV samples...")
+        
         // Fetch all HRV samples (use HealthKitManager.shared directly to avoid MainActor isolation)
         let hrvSamples = await HealthKitManager.shared.fetchHRVSamples(from: startDate, to: Date())
+        Logger.data("📊 [PHYSIO BACKFILL] ✅ HRV fetch complete: \(hrvSamples.count) samples")
         
+        Logger.data("📊 [PHYSIO BACKFILL] Step 2/3: Fetching RHR samples...")
         // Fetch all RHR samples
         let rhrSamples = await HealthKitManager.shared.fetchRHRSamples(from: startDate, to: Date())
+        Logger.data("📊 [PHYSIO BACKFILL] ✅ RHR fetch complete: \(rhrSamples.count) samples")
         
+        Logger.data("📊 [PHYSIO BACKFILL] Step 3/3: Fetching sleep samples...")
         // Fetch all sleep samples
         let sleepSamples = (try? await HealthKitManager.shared.fetchSleepData(from: startDate, to: Date())) ?? []
+        Logger.data("📊 [PHYSIO BACKFILL] ✅ Sleep fetch complete: \(sleepSamples.count) samples")
         
-        Logger.data("📊 [PHYSIO BACKFILL] Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSamples.count) sleep samples")
+        Logger.data("📊 [PHYSIO BACKFILL] 📊 SUMMARY: Fetched \(hrvSamples.count) HRV, \(rhrSamples.count) RHR, \(sleepSamples.count) sleep samples")
+        
+        if hrvSamples.isEmpty && rhrSamples.isEmpty && sleepSamples.isEmpty {
+            Logger.error("❌ [PHYSIO BACKFILL] NO DATA FETCHED - HealthKit may not have historical data for this period")
+            Logger.error("❌ [PHYSIO BACKFILL] This explains why recovery scores are unchanged (no physio data to work with)")
+            return
+        }
         
         // Group by day
         var dailyData: [Date: (hrv: Double?, rhr: Double?, sleep: TimeInterval?)] = [:]
@@ -657,6 +671,12 @@ final class BackfillService {
         
         Logger.data("📊 [PHYSIO BACKFILL] Grouped into \(dailyData.count) days with data")
         
+        if dailyData.isEmpty {
+            Logger.error("❌ [PHYSIO BACKFILL] No daily data to save - grouping resulted in 0 days")
+            return
+        }
+        
+        Logger.data("📊 [PHYSIO BACKFILL] Saving to Core Data...")
         // Save to Core Data
         let context = persistence.container.newBackgroundContext()
         await context.perform {
@@ -702,12 +722,16 @@ final class BackfillService {
             if context.hasChanges {
                 do {
                     try context.save()
-                    Logger.data("✅ [PHYSIO BACKFILL] Saved \(savedCount) days, skipped \(skippedCount)")
+                    Logger.data("✅ [PHYSIO BACKFILL] ✅ COMPLETE - Saved \(savedCount) days, skipped \(skippedCount)")
                 } catch {
                     Logger.error("❌ [PHYSIO BACKFILL] Failed to save: \(error)")
                 }
+            } else {
+                Logger.data("📊 [PHYSIO BACKFILL] No changes to save (all data already existed)")
             }
         }
+        
+        Logger.data("📊 [PHYSIO BACKFILL] Function exiting")
     }
     
     // MARK: - Helper Functions
