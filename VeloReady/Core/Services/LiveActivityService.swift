@@ -16,16 +16,13 @@ class LiveActivityService: ObservableObject {
     @Published var lastUpdated: Date?
     
     private let healthKitManager = HealthKitManager.shared
-    private let intervalsAPIClient: IntervalsAPIClient
     private let userSettings = UserSettings.shared
-    
+
     // Prevent multiple concurrent updates
     private var updateTask: Task<Void, Never>?
     private var updateTimer: Timer?
-    
+
     private init() {
-        self.intervalsAPIClient = IntervalsAPIClient(oauthManager: IntervalsOAuthManager.shared)
-        
         // Load cached data immediately on init
         loadCachedDataSync()
         
