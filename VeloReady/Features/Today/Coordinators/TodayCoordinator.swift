@@ -316,7 +316,7 @@ class TodayCoordinator: ObservableObject {
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
             
             // Phase 4: Background cleanup and backfill of all historical data (non-blocking)
-            Task.detached(priority: .background) {
+            Task(priority: .background) {
                 Logger.info("🔄 [TodayCoordinator] Starting background cleanup and backfill...")
                 
                 // Step 1: Clean up corrupt training load data from previous bugs
