@@ -7,44 +7,74 @@ import VeloReadyCore
 actor SleepDataCalculator {
     private let healthKitManager = HealthKitManager.shared
     private let baselineCalculator = BaselineCalculator()
-    
+
+    // MARK: - Sleep Band Thresholds
+
+    /// Minimum score for optimal sleep band (80-100)
+    /// Based on sleep research indicating excellent sleep quality above 80%
+    private static let optimalSleepThreshold = 80
+
+    /// Minimum score for good sleep band (60-79)
+    /// Indicates adequate sleep quality for most training demands
+    private static let goodSleepThreshold = 60
+
+    /// Minimum score for fair sleep band (40-59)
+    /// Suggests suboptimal sleep requiring attention
+    private static let fairSleepThreshold = 40
+
+    // MARK: - HealthKit Retry Configuration
+
+    /// Maximum retry attempts for HealthKit queries
+    /// iOS can require time to propagate permissions after authorization
+    private static let maxRetries = 2
+
+    /// Delay between retry attempts in seconds
+    /// Allows time for HealthKit authorization to propagate
+    private static let retryDelaySeconds = 3
+
+    // MARK: - Fallback Sleep Times
+
+    /// Default bedtime hour offset when no historical data available (10 PM)
+    private static let defaultBedtimeHourOffset = -10
+
+    /// Default wake time hour offset when no historical data available (6 AM)
+    private static let defaultWakeTimeHourOffset = -6
+
     // MARK: - Main Calculation
     
     func calculateSleepScore(sleepNeed: Double) async -> SleepScore? {
         // Get detailed sleep data (with retry for HealthKit authorization timing issues)
         var sleepInfo: HealthKitSleepData?
         var retryCount = 0
-        let maxRetries = 2
-        
-        // Retry up to 2 times with a 3-second delay between attempts (total 6s wait)
-        // This handles the race condition where HealthKit authorization was just granted
-        // iOS 26 needs more time to propagate permissions and make data available
-        while sleepInfo == nil && retryCount <= maxRetries {
+
+        // Retry with delay between attempts - handles HealthKit authorization propagation
+        // iOS can require time to make data available after permission is granted
+        while sleepInfo == nil && retryCount <= Self.maxRetries {
             if retryCount > 0 {
-                Logger.info("🔄 [SleepCalculator] Retry \(retryCount)/\(maxRetries) - waiting 3s before fetching sleep data...")
-                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                Logger.info("🔄 [SleepCalculator] Retry \(retryCount)/\(Self.maxRetries) - waiting \(Self.retryDelaySeconds)s before fetching sleep data...")
+                try? await Task.sleep(nanoseconds: UInt64(Self.retryDelaySeconds) * 1_000_000_000)
             }
             
             sleepInfo = await healthKitManager.fetchDetailedSleepData()
             
             if sleepInfo == nil {
-                Logger.warning("⚠️ [SleepCalculator] Attempt \(retryCount + 1)/\(maxRetries + 1) - no sleep data returned")
+                Logger.warning("⚠️ [SleepCalculator] Attempt \(retryCount + 1)/\(Self.maxRetries + 1) - no sleep data returned")
                 retryCount += 1
             }
         }
-        
+
         // Fetch HRV and baselines in parallel (no retry needed for these)
         async let hrvData = healthKitManager.fetchLatestHRVData()
         async let baselines = baselineCalculator.calculateAllBaselines()
-        
+
         let (hrv, (hrvBaseline, _, _, _)) = await (hrvData, baselines)
-        
+
         guard let sleepInfo = sleepInfo else {
-            Logger.error("❌ [SleepCalculator] No sleep data available after \(maxRetries + 1) attempts")
+            Logger.error("❌ [SleepCalculator] No sleep data available after \(Self.maxRetries + 1) attempts")
             return nil
         }
-        
-        Logger.info("✅ [SleepCalculator] Sleep data fetched successfully (attempt \(retryCount + 1)/\(maxRetries + 1))")
+
+        Logger.info("✅ [SleepCalculator] Sleep data fetched successfully (attempt \(retryCount + 1)/\(Self.maxRetries + 1))")
         
         // Check if sleep data is from last night (within last 24 hours)
         let calendar = Calendar.current
@@ -131,9 +161,9 @@ actor SleepDataCalculator {
         // Map score to band
         let band: SleepScore.SleepBand
         switch result.score {
-        case 80...100: band = .optimal
-        case 60..<80: band = .good
-        case 40..<60: band = .fair
+        case Self.optimalSleepThreshold...100: band = .optimal
+        case Self.goodSleepThreshold..<Self.optimalSleepThreshold: band = .good
+        case Self.fairSleepThreshold..<Self.goodSleepThreshold: band = .fair
         default: band = .payAttention
         }
         
@@ -163,15 +193,15 @@ actor SleepDataCalculator {
     private func calculateBaselineBedtime(from sleepTimes: [(bedtime: Date?, wakeTime: Date?)]) -> Date? {
         guard !sleepTimes.isEmpty else {
             Logger.warning("️ No historical sleep data for baseline calculation")
-            return Calendar.current.date(byAdding: .hour, value: -10, to: Date()) // Fallback to 10 PM
+            return Calendar.current.date(byAdding: .hour, value: Self.defaultBedtimeHourOffset, to: Date())
         }
-        
+
         // Extract valid bedtimes and filter recent nights
         let validBedtimes = sleepTimes.compactMap { $0.bedtime }
-        
+
         guard !validBedtimes.isEmpty else {
             Logger.warning("️ No valid bedtime data for baseline calculation")
-            return Calendar.current.date(byAdding: .hour, value: -10, to: Date()) // Fallback to 10 PM
+            return Calendar.current.date(byAdding: .hour, value: Self.defaultBedtimeHourOffset, to: Date())
         }
         
         // Calculate average bedtime
@@ -198,15 +228,15 @@ actor SleepDataCalculator {
     private func calculateBaselineWakeTime(from sleepTimes: [(bedtime: Date?, wakeTime: Date?)]) -> Date? {
         guard !sleepTimes.isEmpty else {
             Logger.warning("️ No historical sleep data for baseline calculation")
-            return Calendar.current.date(byAdding: .hour, value: -6, to: Date()) // Fallback to 6 AM
+            return Calendar.current.date(byAdding: .hour, value: Self.defaultWakeTimeHourOffset, to: Date())
         }
-        
+
         // Extract valid wake times
         let validWakeTimes = sleepTimes.compactMap { $0.wakeTime }
-        
+
         guard !validWakeTimes.isEmpty else {
             Logger.warning("️ No valid wake time data for baseline calculation")
-            return Calendar.current.date(byAdding: .hour, value: -6, to: Date()) // Fallback to 6 AM
+            return Calendar.current.date(byAdding: .hour, value: Self.defaultWakeTimeHourOffset, to: Date())
         }
         
         // Calculate average wake time

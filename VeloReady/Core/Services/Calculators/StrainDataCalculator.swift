@@ -8,7 +8,35 @@ actor StrainDataCalculator {
     private let baselineCalculator = BaselineCalculator()
     private let trimpCalculator = TRIMPCalculator()
     private let trainingLoadCalculator = TrainingLoadCalculator()
-    
+
+    // MARK: - Activity Enrichment Configuration
+
+    /// Time window for HR stream enrichment in days
+    /// Limits API calls by only enriching recent activities
+    private static let enrichmentWindowDays = 30
+
+    // MARK: - TRIMP Calculation Constants
+
+    /// Banister TRIMP formula exponential base coefficient
+    /// Used in TRIMP = duration × HRR% × 0.64 × e^(1.92 × HRR%)
+    private static let trimpExponentialBase = 0.64
+
+    /// Banister TRIMP formula exponential multiplier
+    /// Used in TRIMP = duration × HRR% × 0.64 × e^(1.92 × HRR%)
+    private static let trimpExponentialMultiplier = 1.92
+
+    /// Moderate intensity heart rate reserve estimate (60%)
+    /// Used as fallback when HR/power data unavailable
+    private static let moderateIntensityHRR = 0.6
+
+    // MARK: - TSS Calculation Constants
+
+    /// Seconds per hour for TSS duration normalization
+    private static let secondsPerHour: Double = 3600
+
+    /// TSS scaling factor (intensity factor squared × 100)
+    private static let tssScalingFactor: Double = 100
+
     // MARK: - Main Calculation
     
     func calculateStrainScore(
@@ -194,12 +222,13 @@ actor StrainDataCalculator {
     }
     
     /// Enrich activities with HR from streams when summary data is missing
-    /// Only enriches activities from the last 30 days to limit API calls
+    /// Only enriches activities from the last N days to limit API calls
     private func enrichActivitiesWithHeartRate(_ activities: [Activity]) async -> [Activity] {
         var enrichedActivities = activities
-        let thirtyDaysAgo = Date().addingTimeInterval(-30 * 24 * 3600)
-        
-        Logger.info("💓 [ENRICHMENT] Processing \(activities.count) activities (30-day window)")
+        let windowSeconds = Double(Self.enrichmentWindowDays) * 24 * 3600
+        let windowStart = Date().addingTimeInterval(-windowSeconds)
+
+        Logger.info("💓 [ENRICHMENT] Processing \(activities.count) activities (\(Self.enrichmentWindowDays)-day window)")
         
         for (index, activity) in activities.enumerated() {
             Logger.debug("💓 [ENRICHMENT] Activity \(index + 1): '\(activity.name ?? "Unknown")' - avgHR: \(activity.averageHeartRate?.description ?? "nil"), enrichedHR: \(activity.enrichedAverageHeartRate?.description ?? "nil"), TSS: \(activity.tss?.description ?? "nil"), NP: \(activity.normalizedPower?.description ?? "nil")")
@@ -222,10 +251,10 @@ actor StrainDataCalculator {
                 continue
             }
             
-            // Only enrich recent activities (30-day window)
+            // Only enrich recent activities (within enrichment window)
             guard let activityDate = parseActivityDate(activity.startDateLocal),
-                  activityDate >= thirtyDaysAgo else {
-                Logger.debug("   ⏭️ Skipping enrichment for '\(activity.name ?? "Unknown")' - older than 30 days")
+                  activityDate >= windowStart else {
+                Logger.debug("   ⏭️ Skipping enrichment for '\(activity.name ?? "Unknown")' - older than \(Self.enrichmentWindowDays) days")
                 continue
             }
             
@@ -318,7 +347,7 @@ actor StrainDataCalculator {
                let ftpValue = ftp,
                np > 0, ftpValue > 0 {
                 let intensityFactor = np / ftpValue
-                let estimatedTSS = (duration / 3600) * intensityFactor * intensityFactor * 100
+                let estimatedTSS = (duration / Self.secondsPerHour) * intensityFactor * intensityFactor * Self.tssScalingFactor
                 totalTRIMP += estimatedTSS
                 Logger.debug("   Activity: \(activity.name ?? "Unknown") - Power-based TSS: \(String(format: "%.1f", estimatedTSS))")
                 continue
@@ -339,7 +368,7 @@ actor StrainDataCalculator {
                 let hrReserve = maxHRValue - restingHRValue
                 let workingHR = avgHR - restingHRValue
                 let percentHRR = workingHR / hrReserve
-                let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
+                let trimp = (duration / 60) * percentHRR * Self.trimpExponentialBase * exp(Self.trimpExponentialMultiplier * percentHRR)
                 totalTRIMP += trimp
                 Logger.debug("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP (summary): \(String(format: "%.1f", trimp))")
             } else if let enrichedHR = activity.enrichedAverageHeartRate,
@@ -350,16 +379,15 @@ actor StrainDataCalculator {
                 let hrReserve = maxHRValue - restingHRValue
                 let workingHR = enrichedHR - restingHRValue
                 let percentHRR = workingHR / hrReserve
-                let trimp = (duration / 60) * percentHRR * 0.64 * exp(1.92 * percentHRR)
+                let trimp = (duration / 60) * percentHRR * Self.trimpExponentialBase * exp(Self.trimpExponentialMultiplier * percentHRR)
                 totalTRIMP += trimp
                 Logger.info("   Activity: \(activity.name ?? "Unknown") - HR-based TRIMP (enriched from streams): \(String(format: "%.1f", trimp))")
             } else if let duration = activity.duration, duration > 0 {
                 // Priority 4: FALLBACK - Estimate from duration alone (for activities without HR/power data)
-                // This handles cases where stream enrichment failed or activity is older than 30 days
-                // Use moderate intensity assumption (HR reserve ~0.6)
+                // This handles cases where stream enrichment failed or activity is older than enrichment window
+                // Use moderate intensity assumption
                 let durationMinutes = duration / 60
-                let estimatedHRReserve = 0.6  // Moderate intensity
-                let estimatedTRIMP = durationMinutes * estimatedHRReserve
+                let estimatedTRIMP = durationMinutes * Self.moderateIntensityHRR
                 totalTRIMP += estimatedTRIMP
                 Logger.debug("   Activity: \(activity.name ?? "Unknown") - Duration-based estimate: \(String(format: "%.1f", estimatedTRIMP)) (duration: \(String(format: "%.1f", durationMinutes))m)")
             } else {
