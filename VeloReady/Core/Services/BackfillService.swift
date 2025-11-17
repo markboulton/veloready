@@ -460,36 +460,48 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Build inputs from historical data (use what's available)
-                    let inputs = SleepScore.SleepInputs(
-                        sleepDuration: physio.sleepDuration,
-                        timeInBed: nil, // Not available historically
-                        sleepNeed: 25200, // Standard 7 hours (same as real-time calc)
-                        deepSleepDuration: nil, // Not available historically
-                        remSleepDuration: nil,
-                        coreSleepDuration: nil,
-                        awakeDuration: nil,
-                        wakeEvents: nil,
-                        bedtime: nil,
-                        wakeTime: nil,
-                        baselineBedtime: nil,
-                        baselineWakeTime: nil,
-                        hrvOvernight: physio.hrv > 0 ? physio.hrv : nil,
-                        hrvBaseline: physio.hrvBaseline > 0 ? physio.hrvBaseline : nil,
-                        sleepLatency: nil
-                    )
-                    
-                    // Use the SAME calculation as real-time (SleepScoreCalculator)
-                    let result = SleepScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
-                    
-                    scores.sleepScore = Double(result.score)
+                    // REGRESSION FIX: Use simplified formula for historical data
+                    // Full SleepScoreCalculator needs 5 components (stages, timing, etc)
+                    // Historical data only has duration → produces flat scores (~65-75)
+                    // This simplified formula uses duration + consistency → better variance (60-100)
+
+                    let sleepHours = physio.sleepDuration / 3600.0
+                    var sleepScore = 50.0
+
+                    // Duration component (40 points) - granular scoring for variance
+                    if sleepHours >= 7 && sleepHours <= 9 {
+                        sleepScore += 40 // Optimal
+                    } else if sleepHours >= 6 && sleepHours < 7 {
+                        sleepScore += 30 // Good but short
+                    } else if sleepHours > 9 && sleepHours <= 10 {
+                        sleepScore += 30 // Good but long
+                    } else if sleepHours >= 5 && sleepHours < 6 {
+                        sleepScore += 20 // Poor
+                    } else if sleepHours > 10 && sleepHours <= 11 {
+                        sleepScore += 20 // Poor (oversleep)
+                    } else {
+                        sleepScore += 10 // Very poor
+                    }
+
+                    // Consistency component (10 points) - bonus for stable sleep
+                    if physio.sleepBaseline > 0 {
+                        let sleepRatio = physio.sleepDuration / physio.sleepBaseline
+                        if sleepRatio >= 0.9 && sleepRatio <= 1.1 {
+                            sleepScore += 10 // Very consistent
+                        } else if sleepRatio >= 0.8 && sleepRatio <= 1.2 {
+                            sleepScore += 5 // Moderately consistent
+                        }
+                    }
+
+                    sleepScore = max(0, min(100, sleepScore))
+
+                    scores.sleepScore = sleepScore
                     scores.lastUpdated = Date()
                     updatedCount += 1
-                    
+
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMM dd"
-                    let sleepHours = physio.sleepDuration / 3600.0
-                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(result.score) (was \(Int(scores.sleepScore)), \(String(format: "%.1f", sleepHours))h sleep, Band=\(result.band.rawValue))")
+                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.0f", sleepScore)) (\(String(format: "%.1f", sleepHours))h sleep)")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
