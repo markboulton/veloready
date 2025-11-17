@@ -713,8 +713,31 @@ final class BackfillService {
                 if let sleep = data.sleep {
                     physio.sleepDuration = sleep
                 }
-                
+
                 physio.lastUpdated = Date()
+
+                // CRITICAL FIX: Ensure DailyScores exists and is linked to this physio
+                let scoresRequest = DailyScores.fetchRequest()
+                scoresRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
+                scoresRequest.fetchLimit = 1
+
+                let scores: DailyScores
+                if let existing = try? context.fetch(scoresRequest).first {
+                    scores = existing
+                } else {
+                    scores = DailyScores(context: context)
+                    scores.date = date
+                    scores.recoveryScore = 50 // Placeholder - will be calculated by recovery backfill
+                    scores.sleepScore = 50 // Placeholder - will be calculated by sleep backfill
+                    scores.strainScore = 0
+                    scores.effortTarget = 50
+                    scores.recoveryBand = "amber"
+                    scores.lastUpdated = Date()
+                }
+
+                // Link physio to scores
+                scores.physio = physio
+
                 savedCount += 1
             }
             
