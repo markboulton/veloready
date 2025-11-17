@@ -40,9 +40,20 @@ actor SleepDataCalculator {
     /// Default wake time hour offset when no historical data available (6 AM)
     private static let defaultWakeTimeHourOffset = -6
 
+    // MARK: - Input Validation
+
+    /// Valid sleep need range in seconds (4-12 hours)
+    /// Allows 4-12 hours to cover individual variation
+    private static let validSleepNeedRange: ClosedRange<Double> = (4 * 3600)...(12 * 3600)
+
     // MARK: - Main Calculation
-    
+
     func calculateSleepScore(sleepNeed: Double) async -> SleepScore? {
+        // Validate sleep need parameter
+        guard Self.validSleepNeedRange.contains(sleepNeed) else {
+            Logger.warning("⚠️ Invalid sleep need: \(sleepNeed/3600)h (valid: 4-12h). Using default 8h.")
+            return await calculateSleepScore(sleepNeed: 8 * 3600) // Fallback to 8 hours
+        }
         // Get detailed sleep data (with retry for HealthKit authorization timing issues)
         var sleepInfo: HealthKitSleepData?
         var retryCount = 0

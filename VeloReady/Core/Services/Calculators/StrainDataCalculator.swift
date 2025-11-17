@@ -37,6 +37,24 @@ actor StrainDataCalculator {
     /// TSS scaling factor (intensity factor squared × 100)
     private static let tssScalingFactor: Double = 100
 
+    // MARK: - Input Validation Ranges
+
+    /// Valid FTP range in watts (functional threshold power)
+    /// Typical range: 100-500W, allowing 50-600W for edge cases
+    private static let validFTPRange: ClosedRange<Double> = 50...600
+
+    /// Valid max heart rate range in BPM
+    /// Typical adult range: 150-200, allowing 100-220 for age variability
+    private static let validMaxHRRange: ClosedRange<Double> = 100...220
+
+    /// Valid resting heart rate range in BPM
+    /// Athletic range: 40-60, allowing 30-100 for all fitness levels
+    private static let validRestingHRRange: ClosedRange<Double> = 30...100
+
+    /// Valid body mass range in kg
+    /// Allowing 40-200kg to cover wide range of athletes
+    private static let validBodyMassRange: ClosedRange<Double> = 40...200
+
     // MARK: - Main Calculation
     
     func calculateStrainScore(
@@ -46,6 +64,12 @@ actor StrainDataCalculator {
         restingHeartRate: Double?,
         bodyMass: Double?
     ) async -> StrainScore? {
+        // Validate user-provided parameters
+        let validatedFTP = validate(ftp, in: Self.validFTPRange, name: "FTP")
+        let validatedMaxHR = validate(maxHeartRate, in: Self.validMaxHRRange, name: "MaxHR")
+        let validatedRestingHR = validate(restingHeartRate, in: Self.validRestingHRRange, name: "RestingHR")
+        let validatedBodyMass = validate(bodyMass, in: Self.validBodyMassRange, name: "BodyMass")
+
         // Get health data (now cached in HealthKitManager)
         async let steps = healthKitManager.fetchDailySteps()
         async let activeCalories = healthKitManager.fetchDailyActiveCalories()
@@ -69,7 +93,7 @@ actor StrainDataCalculator {
         
         // Calculate TRIMP from today's HealthKit workouts + unified activities (Intervals/Strava)
         let healthKitTRIMP = await calculateTRIMPFromWorkouts(workouts: workouts)
-        let unifiedTRIMP = calculateTRIMPFromStravaActivities(activities: unifiedActivities, ftp: ftp, maxHR: maxHeartRate, restingHR: restingHeartRate)
+        let unifiedTRIMP = calculateTRIMPFromStravaActivities(activities: unifiedActivities, ftp: validatedFTP, maxHR: validatedMaxHR, restingHR: validatedRestingHR)
         let cardioTRIMP = healthKitTRIMP + unifiedTRIMP
         
         // Include HealthKit AND unified activities (Intervals.icu + Strava)
@@ -131,7 +155,7 @@ actor StrainDataCalculator {
         }
         Logger.debug("   Recovery Factor: \((trainingLoads.atl, trainingLoads.ctl))")
         
-        // Create inputs
+        // Create inputs (use validated parameters)
         let inputs = StrainScore.StrainInputs(
             continuousHRData: nil,
             dailyTRIMP: nil,
@@ -153,10 +177,10 @@ actor StrainDataCalculator {
             rmrToday: rhrValue.sample?.quantity.doubleValue(for: HKUnit(from: "count/min")),
             rmrBaseline: rhrBaseline,
             sleepQuality: sleepScore?.score,
-            userFTP: ftp,
-            userMaxHR: maxHeartRate,
-            userRestingHR: restingHeartRate,
-            userBodyMass: bodyMass
+            userFTP: validatedFTP,
+            userMaxHR: validatedMaxHR,
+            userRestingHR: validatedRestingHR,
+            userBodyMass: validatedBodyMass
         )
         
         // Delegate to existing StrainScoreCalculator for final calculation
@@ -414,5 +438,20 @@ actor StrainDataCalculator {
         
         Logger.debug("🔍 Total TRIMP from \(workouts.count) HealthKit workouts: \(String(format: "%.1f", totalTRIMP))")
         return totalTRIMP
+    }
+
+    // MARK: - Input Validation
+
+    /// Validate optional parameter is within valid range
+    /// Logs warning and returns nil if value is out of range
+    private func validate(_ value: Double?, in range: ClosedRange<Double>, name: String) -> Double? {
+        guard let value = value else { return nil }
+
+        guard range.contains(value) else {
+            Logger.warning("⚠️ Invalid \(name): \(value) (valid range: \(range)). Ignoring value.")
+            return nil
+        }
+
+        return value
     }
 }
