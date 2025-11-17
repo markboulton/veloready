@@ -39,12 +39,22 @@ final class BackfillService {
     ///   - days: Number of days to backfill (default 60)
     ///   - forceRefresh: Bypass throttling and force refresh (default false)
     func backfillAll(days: Int = 60, forceRefresh: Bool = false) async {
-        Logger.info("🔄 [BACKFILL] Starting comprehensive backfill for \(days) days...")
+        Logger.info("🔄 [BACKFILL] ✅ FUNCTION CALLED - Starting comprehensive backfill for \(days) days...")
+        Logger.info("🔄 [BACKFILL] forceRefresh: \(forceRefresh)")
+        Logger.info("🔄 [BACKFILL] Current thread: \(Thread.current)")
         
         // Run in sequence for data dependencies
+        Logger.info("🔄 [BACKFILL] Step 1/3: backfillHistoricalPhysioData...")
         await backfillHistoricalPhysioData(days: days)  // 1. Raw HealthKit data
+        Logger.info("🔄 [BACKFILL] ✅ Step 1/3 complete")
+        
+        Logger.info("🔄 [BACKFILL] Step 2/3: backfillTrainingLoad...")
         await backfillTrainingLoad(days: days, forceRefresh: forceRefresh)  // 2. CTL/ATL/TSS
+        Logger.info("🔄 [BACKFILL] ✅ Step 2/3 complete")
+        
+        Logger.info("🔄 [BACKFILL] Step 3/3: backfillScores...")
         await backfillScores(days: days, forceRefresh: forceRefresh)  // 3. Scores from raw data
+        Logger.info("🔄 [BACKFILL] ✅ Step 3/3 complete")
         
         Logger.info("✅ [BACKFILL] Complete!")
     }

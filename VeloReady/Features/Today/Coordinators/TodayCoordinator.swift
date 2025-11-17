@@ -316,18 +316,31 @@ class TodayCoordinator: ObservableObject {
             Logger.info("✅ [TodayCoordinator] ━━━ Initial load complete in \(String(format: "%.2f", duration))s ━━━")
             
             // Phase 4: Background cleanup and backfill of all historical data (non-blocking)
+            Logger.info("🔍 [TodayCoordinator] ABOUT TO CREATE BACKGROUND TASK for backfill...")
+            Logger.info("🔍 [TodayCoordinator] Current actor: \(Task.currentPriority)")
+            
             Task(priority: .background) {
-                Logger.info("🔄 [TodayCoordinator] Starting background cleanup and backfill...")
+                Logger.info("🔄 [TodayCoordinator] ✅ TASK STARTED - Inside background task closure")
                 
-                // Step 1: Clean up corrupt training load data from previous bugs
-                await CacheManager.shared.cleanupCorruptTrainingLoadData()
-                
-                // Step 2: Use BackfillService for all historical data backfilling
-                // This orchestrates: physio data → training load → scores (in correct order)
-                await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
-                
-                Logger.info("✅ [TodayCoordinator] Background backfill complete")
+                do {
+                    Logger.info("🔄 [TodayCoordinator] Step 1: Cleanup corrupt data...")
+                    // Step 1: Clean up corrupt training load data from previous bugs
+                    await CacheManager.shared.cleanupCorruptTrainingLoadData()
+                    Logger.info("🔄 [TodayCoordinator] ✅ Step 1 complete")
+                    
+                    Logger.info("🔄 [TodayCoordinator] Step 2: Starting backfillAll...")
+                    // Step 2: Use BackfillService for all historical data backfilling
+                    // This orchestrates: physio data → training load → scores (in correct order)
+                    await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
+                    Logger.info("🔄 [TodayCoordinator] ✅ Step 2 complete")
+                    
+                    Logger.info("✅ [TodayCoordinator] Background backfill complete")
+                } catch {
+                    Logger.error("❌ [TodayCoordinator] Background task ERROR: \(error)")
+                }
             }
+            
+            Logger.info("🔍 [TodayCoordinator] Task created - continuing execution...")
             
         } catch {
             // CRITICAL: DON'T set lastLoadTime on error

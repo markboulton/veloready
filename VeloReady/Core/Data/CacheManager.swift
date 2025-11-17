@@ -505,9 +505,11 @@ final class CacheManager: ObservableObject {
     /// Clean up corrupt training load data from previous bugs
     /// Called once on app launch to fix historical data issues
     func cleanupCorruptTrainingLoadData() async {
-        Logger.data("🧹 [CTL/ATL CLEANUP] Checking for corrupt training load data...")
+        Logger.data("🧹 [CTL/ATL CLEANUP] ✅ FUNCTION CALLED - Starting cleanup...")
+        Logger.data("🧹 [CTL/ATL CLEANUP] Current thread: \(Thread.current)")
         
         let context = persistence.newBackgroundContext()
+        Logger.data("🧹 [CTL/ATL CLEANUP] Background context created")
         
         await context.perform {
             let request = DailyLoad.fetchRequest()
