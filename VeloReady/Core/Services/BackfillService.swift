@@ -333,8 +333,9 @@ final class BackfillService {
                 for scores in allScores {
                     guard let date = scores.date else { continue }
                     
-                    // Only process days with placeholder recovery score (50)
-                    guard scores.recoveryScore == 50 else {
+                    // Skip if already has a realistic recovery score (> 80 means properly calculated)
+                    // Old simplified formula produced 40-70 range, new formula produces 0-100 with proper distribution
+                    if !forceRefresh && scores.recoveryScore > 80 {
                         skippedCount += 1
                         continue
                     }
@@ -380,7 +381,7 @@ final class BackfillService {
                     
                     let formatter = DateFormatter()
                     formatter.dateFormat = "MMM dd"
-                    Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(result.score) (was 50, HRV=\(physio.hrv), RHR=\(physio.rhr), Band=\(result.band.rawValue))")
+                    Logger.data("  ✅ \(formatter.string(from: date)): Calculated recovery=\(result.score) (was \(Int(scores.recoveryScore)), HRV=\(physio.hrv), RHR=\(physio.rhr), Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
@@ -414,8 +415,9 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Skip if already has a sleep score != 50 (unless forced)
-                    if !forceRefresh && scores.sleepScore != 50 {
+                    // Skip if already has a realistic sleep score (> 80 means properly calculated)
+                    // Old simplified formula produced 50-90 range, new formula produces proper 0-100 distribution
+                    if !forceRefresh && scores.sleepScore > 80 {
                         skippedCount += 1
                         continue
                     }
@@ -432,44 +434,36 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Calculate sleep score
-                    let sleepHours = physio.sleepDuration / 3600.0
-                    var sleepScore = 50.0
+                    // Build inputs from historical data (use what's available)
+                    let inputs = SleepScore.SleepInputs(
+                        sleepDuration: physio.sleepDuration,
+                        timeInBed: nil, // Not available historically
+                        sleepNeed: 25200, // Standard 7 hours (same as real-time calc)
+                        deepSleepDuration: nil, // Not available historically
+                        remSleepDuration: nil,
+                        coreSleepDuration: nil,
+                        awakeDuration: nil,
+                        wakeEvents: nil,
+                        bedtime: nil,
+                        wakeTime: nil,
+                        baselineBedtime: nil,
+                        baselineWakeTime: nil,
+                        hrvOvernight: physio.hrv > 0 ? physio.hrv : nil,
+                        hrvBaseline: physio.hrvBaseline > 0 ? physio.hrvBaseline : nil,
+                        sleepLatency: nil
+                    )
                     
-                    // Duration component (40 points)
-                    if sleepHours >= 7 && sleepHours <= 9 {
-                        sleepScore += 40
-                    } else if sleepHours >= 6 && sleepHours < 7 {
-                        sleepScore += 30
-                    } else if sleepHours > 9 && sleepHours <= 10 {
-                        sleepScore += 30
-                    } else if sleepHours >= 5 && sleepHours < 6 {
-                        sleepScore += 20
-                    } else if sleepHours > 10 && sleepHours <= 11 {
-                        sleepScore += 20
-                    } else {
-                        sleepScore += 10
-                    }
+                    // Use the SAME calculation as real-time (SleepScoreCalculator)
+                    let result = SleepScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
                     
-                    // Consistency component (10 points)
-                    if physio.sleepBaseline > 0 {
-                        let sleepRatio = physio.sleepDuration / physio.sleepBaseline
-                        if sleepRatio >= 0.9 && sleepRatio <= 1.1 {
-                            sleepScore += 10
-                        } else if sleepRatio >= 0.8 && sleepRatio <= 1.2 {
-                            sleepScore += 5
-                        }
-                    }
-                    
-                    sleepScore = max(0, min(100, sleepScore))
-                    
-                    scores.sleepScore = sleepScore
+                    scores.sleepScore = Double(result.score)
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMM dd"
-                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(String(format: "%.0f", sleepScore)) (\(String(format: "%.1f", sleepHours))h sleep)")
+                    let sleepHours = physio.sleepDuration / 3600.0
+                    Logger.debug("📊 [SLEEP BACKFILL]   \(dateFormatter.string(from: date)): \(result.score) (was \(Int(scores.sleepScore)), \(String(format: "%.1f", sleepHours))h sleep, Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
