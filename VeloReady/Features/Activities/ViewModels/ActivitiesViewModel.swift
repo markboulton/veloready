@@ -106,27 +106,29 @@ class ActivitiesViewModel: ObservableObject {
         hasLoadedExtended = false
         hasLoadedInitialData = true
         
+        // OPTIMIZATION: Reduce initial fetch from 200 → 50 for faster startup
         // FREE: 30 days, PRO: 30 days initially (can load 60 more)
         let daysBack = 30
-        
-        Logger.debug("📊 [Activities] Loading activities: \(daysBack) days (PRO: \(proConfig.hasProAccess))")
-        
+        let initialFetchLimit = 50 // Reduced from 200 for faster initial load
+
+        Logger.debug("📊 [Activities] Loading activities: \(daysBack) days, limit: \(initialFetchLimit) (PRO: \(proConfig.hasProAccess))")
+
         // Try to fetch activities from Intervals.icu (optional)
         var intervalsActivities: [Activity] = []
         do {
-            intervalsActivities = try await apiClient.fetchRecentActivities(limit: 200, daysBack: daysBack)
+            intervalsActivities = try await apiClient.fetchRecentActivities(limit: initialFetchLimit, daysBack: daysBack)
             Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) activities from Intervals.icu")
         } catch {
             Logger.warning("⚠️ [Activities] Intervals.icu not available: \(error.localizedDescription)")
             Logger.debug("📱 [Activities] Continuing with HealthKit-only mode")
         }
-        
+
         // Fetch Strava activities using shared service
         await StravaDataService.shared.fetchActivitiesIfNeeded()
         let stravaActivities = StravaDataService.shared.activities
-        
+
         // Always fetch Apple Health workouts
-        let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: daysBack)
+        let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: initialFetchLimit, daysBack: daysBack)
         Logger.debug("✅ [Activities] Loaded \(healthWorkouts.count) workouts from Apple Health")
         
         // Convert to unified format and filter Strava-sourced activities from Intervals
@@ -175,15 +177,17 @@ class ActivitiesViewModel: ObservableObject {
         isLoadingMore = true
         
         do {
-            Logger.debug("📊 [Activities] Loading extended activities: 31-90 days")
-            
+            // OPTIMIZATION: Use consistent fetch limit (50 for extended data)
+            let extendedFetchLimit = 50
+            Logger.debug("📊 [Activities] Loading extended activities: 31-90 days, limit: \(extendedFetchLimit)")
+
             // Fetch activities from Intervals.icu if authenticated
             var intervalsActivities: [Activity] = []
             if IntervalsOAuthManager.shared.isAuthenticated {
-                intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: 200, daysBack: 90)) ?? []
+                intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: extendedFetchLimit, daysBack: 90)) ?? []
                 Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) extended Intervals activities")
             }
-            
+
             // Fetch Strava activities (if connected)
             var stravaActivities: [StravaActivity] = []
             let stravaAuthService = StravaAuthService.shared
@@ -191,13 +195,13 @@ class ActivitiesViewModel: ObservableObject {
                 let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: Date())
                 stravaActivities = (try? await StravaAPIClient.shared.fetchActivities(
                     page: 1,
-                    perPage: 200,
+                    perPage: extendedFetchLimit,
                     after: ninetyDaysAgo
                 )) ?? []
                 Logger.debug("✅ [Activities] Loaded \(stravaActivities.count) extended Strava activities")
             }
-            
-            let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: 200, daysBack: 90)
+
+            let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: extendedFetchLimit, daysBack: 90)
             
             // Filter to only activities from day 31-90 (exclude first 30 days already loaded)
             let calendar = Calendar.current
