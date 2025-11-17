@@ -112,7 +112,10 @@ actor CachePersistenceLayer {
                     try context.save()
                     
                     self.saveCount += 1
-                    Logger.debug("💾 [CachePersistence] Saved \(key) (\(valueData.count / 1024)KB, expires: \(Int(ttl/60))min)")
+                    // Only log saves for non-score data (reduces spam)
+                    if !key.contains("score:") && !key.contains("healthkit:") {
+                        Logger.debug("💾 [CachePersistence] Saved \(key) (\(valueData.count / 1024)KB, expires: \(Int(ttl/60))min)")
+                    }
                 } catch {
                     Logger.error("💾 [CachePersistence] Failed to save \(key): \(error.localizedDescription)")
                 }
@@ -143,10 +146,7 @@ actor CachePersistenceLayer {
                       let valueData = entry.valueData,
                       let cachedAt = entry.cachedAt else {
                     self.missCount += 1
-                    // Only log misses for non-historical data (reduces spam from bulk fetches)
-                    if !key.contains("T21:38:") && !key.contains("T00:00:00Z") {
-                        Logger.debug("💾 [CachePersistence] MISS \(key)")
-                    }
+                    // Don't log misses - too verbose (reduces 1000+ lines of logs)
                     return nil
                 }
                 
@@ -157,10 +157,7 @@ actor CachePersistenceLayer {
                     try? context.save()
                     
                     self.missCount += 1
-                    // Only log expiration for non-historical data
-                    if !key.contains("T21:38:") && !key.contains("T00:00:00Z") {
-                        Logger.debug("💾 [CachePersistence] MISS \(key) (expired)")
-                    }
+                    // Don't log expiration - too verbose
                     return nil
                 }
                 
@@ -169,9 +166,7 @@ actor CachePersistenceLayer {
                 
                 self.loadCount += 1
                 self.hitCount += 1
-                let age = Date().timeIntervalSince(cachedAt)
-                Logger.debug("💾 [CachePersistence] HIT \(key) (age: \(Int(age))s, \(valueData.count / 1024)KB)")
-                
+                // Don't log hits - too verbose (reduces 100+ lines of logs)
                 return (value: value, cachedAt: cachedAt)
             } catch {
                 self.missCount += 1

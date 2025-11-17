@@ -46,7 +46,7 @@ struct TodayView: View {
     var body: some View {
         // Don't render NavigationStack at all until branding animation is done
         // This prevents the navigation bar from flashing before the overlay appears
-        let _ = Logger.info("🏠 [TodayView] BODY EVALUATED - showInitialSpinner: \(showInitialSpinner)")
+        let _ = Logger.trace("🏠 [TodayView] BODY EVALUATED - showInitialSpinner: \(showInitialSpinner)")
         
         if showInitialSpinner {
             // Black screen while branding animation shows (overlay is in MainTabView)
@@ -62,7 +62,7 @@ struct TodayView: View {
                     Color.background.app
                         .ignoresSafeArea()
                         .onAppear {
-                            Logger.debug("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
+                            Logger.trace("🏠 [TodayView] BODY RENDERING - healthKitManager.isAuthorized: \(healthKitManager.isAuthorized)")
                         }
                     
                     ScrollView {
