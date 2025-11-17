@@ -520,8 +520,9 @@ final class BackfillService {
                         continue
                     }
                     
-                    // Skip if already has a strain score > 0 (unless forced)
-                    if !forceRefresh && scores.strainScore > 0 {
+                    // Skip if already has a realistic strain score (> 2.1 to exclude NEAT baseline, unless forced)
+                    // Note: 2.0 is the NEAT baseline default, so we recalculate those
+                    if !forceRefresh && scores.strainScore > 2.1 {
                         skippedCount += 1
                         continue
                     }
