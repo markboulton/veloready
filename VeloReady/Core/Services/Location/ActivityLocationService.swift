@@ -1,6 +1,7 @@
 import Foundation
 import HealthKit
 import CoreLocation
+import MapKit
 
 /// Errors that can occur during location fetching
 enum LocationError: Error {
@@ -165,27 +166,27 @@ class ActivityLocationService {
             }
         }
         lastGeocodingTime = Date()
-        
-        let geocoder = CLGeocoder()
+
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
+        let geocoder = CLGeocoder()
+
         do {
             let placemarks = try await geocoder.reverseGeocodeLocation(location)
             guard let placemark = placemarks.first else { return nil }
-            
+
             // Format as "City, Country" (e.g., "Llantwit Major, UK")
             var components: [String] = []
-            
+
             if let locality = placemark.locality {
                 components.append(locality)
             } else if let subLocality = placemark.subLocality {
                 components.append(subLocality)
             }
-            
+
             if let countryCode = placemark.isoCountryCode {
                 components.append(countryCode)
             }
-            
+
             return components.isEmpty ? nil : components.joined(separator: ", ")
         } catch {
             // Silent failure - location is nice-to-have, not critical

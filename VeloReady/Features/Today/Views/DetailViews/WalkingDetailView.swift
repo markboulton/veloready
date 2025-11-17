@@ -317,11 +317,22 @@ struct WalkingWorkoutInfoHeader: View {
                     )
                 }
                 
-                if let calories = workout.totalEnergyBurned {
-                    CompactMetricItem(
-                        label: "Calories",
-                        value: "\(Int(calories.doubleValue(for: .kilocalorie())))"
-                    )
+                if #available(iOS 18.0, *) {
+                    let energyType = HKQuantityType(.activeEnergyBurned)
+                    if let energyStats = workout.statistics(for: energyType),
+                       let quantity = energyStats.sumQuantity() {
+                        CompactMetricItem(
+                            label: "Calories",
+                            value: "\(Int(quantity.doubleValue(for: .kilocalorie())))"
+                        )
+                    }
+                } else {
+                    if let calories = workout.totalEnergyBurned {
+                        CompactMetricItem(
+                            label: "Calories",
+                            value: "\(Int(calories.doubleValue(for: .kilocalorie())))"
+                        )
+                    }
                 }
                 
                 if viewModel.steps > 0 {

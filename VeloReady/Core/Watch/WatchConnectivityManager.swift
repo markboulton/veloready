@@ -1,5 +1,5 @@
 import Foundation
-import WatchConnectivity
+@preconcurrency import WatchConnectivity
 
 /// Manages communication between iPhone and Apple Watch
 /// Syncs recovery score, HRV, RHR, and other metrics to watch
@@ -151,13 +151,13 @@ class WatchConnectivityManager: NSObject, ObservableObject {
     private func handleHealthDataFromWatch(_ data: [String: Any]) {
         // Extract HRV if available
         if let hrv = data["hrv"] as? Double,
-           let hrvTimestamp = data["hrvTimestamp"] as? TimeInterval {
+           let _ = data["hrvTimestamp"] as? TimeInterval {
             Logger.info("⌚ Received HRV from watch: \(hrv)ms")
         }
-        
+
         // Extract RHR if available
         if let rhr = data["rhr"] as? Double,
-           let rhrTimestamp = data["rhrTimestamp"] as? TimeInterval {
+           let _ = data["rhrTimestamp"] as? TimeInterval {
             Logger.info("⌚ Received RHR from watch: \(rhr)bpm")
         }
     }

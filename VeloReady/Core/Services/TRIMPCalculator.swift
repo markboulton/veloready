@@ -11,9 +11,14 @@ actor TRIMPCalculator {
     // Cache TRIMP per workout UUID (TRIMP for a workout never changes)
     private var trimpCache: [String: Double] = [:]
     private let cacheKey = "trimp_cache"
-    
+
     init() {
-        loadCache()
+        // Load TRIMP cache from UserDefaults
+        if let data = UserDefaults.standard.data(forKey: cacheKey),
+           let cache = try? JSONDecoder().decode([String: Double].self, from: data) {
+            trimpCache = cache
+            Logger.debug("⚡ [TRIMP] Loaded \(cache.count) cached workouts")
+        }
     }
     
     /// Calculate TRIMP for a specific workout
@@ -173,7 +178,14 @@ actor TRIMPCalculator {
     /// Estimate TRIMP from workout when HR data is unavailable
     /// Uses different multipliers based on activity type
     private func estimateTRIMPFromWorkout(_ workout: HKWorkout) -> Double {
-        let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+        let calories: Double
+        if #available(iOS 18.0, *) {
+            let energyType = HKQuantityType(.activeEnergyBurned)
+            let energyStats = workout.statistics(for: energyType)
+            calories = energyStats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+        } else {
+            calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+        }
         _ = workout.duration / 60.0
         
         // Different multipliers based on workout type
@@ -221,16 +233,7 @@ actor TRIMPCalculator {
     }
     
     // MARK: - Cache Persistence
-    
-    /// Load TRIMP cache from UserDefaults
-    private func loadCache() {
-        if let data = UserDefaults.standard.data(forKey: cacheKey),
-           let cache = try? JSONDecoder().decode([String: Double].self, from: data) {
-            trimpCache = cache
-            Logger.debug("⚡ [TRIMP] Loaded \(cache.count) cached workouts")
-        }
-    }
-    
+
     /// Save TRIMP cache to UserDefaults
     private func saveCache() {
         if let data = try? JSONEncoder().encode(trimpCache) {

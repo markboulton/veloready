@@ -129,7 +129,7 @@ actor MemoryCacheLayer: CacheLayer {
         let task = Task<T, Error> {
             defer {
                 Task {
-                    await self.removeInflightRequest(key: key)
+                    self.removeInflightRequest(key: key)
                 }
             }
             return try await operation()

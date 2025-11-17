@@ -5,86 +5,98 @@ struct ScrollPositionModifier: ViewModifier {
     let threshold: CGFloat
     let onAppear: () -> Void
     let viewId: String
-    
+
     private let stateManager = ScrollStateManager.shared
-    
+
     init(threshold: CGFloat = 200, viewId: String = UUID().uuidString, onAppear: @escaping () -> Void) {
         self.threshold = threshold
         self.viewId = viewId
         self.onAppear = onAppear
     }
-    
+
     func body(content: Content) -> some View {
-        content
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .preference(
-                            key: ScrollPositionPreferenceKey.self,
-                            value: geometry.frame(in: .global).minY
-                        )
-                }
-            )
-            .onPreferenceChange(ScrollPositionPreferenceKey.self) { minY in
-                var state = stateManager.getState(for: viewId)
-                
-                // Get screen height and calculate floating tab bar position
-                let screenHeight = UIScreen.main.bounds.height
-                let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
-                let tabBarTop = screenHeight - tabBarHeight
-                let triggerPoint = tabBarTop - threshold
-                
-                // Check if view is NOW in trigger zone
-                let isNowInTriggerZone = minY < triggerPoint
-                
-                // Check if view is in visible viewport (not scrolled off top or bottom)
-                let isInViewport = minY > -100 && minY < screenHeight
-                
-                // Record initial position on first frame
-                if !state.hasRecordedInitialPosition {
-                    state.initialMinY = minY
-                    state.hasRecordedInitialPosition = true
-                    state.wasInTriggerZone = isNowInTriggerZone
-                    stateManager.setState(state, for: viewId)
-                    
-                    Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(state.wasInTriggerZone), id: \(viewId.prefix(8))")
-                    
-                    // If view starts in trigger zone AND is visible, animate immediately
-                    if isNowInTriggerZone && isInViewport {
+        GeometryReader { screenGeometry in
+            content
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .preference(
+                                key: ScrollPositionPreferenceKey.self,
+                                value: ScrollPositionData(
+                                    minY: geometry.frame(in: .global).minY,
+                                    screenHeight: screenGeometry.size.height
+                                )
+                            )
+                    }
+                )
+                .onPreferenceChange(ScrollPositionPreferenceKey.self) { data in
+                    var state = stateManager.getState(for: viewId)
+
+                    let minY = data.minY
+                    let screenHeight = data.screenHeight
+
+                    // Get screen height and calculate floating tab bar position
+                    let tabBarHeight: CGFloat = 60 // Approximate floating tab bar height
+                    let tabBarTop = screenHeight - tabBarHeight
+                    let triggerPoint = tabBarTop - threshold
+
+                    // Check if view is NOW in trigger zone
+                    let isNowInTriggerZone = minY < triggerPoint
+
+                    // Check if view is in visible viewport (not scrolled off top or bottom)
+                    let isInViewport = minY > -100 && minY < screenHeight
+
+                    // Record initial position on first frame
+                    if !state.hasRecordedInitialPosition {
+                        state.initialMinY = minY
+                        state.hasRecordedInitialPosition = true
+                        state.wasInTriggerZone = isNowInTriggerZone
+                        stateManager.setState(state, for: viewId)
+
+                        Logger.debug("📍 [SCROLL] Initial position recorded - minY: \(Int(minY)), triggerPoint: \(Int(triggerPoint)), startedInZone: \(state.wasInTriggerZone), id: \(viewId.prefix(8))")
+
+                        // If view starts in trigger zone AND is visible, animate immediately
+                        if isNowInTriggerZone && isInViewport {
+                            state.hasAppeared = true
+                            stateManager.setState(state, for: viewId)
+                            Logger.debug("🎬 [SCROLL] Animation triggered immediately! View started in trigger zone and is visible, id: \(viewId.prefix(8))")
+                            onAppear()
+                        }
+                        return
+                    }
+
+                    // Debug logging
+                    if !state.hasAppeared && isInViewport {
+                        Logger.debug("📍 [SCROLL] minY: \(Int(minY)), trigger: \(Int(triggerPoint)), wasInZone: \(state.wasInTriggerZone), nowInZone: \(isNowInTriggerZone), id: \(viewId.prefix(8))")
+                    }
+
+                    // Trigger animation when:
+                    // 1. View crosses INTO trigger zone (wasn't in, now is)
+                    // 2. View is in visible viewport
+                    if !state.hasAppeared && isInViewport && !state.wasInTriggerZone && isNowInTriggerZone {
                         state.hasAppeared = true
                         stateManager.setState(state, for: viewId)
-                        Logger.debug("🎬 [SCROLL] Animation triggered immediately! View started in trigger zone and is visible, id: \(viewId.prefix(8))")
+                        Logger.debug("🎬 [SCROLL] Animation triggered! View entered trigger zone, id: \(viewId.prefix(8))")
                         onAppear()
+                        return
                     }
-                    return
-                }
-                
-                // Debug logging
-                if !state.hasAppeared && isInViewport {
-                    Logger.debug("📍 [SCROLL] minY: \(Int(minY)), trigger: \(Int(triggerPoint)), wasInZone: \(state.wasInTriggerZone), nowInZone: \(isNowInTriggerZone), id: \(viewId.prefix(8))")
-                }
-                
-                // Trigger animation when:
-                // 1. View crosses INTO trigger zone (wasn't in, now is)
-                // 2. View is in visible viewport
-                if !state.hasAppeared && isInViewport && !state.wasInTriggerZone && isNowInTriggerZone {
-                    state.hasAppeared = true
+
+                    // Update state for next frame
+                    state.wasInTriggerZone = isNowInTriggerZone
                     stateManager.setState(state, for: viewId)
-                    Logger.debug("🎬 [SCROLL] Animation triggered! View entered trigger zone, id: \(viewId.prefix(8))")
-                    onAppear()
-                    return
                 }
-                
-                // Update state for next frame
-                state.wasInTriggerZone = isNowInTriggerZone
-                stateManager.setState(state, for: viewId)
-            }
+        }
     }
 }
 
+private struct ScrollPositionData: Equatable {
+    let minY: CGFloat
+    let screenHeight: CGFloat
+}
+
 private struct ScrollPositionPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    static var defaultValue = ScrollPositionData(minY: 0, screenHeight: 0)
+    static func reduce(value: inout ScrollPositionData, nextValue: () -> ScrollPositionData) {
         value = nextValue()
     }
 }

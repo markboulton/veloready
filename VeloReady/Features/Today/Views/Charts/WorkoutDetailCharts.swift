@@ -4,7 +4,7 @@ import Charts
 // MARK: - Data Models
 
 struct WorkoutSample: Identifiable, Equatable, Codable {
-    let id = UUID()
+    var id = UUID()
     let time: TimeInterval // seconds since ride start
     let power: Double
     let heartRate: Double
@@ -13,11 +13,11 @@ struct WorkoutSample: Identifiable, Equatable, Codable {
     let elevation: Double // meters
     let latitude: Double?
     let longitude: Double?
-    
+
     static func == (lhs: WorkoutSample, rhs: WorkoutSample) -> Bool {
         lhs.id == rhs.id
     }
-    
+
     init(time: TimeInterval, power: Double, heartRate: Double, speed: Double, cadence: Double, elevation: Double, latitude: Double? = nil, longitude: Double? = nil) {
         self.time = time
         self.power = power

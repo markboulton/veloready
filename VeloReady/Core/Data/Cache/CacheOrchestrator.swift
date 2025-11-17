@@ -147,9 +147,6 @@ actor CacheOrchestrator {
     ) async throws -> T {
         // 1. Check if ANY cache exists (even if stale)
         if let cached: T = await getAnyCache(key: key) {
-            let cachedAt = Date() // We don't track exact timestamp in this simplified version
-            let age: TimeInterval = 0 // Simplified for now
-            
             // If cache is valid, return immediately
             if await memoryLayer.contains(key: key, ttl: ttl) {
                 Logger.debug("⚡ [CacheFirst HIT] \(key) (valid)")
@@ -162,18 +159,18 @@ actor CacheOrchestrator {
             // Start background refresh
             Task.detached(priority: .background) {
                 let isOnline = await NetworkMonitor.shared.isConnected
-                
+
                 if isOnline {
-                    await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
+                    Logger.debug("🔄 [Background Refresh] \(key) - starting...")
                     do {
                         let freshValue = try await fetchOperation()
                         await self.storeInAllLayers(key: key, value: freshValue)
-                        await Logger.debug("✅ [Background Refresh] \(key) - complete")
+                        Logger.debug("✅ [Background Refresh] \(key) - complete")
                     } catch {
-                        await Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
+                        Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
                     }
                 } else {
-                    await Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
+                    Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
                 }
             }
             

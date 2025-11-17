@@ -153,22 +153,23 @@ struct RideDetailSheet: View {
                 .fontWeight(.semibold)
             
             // Real HR Zone Chart
-            VStack(spacing: Spacing.md) {
-                Text(ActivityContent.Zones.hrZoneDistribution)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                // Real HR Zone Chart - Chronological time-based visualization like Strava/TrainingPeaks
-                if let zoneTimes = activity.icuHrZoneTimes,
-                   let totalDuration = activity.duration,
-                   totalDuration > 0 {
-                    
-                    // Debug: Print zone data
-                    let _ = print("🔍 HR Zone Data: \(zoneTimes), Total Duration: \(totalDuration)")
-                    let _ = print("🔍 Activity ID: \(activity.id), Name: \(activity.name ?? "Unknown")")
-                    
-                    // Create chronological chart showing ride duration from start to finish
-                    let chartWidth: CGFloat = UIScreen.main.bounds.width - 40 // Full width minus padding
+            GeometryReader { geometry in
+                VStack(spacing: Spacing.md) {
+                    Text(ActivityContent.Zones.hrZoneDistribution)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    // Real HR Zone Chart - Chronological time-based visualization like Strava/TrainingPeaks
+                    if let zoneTimes = activity.icuHrZoneTimes,
+                       let totalDuration = activity.duration,
+                       totalDuration > 0 {
+
+                        // Debug: Print zone data
+                        let _ = print("🔍 HR Zone Data: \(zoneTimes), Total Duration: \(totalDuration)")
+                        let _ = print("🔍 Activity ID: \(activity.id), Name: \(activity.name ?? "Unknown")")
+
+                        // Create chronological chart showing ride duration from start to finish
+                        let chartWidth: CGFloat = geometry.size.width // Use container width
                     
                     VStack(spacing: Spacing.sm) {
                         // Main chart - horizontal bars showing chronological zone distribution
@@ -206,10 +207,10 @@ struct RideDetailSheet: View {
                         }
                     }
                 } else {
-                    // Fallback: Show mock data for testing
-                    let mockZoneTimes: [Double] = [180, 720, 240, 60, 0] // Mock HR zones in seconds
-                    let mockDuration: Double = 1200 // 20 minutes
-                    let chartWidth: CGFloat = UIScreen.main.bounds.width - 40
+                        // Fallback: Show mock data for testing
+                        let mockZoneTimes: [Double] = [180, 720, 240, 60, 0] // Mock HR zones in seconds
+                        let mockDuration: Double = 1200 // 20 minutes
+                        let chartWidth: CGFloat = geometry.size.width // Use container width
                     
                     VStack(spacing: Spacing.sm) {
                         HStack(spacing: 0) {
@@ -253,18 +254,19 @@ struct RideDetailSheet: View {
                             }
                         }
                     }
+                    }
                 }
+                .padding()
+                .background(Color.background.card)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(ColorPalette.neutral300, lineWidth: 1)
+                )
             }
-            .padding()
-            .background(Color.background.card)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(ColorPalette.neutral300, lineWidth: 1)
-            )
         }
     }
-    
+
     // MARK: - Power Zone Chart Section
     
     private var powerZoneChartSection: some View {
@@ -274,22 +276,23 @@ struct RideDetailSheet: View {
                 .fontWeight(.semibold)
             
             // Real Power Zone Chart based on actual data
-            VStack(spacing: Spacing.md) {
-                Text(ActivityContent.Zones.powerZoneDistribution)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                // Real Power Zone Chart - Chronological time-based visualization like Strava/TrainingPeaks
-                if let zoneTimes = activity.icuZoneTimes,
-                   let totalDuration = activity.duration,
-                   totalDuration > 0 {
-                    
-                    // Debug: Print zone data
-                    let _ = print("🔍 Power Zone Data: \(zoneTimes), Total Duration: \(totalDuration)")
-                    let _ = print("🔍 Activity ID: \(activity.id), Name: \(activity.name ?? "Unknown")")
-                    
-                    // Create chronological chart showing ride duration from start to finish
-                    let chartWidth: CGFloat = UIScreen.main.bounds.width - 40 // Full width minus padding
+            GeometryReader { geometry in
+                VStack(spacing: Spacing.md) {
+                    Text(ActivityContent.Zones.powerZoneDistribution)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    // Real Power Zone Chart - Chronological time-based visualization like Strava/TrainingPeaks
+                    if let zoneTimes = activity.icuZoneTimes,
+                       let totalDuration = activity.duration,
+                       totalDuration > 0 {
+
+                        // Debug: Print zone data
+                        let _ = print("🔍 Power Zone Data: \(zoneTimes), Total Duration: \(totalDuration)")
+                        let _ = print("🔍 Activity ID: \(activity.id), Name: \(activity.name ?? "Unknown")")
+
+                        // Create chronological chart showing ride duration from start to finish
+                        let chartWidth: CGFloat = geometry.size.width // Use container width
                     
                     VStack(spacing: Spacing.sm) {
                         // Main chart - horizontal bars showing chronological zone distribution
@@ -326,41 +329,42 @@ struct RideDetailSheet: View {
                             }
                         }
                     }
-                } else {
-                    // No power zone data available
-                    VStack(spacing: Spacing.md) {
-                        HStack(spacing: Spacing.sm) {
-                            Image(systemName: Icons.Health.boltSlash)
-                                .foregroundColor(.orange)
-                            Text(ActivityContent.powerZonesNotAvailable)
-                                .font(.callout)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.background.secondary)
-                        .cornerRadius(8)
-                        
-                        if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
-                            NavigationLink(destination: AthleteZonesSettingsView()) {
-                                HStack {
-                                    Image(systemName: Icons.Navigation.settings)
-                                    Text(ActivityContent.FTPWarnings.setFTPForZones)
-                                        .font(.caption)
+                    } else {
+                        // No power zone data available
+                        VStack(spacing: Spacing.md) {
+                            HStack(spacing: Spacing.sm) {
+                                Image(systemName: Icons.Health.boltSlash)
+                                    .foregroundColor(.orange)
+                                Text(ActivityContent.powerZonesNotAvailable)
+                                    .font(.callout)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.background.secondary)
+                            .cornerRadius(8)
+
+                            if profileManager.profile.ftp == nil || profileManager.profile.ftp == 0 {
+                                NavigationLink(destination: AthleteZonesSettingsView()) {
+                                    HStack {
+                                        Image(systemName: Icons.Navigation.settings)
+                                        Text(ActivityContent.FTPWarnings.setFTPForZones)
+                                            .font(.caption)
+                                    }
+                                    .foregroundColor(.blue)
                                 }
-                                .foregroundColor(.blue)
                             }
                         }
                     }
                 }
+                .padding()
+                .background(Color.background.card)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(ColorPalette.neutral300, lineWidth: 1)
+                )
             }
-            .padding()
-            .background(Color.background.card)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(ColorPalette.neutral300, lineWidth: 1)
-            )
         }
     }
     

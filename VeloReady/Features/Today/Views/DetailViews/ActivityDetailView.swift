@@ -192,13 +192,22 @@ struct UnifiedActivityData {
             }
         }()
         
+        let calories: Int
+        if #available(iOS 18.0, *) {
+            let energyType = HKQuantityType(.activeEnergyBurned)
+            let energyStats = workout.statistics(for: energyType)
+            calories = Int(energyStats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0)
+        } else {
+            calories = Int(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0)
+        }
+
         return UnifiedActivityData(
             type: type,
             title: generateTitle(for: workout),
             startDate: workout.startDate,
             duration: workout.duration,
             distance: workout.totalDistance?.doubleValue(for: .meter()),
-            calories: Int(workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0),
+            calories: calories,
             intervalsActivity: nil,
             healthKitWorkout: workout
         )
@@ -392,27 +401,29 @@ struct InteractiveWorkoutMapSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
-            if isLoading {
-                ZStack {
-                    Color.background.secondary
-                        .frame(height: UIScreen.main.bounds.width - Spacing.xxl) // Square
-                    ProgressView()
-                }
-            } else if !coordinates.isEmpty {
-                InteractiveMapView(coordinates: coordinates, heartRates: heartRates, paces: paces)
-                    .frame(height: UIScreen.main.bounds.width - 32) // Square
-            } else {
-                ZStack {
-                    Color.background.secondary
-                        .frame(height: UIScreen.main.bounds.width - 32) // Square
-                    VStack(spacing: Spacing.sm) {
-                        Image(systemName: Icons.System.map)
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                        Text(ActivityContent.Map.noGPSData)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+        GeometryReader { geometry in
+            VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                if isLoading {
+                    ZStack {
+                        Color.background.secondary
+                            .frame(height: geometry.size.width - Spacing.xxl) // Square
+                        ProgressView()
+                    }
+                } else if !coordinates.isEmpty {
+                    InteractiveMapView(coordinates: coordinates, heartRates: heartRates, paces: paces)
+                        .frame(height: geometry.size.width - 32) // Square
+                } else {
+                    ZStack {
+                        Color.background.secondary
+                            .frame(height: geometry.size.width - 32) // Square
+                        VStack(spacing: Spacing.sm) {
+                            Image(systemName: Icons.System.map)
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                            Text(ActivityContent.Map.noGPSData)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }

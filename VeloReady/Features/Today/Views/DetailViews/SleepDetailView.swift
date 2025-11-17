@@ -515,144 +515,133 @@ struct SleepDetailView: View {
     private func sleepDebtTrendChart() -> some View {
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
-        
+
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else {
-            return AnyView(EmptyView())
-        }
 
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) {
+            let fetchRequest = DailyScores.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
 
-        guard let results = try? context.fetch(fetchRequest), !results.isEmpty else {
-            return AnyView(EmptyView())
-        }
+            if let results = try? context.fetch(fetchRequest), !results.isEmpty {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text(SleepContent.SleepDebt.trendTitle)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
 
-        return AnyView(
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text(SleepContent.SleepDebt.trendTitle)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-                
-                GeometryReader { geometry in
-                    HStack(alignment: .bottom, spacing: Spacing.xs) {
-                        ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
-                            let score = dailyScore.sleepScore
-                            let height = max(4, (score / 100.0) * geometry.size.height)
-                            let color: Color = score >= 80 ? ColorScale.greenAccent : score >= 60 ? ColorScale.yellowAccent : ColorScale.amberAccent
-                            
-                            VStack(spacing: Spacing.xs / 2) {
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(color)
-                                    .frame(height: height)
-                                
-                                if let date = dailyScore.date {
-                                    Text("\(calendar.component(.day, from: date))")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
+                    GeometryReader { geometry in
+                        HStack(alignment: .bottom, spacing: Spacing.xs) {
+                            ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
+                                let score = dailyScore.sleepScore
+                                let height = max(4, (score / 100.0) * geometry.size.height)
+                                let color: Color = score >= 80 ? ColorScale.greenAccent : score >= 60 ? ColorScale.yellowAccent : ColorScale.amberAccent
+
+                                VStack(spacing: Spacing.xs / 2) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(color)
+                                        .frame(height: height)
+
+                                    if let date = dailyScore.date {
+                                        Text("\(calendar.component(.day, from: date))")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
+                                .frame(maxWidth: .infinity)
                             }
-                            .frame(maxWidth: .infinity)
                         }
                     }
-                }
-                .frame(height: 60)
-                
-                HStack {
-                    Circle()
-                        .fill(ColorScale.greenAccent)
-                        .frame(width: 6, height: 6)
-                    Text(SleepContent.SleepDebt.optimal)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer().frame(width: 8)
-                    
-                    Circle()
-                        .fill(ColorScale.yellowAccent)
-                        .frame(width: 6, height: 6)
-                    Text(SleepContent.SleepDebt.good)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer().frame(width: 8)
-                    
-                    Circle()
-                        .fill(ColorScale.amberAccent)
-                        .frame(width: 6, height: 6)
-                    Text(SleepContent.SleepDebt.fair)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    .frame(height: 60)
+
+                    HStack {
+                        Circle()
+                            .fill(ColorScale.greenAccent)
+                            .frame(width: 6, height: 6)
+                        Text(SleepContent.SleepDebt.optimal)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+
+                        Spacer().frame(width: 8)
+
+                        Circle()
+                            .fill(ColorScale.yellowAccent)
+                            .frame(width: 6, height: 6)
+                        Text(SleepContent.SleepDebt.good)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+
+                        Spacer().frame(width: 8)
+
+                        Circle()
+                            .fill(ColorScale.amberAccent)
+                            .frame(width: 6, height: 6)
+                        Text(SleepContent.SleepDebt.fair)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
-        )
+        }
     }
     
     @ViewBuilder
     private func sleepConsistencyTrendChart() -> some View {
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
-        
+
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else {
-            return AnyView(EmptyView())
-        }
 
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) {
+            let fetchRequest = DailyScores.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
 
-        guard let results = try? context.fetch(fetchRequest), !results.isEmpty else {
-            return AnyView(EmptyView())
-        }
+            if let results = try? context.fetch(fetchRequest), !results.isEmpty {
+                // Use sleep scores as a proxy for consistency
+                let scores = results.compactMap { $0.sleepScore }
 
-        // Use sleep scores as a proxy for consistency
-        let scores = results.compactMap { $0.sleepScore }
-        guard !scores.isEmpty else {
-            return AnyView(EmptyView())
-        }
-        
-        let avgScore = scores.reduce(0, +) / Double(scores.count)
-        
-        return AnyView(
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text(SleepContent.Consistency.patternTitle)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-                
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        // Average line
-                        Rectangle()
-                            .fill(ColorScale.purpleAccent.opacity(0.2))
-                            .frame(height: 1)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                        
-                        // Data points
-                        ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
-                            let xPos = (CGFloat(index) / CGFloat(max(1, results.count - 1))) * geometry.size.width
-                            let deviation = (dailyScore.sleepScore - avgScore) / 100.0
-                            let yPos = geometry.size.height / 2 - (CGFloat(deviation) * geometry.size.height * 0.8)
-                            
-                            Circle()
-                                .fill(ColorScale.purpleAccent)
-                                .frame(width: 8, height: 8)
-                                .position(x: xPos, y: min(max(yPos, 4), geometry.size.height - 4))
+                if !scores.isEmpty {
+                    let avgScore = scores.reduce(0, +) / Double(scores.count)
+
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text(SleepContent.Consistency.patternTitle)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                // Average line
+                                Rectangle()
+                                    .fill(ColorScale.purpleAccent.opacity(0.2))
+                                    .frame(height: 1)
+                                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+
+                                // Data points
+                                ForEach(Array(results.enumerated()), id: \.offset) { index, dailyScore in
+                                    let xPos = (CGFloat(index) / CGFloat(max(1, results.count - 1))) * geometry.size.width
+                                    let deviation = (dailyScore.sleepScore - avgScore) / 100.0
+                                    let yPos = geometry.size.height / 2 - (CGFloat(deviation) * geometry.size.height * 0.8)
+
+                                    Circle()
+                                        .fill(ColorScale.purpleAccent)
+                                        .frame(width: 8, height: 8)
+                                        .position(x: xPos, y: min(max(yPos, 4), geometry.size.height - 4))
+                                }
+                            }
                         }
+                        .frame(height: 60)
+
+                        Text(SleepContent.Consistency.deviationNote)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
                 }
-                .frame(height: 60)
-                
-                Text(SleepContent.Consistency.deviationNote)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
             }
-        )
+        }
     }
     
     // MARK: - Helper Methods
@@ -661,76 +650,71 @@ struct SleepDetailView: View {
     private func sleepDataAvailabilityMessage(requiredDays: Int, metricName: String, description: String) -> some View {
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
-        
+
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) else {
-            return AnyView(EmptyView())
-        }
-        
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-        
-        let availableDays = (try? context.count(for: fetchRequest)) ?? 0
-        let daysRemaining = max(0, requiredDays - availableDays)
-        
-        // If we have enough data, show a refresh message instead
-        if availableDays >= requiredDays {
-            return AnyView(
+
+        if let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) {
+            let fetchRequest = DailyScores.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+
+            let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+            let daysRemaining = max(0, requiredDays - availableDays)
+
+            // If we have enough data, show a refresh message instead
+            if availableDays >= requiredDays {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
-                        
+
                         Text(SleepContent.DataAvailability.pullToRefresh)
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
-                    
+
                     Text("\(SleepContent.DataAvailability.youHave) \(availableDays) \(SleepContent.DataAvailability.daysOfData) \(description)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-            )
-        }
-        
-        return AnyView(
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.System.clock)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(SleepContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? SleepContent.DataAvailability.day : SleepContent.DataAvailability.days)")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                HStack(spacing: Spacing.xs) {
-                    Text("\(availableDays) \(SleepContent.DataAvailability.of) \(requiredDays) \(SleepContent.DataAvailability.days)")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                    
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(ColorPalette.neutral200)
-                                .frame(height: 2)
-                            
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(ColorScale.purpleAccent)
-                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 2)
-                        }
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.System.clock)
+                            .foregroundColor(.secondary)
+
+                        Text("\(SleepContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? SleepContent.DataAvailability.day : SleepContent.DataAvailability.days)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                     }
-                    .frame(height: 2)
+
+                    Text(description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack(spacing: Spacing.xs) {
+                        Text("\(availableDays) \(SleepContent.DataAvailability.of) \(requiredDays) \(SleepContent.DataAvailability.days)")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorPalette.neutral200)
+                                    .frame(height: 2)
+
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorScale.purpleAccent)
+                                    .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 2)
+                            }
+                        }
+                        .frame(height: 2)
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
-        )
+        }
     }
 }
 

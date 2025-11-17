@@ -139,8 +139,14 @@ class SubscriptionManager: ObservableObject {
                     hasActiveSubscription = true
                     
                     // Check if in trial period
-                    if let offerType = transaction.offerType {
-                        isInTrialPeriod = (offerType == .introductory)
+                    if #available(iOS 17.2, *) {
+                        if let offer = transaction.offer {
+                            isInTrialPeriod = (offer.type == .introductory)
+                        }
+                    } else {
+                        if let offerType = transaction.offerType {
+                            isInTrialPeriod = (offerType == .introductory)
+                        }
                     }
                     
                     // Get expiration date
@@ -249,8 +255,8 @@ class SubscriptionManager: ObservableObject {
     /// - Returns: `true` if sync succeeded, `false` otherwise
     func syncToBackend() async -> Bool {
         Logger.debug("💳 [Subscription] Syncing to backend...")
-        
-        guard let athleteId = await StravaAuthService.shared.athleteId else {
+
+        guard let athleteId = StravaAuthService.shared.athleteId else {
             Logger.error("❌ [Subscription] Cannot sync: No athlete ID")
             return false
         }
@@ -317,7 +323,7 @@ class SubscriptionManager: ObservableObject {
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             
             // Add JWT auth header
-            if let token = await SupabaseClient.shared.accessToken {
+            if let token = SupabaseClient.shared.accessToken {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             

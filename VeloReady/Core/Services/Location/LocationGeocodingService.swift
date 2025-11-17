@@ -5,41 +5,41 @@ import CoreLocation
 @MainActor
 class LocationGeocodingService {
     static let shared = LocationGeocodingService()
-    
-    private let geocoder = CLGeocoder()
+
     private var cache: [String: String] = [:]
-    
+    private let geocoder = CLGeocoder()
+
     private init() {}
-    
+
     /// Get location name from GPS coordinates (with caching)
     /// - Parameter coordinate: GPS coordinate to geocode
     /// - Returns: Location string (e.g., "Cardiff, Wales") or nil if geocoding fails
     func getLocationName(from coordinate: CLLocationCoordinate2D) async -> String? {
         let cacheKey = "\(coordinate.latitude),\(coordinate.longitude)"
-        
+
         // Check cache first
         if let cached = cache[cacheKey] {
             Logger.debug("🗺️ Location cache hit: \(cached)")
             return cached
         }
-        
+
         Logger.debug("🗺️ Geocoding location: \(coordinate.latitude), \(coordinate.longitude)")
-        
+
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
+
         do {
             let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            
+
             guard let placemark = placemarks.first else {
                 Logger.debug("🗺️ No placemark found")
                 return nil
             }
-            
+
             let locationString = formatPlacemark(placemark)
-            
+
             // Cache the result
             cache[cacheKey] = locationString
-            
+
             Logger.debug("🗺️ ✅ Geocoded location: \(locationString)")
             return locationString
         } catch {

@@ -321,23 +321,19 @@ class TodayCoordinator: ObservableObject {
             
             Task(priority: .background) {
                 Logger.info("🔄 [TodayCoordinator] ✅ TASK STARTED - Inside background task closure")
-                
-                do {
-                    Logger.info("🔄 [TodayCoordinator] Step 1: Cleanup corrupt data...")
-                    // Step 1: Clean up corrupt training load data from previous bugs
-                    await DailyDataService.shared.cleanupCorruptTrainingLoadData()
-                    Logger.info("🔄 [TodayCoordinator] ✅ Step 1 complete")
-                    
-                    Logger.info("🔄 [TodayCoordinator] Step 2: Starting backfillAll...")
-                    // Step 2: Use BackfillService for all historical data backfilling
-                    // This orchestrates: physio data → training load → scores (in correct order)
-                    await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
-                    Logger.info("🔄 [TodayCoordinator] ✅ Step 2 complete")
-                    
-                    Logger.info("✅ [TodayCoordinator] Background backfill complete")
-                } catch {
-                    Logger.error("❌ [TodayCoordinator] Background task ERROR: \(error)")
-                }
+
+                Logger.info("🔄 [TodayCoordinator] Step 1: Cleanup corrupt data...")
+                // Step 1: Clean up corrupt training load data from previous bugs
+                await DailyDataService.shared.cleanupCorruptTrainingLoadData()
+                Logger.info("🔄 [TodayCoordinator] ✅ Step 1 complete")
+
+                Logger.info("🔄 [TodayCoordinator] Step 2: Starting backfillAll...")
+                // Step 2: Use BackfillService for all historical data backfilling
+                // This orchestrates: physio data → training load → scores (in correct order)
+                await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
+                Logger.info("🔄 [TodayCoordinator] ✅ Step 2 complete")
+
+                Logger.info("✅ [TodayCoordinator] Background backfill complete")
             }
             
             Logger.info("🔍 [TodayCoordinator] Task created - continuing execution...")
@@ -375,7 +371,7 @@ class TodayCoordinator: ObservableObject {
             // Refresh scores and activities in parallel
             Logger.info("🔄 [TodayCoordinator] Refreshing scores and activities...")
             
-            async let scoresRefresh = scoresCoordinator.refresh()
+            async let scoresRefresh: Void = scoresCoordinator.refresh()
             
             // Fetch activities and update loading state with count
             let activities = await activitiesCoordinator.fetchRecent(days: 90)
@@ -400,7 +396,6 @@ class TodayCoordinator: ObservableObject {
             Logger.info("✅ [TodayCoordinator] ━━━ Refresh complete in \(String(format: "%.2f", duration))s ━━━")
             
         } catch {
-            let errorMessage = "Failed to refresh data: \(error.localizedDescription)"
             state = oldState // Revert to previous state on error
             self.error = .dataFetchFailed(error.localizedDescription)
             loadingStateManager.updateState(.error(.unknown(error.localizedDescription)))

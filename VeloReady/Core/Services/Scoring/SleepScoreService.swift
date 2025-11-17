@@ -194,7 +194,7 @@ class SleepScoreService: ObservableObject {
     
     private func performActualCalculation() async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
-        let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
+        _ = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
         if !healthKitManager.isAuthorized {
             Logger.error("Sleep permissions not granted - skipping calculation")

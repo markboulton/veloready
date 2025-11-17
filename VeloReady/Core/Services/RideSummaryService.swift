@@ -23,20 +23,20 @@ class RideSummaryService: ObservableObject {
            let override = UserDefaults.standard.string(forKey: overrideKey) {
             return override
         }
-        
+
         if let existing = UserDefaults.standard.string(forKey: userIdKey) {
             return existing
         }
-        
+
         // Generate new anonymous ID
         let newId = UUID().uuidString
         UserDefaults.standard.set(newId, forKey: userIdKey)
         Logger.debug("🆔 Generated new anonymous user ID: \(newId.prefix(8))...")
         return newId
     }
-    
-    init(client: RideSummaryClientProtocol = RideSummaryClient.shared) {
-        self.client = client
+
+    init(client: RideSummaryClientProtocol? = nil) {
+        self.client = client ?? RideSummaryClient.shared
     }
     
     /// Fetch AI summary for a ride

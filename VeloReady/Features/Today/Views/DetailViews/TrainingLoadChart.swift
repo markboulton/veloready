@@ -285,7 +285,9 @@ struct TrainingLoadChart: View {
             
             // Debug: Log first few activities with their CTL/ATL values
             for (index, activity) in activitiesWithLoad.prefix(5).enumerated() {
-                Logger.data("  Activity \(index + 1): \(activity.name) - CTL: \(activity.ctl?.description ?? "nil"), ATL: \(activity.atl?.description ?? "nil")")
+                let ctlValue = activity.ctl.map { String(describing: $0) } ?? "nil"
+                let atlValue = activity.atl.map { String(describing: $0) } ?? "nil"
+                Logger.data("  Activity \(index + 1): \(activity.name) - CTL: \(ctlValue), ATL: \(atlValue)")
             }
         } catch {
             Logger.error("TrainingLoadChart: Failed to fetch activities: \(error)")

@@ -373,31 +373,31 @@ struct ActivityCard: View {
         }
     }
     
-    private func generateMapSnapshot(from coordinates: [CLLocationCoordinate2D]) async {
+    private func generateMapSnapshot(from coordinates: [CLLocationCoordinate2D], displayScale: CGFloat = 3.0) async {
         let mapSnapshotOptions = MKMapSnapshotter.Options()
-        
+
         // Calculate region from coordinates
         let latitudes = coordinates.map { $0.latitude }
         let longitudes = coordinates.map { $0.longitude }
-        
+
         guard let minLat = latitudes.min(),
               let maxLat = latitudes.max(),
               let minLon = longitudes.min(),
               let maxLon = longitudes.max() else { return }
-        
+
         let center = CLLocationCoordinate2D(
             latitude: (minLat + maxLat) / 2,
             longitude: (minLon + maxLon) / 2
         )
-        
+
         let span = MKCoordinateSpan(
             latitudeDelta: (maxLat - minLat) * 1.3,
             longitudeDelta: (maxLon - minLon) * 1.3
         )
-        
+
         mapSnapshotOptions.region = MKCoordinateRegion(center: center, span: span)
         mapSnapshotOptions.size = CGSize(width: 400, height: 120)
-        mapSnapshotOptions.scale = UIScreen.main.scale
+        mapSnapshotOptions.scale = displayScale
         
         let snapshotter = MKMapSnapshotter(options: mapSnapshotOptions)
         
@@ -455,10 +455,9 @@ struct ActivityCard: View {
                     }
                     
                     if let firstCoord = coordinates.first {
-                        let location = CLLocation(latitude: firstCoord.latitude, longitude: firstCoord.longitude)
-                        let geocoder = CLGeocoder()
-                        
-                        if let placemark = try? await geocoder.reverseGeocodeLocation(location).first {
+                        let request = MKReverseGeocodingRequest(coordinate: firstCoord)
+
+                        if let response = try? await request.send(), let placemark = response.placemarks.first {
                             await MainActor.run {
                                 // Format: "City, State" or "City, Country"
                                 var components: [String] = []
@@ -559,7 +558,7 @@ struct ActivityCard: View {
 #Preview("Strength Workout - No RPE") {
     ScrollView {
         // Create a mock HKWorkout for strength training
-        let workout = HKWorkout(
+        let workout = HKWorkout.mockWorkout(
             activityType: .traditionalStrengthTraining,
             start: Date().addingTimeInterval(-3600),
             end: Date(),
@@ -568,7 +567,7 @@ struct ActivityCard: View {
             totalDistance: nil,
             metadata: nil
         )
-        
+
         ActivityCard(
             activity: UnifiedActivity(from: workout),
             showChevron: true,
@@ -580,7 +579,7 @@ struct ActivityCard: View {
 
 #Preview("Walking Workout") {
     ScrollView {
-        let workout = HKWorkout(
+        let workout = HKWorkout.mockWorkout(
             activityType: .walking,
             start: Date().addingTimeInterval(-1800),
             end: Date(),
@@ -589,7 +588,7 @@ struct ActivityCard: View {
             totalDistance: HKQuantity(unit: .meter(), doubleValue: 2400), // 2.4 km
             metadata: nil
         )
-        
+
         ActivityCard(
             activity: UnifiedActivity(from: workout),
             showChevron: true,
@@ -669,7 +668,7 @@ struct ActivityCard: View {
             // Strength
             ActivityCard(
                 activity: UnifiedActivity(
-                    from: HKWorkout(
+                    from: HKWorkout.mockWorkout(
                         activityType: .traditionalStrengthTraining,
                         start: Date().addingTimeInterval(-3600),
                         end: Date(),
@@ -681,11 +680,11 @@ struct ActivityCard: View {
                 ),
                 showChevron: true
             )
-            
+
             // Walking
             ActivityCard(
                 activity: UnifiedActivity(
-                    from: HKWorkout(
+                    from: HKWorkout.mockWorkout(
                         activityType: .walking,
                         start: Date().addingTimeInterval(-1800),
                         end: Date(),

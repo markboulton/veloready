@@ -193,7 +193,7 @@ struct HRVCandlestickChart: View {
         isLoading = true
         // Run on background thread
         let newData = await Task.detached(priority: .userInitiated) {
-            getData(selectedPeriod)
+            await getData(selectedPeriod)
         }.value
         
         data = newData

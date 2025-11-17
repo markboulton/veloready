@@ -100,7 +100,7 @@ struct ActivityCardGalleryView: View {
                 
                 ActivityCard(
                     activity: UnifiedActivity(
-                        from: HKWorkout(
+                        from: HKWorkout.mockWorkout(
                             activityType: .traditionalStrengthTraining,
                             start: Date().addingTimeInterval(-3600),
                             end: Date(),
@@ -119,7 +119,7 @@ struct ActivityCardGalleryView: View {
                 
                 ActivityCard(
                     activity: UnifiedActivity(
-                        from: HKWorkout(
+                        from: HKWorkout.mockWorkout(
                             activityType: .walking,
                             start: Date().addingTimeInterval(-1800),
                             end: Date(),

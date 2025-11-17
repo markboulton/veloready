@@ -21,7 +21,6 @@ actor CachePersistenceLayer {
     
     // Track initialization to prevent data access before cache clear
     private var isInitialized = false
-    private let initLock = NSLock()
     
     private init() {
         // Deferred initialization - don't access Core Data until needed
@@ -36,9 +35,7 @@ actor CachePersistenceLayer {
     
     /// Mark initialization as complete (must be called from async context)
     private func markInitComplete() async {
-        initLock.lock()
         isInitialized = true
-        initLock.unlock()
         Logger.debug("💾 [CachePersistence] Initialization complete")
     }
     
@@ -47,18 +44,16 @@ actor CachePersistenceLayer {
         // Poll until initialized (cache clear complete)
         var attempts = 0
         while attempts < 100 {  // Max 10 seconds
-            initLock.lock()
             let initialized = isInitialized
-            initLock.unlock()
-            
+
             if initialized {
                 return
             }
-            
+
             try? await Task.sleep(nanoseconds: 100_000_000)  // 100ms
             attempts += 1
         }
-        
+
         Logger.warning("⚠️ [CachePersistence] Initialization timeout - proceeding anyway")
     }
     
@@ -85,43 +80,46 @@ actor CachePersistenceLayer {
     func saveToCoreData<T: Codable>(key: String, value: T, cachedAt: Date = Date(), ttl: TimeInterval) async {
         // Wait for cache clear to complete before accessing data
         await ensureInitialized()
-        
-        do {
-            let context = persistenceController.newBackgroundContext()
-            
-            await context.perform {
-                do {
-                    // Check if entry already exists
-                    let fetchRequest: NSFetchRequest<CacheEntry> = CacheEntry.fetchRequest()
-                    fetchRequest.predicate = NSPredicate(format: "key == %@", key)
-                    fetchRequest.fetchLimit = 1
-                    
-                    let existingEntries = try context.fetch(fetchRequest)
-                    let entry = existingEntries.first ?? CacheEntry(context: context)
-                    
-                    // Encode value to JSON Data
-                    let valueData = try self.encoder.encode(value)
-                    
-                    // Update entry
-                    entry.key = key
-                    entry.valueData = valueData
-                    entry.cachedAt = cachedAt
-                    entry.expiresAt = cachedAt.addingTimeInterval(ttl)
-                    
-                    // Save context
-                    try context.save()
-                    
-                    self.saveCount += 1
-                    // Only log saves for non-score data (reduces spam)
-                    if !key.contains("score:") && !key.contains("healthkit:") {
-                        Logger.debug("💾 [CachePersistence] Saved \(key) (\(valueData.count / 1024)KB, expires: \(Int(ttl/60))min)")
-                    }
-                } catch {
-                    Logger.error("💾 [CachePersistence] Failed to save \(key): \(error.localizedDescription)")
-                }
+
+        let context = persistenceController.newBackgroundContext()
+
+        let result = await context.perform {
+            do {
+                // Check if entry already exists
+                let fetchRequest: NSFetchRequest<CacheEntry> = CacheEntry.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "key == %@", key)
+                fetchRequest.fetchLimit = 1
+
+                let existingEntries = try context.fetch(fetchRequest)
+                let entry = existingEntries.first ?? CacheEntry(context: context)
+
+                // Encode value to JSON Data
+                let valueData = try self.encoder.encode(value)
+
+                // Update entry
+                entry.key = key
+                entry.valueData = valueData
+                entry.cachedAt = cachedAt
+                entry.expiresAt = cachedAt.addingTimeInterval(ttl)
+
+                // Save context
+                try context.save()
+
+                // Return success with data size for logging
+                return (success: true, dataSize: valueData.count)
+            } catch {
+                Logger.error("💾 [CachePersistence] Failed to save \(key): \(error.localizedDescription)")
+                return (success: false, dataSize: 0)
             }
-        } catch {
-            Logger.error("💾 [CachePersistence] Failed to access context: \(error.localizedDescription)")
+        }
+
+        // Update statistics outside the context.perform closure
+        if result.success {
+            self.saveCount += 1
+            // Only log saves for non-score data (reduces spam)
+            if !key.contains("score:") && !key.contains("healthkit:") {
+                Logger.debug("💾 [CachePersistence] Saved \(key) (\(result.dataSize / 1024)KB, expires: \(Int(ttl/60))min)")
+            }
         }
     }
     
@@ -132,47 +130,52 @@ actor CachePersistenceLayer {
     func loadFromCoreData<T: Codable>(key: String, as type: T.Type) async -> (value: T, cachedAt: Date)? {
         // Wait for cache clear to complete before accessing data
         await ensureInitialized()
-        
+
         let context = persistenceController.newBackgroundContext()
-        
-        return await context.perform {
+
+        let result = await context.perform {
             do {
                 // Fetch entry
                 let fetchRequest: NSFetchRequest<CacheEntry> = CacheEntry.fetchRequest()
                 fetchRequest.predicate = NSPredicate(format: "key == %@", key)
                 fetchRequest.fetchLimit = 1
-                
+
                 guard let entry = try context.fetch(fetchRequest).first,
                       let valueData = entry.valueData,
                       let cachedAt = entry.cachedAt else {
-                    self.missCount += 1
                     // Don't log misses - too verbose (reduces 1000+ lines of logs)
-                    return nil
+                    return (value: nil as T?, cachedAt: nil as Date?, hit: false)
                 }
-                
+
                 // Check expiration
                 if let expiresAt = entry.expiresAt, expiresAt < Date() {
                     // Expired - delete it
                     context.delete(entry)
                     try? context.save()
-                    
-                    self.missCount += 1
+
                     // Don't log expiration - too verbose
-                    return nil
+                    return (value: nil, cachedAt: nil, hit: false)
                 }
-                
+
                 // Decode value
                 let value = try self.decoder.decode(T.self, from: valueData)
-                
-                self.loadCount += 1
-                self.hitCount += 1
+
                 // Don't log hits - too verbose (reduces 100+ lines of logs)
-                return (value: value, cachedAt: cachedAt)
+                return (value: value, cachedAt: cachedAt, hit: true)
             } catch {
-                self.missCount += 1
                 Logger.error("💾 [CachePersistence] Failed to load \(key): \(error.localizedDescription)")
-                return nil
+                return (value: nil, cachedAt: nil, hit: false)
             }
+        }
+
+        // Update statistics outside the context.perform closure
+        if result.hit {
+            self.loadCount += 1
+            self.hitCount += 1
+            return (value: result.value!, cachedAt: result.cachedAt!)
+        } else {
+            self.missCount += 1
+            return nil
         }
     }
     
@@ -228,24 +231,29 @@ actor CachePersistenceLayer {
     /// Clear all cache entries
     func clearAll() async {
         let context = persistenceController.newBackgroundContext()
-        
-        await context.perform {
+
+        let success = await context.perform {
             do {
                 let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CacheEntry.fetchRequest()
                 let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                
+
                 try context.execute(deleteRequest)
                 try context.save()
-                
-                self.saveCount = 0
-                self.loadCount = 0
-                self.hitCount = 0
-                self.missCount = 0
-                
+
                 Logger.debug("💾 [CachePersistence] Cleared all entries")
+                return true
             } catch {
                 Logger.error("💾 [CachePersistence] Failed to clear all entries: \(error.localizedDescription)")
+                return false
             }
+        }
+
+        // Reset statistics outside the context.perform closure
+        if success {
+            self.saveCount = 0
+            self.loadCount = 0
+            self.hitCount = 0
+            self.missCount = 0
         }
     }
     

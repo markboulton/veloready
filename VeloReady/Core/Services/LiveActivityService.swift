@@ -305,6 +305,7 @@ class LiveActivityService: ObservableObject {
         if isMale {
             bmr = (10 * weight) + (6.25 * height) - (5 * Double(age)) + 5
         } else {
+            // Female formula - currently unused due to hardcoded isMale = true
             bmr = (10 * weight) + (6.25 * height) - (5 * Double(age)) - 161
         }
         

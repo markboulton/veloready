@@ -17,7 +17,7 @@ actor PerformanceMonitor {
         let start = Date()
         defer {
             let duration = Date().timeIntervalSince(start)
-            Task { await recordMeasurement(label, duration: duration) }
+            Task { recordMeasurement(label, duration: duration) }
             
             // Log if slow
             if duration > 1.0 {
@@ -34,7 +34,7 @@ actor PerformanceMonitor {
         let start = Date()
         defer {
             let duration = Date().timeIntervalSince(start)
-            Task { await recordMeasurement(label, duration: duration) }
+            Task { recordMeasurement(label, duration: duration) }
             
             if duration > 0.5 {
                 Logger.warning("🐌 SLOW SYNC: [\(label)] \(Int(duration * 1000))ms")

@@ -21,7 +21,7 @@ import HealthKit
 final class DailyDataService: ObservableObject {
     // MARK: - Singleton
 
-    static let shared = DailyDataService()
+    nonisolated(unsafe) static let shared = DailyDataService()
 
     // MARK: - Cache Manager
 

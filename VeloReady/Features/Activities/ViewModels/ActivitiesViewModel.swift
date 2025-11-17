@@ -173,93 +173,87 @@ class ActivitiesViewModel: ObservableObject {
     
     func loadExtendedActivities(apiClient: IntervalsAPIClient) async {
         guard proConfig.hasProAccess else { return }
-        
+
         isLoadingMore = true
-        
-        do {
-            // OPTIMIZATION: Use consistent fetch limit (50 for extended data)
-            let extendedFetchLimit = 50
-            Logger.debug("📊 [Activities] Loading extended activities: 31-90 days, limit: \(extendedFetchLimit)")
 
-            // Fetch activities from Intervals.icu if authenticated
-            var intervalsActivities: [Activity] = []
-            if IntervalsOAuthManager.shared.isAuthenticated {
-                intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: extendedFetchLimit, daysBack: 90)) ?? []
-                Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) extended Intervals activities")
-            }
+        // OPTIMIZATION: Use consistent fetch limit (50 for extended data)
+        let extendedFetchLimit = 50
+        Logger.debug("📊 [Activities] Loading extended activities: 31-90 days, limit: \(extendedFetchLimit)")
 
-            // Fetch Strava activities (if connected)
-            var stravaActivities: [StravaActivity] = []
-            let stravaAuthService = StravaAuthService.shared
-            if case .connected = stravaAuthService.connectionState {
-                let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: Date())
-                stravaActivities = (try? await StravaAPIClient.shared.fetchActivities(
-                    page: 1,
-                    perPage: extendedFetchLimit,
-                    after: ninetyDaysAgo
-                )) ?? []
-                Logger.debug("✅ [Activities] Loaded \(stravaActivities.count) extended Strava activities")
-            }
-
-            let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: extendedFetchLimit, daysBack: 90)
-            
-            // Filter to only activities from day 31-90 (exclude first 30 days already loaded)
-            let calendar = Calendar.current
-            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
-            
-            // Filter Intervals activities (only older than 30 days, exclude Strava-sourced)
-            var intervalsUnified: [UnifiedActivity] = []
-            var stravaFilteredCount = 0
-            
-            for activity in intervalsActivities {
-                if activity.startDateLocal < thirtyDaysAgo.ISO8601Format() {
-                    // Skip Strava-sourced activities
-                    if let source = activity.source, source.uppercased() == "STRAVA" {
-                        stravaFilteredCount += 1
-                        continue
-                    }
-                    intervalsUnified.append(UnifiedActivity(from: activity))
-                }
-            }
-            
-            // Filter Strava activities (only older than 30 days)
-            let stravaUnified = stravaActivities
-                .filter { $0.start_date_local < thirtyDaysAgo.ISO8601Format() }
-                .map { UnifiedActivity(from: $0) }
-            
-            // Filter Health workouts (only older than 30 days)
-            let healthUnified = healthWorkouts
-                .filter { $0.startDate < thirtyDaysAgo }
-                .map { UnifiedActivity(from: $0) }
-            
-            Logger.debug("🔍 [Activities] Extended activities (31-90 days): Intervals=\(intervalsUnified.count), Strava=\(stravaUnified.count), Health=\(healthUnified.count) (filtered \(stravaFilteredCount) Strava from Intervals)")
-            
-            // Deduplicate extended activities
-            let deduplicationService = ActivityDeduplicationService.shared
-            let deduplicated = deduplicationService.deduplicateActivities(
-                intervalsActivities: intervalsUnified,
-                stravaActivities: stravaUnified,
-                appleHealthActivities: healthUnified
-            )
-            
-            // Append to existing activities
-            allActivities.append(contentsOf: deduplicated)
-            
-            // Sort by date (newest first)
-            allActivities.sort { $0.startDate > $1.startDate }
-            
-            // Apply filters and group
-            applyFilters()
-            
-            hasLoadedExtended = true
-            isLoadingMore = false
-            
-            Logger.debug("📊 [Activities] Loaded \(deduplicated.count) extended activities")
-        } catch {
-            self.error = error.localizedDescription
-            isLoadingMore = false
-            Logger.error("❌ [Activities] Error loading extended activities: \(error)")
+        // Fetch activities from Intervals.icu if authenticated
+        var intervalsActivities: [Activity] = []
+        if IntervalsOAuthManager.shared.isAuthenticated {
+            intervalsActivities = (try? await apiClient.fetchRecentActivities(limit: extendedFetchLimit, daysBack: 90)) ?? []
+            Logger.debug("✅ [Activities] Loaded \(intervalsActivities.count) extended Intervals activities")
         }
+
+        // Fetch Strava activities (if connected)
+        var stravaActivities: [StravaActivity] = []
+        let stravaAuthService = StravaAuthService.shared
+        if case .connected = stravaAuthService.connectionState {
+            let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: Date())
+            stravaActivities = (try? await StravaAPIClient.shared.fetchActivities(
+                page: 1,
+                perPage: extendedFetchLimit,
+                after: ninetyDaysAgo
+            )) ?? []
+            Logger.debug("✅ [Activities] Loaded \(stravaActivities.count) extended Strava activities")
+        }
+
+        let healthWorkouts = await HealthKitManager.shared.fetchRecentWorkouts(limit: extendedFetchLimit, daysBack: 90)
+
+        // Filter to only activities from day 31-90 (exclude first 30 days already loaded)
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+
+        // Filter Intervals activities (only older than 30 days, exclude Strava-sourced)
+        var intervalsUnified: [UnifiedActivity] = []
+        var stravaFilteredCount = 0
+
+        for activity in intervalsActivities {
+            if activity.startDateLocal < thirtyDaysAgo.ISO8601Format() {
+                // Skip Strava-sourced activities
+                if let source = activity.source, source.uppercased() == "STRAVA" {
+                    stravaFilteredCount += 1
+                    continue
+                }
+                intervalsUnified.append(UnifiedActivity(from: activity))
+            }
+        }
+
+        // Filter Strava activities (only older than 30 days)
+        let stravaUnified = stravaActivities
+            .filter { $0.start_date_local < thirtyDaysAgo.ISO8601Format() }
+            .map { UnifiedActivity(from: $0) }
+
+        // Filter Health workouts (only older than 30 days)
+        let healthUnified = healthWorkouts
+            .filter { $0.startDate < thirtyDaysAgo }
+            .map { UnifiedActivity(from: $0) }
+
+        Logger.debug("🔍 [Activities] Extended activities (31-90 days): Intervals=\(intervalsUnified.count), Strava=\(stravaUnified.count), Health=\(healthUnified.count) (filtered \(stravaFilteredCount) Strava from Intervals)")
+
+        // Deduplicate extended activities
+        let deduplicationService = ActivityDeduplicationService.shared
+        let deduplicated = deduplicationService.deduplicateActivities(
+            intervalsActivities: intervalsUnified,
+            stravaActivities: stravaUnified,
+            appleHealthActivities: healthUnified
+        )
+
+        // Append to existing activities
+        allActivities.append(contentsOf: deduplicated)
+
+        // Sort by date (newest first)
+        allActivities.sort { $0.startDate > $1.startDate }
+
+        // Apply filters and group
+        applyFilters()
+
+        hasLoadedExtended = true
+        isLoadingMore = false
+
+        Logger.debug("📊 [Activities] Loaded \(deduplicated.count) extended activities")
     }
     
     func applyFilters() {

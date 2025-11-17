@@ -5,7 +5,7 @@ import Foundation
 /// Single source of truth for activity fetching throughout the app
 @MainActor
 class UnifiedActivityService: ObservableObject {
-    static let shared = UnifiedActivityService()
+    nonisolated(unsafe) static let shared = UnifiedActivityService()
     
     private let intervalsAPI = IntervalsAPIClient.shared
     private let veloReadyAPI = VeloReadyAPIClient.shared // NEW: Use backend API

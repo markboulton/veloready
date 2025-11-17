@@ -47,12 +47,10 @@ actor UnifiedCacheManager {
     // MARK: - Initialization
     private init() {
         Logger.debug("🗄️ [UnifiedCache] Initialized (actor-based, thread-safe)")
-        
-        // Load disk cache
-        loadDiskCache()
-        
-        // Run migrations if needed
+
+        // Load disk cache and run migrations asynchronously
         Task {
+            await loadDiskCache()
             await runMigrationsIfNeeded()
         }
     }
@@ -122,7 +120,7 @@ actor UnifiedCacheManager {
         // Clean up after completion
         defer {
             Task {
-                await self.removeInflightRequest(key: key)
+                self.removeInflightRequest(key: key)
             }
         }
         
@@ -163,18 +161,18 @@ actor UnifiedCacheManager {
             Task.detached(priority: .background) {
                 // Check if online before attempting refresh (uses NetworkMonitor for instant check)
                 let isOnline = await NetworkMonitor.shared.isConnected
-                
+
                 if isOnline {
-                    await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
+                    Logger.debug("🔄 [Background Refresh] \(key) - starting...")
                     do {
                         let freshValue = try await fetchOperation()
                         await self.storeInCache(key: key, value: freshValue)
-                        await Logger.debug("✅ [Background Refresh] \(key) - complete")
+                        Logger.debug("✅ [Background Refresh] \(key) - complete")
                     } catch {
-                        await Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
+                        Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
                     }
                 } else {
-                    await Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
+                    Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
                 }
             }
             
@@ -631,18 +629,18 @@ actor UnifiedCacheManager {
         // Start background refresh if online
         Task.detached(priority: .background) {
             let isOnline = await NetworkMonitor.shared.isConnected
-            
+
             if isOnline {
-                await Logger.debug("🔄 [Background Refresh] \(key) - starting...")
+                Logger.debug("🔄 [Background Refresh] \(key) - starting...")
                 do {
                     let freshValue = try await fetchOperation()
                     await self.storeInCache(key: key, value: freshValue)
-                    await Logger.debug("✅ [Background Refresh] \(key) - complete")
+                    Logger.debug("✅ [Background Refresh] \(key) - complete")
                 } catch {
-                    await Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
+                    Logger.warning("⚠️ [Background Refresh] \(key) - failed: \(error.localizedDescription)")
                 }
             } else {
-                await Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
+                Logger.debug("📱 [Background Refresh] \(key) - skipped (offline)")
             }
         }
         
