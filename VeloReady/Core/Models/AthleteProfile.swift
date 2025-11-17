@@ -685,14 +685,14 @@ class AthleteProfileManager: ObservableObject {
     /// Compute HR zones using lactate threshold detection and Max HR analysis
     /// Based on Karvonen method and modern HR training zone research
     private func computeHRZonesFromPerformanceData(_ activities: [Activity]) async {
-        Logger.data("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
+        Logger.trace("=== HR ZONES COMPUTATION (Lactate Threshold Detection) ===")
         
         // Get max HR from activities (highest recorded)
         let maxHRValues = activities.compactMap { $0.maxHeartRate }.filter { $0 > 0 }
         let durations = activities.compactMap { $0.duration }
         
         guard !maxHRValues.isEmpty else {
-            Logger.data("❌ No HR data available - cannot compute HR zones")
+            Logger.trace("❌ No HR data available - cannot compute HR zones")
             return
         }
         
@@ -704,10 +704,10 @@ class AthleteProfileManager: ObservableObject {
         // Add 2% buffer for true max (athletes rarely hit true max in training)
         var computedMaxHR = avgTop5HR * 1.02
         
-        Logger.data("Max HR Analysis:")
-        Logger.data("  Observed max: \(Int(observedMaxHR))bpm")
-        Logger.data("  Top 5% avg: \(Int(avgTop5HR))bpm")
-        Logger.data("  Computed max (with 2% buffer): \(Int(computedMaxHR))bpm")
+        Logger.trace("Max HR Analysis:")
+        Logger.trace("  Observed max: \(Int(observedMaxHR))bpm")
+        Logger.trace("  Top 5% avg: \(Int(avgTop5HR))bpm")
+        Logger.trace("  Computed max (with 2% buffer): \(Int(computedMaxHR))bpm")
         
         // Step 2: Detect Lactate Threshold HR (LTHR)
         // Use aggregate approach: look at max HR from sustained efforts across all activities
@@ -728,8 +728,8 @@ class AthleteProfileManager: ObservableObject {
             let sorted = sustainedMaxHREfforts.sorted()
             let median = sorted[sorted.count / 2]
             lthrEstimate = median
-            Logger.data("LTHR detected from \(sustainedMaxHREfforts.count) sustained efforts: \(Int(lthrEstimate!))bpm (median max HR)")
-            Logger.data("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm")
+            Logger.trace("LTHR detected from \(sustainedMaxHREfforts.count) sustained efforts: \(Int(lthrEstimate!))bpm (median max HR)")
+            Logger.trace("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm")
         } else {
             // Approach 2: Look at activities with high average power/intensity and take their max HR
             // This captures interval sessions where threshold is hit multiple times
@@ -748,11 +748,11 @@ class AthleteProfileManager: ObservableObject {
                 let trimmed = sorted.dropFirst(sorted.count / 4).dropLast(sorted.count / 4)
                 if !trimmed.isEmpty {
                     lthrEstimate = trimmed.reduce(0, +) / Double(trimmed.count)
-                    Logger.data("LTHR estimated from \(intensityBasedEfforts.count) high-intensity efforts: \(Int(lthrEstimate!))bpm")
-                    Logger.data("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm (trimmed mean)")
+                    Logger.trace("LTHR estimated from \(intensityBasedEfforts.count) high-intensity efforts: \(Int(lthrEstimate!))bpm")
+                    Logger.trace("  Range: \(Int(sorted.first!))- \(Int(sorted.last!))bpm (trimmed mean)")
                 }
             } else {
-                Logger.data("⚠️ No suitable threshold efforts found for LTHR estimation")
+                Logger.trace("⚠️ No suitable threshold efforts found for LTHR estimation")
             }
         }
         
@@ -768,10 +768,10 @@ class AthleteProfileManager: ObservableObject {
             let smoothedMaxHR = (previousMaxHR * 0.8) + (computedMaxHR * 0.2)
             let change = ((smoothedMaxHR - previousMaxHR) / previousMaxHR) * 100
             
-            Logger.data("Adaptive smoothing applied:")
-            Logger.data("  Previous Max HR: \(Int(previousMaxHR))bpm")
-            Logger.data("  Raw computed: \(Int(computedMaxHR))bpm")
-            Logger.data("  Smoothed Max HR: \(Int(smoothedMaxHR))bpm (change: \(String(format: "%.1f", change))%)")
+            Logger.trace("Adaptive smoothing applied:")
+            Logger.trace("  Previous Max HR: \(Int(previousMaxHR))bpm")
+            Logger.trace("  Raw computed: \(Int(computedMaxHR))bpm")
+            Logger.trace("  Smoothed Max HR: \(Int(smoothedMaxHR))bpm (change: \(String(format: "%.1f", change))%)")
             
             computedMaxHR = smoothedMaxHR
         }
@@ -792,23 +792,23 @@ class AthleteProfileManager: ObservableObject {
                 // Above 93% = too close to max, not enough room for higher zones
                 if lthrPercentage >= 0.82 && lthrPercentage <= 0.93 {
                     profile.hrZones = generateAdaptiveHRZones(maxHR: finalMaxHR, lthr: lthr)
-                    Logger.data("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
-                    Logger.data("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
+                    Logger.trace("✅ HR Zones (Adaptive - LTHR anchored): \(profile.hrZones!.map { Int($0) })")
+                    Logger.trace("LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Valid range ✓")
                 } else {
                     profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
-                    Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-                    Logger.data("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
+                    Logger.trace("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
+                    Logger.trace("⚠️ LTHR: \(Int(lthr))bpm (\(Int(lthrPercentage * 100))% of max) - Outside valid range (82-93%), using Coggan zones")
                 }
             } else {
                 profile.hrZones = AthleteProfileManager.generateHRZones(maxHR: finalMaxHR)
-                Logger.data("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
-                Logger.data("⚠️ No LTHR detected - using Coggan zones")
+                Logger.trace("✅ HR Zones (Coggan): \(profile.hrZones!.map { Int($0) })")
+                Logger.trace("⚠️ No LTHR detected - using Coggan zones")
             }
         }
         
-        Logger.data("Max HR: \(Int(computedMaxHR))bpm")
+        Logger.trace("Max HR: \(Int(computedMaxHR))bpm")
         if let lthr = lthrEstimate {
-            Logger.data("LTHR: \(Int(lthr))bpm (\(Int((lthr / computedMaxHR) * 100))% of max)")
+            Logger.trace("LTHR: \(Int(lthr))bpm (\(Int((lthr / computedMaxHR) * 100))% of max)")
         }
     }
     
@@ -818,7 +818,7 @@ class AthleteProfileManager: ObservableObject {
         // Zones: Recovery, Endurance, Tempo, Threshold (LTHR), VO2max, Anaerobic, Max
         
         let lthrPercentage = lthr / maxHR
-        Logger.data("Adaptive zone computation: LTHR is \(Int(lthrPercentage * 100))% of max HR")
+        Logger.trace("Adaptive zone computation: LTHR is \(Int(lthrPercentage * 100))% of max HR")
         
         // Z1-Z2: Always percentage-based (low intensity zones)
         let z2 = maxHR * 0.68  // 68% max (endurance/recovery boundary)

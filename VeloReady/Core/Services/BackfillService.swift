@@ -374,7 +374,7 @@ final class BackfillService {
                         continue
                     }
                     
-                    Logger.data("  🔄 \(formatter.string(from: date)): Processing (oldScore=\(Int(oldScore)), HRV=\(physio.hrv), RHR=\(physio.rhr))")
+                    Logger.trace("  🔄 \(formatter.string(from: date)): Processing (oldScore=\(Int(oldScore)), HRV=\(physio.hrv), RHR=\(physio.rhr))")
                     
                     // Build inputs from historical data
                     let inputs = RecoveryScore.RecoveryInputs(
@@ -397,7 +397,7 @@ final class BackfillService {
                     // Uses synchronous overload (rule-based) for backfill
                     let result = RecoveryScoreCalculator.calculate(inputs: inputs, illnessIndicator: nil)
                     
-                    Logger.data("  📊 \(formatter.string(from: date)): Calculated newScore=\(result.score), band=\(result.band.rawValue)")
+                    Logger.trace("  📊 \(formatter.string(from: date)): Calculated newScore=\(result.score), band=\(result.band.rawValue)")
                     
                     // Update the score
                     scores.recoveryScore = Double(result.score)
@@ -405,7 +405,7 @@ final class BackfillService {
                     scores.lastUpdated = Date()
                     updatedCount += 1
                     
-                    Logger.data("  ✅ \(formatter.string(from: date)): Updated recovery: \(Int(oldScore)) → \(result.score) (Band=\(result.band.rawValue))")
+                    Logger.trace("  ✅ \(formatter.string(from: date)): Updated recovery: \(Int(oldScore)) → \(result.score) (Band=\(result.band.rawValue))")
                 }
                 
                 return (updated: updatedCount, skipped: skippedCount)
