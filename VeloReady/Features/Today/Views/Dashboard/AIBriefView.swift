@@ -343,17 +343,23 @@ private struct MLDataCollectionView: View {
                 .buttonStyle(.plain)
             }
             
-            // Progress bar with RAG coloring
+            // Progress bar with AI rainbow gradient
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     // Background (light grey)
                     Rectangle()
                         .fill(ColorPalette.neutral200)
                         .frame(height: 3)
-                    
-                    // Progress fill with RAG color
+
+                    // Progress fill with AI rainbow gradient
                     Rectangle()
-                        .fill(ragStatusColor)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: ColorPalette.aiGradientColors),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(width: geometry.size.width * progress, height: 3)
                 }
             }

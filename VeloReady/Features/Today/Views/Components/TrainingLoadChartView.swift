@@ -54,6 +54,15 @@ struct TrainingLoadChartView: View {
             .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
             }
+
+            // Vertical line for today
+            if let todayPoint = data.first(where: { Calendar.current.isDateInToday($0.date) }) {
+                RuleMark(
+                    x: .value("Today", todayPoint.date)
+                )
+                .foregroundStyle(Color.text.secondary.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            }
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 4)) { value in
