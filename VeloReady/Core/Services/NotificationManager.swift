@@ -1,5 +1,5 @@
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 import UIKit
 
 /// Manages local notifications for sleep reminders and recovery alerts
@@ -192,9 +192,9 @@ class NotificationManager: NSObject, ObservableObject {
 // MARK: - UNUserNotificationCenterDelegate
 
 extension NotificationManager: UNUserNotificationCenterDelegate {
-    
+
     /// Handle notification when app is in foreground
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
@@ -202,15 +202,15 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
         // Show notification even when app is in foreground
         completionHandler([.banner, .sound, .badge])
     }
-    
+
     /// Handle notification tap
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let identifier = response.notification.request.identifier
-        
+
         if identifier.starts(with: NotificationID.sleepReminder) {
             Logger.debug("User tapped sleep reminder notification", category: .ui)
             // Could navigate to sleep tracking or today view
@@ -218,7 +218,7 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
             Logger.debug("User tapped recovery alert notification", category: .ui)
             // Could navigate to recovery view
         }
-        
+
         completionHandler()
     }
 }

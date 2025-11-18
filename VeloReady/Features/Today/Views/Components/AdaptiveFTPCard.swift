@@ -26,7 +26,7 @@ struct AdaptiveFTPCard: View {
                     }
 
                     // Secondary metric
-                    if let wPerKg = viewModel.wPerKg {
+                    if viewModel.wPerKg != nil {
                         HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                             VRText(viewModel.wPerKgValue, style: .body)
                                 .foregroundColor(.secondary)

@@ -547,15 +547,15 @@ class RecoveryScoreCalculator {
         
         // Skip alcohol detection if illness is detected (same signals as alcohol)
         if let illness = illnessIndicator {
-            Logger.debug("🍷 Skipping alcohol detection - illness detected (\(illness.severity.rawValue))")
-            Logger.debug("   Illness signals mimic alcohol (HRV drop, elevated RHR, poor sleep)")
-            Logger.debug("   Using base score without alcohol penalty: \(String(format: "%.1f", baseScore))")
+            Logger.trace("🍷 Skipping alcohol detection - illness detected (\(illness.severity.rawValue))")
+            Logger.trace("   Illness signals mimic alcohol (HRV drop, elevated RHR, poor sleep)")
+            Logger.trace("   Using base score without alcohol penalty: \(String(format: "%.1f", baseScore))")
             return baseScore
         }
         
         // Skip alcohol detection if sleep data is missing (unreliable)
         guard inputs.sleepScore != nil else {
-            Logger.debug("🍷 Skipping alcohol detection - no sleep data available (unreliable without sleep)")
+            Logger.trace("🍷 Skipping alcohol detection - no sleep data available (unreliable without sleep)")
             return baseScore
         }
         

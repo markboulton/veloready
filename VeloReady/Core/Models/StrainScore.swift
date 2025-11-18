@@ -562,7 +562,7 @@ class StrainScoreCalculator {
             let typeMultiplier = getWorkoutTypeMultiplier(workoutTypes: inputs.workoutTypes)
             workoutTRIMP += cardioTRIMP * typeMultiplier
             
-            Logger.debug("   Workout type multiplier: \(String(format: "%.2f", typeMultiplier))")
+            Logger.trace("   Workout type multiplier: \(String(format: "%.2f", typeMultiplier))")
         }
         
         // Add strength training as equivalent TRIMP
@@ -582,10 +582,10 @@ class StrainScoreCalculator {
                 muscleGroupFactor = calculateMultiSelectionFactor(muscleGroups: muscleGroups)
             }
             
-            // More generous strength TRIMP calculation
-            // Strength training is metabolically demanding even at lower heart rates
-            let estimatedHRFraction = max(0.6, (rpe - 1.0) / 9.0) // Minimum 60% intensity (increased from 50%)
-            strengthTRIMP = estimatedHRFraction * strengthDuration * 150 * muscleGroupFactor  // Increased multiplier from 120 to 150
+            // Strength TRIMP calculation calibrated to cardio TRIMP scale
+            // Typical 30-min strength session should produce 10-20 TRIMP (similar to easy-moderate cardio)
+            let estimatedHRFraction = max(0.6, (rpe - 1.0) / 9.0) // Minimum 60% intensity
+            strengthTRIMP = estimatedHRFraction * strengthDuration * 0.5 * muscleGroupFactor  // Calibrated: 30min @ RPE 6.5 = ~10 TRIMP
             
             // Apply eccentric multiplier if focused on negatives
             if let isEccentric = inputs.isEccentricFocused, isEccentric {

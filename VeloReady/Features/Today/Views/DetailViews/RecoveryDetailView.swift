@@ -496,76 +496,72 @@ struct RecoveryDetailView: View {
     private func dataAvailabilityMessage(requiredDays: Int, metricName: String, description: String) -> some View {
         let persistenceController = PersistenceController.shared
         let context = persistenceController.container.viewContext
-        
+
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -(requiredDays - 1), to: endDate) else {
-            return AnyView(EmptyView())
-        }
-        
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
-        
-        let availableDays = (try? context.count(for: fetchRequest)) ?? 0
-        let daysRemaining = max(0, requiredDays - availableDays)
-        
-        // If we have enough data, show a refresh message instead
-        if availableDays >= requiredDays {
-            return AnyView(
+
+        if let startDate = calendar.date(byAdding: .day, value: -(requiredDays - 1), to: endDate) {
+            let availableDays = (try? context.count(for: {
+                let fetchRequest = DailyScores.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+                return fetchRequest
+            }())) ?? 0
+            let daysRemaining = max(0, requiredDays - availableDays)
+
+            // If we have enough data, show a refresh message instead
+            if availableDays >= requiredDays {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: Icons.Arrow.clockwise)
                             .foregroundColor(.secondary)
-                        
+
                         Text(RecoveryContent.DataAvailability.pullToRefresh)
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
-                    
+
                     Text("\(RecoveryContent.DataAvailability.youHave) \(availableDays) \(RecoveryContent.DataAvailability.daysOfData) \(description)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-            )
-        }
-        
-        return AnyView(
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.System.clock)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(RecoveryContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? RecoveryContent.DataAvailability.day : RecoveryContent.DataAvailability.days)")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                HStack(spacing: Spacing.xs) {
-                    Text("\(availableDays) \(RecoveryContent.DataAvailability.of) \(requiredDays) \(RecoveryContent.DataAvailability.days)")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                    
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(ColorPalette.neutral200)
-                                .frame(height: 2)
-                            
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(ColorScale.blueAccent)
-                                .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 2)
-                        }
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: Icons.System.clock)
+                            .foregroundColor(.secondary)
+
+                        Text("\(RecoveryContent.DataAvailability.checkBackIn) \(daysRemaining) \(daysRemaining == 1 ? RecoveryContent.DataAvailability.day : RecoveryContent.DataAvailability.days)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                     }
-                    .frame(height: 2)
+
+                    Text(description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack(spacing: Spacing.xs) {
+                        Text("\(availableDays) \(RecoveryContent.DataAvailability.of) \(requiredDays) \(RecoveryContent.DataAvailability.days)")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorPalette.neutral200)
+                                    .frame(height: 2)
+
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(ColorScale.blueAccent)
+                                    .frame(width: geometry.size.width * min(CGFloat(availableDays) / CGFloat(requiredDays), 1.0), height: 2)
+                            }
+                        }
+                        .frame(height: 2)
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
-        )
+        }
     }
     
     // MARK: - Helper Functions

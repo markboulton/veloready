@@ -658,7 +658,7 @@ class WeeklyReportViewModel: ObservableObject {
         // Calculate average wake time (handle early morning times)
         let wakeTimeHours = wakeTimes.map { date -> Double in
             let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            var hour = Double(components.hour ?? 0)
+            let hour = Double(components.hour ?? 0)
             let minute = Double(components.minute ?? 0) / 60.0
             
             // If wake time is very early (before 6am), it's likely from previous night's sleep

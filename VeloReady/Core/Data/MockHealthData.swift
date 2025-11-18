@@ -1,6 +1,46 @@
 import Foundation
 import HealthKit
 
+#if DEBUG
+/// Extension to create HKWorkout instances for previews and testing
+/// Uses deprecated initializer as HKWorkoutBuilder requires HealthKit store access
+extension HKWorkout {
+    /// Creates a mock workout for preview/testing purposes
+    /// - Warning: This method uses the deprecated HKWorkout initializer.
+    ///   It is intended for preview/test use only. Production code should use HKWorkoutBuilder.
+    /// - Parameters:
+    ///   - activityType: The type of workout activity
+    ///   - start: Start date of the workout
+    ///   - end: End date of the workout
+    ///   - duration: Duration in seconds (optional, calculated from start/end if nil)
+    ///   - totalEnergyBurned: Energy burned during workout (optional)
+    ///   - totalDistance: Distance covered during workout (optional)
+    ///   - metadata: Additional workout metadata (optional)
+    /// - Returns: A mock HKWorkout instance suitable for previews
+    static func mockWorkout(
+        activityType: HKWorkoutActivityType,
+        start: Date,
+        end: Date,
+        duration: TimeInterval? = nil,
+        totalEnergyBurned: HKQuantity? = nil,
+        totalDistance: HKQuantity? = nil,
+        metadata: [String: Any]? = nil
+    ) -> HKWorkout {
+        let workoutDuration = duration ?? end.timeIntervalSince(start)
+        #warning("Using deprecated HKWorkout initializer for preview/test code. Production code should use HKWorkoutBuilder.")
+        return HKWorkout(
+            activityType: activityType,
+            start: start,
+            end: end,
+            duration: workoutDuration,
+            totalEnergyBurned: totalEnergyBurned,
+            totalDistance: totalDistance,
+            metadata: metadata
+        )
+    }
+}
+#endif
+
 /// Mock health data for development and testing
 /// Provides realistic sample data without requiring actual HealthKit access
 class MockHealthData: ObservableObject {

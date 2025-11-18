@@ -327,18 +327,18 @@ class ActivityDetailViewModel: ObservableObject {
     
     // MARK: - Map Generation
     
-    private func generateMapSnapshot(coordinates: [CLLocationCoordinate2D]) async {
+    private func generateMapSnapshot(coordinates: [CLLocationCoordinate2D], displayScale: CGFloat = 3.0) async {
         guard !coordinates.isEmpty else { return }
-        
+
         isLoadingMap = true
         defer { isLoadingMap = false }
-        
+
         let region = regionForCoordinates(coordinates)
-        
+
         let options = MKMapSnapshotter.Options()
         options.region = region
         options.size = CGSize(width: 350, height: 200)
-        options.scale = UIScreen.main.scale
+        options.scale = displayScale
         if #available(iOS 17.0, *) {
             options.preferredConfiguration = MKStandardMapConfiguration()
         }

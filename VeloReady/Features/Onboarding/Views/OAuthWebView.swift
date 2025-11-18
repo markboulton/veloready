@@ -39,7 +39,7 @@ struct OAuthWebView: UIViewRepresentable {
         }
         
         // Handle SSL certificate challenges
-        func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
             Logger.debug("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
             
             // For intervals.icu, we'll accept the certificate

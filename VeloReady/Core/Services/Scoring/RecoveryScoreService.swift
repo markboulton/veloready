@@ -211,7 +211,7 @@ class RecoveryScoreService: ObservableObject {
     
     private func performActualCalculation(forceRefresh: Bool = false, ignoreDailyLimit: Bool = false) async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
-        let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
+        _ = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
         if !HealthKitManager.shared.isAuthorized {
             Logger.error("Recovery permissions not granted - skipping calculation")
@@ -487,48 +487,43 @@ class RecoveryScoreService: ObservableObject {
     private func calculateTrainingLoadFromHealthKit() async -> (atl: Double?, ctl: Double?) {
         Logger.warning("️ Calculating training loads from HealthKit")
         
-        do {
-            // Fetch 42 days of HealthKit workouts (all activity types)
-            let calendar = Calendar.current
-            let startDate = calendar.date(byAdding: .day, value: -42, to: Date())!
-            let workouts = await HealthKitManager.shared.fetchWorkouts(from: startDate, to: Date(), activityTypes: [])
-            
-            Logger.data("Calculating training load from HealthKit workouts...")
-            Logger.data("Found \(workouts.count) workouts to analyze")
-            
-            guard !workouts.isEmpty else {
-                Logger.warning("No HealthKit workouts found - returning default values")
-                return (nil, nil)
-            }
-            
-            // Calculate daily TRIMP (Training Impulse) for each day
-            var dailyTRIMP: [Date: Double] = [:]
-            let trimpCalculator = TRIMPCalculator()
-            
-            for workout in workouts {
-                let day = calendar.startOfDay(for: workout.startDate)
-                let trimp = await trimpCalculator.calculateTRIMP(for: workout)
-                dailyTRIMP[day, default: 0] += trimp
-            }
-            
-            Logger.data("Found \(dailyTRIMP.count) days with workout data in last 42 days")
-            
-            // Calculate CTL and ATL from daily TRIMP
-            let today = calendar.startOfDay(for: Date())
-            let ctl = calculateCTL(from: dailyTRIMP, today: today)
-            let atl = calculateATL(from: dailyTRIMP, today: today)
-            let tsb = ctl - atl
-            
-            Logger.data("Training Load Results:")
-            Logger.debug("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
-            Logger.debug("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
-            Logger.debug("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
-            
-            return (atl, ctl)
-        } catch {
-            Logger.error("Failed to calculate training load from HealthKit: \(error)")
+        // Fetch 42 days of HealthKit workouts (all activity types)
+        let calendar = Calendar.current
+        let startDate = calendar.date(byAdding: .day, value: -42, to: Date())!
+        let workouts = await HealthKitManager.shared.fetchWorkouts(from: startDate, to: Date(), activityTypes: [])
+
+        Logger.data("Calculating training load from HealthKit workouts...")
+        Logger.data("Found \(workouts.count) workouts to analyze")
+
+        guard !workouts.isEmpty else {
+            Logger.warning("No HealthKit workouts found - returning default values")
             return (nil, nil)
         }
+
+        // Calculate daily TRIMP (Training Impulse) for each day
+        var dailyTRIMP: [Date: Double] = [:]
+        let trimpCalculator = TRIMPCalculator()
+
+        for workout in workouts {
+            let day = calendar.startOfDay(for: workout.startDate)
+            let trimp = await trimpCalculator.calculateTRIMP(for: workout)
+            dailyTRIMP[day, default: 0] += trimp
+        }
+
+        Logger.data("Found \(dailyTRIMP.count) days with workout data in last 42 days")
+
+        // Calculate CTL and ATL from daily TRIMP
+        let today = calendar.startOfDay(for: Date())
+        let ctl = calculateCTL(from: dailyTRIMP, today: today)
+        let atl = calculateATL(from: dailyTRIMP, today: today)
+        let tsb = ctl - atl
+
+        Logger.data("Training Load Results:")
+        Logger.debug("   CTL (Chronic): \(String(format: "%.1f", ctl)) (42-day fitness)")
+        Logger.debug("   ATL (Acute): \(String(format: "%.1f", atl)) (7-day fatigue)")
+        Logger.debug("   TSB (Balance): \(String(format: "%.1f", tsb)) (form)")
+
+        return (atl, ctl)
     }
     
     /// Estimate TSS for a unified activity

@@ -285,9 +285,13 @@ private struct MuscleGroupButton: View {
 }
 
 #Preview {
-    RPEInputSheet(workout: HKWorkout(
+    RPEInputSheet(workout: HKWorkout.mockWorkout(
         activityType: .traditionalStrengthTraining,
         start: Date(),
-        end: Date().addingTimeInterval(1800)
+        end: Date().addingTimeInterval(1800),
+        duration: 1800,
+        totalEnergyBurned: HKQuantity(unit: .kilocalorie(), doubleValue: 350),
+        totalDistance: nil,
+        metadata: nil
     ))
 }

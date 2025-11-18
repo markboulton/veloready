@@ -143,7 +143,7 @@ struct IntervalsOAuthWebView: UIViewRepresentable {
 
 // Custom SSL delegate to handle certificate challenges
 final class SSLDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
-    nonisolated func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    nonisolated func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         Logger.debug("🔒 SSL Challenge received for: \(challenge.protectionSpace.host)")
         
         // Check if certificate bypass is enabled for intervals.icu

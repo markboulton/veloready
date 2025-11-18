@@ -167,7 +167,7 @@ class StrainScoreService: ObservableObject {
     
     private func performActualCalculation() async {
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
-        let stepType = HKObjectType.quantityType(forIdentifier: .stepCount)!
+        _ = HKObjectType.quantityType(forIdentifier: .stepCount)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
         print("💪 [STRAIN] Checking HealthKit authorization: \(HealthKitManager.shared.isAuthorized)")
         if !HealthKitManager.shared.isAuthorized {
