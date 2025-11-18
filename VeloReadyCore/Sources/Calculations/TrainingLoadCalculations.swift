@@ -33,21 +33,30 @@ public struct TrainingLoadCalculations {
     public static func calculateCTL(
         dailyTSS: [Double]
     ) -> Double {
-        guard !dailyTSS.isEmpty else { return 0.0 }
+        guard !dailyTSS.isEmpty else {
+            print("📊 [CTL] No TSS data provided - returning 0")
+            return 0.0
+        }
 
         let timeConstant = 42.0
         let weight = 1.0 / timeConstant  // 1/42 ≈ 0.0238
 
         var ctl = 0.0
-        for tss in dailyTSS {
+        for (index, tss) in dailyTSS.enumerated() {
+            let previousCTL = ctl
             // Linear weighted moving average (discrete-time standard)
             ctl = ctl * (1.0 - weight) + tss * weight
+
+            // Log first 3 and last 3 days for debugging
+            if index < 3 || index >= dailyTSS.count - 3 {
+                print("📊 [CTL] Day \(index + 1): TSS=\(String(format: "%.1f", tss)), Previous CTL=\(String(format: "%.2f", previousCTL)), New CTL=\(String(format: "%.2f", ctl))")
+            } else if index == 3 {
+                print("📊 [CTL] ... (skipping middle days) ...")
+            }
         }
 
-        // Debug: Log calculation details for verification
-        #if DEBUG
-        print("📊 CTL Calculation: weight=\(String(format: "%.4f", weight)), days=\(dailyTSS.count), result=\(String(format: "%.1f", ctl))")
-        #endif
+        print("📊 [CTL] ✅ FINAL: weight=\(String(format: "%.4f", weight)), days=\(dailyTSS.count), result=\(String(format: "%.1f", ctl))")
+        print("📊 [CTL] Formula used: CTL_new = CTL_old * (1 - 1/42) + TSS * (1/42)")
 
         return ctl
     }
@@ -62,21 +71,30 @@ public struct TrainingLoadCalculations {
     public static func calculateATL(
         dailyTSS: [Double]
     ) -> Double {
-        guard !dailyTSS.isEmpty else { return 0.0 }
+        guard !dailyTSS.isEmpty else {
+            print("📊 [ATL] No TSS data provided - returning 0")
+            return 0.0
+        }
 
         let timeConstant = 7.0
         let weight = 1.0 / timeConstant  // 1/7 ≈ 0.1429
 
         var atl = 0.0
-        for tss in dailyTSS {
+        for (index, tss) in dailyTSS.enumerated() {
+            let previousATL = atl
             // Linear weighted moving average (discrete-time standard)
             atl = atl * (1.0 - weight) + tss * weight
+
+            // Log first 3 and last 3 days for debugging
+            if index < 3 || index >= dailyTSS.count - 3 {
+                print("📊 [ATL] Day \(index + 1): TSS=\(String(format: "%.1f", tss)), Previous ATL=\(String(format: "%.2f", previousATL)), New ATL=\(String(format: "%.2f", atl))")
+            } else if index == 3 {
+                print("📊 [ATL] ... (skipping middle days) ...")
+            }
         }
 
-        // Debug: Log calculation details for verification
-        #if DEBUG
-        print("📊 ATL Calculation: weight=\(String(format: "%.4f", weight)), days=\(dailyTSS.count), result=\(String(format: "%.1f", atl))")
-        #endif
+        print("📊 [ATL] ✅ FINAL: weight=\(String(format: "%.4f", weight)), days=\(dailyTSS.count), result=\(String(format: "%.1f", atl))")
+        print("📊 [ATL] Formula used: ATL_new = ATL_old * (1 - 1/7) + TSS * (1/7)")
 
         return atl
     }

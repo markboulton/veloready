@@ -89,7 +89,10 @@ class TrainingLoadService: ObservableObject {
         guard let startDate = calendar.date(byAdding: .day, value: -days, to: endDate) else {
             return []
         }
-        
+
+        print("📊 [TRAINING LOAD SERVICE] Fetching \(days) days from Core Data")
+        print("📊 [TRAINING LOAD SERVICE] Date range: \(startDate) to \(endDate)")
+
         // Fetch from Core Data (DailyScores with DailyLoad relationship)
         let context = PersistenceController.shared.container.viewContext
         let request = DailyScores.fetchRequest()
@@ -99,21 +102,23 @@ class TrainingLoadService: ObservableObject {
             endDate as NSDate
         )
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
+
         guard let dailyScores = try? context.fetch(request) else {
-            Logger.error("📊 [TRAINING LOAD] Failed to fetch from Core Data")
+            Logger.error("📊 [TRAINING LOAD SERVICE] Failed to fetch from Core Data")
             return []
         }
-        
+
+        print("📊 [TRAINING LOAD SERVICE] Fetched \(dailyScores.count) DailyScores from Core Data")
+
         // Convert to trajectory data points (historical only, no projections)
         var points: [FitnessTrajectoryChart.DataPoint] = []
-        
+
         for score in dailyScores {
             guard let date = score.date, let load = score.load else { continue }
-            
+
             // Only include if we have valid CTL/ATL data
             guard load.ctl > 0 || load.atl > 0 else { continue }
-            
+
             points.append(FitnessTrajectoryChart.DataPoint(
                 date: date,
                 ctl: load.ctl,
@@ -121,8 +126,17 @@ class TrainingLoadService: ObservableObject {
                 tsb: load.tsb,
                 isFuture: false
             ))
+
+            // Log last 3 days for debugging
+            if points.count <= 3 || points.count == dailyScores.count {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MMM d"
+                print("📊 [TRAINING LOAD SERVICE] \(dateFormatter.string(from: date)): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl)), TSB=\(String(format: "%.1f", load.tsb))")
+            }
         }
-        
+
+        print("📊 [TRAINING LOAD SERVICE] Returning \(points.count) data points")
+
         return points
     }
 }

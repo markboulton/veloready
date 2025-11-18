@@ -8,11 +8,22 @@ struct TrainingLoadChartView: View {
 
     // Find today's data point or use most recent
     private var selectedPoint: TrainingLoadDataPoint? {
-        data.first { Calendar.current.isDateInToday($0.date) } ?? data.last
+        let point = data.first { Calendar.current.isDateInToday($0.date) } ?? data.last
+        if let p = point {
+            print("📊 [CHART VIEW] Selected point: date=\(p.date), CTL=\(String(format: "%.1f", p.ctl)), ATL=\(String(format: "%.1f", p.atl)), TSB=\(String(format: "%.1f", p.tsb)), isFuture=\(p.isFuture)")
+        }
+        return point
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        print("📊 [CHART VIEW] Rendering with \(data.count) data points")
+        if let first = data.first, let last = data.last {
+            print("📊 [CHART VIEW] Date range: \(first.date) to \(last.date)")
+            print("📊 [CHART VIEW] First point: CTL=\(String(format: "%.1f", first.ctl)), ATL=\(String(format: "%.1f", first.atl))")
+            print("📊 [CHART VIEW] Last point: CTL=\(String(format: "%.1f", last.ctl)), ATL=\(String(format: "%.1f", last.atl))")
+        }
+
+        return VStack(alignment: .leading, spacing: 0) {
             // Chart
             chart
 

@@ -100,17 +100,22 @@ actor TrainingLoadCalculator {
 
         let ctlWeight = 1.0 / 42.0  // ≈ 0.0238
         let atlWeight = 1.0 / 7.0   // ≈ 0.1429
-        
+
+        Logger.data("📊 [PROGRESSIVE] Using LINEAR formula:")
+        Logger.data("📊 [PROGRESSIVE] CTL weight = 1/42 = \(String(format: "%.4f", ctlWeight))")
+        Logger.data("📊 [PROGRESSIVE] ATL weight = 1/7 = \(String(format: "%.4f", atlWeight))")
+        Logger.data("📊 [PROGRESSIVE] Formula: Load_new = Load_old * (1 - weight) + TSS * weight")
+
         // Start from zero (Training Peaks standard approach)
         // CTL and ATL build up naturally using exponential weighted moving average
         var currentCTL = 0.0
         var currentATL = 0.0
-        
+
         // Start from earliest date in data
         let startDate = sortedDates.first!
         let today = calendar.startOfDay(for: Date())
-        
-        Logger.data("📊 Calculating from \(startDate) to \(today) (\(calendar.dateComponents([.day], from: startDate, to: today).day ?? 0) days)")
+
+        Logger.data("📊 [PROGRESSIVE] Calculating from \(startDate) to \(today) (\(calendar.dateComponents([.day], from: startDate, to: today).day ?? 0) days)")
         
         // Build progressive history using incremental EMA
         var currentDate = startDate

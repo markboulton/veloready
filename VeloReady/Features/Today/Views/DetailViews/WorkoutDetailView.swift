@@ -586,14 +586,17 @@ struct AdditionalDataSection: View {
                 
                 // ATL (Acute Training Load)
                 if let atl = activity.atl {
+                    let _ = print("📊 [WORKOUT DETAIL] Showing ATL from activity.atl = \(String(format: "%.1f", atl))")
                     CompactMetricItem(
                         label: "ATL (7d)",
                         value: formatLoad(atl)
                     )
                 }
-                
+
                 // CTL (Chronic Training Load)
                 if let ctl = activity.ctl {
+                    let _ = print("📊 [WORKOUT DETAIL] Showing CTL from activity.ctl = \(String(format: "%.1f", ctl))")
+                    let _ = print("📊 [WORKOUT DETAIL] Activity source: \(activity.id ?? "unknown"), date: \(activity.startDateLocal)")
                     CompactMetricItem(
                         label: "CTL (42d)",
                         value: formatLoad(ctl)
