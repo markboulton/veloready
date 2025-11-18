@@ -66,9 +66,9 @@ struct RecoveryMetricsSection: View {
                     // Check if sleep data is available or simulated as unavailable
                     let config = ProFeatureConfig.shared
                     let showSleepRing = viewModel.hasSleepData && !config.simulateNoSleepData
-                    
+
                     // Show loading state until all scores are ready
-                    let _ = print("💪 [VIEW] RecoveryMetricsSection - allScoresReady: \(viewModel.allScoresReady), showSleepRing: \(showSleepRing), isInitialLoad: \(viewModel.isInitialLoad)")
+                    let _ = print("💪 [VIEW] RecoveryMetricsSection - allScoresReady: \(viewModel.allScoresReady), showSleepRing: \(showSleepRing), isInitialLoad: \(viewModel.isInitialLoad), hasSleepData: \(viewModel.hasSleepData), sleepScore: \(viewModel.sleepScore?.score ?? -1)")
                     if !viewModel.allScoresReady {
                         let _ = print("💪 [VIEW] Showing LOADING rings - isInitialLoad: \(viewModel.isInitialLoad)")
                         // Loading state - show grey rings with shimmer for all three

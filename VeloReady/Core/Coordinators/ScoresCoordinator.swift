@@ -203,6 +203,8 @@ class ScoresCoordinator: ObservableObject {
         state.sleep = sleepService.currentSleepScore
         state.strain = strainService.currentStrainScore
 
+        print("🔍 [ScoresCoordinator] Cache loaded - R: \(state.recovery?.score ?? -1), S: \(state.sleep?.score ?? -1), St: \(state.strain?.score ?? -1)")
+
         // OPTIMIZATION: If we have cached scores, show them immediately!
         // Set phase to .ready so UI displays cached scores while fresh calculation happens
         // This provides instant UI feedback (perceived startup time -70%)
