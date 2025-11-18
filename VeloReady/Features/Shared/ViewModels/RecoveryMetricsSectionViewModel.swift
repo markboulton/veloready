@@ -197,6 +197,12 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     
     var hasSleepData: Bool {
         guard let score = sleepScore else { return false }
+        // If we have a valid sleep score (0-100), we have sleep data
+        // This prevents flash when cached scores don't have full inputs populated yet
+        if score.score >= 0 && score.score <= 100 {
+            return true
+        }
+        // Fallback: check if inputs are available (for edge cases)
         return score.inputs.sleepDuration != nil && score.inputs.sleepDuration != 0
     }
     

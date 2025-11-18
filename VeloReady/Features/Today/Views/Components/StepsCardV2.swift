@@ -40,10 +40,8 @@ struct StepsCardV2: View {
                 // Right 50%: Visualization
                 VStack(alignment: .trailing, spacing: Spacing.xs) {
                     if viewModel.hasHourlyData {
-                        VRText("Today", style: .caption, color: Color.text.secondary)
-
                         StepsSparkline(hourlySteps: viewModel.hourlySteps)
-                            .frame(width: 80, height: 60)
+                            .frame(width: 160, height: 60)
                     } else {
                         // Placeholder when no data
                         VStack(spacing: Spacing.xs) {
