@@ -222,10 +222,12 @@ struct MainTabView: View {
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
     @StateObject private var apiClient = IntervalsAPIClient.shared
     @StateObject private var athleteZoneService = AthleteZoneService()
+    @ObservedObject private var scoresCoordinator = ServiceContainer.shared.scoresCoordinator // Observe scores for smart hiding
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var showInitialSpinner: Bool
     @State private var brandingOpacity: Double = 0.0  // Start at 0 for fade-in animation
+    @State private var minimumBrandingElapsed = false  // Track if 3s minimum has passed
     
     // UserDefaults key for tracking app lifecycle
     private static let hasShownBrandingKey = "hasShownBrandingAnimation"
@@ -302,35 +304,58 @@ struct MainTabView: View {
                     .onAppear {
                         Logger.info("📱 [MAINTABVIEW] Showing black screen for branding (iOS 26+)")
                     }
-                
+
                 LoadingOverlay()
                     .opacity(brandingOpacity)
                     .zIndex(999)
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
                         Logger.info("🔵 [BRANDING] Starting fade-in animation")
-                        
+
                         // Phase 1: Fade in immediately (0.3s)
                         withAnimation(.easeIn(duration: 0.3)) {
                             brandingOpacity = 1.0
                         }
-                        
+
                         Task { @MainActor in
-                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
-                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
+
+                            // Phase 2: Wait minimum 3 seconds for branding
                             try? await Task.sleep(nanoseconds: 3_000_000_000)
-                            
-                            // Phase 3: Fade out (0.5s)
-                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            minimumBrandingElapsed = true
+                            Logger.info("✅ [BRANDING] Minimum 3s elapsed - now waiting for scores...")
+
+                            // Phase 3: Wait for scores to be ready (with 3s timeout)
+                            let scoresReadyStart = Date()
+                            while !scoresCoordinator.state.allCoreScoresAvailable {
+                                // Check timeout - if scores aren't ready within 3s, proceed anyway
+                                if Date().timeIntervalSince(scoresReadyStart) > 3.0 {
+                                    Logger.warning("⏱️ [BRANDING] Scores not ready after 3s timeout - proceeding anyway")
+                                    break
+                                }
+                                // Check every 100ms
+                                try? await Task.sleep(nanoseconds: 100_000_000)
+                            }
+
+                            let waitDuration = Date().timeIntervalSince(scoresReadyStart)
+                            Logger.info("✅ [BRANDING] Scores ready in \(String(format: "%.2f", waitDuration))s - phase: \(scoresCoordinator.state.phase.description)")
+
+                            // Phase 4: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] Starting fade-out")
                             withAnimation(.easeOut(duration: 0.5)) {
                                 brandingOpacity = 0.0
                             }
-                            
+
                             // Wait for fade-out to complete before removing from hierarchy
                             try? await Task.sleep(nanoseconds: 500_000_000)
                             Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
                             showInitialSpinner = false
                             Logger.info("✅ [BRANDING] Branding sequence complete")
+                        }
+                    }
+                    .onChange(of: scoresCoordinator.state.allCoreScoresAvailable) { _, isReady in
+                        if minimumBrandingElapsed && isReady {
+                            Logger.info("🚀 [BRANDING] Scores became ready after minimum time - will fade out soon")
                         }
                     }
             } else {
@@ -406,28 +431,51 @@ struct MainTabView: View {
                     .onAppear {
                         Logger.info("🎬 [BRANDING] Central animation APPEARED - showInitialSpinner: \(showInitialSpinner)")
                         Logger.info("🔵 [BRANDING] Starting fade-in animation")
-                        
+
                         // Phase 1: Fade in immediately (0.3s)
                         withAnimation(.easeIn(duration: 0.3)) {
                             brandingOpacity = 1.0
                         }
-                        
+
                         Task { @MainActor in
-                            Logger.info("🎬 [BRANDING] Animation will display for 3 seconds")
-                            // Phase 2: Display for 3 seconds (includes fade-in time)
+                            Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
+
+                            // Phase 2: Wait minimum 3 seconds for branding
                             try? await Task.sleep(nanoseconds: 3_000_000_000)
-                            
-                            // Phase 3: Fade out (0.5s)
-                            Logger.info("🎬 [BRANDING] 3 seconds elapsed - starting fade-out")
+                            minimumBrandingElapsed = true
+                            Logger.info("✅ [BRANDING] Minimum 3s elapsed - now waiting for scores...")
+
+                            // Phase 3: Wait for scores to be ready (with 3s timeout)
+                            let scoresReadyStart = Date()
+                            while !scoresCoordinator.state.allCoreScoresAvailable {
+                                // Check timeout - if scores aren't ready within 3s, proceed anyway
+                                if Date().timeIntervalSince(scoresReadyStart) > 3.0 {
+                                    Logger.warning("⏱️ [BRANDING] Scores not ready after 3s timeout - proceeding anyway")
+                                    break
+                                }
+                                // Check every 100ms
+                                try? await Task.sleep(nanoseconds: 100_000_000)
+                            }
+
+                            let waitDuration = Date().timeIntervalSince(scoresReadyStart)
+                            Logger.info("✅ [BRANDING] Scores ready in \(String(format: "%.2f", waitDuration))s - phase: \(scoresCoordinator.state.phase.description)")
+
+                            // Phase 4: Fade out (0.5s)
+                            Logger.info("🎬 [BRANDING] Starting fade-out")
                             withAnimation(.easeOut(duration: 0.5)) {
                                 brandingOpacity = 0.0
                             }
-                            
+
                             // Wait for fade-out to complete before removing from hierarchy
                             try? await Task.sleep(nanoseconds: 500_000_000)
                             Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
                             showInitialSpinner = false
                             Logger.info("✅ [BRANDING] Branding sequence complete")
+                        }
+                    }
+                    .onChange(of: scoresCoordinator.state.allCoreScoresAvailable) { _, isReady in
+                        if minimumBrandingElapsed && isReady {
+                            Logger.info("🚀 [BRANDING] Scores became ready after minimum time - will fade out soon")
                         }
                     }
             }
