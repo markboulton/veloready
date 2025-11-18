@@ -60,36 +60,47 @@ actor TrainingLoadCalculator {
     }
     
     /// Calculate progressive CTL/ATL values for each activity date
-    /// - Parameter activities: Array of activities with TSS values
+    /// - Parameters:
+    ///   - activities: Array of activities with TSS values
+    ///   - startingCTL: Optional baseline CTL to seed calculation (e.g., from Intervals.icu)
+    ///   - startingATL: Optional baseline ATL to seed calculation (e.g., from Intervals.icu)
     /// - Returns: Dictionary mapping activity dates to (ctl, atl) tuples
-    func calculateProgressiveTrainingLoad(_ activities: [Activity]) -> [Date: (ctl: Double, atl: Double)] {
+    func calculateProgressiveTrainingLoad(
+        _ activities: [Activity],
+        startingCTL: Double = 0.0,
+        startingATL: Double = 0.0
+    ) -> [Date: (ctl: Double, atl: Double)] {
         Logger.data("📊 Calculating progressive CTL/ATL from \(activities.count) activities...")
-        
+
+        if startingCTL > 0 || startingATL > 0 {
+            Logger.data("📊 [BASELINE SEEDING] Starting with CTL=\(String(format: "%.1f", startingCTL)), ATL=\(String(format: "%.1f", startingATL))")
+        }
+
         var result: [Date: (ctl: Double, atl: Double)] = [:]
         let calendar = Calendar.current
-        
+
         // Group activities by date and sum TSS
         var dailyTSS: [Date: Double] = [:]
         for activity in activities {
             guard let tss = activity.tss, tss > 0 else { continue }
             guard let activityDate = parseActivityDate(activity.startDateLocal) else { continue }
-            
+
             let day = calendar.startOfDay(for: activityDate)
             dailyTSS[day, default: 0] += tss
         }
-        
+
         Logger.data("📊 Found \(dailyTSS.count) days with TSS data for progressive calculation")
-        
+
         // Get sorted dates
         let sortedDates = dailyTSS.keys.sorted()
         guard !sortedDates.isEmpty else {
             Logger.data("📊 No TSS data found - returning empty progressive load")
             return result
         }
-        
+
         Logger.data("📊 Date range with TSS: \(sortedDates.first!.description) to \(sortedDates.last!.description)")
         Logger.data("📊 Daily TSS values: \(dailyTSS.map { "\(calendar.startOfDay(for: $0.key)): \(String(format: "%.0f", $0.value))" }.sorted().joined(separator: ", "))")
-        
+
         // Calculate CTL/ATL progressively using discrete-time linear formula
         // CTL_today = CTL_yesterday * (1 - 1/τ) + TSS_today * (1/τ)
         // where τ is the time constant in days
@@ -106,20 +117,20 @@ actor TrainingLoadCalculator {
         Logger.data("📊 [PROGRESSIVE] ATL weight = 1/7 = \(String(format: "%.4f", atlWeight))")
         Logger.data("📊 [PROGRESSIVE] Formula: Load_new = Load_old * (1 - weight) + TSS * weight")
 
-        // Start from zero (Training Peaks standard approach)
+        // Start from baseline (Intervals.icu/Wahoo) or zero (Strava-only)
         // CTL and ATL build up naturally using exponential weighted moving average
-        var currentCTL = 0.0
-        var currentATL = 0.0
+        var currentCTL = startingCTL
+        var currentATL = startingATL
 
         // Start from earliest date in data
         let startDate = sortedDates.first!
         let today = calendar.startOfDay(for: Date())
 
         Logger.data("📊 [PROGRESSIVE] Calculating from \(startDate) to \(today) (\(calendar.dateComponents([.day], from: startDate, to: today).day ?? 0) days)")
-        
+
         // Build progressive history using incremental EMA
         var currentDate = startDate
-        
+
         while currentDate <= today {
             let tss = dailyTSS[currentDate] ?? 0
 
@@ -134,7 +145,7 @@ actor TrainingLoadCalculator {
             // Move to next day
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
         }
-        
+
         Logger.data("📊 Progressive calculation complete: \(result.count) dates with CTL/ATL")
         
         // Log last 5 dates for verification
