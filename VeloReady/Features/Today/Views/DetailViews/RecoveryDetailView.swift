@@ -501,10 +501,11 @@ struct RecoveryDetailView: View {
         let endDate = calendar.startOfDay(for: Date())
 
         if let startDate = calendar.date(byAdding: .day, value: -(requiredDays - 1), to: endDate) {
-            let fetchRequest = DailyScores.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
-
-            let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+            let availableDays = (try? context.count(for: {
+                let fetchRequest = DailyScores.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND recoveryScore > 0", startDate as NSDate, endDate as NSDate)
+                return fetchRequest
+            }())) ?? 0
             let daysRemaining = max(0, requiredDays - availableDays)
 
             // If we have enough data, show a refresh message instead

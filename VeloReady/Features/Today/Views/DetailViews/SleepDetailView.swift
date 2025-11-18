@@ -519,12 +519,14 @@ struct SleepDetailView: View {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
 
-        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) {
-            let fetchRequest = DailyScores.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-
-            if let results = try? context.fetch(fetchRequest), !results.isEmpty {
+        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate),
+           let results = try? context.fetch({
+               let fetchRequest = DailyScores.fetchRequest()
+               fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+               fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+               return fetchRequest
+           }()),
+           !results.isEmpty {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text(SleepContent.SleepDebt.trendTitle)
                         .font(.caption)
@@ -582,10 +584,9 @@ struct SleepDetailView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-            }
         }
     }
-    
+
     @ViewBuilder
     private func sleepConsistencyTrendChart() -> some View {
         let persistenceController = PersistenceController.shared
@@ -594,12 +595,14 @@ struct SleepDetailView: View {
         let calendar = Calendar.current
         let endDate = calendar.startOfDay(for: Date())
 
-        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) {
-            let fetchRequest = DailyScores.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-
-            if let results = try? context.fetch(fetchRequest), !results.isEmpty {
+        if let startDate = calendar.date(byAdding: .day, value: -6, to: endDate),
+           let results = try? context.fetch({
+               let fetchRequest = DailyScores.fetchRequest()
+               fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+               fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+               return fetchRequest
+           }()),
+           !results.isEmpty {
                 // Use sleep scores as a proxy for consistency
                 let scores = results.compactMap { $0.sleepScore }
 
@@ -640,10 +643,9 @@ struct SleepDetailView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-            }
         }
     }
-    
+
     // MARK: - Helper Methods
     
     @ViewBuilder
@@ -655,10 +657,11 @@ struct SleepDetailView: View {
         let endDate = calendar.startOfDay(for: Date())
 
         if let startDate = calendar.date(byAdding: .day, value: -requiredDays, to: endDate) {
-            let fetchRequest = DailyScores.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
-
-            let availableDays = (try? context.count(for: fetchRequest)) ?? 0
+            let availableDays = (try? context.count(for: {
+                let fetchRequest = DailyScores.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "date >= %@ AND date <= %@ AND sleepScore > 0", startDate as NSDate, endDate as NSDate)
+                return fetchRequest
+            }())) ?? 0
             let daysRemaining = max(0, requiredDays - availableDays)
 
             // If we have enough data, show a refresh message instead

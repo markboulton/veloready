@@ -455,9 +455,10 @@ struct ActivityCard: View {
                     }
                     
                     if let firstCoord = coordinates.first {
-                        let request = MKReverseGeocodingRequest(coordinate: firstCoord)
+                        let location = CLLocation(latitude: firstCoord.latitude, longitude: firstCoord.longitude)
+                        let geocoder = CLGeocoder()
 
-                        if let response = try? await request.send(), let placemark = response.placemarks.first {
+                        if let placemarks = try? await geocoder.reverseGeocodeLocation(location), let placemark = placemarks.first {
                             await MainActor.run {
                                 // Format: "City, State" or "City, Country"
                                 var components: [String] = []
