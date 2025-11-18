@@ -4,8 +4,8 @@ import Charts
 /// Small sparkline showing steps over the day
 struct StepsSparkline: View {
     let hourlySteps: [HourlyStepData]
-    
-    @State private var animationProgress: Double = 0.0
+
+    @State private var animationProgress: Double = 1.0  // Start at 1.0 to show immediately
     
     var body: some View {
         Chart {

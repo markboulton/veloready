@@ -177,11 +177,16 @@ class TodayCoordinator: ObservableObject {
                 Logger.info("✅ [TodayCoordinator] App foregrounded - data still fresh, no refresh needed")
             }
             
+        case (.healthKitAuthorized, .loading):
+            // HealthKit authorized during initial load - recalculate scores
+            Logger.info("🔄 [TodayCoordinator] HealthKit authorized during loading - recalculating scores")
+            await scoresCoordinator.refresh()
+
         case (.healthKitAuthorized, .ready):
             // HealthKit was just authorized - refresh to get new data
             Logger.info("🔄 [TodayCoordinator] HealthKit authorized - refreshing data")
             await refresh()
-            
+
         case (.pullToRefresh, .ready), (.pullToRefresh, .background):
             // User explicitly triggered pull-to-refresh - invalidate caches first
             await invalidateActivityCaches()
