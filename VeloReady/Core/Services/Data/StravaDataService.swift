@@ -5,7 +5,7 @@ import Combine
 /// Supports Pro (365 days) and Free (90 days) tiers
 @MainActor
 class StravaDataService: ObservableObject {
-    nonisolated(unsafe) static let shared = StravaDataService()
+    static let shared = StravaDataService()
     
     @Published private(set) var activities: [StravaActivity] = []
     @Published private(set) var isLoading = false

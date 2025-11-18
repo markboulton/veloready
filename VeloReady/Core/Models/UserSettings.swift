@@ -4,7 +4,7 @@ import SwiftUI
 /// User settings and preferences for the app
 @MainActor
 class UserSettings: ObservableObject {
-    nonisolated(unsafe) static let shared = UserSettings()
+    static let shared = UserSettings()
     
     /// Flag to prevent saving during initialization
     private var isLoading = false
