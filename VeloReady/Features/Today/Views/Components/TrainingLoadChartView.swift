@@ -5,6 +5,12 @@ import Charts
 /// Used in both Today page and Activity detail views
 struct TrainingLoadChartView: View {
     let data: [TrainingLoadDataPoint]
+    let caption: String?  // Optional caption to clarify what the values represent
+
+    init(data: [TrainingLoadDataPoint], caption: String? = nil) {
+        self.data = data
+        self.caption = caption
+    }
 
     // Find today's data point or use most recent
     private var selectedPoint: TrainingLoadDataPoint? {
@@ -101,47 +107,56 @@ struct TrainingLoadChartView: View {
     }
 
     private var metricsLegend: some View {
-        HStack(spacing: 16) {
-            // CTL
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
-                Text("CTL")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.ctl))")
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 16) {
+                // CTL
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
+                    Text("CTL")
                         .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.ctl))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
+                }
+
+                // ATL
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
+                    Text("ATL")
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.atl))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
+                }
+
+                // Form (TSB)
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.blueAccent).frame(width: 6, height: 6)
+                    Text("Form")
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.tsb))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
                 }
             }
 
-            // ATL
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
-                Text("ATL")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.atl))")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
-                }
-            }
-
-            // Form (TSB)
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.blueAccent).frame(width: 6, height: 6)
-                Text("Form")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.tsb))")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
-                }
+            // Optional caption
+            if let caption = caption {
+                Text(caption)
+                    .font(.caption2)
+                    .foregroundColor(Color.text.tertiary)
             }
         }
         .padding(.horizontal, 16)
