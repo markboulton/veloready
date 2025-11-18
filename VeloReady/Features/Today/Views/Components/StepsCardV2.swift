@@ -43,7 +43,7 @@ struct StepsCardV2: View {
                         VRText("Today", style: .caption, color: Color.text.secondary)
 
                         StepsSparkline(hourlySteps: viewModel.hourlySteps)
-                            .frame(height: 60)
+                            .frame(width: 80, height: 60)
                     } else {
                         // Placeholder when no data
                         VStack(spacing: Spacing.xs) {

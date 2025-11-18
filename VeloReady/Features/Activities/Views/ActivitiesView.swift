@@ -119,6 +119,7 @@ struct ActivitiesView: View {
                     proUpgradeSection
                 }
             }
+            .padding(.top, Spacing.md)
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
