@@ -90,16 +90,16 @@ actor TrainingLoadCalculator {
         Logger.data("📊 Date range with TSS: \(sortedDates.first!.description) to \(sortedDates.last!.description)")
         Logger.data("📊 Daily TSS values: \(dailyTSS.map { "\(calendar.startOfDay(for: $0.key)): \(String(format: "%.0f", $0.value))" }.sorted().joined(separator: ", "))")
         
-        // Calculate CTL/ATL progressively using exponential decay formula
-        // CTL_today = CTL_yesterday * exp(-1/τ) + TSS_today * (1 - exp(-1/τ))
+        // Calculate CTL/ATL progressively using discrete-time linear formula
+        // CTL_today = CTL_yesterday * (1 - 1/τ) + TSS_today * (1/τ)
         // where τ is the time constant in days
-        // 
-        // This matches Training Peaks / TrainingPeaks formula:
-        // - CTL: 42-day time constant → decay = exp(-1/42) ≈ 0.9763 per day
-        // - ATL: 7-day time constant → decay = exp(-1/7) ≈ 0.8668 per day
-        
-        let ctlDecay = exp(-1.0 / 42.0)  // ≈ 0.9763
-        let atlDecay = exp(-1.0 / 7.0)   // ≈ 0.8668
+        //
+        // This matches Training Peaks / Strava / Intervals.icu formula:
+        // - CTL: 42-day time constant → weight = 1/42 ≈ 0.0238 per day
+        // - ATL: 7-day time constant → weight = 1/7 ≈ 0.1429 per day
+
+        let ctlWeight = 1.0 / 42.0  // ≈ 0.0238
+        let atlWeight = 1.0 / 7.0   // ≈ 0.1429
         
         // Start from zero (Training Peaks standard approach)
         // CTL and ATL build up naturally using exponential weighted moving average
@@ -117,15 +117,15 @@ actor TrainingLoadCalculator {
         
         while currentDate <= today {
             let tss = dailyTSS[currentDate] ?? 0
-            
-            // Exponential decay formula (matches Training Peaks)
-            // CTL_today = CTL_yesterday * decay + TSS_today * (1 - decay)
-            currentCTL = (currentCTL * ctlDecay) + (tss * (1 - ctlDecay))
-            currentATL = (currentATL * atlDecay) + (tss * (1 - atlDecay))
-            
+
+            // Linear weighted moving average (discrete-time standard)
+            // CTL_today = CTL_yesterday * (1 - weight) + TSS_today * weight
+            currentCTL = (currentCTL * (1.0 - ctlWeight)) + (tss * ctlWeight)
+            currentATL = (currentATL * (1.0 - atlWeight)) + (tss * atlWeight)
+
             // Store for this date
             result[currentDate] = (currentCTL, currentATL)
-            
+
             // Move to next day
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
         }
@@ -203,24 +203,24 @@ actor TrainingLoadCalculator {
         // Start from zero (Training Peaks standard approach)
         var currentCTL = 0.0
         var currentATL = 0.0
-        
-        // Progressive calculation using exponential decay (matches Training Peaks)
-        let ctlDecay = exp(-1.0 / 42.0)  // ≈ 0.9763
-        let atlDecay = exp(-1.0 / 7.0)   // ≈ 0.8668
-        
+
+        // Progressive calculation using discrete-time linear formula
+        let ctlWeight = 1.0 / 42.0  // ≈ 0.0238
+        let atlWeight = 1.0 / 7.0   // ≈ 0.1429
+
         var result: [Date: (ctl: Double, atl: Double, tss: Double)] = [:]
         var currentDate = sortedDates.first!
-        
+
         while currentDate <= today {
             let trimp = dailyTRIMP[currentDate] ?? 0
-            
-            // Exponential decay formula (matches Training Peaks)
-            currentCTL = (currentCTL * ctlDecay) + (trimp * (1 - ctlDecay))
-            currentATL = (currentATL * atlDecay) + (trimp * (1 - atlDecay))
-            
+
+            // Linear weighted moving average (discrete-time standard)
+            currentCTL = (currentCTL * (1.0 - ctlWeight)) + (trimp * ctlWeight)
+            currentATL = (currentATL * (1.0 - atlWeight)) + (trimp * atlWeight)
+
             // Store with TRIMP as TSS equivalent
             result[currentDate] = (ctl: currentCTL, atl: currentATL, tss: trimp)
-            
+
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
         }
         

@@ -92,9 +92,9 @@ final class BackfillService {
     
     /// Backfill training load data (CTL/ATL/TSS)
     /// Called when Intervals.icu doesn't provide CTL/ATL data
-    /// Optimized to backfill last 42 days and save TSS values
+    /// Fetches 180 days (6 months) to build accurate CTL values
     /// Smart caching: Only runs once per day to avoid redundant calculations
-    func backfillTrainingLoad(days: Int = 42, forceRefresh: Bool = false) async {
+    func backfillTrainingLoad(days: Int = 180, forceRefresh: Bool = false) async {
         await throttledBackfill(
             key: "lastCTLBackfill",
             logPrefix: "CTL/ATL BACKFILL",
@@ -107,7 +107,7 @@ final class BackfillService {
         
         // Try Intervals.icu first
         Logger.data("📊 [CTL/ATL BACKFILL] Step 1: Checking Intervals.icu...")
-        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 200, daysBack: 60)) ?? []
+        let intervalsActivities = (try? await IntervalsAPIClient.shared.fetchRecentActivities(limit: 200, daysBack: days)) ?? []
         
         if !intervalsActivities.isEmpty {
             let activitiesWithTSS = intervalsActivities.filter { ($0.tss ?? 0) > 0 }
@@ -125,18 +125,18 @@ final class BackfillService {
                 
                 let date = Calendar.current.startOfDay(for: startDate)
                 
-                // Progressive CTL/ATL calculation using exponential decay
+                // Progressive CTL/ATL calculation using discrete-time linear formula
                 let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: date)!
                 let priorLoad = progressiveLoad[yesterday] ?? (ctl: 0, atl: 0, tss: 0)
-                
-                // CTL: 42-day exponential moving average
-                let ctlDecay = exp(-1.0 / 42.0)
-                let newCTL = priorLoad.ctl * ctlDecay + tss * (1.0 - ctlDecay)
-                
-                // ATL: 7-day exponential moving average
-                let atlDecay = exp(-1.0 / 7.0)
-                let newATL = priorLoad.atl * atlDecay + tss * (1.0 - atlDecay)
-                
+
+                // CTL: 42-day weighted moving average (industry standard)
+                let ctlWeight = 1.0 / 42.0
+                let newCTL = priorLoad.ctl * (1.0 - ctlWeight) + tss * ctlWeight
+
+                // ATL: 7-day weighted moving average (industry standard)
+                let atlWeight = 1.0 / 7.0
+                let newATL = priorLoad.atl * (1.0 - atlWeight) + tss * atlWeight
+
                 progressiveLoad[date] = (ctl: newCTL, atl: newATL, tss: tss)
             }
         }
@@ -200,16 +200,16 @@ final class BackfillService {
                     }
                     
                     if tss > 0 {
-                        // Progressive CTL/ATL calculation
+                        // Progressive CTL/ATL calculation using discrete-time linear formula
                         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: date)!
                         let priorLoad = progressiveLoad[yesterday] ?? (ctl: 0, atl: 0, tss: 0)
-                        
-                        let ctlDecay = exp(-1.0 / 42.0)
-                        let newCTL = priorLoad.ctl * ctlDecay + tss * (1.0 - ctlDecay)
-                        
-                        let atlDecay = exp(-1.0 / 7.0)
-                        let newATL = priorLoad.atl * atlDecay + tss * (1.0 - atlDecay)
-                        
+
+                        let ctlWeight = 1.0 / 42.0
+                        let newCTL = priorLoad.ctl * (1.0 - ctlWeight) + tss * ctlWeight
+
+                        let atlWeight = 1.0 / 7.0
+                        let newATL = priorLoad.atl * (1.0 - atlWeight) + tss * atlWeight
+
                         // Accumulate TSS if multiple activities on same day
                         let existingTSS = progressiveLoad[date]?.tss ?? 0
                         progressiveLoad[date] = (ctl: newCTL, atl: newATL, tss: tss + existingTSS)
