@@ -47,7 +47,7 @@ actor DiskCacheLayer: CacheLayer {
         // Get raw data first
         var data: Data?
         var source: String?
-        
+
         // Try UserDefaults first (fast path)
         if let metadata = getMetadata(key: key), metadata.isValid(ttl: ttl) {
             if let cache = UserDefaults.standard.dictionary(forKey: userDefaultsKey) as? [String: String],
@@ -57,7 +57,7 @@ actor DiskCacheLayer: CacheLayer {
                 source = "UserDefaults"
             }
         }
-        
+
         // Try FileManager if not found in UserDefaults
         if data == nil {
             let fileURL = cacheDirectory.appendingPathComponent(key.sanitizedForFilename())
@@ -69,53 +69,86 @@ actor DiskCacheLayer: CacheLayer {
                 source = "FileManager"
             }
         }
-        
+
         // If we have data, try to decode it
         if let data = data, let source = source {
+            // Try to decode as versioned entry first (new format)
+            if let versionedEntry = try? JSONDecoder().decode(VersionedCacheEntry.self, from: data) {
+                // Check version compatibility
+                if !versionedEntry.isCompatible {
+                    Logger.warning("⚠️ [CACHE VERSION MISMATCH] Key: \(key) - Cache version \(versionedEntry.version), current version \(VersionedCacheEntry.currentVersion)")
+                    Logger.warning("⚠️ [CACHE VERSION] Invalidating old cache entry - This triggers an API refetch")
+                    await remove(key: key)
+                    return nil
+                }
+
+                // Version is compatible, decode the inner data
+                let innerData = versionedEntry.data
+                let expectedType = String(describing: T.self)
+
+                // Check if data type matches (helps debugging)
+                if versionedEntry.dataType != expectedType {
+                    Logger.trace("💾 [DiskCache] Type info: stored=\(versionedEntry.dataType), requested=\(expectedType)")
+                }
+
+                // Decode based on expected type
+                // T must be Decodable to use JSONDecoder, but protocol only requires Sendable
+                // Check at runtime if T conforms to Decodable
+                if let decodableType = T.self as? any Decodable.Type {
+                    if let decoded = try? JSONDecoder().decode(decodableType, from: innerData) as? T {
+                        Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), version: \(versionedEntry.version))")
+                        return decoded
+                    }
+                }
+
+                // Version matched but decode failed - likely a type mismatch
+                Logger.warning("⚠️ [CACHE DECODE FAILURE] Key: \(key) - Type mismatch. Stored: \(versionedEntry.dataType), Requested: \(expectedType)")
+                Logger.warning("⚠️ [CACHE DECODE] This triggers an API refetch. Source: \(source), Size: \(innerData.count) bytes")
+                await remove(key: key)
+                return nil
+            }
+
+            // Fallback: Try to decode as unversioned data (legacy format)
+            // This maintains backward compatibility with old cache entries
+            Logger.trace("💾 [DiskCache] Attempting legacy decode for \(key)")
+
             // Try common types in order of likelihood
-            // This gracefully handles format changes without spamming errors
-            
-            // Try Activity array (most common)
             if let decoded = try? JSONDecoder().decode([Activity].self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
-            // Try single Activity
+
             if let decoded = try? JSONDecoder().decode(Activity.self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
-            // Try StravaActivity array
+
             if let decoded = try? JSONDecoder().decode([StravaActivity].self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
-            // Try numeric types (Double, Int)
+
             if let decoded = try? JSONDecoder().decode(Double.self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
+
             if let decoded = try? JSONDecoder().decode(Int.self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
-            // Try String
+
             if let decoded = try? JSONDecoder().decode(String.self, from: data) as? T {
-                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source))")
+                Logger.debug("💾 [DiskCache HIT] \(key) (source: \(source), legacy format)")
                 return decoded
             }
-            
-            // Decode failed - delete corrupted cache and treat as miss
-            // Only log at debug level to avoid spam from format changes
-            Logger.debug("💾 [DiskCache] Could not decode \(key) - deleting and treating as miss")
+
+            // Both versioned and legacy decode failed
+            Logger.warning("⚠️ [CACHE DECODE FAILURE] Key: \(key) - Could not decode as versioned or legacy format")
+            Logger.warning("⚠️ [CACHE DECODE] This triggers an API refetch. Source: \(source), Size: \(data.count) bytes")
             await remove(key: key)
         }
-        
+
         // Don't log individual layer misses - CacheOrchestrator logs final result
         return nil
     }
@@ -127,16 +160,27 @@ actor DiskCacheLayer: CacheLayer {
                 Logger.warning("⚠️ [DiskCache] Value for \(key) is not Encodable")
                 return
             }
-            
+
             let data = try await CacheEncodingHelper.shared.encode(encodable)
-            
-            // Choose storage based on size
-            if data.count < sizeThreshold {
-                try await setInUserDefaults(key: key, data: data, cachedAt: cachedAt)
-                Logger.debug("💾 [DiskCache SET] \(key) → UserDefaults (\(data.count) bytes)")
+
+            // Wrap in versioned entry to track type and schema version
+            let dataType = String(describing: type(of: value))
+            let versionedEntry = VersionedCacheEntry(
+                dataType: dataType,
+                cachedAt: cachedAt,
+                data: data
+            )
+
+            // Encode the versioned wrapper
+            let wrappedData = try JSONEncoder().encode(versionedEntry)
+
+            // Choose storage based on size (check wrapped size)
+            if wrappedData.count < sizeThreshold {
+                try await setInUserDefaults(key: key, data: wrappedData, cachedAt: cachedAt)
+                Logger.debug("💾 [DiskCache SET] \(key) → UserDefaults (\(wrappedData.count) bytes, type: \(dataType), v\(VersionedCacheEntry.currentVersion))")
             } else {
-                try await setInFileManager(key: key, data: data, cachedAt: cachedAt)
-                Logger.debug("💾 [DiskCache SET] \(key) → FileManager (\(data.count / 1024)KB)")
+                try await setInFileManager(key: key, data: wrappedData, cachedAt: cachedAt)
+                Logger.debug("💾 [DiskCache SET] \(key) → FileManager (\(wrappedData.count / 1024)KB, type: \(dataType), v\(VersionedCacheEntry.currentVersion))")
             }
         } catch {
             Logger.error("❌ [DiskCache] Failed to set \(key): \(error)")
