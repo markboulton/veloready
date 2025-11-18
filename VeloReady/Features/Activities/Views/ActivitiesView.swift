@@ -84,9 +84,6 @@ struct ActivitiesView: View {
     private var activitiesScrollView: some View {
         ScrollView {
             VStack(spacing: Spacing.md) {
-                // Sparkline header
-                sparklineHeader
-                
                 // Paginated activities list with LazyVGrid
                 LazyVGrid(columns: [GridItem(.flexible())], spacing: Spacing.md) {
                     ForEach(Array(viewModel.paginatedActivities.enumerated()), id: \.element.id) { index, activity in
@@ -122,25 +119,10 @@ struct ActivitiesView: View {
                     proUpgradeSection
                 }
             }
+            .padding(.top, Spacing.md)
             .padding(.horizontal, Spacing.xl)
             .padding(.bottom, 120)
         }
-    }
-    
-    // MARK: - Sparkline Header
-    
-    private var sparklineHeader: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            ActivitySparkline(
-                dailyActivities: generateDailyActivityData(),
-                alignment: .leading,
-                height: 32
-            )
-            .onAppear {
-                Logger.debug("📊 [Activities] Sparkline rendered with \(viewModel.allActivities.count) activities")
-            }
-        }
-        .padding(.vertical, Spacing.md)
     }
     
     // MARK: - Load More Indicator
@@ -186,60 +168,6 @@ struct ActivitiesView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    // MARK: - Helper Functions
-    
-    private func generateDailyActivityData() -> [DailyActivityData] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        var dailyMap: [Int: [ActivityBarData]] = [:]
-        
-        for activity in viewModel.allActivities {
-            let activityDay = calendar.startOfDay(for: activity.startDate)
-            let dayOffset = calendar.dateComponents([.day], from: activityDay, to: today).day ?? 0
-            
-            if dayOffset >= 0 && dayOffset <= 29 {
-                let activityType: SparklineActivityType = {
-                    switch activity.type {
-                    case .cycling: return .cycling
-                    case .running: return .running
-                    case .walking: return .walking
-                    case .swimming: return .swimming
-                    case .strength: return .strength
-                    default: return .other
-                    }
-                }()
-                
-                let duration: Double = {
-                    if let dur = activity.duration, dur > 0 {
-                        return dur / 60.0
-                    } else if activity.activity != nil {
-                        return 60.0
-                    } else {
-                        return 0.0
-                    }
-                }()
-                
-                let barData = ActivityBarData(type: activityType, duration: duration)
-                let key = -dayOffset
-                
-                if dailyMap[key] != nil {
-                    dailyMap[key]?.append(barData)
-                } else {
-                    dailyMap[key] = [barData]
-                }
-            }
-        }
-        
-        var dailyActivities: [DailyActivityData] = []
-        for dayOffset in (-29)...0 {
-            let activities = dailyMap[dayOffset] ?? []
-            dailyActivities.append(DailyActivityData(dayOffset: dayOffset, activities: activities))
-        }
-        
-        Logger.debug("📊 [Activities] Generated sparkline data for 30 days")
-        return dailyActivities
-    }
 }
 
 // MARK: - Circular Filter Button

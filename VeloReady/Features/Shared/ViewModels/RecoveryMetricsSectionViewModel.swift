@@ -53,14 +53,30 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         // Load banner dismissed state
         self.missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
         
+        // CRITICAL: Force synchronous read of coordinator state BEFORE setting up observers
+        // This ensures we capture the current state atomically before any async updates
+        let currentState = self.coordinator.state
+
         // Initialize scores from coordinator's current state
-        self.recoveryScore = self.coordinator.state.recovery
-        self.sleepScore = self.coordinator.state.sleep
-        self.strainScore = self.coordinator.state.strain
-        
+        self.recoveryScore = currentState.recovery
+        self.sleepScore = currentState.sleep
+        self.strainScore = currentState.strain
+
+        // Initialize allScoresReady immediately to prevent flash
+        self.allScoresReady = (currentState.phase == .ready || currentState.phase == .refreshing) && currentState.allCoreScoresAvailable
+
+        // Initialize isInitialLoad based on whether we have scores
+        if currentState.allCoreScoresAvailable && currentState.phase == .ready {
+            self.isInitialLoad = false
+            self.hasCompletedFirstLoad = true
+        }
+
+        print("🔍 [INIT] Initial state - phase: \(currentState.phase.description), allCoreScoresAvailable: \(currentState.allCoreScoresAvailable), allScoresReady: \(self.allScoresReady)")
+        print("🔍 [INIT] Scores - R: \(self.recoveryScore?.score ?? -1), S: \(self.sleepScore?.score ?? -1), St: \(self.strainScore?.score ?? -1)")
+
         Logger.info("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
         setupObservers()
-        updateFromState(self.coordinator.state)
+        // Don't call updateFromState here - we already initialized from current state above
         
         Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
     }
@@ -196,8 +212,20 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     }
     
     var hasSleepData: Bool {
-        guard let score = sleepScore else { return false }
-        return score.inputs.sleepDuration != nil && score.inputs.sleepDuration != 0
+        guard let score = sleepScore else {
+            print("🔍 [hasSleepData] No sleep score - returning false")
+            return false
+        }
+        // If we have a valid sleep score (0-100), we have sleep data
+        // This prevents flash when cached scores don't have full inputs populated yet
+        if score.score >= 0 && score.score <= 100 {
+            print("🔍 [hasSleepData] Valid score \(score.score) - returning true")
+            return true
+        }
+        // Fallback: check if inputs are available (for edge cases)
+        let hasInputs = score.inputs.sleepDuration != nil && score.inputs.sleepDuration != 0
+        print("🔍 [hasSleepData] Score \(score.score) out of range, checking inputs: \(hasInputs)")
+        return hasInputs
     }
     
     var sleepTitle: String {

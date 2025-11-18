@@ -380,10 +380,12 @@ final class DailyDataService: ObservableObject {
             
             // Use Intervals data if available, otherwise calculate locally
             if let ctl = intervals.ctl, let atl = intervals.atl {
+                print("📊 [DAILY DATA SERVICE] Using Intervals data: CTL=\(String(format: "%.1f", ctl)), ATL=\(String(format: "%.1f", atl))")
                 load.ctl = ctl
                 load.atl = atl
                 load.tsb = intervals.tsb ?? (ctl - atl)
             } else {
+                print("📊 [DAILY DATA SERVICE] No Intervals data - keeping existing Core Data values: CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
                 // Calculate CTL/ATL locally if Intervals doesn't provide it
                 // This will be populated by calculateMissingCTLATL() method
                 load.ctl = load.ctl // Keep existing value if already calculated

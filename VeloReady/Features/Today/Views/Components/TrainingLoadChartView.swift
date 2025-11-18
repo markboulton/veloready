@@ -5,14 +5,31 @@ import Charts
 /// Used in both Today page and Activity detail views
 struct TrainingLoadChartView: View {
     let data: [TrainingLoadDataPoint]
+    let caption: String?  // Optional caption to clarify what the values represent
+
+    init(data: [TrainingLoadDataPoint], caption: String? = nil) {
+        self.data = data
+        self.caption = caption
+    }
 
     // Find today's data point or use most recent
     private var selectedPoint: TrainingLoadDataPoint? {
-        data.first { Calendar.current.isDateInToday($0.date) } ?? data.last
+        let point = data.first { Calendar.current.isDateInToday($0.date) } ?? data.last
+        if let p = point {
+            print("📊 [CHART VIEW] Selected point: date=\(p.date), CTL=\(String(format: "%.1f", p.ctl)), ATL=\(String(format: "%.1f", p.atl)), TSB=\(String(format: "%.1f", p.tsb)), isFuture=\(p.isFuture)")
+        }
+        return point
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        print("📊 [CHART VIEW] Rendering with \(data.count) data points")
+        if let first = data.first, let last = data.last {
+            print("📊 [CHART VIEW] Date range: \(first.date) to \(last.date)")
+            print("📊 [CHART VIEW] First point: CTL=\(String(format: "%.1f", first.ctl)), ATL=\(String(format: "%.1f", first.atl))")
+            print("📊 [CHART VIEW] Last point: CTL=\(String(format: "%.1f", last.ctl)), ATL=\(String(format: "%.1f", last.atl))")
+        }
+
+        return VStack(alignment: .leading, spacing: 0) {
             // Chart
             chart
 
@@ -54,6 +71,15 @@ struct TrainingLoadChartView: View {
             .lineStyle(StrokeStyle(lineWidth: 1, dash: dataPoint.isFuture ? [5, 3] : []))
             .interpolationMethod(.linear)
             }
+
+            // Vertical line for today
+            if let todayPoint = data.first(where: { Calendar.current.isDateInToday($0.date) }) {
+                RuleMark(
+                    x: .value("Today", todayPoint.date)
+                )
+                .foregroundStyle(Color.text.secondary.opacity(0.5))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            }
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 4)) { value in
@@ -81,47 +107,56 @@ struct TrainingLoadChartView: View {
     }
 
     private var metricsLegend: some View {
-        HStack(spacing: 16) {
-            // CTL
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
-                Text("CTL")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.ctl))")
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 16) {
+                // CTL
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.purpleAccent).frame(width: 6, height: 6)
+                    Text("CTL")
                         .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.ctl))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
+                }
+
+                // ATL
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
+                    Text("ATL")
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.atl))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
+                }
+
+                // Form (TSB)
+                HStack(spacing: 4) {
+                    Circle().fill(ColorScale.blueAccent).frame(width: 6, height: 6)
+                    Text("Form")
+                        .font(.caption)
+                        .foregroundColor(Color.text.secondary)
+                    if let point = selectedPoint {
+                        Text("\(Int(point.tsb))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.text.primary)
+                    }
                 }
             }
 
-            // ATL
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.pinkAccent).frame(width: 6, height: 6)
-                Text("ATL")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.atl))")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
-                }
-            }
-
-            // Form (TSB)
-            HStack(spacing: 4) {
-                Circle().fill(ColorScale.blueAccent).frame(width: 6, height: 6)
-                Text("Form")
-                    .font(.caption)
-                    .foregroundColor(Color.text.secondary)
-                if let point = selectedPoint {
-                    Text("\(Int(point.tsb))")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color.text.primary)
-                }
+            // Optional caption
+            if let caption = caption {
+                Text(caption)
+                    .font(.caption2)
+                    .foregroundColor(Color.text.tertiary)
             }
         }
         .padding(.horizontal, 16)

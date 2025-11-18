@@ -4,9 +4,7 @@ import Charts
 /// Small sparkline showing steps over the day
 struct StepsSparkline: View {
     let hourlySteps: [HourlyStepData]
-    
-    @State private var animationProgress: Double = 0.0
-    
+
     var body: some View {
         Chart {
             ForEach(hourlySteps) { data in
@@ -21,32 +19,7 @@ struct StepsSparkline: View {
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
         .chartXScale(domain: 0...23)
-        .frame(height: 20)
-        .mask(
-            // Draw line from left to right (no fade on left)
-            GeometryReader { geometry in
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: .white, location: 0),
-                                .init(color: .white, location: animationProgress),
-                                .init(color: .clear, location: animationProgress)
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-            }
-        )
-        .onScrollAppear(id: "steps-sparkline") {
-            Logger.debug("🎨 [STEPS SPARKLINE] Scroll trigger fired - starting animation")
-            // Draw animation from left to right - faster speed
-            withAnimation(.easeOut(duration: 0.65)) {
-                animationProgress = 1.0
-            }
-            Logger.debug("🎨 [STEPS SPARKLINE] Animation started: 0.0 → 1.0 over 0.65s")
-        }
+        .frame(height: 60)
     }
 }
 

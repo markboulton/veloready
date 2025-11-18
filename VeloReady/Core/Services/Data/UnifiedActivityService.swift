@@ -6,13 +6,21 @@ import Foundation
 @MainActor
 class UnifiedActivityService: ObservableObject {
     static let shared = UnifiedActivityService()
-    
+
     private let intervalsAPI = IntervalsAPIClient.shared
     private let veloReadyAPI = VeloReadyAPIClient.shared // NEW: Use backend API
     private let intervalsOAuth = IntervalsOAuthManager.shared
     private let stravaAuth = StravaAuthService.shared
     private let proConfig = ProFeatureConfig.shared
     private let cache = CacheOrchestrator.shared // NEW: Multi-layer cache orchestrator
+
+    // Request deduplication: Track in-flight requests to prevent parallel API calls
+    private var inflightRequests: [String: Task<[Activity], Error>] = [:]
+
+    // API usage tracking for monitoring
+    private var apiCallCount = 0
+    private var lastResetDate = Date()
+    private var apiCallsBySource: [String: Int] = [:]
     
     // Data fetch limits based on subscription tier
     // Research-backed windows for >90% accuracy:
@@ -21,6 +29,12 @@ class UnifiedActivityService: ObservableObject {
     // Source: https://help.stryd.com/en/articles/6879345-critical-power-definition
     private var maxDaysForFree: Int { 90 }
     private var maxDaysForPro: Int { 120 }
+
+    /// Maximum period to fetch and cache (fetch once, filter locally for shorter periods)
+    /// This eliminates multiple API calls for overlapping data
+    private var maxPeriodDays: Int {
+        proConfig.hasProAccess ? maxDaysForPro : maxDaysForFree
+    }
     
     /// Fetch recent activities from available sources
     /// Automatically uses Intervals.icu if authenticated, falls back to Strava
@@ -29,7 +43,10 @@ class UnifiedActivityService: ObservableObject {
     ///   - daysBack: Number of days of history to fetch (capped by subscription tier)
     /// - Returns: Unified array of Activity regardless of source
     func fetchRecentActivities(limit: Int = 100, daysBack: Int = 90) async throws -> [Activity] {
-        return try await fetchRecentActivitiesWithCustomTTL(limit: limit, daysBack: daysBack, ttl: 3600)
+        // AGGRESSIVE CACHING: Increased TTL to 24h to drastically reduce API usage
+        // Activities don't change retroactively - once cached, they're valid for 24h
+        // This is critical for scaling to 300-400 users within 1000 req/day limit
+        return try await fetchRecentActivitiesWithCustomTTL(limit: limit, daysBack: daysBack, ttl: 86400)
     }
     
     /// Fetch recent activities with custom cache TTL
@@ -42,53 +59,184 @@ class UnifiedActivityService: ObservableObject {
         // Apply subscription-based limits
         let maxDays = proConfig.hasProAccess ? maxDaysForPro : maxDaysForFree
         let actualDays = min(daysBack, maxDays)
-        
-        Logger.data("📊 [Activities] Fetch request: \(daysBack) days (capped to \(actualDays) for \(proConfig.hasProAccess ? "PRO" : "FREE") tier), TTL: \(Int(ttl))s")
-        
+
+        let source = intervalsOAuth.isAuthenticated ? "intervals" : "strava"
+
+        Logger.data("📊 [API USAGE] Fetch request: \(daysBack) days (capped to \(actualDays) for \(proConfig.hasProAccess ? "PRO" : "FREE") tier), TTL: \(Int(ttl))s, source: \(source)")
+        logAPIUsageStats()
+
+        // UNIFIED CACHE STRATEGY: Always fetch/cache maxPeriodDays, filter locally for shorter periods
+        // This eliminates multiple API calls for overlapping data (e.g., 7, 42, 90 days)
+        let shouldUseUnifiedCache = actualDays < maxPeriodDays
+
+        if shouldUseUnifiedCache {
+            Logger.data("🎯 [UNIFIED CACHE] Checking if we have \(maxPeriodDays)-day cache to filter for \(actualDays) days")
+
+            // Try to get the full period from cache
+            let fullPeriodActivities = try? await fetchMaxPeriodActivities(limit: limit, ttl: ttl, skipDedupeLog: true)
+
+            if let fullPeriodActivities = fullPeriodActivities {
+                // Filter locally to requested period
+                let filtered = filterActivities(fullPeriodActivities, daysBack: actualDays)
+                Logger.data("✅ [UNIFIED CACHE] Filtered \(filtered.count) activities from cached \(maxPeriodDays)-day dataset (ZERO API calls)")
+                return filtered
+            } else {
+                Logger.data("⚠️ [UNIFIED CACHE] No \(maxPeriodDays)-day cache found, fetching full period")
+            }
+        }
+
+        // If we're requesting the max period OR unified cache miss, fetch and cache it
+        let periodToFetch = shouldUseUnifiedCache ? maxPeriodDays : actualDays
+        let activities = try await fetchAndCacheActivities(
+            limit: limit,
+            daysBack: periodToFetch,
+            ttl: ttl,
+            source: source
+        )
+
+        // If we fetched the full period but need a shorter one, filter locally
+        if shouldUseUnifiedCache && periodToFetch == maxPeriodDays {
+            let filtered = filterActivities(activities, daysBack: actualDays)
+            Logger.data("🎯 [UNIFIED CACHE] Fetched \(activities.count) activities (\(maxPeriodDays) days), filtered to \(filtered.count) (\(actualDays) days)")
+            return filtered
+        }
+
+        return activities
+    }
+
+    /// Fetch the maximum period (90 or 120 days) from cache or API
+    /// This is the unified cache that all shorter periods filter from
+    private func fetchMaxPeriodActivities(limit: Int, ttl: TimeInterval, skipDedupeLog: Bool = false) async throws -> [Activity] {
+        let source = intervalsOAuth.isAuthenticated ? "intervals" : "strava"
+        let dedupeKey = "\(source):\(maxPeriodDays)"
+
+        if !skipDedupeLog {
+            Logger.data("📊 [API USAGE] Fetch max period: \(maxPeriodDays) days, TTL: \(Int(ttl))s, source: \(source)")
+        }
+
+        // Check if there's already an in-flight request for this data
+        if let existingTask = inflightRequests[dedupeKey] {
+            Logger.data("♻️ [DEDUPE] Reusing in-flight request for \(dedupeKey) - avoiding redundant API call")
+            return try await existingTask.value
+        }
+
+        // Create a new task for this request
+        let task = Task<[Activity], Error> {
+            defer {
+                // Remove from inflight requests when complete
+                Task { @MainActor in
+                    self.inflightRequests.removeValue(forKey: dedupeKey)
+                }
+            }
+
+            return try await self.fetchAndCacheActivities(
+                limit: limit,
+                daysBack: self.maxPeriodDays,
+                ttl: ttl,
+                source: source
+            )
+        }
+
+        // Store the task to prevent duplicate requests
+        inflightRequests[dedupeKey] = task
+
+        return try await task.value
+    }
+
+    /// Fetch and cache activities from API (with request deduplication)
+    private func fetchAndCacheActivities(limit: Int, daysBack: Int, ttl: TimeInterval, source: String) async throws -> [Activity] {
         // Try Intervals.icu first if authenticated
         if intervalsOAuth.isAuthenticated {
-            let cacheKey = CacheKey.intervalsActivities(daysBack: actualDays)
-            
+            let cacheKey = CacheKey.intervalsActivities(daysBack: daysBack)
+
             // Use cache-first: show cached data immediately, refresh in background
             return try await cache.fetchCacheFirst(
                 key: cacheKey,
                 ttl: ttl
             ) {
-                Logger.data("📊 [Activities] Fetching from Intervals.icu (limit: \(limit), days: \(actualDays))")
-                let activities = try await self.intervalsAPI.fetchRecentActivities(limit: limit, daysBack: actualDays)
-                Logger.data("✅ [Activities] Fetched \(activities.count) activities from Intervals.icu")
+                Logger.data("📊 [API CALL] Fetching from Intervals.icu (limit: \(limit), days: \(daysBack))")
+                await self.trackAPICall(source: "Intervals.icu")
+                let activities = try await self.intervalsAPI.fetchRecentActivities(limit: limit, daysBack: daysBack)
+                Logger.data("✅ [API CALL] Fetched \(activities.count) activities from Intervals.icu")
                 return activities
             }
         }
-        
+
         // Fallback to backend API (which fetches from Strava with caching)
         let cappedLimit = min(limit, 200)
-        let cacheKey = CacheKey.stravaActivities(daysBack: actualDays)
-        
+        let cacheKey = CacheKey.stravaActivities(daysBack: daysBack)
+
         // Use cache-first: show cached data immediately, refresh in background
         return try await cache.fetchCacheFirst(
             key: cacheKey,
             ttl: ttl
         ) {
-            Logger.data("📊 [Activities] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(actualDays))")
-            let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: actualDays, limit: cappedLimit)
+            Logger.data("📊 [API CALL] Fetching from VeloReady backend (limit: \(cappedLimit), daysBack: \(daysBack))")
+            await self.trackAPICall(source: "Strava (via backend)")
+            let stravaActivities = try await self.veloReadyAPI.fetchActivities(daysBack: daysBack, limit: cappedLimit)
             let convertedActivities = ActivityConverter.stravaToActivity(stravaActivities)
-            Logger.data("✅ [Activities] Fetched \(convertedActivities.count) activities from backend")
+            Logger.data("✅ [API CALL] Fetched \(convertedActivities.count) activities from backend")
             return convertedActivities
+        }
+    }
+
+    /// Filter activities to only include those within the specified number of days
+    private func filterActivities(_ activities: [Activity], daysBack: Int) -> [Activity] {
+        let cutoffDate = Calendar.current.date(byAdding: .day, value: -daysBack, to: Date()) ?? Date()
+
+        return activities.filter { activity in
+            guard let activityDate = parseDate(from: activity.startDateLocal) else {
+                return false
+            }
+            return activityDate >= cutoffDate
+        }
+    }
+
+    /// Track API call for usage monitoring
+    private func trackAPICall(source: String) {
+        // Reset counter if it's a new day
+        let calendar = Calendar.current
+        if !calendar.isDate(lastResetDate, inSameDayAs: Date()) {
+            Logger.data("📊 [API USAGE] Daily reset - Previous day total: \(apiCallCount) calls")
+            apiCallCount = 0
+            apiCallsBySource = [:]
+            lastResetDate = Date()
+        }
+
+        apiCallCount += 1
+        apiCallsBySource[source, default: 0] += 1
+
+        Logger.data("📊 [API USAGE] API call #\(apiCallCount) today to \(source)")
+    }
+
+    /// Log current API usage statistics
+    private func logAPIUsageStats() {
+        let calendar = Calendar.current
+        if !calendar.isDate(lastResetDate, inSameDayAs: Date()) {
+            return // Will be reset on next API call
+        }
+
+        if apiCallCount > 0 {
+            Logger.data("📊 [API USAGE STATS] Today's calls: \(apiCallCount) | By source: \(apiCallsBySource)")
+
+            // Warn if approaching rate limits
+            if apiCallCount > 50 {
+                Logger.warning("⚠️ [API USAGE] High API usage detected: \(apiCallCount) calls today. Strava limit is 1000/day per app.")
+            }
         }
     }
     
     /// Fetch today's activities from all available sources
     /// - Returns: Array of activities from today only
-    /// - Note: Uses 5-minute cache (much shorter than standard 1-hour) to catch new activities quickly
+    /// - Note: Uses 15-minute cache (increased from 5min to reduce API usage)
     func fetchTodaysActivities() async throws -> [Activity] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-        
-        // Fetch recent activities with SHORT cache TTL (5 minutes)
-        // This ensures we catch new activities quickly without hammering the API
-        let activities = try await fetchRecentActivitiesWithCustomTTL(limit: 50, daysBack: 7, ttl: 300)
+
+        // Fetch recent activities with MODERATE cache TTL (1 hour)
+        // Increased from 15min to 1h - most users don't add activities every hour
+        // Once webhooks are implemented, this can be even more aggressive
+        let activities = try await fetchRecentActivitiesWithCustomTTL(limit: 50, daysBack: 7, ttl: 3600)
         
         Logger.debug("📊 [TodaysActivities] Filtering \(activities.count) activities - showing all dates:")
         for (index, activity) in activities.enumerated() {

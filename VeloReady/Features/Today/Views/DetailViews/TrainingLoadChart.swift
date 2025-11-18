@@ -62,15 +62,13 @@ struct TrainingLoadChart: View {
         let matchedActivity = historicalActivities.first(where: { $0.id == activity.id })
         let ctlAfter = matchedActivity?.ctl ?? activity.ctl ?? 0
         let atlAfter = matchedActivity?.atl ?? activity.atl ?? 0
-        
+
         // Only log when state actually changes
         if loadingState == .loaded {
             Logger.data("TrainingLoadChart: Rendering chart - TSS: \(tss), CTL: \(String(format: "%.1f", ctlAfter)), ATL: \(String(format: "%.1f", atlAfter))")
         } else if loadingState == .loading {
             Logger.data("TrainingLoadChart: Loading training load data...")
         }
-        
-        let tsbAfter = ctlAfter - atlAfter
         
         // Generate 21-day trend (14 past + 7 future) with REAL historical data
         let chartData = generateTwentyOneDayTrend(
@@ -97,51 +95,11 @@ struct TrainingLoadChart: View {
                 title: TrainingLoadContent.title,
                 subtitle: "21-day CTL/ATL/TSB trend"
             ) {
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    // Use unified chart component
-                    TrainingLoadChartView(data: chartViewData)
-                    
-                    Divider()
-                    
-                    // Current metrics
-                    HStack(spacing: Spacing.sm) {
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(ColorScale.blueAccent)
-                                .frame(width: 7, height: 7)
-                            Text(TrainingLoadContent.Metrics.ctl)
-                                .font(.system(size: 10))
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.0f", ctlAfter))
-                                .font(.system(size: 10))
-                                .fontWeight(.semibold)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(ColorScale.amberAccent)
-                                .frame(width: 7, height: 7)
-                            Text(TrainingLoadContent.Metrics.atl)
-                                .font(.system(size: 10))
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.0f", atlAfter))
-                                .font(.system(size: 10))
-                                .fontWeight(.semibold)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(tsbGradientColor(tsbAfter))
-                                .frame(width: 7, height: 7)
-                            Text(TrainingLoadContent.Metrics.tsb)
-                                .font(.system(size: 10))
-                                .foregroundColor(Color.text.secondary)
-                            Text(String(format: "%.0f", tsbAfter))
-                                .font(.system(size: 10))
-                                .fontWeight(.semibold)
-                        }
-                    }
-                }
+                // Use unified chart component with caption explaining the values are for this ride
+                TrainingLoadChartView(
+                    data: chartViewData,
+                    caption: "Values on ride date"
+                )
             }
             .task(id: activity.id) { // Use activity ID as stable identifier to prevent cancellation
                 // Only fetch if we haven't already loaded data for this activity

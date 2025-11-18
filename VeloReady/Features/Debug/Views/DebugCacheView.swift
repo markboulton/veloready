@@ -215,7 +215,7 @@ struct DebugCacheView: View {
                         isRunningBackfill = true
                         backfillComplete = false
                         Logger.info("🔄 [DEBUG] Force backfill triggered - fetching HealthKit data + recalculating scores")
-                        await BackfillService.shared.backfillAll(days: 60, forceRefresh: true)
+                        await BackfillService.shared.backfillAll(days: 180, forceRefresh: true)
                         Logger.info("✅ [DEBUG] Backfill complete")
                         isRunningBackfill = false
                         backfillComplete = true
@@ -228,7 +228,7 @@ struct DebugCacheView: View {
                         } else {
                             Image(systemName: "arrow.clockwise")
                         }
-                        VRText(isRunningBackfill ? "Backfilling..." : "Force Backfill (60 days)", style: .body)
+                        VRText(isRunningBackfill ? "Backfilling..." : "Force Backfill (180 days)", style: .body)
                     }
                 }
                 .buttonStyle(.bordered)
