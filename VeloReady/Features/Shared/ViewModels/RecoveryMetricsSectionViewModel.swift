@@ -57,7 +57,11 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
         self.recoveryScore = self.coordinator.state.recovery
         self.sleepScore = self.coordinator.state.sleep
         self.strainScore = self.coordinator.state.strain
-        
+
+        // Initialize allScoresReady immediately to prevent flash
+        let state = self.coordinator.state
+        self.allScoresReady = (state.phase == .ready || state.phase == .refreshing) && state.allCoreScoresAvailable
+
         Logger.info("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
         setupObservers()
         updateFromState(self.coordinator.state)
