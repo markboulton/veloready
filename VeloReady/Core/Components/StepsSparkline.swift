@@ -21,7 +21,7 @@ struct StepsSparkline: View {
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
         .chartXScale(domain: 0...23)
-        .frame(height: 20)
+        .frame(height: 60)
         .mask(
             // Draw line from left to right (no fade on left)
             GeometryReader { geometry in

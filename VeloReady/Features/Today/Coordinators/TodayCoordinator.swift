@@ -247,12 +247,12 @@ class TodayCoordinator: ObservableObject {
                 await scoresCoordinator.calculateAll()
             }
             
-            // Wait a bit, then transition to "calculating" state
+            // Wait a bit for HealthKit data to start loading
             try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
-            
-            let hasHealthKit = services.healthKitManager.isAuthorized
-            loadingStateManager.updateState(.calculatingScores(hasHealthKit: hasHealthKit, hasSleepData: false))
-            
+
+            // Don't update loading state here - "Fetching health data..." is sufficient
+            // Updating to "calculating" with hasSleepData: false causes a flash before data loads
+
             // Wait for scores to complete WITH TIMEOUT (20 seconds - generous for slow HealthKit)
             let scoreResult = await withTimeout(seconds: 20) {
                 await scoreTask.value
