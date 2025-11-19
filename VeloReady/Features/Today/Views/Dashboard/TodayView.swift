@@ -178,7 +178,13 @@ struct TodayView: View {
                             }
                             
                             // Training Load Graph (full width)
-                            TrainingLoadGraphCard()
+                            if FeatureFlags.shared.isEnabled("component_training_load") {
+                                // Phase 2: Component-based implementation
+                                TodayTrainingLoadComponent()
+                            } else {
+                                // Legacy: Monolithic implementation
+                                TrainingLoadGraphCard()
+                            }
 
                             // Steps card (full width with left/right split)
                             if liveActivityService.isLoading {

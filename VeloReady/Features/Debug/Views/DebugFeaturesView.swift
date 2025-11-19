@@ -186,6 +186,25 @@ struct DebugFeaturesView: View {
                     VRText("Calories tracking component enabled", style: .caption, color: ColorScale.greenAccent)
                 }
             }
+
+            Toggle("Training Load Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_training_load") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_training_load")
+                    } else {
+                        FeatureFlags.shared.disable("component_training_load")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_training_load") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Training load graph component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
