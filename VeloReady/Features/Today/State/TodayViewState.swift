@@ -118,12 +118,16 @@ final class TodayViewState: ObservableObject {
 
         // Phase 1: Load cached data (0ms)
         phase = .loadingCache
-        await loadCachedData()
+        await PerformanceMonitor.shared.measure("TodayView.loadCache") {
+            await loadCachedData()
+        }
 
         // Phase 2: Refresh with fresh data (background)
         phase = .loadingFreshData
         do {
-            try await loadFreshData()
+            try await PerformanceMonitor.shared.measure("TodayView.loadFresh") {
+                try await loadFreshData()
+            }
             phase = .complete
             lastUpdated = Date()
             Logger.info("✅ [TodayViewState] Load complete")
@@ -139,7 +143,9 @@ final class TodayViewState: ObservableObject {
         phase = .loadingFreshData
 
         do {
-            try await loadFreshData()
+            try await PerformanceMonitor.shared.measure("TodayView.refresh") {
+                try await loadFreshData()
+            }
             phase = .complete
             lastUpdated = Date()
             animationTrigger = UUID() // Trigger ring animations
