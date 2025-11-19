@@ -117,7 +117,21 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 self.recoveryScore = state.recovery
                 self.sleepScore = state.sleep
                 self.strainScore = state.strain
-                Logger.info("📦 [V2] Loaded scores from coordinator - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1)")
+
+                // Update allScoresReady based on loaded scores and current loading state
+                let hasScores = state.allCoreScoresAvailable
+                let isLoading = todayState.phase.isLoading
+                self.allScoresReady = hasScores && !isLoading
+
+                // Handle first load completion
+                if hasScores && !self.hasCompletedFirstLoad {
+                    self.hasCompletedFirstLoad = true
+                    self.isInitialLoad = false
+                    self.ringAnimationTrigger = UUID()
+                    Logger.info("🎬 [VIEWMODEL] V2 first load complete after score loading - triggering animations")
+                }
+
+                Logger.info("📦 [V2] Loaded scores from coordinator - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1), allReady: \(self.allScoresReady)")
             }
         }
     }
