@@ -41,7 +41,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
             -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
@@ -91,7 +91,7 @@ jobs:
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
