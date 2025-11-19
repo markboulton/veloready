@@ -96,12 +96,19 @@ struct TodayView: View {
                         
                         // Recovery Metrics (Three Graphs)
                         // Wait for auth check to complete, then show rings (with loading state if calculating)
+                        // Phase 2: Use component-based rendering if feature flag enabled
                         if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
-                            RecoveryMetricsSection(
-                                isHealthKitAuthorized: healthKitManager.isAuthorized,
-                                animationTrigger: viewModel.animationTrigger,
-                                hideBottomDivider: true
-                            )
+                            if FeatureFlags.shared.isEnabled("component_recovery_metrics") {
+                                // Phase 2: Component-based implementation
+                                RecoveryMetricsComponent()
+                            } else {
+                                // Legacy: Monolithic implementation
+                                RecoveryMetricsSection(
+                                    isHealthKitAuthorized: healthKitManager.isAuthorized,
+                                    animationTrigger: viewModel.animationTrigger,
+                                    hideBottomDivider: true
+                                )
+                            }
                         }
                         
                         // Stress Alert Banner (appears under rings when elevated)

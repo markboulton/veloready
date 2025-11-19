@@ -23,7 +23,10 @@ struct VeloReadyApp: App {
             // 1c. Initialize service container
             ServiceContainer.shared.initialize()
 
-            // 1d. Configure AI Brief
+            // 1d. Register Today view components (Phase 2 - Component Migration)
+            TodayComponentRegistry.shared.register(RecoveryMetricsComponent.self)
+
+            // 1e. Configure AI Brief
             AIBriefConfig.configure()
 
             Logger.debug("✅ [APP LAUNCH] Core infrastructure initialized")

@@ -80,6 +80,36 @@ struct DebugFeaturesView: View {
                 }
                 .padding(.top, Spacing.xs)
             }
+
+            // MARK: Phase 2 - Component Migration
+
+            Toggle("Recovery Metrics Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_recovery_metrics") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_recovery_metrics")
+                    } else {
+                        FeatureFlags.shared.disable("component_recovery_metrics")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_recovery_metrics") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Component-based rendering enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    VRText("Phase 2 Migration:", style: .caption)
+                        .fontWeight(.medium)
+                    VRText("• Modular component architecture", style: .caption, color: .secondary)
+                    VRText("• A/B testing ready", style: .caption, color: .secondary)
+                    VRText("• Visual parity maintained", style: .caption, color: .secondary)
+                }
+                .padding(.top, Spacing.xs)
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
