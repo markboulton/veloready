@@ -143,6 +143,16 @@ class TodayViewModel: ObservableObject {
             self.isLoading = false
             self.isDataLoaded = true
 
+        case .background:
+            self.isInitializing = false
+            self.isLoading = false
+            self.isDataLoaded = true
+
+        case .refreshing:
+            self.isInitializing = false
+            self.isLoading = true
+            self.isDataLoaded = true
+
         case .error:
             self.isInitializing = false
             self.isLoading = false
@@ -193,6 +203,16 @@ class TodayViewModel: ObservableObject {
                     self.isLoading = false
                     self.isDataLoaded = true
                     self.animationTrigger = UUID()
+
+                case .background:
+                    self.isInitializing = false
+                    self.isLoading = false
+                    self.isDataLoaded = true
+
+                case .refreshing:
+                    self.isInitializing = false
+                    self.isLoading = true
+                    self.isDataLoaded = true
 
                 case .error(let error):
                     self.isInitializing = false
