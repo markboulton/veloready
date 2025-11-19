@@ -184,14 +184,26 @@ struct TodayView: View {
                             if liveActivityService.isLoading {
                                 SkeletonStatsCard()
                             } else {
-                                StepsCardV2()
+                                if FeatureFlags.shared.isEnabled("component_steps") {
+                                    // Phase 2: Component-based implementation
+                                    StepsComponent()
+                                } else {
+                                    // Legacy: Monolithic implementation
+                                    StepsCardV2()
+                                }
                             }
 
                             // Calories card (full width with left/right split)
                             if liveActivityService.isLoading {
                                 SkeletonStatsCard()
                             } else {
-                                CaloriesCardV2()
+                                if FeatureFlags.shared.isEnabled("component_calories") {
+                                    // Phase 2: Component-based implementation
+                                    CaloriesComponent()
+                                } else {
+                                    // Legacy: Monolithic implementation
+                                    CaloriesCardV2()
+                                }
                             }
 
                             // FTP card (full width with left/right split)

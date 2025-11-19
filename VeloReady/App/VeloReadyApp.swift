@@ -27,6 +27,8 @@ struct VeloReadyApp: App {
             TodayComponentRegistry.shared.register(RecoveryMetricsComponent.self)
             TodayComponentRegistry.shared.register(HealthWarningsComponent.self)
             TodayComponentRegistry.shared.register(LatestActivityComponent.self)
+            TodayComponentRegistry.shared.register(StepsComponent.self)
+            TodayComponentRegistry.shared.register(CaloriesComponent.self)
 
             // 1e. Configure AI Brief
             AIBriefConfig.configure()

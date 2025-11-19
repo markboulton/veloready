@@ -148,6 +148,44 @@ struct DebugFeaturesView: View {
                     VRText("Activity card component enabled", style: .caption, color: ColorScale.greenAccent)
                 }
             }
+
+            Toggle("Steps Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_steps") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_steps")
+                    } else {
+                        FeatureFlags.shared.disable("component_steps")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_steps") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Steps tracking component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
+
+            Toggle("Calories Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_calories") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_calories")
+                    } else {
+                        FeatureFlags.shared.disable("component_calories")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_calories") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Calories tracking component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
