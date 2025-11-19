@@ -1,9 +1,9 @@
 import Foundation
 
 /// Unified state for all three scores (Recovery, Sleep, Strain)
-/// 
+///
 /// This struct replaces 10+ loading booleans and 3 separate @Published properties
-/// spread across TodayViewModel and RecoveryMetricsSectionViewModel.
+/// that were previously spread across multiple view models.
 ///
 /// Design principles:
 /// - Value type (struct) for predictable behavior

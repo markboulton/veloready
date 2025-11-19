@@ -171,7 +171,7 @@ struct LoadingStatusView: View {
             // Show syncing state with rotating icon
             isVisible = true
             Logger.debug("📊 [LoadingStatus] Showing syncing state with rotating icon")
-            // Note: Timeout is handled by TodayViewModel which transitions to .updated after 3 seconds
+            // Note: Timeout is handled by TodayViewState which transitions to .updated after 3 seconds
         } else {
             isVisible = true
         }
