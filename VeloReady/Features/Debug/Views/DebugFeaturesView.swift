@@ -10,6 +10,7 @@ struct DebugFeaturesView: View {
     var body: some View {
         Form {
             proFeaturesSection
+            architectureSection
             mockDataSection
             simulationSection
             subscriptionSection
@@ -18,7 +19,7 @@ struct DebugFeaturesView: View {
     }
     
     // MARK: - Pro Features Section
-    
+
     private var proFeaturesSection: some View {
         Section {
             Toggle("Enable Pro Features", isOn: $config.bypassSubscriptionForTesting)
@@ -29,7 +30,7 @@ struct DebugFeaturesView: View {
                         config.disableProForTesting()
                     }
                 }
-            
+
             if config.bypassSubscriptionForTesting {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: Icons.Status.successFill)
@@ -47,7 +48,49 @@ struct DebugFeaturesView: View {
             )
         }
     }
-    
+
+    // MARK: - Architecture Section
+
+    private var architectureSection: some View {
+        Section {
+            Toggle("Today View V2 Architecture", isOn: Binding(
+                get: { FeatureFlags.shared.useTodayViewV2 },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("UseTodayViewV2")
+                    } else {
+                        FeatureFlags.shared.disable("UseTodayViewV2")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.useTodayViewV2 {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.blueAccent)
+                    VRText("V2 architecture active", style: .caption, color: ColorScale.blueAccent)
+                }
+
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    VRText("Benefits:", style: .caption)
+                        .fontWeight(.medium)
+                    VRText("• 0ms to cached content", style: .caption, color: .secondary)
+                    VRText("• Background loading during branding", style: .caption, color: .secondary)
+                    VRText("• Unified state management", style: .caption, color: .secondary)
+                }
+                .padding(.top, Spacing.xs)
+            }
+        } header: {
+            Label("Architecture", systemImage: Icons.Navigation.settings)
+        } footer: {
+            VRText(
+                "Enable experimental architecture improvements. Today View V2 uses cache-first loading for instant content.",
+                style: .caption,
+                color: .secondary
+            )
+        }
+    }
+
     // MARK: - Mock Data Section
     
     private var mockDataSection: some View {
