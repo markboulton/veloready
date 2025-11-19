@@ -68,6 +68,22 @@ final class TodayDataLoader {
         ServiceContainer.shared.scoresCoordinator
     }
 
+    private var stravaAuthService: StravaAuthService {
+        ServiceContainer.shared.stravaAuthService
+    }
+
+    private var stravaDataService: StravaDataService {
+        ServiceContainer.shared.stravaDataService
+    }
+
+    private var intervalsOAuthManager: IntervalsOAuthManager {
+        ServiceContainer.shared.intervalsOAuthManager
+    }
+
+    private var deduplicationService: ActivityDeduplicationService {
+        ServiceContainer.shared.deduplicationService
+    }
+
     // MARK: - Cache Keys
 
     private let today = Calendar.current.startOfDay(for: Date())
@@ -222,18 +238,43 @@ final class TodayDataLoader {
     }
 
     func loadFreshActivities() async throws -> ActivitiesData {
-        // TODO: Implement fresh activity loading
-        // Need to understand proper API for UnifiedActivityService and caching
-        do {
-            let activities = try await unifiedActivityService.fetchRecentActivities(limit: 15)
-            return ActivitiesData(
-                latest: activities.first,
-                recent: activities
-            )
-        } catch {
-            Logger.error("Failed to load fresh activities: \(error)")
-            return ActivitiesData(latest: nil, recent: [])
-        }
+        let startTime = Date()
+        Logger.info("🔄 [TodayDataLoader] ━━━ Fetching activities from all sources ━━━")
+
+        // Fetch from all sources in parallel (Intervals, Strava, HealthKit)
+        async let intervalsActivities = fetchIntervalsActivities()
+        async let stravaActivities = fetchStravaActivities()
+        async let healthWorkouts = fetchHealthWorkouts()
+
+        let (intervals, strava, health) = await (intervalsActivities, stravaActivities, healthWorkouts)
+
+        Logger.info("✅ [TodayDataLoader] Fetched - Intervals: \(intervals.count), Strava: \(strava.count), Health: \(health.count)")
+
+        // Deduplicate activities across sources
+        let deduplicated = deduplicationService.deduplicateActivities(
+            intervalsActivities: intervals,
+            stravaActivities: strava,
+            appleHealthActivities: health
+        )
+
+        Logger.info("✅ [TodayDataLoader] Deduplicated: \(deduplicated.count) unique activities")
+
+        // Sort by date descending and take top 15
+        let sortedActivities = deduplicated
+            .sorted { $0.startDate > $1.startDate }
+            .prefix(15)
+            .map { $0 }
+
+        let duration = Date().timeIntervalSince(startTime)
+        Logger.info("✅ [TodayDataLoader] ━━━ Activity fetch completed in \(String(format: "%.2f", duration))s - \(sortedActivities.count) activities ━━━")
+
+        // Convert back to [Activity] for ActivitiesData
+        let activities = sortedActivities.compactMap { $0.activity }
+
+        return ActivitiesData(
+            latest: activities.first,
+            recent: activities
+        )
     }
 
     func loadFreshLiveActivity() async throws -> LiveActivityData {
@@ -356,5 +397,81 @@ final class TodayDataLoader {
         default:
             return .overreaching
         }
+    }
+
+    // MARK: - Activity Fetching Helpers
+
+    /// Fetch activities from Intervals.icu
+    /// - Returns: Array of UnifiedActivity
+    private func fetchIntervalsActivities() async -> [UnifiedActivity] {
+        Logger.info("🔄 [TodayDataLoader] Fetching Intervals.icu activities...")
+
+        // Check if authenticated
+        guard intervalsOAuthManager.isAuthenticated else {
+            Logger.info("⏭️ [TodayDataLoader] Intervals.icu not authenticated - skipping")
+            return []
+        }
+
+        do {
+            // OPTIMIZATION: Reduce from 500 → 50 for faster initial load
+            // We only need 15 for Today view, so 50 provides buffer
+            let activities = try await Task { @MainActor in
+                try await unifiedActivityService.fetchRecentActivities(
+                    limit: 50,
+                    daysBack: 7
+                )
+            }.value
+
+            // Filter out Strava duplicates (those with source == "STRAVA")
+            let filtered = activities.filter { $0.source?.uppercased() != "STRAVA" }
+
+            Logger.info("✅ [TodayDataLoader] Intervals.icu: \(filtered.count) activities (filtered from \(activities.count))")
+
+            return filtered.map { UnifiedActivity(from: $0) }
+        } catch {
+            Logger.warning("⚠️ [TodayDataLoader] Intervals.icu fetch failed: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    /// Fetch activities from Strava
+    /// - Returns: Array of UnifiedActivity
+    private func fetchStravaActivities() async -> [UnifiedActivity] {
+        Logger.info("🔄 [TodayDataLoader] Fetching Strava activities...")
+        Logger.info("🔄 [TodayDataLoader] Connection state: \(stravaAuthService.connectionState)")
+
+        // Check if authenticated
+        guard case .connected = stravaAuthService.connectionState else {
+            Logger.info("⏭️ [TodayDataLoader] Strava not authenticated - skipping")
+            return []
+        }
+
+        Logger.info("🔄 [TodayDataLoader] Calling stravaDataService.fetchActivitiesIfNeeded()")
+
+        // Fetch activities using the backend-powered VeloReady API
+        await stravaDataService.fetchActivitiesIfNeeded()
+        let activities = stravaDataService.activities
+
+        Logger.info("✅ [TodayDataLoader] Strava: \(activities.count) activities")
+
+        return activities.map { UnifiedActivity(from: $0) }
+    }
+
+    /// Fetch workouts from Apple Health
+    /// - Returns: Array of UnifiedActivity
+    private func fetchHealthWorkouts() async -> [UnifiedActivity] {
+        Logger.info("🔄 [TodayDataLoader] Fetching Apple Health workouts...")
+
+        // Check if authorized
+        guard healthKitManager.isAuthorized else {
+            Logger.info("⏭️ [TodayDataLoader] HealthKit not authorized - skipping")
+            return []
+        }
+
+        let workouts = await healthKitManager.fetchRecentWorkouts(daysBack: 7)
+
+        Logger.info("✅ [TodayDataLoader] Apple Health: \(workouts.count) workouts")
+
+        return workouts.map { UnifiedActivity(from: $0) }
     }
 }

@@ -56,17 +56,7 @@ final class ServiceContainer {
         Logger.info("📦 [ServiceContainer] ScoresCoordinator created successfully")
         return coordinator
     }()
-    
-    /// ActivitiesCoordinator - coordinates activity fetching from all sources
-    /// Handles Intervals.icu, Strava, and Apple Health integration
-    /// Part of: Today View Refactoring Plan - Week 3
-    lazy var activitiesCoordinator: ActivitiesCoordinator = {
-        Logger.info("📦 [ServiceContainer] Creating ActivitiesCoordinator...")
-        let coordinator = ActivitiesCoordinator(services: self)
-        Logger.info("📦 [ServiceContainer] ActivitiesCoordinator created successfully")
-        return coordinator
-    }()
-    
+
     /// LoadingStateManager - manages loading state transitions for UI
     lazy var loadingStateManager: LoadingStateManager = {
         LoadingStateManager()
