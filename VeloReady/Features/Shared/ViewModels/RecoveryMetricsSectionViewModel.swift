@@ -106,15 +106,20 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
     }
 
     /// Load score objects from coordinator (V2 Architecture)
-    /// The coordinator already has the score objects computed
+    /// Force coordinator to refresh to get fresh scores
     private func loadScoresFromCoreData() {
-        // V2: TodayViewState triggers data loading, but we still use coordinator's score objects
-        // The coordinator's state is updated by scoresCoordinator.calculateAll() called by TodayDataLoader
-        let state = coordinator.state
-        self.recoveryScore = state.recovery
-        self.sleepScore = state.sleep
-        self.strainScore = state.strain
-        Logger.info("📦 [V2] Loaded scores from coordinator - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1)")
+        // V2: Force coordinator to refresh and load latest scores from Core Data
+        // This ensures we get the scores that TodayDataLoader just calculated
+        Task {
+            await coordinator.refresh()
+            await MainActor.run {
+                let state = coordinator.state
+                self.recoveryScore = state.recovery
+                self.sleepScore = state.sleep
+                self.strainScore = state.strain
+                Logger.info("📦 [V2] Loaded scores from coordinator - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1)")
+            }
+        }
     }
 
     private func initializeFromCoordinator() {
