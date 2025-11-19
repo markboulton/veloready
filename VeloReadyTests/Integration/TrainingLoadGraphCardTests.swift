@@ -117,6 +117,105 @@ class TrainingLoadGraphCardTests: XCTestCase {
         }
     }
 
+    func testRejectsInvalidCTLATLValues() async throws {
+        // Given: Core Data has mix of valid and invalid data points
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Add invalid data points (CTL/ATL < 5 should be rejected)
+        for dayOffset in -13...(-8) {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+
+            let dailyScore = DailyScores(context: context)
+            dailyScore.date = date
+
+            let dailyLoad = DailyLoad(context: context)
+            dailyLoad.ctl = 1.0  // Invalid - too low
+            dailyLoad.atl = 6.3  // Invalid - only ATL present
+            dailyLoad.tsb = dailyLoad.ctl - dailyLoad.atl
+
+            dailyScore.load = dailyLoad
+        }
+
+        // Add valid data points for recent days
+        for dayOffset in -7...0 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+
+            let dailyScore = DailyScores(context: context)
+            dailyScore.date = date
+
+            let dailyLoad = DailyLoad(context: context)
+            dailyLoad.ctl = 23.7 + Double(dayOffset) * 0.5
+            dailyLoad.atl = 21.6 + Double(dayOffset) * 0.3
+            dailyLoad.tsb = dailyLoad.ctl - dailyLoad.atl
+
+            dailyScore.load = dailyLoad
+        }
+
+        try context.save()
+
+        print("🧪 [TEST] Seeded Core Data with 6 invalid + 8 valid data points")
+
+        // When: Load chart data
+        await viewModel.load()
+
+        // Then: Should only use valid data points (57% coverage = uses Core Data)
+        let historicalData = viewModel.chartData.filter { !$0.isFuture }
+
+        // Should use Core Data strategy and interpolate to fill 14 days
+        XCTAssertEqual(historicalData.count, 14, "Should have 14 data points after interpolation")
+
+        // Verify today's data uses valid values (not the invalid ones)
+        if let todayPoint = historicalData.first(where: { calendar.isDateInToday($0.date) }) {
+            XCTAssertGreaterThan(todayPoint.ctl, 5.0, "CTL should be from valid data range")
+            XCTAssertGreaterThan(todayPoint.atl, 5.0, "ATL should be from valid data range")
+            XCTAssertLessThan(todayPoint.ctl, 300.0, "CTL should be in realistic range")
+            XCTAssertLessThan(todayPoint.atl, 300.0, "ATL should be in realistic range")
+            print("🧪 [TEST] ✅ Today's values are valid: CTL=\(String(format: "%.1f", todayPoint.ctl)), ATL=\(String(format: "%.1f", todayPoint.atl))")
+        } else {
+            XCTFail("Should have data for today")
+        }
+    }
+
+    func testRejectsPartialInvalidData() async throws {
+        // Given: Core Data has data with only CTL valid but ATL invalid (or vice versa)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        for dayOffset in -13...0 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: today) else { continue }
+
+            let dailyScore = DailyScores(context: context)
+            dailyScore.date = date
+
+            let dailyLoad = DailyLoad(context: context)
+            // One valid, one invalid - should reject BOTH
+            dailyLoad.ctl = dayOffset < -7 ? 2.0 : 23.7  // First half invalid
+            dailyLoad.atl = dayOffset < -7 ? 25.0 : 21.6  // First half valid CTL but invalid ATL combo
+            dailyLoad.tsb = dailyLoad.ctl - dailyLoad.atl
+
+            dailyScore.load = dailyLoad
+        }
+
+        try context.save()
+
+        print("🧪 [TEST] Seeded Core Data with partially invalid data (one metric valid, other invalid)")
+
+        // When: Load chart data
+        await viewModel.load()
+
+        // Then: Should reject data points where EITHER CTL or ATL is invalid
+        let historicalData = viewModel.chartData.filter { !$0.isFuture }
+
+        XCTAssertEqual(historicalData.count, 14, "Should have 14 data points")
+
+        // All data points should have reasonable values
+        for point in historicalData {
+            XCTAssertGreaterThan(point.ctl, 0, "CTL should be positive at \(point.date)")
+            XCTAssertGreaterThan(point.atl, 0, "ATL should be positive at \(point.date)")
+        }
+    }
+
     // MARK: - Fallback Strategy Tests (Progressive Calculation)
     // Note: Progressive calculation fallback requires actual activity data from Strava/Intervals.
     // The main fallback logic is tested through baseline seeding test below.

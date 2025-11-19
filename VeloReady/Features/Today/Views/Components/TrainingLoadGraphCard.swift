@@ -160,7 +160,16 @@ class TrainingLoadGraphCardViewModel: ObservableObject {
             guard let date = score.date, let load = score.load else { continue }
 
             // Only include if we have valid CTL/ATL data
-            guard load.ctl > 0 || load.atl > 0 else { continue }
+            // CTL/ATL should be reasonable values - typically 0-200 for most athletes
+            // Skip entries with suspicious values (e.g., exactly 0, or very low values that don't make sense)
+            let hasValidCTL = load.ctl >= 5 && load.ctl <= 300
+            let hasValidATL = load.atl >= 5 && load.atl <= 300
+
+            // Require BOTH CTL and ATL to be valid, not just one
+            guard hasValidCTL && hasValidATL else {
+                Logger.debug("   ⚠️ Skipping invalid data point for \(date): CTL=\(String(format: "%.1f", load.ctl)), ATL=\(String(format: "%.1f", load.atl))")
+                continue
+            }
 
             points.append(TrainingLoadDataPoint(
                 date: date,

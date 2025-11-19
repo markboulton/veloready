@@ -370,24 +370,35 @@ extension AIBriefService {
     private func loadFromCoreData() -> String? {
         let today = Calendar.current.startOfDay(for: Date())
         Logger.debug("📂 [AI Brief] Loading from Core Data for date: \(today)")
-        
+
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date == %@", today as NSDate)
         request.fetchLimit = 1
-        
+
         let results = persistence.fetch(request)
         Logger.debug("📂 [AI Brief] Core Data query returned \(results.count) DailyScores")
-        
+
         guard let scores = results.first else {
             Logger.debug("❌ [AI Brief] No DailyScores entity found for today")
             return nil
         }
-        
+
         guard let briefText = scores.aiBriefText, !briefText.isEmpty else {
             Logger.debug("❌ [AI Brief] DailyScores exists but aiBriefText is nil or empty")
             return nil
         }
-        
+
+        // CRITICAL: Check if the cached brief is stale
+        // Compare recovery score in RecoveryScoreService vs what's in Core Data
+        // If they differ, the brief was generated before today's score calculation
+        let currentRecovery = Double(recoveryService.currentRecoveryScore?.score ?? -1)
+        let cachedRecovery = scores.recoveryScore
+
+        if currentRecovery > 0 && abs(currentRecovery - cachedRecovery) > 1.0 {
+            Logger.warning("⚠️ [AI Brief] Cached brief is STALE! Recovery changed: \(Int(cachedRecovery)) → \(Int(currentRecovery)). Regenerating...")
+            return nil  // Force regeneration with fresh scores
+        }
+
         Logger.debug("✅ [AI Brief] Found cached brief (\(briefText.count) chars)")
         return briefText
     }
