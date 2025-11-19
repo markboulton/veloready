@@ -110,6 +110,25 @@ struct DebugFeaturesView: View {
                 }
                 .padding(.top, Spacing.xs)
             }
+
+            Toggle("Health Warnings Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_health_warnings") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_health_warnings")
+                    } else {
+                        FeatureFlags.shared.disable("component_health_warnings")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_health_warnings") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Alerts system component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {

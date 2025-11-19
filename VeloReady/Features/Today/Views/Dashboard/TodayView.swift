@@ -132,8 +132,15 @@ struct TodayView: View {
                         }
                         
                         // Health Warnings (Illness & Wellness alerts)
+                        // Phase 2: Use component-based rendering if feature flag enabled
                         if healthKitManager.isAuthorized {
-                            HealthWarningsCardV2()
+                            if FeatureFlags.shared.isEnabled("component_health_warnings") {
+                                // Phase 2: Component-based implementation
+                                HealthWarningsComponent()
+                            } else {
+                                // Legacy: Monolithic implementation
+                                HealthWarningsCardV2()
+                            }
                         }
                         
                         // Fixed Today page sections
