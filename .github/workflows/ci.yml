@@ -35,13 +35,16 @@ jobs:
           cd VeloReadyCore
           swift test
 
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
       - name: iOS Unit Tests (Essential)
         run: |
           echo "Running essential iOS unit tests"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
             -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
@@ -85,13 +88,16 @@ jobs:
           cd VeloReadyCore
           swift test
 
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
       - name: iOS Unit Tests (Comprehensive)
         run: |
           echo "Running comprehensive iOS unit tests"
           xcodebuild test \
             -project VeloReady.xcodeproj \
             -scheme VeloReady \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
             -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
             -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
