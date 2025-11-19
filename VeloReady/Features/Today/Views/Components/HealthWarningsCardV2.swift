@@ -107,7 +107,7 @@ struct HealthWarningsCardV2: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(severityColor(indicator.severity).opacity(0.05))
+        .background(severityColor(indicator.severity).opacity(0.1))
         .cornerRadius(12)
     }
     
@@ -218,7 +218,7 @@ struct HealthWarningsCardV2: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorScale.purpleAccent.opacity(0.05))
+        .background(ColorScale.purpleAccent.opacity(0.1))
         .cornerRadius(12)
     }
     
@@ -252,7 +252,7 @@ struct HealthWarningsCardV2: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.text.secondary.opacity(0.05))
+        .background(Color.text.secondary.opacity(0.1))
         .cornerRadius(12)
     }
     

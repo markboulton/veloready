@@ -72,201 +72,20 @@ struct DebugFeaturesView: View {
                 }
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    VRText("Benefits:", style: .caption)
+                    VRText("Phase 2 Complete:", style: .caption)
                         .fontWeight(.medium)
                     VRText("• 0ms to cached content", style: .caption, color: .secondary)
-                    VRText("• Background loading during branding", style: .caption, color: .secondary)
+                    VRText("• Modular component system", style: .caption, color: .secondary)
+                    VRText("• Standardized alert design", style: .caption, color: .secondary)
                     VRText("• Unified state management", style: .caption, color: .secondary)
                 }
                 .padding(.top, Spacing.xs)
-            }
-
-            // MARK: Phase 2 - Component Migration
-
-            Toggle("Recovery Metrics Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_recovery_metrics") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_recovery_metrics")
-                    } else {
-                        FeatureFlags.shared.disable("component_recovery_metrics")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_recovery_metrics") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Component-based rendering enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    VRText("Phase 2 Migration:", style: .caption)
-                        .fontWeight(.medium)
-                    VRText("• Modular component architecture", style: .caption, color: .secondary)
-                    VRText("• A/B testing ready", style: .caption, color: .secondary)
-                    VRText("• Visual parity maintained", style: .caption, color: .secondary)
-                }
-                .padding(.top, Spacing.xs)
-            }
-
-            Toggle("Health Warnings Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_health_warnings") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_health_warnings")
-                    } else {
-                        FeatureFlags.shared.disable("component_health_warnings")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_health_warnings") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Alerts system component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("Latest Activity Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_latest_activity") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_latest_activity")
-                    } else {
-                        FeatureFlags.shared.disable("component_latest_activity")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_latest_activity") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Activity card component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("Steps Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_steps") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_steps")
-                    } else {
-                        FeatureFlags.shared.disable("component_steps")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_steps") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Steps tracking component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("Calories Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_calories") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_calories")
-                    } else {
-                        FeatureFlags.shared.disable("component_calories")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_calories") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Calories tracking component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("Training Load Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_training_load") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_training_load")
-                    } else {
-                        FeatureFlags.shared.disable("component_training_load")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_training_load") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("Training load graph component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("FTP Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_ftp") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_ftp")
-                    } else {
-                        FeatureFlags.shared.disable("component_ftp")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_ftp") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("FTP card component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("VO2Max Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_vo2max") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_vo2max")
-                    } else {
-                        FeatureFlags.shared.disable("component_vo2max")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_vo2max") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("VO2Max card component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
-            }
-
-            Toggle("AI Brief Component", isOn: Binding(
-                get: { FeatureFlags.shared.isEnabled("component_ai_brief") },
-                set: { newValue in
-                    if newValue {
-                        FeatureFlags.shared.enable("component_ai_brief")
-                    } else {
-                        FeatureFlags.shared.disable("component_ai_brief")
-                    }
-                }
-            ))
-
-            if FeatureFlags.shared.isEnabled("component_ai_brief") {
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: Icons.Status.successFill)
-                        .foregroundColor(ColorScale.greenAccent)
-                    VRText("AI Brief component enabled", style: .caption, color: ColorScale.greenAccent)
-                }
             }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
             VRText(
-                "Enable experimental architecture improvements. Today View V2 uses cache-first loading for instant content.",
+                "V2 architecture with cache-first loading, modular components, and standardized alerts. Phase 3 cleanup in progress.",
                 style: .caption,
                 color: .secondary
             )

@@ -1,89 +1,74 @@
 import SwiftUI
 
-/// Banner for stress alerts - appears under the daily summary rings
-/// Matches IllnessAlertBanner design exactly
+/// Banner for stress alerts - standardized to match canonical wellness alert design
+/// Uses consistent RAG coloring, outlined icons, and design system tokens
 struct StressBanner: View {
     let alert: StressAlert
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: Spacing.xs / 2) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack(spacing: Spacing.xs) {
-                    // Icon in circle (top-left aligned)
-                    ZStack {
-                        Circle()
-                            .fill(alert.severity.color.opacity(0.15))
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: alert.severity.icon)
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(alert.severity.color)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: Spacing.xs) {
-                        // Row 1: Heading + Badge
-                        HStack {
-                            Text(StressContent.Banner.title)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            // Severity badge
-                            Text(alert.severity.rawValue)
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(alert.severity.color)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(alert.severity.color.opacity(0.15))
-                                .cornerRadius(4)
-                        }
-                        
-                        // Row 2: Description in grey
-                        Text(alert.bannerMessage)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Row 3: Contributor icons (show top 3)
-                        if !alert.contributors.isEmpty {
-                            HStack(spacing: 6) {
-                                ForEach(alert.contributors.prefix(3)) { contributor in
-                                    HStack(spacing: Spacing.xs) {
-                                        Image(systemName: contributor.type.icon)
-                                            .font(.caption2)
-                                        Text(contributor.type.label)
-                                            .font(.caption2)
-                                    }
-                                    .foregroundColor(.secondary)
-                                }
-                                
-                                if alert.contributors.count > 3 {
-                                    Text("+\(alert.contributors.count - 3)")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .padding(.top, 4)
-                        }
-                    }
-                    
-                    // Info icon (right-aligned)
+                    // Outlined alert icon (top-left) - canonical pattern
+                    Image(systemName: alert.severity.icon)
+                        .font(.title3)
+                        .foregroundColor(alert.severity.color)
+
+                    Text(StressContent.Banner.title)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+
+                    // Severity badge
+                    Text(alert.severity.rawValue.uppercased())
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(alert.severity.color)
+                        .padding(.horizontal, Spacing.xs)
+                        .padding(.vertical, 2)
+                        .background(alert.severity.color.opacity(0.15))
+                        .cornerRadius(4)
+
+                    Spacer()
+
+                    // Info icon (top-right) - canonical pattern
                     Image(systemName: Icons.Status.info)
                         .font(.body)
                         .foregroundColor(Color.text.secondary)
                 }
-                .padding()
-                .background(alert.severity.color.opacity(0.05))
-                .overlay(
-                    Rectangle()
-                        .frame(width: 4)
-                        .foregroundColor(alert.severity.color),
-                    alignment: .leading
-                )
+
+                // Description sentence
+                Text(alert.bannerMessage)
+                    .font(.subheadline)
+                    .foregroundColor(Color.text.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Contributor badges (matching metric badges pattern)
+                if !alert.contributors.isEmpty {
+                    HStack(spacing: Spacing.xs) {
+                        ForEach(alert.contributors.prefix(3)) { contributor in
+                            HStack(spacing: 4) {
+                                Image(systemName: contributor.type.icon)
+                                    .font(.caption2)
+                                Text(contributor.type.label)
+                                    .font(.caption2)
+                            }
+                            .foregroundColor(Color.text.secondary)
+                        }
+
+                        if alert.contributors.count > 3 {
+                            Text("+\(alert.contributors.count - 3)")
+                                .font(.caption2)
+                                .foregroundColor(Color.text.secondary)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
             }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(alert.severity.color.opacity(0.1))
+            .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
     }
