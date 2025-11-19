@@ -4,15 +4,14 @@ import Combine
 /// ViewModel for StepsCardV2
 /// Separates business logic from UI presentation
 @MainActor
-@Observable
-final class StepsCardViewModel {
+final class StepsCardViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    private(set) var dailySteps: Int = 0
-    private(set) var stepGoal: Int = 10000
-    private(set) var walkingDistance: Double = 0
-    private(set) var hourlySteps: [HourlyStepData] = []
-    private(set) var isLoadingHourly: Bool = false
+    @Published private(set) var dailySteps: Int = 0
+    @Published private(set) var stepGoal: Int = 10000
+    @Published private(set) var walkingDistance: Double = 0
+    @Published private(set) var hourlySteps: [HourlyStepData] = []
+    @Published private(set) var isLoadingHourly: Bool = false
 
     // MARK: - Dependencies
 

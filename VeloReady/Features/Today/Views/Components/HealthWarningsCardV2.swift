@@ -3,7 +3,7 @@ import SwiftUI
 /// Health Warnings card using atomic CardContainer wrapper with MVVM
 /// ViewModel handles all alert filtering and state management
 struct HealthWarningsCardV2: View {
-    @State private var viewModel = HealthWarningsCardViewModel()
+    @StateObject private var viewModel = HealthWarningsCardViewModel()
     
     var body: some View {
         VStack(spacing: Spacing.md) {

@@ -25,20 +25,19 @@ import Combine
 /// Created: 2025-11-10 (Week 2 Day 1)
 /// Part of: Today View Refactoring Plan
 @MainActor
-@Observable
-final class RecoveryMetricsSectionViewModel {
+final class RecoveryMetricsSectionViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    private(set) var recoveryScore: RecoveryScore?
-    private(set) var sleepScore: SleepScore?
-    private(set) var strainScore: StrainScore?
-    private(set) var isRecoveryLoading: Bool = false
-    private(set) var isSleepLoading: Bool = false
-    private(set) var isStrainLoading: Bool = false
-    private(set) var allScoresReady: Bool = false
-    private(set) var isInitialLoad: Bool = true  // Tracks if this ViewModel has completed first load
-    var ringAnimationTrigger = UUID()
-    var missingSleepBannerDismissed: Bool {
+    @Published private(set) var recoveryScore: RecoveryScore?
+    @Published private(set) var sleepScore: SleepScore?
+    @Published private(set) var strainScore: StrainScore?
+    @Published private(set) var isRecoveryLoading: Bool = false
+    @Published private(set) var isSleepLoading: Bool = false
+    @Published private(set) var isStrainLoading: Bool = false
+    @Published private(set) var allScoresReady: Bool = false
+    @Published private(set) var isInitialLoad: Bool = true  // Tracks if this ViewModel has completed first load
+    @Published var ringAnimationTrigger = UUID()
+    @Published var missingSleepBannerDismissed: Bool {
         didSet {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
         }

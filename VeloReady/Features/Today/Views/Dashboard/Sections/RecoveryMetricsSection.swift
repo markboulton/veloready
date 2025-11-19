@@ -3,7 +3,7 @@ import SwiftUI
 /// Recovery metrics section showing Recovery, Sleep, and Load scores with MVVM
 /// ViewModel handles all score state management and calculations
 struct RecoveryMetricsSection: View {
-    @State private var viewModel = RecoveryMetricsSectionViewModel()
+    @StateObject private var viewModel = RecoveryMetricsSectionViewModel()
     @ObservedObject private var healthKitManager = HealthKitManager.shared // For hasCompletedInitialCheck
     let isHealthKitAuthorized: Bool
     let animationTrigger: UUID // Triggers animations on change

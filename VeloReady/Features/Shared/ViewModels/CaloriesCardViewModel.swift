@@ -4,14 +4,13 @@ import Combine
 /// ViewModel for CaloriesCardV2
 /// Handles calorie goal, progress, and badge logic
 @MainActor
-@Observable
-final class CaloriesCardViewModel {
+final class CaloriesCardViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    private(set) var activeCalories: Double = 0
-    private(set) var bmrCalories: Double = 0
-    private(set) var calorieGoal: Double = 2000
-    private(set) var useBMRAsGoal: Bool = false
+    @Published private(set) var activeCalories: Double = 0
+    @Published private(set) var bmrCalories: Double = 0
+    @Published private(set) var calorieGoal: Double = 2000
+    @Published private(set) var useBMRAsGoal: Bool = false
     
     // MARK: - Dependencies
     
