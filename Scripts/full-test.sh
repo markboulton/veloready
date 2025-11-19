@@ -74,6 +74,12 @@ if xcodebuild test \
     -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
     -only-testing:VeloReadyTests/Unit/CacheManagerTests \
     -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
+    -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
+    -only-testing:VeloReadyTests/Unit/RecoveryCalculationFallbackTests \
+    -only-testing:VeloReadyTests/Unit/UnifiedActivityServiceTests \
+    -only-testing:VeloReadyTests/Unit/ProgressiveTrainingLoadTests \
+    -only-testing:VeloReadyTests/Unit/APIAuthenticationTests \
+    -only-testing:VeloReadyTests/Unit/CoreDataMigrationTests \
     -quiet \
     -hideShellScriptEnvironment; then
     print_status "All critical unit tests passed"

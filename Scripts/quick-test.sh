@@ -63,16 +63,19 @@ else
     exit 1
 fi
 
-# 2. Essential Unit Tests Only (30 seconds) - CRITICAL
-# NOTE: Reduced to 2 fastest test suites for speed. Run full-test.sh before commit.
+# 2. Essential Unit Tests Only (35 seconds) - CRITICAL
+# NOTE: Includes critical regression tests. Run full-test.sh before commit for comprehensive coverage.
 echo ""
-echo "2️⃣  Running essential unit tests (fast only)..."
+echo "2️⃣  Running essential unit tests (fast critical tests)..."
 if xcodebuild test \
     -project VeloReady.xcodeproj \
     -scheme VeloReady \
     -destination 'platform=iOS Simulator,name=iPhone 17' \
     -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
     -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+    -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
+    -only-testing:VeloReadyTests/Unit/APIAuthenticationTests \
+    -only-testing:VeloReadyTests/Unit/CoreDataMigrationTests \
     -quiet \
     -hideShellScriptEnvironment; then
     print_status "Essential unit tests passed"

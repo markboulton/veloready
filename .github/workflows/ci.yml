@@ -34,7 +34,21 @@ jobs:
           echo "Testing core business logic on macOS (no simulator needed)"
           cd VeloReadyCore
           swift test
-          
+
+      - name: iOS Unit Tests (Essential)
+        run: |
+          echo "Running essential iOS unit tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
+            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+            -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+            -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
+            -only-testing:VeloReadyTests/Unit/APIAuthenticationTests \
+            -only-testing:VeloReadyTests/Unit/CoreDataMigrationTests \
+            -quiet
+
       - name: Essential Lint
         run: |
           if command -v swiftlint &> /dev/null; then
@@ -70,7 +84,27 @@ jobs:
           echo "Testing core business logic on macOS (fast, no simulator)"
           cd VeloReadyCore
           swift test
-            
+
+      - name: iOS Unit Tests (Comprehensive)
+        run: |
+          echo "Running comprehensive iOS unit tests"
+          xcodebuild test \
+            -project VeloReady.xcodeproj \
+            -scheme VeloReady \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
+            -only-testing:VeloReadyTests/Unit/CoreDataPersistenceTests \
+            -only-testing:VeloReadyTests/Unit/TrainingLoadCalculatorTests \
+            -only-testing:VeloReadyTests/Unit/RecoveryScoreTests \
+            -only-testing:VeloReadyTests/Unit/CacheManagerTests \
+            -only-testing:VeloReadyTests/Unit/MLModelRegistryTests \
+            -only-testing:VeloReadyTests/Unit/TSSCalculationTests \
+            -only-testing:VeloReadyTests/Unit/RecoveryCalculationFallbackTests \
+            -only-testing:VeloReadyTests/Unit/UnifiedActivityServiceTests \
+            -only-testing:VeloReadyTests/Unit/ProgressiveTrainingLoadTests \
+            -only-testing:VeloReadyTests/Unit/APIAuthenticationTests \
+            -only-testing:VeloReadyTests/Unit/CoreDataMigrationTests \
+            -quiet
+
       - name: E2E Smoke Test
         run: |
           # Only run critical path E2E test
