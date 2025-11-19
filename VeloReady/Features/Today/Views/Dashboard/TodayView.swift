@@ -96,19 +96,8 @@ struct TodayView: View {
                         
                         // Recovery Metrics (Three Graphs)
                         // Wait for auth check to complete, then show rings (with loading state if calculating)
-                        // Phase 2: Use component-based rendering if feature flag enabled
                         if healthKitManager.authorizationCoordinator.hasCompletedInitialCheck {
-                            if FeatureFlags.shared.isEnabled("component_recovery_metrics") {
-                                // Phase 2: Component-based implementation
-                                RecoveryMetricsComponent()
-                            } else {
-                                // Legacy: Monolithic implementation
-                                RecoveryMetricsSection(
-                                    isHealthKitAuthorized: healthKitManager.isAuthorized,
-                                    animationTrigger: viewModel.animationTrigger,
-                                    hideBottomDivider: true
-                                )
-                            }
+                            RecoveryMetricsComponent()
                         }
                         
                         // Stress Alert Banner (appears under rings when elevated)
@@ -132,112 +121,43 @@ struct TodayView: View {
                         }
                         
                         // Health Warnings (Illness & Wellness alerts)
-                        // Phase 2: Use component-based rendering if feature flag enabled
                         if healthKitManager.isAuthorized {
-                            if FeatureFlags.shared.isEnabled("component_health_warnings") {
-                                // Phase 2: Component-based implementation
-                                HealthWarningsComponent()
-                            } else {
-                                // Legacy: Monolithic implementation
-                                HealthWarningsCardV2()
-                            }
+                            HealthWarningsComponent()
                         }
                         
                         // Fixed Today page sections
                         if healthKitManager.isAuthorized {
                             // Unified AI Brief (Pro) or Computed Brief (Free)
-                            if FeatureFlags.shared.isEnabled("component_ai_brief") {
-                                // Phase 2: Component-based implementation
-                                AIBriefComponent()
-                            } else {
-                                // Legacy: Monolithic implementation
-                                AIBriefView()
-                            }
+                            AIBriefComponent()
                             
                             // Latest Activity from Strava/Intervals
-                            // Phase 2: Use component-based rendering if feature flag enabled
-                            Group {
-                                if FeatureFlags.shared.isEnabled("component_latest_activity") {
-                                    // Phase 2: Component-based implementation
-                                    LatestActivityComponent()
-                                } else {
-                                    // Legacy: Monolithic implementation
-                                    if hasConnectedDataSource {
-                                        if let latestActivity = getLatestActivity() {
-                                            LatestActivityCardV2(activity: latestActivity, showAsLatestActivity: true)
-                                                .onAppear {
-                                                    Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
-                                                }
-                                        } else {
-                                            SkeletonActivityCard()
-                                                .onAppear {
-                                                    Logger.debug("🏠 [TodayView] No latest activity - showing skeleton")
-                                                }
-                                        }
-                                    } else {
-                                        EmptyView()
-                                            .onAppear {
-                                                Logger.debug("🏠 [TodayView] NO connected data source - not showing activity card")
-                                            }
-                                    }
-                                }
-                            }
+                            LatestActivityComponent()
                             
                             // Training Load Graph (full width)
-                            if FeatureFlags.shared.isEnabled("component_training_load") {
-                                // Phase 2: Component-based implementation
-                                TodayTrainingLoadComponent()
-                            } else {
-                                // Legacy: Monolithic implementation
-                                TrainingLoadGraphCard()
-                            }
+                            TodayTrainingLoadComponent()
 
                             // Steps card (full width with left/right split)
                             if liveActivityService.isLoading {
                                 SkeletonStatsCard()
                             } else {
-                                if FeatureFlags.shared.isEnabled("component_steps") {
-                                    // Phase 2: Component-based implementation
-                                    StepsComponent()
-                                } else {
-                                    // Legacy: Monolithic implementation
-                                    StepsCardV2()
-                                }
+                                StepsComponent()
                             }
 
                             // Calories card (full width with left/right split)
                             if liveActivityService.isLoading {
                                 SkeletonStatsCard()
                             } else {
-                                if FeatureFlags.shared.isEnabled("component_calories") {
-                                    // Phase 2: Component-based implementation
-                                    CaloriesComponent()
-                                } else {
-                                    // Legacy: Monolithic implementation
-                                    CaloriesCardV2()
-                                }
+                                CaloriesComponent()
                             }
 
                             // FTP card (full width with left/right split)
                             HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
-                                if FeatureFlags.shared.isEnabled("component_ftp") {
-                                    // Phase 2: Component-based implementation
-                                    FTPComponent()
-                                } else {
-                                    // Legacy: Monolithic implementation
-                                    AdaptiveFTPCard(onTap: {})
-                                }
+                                FTPComponent()
                             }
 
                             // VO2 Max card (full width with left/right split)
                             HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
-                                if FeatureFlags.shared.isEnabled("component_vo2max") {
-                                    // Phase 2: Component-based implementation
-                                    VO2MaxComponent()
-                                } else {
-                                    // Legacy: Monolithic implementation
-                                    AdaptiveVO2MaxCard(onTap: {})
-                                }
+                                VO2MaxComponent()
                             }
                         }
                         
