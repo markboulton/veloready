@@ -3,7 +3,7 @@ import SwiftUI
 /// Main Trends view - PRO feature
 /// Shows performance and health trends over time
 struct TrendsView: View {
-    @StateObject private var viewModel = TrendsViewModel()
+    @State private var viewModel = TrendsViewModel()
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
     @State private var showPaywall = false

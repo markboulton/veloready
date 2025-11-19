@@ -4,29 +4,30 @@ import MapKit
 import SwiftUI
 
 @MainActor
-class ActivityDetailViewModel: ObservableObject {
+@Observable
+final class ActivityDetailViewModel {
     let activityData: UnifiedActivityData
-    
+
     // Map
-    @Published var mapSnapshot: UIImage?
-    @Published var isLoadingMap = false
-    @Published var routeCoordinates: [CLLocationCoordinate2D] = []
-    
+    var mapSnapshot: UIImage?
+    var isLoadingMap = false
+    var routeCoordinates: [CLLocationCoordinate2D] = []
+
     // Charts - downsampled for performance
-    @Published var chartSamples: [Any] = []
-    @Published var workoutSamples: [WorkoutSample] = []
-    @Published var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
-    @Published var paceSamples: [Double] = []  // Pace in min/km for walking workouts
-    
+    var chartSamples: [Any] = []
+    var workoutSamples: [WorkoutSample] = []
+    var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
+    var paceSamples: [Double] = []  // Pace in min/km for walking workouts
+
     // Cache for raw (non-downsampled) data
     private var rawWorkoutSamples: [WorkoutSample] = []
     private var rawHeartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
-    
+
     // Metrics
-    @Published var steps: Int = 0
-    @Published var averageHeartRate: Double?
-    @Published var maxHeartRate: Double?
-    @Published var ftp: Double?
+    var steps: Int = 0
+    var averageHeartRate: Double?
+    var maxHeartRate: Double?
+    var ftp: Double?
     
     private let healthStore = HKHealthStore()
     private let apiClient: IntervalsAPIClient

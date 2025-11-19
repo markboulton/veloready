@@ -3,7 +3,7 @@ import SwiftUI
 /// Steps card using atomic components with MVVM architecture
 /// ViewModel handles all business logic and data transformation
 struct StepsCardV2: View {
-    @StateObject private var viewModel = StepsCardViewModel()
+    @State private var viewModel = StepsCardViewModel()
     
     var body: some View {
         CardContainer(

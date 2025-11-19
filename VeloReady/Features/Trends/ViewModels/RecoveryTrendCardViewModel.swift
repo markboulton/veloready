@@ -3,7 +3,8 @@ import Foundation
 /// ViewModel for Recovery Trend card
 /// Generates insights based on average recovery score
 @MainActor
-class RecoveryTrendCardViewModel: ObservableObject {
+@Observable
+final class RecoveryTrendCardViewModel {
     
     /// Generate insight based on average recovery score
     func generateInsight(data: [TrendsViewModel.TrendDataPoint]) -> String {

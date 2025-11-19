@@ -6,7 +6,7 @@ struct RecoveryTrendCardV2: View {
     let data: [TrendsViewModel.TrendDataPoint]
     let timeRange: TrendsViewModel.TimeRange
     
-    @StateObject private var viewModel = RecoveryTrendCardViewModel()
+    @State private var viewModel = RecoveryTrendCardViewModel()
     
     private var averageRecovery: Double {
         guard !data.isEmpty else { return 0 }

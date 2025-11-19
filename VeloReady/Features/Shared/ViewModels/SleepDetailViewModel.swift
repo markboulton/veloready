@@ -4,11 +4,12 @@ import CoreData
 /// ViewModel for SleepDetailView
 /// Handles data fetching for sleep trends and metrics
 @MainActor
-class SleepDetailViewModel: ObservableObject {
+@Observable
+final class SleepDetailViewModel {
     // MARK: - Published Properties
-    
-    @Published private(set) var sleepTrendData: [TrendDataPoint] = []
-    @Published private(set) var isRefreshing = false
+
+    private(set) var sleepTrendData: [TrendDataPoint] = []
+    private(set) var isRefreshing = false
     
     // MARK: - Dependencies
     

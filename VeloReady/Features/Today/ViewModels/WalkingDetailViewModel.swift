@@ -4,24 +4,25 @@ import MapKit
 import SwiftUI
 
 @MainActor
-class WalkingDetailViewModel: ObservableObject {
-    @Published var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
-    @Published var routeCoordinates: [CLLocationCoordinate2D]?
-    @Published var paceSamples: [Double] = []  // Pace in min/km for each GPS point
-    @Published var hasRoute = false
-    @Published var mapSnapshot: UIImage?
-    @Published var isLoadingMap = false
-    @Published var mapRegion = MKCoordinateRegion(
+@Observable
+final class WalkingDetailViewModel {
+    var heartRateSamples: [(time: TimeInterval, heartRate: Double)] = []
+    var routeCoordinates: [CLLocationCoordinate2D]?
+    var paceSamples: [Double] = []  // Pace in min/km for each GPS point
+    var hasRoute = false
+    var mapSnapshot: UIImage?
+    var isLoadingMap = false
+    var mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     )
-    
-    @Published var steps: Int = 0
-    @Published var averageHeartRate: Double?
-    @Published var maxHeartRate: Double?
-    @Published var averagePace: String?
-    @Published var elevationGain: Double?
-    @Published var weather: String?
+
+    var steps: Int = 0
+    var averageHeartRate: Double?
+    var maxHeartRate: Double?
+    var averagePace: String?
+    var elevationGain: Double?
+    var weather: String?
     
     private let healthStore = HKHealthStore()
     

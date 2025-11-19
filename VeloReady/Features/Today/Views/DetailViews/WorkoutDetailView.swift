@@ -41,7 +41,7 @@ struct ShimmerModifier: ViewModifier {
 @MainActor
 struct WorkoutDetailView: View {
     let activity: Activity
-    @ObservedObject var viewModel: RideDetailViewModel
+    @Bindable var viewModel: RideDetailViewModel
     let ftp: Double?
     let maxHR: Double?
     

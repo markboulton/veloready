@@ -4,16 +4,17 @@ import Combine
 /// ViewModel for HealthWarningsCardV2
 /// Handles illness and wellness alert logic, filtering, and state
 @MainActor
-class HealthWarningsCardViewModel: ObservableObject {
+@Observable
+final class HealthWarningsCardViewModel {
     // MARK: - Published Properties
-    
-    @Published private(set) var illnessIndicator: IllnessIndicator?
-    @Published private(set) var wellnessAlert: WellnessAlert?
-    @Published private(set) var hasSleepData: Bool = true
-    @Published private(set) var isNetworkOffline: Bool = false
-    @Published var showingIllnessDetail: Bool = false
-    @Published var showingWellnessDetail: Bool = false
-    @Published private(set) var sleepDataWarningDismissed: Bool = false
+
+    private(set) var illnessIndicator: IllnessIndicator?
+    private(set) var wellnessAlert: WellnessAlert?
+    private(set) var hasSleepData: Bool = true
+    private(set) var isNetworkOffline: Bool = false
+    var showingIllnessDetail: Bool = false
+    var showingWellnessDetail: Bool = false
+    private(set) var sleepDataWarningDismissed: Bool = false
     
     // MARK: - Dependencies
     

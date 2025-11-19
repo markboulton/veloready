@@ -4,11 +4,12 @@ import SwiftUI
 /// ViewModel for Performance Overview card
 /// Generates insights by analyzing balance between Recovery, Load, and Sleep metrics
 @MainActor
-class PerformanceOverviewCardViewModel: ObservableObject {
-    
+@Observable
+final class PerformanceOverviewCardViewModel {
+
     // MARK: - Published Properties
-    
-    @Published private(set) var insight: String = ""
+
+    private(set) var insight: String = ""
     
     // MARK: - Public Methods
     

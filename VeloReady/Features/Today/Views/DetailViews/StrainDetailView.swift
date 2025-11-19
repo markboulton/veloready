@@ -5,7 +5,7 @@ import SwiftUI
 struct StrainDetailView: View {
     let strainScore: StrainScore
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = StrainDetailViewModel()
+    @State private var viewModel = StrainDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     
     var body: some View {

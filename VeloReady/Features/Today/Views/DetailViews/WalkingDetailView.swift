@@ -7,7 +7,7 @@ import Charts
 struct WalkingDetailView: View {
     let workout: HKWorkout
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = WalkingDetailViewModel()
+    @State private var viewModel = WalkingDetailViewModel()
     @State private var showingRPESheet = false
     @State private var hasRPE = false
     @State private var showingTrainingLoadInfo = false
@@ -273,7 +273,7 @@ struct WalkingDetailView: View {
 
 struct WalkingWorkoutInfoHeader: View {
     let workout: HKWorkout
-    @ObservedObject var viewModel: WalkingDetailViewModel
+    @Bindable var viewModel: WalkingDetailViewModel
     @State private var showingRPESheet = false
     @State private var storedRPE: Double?
     @State private var locationString: String? = nil

@@ -5,14 +5,15 @@ import HealthKit
 /// ViewModel for LatestActivityCardV2
 /// Handles async GPS loading, map snapshot generation, and location geocoding
 @MainActor
-class LatestActivityCardViewModel: ObservableObject {
+@Observable
+final class LatestActivityCardViewModel {
     // MARK: - Published Properties
-    
-    @Published private(set) var locationString: String?
-    @Published private(set) var mapSnapshot: UIImage?
-    @Published private(set) var isLoadingMap: Bool = false
-    @Published private(set) var stepsData: String?
-    @Published private(set) var averageHRData: String?
+
+    private(set) var locationString: String?
+    private(set) var mapSnapshot: UIImage?
+    private(set) var isLoadingMap: Bool = false
+    private(set) var stepsData: String?
+    private(set) var averageHRData: String?
     
     // MARK: - Properties
     

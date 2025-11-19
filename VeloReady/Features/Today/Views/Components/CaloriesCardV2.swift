@@ -3,7 +3,7 @@ import SwiftUI
 /// Calories card using atomic components with MVVM architecture
 /// ViewModel handles all business logic and calculations
 struct CaloriesCardV2: View {
-    @StateObject private var viewModel = CaloriesCardViewModel()
+    @State private var viewModel = CaloriesCardViewModel()
     
     var body: some View {
         CardContainer(

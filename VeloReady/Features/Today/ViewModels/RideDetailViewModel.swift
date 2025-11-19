@@ -2,11 +2,12 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class RideDetailViewModel: ObservableObject {
-    @Published private(set) var samples: [WorkoutSample] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var error: String?
-    @Published var enrichedActivity: Activity?
+@Observable
+final class RideDetailViewModel {
+    private(set) var samples: [WorkoutSample] = []
+    private(set) var isLoading = false
+    private(set) var error: String?
+    var enrichedActivity: Activity?
     
     func loadActivityData(activity: Activity, apiClient: IntervalsAPIClient, profileManager: AthleteProfileManager) async {
         Logger.debug("🚴 ========== RIDE DETAIL VIEW MODEL: LOAD ACTIVITY DATA ==========")

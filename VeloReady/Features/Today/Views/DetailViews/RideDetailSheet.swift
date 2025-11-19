@@ -5,7 +5,7 @@ import Charts
 struct RideDetailSheet: View {
     let activity: Activity
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = RideDetailViewModel()
+    @State private var viewModel = RideDetailViewModel()
     @EnvironmentObject private var apiClient: IntervalsAPIClient
     @EnvironmentObject private var athleteZoneService: AthleteZoneService
     @StateObject private var profileManager = AthleteProfileManager.shared

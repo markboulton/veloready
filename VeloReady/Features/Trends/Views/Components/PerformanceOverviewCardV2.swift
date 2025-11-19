@@ -10,7 +10,7 @@ struct PerformanceOverviewCardV2: View {
     let sleepData: [TrendsViewModel.TrendDataPoint]
     let timeRange: TrendsViewModel.TimeRange
     
-    @StateObject private var viewModel = PerformanceOverviewCardViewModel()
+    @State private var viewModel = PerformanceOverviewCardViewModel()
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     
     private var showSleepData: Bool {

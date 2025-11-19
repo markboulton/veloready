@@ -4,11 +4,12 @@ import CoreData
 /// ViewModel for StrainDetailView
 /// Handles data fetching for load/strain trends from DailyScores (strain score 0-18)
 @MainActor
-class StrainDetailViewModel: ObservableObject {
+@Observable
+final class StrainDetailViewModel {
     // MARK: - Published Properties
-    
-    @Published private(set) var loadTrendData: [TrendDataPoint] = []
-    @Published private(set) var isRefreshing = false
+
+    private(set) var loadTrendData: [TrendDataPoint] = []
+    private(set) var isRefreshing = false
     
     // MARK: - Dependencies
     

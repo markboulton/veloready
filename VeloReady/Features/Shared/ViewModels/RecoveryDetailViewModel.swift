@@ -4,13 +4,14 @@ import CoreData
 /// ViewModel for RecoveryDetailView
 /// Handles data fetching for recovery trends, HRV/RHR charts, and health metrics
 @MainActor
-class RecoveryDetailViewModel: ObservableObject {
+@Observable
+final class RecoveryDetailViewModel {
     // MARK: - Published Properties
-    
-    @Published private(set) var recoveryTrendData: [TrendDataPoint] = []
-    @Published private(set) var hrvData: [HRVDataPoint] = []
-    @Published private(set) var rhrData: [RHRDataPoint] = []
-    @Published private(set) var isRefreshing = false
+
+    private(set) var recoveryTrendData: [TrendDataPoint] = []
+    private(set) var hrvData: [HRVDataPoint] = []
+    private(set) var rhrData: [RHRDataPoint] = []
+    private(set) var isRefreshing = false
     
     // MARK: - Dependencies
     

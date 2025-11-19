@@ -3,21 +3,22 @@ import SwiftUI
 // MARK: - View Model
 
 @MainActor
-class ActivitiesViewModel: ObservableObject {
+@Observable
+final class ActivitiesViewModel {
     static let shared = ActivitiesViewModel()
-    
-    @Published var groupedActivities: [String: [UnifiedActivity]] = [:]
-    @Published var isLoading = false
-    @Published var isLoadingMore = false
-    @Published var hasLoadedExtended = false
-    @Published var error: String?
-    @Published var selectedFilters: Set<UnifiedActivity.ActivityType> = []
-    @Published var displayedActivities: [UnifiedActivity] = []
-    
+
+    var groupedActivities: [String: [UnifiedActivity]] = [:]
+    var isLoading = false
+    var isLoadingMore = false
+    var hasLoadedExtended = false
+    var error: String?
+    var selectedFilters: Set<UnifiedActivity.ActivityType> = []
+    var displayedActivities: [UnifiedActivity] = []
+
     // Pagination properties
-    @Published var currentPage: Int = 0
+    var currentPage: Int = 0
     private let pageSize: Int = 15
-    @Published private(set) var isLoadingPage: Bool = false
+    private(set) var isLoadingPage: Bool = false
     
     var allActivities: [UnifiedActivity] = []
     private var proConfig = ProFeatureConfig.shared
@@ -332,7 +333,7 @@ class ActivitiesViewModel: ObservableObject {
 // MARK: - Filter Sheet
 
 struct ActivityFilterSheet: View {
-    @ObservedObject var viewModel: ActivitiesViewModel
+    @Bindable var viewModel: ActivitiesViewModel
     @Environment(\.dismiss) private var dismiss
     
     // Dynamically show only activity types that exist in the loaded activities

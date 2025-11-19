@@ -6,11 +6,11 @@ import Charts
 /// Unified activity detail view for both Intervals.icu cycling and Apple Health workouts
 struct ActivityDetailView: View {
     let activityData: UnifiedActivityData
-    @StateObject private var viewModel: ActivityDetailViewModel
+    @State private var viewModel: ActivityDetailViewModel
     
     init(activityData: UnifiedActivityData) {
         self.activityData = activityData
-        _viewModel = StateObject(wrappedValue: ActivityDetailViewModel(activityData: activityData))
+        _viewModel = State(wrappedValue: ActivityDetailViewModel(activityData: activityData))
     }
     
     var body: some View {
@@ -241,7 +241,7 @@ struct UnifiedActivityData {
 
 struct ActivityInfoHeader: View {
     let activityData: UnifiedActivityData
-    @ObservedObject var viewModel: ActivityDetailViewModel
+    @Bindable var viewModel: ActivityDetailViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {

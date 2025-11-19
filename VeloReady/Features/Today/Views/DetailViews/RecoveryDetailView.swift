@@ -6,7 +6,7 @@ import HealthKit
 struct RecoveryDetailView: View {
     let recoveryScore: RecoveryScore
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = RecoveryDetailViewModel()
+    @State private var viewModel = RecoveryDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     
     var body: some View {

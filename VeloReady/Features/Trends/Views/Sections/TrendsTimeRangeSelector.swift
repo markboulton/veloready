@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Time range selector for trends view
 struct TrendsTimeRangeSelector: View {
-    @ObservedObject var viewModel: TrendsViewModel
+    @Bindable var viewModel: TrendsViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {

@@ -5,36 +5,37 @@ import SwiftUI
 /// ViewModel for Trends feature
 /// Manages trend data aggregation and time range filtering
 @MainActor
-class TrendsViewModel: ObservableObject {
+@Observable
+final class TrendsViewModel {
 
     // MARK: - Published State
 
-    @Published var selectedTimeRange: TimeRange = .days90
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var selectedTimeRange: TimeRange = .days90
+    var isLoading = false
+    var errorMessage: String?
 
     // MARK: - Notification Observer
 
-    private var backfillObserver: NSObjectProtocol?
-    
+    nonisolated(unsafe) private var backfillObserver: NSObjectProtocol?
+
     // Trend data
-    @Published var ftpTrendData: [TrendDataPoint] = []
-    @Published var recoveryTrendData: [TrendDataPoint] = []
-    @Published var hrvTrendData: [HRVTrendDataPoint] = []
-    @Published var weeklyTSSData: [WeeklyTSSDataPoint] = []
-    @Published var dailyLoadData: [TrendDataPoint] = []  // Daily TSS normalized to 0-100
-    @Published var sleepData: [TrendDataPoint] = []  // Sleep quality 0-100
-    @Published var restingHRData: [TrendDataPoint] = []
-    @Published var stressData: [TrendDataPoint] = []  // Inferred stress score
-    @Published var activitiesForLoad: [Activity] = []  // For training load chart
-    
+    var ftpTrendData: [TrendDataPoint] = []
+    var recoveryTrendData: [TrendDataPoint] = []
+    var hrvTrendData: [HRVTrendDataPoint] = []
+    var weeklyTSSData: [WeeklyTSSDataPoint] = []
+    var dailyLoadData: [TrendDataPoint] = []  // Daily TSS normalized to 0-100
+    var sleepData: [TrendDataPoint] = []  // Sleep quality 0-100
+    var restingHRData: [TrendDataPoint] = []
+    var stressData: [TrendDataPoint] = []  // Inferred stress score
+    var activitiesForLoad: [Activity] = []  // For training load chart
+
     // Correlation data
-    @Published var recoveryVsPowerData: [CorrelationDataPoint] = []
-    @Published var recoveryVsPowerCorrelation: CorrelationCalculator.CorrelationResult?
-    
+    var recoveryVsPowerData: [CorrelationDataPoint] = []
+    var recoveryVsPowerCorrelation: CorrelationCalculator.CorrelationResult?
+
     // Phase 3: Advanced analytics
-    @Published var currentTrainingPhase: TrainingPhaseDetector.PhaseDetectionResult?
-    @Published var overtrainingRisk: OvertrainingRiskCalculator.RiskResult?
+    var currentTrainingPhase: TrainingPhaseDetector.PhaseDetectionResult?
+    var overtrainingRisk: OvertrainingRiskCalculator.RiskResult?
     
     // MARK: - Services
 

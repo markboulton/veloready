@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Redesigned Activities view with card-based layout and progressive loading
 struct ActivitiesView: View {
-    @ObservedObject private var viewModel = ActivitiesViewModel.shared
+    @Bindable private var viewModel = ActivitiesViewModel.shared
     @EnvironmentObject var apiClient: IntervalsAPIClient
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var stravaAuthService = StravaAuthService.shared

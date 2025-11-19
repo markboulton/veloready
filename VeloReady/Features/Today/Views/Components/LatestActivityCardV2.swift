@@ -5,14 +5,14 @@ import HealthKit
 /// Latest Activity card using atomic CardContainer wrapper with MVVM
 /// ViewModel handles all async operations (GPS, geocoding, map snapshots)
 struct LatestActivityCardV2: View {
-    @StateObject private var viewModel: LatestActivityCardViewModel
+    @State private var viewModel: LatestActivityCardViewModel
     @State private var isInitialLoad = true
     @State private var showingRPESheet = false
     @State private var hasRPE = false
     let showAsLatestActivity: Bool // If true, shows "Latest Activity" as title; if false, shows activity name
 
     init(activity: UnifiedActivity, showAsLatestActivity: Bool = false) {
-        _viewModel = StateObject(wrappedValue: LatestActivityCardViewModel(activity: activity))
+        _viewModel = State(wrappedValue: LatestActivityCardViewModel(activity: activity))
         self.showAsLatestActivity = showAsLatestActivity
         print("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")
         Logger.debug("🎬 [LatestActivityCardV2] Initialized for activity: \(activity.name) (shouldShowMap: \(activity.shouldShowMap))")

@@ -6,7 +6,7 @@ import HealthKit
 struct SleepDetailView: View {
     let sleepScore: SleepScore
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = SleepDetailViewModel()
+    @State private var viewModel = SleepDetailViewModel()
     @ObservedObject var proConfig = ProFeatureConfig.shared
     @State private var sleepSamples: [SleepHypnogramChart.SleepStageSample] = []
     

@@ -7,27 +7,28 @@ import HealthKit
 /// ViewModel for Weekly Performance Report
 /// Generates comprehensive weekly analysis with holistic health metrics
 @MainActor
-class WeeklyReportViewModel: ObservableObject {
-    
+@Observable
+final class WeeklyReportViewModel {
+
     // MARK: - Published State
-    
-    @Published var aiSummary: String?
-    @Published var isLoadingAI = false
-    @Published var aiError: String?
-    @Published var weekStartDate: Date
-    @Published var daysUntilNextReport: Int = 0
-    
+
+    var aiSummary: String?
+    var isLoadingAI = false
+    var aiError: String?
+    var weekStartDate: Date
+    var daysUntilNextReport: Int = 0
+
     // Wellness Foundation
-    @Published var wellnessFoundation: WellnessFoundation?
-    
+    var wellnessFoundation: WellnessFoundation?
+
     // Weekly Metrics
-    @Published var weeklyMetrics: WeeklyMetrics?
-    @Published var trainingZoneDistribution: TrainingZoneDistribution?
-    @Published var sleepArchitecture: [SleepDayData] = []
-    @Published var sleepHypnograms: [SleepNightData] = []
-    @Published var weeklyHeatmap: WeeklyHeatmapData?
-    @Published var circadianRhythm: CircadianRhythmData?
-    @Published var ctlHistoricalData: [FitnessTrajectoryChart.DataPoint]?
+    var weeklyMetrics: WeeklyMetrics?
+    var trainingZoneDistribution: TrainingZoneDistribution?
+    var sleepArchitecture: [SleepDayData] = []
+    var sleepHypnograms: [SleepNightData] = []
+    var weeklyHeatmap: WeeklyHeatmapData?
+    var circadianRhythm: CircadianRhythmData?
+    var ctlHistoricalData: [FitnessTrajectoryChart.DataPoint]?
     
     // MARK: - Data Models
     
@@ -106,7 +107,7 @@ class WeeklyReportViewModel: ObservableObject {
 
     // MARK: - Notification Observer
 
-    private var backfillObserver: NSObjectProtocol?
+    nonisolated(unsafe) private var backfillObserver: NSObjectProtocol?
 
     // MARK: - Initialization
 

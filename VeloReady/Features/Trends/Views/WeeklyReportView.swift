@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
-    @StateObject private var viewModel = WeeklyReportViewModel()
-    @StateObject private var trendsViewModel = TrendsViewModel()
+    @State private var viewModel = WeeklyReportViewModel()
+    @State private var trendsViewModel = TrendsViewModel()
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var selectedSleepDay = 0 // For segmented control
     
