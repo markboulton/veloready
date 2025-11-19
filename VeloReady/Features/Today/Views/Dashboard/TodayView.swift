@@ -149,24 +149,31 @@ struct TodayView: View {
                             AIBriefView()
                             
                             // Latest Activity from Strava/Intervals
+                            // Phase 2: Use component-based rendering if feature flag enabled
                             Group {
-                                if hasConnectedDataSource {
-                                    if let latestActivity = getLatestActivity() {
-                                        LatestActivityCardV2(activity: latestActivity, showAsLatestActivity: true)
-                                            .onAppear {
-                                                Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
-                                            }
+                                if FeatureFlags.shared.isEnabled("component_latest_activity") {
+                                    // Phase 2: Component-based implementation
+                                    LatestActivityComponent()
+                                } else {
+                                    // Legacy: Monolithic implementation
+                                    if hasConnectedDataSource {
+                                        if let latestActivity = getLatestActivity() {
+                                            LatestActivityCardV2(activity: latestActivity, showAsLatestActivity: true)
+                                                .onAppear {
+                                                    Logger.debug("🏠 [TodayView] LatestActivityCardV2 appeared for: \(latestActivity.name)")
+                                                }
+                                        } else {
+                                            SkeletonActivityCard()
+                                                .onAppear {
+                                                    Logger.debug("🏠 [TodayView] No latest activity - showing skeleton")
+                                                }
+                                        }
                                     } else {
-                                        SkeletonActivityCard()
+                                        EmptyView()
                                             .onAppear {
-                                                Logger.debug("🏠 [TodayView] No latest activity - showing skeleton")
+                                                Logger.debug("🏠 [TodayView] NO connected data source - not showing activity card")
                                             }
                                     }
-                                } else {
-                                    EmptyView()
-                                        .onAppear {
-                                            Logger.debug("🏠 [TodayView] NO connected data source - not showing activity card")
-                                        }
                                 }
                             }
                             

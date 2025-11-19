@@ -26,6 +26,7 @@ struct VeloReadyApp: App {
             // 1d. Register Today view components (Phase 2 - Component Migration)
             TodayComponentRegistry.shared.register(RecoveryMetricsComponent.self)
             TodayComponentRegistry.shared.register(HealthWarningsComponent.self)
+            TodayComponentRegistry.shared.register(LatestActivityComponent.self)
 
             // 1e. Configure AI Brief
             AIBriefConfig.configure()

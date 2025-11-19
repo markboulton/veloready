@@ -129,6 +129,25 @@ struct DebugFeaturesView: View {
                     VRText("Alerts system component enabled", style: .caption, color: ColorScale.greenAccent)
                 }
             }
+
+            Toggle("Latest Activity Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_latest_activity") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_latest_activity")
+                    } else {
+                        FeatureFlags.shared.disable("component_latest_activity")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_latest_activity") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("Activity card component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
