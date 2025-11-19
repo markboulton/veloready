@@ -14,8 +14,8 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 
 /// Main Today view showing current activities and progress
 struct TodayView: View {
-    @ObservedObject private var viewModel = TodayViewModel.shared
-    @ObservedObject private var todayState = TodayViewState.shared  // V2 Architecture (Phase 1)
+    @ObservedObject private var todayState = TodayViewState.shared  // V2 Architecture - Primary state
+    @ObservedObject private var loadingStateManager = ServiceContainer.shared.loadingStateManager  // Loading UI state
     @ObservedObject private var healthKitManager = HealthKitManager.shared  // CRITICAL: Must be @ObservedObject not @StateObject!
     @ObservedObject private var wellnessService = WellnessDetectionService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var illnessService = IllnessDetectionService.shared  // CRITICAL: Observe shared instance
@@ -43,7 +43,24 @@ struct TodayView: View {
     init(showInitialSpinner: Binding<Bool> = .constant(true)) {
         self._showInitialSpinner = showInitialSpinner
     }
-    
+
+    // MARK: - Computed Properties (V2 Architecture Helpers)
+
+    /// Whether we're in the initial loading phase (showing spinner)
+    private var isInitializing: Bool {
+        switch todayState.phase {
+        case .loadingCache, .notStarted:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Whether any loading is in progress
+    private var isLoading: Bool {
+        todayState.phase.isLoading
+    }
+
     var body: some View {
         // Don't render NavigationStack at all until branding animation is done
         // This prevents the navigation bar from flashing before the overlay appears
@@ -82,9 +99,11 @@ struct TodayView: View {
                         // Always visible to show loading state updates
                         HStack {
                             LoadingStatusView(
-                                state: viewModel.loadingStateManager.currentState,
+                                state: loadingStateManager.currentState,
                                 onErrorTap: {
-                                    viewModel.retryLoading()
+                                    Task {
+                                        await todayState.load()
+                                    }
                                 }
                             )
                             Spacer()
@@ -181,7 +200,7 @@ struct TodayView: View {
                             Logger.info("🔄 [V2] Pull-to-refresh using TodayViewState")
                             await todayState.refresh()
                         } else {
-                            await viewModel.refreshData()
+                            await todayState.refresh()
                         }
                     }
                 }
@@ -192,7 +211,7 @@ struct TodayView: View {
                 // Navigation gradient mask (iOS Mail style)
                 // Always show to prevent layout shift
                 NavigationGradientMask()
-                    .opacity(viewModel.isInitializing ? 0 : 1)
+                    .opacity(isInitializing ? 0 : 1)
                 }
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                     scrollOffset = value
@@ -204,7 +223,7 @@ struct TodayView: View {
             }
             .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
             .onAppear {
-            Logger.debug("👁 [SPINNER] NavigationStack.onAppear called - isInitializing=\(viewModel.isInitializing)")
+            Logger.debug("👁 [SPINNER] NavigationStack.onAppear called - isInitializing=\(isInitializing)")
             Logger.debug("📋 SPACING DEBUG:")
             Logger.debug("📋   LazyVStack spacing: Spacing.md = \(Spacing.md)pt")
             Logger.debug("📋   Each card .padding(.vertical, Spacing.xxl / 2) = \(Spacing.xxl / 2)pt")
@@ -214,7 +233,7 @@ struct TodayView: View {
         .onDisappear {
             Logger.debug("👋 [SPINNER] TodayView.onDisappear called - marking view as inactive")
             isViewActive = false
-            viewModel.cancelBackgroundTasks()
+            Task { await todayState.handle(.viewDisappeared) }
         }
         .onChange(of: showInitialSpinner) { oldValue, newValue in
             // CRITICAL FIX: Trigger initial load when branding animation completes
@@ -226,7 +245,7 @@ struct TodayView: View {
                 handleViewAppear()
             }
         }
-        .onChange(of: viewModel.isInitializing) { oldValue, newValue in
+        .onChange(of: isInitializing) { oldValue, newValue in
             Logger.debug("🔄 [SPINNER] isInitializing changed: \(oldValue) → \(newValue)")
             // Note: showInitialSpinner is controlled by MainTabView's 3-second timer
             // Don't set it here to avoid interrupting the branding animation
@@ -411,9 +430,9 @@ struct TodayView: View {
     }
     
     private func generateDailyActivityData() -> [DailyActivityData] {
-        let activities = viewModel.unifiedActivities.isEmpty ? 
-            viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-            viewModel.unifiedActivities
+        let activities = todayState.recentActivities.map { UnifiedActivity(from: $0) }.isEmpty ? 
+            todayState.recentActivities.map { UnifiedActivity(from: $0) } :
+            todayState.recentActivities.map { UnifiedActivity(from: $0) }
         
         // Group activities by day
         let calendar = Calendar.current
@@ -506,9 +525,9 @@ struct TodayView: View {
     }
     
     private func getLatestActivity() -> UnifiedActivity? {
-        let activities = viewModel.unifiedActivities.isEmpty ?
-            viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-            viewModel.unifiedActivities
+        let activities = todayState.recentActivities.map { UnifiedActivity(from: $0) }.isEmpty ?
+            todayState.recentActivities.map { UnifiedActivity(from: $0) } :
+            todayState.recentActivities.map { UnifiedActivity(from: $0) }
         
         Logger.debug("🔍 [LatestActivity] Total activities: \(activities.count)")
         
@@ -529,9 +548,9 @@ struct TodayView: View {
     
     /// Get activities for Recent Activities section, excluding the one already shown in Latest Activity card
     private func getActivitiesForSection() -> [UnifiedActivity] {
-        let activities = viewModel.unifiedActivities.isEmpty ?
-            viewModel.recentActivities.map { UnifiedActivity(from: $0) } :
-            viewModel.unifiedActivities
+        let activities = todayState.recentActivities.map { UnifiedActivity(from: $0) }.isEmpty ?
+            todayState.recentActivities.map { UnifiedActivity(from: $0) } :
+            todayState.recentActivities.map { UnifiedActivity(from: $0) }
         
         // If we're showing a latest activity card, exclude that activity from the list
         if let latestActivity = getLatestActivity() {
@@ -544,14 +563,14 @@ struct TodayView: View {
     // MARK: - Event Handlers
     
     private func handleViewAppear() {
-        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(hasCompletedInitialLoad), isViewActive=\(isViewActive), isInitializing=\(viewModel.isInitializing)")
+        Logger.debug("👁 [SPINNER] handleViewAppear - hasLoadedInitialData=\(hasCompletedInitialLoad), isViewActive=\(isViewActive), isInitializing=\(isInitializing)")
         
         // Check if we're returning from navigation (was inactive, now becoming active)
         let wasInactive = !isViewActive
         isViewActive = true
         
         // If returning to page (already loaded data + was inactive + spinner done), trigger ring animations
-        if hasCompletedInitialLoad && wasInactive && !viewModel.isInitializing {
+        if hasCompletedInitialLoad && wasInactive && !isInitializing {
             Logger.debug("🔄 [ANIMATION] Returning to Today page (wasInactive=true) - triggering ring animations")
             
             // Reset scroll state for sparklines so they can animate again
@@ -560,7 +579,7 @@ struct TodayView: View {
             
             // Small delay to ensure views are created before triggering animation
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                viewModel.animationTrigger = UUID()
+                todayState.animationTrigger = UUID()
                 Logger.debug("🎬 [ANIMATION] Ring animation trigger fired")
             }
         }
@@ -584,13 +603,13 @@ struct TodayView: View {
                 }
 
                 // Trigger ring animations with fresh data
-                viewModel.animationTrigger = UUID()
+                todayState.animationTrigger = UUID()
                 Logger.info("✅ [V2] TodayViewState ready - animations triggered")
             } else {
                 // Original Phase 3 Architecture
-                Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
-                await viewModel.loadInitialUI()
-                Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
+                Logger.debug("🎬 [SPINNER] Calling todayState.handle(.viewAppeared)")
+                await todayState.handle(.viewAppeared)
+                Logger.debug("✅ [SPINNER] todayState.handle(.viewAppeared) completed")
             }
 
             // Start live activity updates immediately
@@ -621,7 +640,7 @@ struct TodayView: View {
                     Logger.info("🔄 [V2] HealthKit authorized - refreshing TodayViewState")
                     await todayState.refresh()
                 } else {
-                    await viewModel.handleHealthKitAuth() // Phase 3: Delegate to coordinator
+                    await todayState.handle(.healthKitAuthorized) // Phase 3: Delegate to coordinator
                 }
                 liveActivityService.startAutoUpdates()
             }
@@ -641,7 +660,7 @@ struct TodayView: View {
                     await todayState.refresh()
                 } else {
                     await invalidateShortLivedCaches()
-                    await viewModel.handleAppForeground() // Phase 3: Delegate to coordinator
+                    await todayState.handle(.appForegrounded) // Phase 3: Delegate to coordinator
                 }
                 liveActivityService.startAutoUpdates()
             }
@@ -680,7 +699,7 @@ struct TodayView: View {
                 Logger.info("🔄 [V2] Intervals connected - refreshing TodayViewState")
                 await todayState.refresh()
             } else {
-                await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
+                await todayState.handle(.intervalsAuthChanged) // Phase 3: Delegate to coordinator
             }
             liveActivityService.startAutoUpdates()
         }
@@ -707,7 +726,7 @@ struct TodayView: View {
         }
         
         // 3. Must not already be loading (prevents cancelling ongoing calculations)
-        guard !viewModel.isLoading else {
+        guard !isLoading else {
             Logger.debug("⏭️ [SCENE] Skipping - already loading")
             previousScenePhase = newPhase
             return
@@ -731,17 +750,17 @@ struct TodayView: View {
                 await todayState.refresh()
 
                 // Trigger ring animations to show updated values
-                viewModel.animationTrigger = UUID()
+                todayState.animationTrigger = UUID()
                 Logger.debug("🎬 [V2] Ring animations triggered after background refresh")
             } else {
                 // Invalidate short-lived caches for fresh data
                 await invalidateShortLivedCaches()
 
                 // Refresh data (this will recalculate scores with new activities)
-                await viewModel.refreshData()
+                await todayState.refresh()
 
                 // Trigger ring animations to show updated values
-                viewModel.animationTrigger = UUID()
+                todayState.animationTrigger = UUID()
                 Logger.debug("🎬 [SCENE] Ring animations triggered after background refresh")
             }
         }
