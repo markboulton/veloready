@@ -320,6 +320,16 @@ struct MainTabView: View {
                         Task { @MainActor in
                             Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
 
+                            // PHASE 1 V2: Start background loading DURING animation (0ms to cached content)
+                            // This is the key change - we use the 3-second animation time productively
+                            if FeatureFlags.shared.useTodayViewV2 {
+                                Task {
+                                    Logger.info("📦 [V2] Starting TodayViewState background load during branding...")
+                                    await TodayViewState.shared.load()
+                                    Logger.info("✅ [V2] TodayViewState load complete")
+                                }
+                            }
+
                             // Phase 2: Wait minimum 3 seconds for branding
                             try? await Task.sleep(nanoseconds: 3_000_000_000)
                             minimumBrandingElapsed = true
@@ -439,6 +449,16 @@ struct MainTabView: View {
 
                         Task { @MainActor in
                             Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
+
+                            // PHASE 1 V2: Start background loading DURING animation (0ms to cached content)
+                            // This is the key change - we use the 3-second animation time productively
+                            if FeatureFlags.shared.useTodayViewV2 {
+                                Task {
+                                    Logger.info("📦 [V2] Starting TodayViewState background load during branding...")
+                                    await TodayViewState.shared.load()
+                                    Logger.info("✅ [V2] TodayViewState load complete")
+                                }
+                            }
 
                             // Phase 2: Wait minimum 3 seconds for branding
                             try? await Task.sleep(nanoseconds: 3_000_000_000)

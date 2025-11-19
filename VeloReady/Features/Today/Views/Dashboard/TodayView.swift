@@ -15,6 +15,7 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 /// Main Today view showing current activities and progress
 struct TodayView: View {
     @ObservedObject private var viewModel = TodayViewModel.shared
+    @ObservedObject private var todayState = TodayViewState.shared  // V2 Architecture (Phase 1)
     @ObservedObject private var healthKitManager = HealthKitManager.shared  // CRITICAL: Must be @ObservedObject not @StateObject!
     @ObservedObject private var wellnessService = WellnessDetectionService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var illnessService = IllnessDetectionService.shared  // CRITICAL: Observe shared instance
@@ -199,7 +200,12 @@ struct TodayView: View {
                     view.refreshable {
                         // User-triggered refresh action (pull-to-refresh)
                         // LoadingStatusView provides visual feedback (no blocking spinner)
-                        await viewModel.refreshData()
+                        if FeatureFlags.shared.useTodayViewV2 {
+                            Logger.info("🔄 [V2] Pull-to-refresh using TodayViewState")
+                            await todayState.refresh()
+                        } else {
+                            await viewModel.refreshData()
+                        }
                     }
                 }
                 
@@ -588,15 +594,31 @@ struct TodayView: View {
             return
         }
         hasCompletedInitialLoad = true
-        Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
-        
+
         Task {
-            await viewModel.loadInitialUI()
-            Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
-            
+            if FeatureFlags.shared.useTodayViewV2 {
+                // V2 Architecture: TodayViewState.load() was already called during branding animation
+                // Just verify it's complete and trigger animations
+                Logger.info("🎬 [V2] Using TodayViewState (already loaded during branding)")
+
+                // Wait for load to complete if still in progress
+                while todayState.phase.isLoading {
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                }
+
+                // Trigger ring animations with fresh data
+                viewModel.animationTrigger = UUID()
+                Logger.info("✅ [V2] TodayViewState ready - animations triggered")
+            } else {
+                // Original Phase 3 Architecture
+                Logger.debug("🎬 [SPINNER] Calling viewModel.loadInitialUI()")
+                await viewModel.loadInitialUI()
+                Logger.debug("✅ [SPINNER] viewModel.loadInitialUI() completed")
+            }
+
             // Start live activity updates immediately
             liveActivityService.startAutoUpdates()
-            
+
             // PERFORMANCE: Run illness/wellness AFTER Phase 2 completes
             // Wait a moment to let Phase 2 finish, then run in background
             Task.detached(priority: .background) {
@@ -614,11 +636,16 @@ struct TodayView: View {
     
     private func handleHealthKitAuthChange(_ newValue: Bool) {
         guard hasCompletedInitialLoad else { return }
-        
+
         if newValue && !wasHealthKitAuthorized {
             wasHealthKitAuthorized = true
             Task {
-                await viewModel.handleHealthKitAuth() // Phase 3: Delegate to coordinator
+                if FeatureFlags.shared.useTodayViewV2 {
+                    Logger.info("🔄 [V2] HealthKit authorized - refreshing TodayViewState")
+                    await todayState.refresh()
+                } else {
+                    await viewModel.handleHealthKitAuth() // Phase 3: Delegate to coordinator
+                }
                 liveActivityService.startAutoUpdates()
             }
         }
@@ -626,13 +653,19 @@ struct TodayView: View {
     
     private func handleAppForeground() {
         Logger.debug("🔄 [FOREGROUND] App entering foreground")
-        
+
         Task {
             await healthKitManager.checkAuthorizationAfterSettingsReturn()
-            
+
             if healthKitManager.isAuthorized {
-                await invalidateShortLivedCaches()
-                await viewModel.handleAppForeground() // Phase 3: Delegate to coordinator
+                if FeatureFlags.shared.useTodayViewV2 {
+                    Logger.info("🔄 [V2] App foreground - invalidating caches and refreshing")
+                    await todayState.invalidateShortLivedCaches()
+                    await todayState.refresh()
+                } else {
+                    await invalidateShortLivedCaches()
+                    await viewModel.handleAppForeground() // Phase 3: Delegate to coordinator
+                }
                 liveActivityService.startAutoUpdates()
             }
         }
@@ -664,9 +697,14 @@ struct TodayView: View {
     
     private func handleIntervalsConnection() {
         guard hasCompletedInitialLoad else { return }
-        
+
         Task {
-            await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
+            if FeatureFlags.shared.useTodayViewV2 {
+                Logger.info("🔄 [V2] Intervals connected - refreshing TodayViewState")
+                await todayState.refresh()
+            } else {
+                await viewModel.handleIntervalsAuthChange() // Phase 3: Delegate to coordinator
+            }
             liveActivityService.startAutoUpdates()
         }
     }
@@ -705,19 +743,32 @@ struct TodayView: View {
         }
         
         Logger.debug("✅ [SCENE] App became active from background - triggering refresh")
-        
+
         Task {
-            // Invalidate short-lived caches for fresh data
-            await invalidateShortLivedCaches()
-            
-            // Refresh data (this will recalculate scores with new activities)
-            await viewModel.refreshData()
-            
-            // Trigger ring animations to show updated values
-            viewModel.animationTrigger = UUID()
-            Logger.debug("🎬 [SCENE] Ring animations triggered after background refresh")
+            if FeatureFlags.shared.useTodayViewV2 {
+                Logger.info("🔄 [V2] Scene active from background - refreshing TodayViewState")
+                // Invalidate short-lived caches for fresh data
+                await todayState.invalidateShortLivedCaches()
+
+                // Refresh data (this will recalculate scores with new activities)
+                await todayState.refresh()
+
+                // Trigger ring animations to show updated values
+                viewModel.animationTrigger = UUID()
+                Logger.debug("🎬 [V2] Ring animations triggered after background refresh")
+            } else {
+                // Invalidate short-lived caches for fresh data
+                await invalidateShortLivedCaches()
+
+                // Refresh data (this will recalculate scores with new activities)
+                await viewModel.refreshData()
+
+                // Trigger ring animations to show updated values
+                viewModel.animationTrigger = UUID()
+                Logger.debug("🎬 [SCENE] Ring animations triggered after background refresh")
+            }
         }
-        
+
         previousScenePhase = newPhase
     }
 }
