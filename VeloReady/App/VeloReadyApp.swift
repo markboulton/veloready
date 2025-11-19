@@ -30,6 +30,9 @@ struct VeloReadyApp: App {
             TodayComponentRegistry.shared.register(StepsComponent.self)
             TodayComponentRegistry.shared.register(CaloriesComponent.self)
             TodayComponentRegistry.shared.register(TodayTrainingLoadComponent.self)
+            TodayComponentRegistry.shared.register(FTPComponent.self)
+            TodayComponentRegistry.shared.register(VO2MaxComponent.self)
+            TodayComponentRegistry.shared.register(AIBriefComponent.self)
 
             // 1e. Configure AI Brief
             AIBriefConfig.configure()

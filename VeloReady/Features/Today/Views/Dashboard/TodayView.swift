@@ -146,7 +146,13 @@ struct TodayView: View {
                         // Fixed Today page sections
                         if healthKitManager.isAuthorized {
                             // Unified AI Brief (Pro) or Computed Brief (Free)
-                            AIBriefView()
+                            if FeatureFlags.shared.isEnabled("component_ai_brief") {
+                                // Phase 2: Component-based implementation
+                                AIBriefComponent()
+                            } else {
+                                // Legacy: Monolithic implementation
+                                AIBriefView()
+                            }
                             
                             // Latest Activity from Strava/Intervals
                             // Phase 2: Use component-based rendering if feature flag enabled
@@ -214,12 +220,24 @@ struct TodayView: View {
 
                             // FTP card (full width with left/right split)
                             HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .ftp)) {
-                                AdaptiveFTPCard(onTap: {})
+                                if FeatureFlags.shared.isEnabled("component_ftp") {
+                                    // Phase 2: Component-based implementation
+                                    FTPComponent()
+                                } else {
+                                    // Legacy: Monolithic implementation
+                                    AdaptiveFTPCard(onTap: {})
+                                }
                             }
 
                             // VO2 Max card (full width with left/right split)
                             HapticNavigationLink(destination: AdaptivePerformanceDetailView(initialMetric: .vo2max)) {
-                                AdaptiveVO2MaxCard(onTap: {})
+                                if FeatureFlags.shared.isEnabled("component_vo2max") {
+                                    // Phase 2: Component-based implementation
+                                    VO2MaxComponent()
+                                } else {
+                                    // Legacy: Monolithic implementation
+                                    AdaptiveVO2MaxCard(onTap: {})
+                                }
                             }
                         }
                         

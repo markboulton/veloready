@@ -205,6 +205,63 @@ struct DebugFeaturesView: View {
                     VRText("Training load graph component enabled", style: .caption, color: ColorScale.greenAccent)
                 }
             }
+
+            Toggle("FTP Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_ftp") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_ftp")
+                    } else {
+                        FeatureFlags.shared.disable("component_ftp")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_ftp") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("FTP card component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
+
+            Toggle("VO2Max Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_vo2max") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_vo2max")
+                    } else {
+                        FeatureFlags.shared.disable("component_vo2max")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_vo2max") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("VO2Max card component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
+
+            Toggle("AI Brief Component", isOn: Binding(
+                get: { FeatureFlags.shared.isEnabled("component_ai_brief") },
+                set: { newValue in
+                    if newValue {
+                        FeatureFlags.shared.enable("component_ai_brief")
+                    } else {
+                        FeatureFlags.shared.disable("component_ai_brief")
+                    }
+                }
+            ))
+
+            if FeatureFlags.shared.isEnabled("component_ai_brief") {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: Icons.Status.successFill)
+                        .foregroundColor(ColorScale.greenAccent)
+                    VRText("AI Brief component enabled", style: .caption, color: ColorScale.greenAccent)
+                }
+            }
         } header: {
             Label("Architecture", systemImage: Icons.Navigation.settings)
         } footer: {
