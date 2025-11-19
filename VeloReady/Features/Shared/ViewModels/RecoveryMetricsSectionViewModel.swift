@@ -2,26 +2,32 @@ import SwiftUI
 import Combine
 
 /// ViewModel for RecoveryMetricsSection
-/// NOW SIMPLIFIED: Uses ScoresCoordinator as single source of truth
-/// 
+/// NOW SIMPLIFIED: Uses ScoresCoordinator as single source of truth (Phase 3)
+/// OR TodayViewState (Phase 1 V2 Architecture) based on feature flag
+///
 /// BEFORE (Week 1):
 /// - Observed 3 separate services with 6+ @Published properties
 /// - 150+ lines of Combine observer setup
 /// - Complex loading state management
 /// - Manual animation trigger logic
-/// 
-/// AFTER (Week 2):
+///
+/// AFTER (Week 2 - Phase 3):
 /// - Observes ScoresCoordinator.state (single source of truth)
 /// - ~50 lines of clean observer setup
 /// - State management handled by coordinator
 /// - Animation logic delegated to ScoresState
+///
+/// V2 Architecture (Phase 1):
+/// - Observes TodayViewState when feature flag enabled
+/// - Uses unified state container with cache-first loading
+/// - 0ms to cached content goal
 ///
 /// Created: 2025-11-10 (Week 2 Day 1)
 /// Part of: Today View Refactoring Plan
 @MainActor
 class RecoveryMetricsSectionViewModel: ObservableObject {
     // MARK: - Published Properties
-    
+
     @Published private(set) var recoveryScore: RecoveryScore?
     @Published private(set) var sleepScore: SleepScore?
     @Published private(set) var strainScore: StrainScore?
@@ -36,23 +42,82 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             UserDefaults.standard.set(missingSleepBannerDismissed, forKey: "missingSleepBannerDismissed")
         }
     }
-    
-    // MARK: - Dependencies (NEW: ScoresCoordinator replaces 3 services)
-    
+
+    // MARK: - Dependencies
+
     private let coordinator: ScoresCoordinator
+    private let todayState = TodayViewState.shared  // V2 Architecture
     private var cancellables = Set<AnyCancellable>()
     private var hasCompletedFirstLoad = false  // Internal flag to track first load completion
-    private var lastPhase: ScoresState.Phase = .initial  // Track last phase for animation triggers
+    private var lastPhase: ScoresState.Phase = .initial  // Track last phase for animation triggers (Phase 3)
     
     // MARK: - Initialization
-    
+
     init(coordinator: ScoresCoordinator? = nil) {
-        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT (Week 2 - using ScoresCoordinator)")
+        let useV2 = FeatureFlags.shared.useTodayViewV2
+        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT (V2: \(useV2))")
+
         self.coordinator = coordinator ?? ServiceContainer.shared.scoresCoordinator
-        
+
         // Load banner dismissed state
         self.missingSleepBannerDismissed = UserDefaults.standard.bool(forKey: "missingSleepBannerDismissed")
-        
+
+        if useV2 {
+            // V2 Architecture: Initialize from TodayViewState
+            Logger.info("🏗️ [VIEWMODEL] Using TodayViewState (V2)")
+            initializeFromTodayState()
+        } else {
+            // Phase 3 Architecture: Initialize from ScoresCoordinator
+            Logger.info("🏗️ [VIEWMODEL] Using ScoresCoordinator (Phase 3)")
+            initializeFromCoordinator()
+        }
+
+        Logger.info("🏗️ [VIEWMODEL] Setting up observers")
+        setupObservers()
+
+        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+    }
+
+    private func initializeFromTodayState() {
+        // Initialize from TodayViewState.shared
+        let state = todayState
+
+        // Load score objects from Core Data (should be instant/cached)
+        loadScoresFromCoreData()
+
+        // Set loading states based on TodayViewState phase
+        let isLoading = state.phase.isLoading
+        self.isRecoveryLoading = isLoading
+        self.isSleepLoading = isLoading
+        self.isStrainLoading = isLoading
+
+        // Set allScoresReady based on whether we have core scores
+        let hasScores = recoveryScore != nil || sleepScore != nil || strainScore != nil
+        self.allScoresReady = hasScores && !isLoading
+
+        // Set isInitialLoad based on whether data is available
+        if case .complete = state.phase, hasScores {
+            self.isInitialLoad = false
+            self.hasCompletedFirstLoad = true
+        }
+
+        Logger.info("🔍 [INIT] V2 State - phase: \(state.phase), isLoading: \(isLoading), allReady: \(allScoresReady)")
+        Logger.info("🔍 [INIT] V2 Scores - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1)")
+    }
+
+    /// Load score objects from coordinator (V2 Architecture)
+    /// The coordinator already has the score objects computed
+    private func loadScoresFromCoreData() {
+        // V2: TodayViewState triggers data loading, but we still use coordinator's score objects
+        // The coordinator's state is updated by scoresCoordinator.calculateAll() called by TodayDataLoader
+        let state = coordinator.state
+        self.recoveryScore = state.recovery
+        self.sleepScore = state.sleep
+        self.strainScore = state.strain
+        Logger.info("📦 [V2] Loaded scores from coordinator - R: \(recoveryScore?.score ?? -1), S: \(sleepScore?.score ?? -1), St: \(strainScore?.score ?? -1)")
+    }
+
+    private func initializeFromCoordinator() {
         // CRITICAL: Force synchronous read of coordinator state BEFORE setting up observers
         // This ensures we capture the current state atomically before any async updates
         let currentState = self.coordinator.state
@@ -71,40 +136,114 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
             self.hasCompletedFirstLoad = true
         }
 
-        print("🔍 [INIT] Initial state - phase: \(currentState.phase.description), allCoreScoresAvailable: \(currentState.allCoreScoresAvailable), allScoresReady: \(self.allScoresReady)")
-        print("🔍 [INIT] Scores - R: \(self.recoveryScore?.score ?? -1), S: \(self.sleepScore?.score ?? -1), St: \(self.strainScore?.score ?? -1)")
-
-        Logger.info("🏗️ [VIEWMODEL] Setting up observer for ScoresCoordinator.state")
-        setupObservers()
-        // Don't call updateFromState here - we already initialized from current state above
-        
-        Logger.info("🏗️ [VIEWMODEL] RecoveryMetricsSectionViewModel INIT complete - recovery: \(recoveryScore?.score ?? -1), sleep: \(sleepScore?.score ?? -1), strain: \(strainScore?.score ?? -1)")
+        Logger.info("🔍 [INIT] Phase 3 State - phase: \(currentState.phase.description), allCoreScoresAvailable: \(currentState.allCoreScoresAvailable), allScoresReady: \(self.allScoresReady)")
+        Logger.info("🔍 [INIT] Phase 3 Scores - R: \(self.recoveryScore?.score ?? -1), S: \(self.sleepScore?.score ?? -1), St: \(self.strainScore?.score ?? -1)")
     }
     
     deinit {
         Logger.debug("🗑️ [VIEWMODEL] RecoveryMetricsSectionViewModel DEINIT - was deinitialized")
     }
     
-    // MARK: - Setup (NEW: 90% reduction from 150+ lines to ~20 lines)
-    
+    // MARK: - Setup
+
     private func setupObservers() {
-        // Observe ScoresCoordinator state (single source of truth)
+        if FeatureFlags.shared.useTodayViewV2 {
+            setupV2Observers()
+        } else {
+            setupPhase3Observers()
+        }
+    }
+
+    private func setupV2Observers() {
+        // Observe TodayViewState for V2 architecture
+        Logger.info("🔄 [VIEWMODEL] Setting up V2 observers (TodayViewState)")
+
+        // Observe loading phase - reload scores when data changes
+        todayState.$phase
+            .sink { [weak self] phase in
+                guard let self = self else { return }
+                let isLoading = phase.isLoading
+                self.isRecoveryLoading = isLoading
+                self.isSleepLoading = isLoading
+                self.isStrainLoading = isLoading
+
+                // Reload scores from Core Data when phase changes
+                if case .complete = phase {
+                    self.loadScoresFromCoreData()
+
+                    // Handle initial load completion
+                    if !self.hasCompletedFirstLoad {
+                        self.hasCompletedFirstLoad = true
+                        self.isInitialLoad = false
+                        self.ringAnimationTrigger = UUID()
+                        Logger.info("🎬 [VIEWMODEL] V2 first load complete - triggering animations")
+                    }
+                }
+
+                // Update allScoresReady
+                let hasScores = self.recoveryScore != nil || self.sleepScore != nil || self.strainScore != nil
+                self.allScoresReady = hasScores && !isLoading
+
+                Logger.info("🔄 [VIEWMODEL] V2 phase changed: \(phase), isLoading: \(isLoading), allReady: \(self.allScoresReady)")
+            }
+            .store(in: &cancellables)
+
+        // Observe lastUpdated to reload scores on refresh
+        todayState.$lastUpdated
+            .compactMap { $0 }
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                Logger.info("🔄 [VIEWMODEL] V2 data updated - reloading scores")
+                self.loadScoresFromCoreData()
+            }
+            .store(in: &cancellables)
+
+        // Observe animation trigger from TodayViewState
+        todayState.$animationTrigger
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.ringAnimationTrigger = UUID()
+                Logger.info("🎬 [VIEWMODEL] V2 animation trigger updated")
+            }
+            .store(in: &cancellables)
+
+        #if DEBUG
+        // Observe sleep simulation toggle
+        ProFeatureConfig.shared.$simulateNoSleepData
+            .sink { [weak self] simulate in
+                guard let self = self else { return }
+                if simulate {
+                    self.sleepScore = nil
+                    Logger.debug("🔄 [VIEWMODEL] V2 Sleep simulation ON - cleared sleep score")
+                } else {
+                    self.loadScoresFromCoreData()
+                    Logger.debug("🔄 [VIEWMODEL] V2 Sleep simulation OFF - reloaded scores")
+                }
+            }
+            .store(in: &cancellables)
+        #endif
+    }
+
+    private func setupPhase3Observers() {
+        // Observe ScoresCoordinator state (Phase 3 architecture)
+        Logger.info("🔄 [VIEWMODEL] Setting up Phase 3 observers (ScoresCoordinator)")
+
         coordinator.$state
             .sink { [weak self] newState in
                 guard let self = self else { return }
-                
+
                 let oldState = ScoresState(
                     recovery: self.recoveryScore,
                     sleep: self.sleepScore,
                     strain: self.strainScore,
                     phase: self.lastPhase  // ✅ FIX: Use actual last phase, not new phase!
                 )
-                
+
                 Logger.info("🔄 [VIEWMODEL] ScoresCoordinator state changed - OLD phase: \(self.lastPhase.description), NEW phase: \(newState.phase.description)")
-                
+
                 // Update scores and loading states
                 self.updateFromState(newState)
-                
+
                 // Handle animation triggers (logic from ScoresState)
                 Logger.info("🎬 [VIEWMODEL] Checking if animation should trigger - oldPhase: \(self.lastPhase.description), newPhase: \(newState.phase.description)")
                 if newState.shouldTriggerAnimation(from: oldState) {
@@ -115,12 +254,12 @@ class RecoveryMetricsSectionViewModel: ObservableObject {
                 } else {
                     Logger.info("🎬 [VIEWMODEL] ❌ Animation will NOT trigger")
                 }
-                
+
                 // Update last phase for next comparison
                 self.lastPhase = newState.phase
             }
             .store(in: &cancellables)
-        
+
         #if DEBUG
         // Observe sleep simulation toggle to update rings immediately
         ProFeatureConfig.shared.$simulateNoSleepData
