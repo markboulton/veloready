@@ -1,6 +1,7 @@
 import Foundation
+import HealthKit
 
-/// Unified service for fetching activities from all sources (Intervals.icu, Strava)
+/// Unified service for fetching activities from all sources (Intervals.icu, Strava, HealthKit)
 /// Provides identical experience regardless of data source
 /// Single source of truth for activity fetching throughout the app
 @MainActor
@@ -13,9 +14,13 @@ class UnifiedActivityService: ObservableObject {
     private let stravaAuth = StravaAuthService.shared
     private let proConfig = ProFeatureConfig.shared
     private let cache = CacheOrchestrator.shared // NEW: Multi-layer cache orchestrator
+    private let healthKitManager = HealthKitManager.shared
+    private let stravaDataService = StravaDataService.shared
+    private let deduplicationService = ActivityDeduplicationService.shared
 
     // Request deduplication: Track in-flight requests to prevent parallel API calls
     private var inflightRequests: [String: Task<[Activity], Error>] = [:]
+    private var inflightUnifiedRequests: [String: Task<[UnifiedActivity], Error>] = [:]
 
     // API usage tracking for monitoring
     private var apiCallCount = 0
@@ -350,4 +355,170 @@ class UnifiedActivityService: ObservableObject {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter.date(from: dateString)
     }
+}
+
+// MARK: - UnifiedActivity Fetching (All Sources)
+
+extension UnifiedActivityService {
+    /// Fetch recent unified activities from ALL sources (Intervals.icu, Strava, HealthKit)
+    /// Returns deduplicated UnifiedActivity objects, prioritizing Intervals > Strava > HealthKit
+    /// - Parameters:
+    ///   - limit: Maximum number of activities to fetch from each source
+    ///   - daysBack: Number of days of history to fetch (capped by subscription tier)
+    ///   - includeHealthKit: Whether to include HealthKit workouts (default: true)
+    /// - Returns: Deduplicated array of UnifiedActivity objects from all sources
+    func fetchRecentUnifiedActivities(
+        limit: Int = 50,
+        daysBack: Int = 30,
+        includeHealthKit: Bool = true
+    ) async throws -> [UnifiedActivity] {
+        let dedupeKey = "unified:\(daysBack):\(includeHealthKit)"
+
+        // Check for in-flight request
+        if let existingTask = inflightUnifiedRequests[dedupeKey] {
+            Logger.debug("♻️ [UnifiedActivities] Reusing in-flight request for \(dedupeKey)")
+            return try await existingTask.value
+        }
+
+        // Create new task
+        let task = Task<[UnifiedActivity], Error> {
+            defer {
+                Task { @MainActor in
+                    self.inflightUnifiedRequests.removeValue(forKey: dedupeKey)
+                }
+            }
+
+            return try await self.fetchUnifiedActivitiesInternal(
+                limit: limit,
+                daysBack: daysBack,
+                includeHealthKit: includeHealthKit
+            )
+        }
+
+        inflightUnifiedRequests[dedupeKey] = task
+        return try await task.value
+    }
+
+    /// Internal method to fetch from all sources and deduplicate
+    private func fetchUnifiedActivitiesInternal(
+        limit: Int,
+        daysBack: Int,
+        includeHealthKit: Bool
+    ) async throws -> [UnifiedActivity] {
+        Logger.debug("📊 [UnifiedActivities] Fetching from all sources: limit=\(limit), days=\(daysBack), includeHealthKit=\(includeHealthKit)")
+
+        // STEP 1: Fetch from Intervals.icu (optional - only if authenticated)
+        var intervalsUnified: [UnifiedActivity] = []
+        var stravaFilteredCount = 0
+
+        do {
+            let intervalsActivities = try await fetchRecentActivities(limit: limit, daysBack: daysBack)
+            Logger.debug("✅ [UnifiedActivities] Fetched \(intervalsActivities.count) from Intervals.icu")
+
+            // Convert and filter out Strava-sourced activities (we fetch them directly)
+            for activity in intervalsActivities {
+                if let source = activity.source, source.uppercased() == "STRAVA" {
+                    stravaFilteredCount += 1
+                    continue
+                }
+                intervalsUnified.append(UnifiedActivity(from: activity))
+            }
+
+            Logger.debug("🔍 [UnifiedActivities] Intervals: \(intervalsActivities.count) → \(intervalsUnified.count) native (filtered \(stravaFilteredCount) Strava)")
+        } catch {
+            Logger.warning("⚠️ [UnifiedActivities] Intervals.icu not available: \(error.localizedDescription)")
+        }
+
+        // STEP 2: Fetch from Strava (via shared service)
+        await stravaDataService.fetchActivitiesIfNeeded()
+        let stravaActivities = stravaDataService.activities
+        let stravaUnified = stravaActivities.map { UnifiedActivity(from: $0) }
+        Logger.debug("✅ [UnifiedActivities] Fetched \(stravaUnified.count) from Strava")
+
+        // STEP 3: Fetch from HealthKit (optional)
+        var healthUnified: [UnifiedActivity] = []
+        if includeHealthKit {
+            let healthWorkouts = await healthKitManager.fetchRecentWorkouts(limit: limit, daysBack: daysBack)
+            healthUnified = healthWorkouts.map { UnifiedActivity(from: $0) }
+            Logger.debug("✅ [UnifiedActivities] Fetched \(healthUnified.count) from HealthKit")
+        }
+
+        // STEP 4: Deduplicate across all sources
+        let deduplicated = deduplicationService.deduplicateActivities(
+            intervalsActivities: intervalsUnified,
+            stravaActivities: stravaUnified,
+            appleHealthActivities: healthUnified
+        )
+
+        // STEP 5: Sort by date (newest first)
+        let sorted = deduplicated.sorted { $0.startDate > $1.startDate }
+
+        Logger.debug("📊 [UnifiedActivities] Total: \(sorted.count) deduplicated activities")
+
+        return sorted
+    }
+
+    /// Fetch extended unified activities (31-90 days) for Pro users
+    /// Merges with existing activities to avoid duplicates
+    /// - Parameters:
+    ///   - existingActivities: Activities already loaded (0-30 days)
+    ///   - limit: Maximum number of activities to fetch from each source
+    /// - Returns: Array of NEW activities from 31-90 days range
+    func fetchExtendedUnifiedActivities(
+        existingActivities: [UnifiedActivity],
+        limit: Int = 50
+    ) async throws -> [UnifiedActivity] {
+        guard proConfig.hasProAccess else {
+            throw ServiceError.proFeatureRequired
+        }
+
+        Logger.debug("📊 [UnifiedActivities] Fetching extended activities (31-90 days)")
+
+        // Fetch full 90-day range
+        let allActivities = try await fetchRecentUnifiedActivities(
+            limit: limit,
+            daysBack: 90,
+            includeHealthKit: true
+        )
+
+        // Filter to only activities from 31-90 days
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+
+        let extendedActivities = allActivities.filter { activity in
+            activity.startDate < thirtyDaysAgo
+        }
+
+        // Remove any that are already in existingActivities (by ID)
+        let existingIDs = Set(existingActivities.map { $0.id })
+        let newActivities = extendedActivities.filter { !existingIDs.contains($0.id) }
+
+        Logger.debug("📊 [UnifiedActivities] Extended: \(newActivities.count) new activities (31-90 days)")
+
+        return newActivities
+    }
+
+    /// Force refresh unified activities (ignores cache)
+    /// Used after auth changes (e.g., Strava connection)
+    func forceRefreshUnifiedActivities(
+        limit: Int = 50,
+        daysBack: Int = 30
+    ) async throws -> [UnifiedActivity] {
+        Logger.debug("🔄 [UnifiedActivities] Force refresh (ignoring cache)")
+
+        // Clear in-flight requests to force fresh fetch
+        inflightUnifiedRequests.removeAll()
+
+        // Fetch fresh data (cache will handle TTL)
+        return try await fetchRecentUnifiedActivities(
+            limit: limit,
+            daysBack: daysBack,
+            includeHealthKit: true
+        )
+    }
+}
+
+enum ServiceError: Error {
+    case proFeatureRequired
+    case noDataAvailable
 }
