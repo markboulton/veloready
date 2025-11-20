@@ -1,16 +1,23 @@
 import SwiftUI
+import Combine
 
 // MARK: - View Model (Refactored - Thin Wrapper over ActivitiesViewState)
 
 @MainActor
-@Observable
-final class ActivitiesViewModel {
+final class ActivitiesViewModel: ObservableObject {
     static let shared = ActivitiesViewModel()
 
     // Delegate to ActivitiesViewState for all state management
-    private let state = ActivitiesViewState.shared
+    @ObservedObject private var state = ActivitiesViewState.shared
 
-    private init() {} // Private init for singleton
+    private var cancellables = Set<AnyCancellable>()
+
+    private init() {
+        // Forward state changes to trigger view updates
+        state.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }.store(in: &cancellables)
+    }
 
     // MARK: - Public Properties (Delegated to State)
 
@@ -115,7 +122,7 @@ final class ActivitiesViewModel {
 // MARK: - Filter Sheet
 
 struct ActivityFilterSheet: View {
-    @Bindable var viewModel: ActivitiesViewModel
+    @ObservedObject var viewModel: ActivitiesViewModel
     @Environment(\.dismiss) private var dismiss
 
     // Dynamically show only activity types that exist in the loaded activities
