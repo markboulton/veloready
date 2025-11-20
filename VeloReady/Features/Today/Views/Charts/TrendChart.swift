@@ -164,7 +164,7 @@ struct TrendChart: View {
                         y: .value("Value", animateChart ? point.value : 0)
                     )
                     .foregroundStyle(ColorPalette.neutral300)
-                    
+
                     // Top 2-3px colored indicator (height adjusted per data scale)
                     BarMark(
                         x: .value("Day", point.date, unit: .day),

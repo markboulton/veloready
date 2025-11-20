@@ -521,10 +521,29 @@ final class BackfillService {
             forceRefresh: forceRefresh
         ) {
             Logger.trace("🔄 [STRAIN BACKFILL] Throttle passed, processing...")
-            
+
             // Fetch athlete profile once before batch operation (avoid await inside closure)
             let athleteProfile = await AthleteProfileManager.shared.profile
-            
+
+            // Fetch steps and active calories for all days (avoid await inside closure)
+            Logger.debug("📊 [STRAIN BACKFILL] Fetching steps and calories from HealthKit for \(daysBack) days")
+            var dailyStepsMap: [Date: Double] = [:]
+            var dailyCaloriesMap: [Date: Double] = [:]
+
+            let calendar = Calendar.current
+            for date in self.historicalDates(daysBack: daysBack) {
+                let startOfDay = calendar.startOfDay(for: date)
+                let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
+
+                let steps = await HealthKitManager.shared.fetchStepCount(from: startOfDay, to: endOfDay)
+                let calories = await HealthKitManager.shared.fetchActiveCalories(from: startOfDay, to: endOfDay)
+
+                dailyStepsMap[date] = steps
+                dailyCaloriesMap[date] = calories
+            }
+
+            Logger.debug("📊 [STRAIN BACKFILL] Fetched HealthKit data for \(dailyStepsMap.count) days")
+
             await self.performBatchInBackground(logPrefix: "STRAIN BACKFILL") { context in
                 var updatedCount = 0
                 var skippedCount = 0
@@ -590,8 +609,8 @@ final class BackfillService {
                         strengthSets: nil,
                         muscleGroupsTrained: nil,
                         isEccentricFocused: nil,
-                        dailySteps: nil, // Not available historically
-                        activeEnergyCalories: nil, // Not available historically
+                        dailySteps: dailyStepsMap[date].map { Int($0) },
+                        activeEnergyCalories: dailyCaloriesMap[date],
                         nonWorkoutMETmin: nil,
                         hrvOvernight: physio?.hrv,
                         hrvBaseline: physio?.hrvBaseline,
