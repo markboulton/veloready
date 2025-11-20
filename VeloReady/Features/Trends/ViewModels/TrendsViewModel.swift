@@ -417,39 +417,108 @@ final class TrendsViewModel {
             Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL [MOCK DATA]")
             return
         }
-        
+
         // Use shared activities (already fetched in loadTrendData)
         guard let activities = activities else {
-            Logger.warning("️ No activities available for daily load trend")
+            Logger.warning("⚠️ No activities available for daily load trend")
             dailyLoadData = []
             activitiesForLoad = []
             return
         }
-        
+
         let startDate = selectedTimeRange.startDate
         let calendar = Calendar.current
-        
-        // Store activities for training load chart
-        activitiesForLoad = activities.filter { $0.ctl != nil && $0.atl != nil }
-        
+
+        // FIX: Calculate CTL/ATL BEFORE filtering (activities don't have these values yet)
+        Logger.debug("📊 [LOAD TREND] Calculating CTL/ATL for \(activities.count) activities")
+
+        // Get FTP for TSS enrichment
+        let ftp = profileManager.profile.ftp
+
+        // Enrich activities with TSS using unified converter
+        let enrichedActivities = activities.map { activity in
+            ActivityConverter.enrichWithMetrics(activity, ftp: ftp)
+        }
+
+        // Calculate progressive CTL/ATL using TrainingLoadCalculator
+        let calculator = TrainingLoadCalculator()
+        let progressiveLoad = await calculator.calculateProgressiveTrainingLoad(enrichedActivities)
+
+        Logger.debug("📊 [LOAD TREND] Calculated progressive load for \(progressiveLoad.count) days")
+
+        // Date formatter for matching activity dates (must match calculator's parser!)
+        let iso8601Formatter = ISO8601DateFormatter()
+        iso8601Formatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+        iso8601Formatter.timeZone = TimeZone.current
+
+        // Add CTL/ATL to activities that have TSS
+        let activitiesWithLoad = enrichedActivities.filter { $0.tss != nil }.compactMap { activity -> Activity? in
+            // Get CTL/ATL for this activity's date
+            guard let activityDate = iso8601Formatter.date(from: activity.startDateLocal) else {
+                Logger.warning("⚠️ Failed to parse date: \(activity.startDateLocal)")
+                return nil
+            }
+
+            let day = calendar.startOfDay(for: activityDate)
+            guard let load = progressiveLoad[day] else {
+                // No load data for this day (might be outside calculation window)
+                return nil
+            }
+
+            // Create new Activity with CTL/ATL populated
+            return Activity(
+                id: activity.id,
+                name: activity.name,
+                description: activity.description,
+                startDateLocal: activity.startDateLocal,
+                type: activity.type,
+                duration: activity.duration,
+                distance: activity.distance,
+                elevationGain: activity.elevationGain,
+                averagePower: activity.averagePower,
+                normalizedPower: activity.normalizedPower,
+                averageHeartRate: activity.averageHeartRate,
+                maxHeartRate: activity.maxHeartRate,
+                averageCadence: activity.averageCadence,
+                averageSpeed: activity.averageSpeed,
+                maxSpeed: activity.maxSpeed,
+                calories: activity.calories,
+                fileType: activity.fileType,
+                tss: activity.tss,
+                intensityFactor: activity.intensityFactor,
+                atl: load.atl,  // NOW populated!
+                ctl: load.ctl,  // NOW populated!
+                icuZoneTimes: activity.icuZoneTimes,
+                icuHrZoneTimes: activity.icuHrZoneTimes
+            )
+        }
+
+        Logger.debug("📊 [LOAD TREND] Enriched \(activitiesWithLoad.count) activities with CTL/ATL")
+
+        // Store activities for training load chart (NOW they have CTL/ATL!)
+        activitiesForLoad = activitiesWithLoad.filter {
+            guard let date = parseActivityDate($0.startDateLocal) else { return false }
+            return date >= startDate && $0.ctl != nil && $0.atl != nil
+        }
+
         // Group activities by day and sum TSS
         var dailyTSS: [Date: Double] = [:]
-        
-        for activity in activities {
+
+        for activity in activitiesWithLoad {
             guard let activityDate = parseActivityDate(activity.startDateLocal),
                   activityDate >= startDate,
                   let tss = activity.tss else { continue }
-            
+
             let dayStart = calendar.startOfDay(for: activityDate)
             dailyTSS[dayStart, default: 0] += tss
         }
-        
+
         // Normalize to 0-100 scale (assume 300 TSS = 100%)
         dailyLoadData = dailyTSS.map { date, tss in
             let normalizedTSS = min((tss / 300.0) * 100.0, 100.0)
             return TrendDataPoint(date: date, value: normalizedTSS)
         }.sorted { $0.date < $1.date }
-        
+
         Logger.debug("📈 Loaded daily load trend: \(dailyLoadData.count) days (using shared activities)")
         Logger.debug("📈 Stored \(activitiesForLoad.count) activities with CTL/ATL for training load chart")
     }
