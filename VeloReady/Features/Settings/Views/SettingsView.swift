@@ -155,9 +155,18 @@ struct ProFeatureToggle: View {
 // MARK: - Sleep Settings View
 
 struct SleepSettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
     @Environment(\.dismiss) private var dismiss
-    
+
+    private var formattedSleepTarget: String {
+        let hours = Int(viewState.sleepSettings.targetHours)
+        let minutes = viewState.sleepSettings.targetMinutes
+        if minutes == 0 {
+            return "\(hours)h"
+        }
+        return "\(hours)h \(minutes)m"
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -165,28 +174,54 @@ struct SleepSettingsView: View {
                     VStack(alignment: .leading, spacing: Spacing.lg) {
                         Text(SettingsContent.Sleep.targetTitle)
                             .font(.headline)
-                        
+
                         HStack {
                             Text(SettingsContent.Sleep.hoursLabel)
                                 .frame(width: 60, alignment: .leading)
-                            
-                            Stepper(value: $userSettings.sleepTargetHours, in: 4...12, step: 0.5) {
-                                Text("\(userSettings.sleepTargetHours, specifier: "%.1f")")
+
+                            Stepper(value: Binding(
+                                get: { viewState.sleepSettings.targetHours },
+                                set: { newValue in
+                                    Task {
+                                        let updated = SleepSettings(
+                                            targetHours: newValue,
+                                            targetMinutes: viewState.sleepSettings.targetMinutes,
+                                            reminders: viewState.sleepSettings.reminders,
+                                            reminderTime: viewState.sleepSettings.reminderTime
+                                        )
+                                        await viewState.saveSleepSettings(updated)
+                                    }
+                                }
+                            ), in: 4...12, step: 0.5) {
+                                Text("\(viewState.sleepSettings.targetHours, specifier: "%.1f")")
                                     .frame(width: 40, alignment: .trailing)
                             }
                         }
-                        
+
                         HStack {
                             Text(SettingsContent.Sleep.minutesLabel)
                                 .frame(width: 60, alignment: .leading)
-                            
-                            Stepper(value: $userSettings.sleepTargetMinutes, in: 0...59, step: 15) {
-                                Text("\(userSettings.sleepTargetMinutes)")
+
+                            Stepper(value: Binding(
+                                get: { viewState.sleepSettings.targetMinutes },
+                                set: { newValue in
+                                    Task {
+                                        let updated = SleepSettings(
+                                            targetHours: viewState.sleepSettings.targetHours,
+                                            targetMinutes: newValue,
+                                            reminders: viewState.sleepSettings.reminders,
+                                            reminderTime: viewState.sleepSettings.reminderTime
+                                        )
+                                        await viewState.saveSleepSettings(updated)
+                                    }
+                                }
+                            ), in: 0...59, step: 15) {
+                                Text("\(viewState.sleepSettings.targetMinutes)")
                                     .frame(width: 40, alignment: .trailing)
                             }
                         }
-                        
-                        Text("\(SettingsContent.Sleep.totalLabel) \(userSettings.formattedSleepTarget)")
+
+                        Text("\(SettingsContent.Sleep.totalLabel) \(formattedSleepTarget)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -891,30 +926,100 @@ struct TrainingZoneSettingsView: View {
 // MARK: - Display Settings View
 
 struct DisplaySettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             Form {
                 Section {
-                    Toggle(SettingsContent.Display.showSleepScore, isOn: $userSettings.showSleepScore)
-                        .onChange(of: userSettings.showSleepScore) { _, _ in HapticFeedback.selection() }
-                    Toggle(SettingsContent.Display.showRecoveryScore, isOn: $userSettings.showRecoveryScore)
-                        .onChange(of: userSettings.showRecoveryScore) { _, _ in HapticFeedback.selection() }
-                    Toggle(SettingsContent.Display.showHealthData, isOn: $userSettings.showHealthData)
-                        .onChange(of: userSettings.showHealthData) { _, _ in HapticFeedback.selection() }
+                    Toggle(SettingsContent.Display.showSleepScore, isOn: Binding(
+                        get: { viewState.displaySettings.showSleepScore },
+                        set: { newValue in
+                            Task {
+                                let updated = DisplaySettings(
+                                    showSleepScore: newValue,
+                                    showRecoveryScore: viewState.displaySettings.showRecoveryScore,
+                                    showHealthData: viewState.displaySettings.showHealthData,
+                                    useMetricUnits: viewState.displaySettings.useMetricUnits,
+                                    use24HourTime: viewState.displaySettings.use24HourTime
+                                )
+                                await viewState.saveDisplaySettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
+                    Toggle(SettingsContent.Display.showRecoveryScore, isOn: Binding(
+                        get: { viewState.displaySettings.showRecoveryScore },
+                        set: { newValue in
+                            Task {
+                                let updated = DisplaySettings(
+                                    showSleepScore: viewState.displaySettings.showSleepScore,
+                                    showRecoveryScore: newValue,
+                                    showHealthData: viewState.displaySettings.showHealthData,
+                                    useMetricUnits: viewState.displaySettings.useMetricUnits,
+                                    use24HourTime: viewState.displaySettings.use24HourTime
+                                )
+                                await viewState.saveDisplaySettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
+                    Toggle(SettingsContent.Display.showHealthData, isOn: Binding(
+                        get: { viewState.displaySettings.showHealthData },
+                        set: { newValue in
+                            Task {
+                                let updated = DisplaySettings(
+                                    showSleepScore: viewState.displaySettings.showSleepScore,
+                                    showRecoveryScore: viewState.displaySettings.showRecoveryScore,
+                                    showHealthData: newValue,
+                                    useMetricUnits: viewState.displaySettings.useMetricUnits,
+                                    use24HourTime: viewState.displaySettings.use24HourTime
+                                )
+                                await viewState.saveDisplaySettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
                 } header: {
                     Text(SettingsContent.Display.visibilityTitle)
                 } footer: {
                     Text(SettingsContent.Display.visibilityDescription)
                 }
-                
+
                 Section {
-                    Toggle(SettingsContent.Display.metricUnits, isOn: $userSettings.useMetricUnits)
-                        .onChange(of: userSettings.useMetricUnits) { _, _ in HapticFeedback.selection() }
-                    Toggle(SettingsContent.Display.use24Hour, isOn: $userSettings.use24HourTime)
-                        .onChange(of: userSettings.use24HourTime) { _, _ in HapticFeedback.selection() }
+                    Toggle(SettingsContent.Display.metricUnits, isOn: Binding(
+                        get: { viewState.displaySettings.useMetricUnits },
+                        set: { newValue in
+                            Task {
+                                let updated = DisplaySettings(
+                                    showSleepScore: viewState.displaySettings.showSleepScore,
+                                    showRecoveryScore: viewState.displaySettings.showRecoveryScore,
+                                    showHealthData: viewState.displaySettings.showHealthData,
+                                    useMetricUnits: newValue,
+                                    use24HourTime: viewState.displaySettings.use24HourTime
+                                )
+                                await viewState.saveDisplaySettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
+                    Toggle(SettingsContent.Display.use24Hour, isOn: Binding(
+                        get: { viewState.displaySettings.use24HourTime },
+                        set: { newValue in
+                            Task {
+                                let updated = DisplaySettings(
+                                    showSleepScore: viewState.displaySettings.showSleepScore,
+                                    showRecoveryScore: viewState.displaySettings.showRecoveryScore,
+                                    showHealthData: viewState.displaySettings.showHealthData,
+                                    useMetricUnits: viewState.displaySettings.useMetricUnits,
+                                    use24HourTime: newValue
+                                )
+                                await viewState.saveDisplaySettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
                 } header: {
                     Text(SettingsContent.Display.unitsTitle)
                 } footer: {
@@ -937,11 +1042,12 @@ struct DisplaySettingsView: View {
 // MARK: - Notification Settings View
 
 struct NotificationSettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
+    @StateObject private var userSettings = UserSettings.shared  // Keep for recoveryAlerts (not yet migrated)
     @StateObject private var notificationManager = NotificationManager.shared
     @Environment(\.dismiss) private var dismiss
     @State private var showingPermissionAlert = false
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -950,7 +1056,7 @@ struct NotificationSettingsView: View {
                     HStack {
                         Image(systemName: notificationManager.isAuthorized ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .foregroundColor(notificationManager.isAuthorized ? .green : .orange)
-                        
+
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(SettingsContent.Notifications.permission)
                                 .font(.subheadline)
@@ -959,9 +1065,9 @@ struct NotificationSettingsView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         if !notificationManager.isAuthorized {
                             Button(SettingsContent.Notifications.enable) {
                                 Task {
@@ -979,14 +1085,40 @@ struct NotificationSettingsView: View {
                         Text(SettingsContent.Notifications.permissionFooter)
                     }
                 }
-                
+
                 Section {
-                    Toggle(SettingsContent.Notifications.sleepReminders, isOn: $userSettings.sleepReminders)
+                    Toggle(SettingsContent.Notifications.sleepReminders, isOn: Binding(
+                        get: { viewState.sleepSettings.reminders },
+                        set: { newValue in
+                            Task {
+                                let updated = SleepSettings(
+                                    targetHours: viewState.sleepSettings.targetHours,
+                                    targetMinutes: viewState.sleepSettings.targetMinutes,
+                                    reminders: newValue,
+                                    reminderTime: viewState.sleepSettings.reminderTime
+                                )
+                                await viewState.saveSleepSettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
                         .disabled(!notificationManager.isAuthorized)
-                        .onChange(of: userSettings.sleepReminders) { _, _ in HapticFeedback.selection() }
-                    
-                    if userSettings.sleepReminders {
-                        DatePicker(SettingsContent.Notifications.reminderTime, selection: $userSettings.sleepReminderTime, displayedComponents: .hourAndMinute)
+
+                    if viewState.sleepSettings.reminders {
+                        DatePicker(SettingsContent.Notifications.reminderTime, selection: Binding(
+                            get: { viewState.sleepSettings.reminderTime },
+                            set: { newValue in
+                                Task {
+                                    let updated = SleepSettings(
+                                        targetHours: viewState.sleepSettings.targetHours,
+                                        targetMinutes: viewState.sleepSettings.targetMinutes,
+                                        reminders: viewState.sleepSettings.reminders,
+                                        reminderTime: newValue
+                                    )
+                                    await viewState.saveSleepSettings(updated)
+                                }
+                            }
+                        ), displayedComponents: .hourAndMinute)
                             .disabled(!notificationManager.isAuthorized)
                     }
                 } header: {
