@@ -3,7 +3,7 @@ import SwiftUI
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
     @State private var viewModel = WeeklyReportViewModel()
-    @State private var trendsViewModel = TrendsViewModel()
+    @ObservedObject private var trendsState = TrendsViewState.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var selectedSleepDay = 0 // For segmented control
     
@@ -30,9 +30,9 @@ struct WeeklyReportView: View {
                 
                 // 2. Performance Overview (2-week trend)
                 PerformanceOverviewCardV2(
-                    recoveryData: trendsViewModel.recoveryTrendData,
-                    loadData: trendsViewModel.dailyLoadData,
-                    sleepData: trendsViewModel.sleepData,
+                    recoveryData: trendsState.scoresData?.recovery ?? [],
+                    loadData: trendsState.fitnessData?.dailyLoad ?? [],
+                    sleepData: trendsState.scoresData?.sleep ?? [],
                     timeRange: .days30
                 )
                 .background(GeometryReader { geo in
@@ -94,7 +94,7 @@ struct WeeklyReportView: View {
         .background(Color.background.app)
         .task {
             await viewModel.loadWeeklyReport()
-            await trendsViewModel.loadTrendData()
+            // TrendsViewState.shared is loaded from TrendsView - no need to load again
         }
         .refreshable {
             await viewModel.loadWeeklyReport()
