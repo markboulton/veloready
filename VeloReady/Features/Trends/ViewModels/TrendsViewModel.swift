@@ -10,7 +10,7 @@ final class TrendsViewModel {
 
     // MARK: - Published State
 
-    var selectedTimeRange: TimeRange = .days90
+    var selectedTimeRange: TrendsViewState.TimeRange = .days90
     var isLoading = false
     var errorMessage: String?
 
@@ -19,18 +19,18 @@ final class TrendsViewModel {
     nonisolated(unsafe) private var backfillObserver: NSObjectProtocol?
 
     // Trend data
-    var ftpTrendData: [TrendDataPoint] = []
-    var recoveryTrendData: [TrendDataPoint] = []
-    var hrvTrendData: [HRVTrendDataPoint] = []
-    var weeklyTSSData: [WeeklyTSSDataPoint] = []
-    var dailyLoadData: [TrendDataPoint] = []  // Daily TSS normalized to 0-100
-    var sleepData: [TrendDataPoint] = []  // Sleep quality 0-100
-    var restingHRData: [TrendDataPoint] = []
-    var stressData: [TrendDataPoint] = []  // Inferred stress score
+    var ftpTrendData: [TrendsDataLoader.TrendDataPoint] = []
+    var recoveryTrendData: [TrendsDataLoader.TrendDataPoint] = []
+    var hrvTrendData: [TrendsDataLoader.HRVTrendDataPoint] = []
+    var weeklyTSSData: [TrendsDataLoader.WeeklyTSSDataPoint] = []
+    var dailyLoadData: [TrendsDataLoader.TrendDataPoint] = []  // Daily TSS normalized to 0-100
+    var sleepData: [TrendsDataLoader.TrendDataPoint] = []  // Sleep quality 0-100
+    var restingHRData: [TrendsDataLoader.TrendDataPoint] = []
+    var stressData: [TrendsDataLoader.TrendDataPoint] = []  // Inferred stress score
     var activitiesForLoad: [Activity] = []  // For training load chart
 
     // Correlation data
-    var recoveryVsPowerData: [CorrelationDataPoint] = []
+    var recoveryVsPowerData: [TrendsDataLoader.CorrelationDataPoint] = []
     var recoveryVsPowerCorrelation: CorrelationCalculator.CorrelationResult?
 
     // Phase 3: Advanced analytics
@@ -71,57 +71,16 @@ final class TrendsViewModel {
         }
     }
 
-    // MARK: - Time Range
+    // MARK: - Time Range (Type alias for backward compatibility)
+
+    typealias TimeRange = TrendsViewState.TimeRange
     
-    enum TimeRange: String, CaseIterable {
-        case days30 = "30 Days"
-        case days60 = "60 Days"
-        case days90 = "90 Days"
-        case days180 = "6 Months"
-        case days365 = "1 Year"
-        
-        var days: Int {
-            switch self {
-            case .days30: return 30
-            case .days60: return 60
-            case .days90: return 90
-            case .days180: return 180
-            case .days365: return 365
-            }
-        }
-        
-        var startDate: Date {
-            Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-        }
-    }
-    
-    // MARK: - Data Models
-    
-    struct TrendDataPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let value: Double
-    }
-    
-    struct HRVTrendDataPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let value: Double
-        let baseline: Double?
-    }
-    
-    struct WeeklyTSSDataPoint: Identifiable {
-        let id = UUID()
-        let weekStart: Date
-        let tss: Double
-    }
-    
-    struct CorrelationDataPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let x: Double  // Independent variable (e.g., recovery)
-        let y: Double  // Dependent variable (e.g., power)
-    }
+    // MARK: - Data Models (Type aliases for backward compatibility)
+
+    typealias TrendDataPoint = TrendsDataLoader.TrendDataPoint
+    typealias HRVTrendDataPoint = TrendsDataLoader.HRVTrendDataPoint
+    typealias WeeklyTSSDataPoint = TrendsDataLoader.WeeklyTSSDataPoint
+    typealias CorrelationDataPoint = TrendsDataLoader.CorrelationDataPoint
     
     // MARK: - Load Data
     

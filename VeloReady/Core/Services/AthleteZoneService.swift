@@ -13,9 +13,8 @@ class AthleteZoneService: ObservableObject {
     @Published var isLoading = false
     var lastFetchDate: Date?
     @Published var lastError: String?
-    
+
     private let apiClient: IntervalsAPIClient
-    private let userSettings = UserSettings.shared
     private var lastFetchAttempt: Date?
     private let minimumFetchInterval: TimeInterval = 300 // 5 minutes between attempts
     private let cacheExpirationInterval: TimeInterval = 7 * 24 * 60 * 60 // 1 week in seconds
@@ -66,81 +65,67 @@ class AthleteZoneService: ObservableObject {
             Logger.debug("🔍 Raw athlete data: \(athleteData)")
             Logger.debug("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
             Logger.debug("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
-            
-            // Update user settings with zone data
-            await updateUserSettingsWithZones(athleteData)
-            
+
             Logger.debug("✅ Successfully fetched athlete data: \(athleteData.id)")
-            Logger.debug("🔍 Power zones: \(athleteData.powerZones?.zones ?? [])")
-            Logger.debug("🔍 HR zones: \(athleteData.heartRateZones?.zones ?? [])")
-            
+
         } catch {
             Logger.error("Failed to fetch athlete data: \(error)")
             lastError = "Failed to fetch athlete data: \(error.localizedDescription)"
         }
     }
-    
-    /// Update UserSettings with zone boundaries from Intervals.icu
-    private func updateUserSettingsWithZones(_ athlete: IntervalsAthlete) async {
-        // Update power zones if available
-        if let powerZones = athlete.powerZones,
-           let zones = powerZones.zones,
-           zones.count >= 5 {
-            Logger.debug("🔍 Updating power zones from Intervals.icu: \(zones)")
-            
-            // Intervals.icu zones are typically boundaries, we need to convert to max values
-            // Assuming zones are [0, zone1_max, zone2_max, zone3_max, zone4_max, zone5_max]
-            if zones.count >= 6 {
-                userSettings.powerZone1Max = Int(zones[1])
-                userSettings.powerZone2Max = Int(zones[2])
-                userSettings.powerZone3Max = Int(zones[3])
-                userSettings.powerZone4Max = Int(zones[4])
-                userSettings.powerZone5Max = Int(zones[5])
-            }
+
+    /// Extract zone data from athlete data (no longer modifies UserSettings directly)
+    /// Returns nil if zone data is not available
+    func extractZoneData() -> (hrZones: [Int], powerZones: [Int])? {
+        guard let athlete = athlete else {
+            Logger.debug("⚠️ No athlete data available for zone extraction")
+            return nil
         }
-        
-        // Update heart rate zones if available
-        if let hrZones = athlete.heartRateZones,
-           let zones = hrZones.zones,
-           zones.count >= 5 {
-            Logger.debug("🔍 Updating HR zones from Intervals.icu: \(zones)")
-            
-            // Intervals.icu zones are typically boundaries, we need to convert to max values
-            // Assuming zones are [0, zone1_max, zone2_max, zone3_max, zone4_max, zone5_max]
-            if zones.count >= 6 {
-                userSettings.hrZone1Max = Int(zones[1])
-                userSettings.hrZone2Max = Int(zones[2])
-                userSettings.hrZone3Max = Int(zones[3])
-                userSettings.hrZone4Max = Int(zones[4])
-                userSettings.hrZone5Max = Int(zones[5])
-            }
+
+        var hrZones: [Int] = []
+        var powerZones: [Int] = []
+
+        // Extract power zones if available
+        if let pz = athlete.powerZones,
+           let zones = pz.zones,
+           zones.count >= 6 {
+            // Intervals.icu zones are boundaries [0, zone1_max, zone2_max, ...]
+            powerZones = [
+                Int(zones[1]),
+                Int(zones[2]),
+                Int(zones[3]),
+                Int(zones[4]),
+                Int(zones[5])
+            ]
+            Logger.debug("🔍 Extracted power zones from Intervals.icu: \(powerZones)")
         }
+
+        // Extract heart rate zones if available
+        if let hrz = athlete.heartRateZones,
+           let zones = hrz.zones,
+           zones.count >= 6 {
+            // Intervals.icu zones are boundaries [0, zone1_max, zone2_max, ...]
+            hrZones = [
+                Int(zones[1]),
+                Int(zones[2]),
+                Int(zones[3]),
+                Int(zones[4]),
+                Int(zones[5])
+            ]
+            Logger.debug("🔍 Extracted HR zones from Intervals.icu: \(hrZones)")
+        }
+
+        // Only return if we have at least one set of zones
+        if !hrZones.isEmpty || !powerZones.isEmpty {
+            return (hrZones: hrZones, powerZones: powerZones)
+        }
+
+        return nil
     }
     
     /// Check if we need to refresh athlete data
     var shouldRefreshAthleteData: Bool {
         guard let lastFetch = lastFetchDate else { return true }
         return Date().timeIntervalSince(lastFetch) > 3600 // Refresh every hour
-    }
-    
-    /// Get zone boundaries for display
-    func getPowerZoneBoundaries() -> [Int] {
-        return [
-            userSettings.powerZone1Max,
-            userSettings.powerZone2Max,
-            userSettings.powerZone3Max,
-            userSettings.powerZone4Max,
-            userSettings.powerZone5Max
-        ]
-    }
-    
-    func getHeartRateZoneBoundaries() -> [Int] {
-        return [
-            userSettings.hrZone1Max,
-            userSettings.hrZone2Max,
-            userSettings.hrZone3Max,
-            userSettings.hrZone4Max,
-            userSettings.hrZone5Max
-        ]
     }
 }

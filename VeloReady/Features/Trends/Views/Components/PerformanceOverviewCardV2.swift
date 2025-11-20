@@ -5,10 +5,10 @@ import Charts
 /// Overlays three key metrics: Recovery, Training Load (TSS), and Sleep
 /// All metrics normalized to 0-100 scale for direct comparison
 struct PerformanceOverviewCardV2: View {
-    let recoveryData: [TrendsViewModel.TrendDataPoint]
-    let loadData: [TrendsViewModel.TrendDataPoint]
-    let sleepData: [TrendsViewModel.TrendDataPoint]
-    let timeRange: TrendsViewModel.TimeRange
+    let recoveryData: [TrendsDataLoader.TrendDataPoint]
+    let loadData: [TrendsDataLoader.TrendDataPoint]
+    let sleepData: [TrendsDataLoader.TrendDataPoint]
+    let timeRange: TrendsViewState.TimeRange
     
     @State private var viewModel = PerformanceOverviewCardViewModel()
     @ObservedObject private var proConfig = ProFeatureConfig.shared
@@ -305,19 +305,19 @@ private struct MetricLegendItem: View {
             // With all data
             PerformanceOverviewCardV2(
                 recoveryData: (0..<30).map { day in
-                    TrendsViewModel.TrendDataPoint(
+                    TrendsDataLoader.TrendDataPoint(
                         date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                         value: 70 + Double.random(in: -10...15)
                     )
                 }.reversed(),
                 loadData: (0..<30).map { day in
-                    TrendsViewModel.TrendDataPoint(
+                    TrendsDataLoader.TrendDataPoint(
                         date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                         value: Double.random(in: 30...80)
                     )
                 }.reversed(),
                 sleepData: (0..<30).map { day in
-                    TrendsViewModel.TrendDataPoint(
+                    TrendsDataLoader.TrendDataPoint(
                         date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                         value: 75 + Double.random(in: -15...10)
                     )
@@ -328,14 +328,14 @@ private struct MetricLegendItem: View {
             // Partial data (only recovery and sleep)
             PerformanceOverviewCardV2(
                 recoveryData: (0..<30).map { day in
-                    TrendsViewModel.TrendDataPoint(
+                    TrendsDataLoader.TrendDataPoint(
                         date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                         value: 70 + Double.random(in: -10...15)
                     )
                 }.reversed(),
                 loadData: [],
                 sleepData: (0..<30).map { day in
-                    TrendsViewModel.TrendDataPoint(
+                    TrendsDataLoader.TrendDataPoint(
                         date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                         value: 75 + Double.random(in: -15...10)
                     )

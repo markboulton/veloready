@@ -3,8 +3,8 @@ import Charts
 
 /// Training Load Trend card using atomic ChartCard wrapper
 struct TrainingLoadTrendCardV2: View {
-    let data: [TrendsViewModel.TrendDataPoint]
-    let timeRange: TrendsViewModel.TimeRange
+    let data: [TrendsDataLoader.TrendDataPoint]
+    let timeRange: TrendsViewState.TimeRange
     
     private var averageLoad: Double {
         guard !data.isEmpty else { return 0 }
@@ -121,7 +121,7 @@ struct TrainingLoadTrendCardV2: View {
         data: (0..<90).map { day in
             let base = 80.0
             let variation = Double.random(in: -20...40)
-            return TrendsViewModel.TrendDataPoint(
+            return TrendsDataLoader.TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: max(0, base + variation)
             )

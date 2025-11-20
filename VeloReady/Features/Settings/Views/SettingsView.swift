@@ -2,13 +2,10 @@ import SwiftUI
 
 /// Main settings view for user preferences
 struct SettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
     @StateObject private var proConfig = ProFeatureConfig.shared
-    @State private var showingSleepSettings = false
-    @State private var showingZoneSettings = false
-    @State private var showingDisplaySettings = false
-    @State private var showingNotificationSettings = false
-    
+    @State private var showingDeleteDataAlert = false
+
     var body: some View {
         NavigationView {
             List {
@@ -17,10 +14,10 @@ struct SettingsView: View {
                 
                 // Goals (Steps & Calories)
                 GoalsSettingsSection()
-                
+
                 // Sleep Settings
-                SleepSettingsSection(userSettings: userSettings)
-                
+                SleepSettingsSection()
+
                 // Data Sources
                 DataSourcesSection()
                 
@@ -53,18 +50,10 @@ struct SettingsView: View {
             }
             .navigationTitle(SettingsContent.title)
             .navigationBarTitleDisplayMode(.large)
-        }
-        .sheet(isPresented: $showingSleepSettings) {
-            SleepSettingsView()
-        }
-        .sheet(isPresented: $showingZoneSettings) {
-            TrainingZoneSettingsView()
-        }
-        .sheet(isPresented: $showingDisplaySettings) {
-            DisplaySettingsView()
-        }
-        .sheet(isPresented: $showingNotificationSettings) {
-            NotificationSettingsView()
+            .task {
+                // Load settings when view appears
+                await viewState.load()
+            }
         }
         .alert(SettingsContent.Account.deleteDataTitle, isPresented: $showingDeleteDataAlert) {
             Button(CommonContent.cancel, role: .cancel) { }
@@ -100,8 +89,6 @@ struct SettingsView: View {
             Logger.error("Error deleting Core Data: \(error)")
         }
     }
-    
-    @State private var showingDeleteDataAlert = false
 }
 
 // MARK: - Pro Feature Toggle (Debug Only)
@@ -294,7 +281,7 @@ struct SleepSettingsView: View {
 // MARK: - Training Zone Settings View
 
 struct TrainingZoneSettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
     @StateObject private var athleteZoneService = AthleteZoneService.shared
     @Environment(\.dismiss) private var dismiss
     
@@ -373,13 +360,35 @@ struct TrainingZoneSettingsView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Picker(SettingsContent.TrainingZones.zoneSourcePicker, selection: $userSettings.zoneSource) {
+                        Picker(SettingsContent.TrainingZones.zoneSourcePicker, selection: Binding(
+                            get: { viewState.zoneSettings.source },
+                            set: { newSource in
+                                Task {
+                                    let updated = ZoneSettings(
+                                        source: newSource,
+                                        hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                        hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                        hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                        hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                        hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                        powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                        powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                        powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                        powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                        powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                        freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                        freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                    )
+                                    await viewState.saveZoneSettings(updated)
+                                }
+                            }
+                        )) {
                             Text(SettingsContent.TrainingZones.intervals).tag("intervals")
                             Text(SettingsContent.TrainingZones.manual).tag("manual")
                             Text(SettingsContent.TrainingZones.coggan).tag("coggan")
                         }
                         .pickerStyle(.segmented)
-                        
+
                         Text(zoneSourceDescription)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -387,17 +396,39 @@ struct TrainingZoneSettingsView: View {
                 } header: {
                     Text(SettingsContent.TrainingZones.zoneConfiguration)
                 }
-                
+
                 // Coggan FTP/Max HR inputs (show when Coggan selected)
-                if userSettings.zoneSource == "coggan" {
+                if viewState.zoneSettings.source == "coggan" {
                     Section {
                         VStack(spacing: Spacing.md) {
                             HStack {
                                 Text(SettingsContent.AthleteZones.ftp)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.freeUserFTP, in: 100...500, step: 10) {
-                                    Text("\(userSettings.freeUserFTP) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.freeUserFTP },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: newValue,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.freeUserFTP) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -405,9 +436,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.AthleteZones.maxHR)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.freeUserMaxHR, in: 100...250, step: 5) {
-                                    Text("\(userSettings.freeUserMaxHR) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.freeUserMaxHR },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: newValue
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.freeUserMaxHR) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -435,7 +488,7 @@ struct TrainingZoneSettingsView: View {
                                     Text("\(SettingsContent.TrainingZones.zone) \(zone):")
                                         .font(.caption)
                                     Spacer()
-                                    Text("≤ \(athleteZoneService.getHeartRateZoneBoundaries()[zone-1]) \(CommonContent.Units.bpm)")
+                                    Text("≤ \(viewState.zoneSettings.hrZones[zone-1]) \(CommonContent.Units.bpm)")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -452,7 +505,7 @@ struct TrainingZoneSettingsView: View {
                                     Text("\(SettingsContent.TrainingZones.zone) \(zone):")
                                         .font(.caption)
                                     Spacer()
-                                    Text("≤ \(athleteZoneService.getPowerZoneBoundaries()[zone-1]) \(CommonContent.Units.watts)")
+                                    Text("≤ \(viewState.zoneSettings.powerZones[zone-1]) \(CommonContent.Units.watts)")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -470,9 +523,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.hrZone1Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone1Max) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.hrZone1Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: newValue,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.hrZone1Max) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -480,9 +555,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone2Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.hrZone2Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone2Max) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.hrZone2Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: newValue,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.hrZone2Max) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -490,9 +587,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone3Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.hrZone3Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone3Max) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.hrZone3Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: newValue,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.hrZone3Max) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -500,9 +619,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone4Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.hrZone4Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone4Max) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.hrZone4Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: newValue,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.hrZone4Max) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -510,9 +651,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone5Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.hrZone5Max, in: 100...250, step: 5) {
-                                    Text("\(userSettings.hrZone5Max) \(CommonContent.Units.bpm)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.hrZone5Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: newValue,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...250, step: 5) {
+                                    Text("\(viewState.zoneSettings.hrZone5Max) \(CommonContent.Units.bpm)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -534,9 +697,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone1Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.powerZone1Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone1Max) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.powerZone1Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: newValue,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.powerZone1Max) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -544,9 +729,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone2Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.powerZone2Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone2Max) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.powerZone2Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: newValue,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.powerZone2Max) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -554,9 +761,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone3Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.powerZone3Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone3Max) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.powerZone3Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: newValue,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.powerZone3Max) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -564,9 +793,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone4Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.powerZone4Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone4Max) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.powerZone4Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: newValue,
+                                                powerZone5Max: viewState.zoneSettings.powerZone5Max,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.powerZone4Max) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -574,9 +825,31 @@ struct TrainingZoneSettingsView: View {
                             HStack {
                                 Text(SettingsContent.TrainingZones.zone5Max)
                                     .frame(width: 100, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.powerZone5Max, in: 100...500, step: 10) {
-                                    Text("\(userSettings.powerZone5Max) \(CommonContent.Units.watts)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.zoneSettings.powerZone5Max },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = ZoneSettings(
+                                                source: viewState.zoneSettings.source,
+                                                hrZone1Max: viewState.zoneSettings.hrZone1Max,
+                                                hrZone2Max: viewState.zoneSettings.hrZone2Max,
+                                                hrZone3Max: viewState.zoneSettings.hrZone3Max,
+                                                hrZone4Max: viewState.zoneSettings.hrZone4Max,
+                                                hrZone5Max: viewState.zoneSettings.hrZone5Max,
+                                                powerZone1Max: viewState.zoneSettings.powerZone1Max,
+                                                powerZone2Max: viewState.zoneSettings.powerZone2Max,
+                                                powerZone3Max: viewState.zoneSettings.powerZone3Max,
+                                                powerZone4Max: viewState.zoneSettings.powerZone4Max,
+                                                powerZone5Max: newValue,
+                                                freeUserFTP: viewState.zoneSettings.freeUserFTP,
+                                                freeUserMaxHR: viewState.zoneSettings.freeUserMaxHR
+                                            )
+                                            await viewState.saveZoneSettings(updated)
+                                        }
+                                    }
+                                ), in: 100...500, step: 10) {
+                                    Text("\(viewState.zoneSettings.powerZone5Max) \(CommonContent.Units.watts)")
                                         .frame(width: 80, alignment: .trailing)
                                 }
                             }
@@ -602,7 +875,7 @@ struct TrainingZoneSettingsView: View {
     }
     
     private var zoneSourceDescription: String {
-        switch userSettings.zoneSource {
+        switch viewState.zoneSettings.source {
         case "intervals":
             return SettingsContent.TrainingZones.intervalsDescription
         case "manual":

@@ -3,11 +3,11 @@ import SwiftUI
 /// Main Trends view - PRO feature
 /// Shows performance and health trends over time
 struct TrendsView: View {
-    @State private var viewModel = TrendsViewModel()
+    @ObservedObject private var viewState = TrendsViewState.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @ObservedObject private var oauthManager = IntervalsOAuthManager.shared
     @State private var showPaywall = false
-    
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
@@ -33,18 +33,54 @@ struct TrendsView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
+            .task {
+                // Fix critical bug: Load data when view appears
+                await viewState.load()
+            }
         }
     }
     
     // MARK: - Trends Content
     
     private var trendsContent: some View {
-        WeeklyReportView()
+        ScrollView {
+            VStack(spacing: Spacing.lg) {
+                // Time range picker
+                timeRangePicker
+
+                // Quick stats summary
+                quickStats
+
+                // All trend cards
+                trendCards
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.top, Spacing.md)
+            .padding(.bottom, 120)
+        }
+        .refreshable {
+            await viewState.refresh()
+        }
     }
     
-    
+    // MARK: - Time Range Picker
+
+    private var timeRangePicker: some View {
+        Picker("Time Range", selection: $viewState.selectedTimeRange) {
+            ForEach(TrendsViewState.TimeRange.allCases, id: \.self) { range in
+                Text(range.rawValue).tag(range)
+            }
+        }
+        .pickerStyle(.segmented)
+        .onChange(of: viewState.selectedTimeRange) { _, newRange in
+            Task {
+                await viewState.changeTimeRange(newRange)
+            }
+        }
+    }
+
     // MARK: - Quick Stats
-    
+
     private var quickStats: some View {
         StandardCard(
             icon: "chart.bar.fill",
@@ -53,37 +89,37 @@ struct TrendsView: View {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 HStack(spacing: Spacing.lg) {
                     // Show FTP only when Intervals connected (cycling-specific)
-                    if oauthManager.isAuthenticated, let ftp = viewModel.ftpTrendData.last?.value {
+                    if oauthManager.isAuthenticated, let ftp = viewState.fitnessData?.ftp.last?.value {
                         StatPill(
                             label: "Current FTP",
                             value: "\(Int(ftp))W",
                             color: .workout.power
                         )
                     }
-                    
+
                     // Always show recovery (HealthKit-based)
-                    if !viewModel.recoveryTrendData.isEmpty {
-                        let avg = viewModel.recoveryTrendData.map(\.value).reduce(0, +) / Double(viewModel.recoveryTrendData.count)
+                    if let recovery = viewState.scoresData?.recovery, !recovery.isEmpty {
+                        let avg = recovery.map(\.value).reduce(0, +) / Double(recovery.count)
                         StatPill(
                             label: "Avg Recovery",
                             value: "\(Int(avg))%",
                             color: .health.hrv
                         )
                     }
-                    
+
                     // Show TSS only when Intervals connected (cycling-specific)
-                    if oauthManager.isAuthenticated, !viewModel.weeklyTSSData.isEmpty {
-                        let avg = viewModel.weeklyTSSData.map(\.tss).reduce(0, +) / Double(viewModel.weeklyTSSData.count)
+                    if oauthManager.isAuthenticated, let weeklyTSS = viewState.fitnessData?.weeklyTSS, !weeklyTSS.isEmpty {
+                        let avg = weeklyTSS.map(\.tss).reduce(0, +) / Double(weeklyTSS.count)
                         StatPill(
                             label: "Avg Weekly TSS",
                             value: "\(Int(avg))",
                             color: .workout.tss
                         )
                     }
-                    
+
                     // Show HRV for HealthKit-only mode
-                    if !oauthManager.isAuthenticated, !viewModel.hrvTrendData.isEmpty {
-                        let avg = viewModel.hrvTrendData.map(\.value).reduce(0, +) / Double(viewModel.hrvTrendData.count)
+                    if !oauthManager.isAuthenticated, let hrv = viewState.scoresData?.hrv, !hrv.isEmpty {
+                        let avg = hrv.map(\.value).reduce(0, +) / Double(hrv.count)
                         StatPill(
                             label: "Avg HRV",
                             value: "\(Int(avg))ms",
@@ -101,32 +137,32 @@ struct TrendsView: View {
         VStack(spacing: Spacing.xs) {
             // Illness Alert (if present)
             IllnessAlertBanner()
-            
+
             // Recovery & Readiness Section (Always visible - HealthKit-based)
             sectionHeader(
                 title: "Recovery & Readiness",
                 icon: "heart.fill",
                 color: .health.heartRate
             )
-            
+
             RecoveryTrendCardV2(
-                data: viewModel.recoveryTrendData,
-                timeRange: viewModel.selectedTimeRange
+                data: viewState.scoresData?.recovery ?? [],
+                timeRange: viewState.selectedTimeRange
             )
-            
+
             HRVTrendCardV2(
-                data: viewModel.hrvTrendData,
-                timeRange: viewModel.selectedTimeRange
+                data: viewState.scoresData?.hrv ?? [],
+                timeRange: viewState.selectedTimeRange
             )
-            
+
             RestingHRCardV2(
-                data: viewModel.restingHRData,
-                timeRange: viewModel.selectedTimeRange
+                data: viewState.scoresData?.restingHR ?? [],
+                timeRange: viewState.selectedTimeRange
             )
-            
+
             StressLevelCardV2(
-                data: viewModel.stressData,
-                timeRange: viewModel.selectedTimeRange
+                data: viewState.scoresData?.stress ?? [],
+                timeRange: viewState.selectedTimeRange
             )
             
             // Cycling-specific sections (only when Intervals connected)
@@ -137,41 +173,41 @@ struct TrendsView: View {
                     icon: "chart.line.uptrend.xyaxis",
                     color: .chart.primary
                 )
-                
+
                 PerformanceOverviewCardV2(
-                    recoveryData: viewModel.recoveryTrendData,
-                    loadData: viewModel.dailyLoadData,
-                    sleepData: viewModel.sleepData,
-                    timeRange: viewModel.selectedTimeRange
+                    recoveryData: viewState.scoresData?.recovery ?? [],
+                    loadData: viewState.fitnessData?.dailyLoad ?? [],
+                    sleepData: viewState.scoresData?.sleep ?? [],
+                    timeRange: viewState.selectedTimeRange
                 )
-                
+
                 TrainingLoadTrendCardV2(
-                    data: viewModel.dailyLoadData,
-                    timeRange: viewModel.selectedTimeRange
+                    data: viewState.fitnessData?.dailyLoad ?? [],
+                    timeRange: viewState.selectedTimeRange
                 )
-                
+
                 // Form & Fitness Section
                 sectionHeader(
                     title: "Form & Fitness",
                     icon: "bolt.fill",
                     color: .workout.power
                 )
-                
+
                 FTPTrendCardV2(
-                    data: viewModel.ftpTrendData,
-                    timeRange: viewModel.selectedTimeRange
+                    data: viewState.fitnessData?.ftp ?? [],
+                    timeRange: viewState.selectedTimeRange
                 )
-                
+
                 // Training Load Section
                 sectionHeader(
                     title: "Training Load",
                     icon: "chart.bar.fill",
                     color: .workout.tss
                 )
-                
+
                 WeeklyTSSTrendCardV2(
-                    data: viewModel.weeklyTSSData,
-                    timeRange: viewModel.selectedTimeRange
+                    data: viewState.fitnessData?.weeklyTSS ?? [],
+                    timeRange: viewState.selectedTimeRange
                 )
                 
                 // Performance Correlations Section
@@ -180,26 +216,26 @@ struct TrendsView: View {
                     icon: "star.fill",
                     color: .yellow
                 )
-                
+
                 RecoveryVsPowerCardV2(
-                    data: viewModel.recoveryVsPowerData,
-                    correlation: viewModel.recoveryVsPowerCorrelation,
-                    timeRange: viewModel.selectedTimeRange
+                    data: viewState.analyticsData?.recoveryVsPower ?? [],
+                    correlation: viewState.analyticsData?.recoveryVsPowerCorrelation,
+                    timeRange: viewState.selectedTimeRange
                 )
-                
+
                 // Advanced Analytics Section
                 sectionHeader(
                     title: "Advanced Analytics",
                     icon: "brain.head.profile",
                     color: .purple
                 )
-                
+
                 TrainingPhaseCardV2(
-                    phase: viewModel.currentTrainingPhase
+                    phase: viewState.analyticsData?.trainingPhase
                 )
-                
+
                 OvertrainingRiskCardV2(
-                    risk: viewModel.overtrainingRisk
+                    risk: viewState.analyticsData?.overtrainingRisk
                 )
             }
         }

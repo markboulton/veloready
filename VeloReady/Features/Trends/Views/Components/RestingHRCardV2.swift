@@ -3,8 +3,8 @@ import Charts
 
 /// Resting Heart Rate card using atomic ChartCard wrapper
 struct RestingHRCardV2: View {
-    let data: [TrendsViewModel.TrendDataPoint]
-    let timeRange: TrendsViewModel.TimeRange
+    let data: [TrendsDataLoader.TrendDataPoint]
+    let timeRange: TrendsViewState.TimeRange
     
     private var averageRHR: Double {
         guard !data.isEmpty else { return 0 }
@@ -193,7 +193,7 @@ struct RestingHRCardV2: View {
         data: (0..<90).map { day in
             let baseline = 52.0
             let variation = Double.random(in: -4...8)
-            return TrendsViewModel.TrendDataPoint(
+            return TrendsDataLoader.TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: max(45, min(75, baseline + variation))
             )

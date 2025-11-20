@@ -5,9 +5,9 @@ import Charts
 /// Unique VeloReady feature: correlates health (recovery) with performance (power)
 /// Shows scatter plot with correlation coefficient, trend line, and significance analysis
 struct RecoveryVsPowerCardV2: View {
-    let data: [TrendsViewModel.CorrelationDataPoint]
+    let data: [TrendsDataLoader.CorrelationDataPoint]
     let correlation: CorrelationCalculator.CorrelationResult?
-    let timeRange: TrendsViewModel.TimeRange
+    let timeRange: TrendsViewState.TimeRange
     
     private var badge: CardHeader.Badge? {
         guard let correlation = correlation else { return nil }
@@ -275,7 +275,7 @@ struct RecoveryVsPowerCardV2: View {
                 data: (0..<30).map { i in
                     let recovery = Double.random(in: 50...95)
                     let power = 150 + (recovery - 70) * 2 + Double.random(in: -20...20)
-                    return TrendsViewModel.CorrelationDataPoint(
+                    return TrendsDataLoader.CorrelationDataPoint(
                         date: Date().addingTimeInterval(Double(-i) * 24 * 60 * 60),
                         x: recovery,
                         y: power
@@ -296,7 +296,7 @@ struct RecoveryVsPowerCardV2: View {
                 data: (0..<30).map { i in
                     let recovery = Double.random(in: 50...95)
                     let power = Double.random(in: 180...280)
-                    return TrendsViewModel.CorrelationDataPoint(
+                    return TrendsDataLoader.CorrelationDataPoint(
                         date: Date().addingTimeInterval(Double(-i) * 24 * 60 * 60),
                         x: recovery,
                         y: power

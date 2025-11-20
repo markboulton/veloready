@@ -5,8 +5,8 @@ import Charts
 /// Shows weekly Training Stress Score totals as bar chart
 /// Color-coded by load: red (>600), amber (>400), blue (>200), green (≤200)
 struct WeeklyTSSTrendCardV2: View {
-    let data: [TrendsViewModel.WeeklyTSSDataPoint]
-    let timeRange: TrendsViewModel.TimeRange
+    let data: [TrendsDataLoader.WeeklyTSSDataPoint]
+    let timeRange: TrendsViewState.TimeRange
     
     private var averageTSS: Double {
         guard !data.isEmpty else { return 0 }
@@ -224,7 +224,7 @@ struct WeeklyTSSTrendCardV2: View {
                 data: (0..<12).map { week in
                     let base = 450.0
                     let variation = Double.random(in: -100...150)
-                    return TrendsViewModel.WeeklyTSSDataPoint(
+                    return TrendsDataLoader.WeeklyTSSDataPoint(
                         weekStart: Calendar.current.date(byAdding: .weekOfYear, value: -week, to: Date())!,
                         tss: max(100, base + variation)
                     )
@@ -235,18 +235,18 @@ struct WeeklyTSSTrendCardV2: View {
             // High load
             WeeklyTSSTrendCardV2(
                 data: (0..<8).map { week in
-                    TrendsViewModel.WeeklyTSSDataPoint(
+                    TrendsDataLoader.WeeklyTSSDataPoint(
                         weekStart: Calendar.current.date(byAdding: .weekOfYear, value: -week, to: Date())!,
                         tss: Double.random(in: 500...750)
                     )
                 }.reversed(),
                 timeRange: .days90
             )
-            
+
             // Low load
             WeeklyTSSTrendCardV2(
                 data: (0..<8).map { week in
-                    TrendsViewModel.WeeklyTSSDataPoint(
+                    TrendsDataLoader.WeeklyTSSDataPoint(
                         weekStart: Calendar.current.date(byAdding: .weekOfYear, value: -week, to: Date())!,
                         tss: Double.random(in: 100...250)
                     )

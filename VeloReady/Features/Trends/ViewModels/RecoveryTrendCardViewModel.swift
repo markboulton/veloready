@@ -7,7 +7,7 @@ import Foundation
 final class RecoveryTrendCardViewModel {
     
     /// Generate insight based on average recovery score
-    func generateInsight(data: [TrendsViewModel.TrendDataPoint]) -> String {
+    func generateInsight(data: [TrendsDataLoader.TrendDataPoint]) -> String {
         guard !data.isEmpty else {
             return TrendsContent.noDataFound
         }
