@@ -168,6 +168,18 @@ struct GoalsSettingsView: View {
         }
         .navigationTitle("Goals")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Settings Error", isPresented: Binding(
+            get: { viewState.errorMessage != nil },
+            set: { if !$0 { viewState.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {
+                viewState.errorMessage = nil
+            }
+        } message: {
+            if let error = viewState.errorMessage {
+                Text(error)
+            }
+        }
     }
 
     private var formattedSleepTarget: String {

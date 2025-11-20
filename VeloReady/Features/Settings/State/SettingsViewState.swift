@@ -78,6 +78,7 @@ final class SettingsViewState: ObservableObject {
     @Published var phase: LoadingPhase = .notStarted
     @Published var activeSheet: Sheet?
     @Published var lastUpdated: Date?
+    @Published var errorMessage: String?  // For showing validation error alerts
 
     // Settings groups
     @Published var sleepSettings: SleepSettings = .default
@@ -124,9 +125,11 @@ final class SettingsViewState: ObservableObject {
             try await loader.saveSleepSettings(settings)
             sleepSettings = settings
             lastUpdated = Date()
+            errorMessage = nil  // Clear any previous errors
             Logger.info("⚙️ [SettingsViewState] Sleep settings saved")
         } catch {
             Logger.error("❌ [SettingsViewState] Failed to save sleep settings: \(error)")
+            errorMessage = error.localizedDescription
             phase = .error(error)
         }
     }
@@ -137,9 +140,11 @@ final class SettingsViewState: ObservableObject {
             try await loader.saveZoneSettings(settings)
             zoneSettings = settings
             lastUpdated = Date()
+            errorMessage = nil  // Clear any previous errors
             Logger.info("⚙️ [SettingsViewState] Zone settings saved")
         } catch {
             Logger.error("❌ [SettingsViewState] Failed to save zone settings: \(error)")
+            errorMessage = error.localizedDescription
             phase = .error(error)
         }
     }
@@ -150,9 +155,11 @@ final class SettingsViewState: ObservableObject {
             try await loader.saveDisplaySettings(settings)
             displaySettings = settings
             lastUpdated = Date()
+            errorMessage = nil  // Clear any previous errors
             Logger.info("⚙️ [SettingsViewState] Display settings saved")
         } catch {
             Logger.error("❌ [SettingsViewState] Failed to save display settings: \(error)")
+            errorMessage = error.localizedDescription
             phase = .error(error)
         }
     }
@@ -163,9 +170,11 @@ final class SettingsViewState: ObservableObject {
             try await loader.saveProfileSettings(settings)
             profileSettings = settings
             lastUpdated = Date()
+            errorMessage = nil  // Clear any previous errors
             Logger.info("⚙️ [SettingsViewState] Profile settings saved")
         } catch {
             Logger.error("❌ [SettingsViewState] Failed to save profile settings: \(error)")
+            errorMessage = error.localizedDescription
             phase = .error(error)
         }
     }
@@ -176,9 +185,11 @@ final class SettingsViewState: ObservableObject {
             try await loader.saveGoalsSettings(settings)
             goalsSettings = settings
             lastUpdated = Date()
+            errorMessage = nil  // Clear any previous errors
             Logger.info("⚙️ [SettingsViewState] Goals settings saved")
         } catch {
             Logger.error("❌ [SettingsViewState] Failed to save goals settings: \(error)")
+            errorMessage = error.localizedDescription
             phase = .error(error)
         }
     }
