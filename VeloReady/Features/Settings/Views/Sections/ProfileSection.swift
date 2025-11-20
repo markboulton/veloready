@@ -2,20 +2,20 @@ import SwiftUI
 
 /// Profile section showing user info with edit capability
 struct ProfileSection: View {
-    @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var viewState = ProfileViewState()
     @State private var refreshTrigger = false
-    
+
     var body: some View {
         Section {
             NavigationLink(destination: ProfileView()
                 .onDisappear {
                     // Reload profile when returning from ProfileView
-                    viewModel.loadProfile()
+                    viewState.loadProfile()
                 }
             ) {
                 HStack {
                     // Profile avatar
-                    if let image = viewModel.avatarImage {
+                    if let image = viewState.avatarImage {
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFill()
@@ -31,14 +31,14 @@ struct ProfileSection: View {
                                     .font(.title2)
                             }
                     }
-                    
+
                     VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(viewModel.name.isEmpty ? SettingsContent.Profile.user : viewModel.name)
+                        Text(viewState.name.isEmpty ? SettingsContent.Profile.user : viewState.name)
                             .font(.headline)
                             .fontWeight(.semibold)
-                        
-                        if !viewModel.email.isEmpty {
-                            Text(viewModel.email)
+
+                        if !viewState.email.isEmpty {
+                            Text(viewState.email)
                                 .font(.subheadline)
                                 .foregroundColor(ColorPalette.labelSecondary)
                         } else {
@@ -47,7 +47,7 @@ struct ProfileSection: View {
                                 .foregroundColor(ColorPalette.labelSecondary)
                         }
                     }
-                    
+
                     Spacer()
                 }
                 .padding(.vertical, Spacing.sm)
@@ -56,7 +56,7 @@ struct ProfileSection: View {
             Text(SettingsContent.profileSection)
         }
         .onAppear {
-            viewModel.loadProfile()
+            viewState.loadProfile()
         }
     }
 }
