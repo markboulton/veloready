@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Sleep hypnogram component with segmented control for day selection
 struct SleepHypnogramComponent: View {
-    let hypnograms: [WeeklyReportViewModel.SleepNightData]
+    let hypnograms: [SleepNightData]
     @Binding var selectedDay: Int
     
     var body: some View {
@@ -83,7 +83,7 @@ struct SleepHypnogramComponent: View {
         return formatter.string(from: date)
     }
     
-    private func formatNightDuration(_ hypnogram: WeeklyReportViewModel.SleepNightData) -> String {
+    private func formatNightDuration(_ hypnogram: SleepNightData) -> String {
         let duration = hypnogram.wakeTime.timeIntervalSince(hypnogram.bedtime)
         let hours = Int(duration / 3600)
         let minutes = Int((duration.truncatingRemainder(dividingBy: 3600)) / 60)
@@ -110,14 +110,14 @@ struct SleepHypnogramComponent: View {
     return PreviewWrapper()
 }
 
-private func generateMockHypnograms() -> [WeeklyReportViewModel.SleepNightData] {
+private func generateMockHypnograms() -> [SleepNightData] {
     let calendar = Calendar.current
     return (0..<7).map { dayOffset in
         let date = calendar.date(byAdding: .day, value: -6 + dayOffset, to: Date())!
         let bedtime = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: date)!
         let wakeTime = calendar.date(byAdding: .hour, value: 7, to: bedtime)!
         
-        return WeeklyReportViewModel.SleepNightData(
+        return SleepNightData(
             date: date,
             samples: [],
             bedtime: bedtime,

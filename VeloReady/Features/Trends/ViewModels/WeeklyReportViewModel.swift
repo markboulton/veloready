@@ -31,24 +31,8 @@ final class WeeklyReportViewModel {
     var ctlHistoricalData: [FitnessTrajectoryChart.DataPoint]?
     
     // MARK: - Data Models
-    
-    struct SleepNightData: Identifiable {
-        let id = UUID()
-        let date: Date
-        let samples: [SleepHypnogramChart.SleepStageSample]
-        let bedtime: Date
-        let wakeTime: Date
-    }
-    
-    struct WellnessFoundation {
-        let sleepQuality: Double
-        let recoveryCapacity: Double
-        let hrvStatus: Double
-        let stressLevel: Double
-        let consistency: Double
-        let nutrition: Double
-        let overallScore: Double
-    }
+    // Note: WellnessFoundation, SleepDayData, SleepNightData, and CircadianRhythmData
+    // now come from their respective services (WellnessCalculationService, SleepAnalysisService, CircadianRhythmService)
     
     struct WeeklyMetrics {
         let avgRecovery: Double
@@ -74,29 +58,10 @@ final class WeeklyReportViewModel {
         let zoneHardPercent: Double
         let polarizationScore: Double
     }
-    
-    struct SleepDayData: Identifiable {
-        let id = UUID()
-        let date: Date
-        let deep: Double
-        let rem: Double
-        let core: Double
-        let awake: Double
-        let bedtime: Date?
-        let wakeTime: Date?
-    }
-    
+
     struct WeeklyHeatmapData {
         let trainingData: [WeeklyHeatmap.DayData]
         let sleepData: [WeeklyHeatmap.DayData]
-    }
-    
-    struct CircadianRhythmData {
-        let avgBedtime: Double // fractional hour
-        let avgWakeTime: Double
-        let bedtimeVariance: Double // minutes
-        let avgTrainingTime: Double?
-        let consistency: Double
     }
     
     // MARK: - Services
@@ -172,67 +137,12 @@ final class WeeklyReportViewModel {
     
     private func calculateWellnessFoundation() async {
         let last7Days = getLast7Days()
-        
-        guard !last7Days.isEmpty else {
-            Logger.warning("️ No data for wellness foundation")
-            return
+
+        // Delegate to WellnessCalculationService
+        let service = WellnessCalculationService.shared
+        if let wellness = service.calculateWellness(from: last7Days) {
+            wellnessFoundation = wellness
         }
-        
-        // Sleep Quality: avg sleep score + consistency
-        let sleepScores = last7Days.compactMap { $0.sleepScore > 0 ? $0.sleepScore : nil }
-        let avgSleepScore = sleepScores.isEmpty ? 0 : sleepScores.reduce(0, +) / Double(sleepScores.count)
-        let sleepConsistency = calculateSleepConsistency(days: last7Days)
-        let sleepQuality = (avgSleepScore * 0.7 + sleepConsistency * 0.3)
-        
-        // Recovery Capacity: avg recovery - recovery debt penalty
-        let recoveryScores = last7Days.compactMap { $0.recoveryScore > 0 ? $0.recoveryScore : nil }
-        let avgRecovery = recoveryScores.isEmpty ? 0 : recoveryScores.reduce(0, +) / Double(recoveryScores.count)
-        let lowRecoveryDays = recoveryScores.filter { $0 < 60 }.count
-        let recoveryCapacity = max(0, avgRecovery - Double(lowRecoveryDays) * 3)
-        
-        // HRV Status: trend + stability
-        let hrvValues = last7Days.compactMap { $0.physio?.hrv ?? 0 > 0 ? $0.physio?.hrv : nil }
-        let hrvStatus = calculateHRVStatus(values: hrvValues)
-        
-        // Stress Level: inferred from RHR elevation + low recovery days
-        let rhrValues = last7Days.compactMap { $0.physio?.rhr ?? 0 > 0 ? $0.physio?.rhr : nil }
-        let stressLevel = calculateStressLevel(rhrValues: rhrValues, lowRecoveryDays: lowRecoveryDays)
-        
-        // Consistency: sleep + training schedule regularity
-        let consistency = sleepConsistency
-        
-        // Nutrition: inferred from recovery pattern + workout completion
-        // High recovery + completed workouts = good nutrition
-        let nutrition = min(100, avgRecovery * 1.1)
-        
-        // Check if sleep data is available and not simulated as unavailable
-        let simulateNoSleep = UserDefaults.standard.bool(forKey: "simulateNoSleepData")
-        let hasSleepData = !sleepScores.isEmpty && !simulateNoSleep
-        
-        // Overall: weighted average - rebalance when sleep unavailable
-        let overall: Double
-        if hasSleepData {
-            // Normal weights (with sleep): Sleep 25%, Recovery 25%, HRV 20%, Stress 15%, Consistency 10%, Nutrition 5%
-            overall = (sleepQuality * 0.25 + recoveryCapacity * 0.25 + hrvStatus * 0.2 +
-                      (100 - stressLevel) * 0.15 + consistency * 0.1 + nutrition * 0.05)
-        } else {
-            // Rebalanced weights (without sleep): Recovery 33.3%, HRV 26.7%, Stress 20%, Consistency 13.3%, Nutrition 6.7%
-            overall = (recoveryCapacity * 0.333 + hrvStatus * 0.267 +
-                      (100 - stressLevel) * 0.20 + consistency * 0.133 + nutrition * 0.067)
-            Logger.debug("💤 NO SLEEP MODE: Wellness foundation using rebalanced weights (no sleep)")
-        }
-        
-        wellnessFoundation = WellnessFoundation(
-            sleepQuality: sleepQuality,
-            recoveryCapacity: recoveryCapacity,
-            hrvStatus: hrvStatus,
-            stressLevel: stressLevel,
-            consistency: consistency,
-            nutrition: nutrition,
-            overallScore: overall
-        )
-        
-        Logger.debug("💚 Wellness Foundation: \(Int(overall))/100")
     }
     
     private func calculateSleepConsistency(days: [DailyScores]) -> Double {
@@ -436,122 +346,39 @@ final class WeeklyReportViewModel {
         let thisWeek = getLast7Days()
         var sleepDataArray: [SleepDayData] = []
         var hypnogramArray: [SleepNightData] = []
-        
+
+        // Delegate to SleepAnalysisService
+        let service = SleepAnalysisService.shared
+
         for day in thisWeek {
             guard let date = day.date else { continue }
-            
-            // Fetch sleep session that ENDED on this day (not started)
-            // Sleep sessions span midnight, so we need to look back ~12 hours to capture the full session
-            let dayStart = Calendar.current.startOfDay(for: date)
-            guard let fetchStart = Calendar.current.date(byAdding: .hour, value: -12, to: dayStart) else { continue }
-            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else { continue }
-            
+
             do {
-                let allSamples = try await healthKitManager.fetchSleepData(from: fetchStart, to: dayEnd)
-                
-                // Group samples into sleep sessions (samples within 2 hours are same session)
-                // Then find the session that WOKE UP during this day
-                var sessions: [[HKCategorySample]] = []
-                var currentSession: [HKCategorySample] = []
-                
-                for sample in allSamples.sorted(by: { $0.startDate < $1.startDate }) {
-                    if let lastSample = currentSession.last {
-                        let gap = sample.startDate.timeIntervalSince(lastSample.endDate)
-                        if gap > 7200 { // 2 hour gap = new session
-                            sessions.append(currentSession)
-                            currentSession = []
-                        }
-                    }
-                    currentSession.append(sample)
+                let (sleepData, hypnogramData) = try await service.analyzeSleepForDay(
+                    date: date,
+                    healthKitManager: healthKitManager
+                )
+
+                if let sleepData = sleepData {
+                    sleepDataArray.append(sleepData)
                 }
-                if !currentSession.isEmpty {
-                    sessions.append(currentSession)
-                }
-                
-                // Find the session that ended (woke up) during this day
-                guard let mainSession = sessions.first(where: { session in
-                    guard let wakeTime = session.max(by: { $0.endDate < $1.endDate })?.endDate else { return false }
-                    return wakeTime >= dayStart && wakeTime < dayEnd
-                }) else {
-                    continue // No sleep session woke up on this day
-                }
-                
-                // Now process only the main session
-                var deep: TimeInterval = 0
-                var rem: TimeInterval = 0
-                var core: TimeInterval = 0
-                var awake: TimeInterval = 0
-                var earliestBedtime: Date?
-                var latestWakeTime: Date?
-                
-                // Convert HK samples to hypnogram samples
-                var hypnogramSamples: [SleepHypnogramChart.SleepStageSample] = []
-                
-                for sample in mainSession {
-                    let duration = sample.endDate.timeIntervalSince(sample.startDate)
-                    
-                    // Track bedtime and wake time
-                    if earliestBedtime == nil || sample.startDate < earliestBedtime! {
-                        earliestBedtime = sample.startDate
-                    }
-                    if latestWakeTime == nil || sample.endDate > latestWakeTime! {
-                        latestWakeTime = sample.endDate
-                    }
-                    
-                    // Add to hypnogram
-                    if let hypnogramSample = SleepHypnogramChart.SleepStageSample(from: sample) {
-                        hypnogramSamples.append(hypnogramSample)
-                    }
-                    
-                    switch sample.value {
-                    case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
-                        deep += duration
-                    case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
-                        rem += duration
-                    case HKCategoryValueSleepAnalysis.asleepCore.rawValue,
-                         HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
-                        core += duration
-                    case HKCategoryValueSleepAnalysis.awake.rawValue:
-                        awake += duration
-                    default:
-                        break
-                    }
-                }
-                
-                if deep > 0 || rem > 0 || core > 0 {
-                    sleepDataArray.append(SleepDayData(
-                        date: date,
-                        deep: deep / 3600.0,
-                        rem: rem / 3600.0,
-                        core: core / 3600.0,
-                        awake: awake / 3600.0,
-                        bedtime: earliestBedtime,
-                        wakeTime: latestWakeTime
-                    ))
-                    
-                    // Add hypnogram data if we have bedtime and wake time
-                    if let bedtime = earliestBedtime, let wakeTime = latestWakeTime, !hypnogramSamples.isEmpty {
-                        hypnogramArray.append(SleepNightData(
-                            date: date,
-                            samples: hypnogramSamples,
-                            bedtime: bedtime,
-                            wakeTime: wakeTime
-                        ))
-                    }
+
+                if let hypnogramData = hypnogramData {
+                    hypnogramArray.append(hypnogramData)
                 }
             } catch {
-                Logger.error("Failed to fetch sleep data for \(date): \(error)")
+                Logger.error("Failed to analyze sleep for \(date): \(error)")
             }
         }
-        
-        // Filter out future sleep sessions (shouldn't happen, but just in case)
+
+        // Filter out future sleep sessions
         let now = Date()
         let pastHypnograms = hypnogramArray.filter { $0.wakeTime < now }
-        
+
         sleepArchitecture = sleepDataArray
         sleepHypnograms = pastHypnograms
-        
-        Logger.debug("😴 Sleep Architecture: \(sleepDataArray.count) days, \(hypnogramArray.count) total hypnograms (\(pastHypnograms.count) past) from HealthKit")
+
+        Logger.debug("💤 Loaded sleep architecture: \(sleepDataArray.count) days, \(pastHypnograms.count) hypnograms")
     }
     
     // MARK: - Heatmap
@@ -609,94 +436,16 @@ final class WeeklyReportViewModel {
     // MARK: - Circadian Rhythm
     
     private func calculateCircadianRhythm() async {
-        // Use actual bedtime/wake time from sleep architecture
-        Logger.debug("🕐 [SLEEP SCHEDULE DEBUG]")
-        Logger.debug("   Sleep architecture entries: \(sleepArchitecture.count)")
-        
-        guard !sleepArchitecture.isEmpty else {
-            Logger.warning("   ⚠️ No sleep architecture data")
-            return
-        }
-        
-        // Only use PAST sleep (not future)
-        let now = Date()
-        let pastSleep = sleepArchitecture.filter { sleep in
-            guard let wakeTime = sleep.wakeTime else { return false }
-            return wakeTime < now
-        }
-        Logger.debug("   Past sleep sessions: \(pastSleep.count)")
-        
-        let bedtimes = pastSleep.compactMap { $0.bedtime }.compactMap { $0 }
-        let wakeTimes = pastSleep.compactMap { $0.wakeTime }.compactMap { $0 }
-        
-        guard !bedtimes.isEmpty && !wakeTimes.isEmpty else {
-            Logger.warning("   ⚠️ No valid bedtime/wake time data")
-            return
-        }
-        
-        // Calculate average bedtime (in fractional hours from midnight)
-        // Need to handle times after midnight (e.g., 23:00 = 23.0, 00:30 = 24.5 to avoid averaging issues)
-        let bedtimeHours = bedtimes.map { date -> Double in
-            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            var hour = Double(components.hour ?? 0)
-            let minute = Double(components.minute ?? 0) / 60.0
-            
-            // If bedtime is before 6am, treat as next day (e.g., 1am = 25.0)
-            if hour < 6 {
-                hour += 24
-            }
-            
-            let fractionalHour = hour + minute
-            let timeStr = String(format: "%02d:%02d", components.hour ?? 0, components.minute ?? 0)
-            Logger.debug("      Bedtime: \(timeStr) = \(fractionalHour)h")
-            return fractionalHour
-        }
-        let avgBedtimeRaw = bedtimeHours.reduce(0, +) / Double(bedtimeHours.count)
-        // Normalize back to 0-24 range
-        let avgBedtime = avgBedtimeRaw >= 24 ? avgBedtimeRaw - 24 : avgBedtimeRaw
-        Logger.debug("   Average bedtime: \(avgBedtime)h (raw: \(avgBedtimeRaw))")
-        
-        // Calculate average wake time (handle early morning times)
-        let wakeTimeHours = wakeTimes.map { date -> Double in
-            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            let hour = Double(components.hour ?? 0)
-            let minute = Double(components.minute ?? 0) / 60.0
-            
-            // If wake time is very early (before 6am), it's likely from previous night's sleep
-            // Keep it in 0-6 range for proper averaging
-            let fractionalHour = hour + minute
-            let timeStr = String(format: "%02d:%02d", components.hour ?? 0, components.minute ?? 0)
-            Logger.debug("      Wake: \(timeStr) = \(fractionalHour)h")
-            return fractionalHour
-        }
-        let avgWakeTime = wakeTimeHours.reduce(0, +) / Double(wakeTimeHours.count)
-        Logger.debug("   Average wake time: \(avgWakeTime)h")
-        
-        // Calculate bedtime variance (standard deviation in minutes)
-        // Use normalized bedtime values to avoid issues with 24+ hour values
-        let normalizedBedtimes = bedtimeHours.map { $0 >= 24 ? $0 - 24 : $0 }
-        let avgBedtimeMinutes = avgBedtime * 60
-        let bedtimeMinutes = normalizedBedtimes.map { $0 * 60 }
-        let varianceSum = bedtimeMinutes.map { pow($0 - avgBedtimeMinutes, 2) }.reduce(0, +)
-        let variance = varianceSum / Double(bedtimeMinutes.count)
-        let bedtimeVariance = sqrt(variance)
-        
-        let avgTrainingTime: Double? = nil
-        
+        // Delegate to CircadianRhythmService
         let thisWeek = getLast7Days()
         let consistency = calculateSleepConsistency(days: thisWeek)
-        
-        circadianRhythm = CircadianRhythmData(
-            avgBedtime: avgBedtime,
-            avgWakeTime: avgWakeTime,
-            bedtimeVariance: bedtimeVariance,
-            avgTrainingTime: avgTrainingTime,
-            consistency: consistency
-        )
-        
-        Logger.debug("⏰ Circadian Rhythm: Bedtime \(String(format: "%.1f", avgBedtime))h, Wake \(String(format: "%.1f", avgWakeTime))h, Variance ±\(Int(bedtimeVariance))min")
+
+        let service = CircadianRhythmService.shared
+        if let rhythm = service.calculateCircadianRhythm(from: sleepArchitecture, consistency: consistency) {
+            circadianRhythm = rhythm
+        }
     }
-    
+
     // MARK: - CTL Historical Data
     
     private func loadCTLHistoricalData() async {

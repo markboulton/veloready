@@ -1,7 +1,15 @@
 import Foundation
 
+/// Standard trend data point for time-series analysis
+struct TrendDataPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let value: Double
+}
+
 /// HRV trend data point with baseline for stress calculation
-struct HRVTrendDataPoint {
+struct HRVTrendDataPoint: Identifiable {
+    let id = UUID()
     let date: Date
     let value: Double
     let baseline: Double?

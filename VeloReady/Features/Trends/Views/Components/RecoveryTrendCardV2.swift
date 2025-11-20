@@ -3,7 +3,7 @@ import Charts
 
 /// Recovery Trend card using atomic ChartCard wrapper
 struct RecoveryTrendCardV2: View {
-    let data: [TrendsDataLoader.TrendDataPoint]
+    let data: [TrendDataPoint]
     let timeRange: TrendsViewState.TimeRange
     
     @State private var viewModel = RecoveryTrendCardViewModel()
@@ -173,7 +173,7 @@ struct RecoveryTrendCardV2: View {
         data: (0..<90).map { day in
             let base = 72.0
             let variation = Double.random(in: -10...10)
-            return TrendsDataLoader.TrendDataPoint(
+            return TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: max(45, min(95, base + variation))
             )

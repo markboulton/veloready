@@ -42,19 +42,7 @@ final class TrendsDataLoader {
     }
 
     // MARK: - Data Models (from TrendsViewModel)
-
-    struct TrendDataPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let value: Double
-    }
-
-    struct HRVTrendDataPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let value: Double
-        let baseline: Double?
-    }
+    // Note: TrendDataPoint and HRVTrendDataPoint now come from StressSynthesisService
 
     struct WeeklyTSSDataPoint: Identifiable {
         let id = UUID()
@@ -497,71 +485,15 @@ final class TrendsDataLoader {
         sleep: [TrendDataPoint],
         dailyLoad: [TrendDataPoint]
     ) async -> [TrendDataPoint] {
-        // Synthesize stress from multiple sources
-        // Stress = inverse of wellness
-        // Higher recovery/HRV/sleep = lower stress
-        // Higher RHR/load = higher stress
-
-        let calendar = Calendar.current
-        var stressByDate: [Date: Double] = [:]
-
-        // Create date index
-        var allDates = Set<Date>()
-        allDates.formUnion(recovery.map { calendar.startOfDay(for: $0.date) })
-        allDates.formUnion(hrv.map { calendar.startOfDay(for: $0.date) })
-        allDates.formUnion(rhr.map { calendar.startOfDay(for: $0.date) })
-        allDates.formUnion(sleep.map { calendar.startOfDay(for: $0.date) })
-        allDates.formUnion(dailyLoad.map { calendar.startOfDay(for: $0.date) })
-
-        for date in allDates {
-            var stress: Double = 50  // Baseline
-            var factors = 0
-
-            // Recovery (30% weight) - inverse
-            if let recoveryPoint = recovery.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                stress += (100 - recoveryPoint.value) * 0.3
-                factors += 1
-            }
-
-            // HRV (25% weight) - inverse deviation from baseline
-            if let hrvPoint = hrv.first(where: { calendar.isDate($0.date, inSameDayAs: date) }),
-               let baseline = hrvPoint.baseline {
-                let deviation = ((baseline - hrvPoint.value) / baseline) * 100
-                stress += deviation * 0.25
-                factors += 1
-            }
-
-            // RHR (20% weight) - higher = more stress (normalize around 60)
-            if let rhrPoint = rhr.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                let rhrStress = (rhrPoint.value - 60) * 2  // Each 1 bpm above 60 = 2 stress points
-                stress += max(0, rhrStress) * 0.2
-                factors += 1
-            }
-
-            // Sleep (15% weight) - inverse
-            if let sleepPoint = sleep.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                stress += (100 - sleepPoint.value) * 0.15
-                factors += 1
-            }
-
-            // Daily load (10% weight)
-            if let loadPoint = dailyLoad.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                stress += loadPoint.value * 0.1
-                factors += 1
-            }
-
-            // Only include if we have at least 2 factors
-            if factors >= 2 {
-                stressByDate[date] = max(0, min(100, stress))
-            }
-        }
-
-        let data = stressByDate.map { date, value in
-            TrendDataPoint(date: date, value: value)
-        }.sorted { $0.date < $1.date }
-
-        Logger.debug("📈 Loaded stress trend: \(data.count) points (synthesized from \(data.isEmpty ? 0 : 5) sources)")
-        return data
+        // Delegate to StressSynthesisService
+        let service = StressSynthesisService.shared
+        return service.synthesizeStress(
+            recovery: recovery,
+            hrv: hrv,
+            rhr: rhr,
+            sleep: sleep,
+            dailyLoad: dailyLoad
+        )
     }
 
     // MARK: Recovery vs Power Correlation

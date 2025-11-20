@@ -3,7 +3,7 @@ import Charts
 
 /// Stress Level card using atomic ChartCard wrapper
 struct StressLevelCardV2: View {
-    let data: [TrendsDataLoader.TrendDataPoint]
+    let data: [TrendDataPoint]
     let timeRange: TrendsViewState.TimeRange
     
     private var averageStress: Double {
@@ -142,7 +142,7 @@ struct StressLevelCardV2: View {
 #Preview {
     StressLevelCardV2(
         data: (0..<30).map { day in
-            TrendsDataLoader.TrendDataPoint(
+            TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: Double.random(in: 20...80)
             )

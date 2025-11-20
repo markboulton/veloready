@@ -1,7 +1,8 @@
 import Foundation
 
 /// Result of wellness calculation
-struct WellnessFoundation {
+struct WellnessFoundation: Identifiable {
+    let id = UUID()
     let sleepQuality: Double
     let recoveryCapacity: Double
     let hrvStatus: Double

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Wellness Foundation component with radar chart
 struct WellnessFoundationComponent: View {
-    let wellness: WeeklyReportViewModel.WellnessFoundation
+    let wellness: WellnessFoundation
     
     var body: some View {
         StandardCard(
@@ -38,7 +38,7 @@ struct WellnessFoundationComponent: View {
         }
     }
     
-    private func wellnessInterpretation(wellness: WeeklyReportViewModel.WellnessFoundation) -> String {
+    private func wellnessInterpretation(wellness: WellnessFoundation) -> String {
         var insights: [String] = []
         
         if wellness.sleepQuality < 70 {
@@ -63,7 +63,7 @@ struct WellnessFoundationComponent: View {
 
 #Preview {
     WellnessFoundationComponent(
-        wellness: WeeklyReportViewModel.WellnessFoundation(
+        wellness: WellnessFoundation(
             sleepQuality: 85,
             recoveryCapacity: 75,
             hrvStatus: 70,

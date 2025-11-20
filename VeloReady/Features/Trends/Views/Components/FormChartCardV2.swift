@@ -4,9 +4,9 @@ import Charts
 /// Form Chart showing CTL (Chronic Training Load), ATL (Acute Training Load), and TSB (Training Stress Balance)
 /// This visualizes training form/fitness over time
 struct FormChartCardV2: View {
-    let ctlData: [TrendsViewModel.TrendDataPoint]
-    let atlData: [TrendsViewModel.TrendDataPoint]
-    let tsbData: [TrendsViewModel.TrendDataPoint]
+    let ctlData: [TrendDataPoint]
+    let atlData: [TrendDataPoint]
+    let tsbData: [TrendDataPoint]
     let timeRange: TrendsViewModel.TimeRange
     
     private var hasData: Bool {
@@ -178,19 +178,19 @@ private struct DashedLine: Shape {
     
     FormChartCardV2(
         ctlData: (0..<7).map { i in
-            TrendsViewModel.TrendDataPoint(
+            TrendDataPoint(
                 date: calendar.date(byAdding: .day, value: -6 + i, to: now)!,
                 value: 45 + Double(i) * 2
             )
         },
         atlData: (0..<7).map { i in
-            TrendsViewModel.TrendDataPoint(
+            TrendDataPoint(
                 date: calendar.date(byAdding: .day, value: -6 + i, to: now)!,
                 value: 30 + Double(i) * 3
             )
         },
         tsbData: (0..<7).map { i in
-            TrendsViewModel.TrendDataPoint(
+            TrendDataPoint(
                 date: calendar.date(byAdding: .day, value: -6 + i, to: now)!,
                 value: 15 - Double(i) * 1
             )

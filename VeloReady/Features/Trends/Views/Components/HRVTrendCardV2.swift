@@ -3,7 +3,7 @@ import Charts
 
 /// HRV Trend card using atomic ChartCard wrapper
 struct HRVTrendCardV2: View {
-    let data: [TrendsDataLoader.HRVTrendDataPoint]
+    let data: [HRVTrendDataPoint]
     let timeRange: TrendsViewState.TimeRange
     
     private var averageHRV: Double {

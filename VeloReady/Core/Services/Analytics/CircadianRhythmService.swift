@@ -1,7 +1,8 @@
 import Foundation
 
 /// Circadian rhythm data with sleep schedule consistency metrics
-struct CircadianRhythmData {
+struct CircadianRhythmData: Identifiable {
+    let id = UUID()
     let avgBedtime: Double  // Fractional hours from midnight (e.g., 23.5 = 11:30 PM)
     let avgWakeTime: Double  // Fractional hours from midnight (e.g., 7.5 = 7:30 AM)
     let bedtimeVariance: Double  // Standard deviation in minutes

@@ -2,7 +2,8 @@ import Foundation
 import HealthKit
 
 /// Sleep data for a single day with stage breakdown
-struct SleepDayData {
+struct SleepDayData: Identifiable {
+    let id = UUID()
     let date: Date
     let deep: Double  // hours
     let rem: Double  // hours
@@ -13,7 +14,8 @@ struct SleepDayData {
 }
 
 /// Sleep night data with hypnogram samples
-struct SleepNightData {
+struct SleepNightData: Identifiable {
+    let id = UUID()
     let date: Date
     let samples: [SleepHypnogramChart.SleepStageSample]
     let bedtime: Date

@@ -349,18 +349,18 @@ struct CardGalleryDebugView: View {
     
     // MARK: - Sample Data Generators
     
-    private func sampleTrendData(baseline: Double, range: ClosedRange<Double>) -> [TrendsViewModel.TrendDataPoint] {
+    private func sampleTrendData(baseline: Double, range: ClosedRange<Double>) -> [TrendDataPoint] {
         (0..<30).map { day in
-            TrendsViewModel.TrendDataPoint(
+            TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: baseline + Double.random(in: range)
             )
         }.reversed()
     }
     
-    private var sampleHRVData: [TrendsViewModel.HRVTrendDataPoint] {
+    private var sampleHRVData: [HRVTrendDataPoint] {
         (0..<30).map { day in
-            TrendsViewModel.HRVTrendDataPoint(
+            HRVTrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: 65 + Double.random(in: -12...12),
                 baseline: 65
@@ -368,13 +368,13 @@ struct CardGalleryDebugView: View {
         }.reversed()
     }
     
-    private var sampleFTPData: [TrendsViewModel.TrendDataPoint] {
+    private var sampleFTPData: [TrendDataPoint] {
         [
-            TrendsViewModel.TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*60), value: 285),
-            TrendsViewModel.TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*45), value: 288),
-            TrendsViewModel.TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*30), value: 292),
-            TrendsViewModel.TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*15), value: 295),
-            TrendsViewModel.TrendDataPoint(date: Date(), value: 298)
+            TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*60), value: 285),
+            TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*45), value: 288),
+            TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*30), value: 292),
+            TrendDataPoint(date: Date().addingTimeInterval(-60*60*24*15), value: 295),
+            TrendDataPoint(date: Date(), value: 298)
         ]
     }
     

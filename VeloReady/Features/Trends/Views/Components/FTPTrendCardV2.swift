@@ -3,7 +3,7 @@ import Charts
 
 /// FTP Trend card using atomic ChartCard wrapper
 struct FTPTrendCardV2: View {
-    let data: [TrendsDataLoader.TrendDataPoint]
+    let data: [TrendDataPoint]
     let timeRange: TrendsViewState.TimeRange
     
     private var currentFTP: Int {
@@ -111,7 +111,7 @@ struct FTPTrendCardV2: View {
             let base = 285.0
             let trend = Double(day) * 0.1
             let variation = Double.random(in: -5...5)
-            return TrendsDataLoader.TrendDataPoint(
+            return TrendDataPoint(
                 date: Date().addingTimeInterval(Double(-day) * 24 * 60 * 60),
                 value: base + trend + variation
             )

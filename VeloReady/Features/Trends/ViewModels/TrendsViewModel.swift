@@ -19,14 +19,14 @@ final class TrendsViewModel {
     nonisolated(unsafe) private var backfillObserver: NSObjectProtocol?
 
     // Trend data
-    var ftpTrendData: [TrendsDataLoader.TrendDataPoint] = []
-    var recoveryTrendData: [TrendsDataLoader.TrendDataPoint] = []
-    var hrvTrendData: [TrendsDataLoader.HRVTrendDataPoint] = []
+    var ftpTrendData: [TrendDataPoint] = []
+    var recoveryTrendData: [TrendDataPoint] = []
+    var hrvTrendData: [HRVTrendDataPoint] = []
     var weeklyTSSData: [TrendsDataLoader.WeeklyTSSDataPoint] = []
-    var dailyLoadData: [TrendsDataLoader.TrendDataPoint] = []  // Daily TSS normalized to 0-100
-    var sleepData: [TrendsDataLoader.TrendDataPoint] = []  // Sleep quality 0-100
-    var restingHRData: [TrendsDataLoader.TrendDataPoint] = []
-    var stressData: [TrendsDataLoader.TrendDataPoint] = []  // Inferred stress score
+    var dailyLoadData: [TrendDataPoint] = []  // Daily TSS normalized to 0-100
+    var sleepData: [TrendDataPoint] = []  // Sleep quality 0-100
+    var restingHRData: [TrendDataPoint] = []
+    var stressData: [TrendDataPoint] = []  // Inferred stress score
     var activitiesForLoad: [Activity] = []  // For training load chart
 
     // Correlation data
@@ -76,9 +76,7 @@ final class TrendsViewModel {
     typealias TimeRange = TrendsViewState.TimeRange
     
     // MARK: - Data Models (Type aliases for backward compatibility)
-
-    typealias TrendDataPoint = TrendsDataLoader.TrendDataPoint
-    typealias HRVTrendDataPoint = TrendsDataLoader.HRVTrendDataPoint
+    // TrendDataPoint and HRVTrendDataPoint now come from StressSynthesisService
     typealias WeeklyTSSDataPoint = TrendsDataLoader.WeeklyTSSDataPoint
     typealias CorrelationDataPoint = TrendsDataLoader.CorrelationDataPoint
     

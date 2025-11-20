@@ -604,11 +604,7 @@ struct StatItem: View {
 
 // MARK: - Data Models
 
-struct TrendDataPoint: Identifiable {
-    let id = UUID()
-    let date: Date
-    let value: Double
-}
+// TrendDataPoint is now defined in StressSynthesisService.swift
 
 enum TrendPeriod: CaseIterable {
     case sevenDays

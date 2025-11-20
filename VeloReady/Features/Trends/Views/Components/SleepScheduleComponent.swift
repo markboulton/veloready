@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Sleep Schedule component showing circadian rhythm data
 struct SleepScheduleComponent: View {
-    let circadian: WeeklyReportViewModel.CircadianRhythmData
+    let circadian: CircadianRhythmData
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs / 2) {
@@ -50,7 +50,7 @@ struct SleepScheduleComponent: View {
         return String(format: "%d:%02d %@", displayHour, m, period)
     }
     
-    private func circadianMessage(circadian: WeeklyReportViewModel.CircadianRhythmData) -> String {
+    private func circadianMessage(circadian: CircadianRhythmData) -> String {
         if circadian.bedtimeVariance < 30 {
             return TrendsContent.WeeklyReport.excellentConsistency
         } else if circadian.bedtimeVariance < 60 {

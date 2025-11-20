@@ -15,9 +15,9 @@ final class PerformanceOverviewCardViewModel {
     
     /// Generate insight based on latest recovery, load, and sleep values
     func generateInsight(
-        recoveryData: [TrendsDataLoader.TrendDataPoint],
-        loadData: [TrendsDataLoader.TrendDataPoint],
-        sleepData: [TrendsDataLoader.TrendDataPoint]
+        recoveryData: [TrendDataPoint],
+        loadData: [TrendDataPoint],
+        sleepData: [TrendDataPoint]
     ) -> String {
         guard let lastRecovery = recoveryData.last?.value,
               let lastLoad = loadData.last?.value else {
