@@ -80,40 +80,18 @@ struct ActivitiesView: View {
     }
     
     // MARK: - Activities ScrollView
-    
+
     private var activitiesScrollView: some View {
         ScrollView {
             VStack(spacing: Spacing.md) {
-                // Paginated activities list with LazyVGrid
-                LazyVGrid(columns: [GridItem(.flexible())], spacing: Spacing.md) {
-                    ForEach(Array(viewModel.paginatedActivities.enumerated()), id: \.element.id) { index, activity in
-                        LatestActivityCardV2(activity: activity)
-                            .onAppear {
-                                // Trigger pagination when reaching near end (last 3 items)
-                                if index == viewModel.paginatedActivities.count - 3 && viewModel.hasMorePages {
-                                    Logger.debug("📊 [Activities] Near end of page (\(index + 1)/\(viewModel.paginatedActivities.count)) - loading next page")
-                                    viewModel.loadNextPage()
-                                }
-                            }
-                    }
-                    
-                    // Pagination loading indicator
-                    if viewModel.isLoadingPage {
-                        HStack {
-                            Spacer()
-                            ProgressView()
-                                .scaleEffect(1.2)
-                                .padding(.vertical, Spacing.lg)
-                            Spacer()
-                        }
-                    }
-                }
-                
-                // Load more indicator (for old progressive loading)
-                if viewModel.hasMoreToLoad && !viewModel.hasMorePages {
+                // Progressive loading activities list
+                activitiesGrid
+
+                // Load more indicator
+                if viewModel.hasMoreToLoad {
                     loadMoreIndicator
                 }
-                
+
                 // Pro upgrade CTA for FREE users
                 if !proConfig.hasProAccess && !viewModel.allActivities.isEmpty {
                     proUpgradeSection
@@ -124,15 +102,43 @@ struct ActivitiesView: View {
             .padding(.bottom, 120)
         }
     }
+
+    // MARK: - Activities Grid
+
+    private var activitiesGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible())], spacing: Spacing.md) {
+            ForEach(Array(viewModel.displayedActivities.enumerated()), id: \.element.id) { index, activity in
+                LatestActivityCardV2(activity: activity)
+                    .onAppear {
+                        // Trigger progressive loading when reaching near end (last 3 items)
+                        if index == viewModel.displayedActivities.count - 3 && viewModel.hasMoreToLoad {
+                            Logger.debug("📊 [Activities] Near end (\(index + 1)/\(viewModel.displayedActivities.count)) - loading more")
+                            viewModel.loadMoreActivitiesIfNeeded()
+                        }
+                    }
+            }
+
+            // Progressive loading indicator
+            if viewModel.isLoadingMore {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .padding(.vertical, Spacing.lg)
+                    Spacer()
+                }
+            }
+        }
+    }
     
     // MARK: - Load More Indicator
-    
+
     private var loadMoreIndicator: some View {
         HStack {
             Spacer()
             ProgressView()
                 .onAppear {
-                    Logger.debug("📊 [Activities] Load more indicator appeared - total displayed: \(viewModel.paginatedActivities.count)/\(viewModel.allActivities.count)")
+                    Logger.debug("📊 [Activities] Load more indicator appeared - total displayed: \(viewModel.displayedActivities.count)/\(viewModel.allActivities.count)")
                 }
             Spacer()
         }

@@ -9,7 +9,7 @@ final class ActivitiesViewState: ObservableObject {
 
     // MARK: - Loading Phase
 
-    enum LoadingPhase {
+    enum LoadingPhase: Equatable {
         case notStarted
         case loading               // Initial load in progress
         case loadingMore           // Loading extended activities (31-90 days)
@@ -34,6 +34,23 @@ final class ActivitiesViewState: ObservableObject {
             case .complete: return "complete"
             case .error(let error): return "error(\(error.localizedDescription))"
             case .refreshing: return "refreshing"
+            }
+        }
+
+        // Equatable conformance
+        static func == (lhs: LoadingPhase, rhs: LoadingPhase) -> Bool {
+            switch (lhs, rhs) {
+            case (.notStarted, .notStarted),
+                 (.loading, .loading),
+                 (.loadingMore, .loadingMore),
+                 (.complete, .complete),
+                 (.refreshing, .refreshing):
+                return true
+            case (.error, .error):
+                // Consider all error states as equal
+                return true
+            default:
+                return false
             }
         }
     }
