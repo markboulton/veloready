@@ -1,7 +1,7 @@
 # Detail Pages Refactor Plan
 **Branch:** `detail-pages-refactor`
 **Date:** 2025-11-19
-**Status:** Phase 1 & 2 Complete - Ready for Phase 3+
+**Status:** Phase 1, 2 & 3 Complete - Ready for Phase 4+ (Optional)
 
 ## Completed Work (2025-11-20)
 
@@ -18,10 +18,17 @@
 - Includes: ViewModel with progressive load calculation, offline Core Data fallback, TrendChart integration
 - Tests passed, deployed to detail-pages-refactor branch
 
-### Remaining Work
-- Phase 3: Base ViewModel Pattern
-- Phase 4: Unified Chart Components
-- Phase 5: View Refactoring (extract sections)
+### ✅ Phase 3: Shared Trend Data Fetching (commit 6d9ef47)
+- Added `fetchRecoveryTrend()` and `fetchSleepTrend()` to DailyDataService
+- Implemented generic `fetchTrendData()` helper with deduplication logic
+- Refactored RecoveryDetailViewModel and SleepDetailViewModel to use shared methods
+- Eliminated ~90 lines of duplicate Core Data query code
+- Ensures consistent behavior across all trend charts
+- Tests passed, deployed to detail-pages-refactor branch
+
+### Remaining Work (Optional Future Enhancements)
+- Phase 4: Unified UI Components (RingHeaderView, MetricGridSection)
+- Phase 5: View Refactoring (extract sections into separate files)
 - Phase 6: Mini-Chart Standardization
 
 ## Executive Summary
