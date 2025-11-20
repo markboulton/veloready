@@ -530,14 +530,25 @@ final class BackfillService {
                 var skippedCount = 0
                 
                 for date in self.historicalDates(daysBack: daysBack) {
-                    // Fetch DailyScores for this day
+                    // Fetch or create DailyScores for this day
                     let scoresRequest = DailyScores.fetchRequest()
                     scoresRequest.predicate = NSPredicate(format: "date == %@", date as NSDate)
                     scoresRequest.fetchLimit = 1
-                    
-                    guard let scores = try context.fetch(scoresRequest).first else {
-                        skippedCount += 1
-                        continue
+
+                    let scores: DailyScores
+                    if let existing = try context.fetch(scoresRequest).first {
+                        scores = existing
+                    } else {
+                        // Create new DailyScores entry for days with only activity data (steps/calories)
+                        scores = DailyScores(context: context)
+                        scores.date = date
+                        scores.recoveryScore = 0  // Will be calculated by recovery backfill if physio data exists
+                        scores.sleepScore = 0  // Will be calculated by sleep backfill if sleep data exists
+                        scores.strainScore = 0  // Will be calculated below
+                        scores.effortTarget = 50
+                        scores.recoveryBand = "amber"
+                        scores.lastUpdated = Date()
+                        Logger.trace("📊 [STRAIN BACKFILL] Created new DailyScores entry for \(date)")
                     }
                     
                     // Skip if already has a realistic strain score (> 5.0 to force recalculation of old formula values)
