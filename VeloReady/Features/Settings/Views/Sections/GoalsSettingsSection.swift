@@ -2,16 +2,25 @@ import SwiftUI
 
 /// Goals settings section - Daily targets for steps and calories
 struct GoalsSettingsSection: View {
-    @ObservedObject private var userSettings = UserSettings.shared
-    
+    @ObservedObject private var viewState = SettingsViewState.shared
+
+    private var formattedSleepTarget: String {
+        let hours = Int(viewState.sleepSettings.targetHours)
+        let minutes = viewState.sleepSettings.targetMinutes
+        if minutes == 0 {
+            return "\(hours)h"
+        }
+        return "\(hours)h \(minutes)m"
+    }
+
     var body: some View {
         Section {
             NavigationLink(destination: GoalsSettingsView()) {
                 VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                     Text("Daily Goals")
                         .font(TypeScale.font(size: TypeScale.md))
-                    
-                    Text("Steps: \(userSettings.stepGoal) • Calories: \(Int(userSettings.calorieGoal)) • Sleep: \(userSettings.formattedSleepTarget)")
+
+                    Text("Steps: \(viewState.goalsSettings.stepGoal) • Calories: \(Int(viewState.goalsSettings.calorieGoal)) • Sleep: \(formattedSleepTarget)")
                         .font(TypeScale.font(size: TypeScale.xs))
                         .foregroundColor(ColorPalette.labelSecondary)
                 }

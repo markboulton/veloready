@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Goals settings view - Configure daily step and calorie targets
 struct GoalsSettingsView: View {
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var viewState = SettingsViewState.shared
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -17,13 +17,23 @@ struct GoalsSettingsView: View {
                         HStack {
                             Text("Steps:")
                                 .frame(width: 80, alignment: .leading)
-                            
-                            Stepper(value: $userSettings.stepGoal, in: 1000...30000, step: 500) {
-                                Text("\(userSettings.stepGoal) steps")
+
+                            Stepper(value: Binding(
+                                get: { viewState.goalsSettings.stepGoal },
+                                set: { newValue in
+                                    Task {
+                                        let updated = GoalsSettings(
+                                            calorieGoal: viewState.goalsSettings.calorieGoal,
+                                            useBMRAsGoal: viewState.goalsSettings.useBMRAsGoal,
+                                            stepGoal: newValue
+                                        )
+                                        await viewState.saveGoalsSettings(updated)
+                                        HapticFeedback.selection()
+                                    }
+                                }
+                            ), in: 1000...30000, step: 500) {
+                                Text("\(viewState.goalsSettings.stepGoal) steps")
                                     .frame(width: 100, alignment: .trailing)
-                            }
-                            .onChange(of: userSettings.stepGoal) { _, _ in
-                                HapticFeedback.selection()
                             }
                         }
                     }
@@ -36,27 +46,47 @@ struct GoalsSettingsView: View {
                 
                 // Calorie Goals
                 Section {
-                    Toggle("Use BMR as Calorie Goal", isOn: $userSettings.useBMRAsGoal)
-                        .onChange(of: userSettings.useBMRAsGoal) { _, _ in
-                            HapticFeedback.selection()
+                    Toggle("Use BMR as Calorie Goal", isOn: Binding(
+                        get: { viewState.goalsSettings.useBMRAsGoal },
+                        set: { newValue in
+                            Task {
+                                let updated = GoalsSettings(
+                                    calorieGoal: viewState.goalsSettings.calorieGoal,
+                                    useBMRAsGoal: newValue,
+                                    stepGoal: viewState.goalsSettings.stepGoal
+                                )
+                                await viewState.saveGoalsSettings(updated)
+                                HapticFeedback.selection()
+                            }
                         }
-                    
-                    if !userSettings.useBMRAsGoal {
+                    ))
+
+                    if !viewState.goalsSettings.useBMRAsGoal {
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Daily Calorie Target")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                            
+
                             HStack {
                                 Text("Calories:")
                                     .frame(width: 80, alignment: .leading)
-                                
-                                Stepper(value: $userSettings.calorieGoal, in: 1000...5000, step: 50) {
-                                    Text("\(Int(userSettings.calorieGoal)) \(CommonContent.Units.calories)")
+
+                                Stepper(value: Binding(
+                                    get: { viewState.goalsSettings.calorieGoal },
+                                    set: { newValue in
+                                        Task {
+                                            let updated = GoalsSettings(
+                                                calorieGoal: newValue,
+                                                useBMRAsGoal: viewState.goalsSettings.useBMRAsGoal,
+                                                stepGoal: viewState.goalsSettings.stepGoal
+                                            )
+                                            await viewState.saveGoalsSettings(updated)
+                                            HapticFeedback.selection()
+                                        }
+                                    }
+                                ), in: 1000...5000, step: 50) {
+                                    Text("\(Int(viewState.goalsSettings.calorieGoal)) \(CommonContent.Units.calories)")
                                         .frame(width: 100, alignment: .trailing)
-                                }
-                                .onChange(of: userSettings.calorieGoal) { _, _ in
-                                    HapticFeedback.selection()
                                 }
                             }
                         }
@@ -74,34 +104,56 @@ struct GoalsSettingsView: View {
                         Text("Sleep Target")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        
+
                         HStack {
                             Text("Hours:")
                                 .frame(width: 80, alignment: .leading)
-                            
-                            Stepper(value: $userSettings.sleepTargetHours, in: 4...12, step: 0.5) {
-                                Text("\(userSettings.sleepTargetHours, specifier: "%.1f")")
+
+                            Stepper(value: Binding(
+                                get: { viewState.sleepSettings.targetHours },
+                                set: { newValue in
+                                    Task {
+                                        let updated = SleepSettings(
+                                            targetHours: newValue,
+                                            targetMinutes: viewState.sleepSettings.targetMinutes,
+                                            reminders: viewState.sleepSettings.reminders,
+                                            reminderTime: viewState.sleepSettings.reminderTime
+                                        )
+                                        await viewState.saveSleepSettings(updated)
+                                        HapticFeedback.selection()
+                                    }
+                                }
+                            ), in: 4...12, step: 0.5) {
+                                Text("\(viewState.sleepSettings.targetHours, specifier: "%.1f")")
                                     .frame(width: 60, alignment: .trailing)
                             }
-                            .onChange(of: userSettings.sleepTargetHours) { _, _ in
-                                HapticFeedback.selection()
-                            }
                         }
-                        
+
                         HStack {
                             Text("Minutes:")
                                 .frame(width: 80, alignment: .leading)
-                            
-                            Stepper(value: $userSettings.sleepTargetMinutes, in: 0...59, step: 15) {
-                                Text("\(userSettings.sleepTargetMinutes)")
+
+                            Stepper(value: Binding(
+                                get: { viewState.sleepSettings.targetMinutes },
+                                set: { newValue in
+                                    Task {
+                                        let updated = SleepSettings(
+                                            targetHours: viewState.sleepSettings.targetHours,
+                                            targetMinutes: newValue,
+                                            reminders: viewState.sleepSettings.reminders,
+                                            reminderTime: viewState.sleepSettings.reminderTime
+                                        )
+                                        await viewState.saveSleepSettings(updated)
+                                        HapticFeedback.selection()
+                                    }
+                                }
+                            ), in: 0...59, step: 15) {
+                                Text("\(viewState.sleepSettings.targetMinutes)")
                                     .frame(width: 60, alignment: .trailing)
                             }
-                            .onChange(of: userSettings.sleepTargetMinutes) { _, _ in
-                                HapticFeedback.selection()
-                            }
                         }
-                        
-                        Text("Total: \(userSettings.formattedSleepTarget)")
+
+                        Text("Total: \(formattedSleepTarget)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -114,6 +166,15 @@ struct GoalsSettingsView: View {
         }
         .navigationTitle("Goals")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var formattedSleepTarget: String {
+        let hours = Int(viewState.sleepSettings.targetHours)
+        let minutes = viewState.sleepSettings.targetMinutes
+        if minutes == 0 {
+            return "\(hours)h"
+        }
+        return "\(hours)h \(minutes)m"
     }
 }
 
