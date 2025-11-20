@@ -79,9 +79,9 @@ struct ActivityStatsRow: View {
     }
     
     private func formatDistance(_ kilometers: Double) -> String {
-        let userSettings = UserSettings.shared
-        
-        if userSettings.useMetricUnits {
+        let useMetricUnits = SettingsViewState.shared.displaySettings.useMetricUnits
+
+        if useMetricUnits {
             return String(format: "%.1f km", kilometers)
         } else {
             let miles = kilometers * 0.621371

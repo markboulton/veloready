@@ -3,7 +3,7 @@ import SwiftUI
 /// Screen 6: Profile Setup - Units, name, and avatar
 struct ProfileSetupStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var settingsState = SettingsViewState.shared
     @StateObject private var intervalsManager = IntervalsOAuthManager.shared
     @StateObject private var stravaAuthService = StravaAuthService.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
@@ -129,9 +129,9 @@ struct ProfileSetupStepView: View {
     
     private func loadProfileData() {
         isLoadingProfile = true
-        
-        // Set initial values from UserSettings
-        selectedUnit = userSettings.useMetricUnits ? .metric : .imperial
+
+        // Set initial values from SettingsViewState
+        selectedUnit = settingsState.displaySettings.useMetricUnits ? .metric : .imperial
         
         // Try to get name from connected services
         Task {
@@ -151,7 +151,16 @@ struct ProfileSetupStepView: View {
     
     private func saveProfile() {
         // Save unit preference
-        userSettings.useMetricUnits = (selectedUnit == .metric)
+        Task {
+            let updated = DisplaySettings(
+                showSleepScore: settingsState.displaySettings.showSleepScore,
+                showRecoveryScore: settingsState.displaySettings.showRecoveryScore,
+                showHealthData: settingsState.displaySettings.showHealthData,
+                useMetricUnits: (selectedUnit == .metric),
+                use24HourTime: settingsState.displaySettings.use24HourTime
+            )
+            await settingsState.saveDisplaySettings(updated)
+        }
         UserDefaults.standard.set(selectedUnit.rawValue, forKey: "preferredUnitSystem")
         
         // Save name

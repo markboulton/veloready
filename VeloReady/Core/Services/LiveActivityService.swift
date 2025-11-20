@@ -16,7 +16,6 @@ class LiveActivityService: ObservableObject {
     var lastUpdated: Date?
     
     private let healthKitManager = HealthKitManager.shared
-    private let userSettings = UserSettings.shared
 
     // Prevent multiple concurrent updates
     private var updateTask: Task<Void, Never>?
@@ -181,7 +180,6 @@ class LiveActivityService: ObservableObject {
         // Calculate total calories
         let intervalsCaloriesValue = UserDefaults.standard.double(forKey: "cached_intervals_calories")
         let activeCaloriesValue = activeCalories + intervalsCaloriesValue
-        _ = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
         dailyCalories = activeCaloriesValue + bmrCaloriesValue
         
         Logger.debug("📱 Cached data loaded - Steps: \(dailySteps), Active: \(activeCalories), Total: \(dailyCalories)")
@@ -221,10 +219,7 @@ class LiveActivityService: ObservableObject {
         
         // Calculate active calories (HealthKit + Intervals)
         let activeCaloriesValue = healthData.activeCalories + intervalsCaloriesValue
-        
-        // Get effective calorie goal (BMR or user-set)
-        _ = userSettings.useBMRAsGoal ? bmrCaloriesValue : userSettings.calorieGoal
-        
+
         // Update published properties with fresh data
         dailySteps = healthData.steps
         walkingDistance = healthData.walkingDistance

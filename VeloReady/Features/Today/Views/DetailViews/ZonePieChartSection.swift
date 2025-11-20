@@ -5,7 +5,7 @@ import Charts
 struct ZonePieChartSection: View {
     let activity: Activity
     @StateObject private var profileManager = AthleteProfileManager.shared
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var settingsState = SettingsViewState.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     
     var body: some View {
@@ -381,28 +381,30 @@ struct ZonePieChartSection: View {
         return String(format: "%d:%02d", minutes, secs)
     }
     
-    // MARK: - FREE User Zone Boundaries (from UserSettings)
-    
+    // MARK: - FREE User Zone Boundaries (from SettingsViewState)
+
     private func freeHRZoneBoundary(_ index: Int) -> String {
+        let zones = settingsState.zoneSettings
         switch index {
-        case 0: return "≤ \(userSettings.hrZone1Max) \(CommonContent.Units.bpm)"
-        case 1: return "\(userSettings.hrZone1Max + 1) - \(userSettings.hrZone2Max) \(CommonContent.Units.bpm)"
-        case 2: return "\(userSettings.hrZone2Max + 1) - \(userSettings.hrZone3Max) \(CommonContent.Units.bpm)"
-        case 3: return "\(userSettings.hrZone3Max + 1) - \(userSettings.hrZone4Max) \(CommonContent.Units.bpm)"
-        case 4: return "\(userSettings.hrZone4Max + 1) - \(userSettings.hrZone5Max) \(CommonContent.Units.bpm)"
-        case 5: return "> \(userSettings.hrZone5Max) \(CommonContent.Units.bpm)"
+        case 0: return "≤ \(zones.hrZone1Max) \(CommonContent.Units.bpm)"
+        case 1: return "\(zones.hrZone1Max + 1) - \(zones.hrZone2Max) \(CommonContent.Units.bpm)"
+        case 2: return "\(zones.hrZone2Max + 1) - \(zones.hrZone3Max) \(CommonContent.Units.bpm)"
+        case 3: return "\(zones.hrZone3Max + 1) - \(zones.hrZone4Max) \(CommonContent.Units.bpm)"
+        case 4: return "\(zones.hrZone4Max + 1) - \(zones.hrZone5Max) \(CommonContent.Units.bpm)"
+        case 5: return "> \(zones.hrZone5Max) \(CommonContent.Units.bpm)"
         default: return hrZoneName(index)
         }
     }
-    
+
     private func freePowerZoneBoundary(_ index: Int) -> String {
+        let zones = settingsState.zoneSettings
         switch index {
-        case 0: return "≤ \(userSettings.powerZone1Max) \(CommonContent.Units.watts)"
-        case 1: return "\(userSettings.powerZone1Max + 1) - \(userSettings.powerZone2Max) \(CommonContent.Units.watts)"
-        case 2: return "\(userSettings.powerZone2Max + 1) - \(userSettings.powerZone3Max) \(CommonContent.Units.watts)"
-        case 3: return "\(userSettings.powerZone3Max + 1) - \(userSettings.powerZone4Max) \(CommonContent.Units.watts)"
-        case 4: return "\(userSettings.powerZone4Max + 1) - \(userSettings.powerZone5Max) \(CommonContent.Units.watts)"
-        case 5: return "> \(userSettings.powerZone5Max) \(CommonContent.Units.watts)"
+        case 0: return "≤ \(zones.powerZone1Max) \(CommonContent.Units.watts)"
+        case 1: return "\(zones.powerZone1Max + 1) - \(zones.powerZone2Max) \(CommonContent.Units.watts)"
+        case 2: return "\(zones.powerZone2Max + 1) - \(zones.powerZone3Max) \(CommonContent.Units.watts)"
+        case 3: return "\(zones.powerZone3Max + 1) - \(zones.powerZone4Max) \(CommonContent.Units.watts)"
+        case 4: return "\(zones.powerZone4Max + 1) - \(zones.powerZone5Max) \(CommonContent.Units.watts)"
+        case 5: return "> \(zones.powerZone5Max) \(CommonContent.Units.watts)"
         default: return powerZoneName(index)
         }
     }

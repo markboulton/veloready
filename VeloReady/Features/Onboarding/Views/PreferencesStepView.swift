@@ -3,7 +3,6 @@ import SwiftUI
 /// Step 5: User preferences and profile setup
 struct PreferencesStepView: View {
     @StateObject private var onboardingManager = OnboardingManager.shared
-    @StateObject private var userSettings = UserSettings.shared
     @State private var selectedUnit: UnitSystem = .metric
     @State private var selectedActivities: Set<ActivityType> = [.cycling, .running]
     @State private var enableNotifications: Bool = true

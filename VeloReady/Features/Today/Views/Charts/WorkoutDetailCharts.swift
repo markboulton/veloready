@@ -167,8 +167,8 @@ struct WorkoutDetailCharts: View {
                 let maxSpeed = validSpeed.max() ?? 0
                 
                 // Convert to user's preferred units
-                let userSettings = UserSettings.shared
-                let (displayAvg, displayMax, speedUnit) = userSettings.useMetricUnits
+                let useMetricUnits = SettingsViewState.shared.displaySettings.useMetricUnits
+                let (displayAvg, displayMax, speedUnit) = useMetricUnits
                     ? (avgSpeed, maxSpeed, "km/h")
                     : (avgSpeed * 0.621371, maxSpeed * 0.621371, "mph") // km/h to mph
                 
@@ -177,7 +177,7 @@ struct WorkoutDetailCharts: View {
                 MetricChartView(
                     title: "Speed",
                     samples: samples,
-                    getValue: { userSettings.useMetricUnits ? $0.speed : $0.speed * 0.621371 },
+                    getValue: { useMetricUnits ? $0.speed : $0.speed * 0.621371 },
                     color: ChartStyle.speedColor,
                     summary: MetricSummary(
                         average: displayAvg.isNaN || displayAvg.isInfinite ? 0 : displayAvg,
@@ -217,8 +217,8 @@ struct WorkoutDetailCharts: View {
                 let maxElevation = validElevation.max() ?? 0
                 
                 // Convert to user's preferred units
-                let userSettings = UserSettings.shared
-                let (displayAvg, displayMax, elevUnit) = userSettings.useMetricUnits
+                let useMetricUnits = SettingsViewState.shared.displaySettings.useMetricUnits
+                let (displayAvg, displayMax, elevUnit) = useMetricUnits
                     ? (avgElevation, maxElevation, "m")
                     : (avgElevation * 3.28084, maxElevation * 3.28084, "ft") // meters to feet
                 
@@ -233,7 +233,7 @@ struct WorkoutDetailCharts: View {
                         max: displayMax.isNaN || displayMax.isInfinite ? 0 : displayMax,
                         unit: elevUnit
                     ),
-                    useMetricUnits: userSettings.useMetricUnits
+                    useMetricUnits: useMetricUnits
                 )
             }
             

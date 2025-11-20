@@ -18,7 +18,7 @@ class SleepScoreService: ObservableObject {
     
     private let calculator = SleepDataCalculator()
     private let healthKitManager = HealthKitManager.shared
-    private let userSettings = UserSettings.shared
+    private let settingsState = SettingsViewState.shared
     private let cache = UnifiedCacheManager.shared
     
     // Prevent multiple concurrent calculations
@@ -392,8 +392,9 @@ class SleepScoreService: ObservableObject {
     /// Calculate sleep need based on user target and training load
     private func calculateSleepNeed() -> Double {
         // Base sleep need from user settings
-        let sleepNeed = userSettings.sleepTargetSeconds
-        
+        let sleepSettings = settingsState.sleepSettings
+        let sleepNeed = (sleepSettings.targetHours * 3600) + (Double(sleepSettings.targetMinutes) * 60)
+
         return sleepNeed
     }
     
@@ -477,14 +478,26 @@ class SleepScoreService: ObservableObject {
     }
     
     /// Update sleep target
-    func updateSleepTarget(_ target: Double) {
-        userSettings.sleepTargetHours = target / 3600
-        Logger.debug("🔄 Sleep target updated to \(String(format: "%.1f", target/3600)) hours")
+    func updateSleepTarget(_ target: Double) async {
+        let hours = target / 3600
+        let minutes = Int((target.truncatingRemainder(dividingBy: 3600)) / 60)
+
+        let updated = SleepSettings(
+            targetHours: hours,
+            targetMinutes: minutes,
+            reminders: settingsState.sleepSettings.reminders,
+            reminderTime: settingsState.sleepSettings.reminderTime,
+            recoveryAlerts: settingsState.sleepSettings.recoveryAlerts
+        )
+
+        await settingsState.saveSleepSettings(updated)
+        Logger.debug("🔄 Sleep target updated to \(String(format: "%.1f", hours)) hours")
     }
-    
+
     /// Get current sleep target
     func getSleepTarget() -> Double {
-        return userSettings.sleepTargetSeconds
+        let sleepSettings = settingsState.sleepSettings
+        return (sleepSettings.targetHours * 3600) + (Double(sleepSettings.targetMinutes) * 60)
     }
 }
 

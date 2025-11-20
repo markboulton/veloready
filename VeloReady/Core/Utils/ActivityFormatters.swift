@@ -53,12 +53,12 @@ enum ActivityFormatters {
         }
     }
     
-    /// Format distance with UserSettings preference
+    /// Format distance with user's unit preference
     /// - Parameter meters: Distance in meters
     /// - Returns: Formatted string based on user's unit preference
     @MainActor
     static func formatDistance(_ meters: Double) -> String {
-        let useMetric = UserSettings.shared.useMetricUnits
+        let useMetric = SettingsViewState.shared.displaySettings.useMetricUnits
         return formatDistance(meters, useMetric: useMetric)
     }
     
@@ -79,12 +79,12 @@ enum ActivityFormatters {
         }
     }
     
-    /// Format speed with UserSettings preference
+    /// Format speed with user's unit preference
     /// - Parameter metersPerSecond: Speed in meters per second
     /// - Returns: Formatted string based on user's unit preference
     @MainActor
     static func formatSpeed(_ metersPerSecond: Double) -> String {
-        let useMetric = UserSettings.shared.useMetricUnits
+        let useMetric = SettingsViewState.shared.displaySettings.useMetricUnits
         return formatSpeed(metersPerSecond, useMetric: useMetric)
     }
     

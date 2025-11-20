@@ -3,7 +3,7 @@ import SwiftUI
 /// Detailed calorie panel showing Goal, Active Energy, and Total
 struct DetailedCaloriePanel: View {
     @ObservedObject private var liveActivityService: LiveActivityService
-    @StateObject private var userSettings = UserSettings.shared
+    @ObservedObject private var settingsState = SettingsViewState.shared
     @State private var dataOpacity: Double = 0.0
     
     init(liveActivityService: LiveActivityService) {
@@ -70,10 +70,10 @@ struct DetailedCaloriePanel: View {
     }
     
     private var effectiveGoal: Double {
-        if userSettings.useBMRAsGoal {
+        if settingsState.goalsSettings.useBMRAsGoal {
             return liveActivityService.bmrCalories
         } else {
-            return userSettings.calorieGoal
+            return settingsState.goalsSettings.calorieGoal
         }
     }
     

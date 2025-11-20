@@ -48,7 +48,7 @@ class OnboardingManager: ObservableObject {
     }
     
     // MARK: - Sport Preferences
-    
+
     /// Set default cycling preference on onboarding completion
     func setDefaultCyclingPreference() {
         let preferences = SportPreferences(rankings: [.cycling: 1])
@@ -75,7 +75,7 @@ class OnboardingManager: ObservableObject {
     func completeOnboarding() {
         // Set default cycling preference
         setDefaultCyclingPreference()
-        
+
         withAnimation {
             hasCompletedOnboarding = true
         }

@@ -628,9 +628,9 @@ struct AdditionalDataSection: View {
     
     
     private func formatElevation(_ elevation: Double) -> String {
-        let userSettings = UserSettings.shared
-        
-        if userSettings.useMetricUnits {
+        let useMetricUnits = SettingsViewState.shared.displaySettings.useMetricUnits
+
+        if useMetricUnits {
             return String(format: "%.0f m", elevation)
         } else {
             // Convert meters to feet: multiply by 3.281
