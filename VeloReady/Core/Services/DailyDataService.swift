@@ -79,12 +79,78 @@ final class DailyDataService: ObservableObject {
         guard let startDate = Calendar.current.date(byAdding: .day, value: -(count - 1), to: today) else {
             return []
         }
-        
+
         let request = DailyScores.fetchRequest()
         request.predicate = NSPredicate(format: "date >= %@ AND date <= %@", startDate as NSDate, today as NSDate)
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-        
+
         return persistence.fetch(request)
+    }
+
+    // MARK: - Shared Trend Data Fetching (Phase 3)
+
+    /// Fetch recovery trend data for a given period
+    /// Shared logic extracted from RecoveryDetailViewModel
+    func fetchRecoveryTrend(for days: Int) -> [TrendDataPoint] {
+        return fetchTrendData(days: days, scoreKeyPath: \.recoveryScore, minimumScore: 0)
+    }
+
+    /// Fetch sleep trend data for a given period
+    /// Shared logic extracted from SleepDetailViewModel
+    func fetchSleepTrend(for days: Int) -> [TrendDataPoint] {
+        return fetchTrendData(days: days, scoreKeyPath: \.sleepScore, minimumScore: 0)
+    }
+
+    /// Generic trend data fetching with deduplication
+    /// Replaces duplicate logic in RecoveryDetailViewModel and SleepDetailViewModel
+    private func fetchTrendData(
+        days: Int,
+        scoreKeyPath: KeyPath<DailyScores, Double>,
+        minimumScore: Double
+    ) -> [TrendDataPoint] {
+        let context = persistence.container.viewContext
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+
+        guard let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: endDate) else {
+            Logger.error("📊 [DailyDataService] Failed to calculate start date for \(days) days")
+            return []
+        }
+
+        let fetchRequest = DailyScores.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "date >= %@ AND date <= %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+
+        guard let results = try? context.fetch(fetchRequest) else {
+            Logger.error("📊 [DailyDataService] Core Data fetch failed for trend data")
+            return []
+        }
+
+        // Deduplicate by date: keep only the most recent entry per day
+        var seenDates = Set<Date>()
+        let uniqueResults = results.filter { score in
+            guard let date = score.date else { return false }
+            if seenDates.contains(date) {
+                return false
+            }
+            seenDates.insert(date)
+            return true
+        }
+
+        // Filter for scores above minimum and transform to TrendDataPoint
+        let trendData = uniqueResults.compactMap { score -> TrendDataPoint? in
+            guard let date = score.date else { return nil }
+            let scoreValue = score[keyPath: scoreKeyPath]
+            guard scoreValue > minimumScore else { return nil }
+            return TrendDataPoint(date: date, value: scoreValue)
+        }
+
+        // Sort by date ascending for chart display
+        return trendData.sorted { $0.date < $1.date }
     }
     
     // MARK: - Cache Validation

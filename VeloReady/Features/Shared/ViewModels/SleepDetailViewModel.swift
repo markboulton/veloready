@@ -12,21 +12,24 @@ final class SleepDetailViewModel {
     private(set) var isRefreshing = false
     
     // MARK: - Dependencies
-    
+
     private let sleepScoreService: SleepScoreService
     private let persistenceController: PersistenceController
     private let proConfig: ProFeatureConfig
-    
+    private let dailyDataService: DailyDataService
+
     // MARK: - Initialization
-    
+
     init(
         sleepScoreService: SleepScoreService = .shared,
         persistenceController: PersistenceController = .shared,
-        proConfig: ProFeatureConfig = .shared
+        proConfig: ProFeatureConfig = .shared,
+        dailyDataService: DailyDataService = .shared
     ) {
         self.sleepScoreService = sleepScoreService
         self.persistenceController = persistenceController
         self.proConfig = proConfig
+        self.dailyDataService = dailyDataService
     }
     
     // MARK: - Public Methods
@@ -51,45 +54,8 @@ final class SleepDetailViewModel {
     }
     
     private func fetchSleepTrendData(for period: TrendPeriod) -> [TrendDataPoint] {
-        let context = persistenceController.container.viewContext
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-
-        guard let startDate = calendar.date(byAdding: .day, value: -(period.days - 1), to: endDate) else {
-            Logger.error("💤 [SLEEP CHART] Failed to calculate start date")
-            return []
-        }
-        
-        let fetchRequest = DailyScores.fetchRequest()
-        fetchRequest.predicate = NSPredicate(
-            format: "date >= %@ AND date <= %@ AND sleepScore > 0",
-            startDate as NSDate,
-            endDate as NSDate
-        )
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        
-        guard let results = try? context.fetch(fetchRequest) else {
-            Logger.error("💤 [SLEEP CHART] Core Data fetch failed")
-            return []
-        }
-        
-        let dataPoints = results.compactMap { dailyScore -> TrendDataPoint? in
-            guard let date = dailyScore.date else { return nil }
-            return TrendDataPoint(
-                date: date,
-                value: dailyScore.sleepScore
-            )
-        }
-        
-        Logger.debug("💤 [SLEEP CHART] \(results.count) records → \(dataPoints.count) points for \(period.days)d view")
-        
-        if dataPoints.isEmpty {
-            Logger.warning("💤 [SLEEP CHART] No data available for \(period.days)d period")
-        } else if dataPoints.count < period.days {
-            Logger.data("💤 [SLEEP CHART] Showing \(dataPoints.count)/\(period.days) days")
-        }
-        
-        return dataPoints
+        // Use shared DailyDataService for consistent trend fetching
+        return dailyDataService.fetchSleepTrend(for: period.days)
     }
     
     private func generateMockSleepData(for period: TrendPeriod) -> [TrendDataPoint] {
