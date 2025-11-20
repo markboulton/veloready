@@ -117,7 +117,8 @@ struct GoalsSettingsView: View {
                                             targetHours: newValue,
                                             targetMinutes: viewState.sleepSettings.targetMinutes,
                                             reminders: viewState.sleepSettings.reminders,
-                                            reminderTime: viewState.sleepSettings.reminderTime
+                                            reminderTime: viewState.sleepSettings.reminderTime,
+                                            recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                         )
                                         await viewState.saveSleepSettings(updated)
                                         HapticFeedback.selection()
@@ -141,7 +142,8 @@ struct GoalsSettingsView: View {
                                             targetHours: viewState.sleepSettings.targetHours,
                                             targetMinutes: newValue,
                                             reminders: viewState.sleepSettings.reminders,
-                                            reminderTime: viewState.sleepSettings.reminderTime
+                                            reminderTime: viewState.sleepSettings.reminderTime,
+                                            recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                         )
                                         await viewState.saveSleepSettings(updated)
                                         HapticFeedback.selection()

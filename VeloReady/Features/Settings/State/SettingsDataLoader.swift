@@ -188,7 +188,7 @@ final class SettingsDataLoader {
         Logger.debug("💾 [SettingsDataLoader] Saved sleep settings")
 
         // Update notifications if reminder settings changed
-        await notificationManager.updateScheduledNotifications()
+        await notificationManager.updateScheduledNotifications(sleepSettings: settings)
     }
 
     /// Save zone settings with validation
@@ -324,7 +324,8 @@ final class SettingsDataLoader {
             targetHours: legacy.sleepTargetHours,
             targetMinutes: legacy.sleepTargetMinutes,
             reminders: legacy.sleepReminders,
-            reminderTime: legacy.sleepReminderTime
+            reminderTime: legacy.sleepReminderTime,
+            recoveryAlerts: legacy.recoveryAlerts
         )
 
         let zones = ZoneSettings(
@@ -386,6 +387,7 @@ final class SettingsDataLoader {
         let sleepTargetMinutes: Int
         let sleepReminders: Bool
         let sleepReminderTime: Date
+        let recoveryAlerts: Bool
 
         // Zones
         let hrZone1Max: Int

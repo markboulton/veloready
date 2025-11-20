@@ -20,10 +20,11 @@ class RecoveryScoreService: ObservableObject {
     private let calculator = RecoveryDataCalculator()
     private let sleepScoreService = SleepScoreService.shared
     private let cache = UnifiedCacheManager.shared
-    
+    private let settingsState = SettingsViewState.shared
+
     // Prevent multiple concurrent calculations
     private var calculationTask: Task<Void, Never>?
-    
+
     // Track when recovery score was last calculated to prevent recalculation
     private var lastRecoveryCalculationDate: Date?
     private let userDefaults = UserDefaults.standard
@@ -238,7 +239,11 @@ class RecoveryScoreService: ObservableObject {
         
         // Send recovery alert if score is low
         if let score = realScore {
-            await NotificationManager.shared.sendRecoveryAlert(score: Double(score.score), band: score.band.rawValue)
+            await NotificationManager.shared.sendRecoveryAlert(
+                score: Double(score.score),
+                band: score.band.rawValue,
+                enabled: settingsState.sleepSettings.recoveryAlerts
+            )
         }
         
         // Mark that we've calculated today's recovery score and save to cache
@@ -320,7 +325,11 @@ class RecoveryScoreService: ObservableObject {
         WatchConnectivityManager.shared.sendRecoveryScore(score)
         
         // Send recovery alert if score is low
-        await NotificationManager.shared.sendRecoveryAlert(score: Double(score.score), band: score.band.rawValue)
+        await NotificationManager.shared.sendRecoveryAlert(
+            score: Double(score.score),
+            band: score.band.rawValue,
+            enabled: settingsState.sleepSettings.recoveryAlerts
+        )
         
         Logger.debug("✅ [RecoveryScoreService] Recovery score calculated: \(score.score)")
         return score

@@ -5,14 +5,13 @@ import UIKit
 /// Manages local notifications for sleep reminders and recovery alerts
 @MainActor
 class NotificationManager: NSObject, ObservableObject {
-    
+
     static let shared = NotificationManager()
-    
+
     @Published var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @Published var isAuthorized: Bool = false
-    
+
     private let center = UNUserNotificationCenter.current()
-    private let userSettings = UserSettings.shared
     
     // Notification identifiers
     private enum NotificationID {
@@ -59,45 +58,47 @@ class NotificationManager: NSObject, ObservableObject {
     }
     
     // MARK: - Sleep Reminders
-    
+
     /// Schedule sleep reminder notification
-    func scheduleSleepReminder() async {
+    func scheduleSleepReminder(enabled: Bool, reminderTime: Date, targetHours: Double, targetMinutes: Int) async {
         // Remove existing reminder first
         center.removePendingNotificationRequests(withIdentifiers: [NotificationID.sleepReminder])
-        
-        guard userSettings.sleepReminders else {
+
+        guard enabled else {
             Logger.debug("Sleep reminders disabled - skipping schedule", category: .ui)
             return
         }
-        
+
         // Check authorization
         if !isAuthorized {
             Logger.warning("Not authorized for notifications - requesting permission", category: .ui)
             let granted = await requestAuthorization()
             guard granted else { return }
         }
-        
+
+        // Format sleep target
+        let formattedTarget = targetMinutes == 0 ? "\(Int(targetHours))h" : "\(Int(targetHours))h \(targetMinutes)m"
+
         // Create notification content
         let content = UNMutableNotificationContent()
         content.title = "Time to Wind Down"
-        content.body = "Your sleep target is \(userSettings.formattedSleepTarget). Start your bedtime routine for optimal recovery."
+        content.body = "Your sleep target is \(formattedTarget). Start your bedtime routine for optimal recovery."
         content.sound = .default
         content.categoryIdentifier = "SLEEP_REMINDER"
-        
+
         // Create trigger from reminder time
-        let reminderTime = userSettings.sleepReminderTime
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: reminderTime)
-        
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
-        
+
         // Create request
         let request = UNNotificationRequest(
             identifier: NotificationID.sleepReminder,
             content: content,
             trigger: trigger
         )
-        
+
         do {
             try await center.add(request)
             Logger.info("✅ Sleep reminder scheduled for \(components.hour ?? 0):\(String(format: "%02d", components.minute ?? 0))", category: .ui)
@@ -113,13 +114,13 @@ class NotificationManager: NSObject, ObservableObject {
     }
     
     // MARK: - Recovery Alerts
-    
+
     /// Send recovery alert if score is low
-    func sendRecoveryAlert(score: Double, band: String) async {
-        guard userSettings.recoveryAlerts else {
+    func sendRecoveryAlert(score: Double, band: String, enabled: Bool) async {
+        guard enabled else {
             return
         }
-        
+
         // Only alert if recovery is low (< 60)
         guard score < 60 else {
             return
@@ -165,14 +166,15 @@ class NotificationManager: NSObject, ObservableObject {
     }
     
     // MARK: - Management
-    
+
     /// Update all scheduled notifications based on current settings
-    func updateScheduledNotifications() async {
-        if userSettings.sleepReminders {
-            await scheduleSleepReminder()
-        } else {
-            cancelSleepReminder()
-        }
+    func updateScheduledNotifications(sleepSettings: SleepSettings) async {
+        await scheduleSleepReminder(
+            enabled: sleepSettings.reminders,
+            reminderTime: sleepSettings.reminderTime,
+            targetHours: sleepSettings.targetHours,
+            targetMinutes: sleepSettings.targetMinutes
+        )
     }
     
     /// Cancel all notifications

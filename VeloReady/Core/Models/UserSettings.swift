@@ -184,16 +184,30 @@ class UserSettings: ObservableObject {
         didSet {
             saveSettings()
             Task { @MainActor in
-                await NotificationManager.shared.updateScheduledNotifications()
+                let sleepSettings = SleepSettings(
+                    targetHours: sleepTargetHours,
+                    targetMinutes: sleepTargetMinutes,
+                    reminders: sleepReminders,
+                    reminderTime: sleepReminderTime,
+                    recoveryAlerts: recoveryAlerts
+                )
+                await NotificationManager.shared.updateScheduledNotifications(sleepSettings: sleepSettings)
             }
         }
     }
-    
+
     @Published var sleepReminderTime: Date = Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date() {
         didSet {
             saveSettings()
             Task { @MainActor in
-                await NotificationManager.shared.updateScheduledNotifications()
+                let sleepSettings = SleepSettings(
+                    targetHours: sleepTargetHours,
+                    targetMinutes: sleepTargetMinutes,
+                    reminders: sleepReminders,
+                    reminderTime: sleepReminderTime,
+                    recoveryAlerts: recoveryAlerts
+                )
+                await NotificationManager.shared.updateScheduledNotifications(sleepSettings: sleepSettings)
             }
         }
     }

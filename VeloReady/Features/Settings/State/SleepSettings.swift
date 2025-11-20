@@ -7,6 +7,7 @@ struct SleepSettings: Codable, Equatable, Sendable {
     let targetMinutes: Int
     let reminders: Bool
     let reminderTime: Date
+    let recoveryAlerts: Bool
 
     // MARK: - Defaults
 
@@ -14,7 +15,8 @@ struct SleepSettings: Codable, Equatable, Sendable {
         targetHours: 8.0,
         targetMinutes: 0,
         reminders: true,
-        reminderTime: Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date()
+        reminderTime: Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: Date()) ?? Date(),
+        recoveryAlerts: true
     )
 
     // MARK: - Validation

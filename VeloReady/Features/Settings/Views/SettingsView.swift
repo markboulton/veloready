@@ -187,7 +187,8 @@ struct SleepSettingsView: View {
                                             targetHours: newValue,
                                             targetMinutes: viewState.sleepSettings.targetMinutes,
                                             reminders: viewState.sleepSettings.reminders,
-                                            reminderTime: viewState.sleepSettings.reminderTime
+                                            reminderTime: viewState.sleepSettings.reminderTime,
+                                            recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                         )
                                         await viewState.saveSleepSettings(updated)
                                     }
@@ -210,7 +211,8 @@ struct SleepSettingsView: View {
                                             targetHours: viewState.sleepSettings.targetHours,
                                             targetMinutes: newValue,
                                             reminders: viewState.sleepSettings.reminders,
-                                            reminderTime: viewState.sleepSettings.reminderTime
+                                            reminderTime: viewState.sleepSettings.reminderTime,
+                                            recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                         )
                                         await viewState.saveSleepSettings(updated)
                                     }
@@ -1043,7 +1045,6 @@ struct DisplaySettingsView: View {
 
 struct NotificationSettingsView: View {
     @ObservedObject private var viewState = SettingsViewState.shared
-    @StateObject private var userSettings = UserSettings.shared  // Keep for recoveryAlerts (not yet migrated)
     @StateObject private var notificationManager = NotificationManager.shared
     @Environment(\.dismiss) private var dismiss
     @State private var showingPermissionAlert = false
@@ -1095,7 +1096,8 @@ struct NotificationSettingsView: View {
                                     targetHours: viewState.sleepSettings.targetHours,
                                     targetMinutes: viewState.sleepSettings.targetMinutes,
                                     reminders: newValue,
-                                    reminderTime: viewState.sleepSettings.reminderTime
+                                    reminderTime: viewState.sleepSettings.reminderTime,
+                                    recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                 )
                                 await viewState.saveSleepSettings(updated)
                                 HapticFeedback.selection()
@@ -1113,7 +1115,8 @@ struct NotificationSettingsView: View {
                                         targetHours: viewState.sleepSettings.targetHours,
                                         targetMinutes: viewState.sleepSettings.targetMinutes,
                                         reminders: viewState.sleepSettings.reminders,
-                                        reminderTime: newValue
+                                        reminderTime: newValue,
+                                        recoveryAlerts: viewState.sleepSettings.recoveryAlerts
                                     )
                                     await viewState.saveSleepSettings(updated)
                                 }
@@ -1128,9 +1131,23 @@ struct NotificationSettingsView: View {
                 }
                 
                 Section {
-                    Toggle(SettingsContent.Notifications.recoveryAlerts, isOn: $userSettings.recoveryAlerts)
+                    Toggle(SettingsContent.Notifications.recoveryAlerts, isOn: Binding(
+                        get: { viewState.sleepSettings.recoveryAlerts },
+                        set: { newValue in
+                            Task {
+                                let updated = SleepSettings(
+                                    targetHours: viewState.sleepSettings.targetHours,
+                                    targetMinutes: viewState.sleepSettings.targetMinutes,
+                                    reminders: viewState.sleepSettings.reminders,
+                                    reminderTime: viewState.sleepSettings.reminderTime,
+                                    recoveryAlerts: newValue
+                                )
+                                await viewState.saveSleepSettings(updated)
+                                HapticFeedback.selection()
+                            }
+                        }
+                    ))
                         .disabled(!notificationManager.isAuthorized)
-                        .onChange(of: userSettings.recoveryAlerts) { _, _ in HapticFeedback.selection() }
                 } header: {
                     Text(SettingsContent.Notifications.recoveryAlerts)
                 } footer: {
