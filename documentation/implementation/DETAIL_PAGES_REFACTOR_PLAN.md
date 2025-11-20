@@ -1,7 +1,28 @@
 # Detail Pages Refactor Plan
 **Branch:** `detail-pages-refactor`
 **Date:** 2025-11-19
-**Status:** Planning Complete - Ready for Execution
+**Status:** Phase 1 & 2 Complete - Ready for Phase 3+
+
+## Completed Work (2025-11-20)
+
+### ✅ Phase 1: Critical Bug Fix (commit c7bd0b5)
+- Fixed training load missing data bug in TrendsViewModel
+- Implemented CTL/ATL calculation before filtering
+- Training load charts now display data for all 7/30/60 day periods
+- Tests passed, deployed to detail-pages-refactor branch
+
+### ✅ Phase 2: Training Load MVVM Architecture (commits b90f7e8, 86d039c)
+- Created `TrainingLoadDetailViewModel.swift` (@Observable, @MainActor pattern)
+- Created `TrainingLoadDetailView.swift` matching Recovery/Sleep patterns
+- Established MVVM consistency across all three detail pages
+- Includes: ViewModel with progressive load calculation, offline Core Data fallback, TrendChart integration
+- Tests passed, deployed to detail-pages-refactor branch
+
+### Remaining Work
+- Phase 3: Base ViewModel Pattern
+- Phase 4: Unified Chart Components
+- Phase 5: View Refactoring (extract sections)
+- Phase 6: Mini-Chart Standardization
 
 ## Executive Summary
 
