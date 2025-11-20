@@ -378,11 +378,11 @@ struct CardGalleryDebugView: View {
         ]
     }
     
-    private var sampleCorrelationData: [TrendsViewModel.CorrelationDataPoint] {
+    private var sampleCorrelationData: [TrendsDataLoader.CorrelationDataPoint] {
         (0..<30).map { i in
             let recovery = Double.random(in: 50...95)
             let power = 150 + (recovery - 70) * 2 + Double.random(in: -20...20)
-            return TrendsViewModel.CorrelationDataPoint(
+            return TrendsDataLoader.CorrelationDataPoint(
                 date: Date().addingTimeInterval(Double(-i) * 24 * 60 * 60),
                 x: recovery,
                 y: power
@@ -400,9 +400,9 @@ struct CardGalleryDebugView: View {
         )
     }
     
-    private var sampleWeeklyTSSData: [TrendsViewModel.WeeklyTSSDataPoint] {
+    private var sampleWeeklyTSSData: [TrendsDataLoader.WeeklyTSSDataPoint] {
         (0..<12).map { week in
-            TrendsViewModel.WeeklyTSSDataPoint(
+            TrendsDataLoader.WeeklyTSSDataPoint(
                 weekStart: Calendar.current.date(byAdding: .weekOfYear, value: -week, to: Date())!,
                 tss: Double.random(in: 200...650)
             )
