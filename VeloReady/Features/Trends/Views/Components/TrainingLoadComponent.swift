@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Training Load Summary component
 struct TrainingLoadComponent: View {
-    let metrics: WeeklyReportViewModel.WeeklyMetrics?
-    let zones: WeeklyReportViewModel.TrainingZoneDistribution?
+    let metrics: WeeklyReportDataLoader.WeeklyMetrics?
+    let zones: WeeklyReportDataLoader.TrainingZoneDistribution?
     
     var body: some View {
         StandardCard(
@@ -120,7 +120,7 @@ struct TrainingLoadComponent: View {
         }
     }
     
-    private func trainingPatternMessage(zones: WeeklyReportViewModel.TrainingZoneDistribution) -> String {
+    private func trainingPatternMessage(zones: WeeklyReportDataLoader.TrainingZoneDistribution) -> String {
         if zones.optimalDays >= 4 {
             return TrendsContent.WeeklyReport.goodBalance
         } else if zones.overreachingDays > zones.optimalDays {

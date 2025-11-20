@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Fitness Trajectory component showing CTL/ATL/TSB with time range selection
 struct FitnessTrajectoryComponent: View {
-    let metrics: WeeklyReportViewModel.WeeklyMetrics?
+    let metrics: WeeklyReportDataLoader.WeeklyMetrics?
     let ctlData: [FitnessTrajectoryChart.DataPoint]?
     
     @State private var selectedTimeRange: FitnessTimeRange = .week
@@ -130,7 +130,7 @@ struct FitnessTrajectoryComponent: View {
 
 #Preview {
     FitnessTrajectoryComponent(
-        metrics: WeeklyReportViewModel.WeeklyMetrics(
+        metrics: WeeklyReportDataLoader.WeeklyMetrics(
             avgRecovery: 75,
             recoveryChange: -5,
             avgSleep: 7.2,

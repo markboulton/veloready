@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Recovery Capacity component showing key recovery metrics
 struct RecoveryCapacityComponent: View {
-    let metrics: WeeklyReportViewModel.WeeklyMetrics
+    let metrics: WeeklyReportDataLoader.WeeklyMetrics
     
     var body: some View {
         StandardCard(
@@ -52,7 +52,7 @@ struct RecoveryCapacityComponent: View {
         }
     }
     
-    private func recoveryCapacityMessage(metrics: WeeklyReportViewModel.WeeklyMetrics) -> String {
+    private func recoveryCapacityMessage(metrics: WeeklyReportDataLoader.WeeklyMetrics) -> String {
         if metrics.avgRecovery >= 75 {
             return TrendsContent.WeeklyReport.excellentCapacity
         } else if metrics.avgRecovery >= 65 {

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Weekly Performance Report View - Refactored with modular components
 struct WeeklyReportView: View {
-    @State private var viewModel = WeeklyReportViewModel()
+    @StateObject private var viewState = WeeklyReportViewState()
     @ObservedObject private var trendsState = TrendsViewState.shared
     @ObservedObject private var proConfig = ProFeatureConfig.shared
     @State private var selectedSleepDay = 0 // For segmented control
@@ -18,11 +18,11 @@ struct WeeklyReportView: View {
                     .frame(height: 0)
                 // 1. AI Summary Header
                 WeeklyReportHeaderComponent(
-                    aiSummary: viewModel.aiSummary,
-                    aiError: viewModel.aiError,
-                    isLoading: viewModel.isLoadingAI,
-                    weekStartDate: viewModel.weekStartDate,
-                    daysUntilNextReport: viewModel.daysUntilNextReport
+                    aiSummary: viewState.aiSummary,
+                    aiError: viewState.aiError,
+                    isLoading: viewState.isLoadingAI,
+                    weekStartDate: viewState.weekStartDate,
+                    daysUntilNextReport: viewState.daysUntilNextReport
                 )
                 .background(GeometryReader { geo in
                     Color.clear.preference(key: ComponentWidthKey.self, value: ComponentWidth(name: "Header", width: geo.size.width))
@@ -41,46 +41,46 @@ struct WeeklyReportView: View {
                 
                 // 3. Fitness Trajectory (CTL/ATL/Form)
                 FitnessTrajectoryComponent(
-                    metrics: viewModel.weeklyMetrics,
-                    ctlData: viewModel.ctlHistoricalData
+                    metrics: viewState.weeklyMetrics,
+                    ctlData: viewState.ctlHistoricalData
                 )
                 .background(GeometryReader { geo in
                     Color.clear.preference(key: ComponentWidthKey.self, value: ComponentWidth(name: "FitnessTrajectory", width: geo.size.width))
                 })
                 
                 // 3. Wellness Foundation
-                if let wellness = viewModel.wellnessFoundation {
+                if let wellness = viewState.wellnessFoundation {
                     WellnessFoundationComponent(wellness: wellness)
                 }
-                
+
                 // 4. Recovery Capacity
-                if let metrics = viewModel.weeklyMetrics {
+                if let metrics = viewState.weeklyMetrics {
                     RecoveryCapacityComponent(metrics: metrics)
                 }
-                
+
                 // 5. Training Load Summary
                 TrainingLoadComponent(
-                    metrics: viewModel.weeklyMetrics,
-                    zones: viewModel.trainingZoneDistribution
+                    metrics: viewState.weeklyMetrics,
+                    zones: viewState.trainingZoneDistribution
                 )
-                
+
                 // 6. Sleep Hypnograms with Segmented Control
                 // Hide when simulating no sleep data
-                if !viewModel.sleepHypnograms.isEmpty && !proConfig.simulateNoSleepData {
+                if !viewState.sleepHypnograms.isEmpty && !proConfig.simulateNoSleepData {
                     SleepHypnogramComponent(
-                        hypnograms: viewModel.sleepHypnograms,
+                        hypnograms: viewState.sleepHypnograms,
                         selectedDay: $selectedSleepDay
                     )
                 }
-                
+
                 // 7. Sleep Schedule (Circadian Rhythm)
                 // Hide when simulating no sleep data
-                if let circadian = viewModel.circadianRhythm, !proConfig.simulateNoSleepData {
+                if let circadian = viewState.circadianRhythm, !proConfig.simulateNoSleepData {
                     SleepScheduleComponent(circadian: circadian)
                 }
-                
+
                 // 8. Week-over-Week Changes
-                if let metrics = viewModel.weeklyMetrics {
+                if let metrics = viewState.weeklyMetrics {
                     WeekOverWeekComponent(metrics: metrics)
                 }
             }
@@ -93,11 +93,11 @@ struct WeeklyReportView: View {
         .scrollDismissesKeyboard(.interactively)
         .background(Color.background.app)
         .task {
-            await viewModel.loadWeeklyReport()
+            await viewState.loadWeeklyReport()
             // TrendsViewState.shared is loaded from TrendsView - no need to load again
         }
         .refreshable {
-            await viewModel.loadWeeklyReport()
+            await viewState.loadWeeklyReport()
         }
         }
     }

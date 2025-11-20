@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Week-over-Week Changes component
 struct WeekOverWeekComponent: View {
-    let metrics: WeeklyReportViewModel.WeeklyMetrics
+    let metrics: WeeklyReportDataLoader.WeeklyMetrics
     
     var body: some View {
         StandardCard(
