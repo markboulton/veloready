@@ -70,16 +70,36 @@ struct DebugSection: View {
                         Image(systemName: Icons.System.grid2x2)
                             .foregroundColor(ColorPalette.purple)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: Spacing.xs / 2) {
                             Text("Icon Test Sheet")
                                 .font(TypeScale.font(size: TypeScale.md))
-                            
+
                             Text("View all SF Symbols and custom icons")
                                 .font(TypeScale.font(size: TypeScale.xs))
                                 .foregroundColor(ColorPalette.labelSecondary)
                         }
-                        
+
+                        Spacer()
+                    }
+                }
+
+                // Debug Data (HealthKit permissions, HMAC secret, etc.)
+                NavigationLink(destination: DebugDataView()) {
+                    HStack {
+                        Image(systemName: "ladybug")
+                            .foregroundColor(Color.semantic.error)
+                            .frame(width: 24)
+
+                        VStack(alignment: .leading, spacing: Spacing.xs / 2) {
+                            Text("Debug Data")
+                                .font(TypeScale.font(size: TypeScale.md))
+
+                            Text("HealthKit permissions, HMAC secret verification")
+                                .font(TypeScale.font(size: TypeScale.xs))
+                                .foregroundColor(ColorPalette.labelSecondary)
+                        }
+
                         Spacer()
                     }
                 }

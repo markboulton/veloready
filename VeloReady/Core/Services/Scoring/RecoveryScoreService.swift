@@ -283,13 +283,20 @@ class RecoveryScoreService: ObservableObject {
     /// Part of: Today View Refactoring Plan - Week 1 Day 4
     func calculate(sleepScore: SleepScore?, forceRefresh: Bool = false) async -> RecoveryScore {
         Logger.debug("🔄 [RecoveryScoreService] calculate(sleepScore: \(sleepScore?.score ?? -1), forceRefresh: \(forceRefresh))")
-        
-        // Check daily calculation limit (unless forcing)
-        if !forceRefresh && hasCalculatedToday() && currentRecoveryScore != nil &&
+
+        // Check if sleep score changed significantly (>5 points) compared to cached recovery
+        let sleepChanged = checkIfSleepChanged(newSleep: sleepScore, cachedRecovery: currentRecoveryScore)
+
+        // Check daily calculation limit (unless forcing OR sleep changed)
+        if !forceRefresh && !sleepChanged && hasCalculatedToday() && currentRecoveryScore != nil &&
            currentRecoveryScore?.inputs.hrv != nil &&
            !hasPlaceholderSubScores(currentRecoveryScore) {
             Logger.debug("⏭️ [RecoveryScoreService] Using cached score (daily limit reached)")
             return currentRecoveryScore!
+        }
+
+        if sleepChanged {
+            Logger.info("🔄 [RecoveryScoreService] Sleep score changed significantly - bypassing daily limit to recalculate recovery")
         }
         
         // Set loading state
@@ -1017,22 +1024,55 @@ extension RecoveryScoreService {
     /// This indicates data loaded from Core Data fallback without full calculation
     private func hasPlaceholderSubScores(_ score: RecoveryScore?) -> Bool {
         guard let score = score else { return false }
-        
+
         // If all sub-scores equal the main score, it's a placeholder
         let mainScore = score.score
         let subScores = score.subScores
-        
+
         let isPlaceholder = subScores.hrv == mainScore &&
                            subScores.rhr == mainScore &&
                            subScores.sleep == mainScore &&
                            subScores.form == mainScore &&
                            subScores.respiratory == mainScore
-        
+
         if isPlaceholder {
             Logger.debug("🔍 Detected placeholder sub-scores (all = \(mainScore))")
         }
-        
+
         return isPlaceholder
+    }
+
+    /// Check if sleep score changed significantly compared to cached recovery
+    /// Returns true if sleep changed by more than 5 points (threshold for meaningful change)
+    private func checkIfSleepChanged(newSleep: SleepScore?, cachedRecovery: RecoveryScore?) -> Bool {
+        // If no cached recovery, sleep hasn't "changed" (it's first calculation)
+        guard let cached = cachedRecovery else { return false }
+
+        // Get the sleep score that was used for the cached recovery
+        let cachedSleepScore = cached.inputs.sleepScore?.score
+        let newSleepScore = newSleep?.score
+
+        // If both nil or both same, no change
+        if cachedSleepScore == nil && newSleepScore == nil {
+            return false
+        }
+
+        // If one is nil and the other isn't, that's a change
+        if (cachedSleepScore == nil) != (newSleepScore == nil) {
+            Logger.info("💤 Sleep score changed from \(cachedSleepScore?.description ?? "nil") to \(newSleepScore?.description ?? "nil")")
+            return true
+        }
+
+        // Calculate difference (both are non-nil at this point)
+        let difference = abs((newSleepScore ?? 0) - (cachedSleepScore ?? 0))
+        let threshold = 5  // 5-point threshold for meaningful change
+
+        if difference >= threshold {
+            Logger.info("💤 Sleep score changed significantly: \(cachedSleepScore ?? 0) → \(newSleepScore ?? 0) (Δ\(difference))")
+            return true
+        }
+
+        return false
     }
     
     /// Calculate resilience score from 30-day history

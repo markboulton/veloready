@@ -21,7 +21,6 @@ struct TodayView: View {
     @ObservedObject private var illnessService = IllnessDetectionService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var stressService = StressAnalysisService.shared  // CRITICAL: Observe shared instance
     @ObservedObject private var liveActivityService = LiveActivityService.shared
-    @State private var showingDebugView = false
     @State private var showingHealthKitPermissionsSheet = false
     @State private var showingWellnessDetailSheet = false
     @State private var showingIllnessDetailSheet = false
@@ -220,18 +219,6 @@ struct TodayView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
-                #if DEBUG
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            showingDebugView = true
-                        } label: {
-                            Image(systemName: "ladybug")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                #endif
             }
             .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
             .onAppear {
@@ -273,9 +260,6 @@ struct TodayView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .refreshDataAfterIntervalsConnection)) { _ in
             handleIntervalsConnection()
-        }
-        .sheet(isPresented: $showingDebugView) {
-            DebugDataView()
         }
         .sheet(isPresented: $showingHealthKitPermissionsSheet) {
             HealthKitPermissionsSheet()

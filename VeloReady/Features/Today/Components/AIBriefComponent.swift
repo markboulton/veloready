@@ -29,7 +29,7 @@ struct AIBriefComponent: TodayComponent {
     static let componentID = "ai_brief"
     static let displayName = "AI Brief"
     static let displayOrder = 200 // In insights category
-    static let featureFlagKey: String? = "component_ai_brief"
+    static let featureFlagKey: String? = nil  // Feature flag removed - always enabled
 
     // MARK: - Body
 
@@ -45,15 +45,6 @@ struct AIBriefComponent: TodayComponent {
     /// Only render when HealthKit is authorized
     /// AI Brief requires health data for generating insights
     static func shouldRender() -> Bool {
-        // First check feature flag (from default implementation)
-        if let flagKey = featureFlagKey {
-            let isEnabled = FeatureFlags.shared.isEnabled(flagKey)
-            Logger.debug("🔌 [Component] \(componentID) feature flag '\(flagKey)': \(isEnabled)")
-            if !isEnabled {
-                return false
-            }
-        }
-
         // Only show when HealthKit is authorized (component needs health data)
         let isAuthorized = HealthKitManager.shared.isAuthorized
         Logger.debug("📦 [AIBriefComponent] shouldRender - isAuthorized: \(isAuthorized)")
