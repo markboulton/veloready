@@ -220,6 +220,18 @@ struct TodayView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar(.visible, for: .navigationBar) // Always visible to prevent layout shift
+                #if DEBUG
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showingDebugView = true
+                        } label: {
+                            Image(systemName: "ladybug")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                #endif
             }
             .toolbar(.visible, for: .tabBar) // Always visible to prevent layout shift
             .onAppear {
