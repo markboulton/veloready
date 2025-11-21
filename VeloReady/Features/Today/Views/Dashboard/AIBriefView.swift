@@ -58,7 +58,29 @@ struct AIBriefView: View {
                     }
                     .padding(.vertical, Spacing.md)
                 } else if let error = service.error {
-                    ErrorView(error: error)
+                    // Show error with retry option - fall back to computed brief
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        ErrorView(error: error) {
+                            Task {
+                                await service.fetchBrief(bypassCache: true)
+                            }
+                        }
+
+                        // Show computed brief as fallback (honest, not parading as AI)
+                        Divider()
+                            .padding(.vertical, 4)
+
+                        Text("Recovery-based guidance:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+
+                        Text(generateBriefText())
+                            .bodyStyle()
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        TrainingMetricsView()
+                    }
                 } else if let text = service.briefText {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         Text(text)
@@ -219,18 +241,35 @@ struct AIBriefView: View {
 
 private struct ErrorView: View {
     let error: AIBriefError
+    let retryAction: () -> Void
     @State private var showDebugInfo = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Image(systemName: Icons.Status.warningFill)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.orange)
                 Text(error.localizedDescription)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
+            // Retry button
+            Button(action: {
+                HapticFeedback.light()
+                retryAction()
+            }) {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: Icons.Arrow.clockwise)
+                        .font(.caption)
+                    Text("Retry")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(ColorScale.blueAccent)
+            }
+            .buttonStyle(.plain)
+
             #if DEBUG
             Button(action: {
                 showDebugInfo.toggle()
@@ -239,7 +278,7 @@ private struct ErrorView: View {
                     .font(.caption)
                     .foregroundColor(Color.button.primary)
             }
-            
+
             if showDebugInfo {
                 Text(error.debugHint)
                     .font(.caption)

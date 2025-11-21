@@ -78,17 +78,17 @@ class AIBriefService: ObservableObject {
             Logger.debug("✅ AI brief updated (\(response.cached ?? false ? "cached" : "fresh"))")
         } catch let briefError as AIBriefError {
             error = briefError
-            briefText = getFallbackMessage()
+            briefText = nil  // No misleading fallback - UI will show computed brief
             isCached = false
             // DO NOT save fallback messages to Core Data - they should be ephemeral
             // Next app launch will retry the API call instead of using cached fallback
-            Logger.error("❌ [AI Brief] API error: \(briefError) - using fallback (not cached)")
+            Logger.error("❌ [AI Brief] API error: \(briefError) - showing error state")
         } catch {
             self.error = .networkError(error.localizedDescription)
-            briefText = getFallbackMessage()
+            briefText = nil  // No misleading fallback - UI will show computed brief
             isCached = false
             // DO NOT save fallback messages to Core Data - they should be ephemeral
-            Logger.error("❌ [AI Brief] Network error: \(error.localizedDescription) - using fallback (not cached)")
+            Logger.error("❌ [AI Brief] Network error: \(error.localizedDescription) - showing error state")
         }
     }
     
@@ -318,26 +318,7 @@ class AIBriefService: ObservableObject {
         
         return (completed, totalTSS > 0 ? totalTSS : nil)
     }
-    
-    private func getFallbackMessage() -> String {
-        // Fallback message when API is unavailable
-        guard let recovery = recoveryService.currentRecoveryScore else {
-            return "Your daily metrics are being calculated. Check back in a moment."
-        }
-        
-        // Simple rule-based message based on recovery score
-        switch recovery.score {
-        case 80...100:
-            return "You're well-recovered today! Great time for a challenging workout or race."
-        case 60..<80:
-            return "Good recovery. You can handle moderate to hard training today."
-        case 40..<60:
-            return "Moderate recovery. Consider an easier workout or active recovery."
-        default:
-            return "Low recovery today. Prioritize rest or very light activity."
-        }
-    }
-    
+
     // Debug helper
     func getDebugInfo() -> String {
         var info = "AI Brief Service:\n"
