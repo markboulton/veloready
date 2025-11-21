@@ -71,21 +71,24 @@ class AIBriefService: ObservableObject {
             let response = try await client.fetchBrief(request: buildRequest(), userId: userId, bypassCache: bypassCache)
             briefText = response.text
             isCached = response.cached ?? false
-            
+
             // Save to Core Data
             saveToCoreData(text: response.text)
-            
+
             Logger.debug("✅ AI brief updated (\(response.cached ?? false ? "cached" : "fresh"))")
         } catch let briefError as AIBriefError {
             error = briefError
             briefText = getFallbackMessage()
             isCached = false
-            Logger.error("AI brief error: \(briefError)")
+            // DO NOT save fallback messages to Core Data - they should be ephemeral
+            // Next app launch will retry the API call instead of using cached fallback
+            Logger.error("❌ [AI Brief] API error: \(briefError) - using fallback (not cached)")
         } catch {
             self.error = .networkError(error.localizedDescription)
             briefText = getFallbackMessage()
             isCached = false
-            Logger.error("AI brief error: \(error.localizedDescription)")
+            // DO NOT save fallback messages to Core Data - they should be ephemeral
+            Logger.error("❌ [AI Brief] Network error: \(error.localizedDescription) - using fallback (not cached)")
         }
     }
     

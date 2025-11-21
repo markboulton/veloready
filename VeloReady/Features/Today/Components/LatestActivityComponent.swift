@@ -73,8 +73,12 @@ struct LatestActivityComponent: TodayComponent {
 
     /// Get the latest activity from TodayViewState
     private func getLatestActivity() -> UnifiedActivity? {
-        let activities = todayState.recentActivities
-        return activities.map { UnifiedActivity(from: $0) }.first
+        // Use latestActivity property which is specifically populated by TodayDataLoader
+        // (TodayViewState.latestActivity is set from TodayDataLoader.ActivitiesData.latest)
+        guard let activity = todayState.latestActivity else {
+            return nil
+        }
+        return UnifiedActivity(from: activity)
     }
 
     // MARK: - TodayComponent Protocol Methods
