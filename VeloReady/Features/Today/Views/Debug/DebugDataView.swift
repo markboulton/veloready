@@ -17,7 +17,10 @@ struct DebugDataView: View {
                     
                     // Authorization Details
                     authorizationDetailsSection
-                    
+
+                    // HMAC Secret Verification
+                    hmacSecretSection
+
                     // Action Buttons
                     actionButtonsSection
                 }
@@ -96,6 +99,76 @@ struct DebugDataView: View {
         .cornerRadius(8)
     }
     
+    private var hmacSecretSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("AI Brief HMAC Secret")
+                .font(.headline)
+                .fontWeight(.semibold)
+
+            if let secret = AIBriefClient.shared.getHMACSecret() {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(Color.semantic.success)
+                        Text("Secret Configured")
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Length:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("\(secret.count) characters")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+
+                        HStack {
+                            Text("Preview:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("\(secret.prefix(4))...\(secret.suffix(4))")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .monospaced()
+                        }
+                    }
+                    .padding(.leading, 28)
+
+                    Text("⚠️ Compare preview with backend APP_HMAC_SECRET")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                        .padding(.top, 4)
+                }
+            } else {
+                HStack {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(Color.semantic.error)
+                    Text("Secret NOT Found")
+                        .fontWeight(.medium)
+                        .foregroundColor(Color.semantic.error)
+                    Spacer()
+                }
+
+                Text("HMAC secret is missing from Keychain. AI Brief will fail with 401 errors.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+
+                Text("To fix: AIBriefClient.shared.setHMACSecret(\"your-secret\")")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .monospaced()
+                    .padding(.top, 4)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
+
     private var actionButtonsSection: some View {
         VStack(spacing: Spacing.md) {
             Button(DebugContent.HealthDataDebug.requestHealthKitAuthorization) {
