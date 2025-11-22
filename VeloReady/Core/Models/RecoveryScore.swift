@@ -118,7 +118,7 @@ struct RecoveryScore: Codable {
     struct RecoveryInputs: Codable {
         let hrv: Double? // ms (RMSSD from Apple Watch)
         let overnightHrv: Double? // ms (overnight HRV for alcohol detection)
-        let hrvBaseline: Double? // 7-day rolling average
+        let hrvBaseline: Double? // 30-day baseline for longer-term comparison
         let rhr: Double? // bpm (overnight/morning)
         let rhrBaseline: Double? // 7-day rolling average
         let sleepDuration: Double? // seconds (total sleep time)
@@ -129,6 +129,47 @@ struct RecoveryScore: Codable {
         let ctl: Double? // Chronic Training Load (42-day)
         let recentStrain: Double? // Recent training strain
         let sleepScore: SleepScore? // Comprehensive sleep score
+
+        // Phase 2: Rolling HRV metrics (research-backed - Plews et al., 2013)
+        let rollingHrvAverage: Double? // 7-day rolling average
+        let hrvCV: Double? // Coefficient of variation (%)
+        let yesterdayTSS: Double? // Yesterday's Training Stress Score
+
+        init(
+            hrv: Double? = nil,
+            overnightHrv: Double? = nil,
+            hrvBaseline: Double? = nil,
+            rhr: Double? = nil,
+            rhrBaseline: Double? = nil,
+            sleepDuration: Double? = nil,
+            sleepBaseline: Double? = nil,
+            respiratoryRate: Double? = nil,
+            respiratoryBaseline: Double? = nil,
+            atl: Double? = nil,
+            ctl: Double? = nil,
+            recentStrain: Double? = nil,
+            sleepScore: SleepScore? = nil,
+            rollingHrvAverage: Double? = nil,
+            hrvCV: Double? = nil,
+            yesterdayTSS: Double? = nil
+        ) {
+            self.hrv = hrv
+            self.overnightHrv = overnightHrv
+            self.hrvBaseline = hrvBaseline
+            self.rhr = rhr
+            self.rhrBaseline = rhrBaseline
+            self.sleepDuration = sleepDuration
+            self.sleepBaseline = sleepBaseline
+            self.respiratoryRate = respiratoryRate
+            self.respiratoryBaseline = respiratoryBaseline
+            self.atl = atl
+            self.ctl = ctl
+            self.recentStrain = recentStrain
+            self.sleepScore = sleepScore
+            self.rollingHrvAverage = rollingHrvAverage
+            self.hrvCV = hrvCV
+            self.yesterdayTSS = yesterdayTSS
+        }
     }
 }
 

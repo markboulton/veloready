@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import VeloReadyCore
 
 /// Service for fetching and managing AI-generated daily briefs
 @MainActor
@@ -151,6 +152,24 @@ class AIBriefService: ObservableObject {
         // Get illness indicator if present
         let illnessData = buildIllnessIndicatorData()
         
+        // Calculate Phase 5 HRV-guided training readiness
+        let readinessInputs = ReadinessCalculations.ReadinessInputs(
+            rollingHRV: recovery.inputs.rollingHrvAverage,
+            hrvBaseline: recovery.inputs.hrvBaseline,
+            hrvCV: recovery.inputs.hrvCV,
+            recoveryScore: recovery.score,
+            tsb: tsb,
+            yesterdayTSS: recovery.inputs.yesterdayTSS,
+            sleepScore: recovery.inputs.sleepScore?.score
+        )
+        let readiness = ReadinessCalculations.calculateReadiness(inputs: readinessInputs)
+
+        // Determine HRV trend from rolling vs baseline
+        let hrvTrend = calculateHRVTrend(
+            rolling: recovery.inputs.rollingHrvAverage,
+            baseline: recovery.inputs.hrvBaseline
+        )
+
         let request = AIBriefRequest(
             recovery: recovery.score,
             sleepDelta: sleepDelta,
@@ -163,7 +182,15 @@ class AIBriefService: ObservableObject {
             plan: plan,
             completedActivities: completedActivities,
             todayTSS: todayTSS,
-            illnessIndicator: illnessData
+            illnessIndicator: illnessData,
+            // Phase 5: HRV-Guided Training Recommendation
+            trainingRecommendation: readiness.recommendation.rawValue,
+            recommendationConfidence: readiness.confidence,
+            recommendationReasoning: readiness.reasoning,
+            hrvTrend: hrvTrend,
+            hrvCV: recovery.inputs.hrvCV,
+            rollingHRV: recovery.inputs.rollingHrvAverage,
+            hrvBaseline: recovery.inputs.hrvBaseline
         )
         
         Logger.data("========================================")
@@ -228,9 +255,29 @@ class AIBriefService: ObservableObject {
               baseline > 0 else {
             return nil
         }
-        
+
         // Return percentage change
         return ((rhr - baseline) / baseline) * 100.0
+    }
+
+    /// Calculate HRV trend from 7-day rolling average vs 30-day baseline
+    /// - Returns: "improving", "stable", or "declining"
+    private func calculateHRVTrend(rolling: Double?, baseline: Double?) -> String? {
+        guard let rolling = rolling, let baseline = baseline, baseline > 0 else {
+            return nil
+        }
+
+        let percentChange = ((rolling - baseline) / baseline) * 100.0
+
+        // Thresholds based on research:
+        // ±5% is within normal day-to-day variation
+        if percentChange > 5 {
+            return "improving"
+        } else if percentChange < -5 {
+            return "declining"
+        } else {
+            return "stable"
+        }
     }
     
     private func getTodaysPlannedWorkout() -> String? {

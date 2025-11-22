@@ -329,10 +329,9 @@ struct MainTabView: View {
                         }
 
                         Task { @MainActor in
-                            Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
+                            Logger.info("🎬 [BRANDING] Starting fixed 2s branding sequence...")
 
-                            // PHASE 1 V2: Start background loading DURING animation (0ms to cached content)
-                            // This is the key change - we use the 3-second animation time productively
+                            // Start background loading DURING animation (0ms to cached content)
                             if FeatureFlags.shared.useTodayViewV2 {
                                 Task {
                                     Logger.info("📦 [V2] Starting TodayViewState background load during branding...")
@@ -341,25 +340,11 @@ struct MainTabView: View {
                                 }
                             }
 
-                            // Phase 2: Wait minimum 3 seconds for branding
-                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            // FIXED 2-second branding - no waiting for scores
+                            // Scores load in background, cache-first ensures instant content
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
                             minimumBrandingElapsed = true
-                            Logger.info("✅ [BRANDING] Minimum 3s elapsed - now waiting for scores...")
-
-                            // Phase 3: Wait for scores to be ready (with 3s timeout)
-                            let scoresReadyStart = Date()
-                            while !scoresCoordinator.state.allCoreScoresAvailable {
-                                // Check timeout - if scores aren't ready within 3s, proceed anyway
-                                if Date().timeIntervalSince(scoresReadyStart) > 3.0 {
-                                    Logger.warning("⏱️ [BRANDING] Scores not ready after 3s timeout - proceeding anyway")
-                                    break
-                                }
-                                // Check every 100ms
-                                try? await Task.sleep(nanoseconds: 100_000_000)
-                            }
-
-                            let waitDuration = Date().timeIntervalSince(scoresReadyStart)
-                            Logger.info("✅ [BRANDING] Scores ready in \(String(format: "%.2f", waitDuration))s - phase: \(scoresCoordinator.state.phase.description)")
+                            Logger.info("✅ [BRANDING] Fixed 2s elapsed - proceeding to fade out")
 
                             // Phase 4: Fade out (0.5s)
                             Logger.info("🎬 [BRANDING] Starting fade-out")
@@ -372,11 +357,6 @@ struct MainTabView: View {
                             Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
                             showInitialSpinner = false
                             Logger.info("✅ [BRANDING] Branding sequence complete")
-                        }
-                    }
-                    .onChange(of: scoresCoordinator.state.allCoreScoresAvailable) { _, isReady in
-                        if minimumBrandingElapsed && isReady {
-                            Logger.info("🚀 [BRANDING] Scores became ready after minimum time - will fade out soon")
                         }
                     }
             } else {
@@ -459,10 +439,9 @@ struct MainTabView: View {
                         }
 
                         Task { @MainActor in
-                            Logger.info("🎬 [BRANDING] Starting smart branding sequence...")
+                            Logger.info("🎬 [BRANDING] Starting fixed 2s branding sequence...")
 
-                            // PHASE 1 V2: Start background loading DURING animation (0ms to cached content)
-                            // This is the key change - we use the 3-second animation time productively
+                            // Start background loading DURING animation (0ms to cached content)
                             if FeatureFlags.shared.useTodayViewV2 {
                                 Task {
                                     Logger.info("📦 [V2] Starting TodayViewState background load during branding...")
@@ -471,25 +450,11 @@ struct MainTabView: View {
                                 }
                             }
 
-                            // Phase 2: Wait minimum 3 seconds for branding
-                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            // FIXED 2-second branding - no waiting for scores
+                            // Scores load in background, cache-first ensures instant content
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
                             minimumBrandingElapsed = true
-                            Logger.info("✅ [BRANDING] Minimum 3s elapsed - now waiting for scores...")
-
-                            // Phase 3: Wait for scores to be ready (with 3s timeout)
-                            let scoresReadyStart = Date()
-                            while !scoresCoordinator.state.allCoreScoresAvailable {
-                                // Check timeout - if scores aren't ready within 3s, proceed anyway
-                                if Date().timeIntervalSince(scoresReadyStart) > 3.0 {
-                                    Logger.warning("⏱️ [BRANDING] Scores not ready after 3s timeout - proceeding anyway")
-                                    break
-                                }
-                                // Check every 100ms
-                                try? await Task.sleep(nanoseconds: 100_000_000)
-                            }
-
-                            let waitDuration = Date().timeIntervalSince(scoresReadyStart)
-                            Logger.info("✅ [BRANDING] Scores ready in \(String(format: "%.2f", waitDuration))s - phase: \(scoresCoordinator.state.phase.description)")
+                            Logger.info("✅ [BRANDING] Fixed 2s elapsed - proceeding to fade out")
 
                             // Phase 4: Fade out (0.5s)
                             Logger.info("🎬 [BRANDING] Starting fade-out")
@@ -502,11 +467,6 @@ struct MainTabView: View {
                             Logger.info("🟢 [BRANDING] Fade-out complete - removing from hierarchy")
                             showInitialSpinner = false
                             Logger.info("✅ [BRANDING] Branding sequence complete")
-                        }
-                    }
-                    .onChange(of: scoresCoordinator.state.allCoreScoresAvailable) { _, isReady in
-                        if minimumBrandingElapsed && isReady {
-                            Logger.info("🚀 [BRANDING] Scores became ready after minimum time - will fade out soon")
                         }
                     }
             }

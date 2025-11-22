@@ -91,6 +91,102 @@ class StravaDataService: ObservableObject {
         // Use new method with default days
         await fetchActivities(daysBack: nil, forceRefresh: forceRefresh)
     }
+
+    // MARK: - API-Optimized Methods
+
+    /// Fetch ONLY the latest activity (single API call)
+    /// Use this for Today view to minimize API usage
+    /// - Returns: Latest activity or nil if none
+    func fetchLatestActivity() async throws -> StravaActivity? {
+        // Check connection
+        guard case .connected = stravaAuthService.connectionState else {
+            Logger.debug("ℹ️ [Strava] Not connected, skipping latest activity fetch")
+            return nil
+        }
+
+        let cacheKey = CacheKey.stravaLatestActivity
+        let cacheTTL: TimeInterval = 300 // 5 minutes for latest activity
+
+        Logger.info("🟠 [Strava] Fetching latest activity (1 API call)")
+
+        do {
+            let activities = try await cache.fetch(key: cacheKey, ttl: cacheTTL) {
+                // Single API call: page=1, perPage=1
+                let result = try await self.stravaAPIClient.fetchActivities(
+                    page: 1,
+                    perPage: 1,
+                    after: nil
+                )
+                Logger.info("✅ [Strava] Fetched latest activity from API")
+                return result
+            }
+
+            return activities.first
+        } catch {
+            Logger.error("❌ [Strava] Failed to fetch latest activity: \(error)")
+            throw error
+        }
+    }
+
+    /// Incremental sync - only fetch activities since last sync
+    /// Use this for background sync to minimize API calls
+    /// - Parameter forceRefresh: Force refresh even if recently synced
+    func incrementalSync(forceRefresh: Bool = false) async {
+        // Check connection
+        guard case .connected = stravaAuthService.connectionState else {
+            Logger.debug("ℹ️ [Strava] Not connected, skipping incremental sync")
+            return
+        }
+
+        // Get last sync timestamp
+        let lastSyncKey = "strava_last_sync_timestamp"
+        let lastSync = UserDefaults.standard.object(forKey: lastSyncKey) as? Date
+
+        // Skip if synced recently (within 5 minutes) unless forced
+        if !forceRefresh, let lastSync = lastSync {
+            let timeSinceLastSync = Date().timeIntervalSince(lastSync)
+            if timeSinceLastSync < 300 { // 5 minutes
+                Logger.info("⏭️ [Strava] Skipping sync - last sync \(Int(timeSinceLastSync))s ago")
+                return
+            }
+        }
+
+        Logger.info("🔄 [Strava] Starting incremental sync (after: \(lastSync?.description ?? "nil"))")
+
+        do {
+            // Single API call with `after` parameter
+            let newActivities = try await stravaAPIClient.fetchActivities(
+                page: 1,
+                perPage: 200, // Max per page, but only NEW activities
+                after: lastSync
+            )
+
+            Logger.info("✅ [Strava] Incremental sync: \(newActivities.count) new activities")
+
+            if !newActivities.isEmpty {
+                // Merge with existing cached activities
+                var merged = activities
+                for newActivity in newActivities {
+                    // Remove any existing activity with same ID (update)
+                    merged.removeAll { $0.id == newActivity.id }
+                    merged.append(newActivity)
+                }
+
+                // Sort by date descending
+                merged.sort { $0.start_date > $1.start_date }
+                activities = merged
+
+                Logger.info("✅ [Strava] Merged to \(activities.count) total activities")
+            }
+
+            // Update last sync timestamp
+            UserDefaults.standard.set(Date(), forKey: lastSyncKey)
+            lastFetchDate = Date()
+
+        } catch {
+            Logger.error("❌ [Strava] Incremental sync failed: \(error)")
+        }
+    }
     
     /// Fetch all activities with pagination
     private func fetchAllActivities(after startDate: Date?) async throws -> [StravaActivity] {

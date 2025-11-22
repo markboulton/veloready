@@ -53,6 +53,13 @@ enum CacheKey {
     static func intervalsActivities(daysBack: Int) -> String {
         return "intervals:activities:\(daysBack)"
     }
+
+    /// Latest Strava activity (single activity for Today view)
+    /// - Returns: Cache key string: `strava:activities:latest`
+    /// - Note: Short 5-minute TTL for fresh data without excessive API calls
+    static var stravaLatestActivity: String {
+        return "strava:activities:latest"
+    }
     
     // MARK: - Streams
     

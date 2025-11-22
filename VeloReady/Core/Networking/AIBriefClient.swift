@@ -16,18 +16,27 @@ struct AIBriefRequest: Codable {
     let completedActivities: [CompletedActivity]?
     let todayTSS: Double?
     let illnessIndicator: IllnessIndicatorData?
-    
+
+    // Phase 5: HRV-Guided Training Recommendation
+    let trainingRecommendation: String?       // "Train Hard", "Train Moderate", "Train Easy", "Rest"
+    let recommendationConfidence: Int?        // 0-100%
+    let recommendationReasoning: [String]?    // ["HRV 8% above baseline", "CV low (4.2%)"]
+    let hrvTrend: String?                     // "improving", "stable", "declining"
+    let hrvCV: Double?                        // Coefficient of variation (%)
+    let rollingHRV: Double?                   // 7-day rolling average (ms)
+    let hrvBaseline: Double?                  // 30-day baseline (ms)
+
     struct CompletedActivity: Codable {
         let name: String
         let duration: Int // minutes
         let tss: Double?
     }
-    
+
     struct IllnessIndicatorData: Codable {
         let severity: String
         let confidence: Double
         let signals: [SignalData]
-        
+
         struct SignalData: Codable {
             let type: String
             let deviation: Double

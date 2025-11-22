@@ -478,15 +478,23 @@ final class TodayDataLoader {
             return []
         }
 
-        Logger.info("🔄 [TodayDataLoader] Calling stravaDataService.fetchActivitiesIfNeeded()")
+        // OPTIMIZATION: For Today view, only fetch the LATEST activity (1 API call)
+        // This reduces API usage from ~5 calls to 1 call per app open
+        Logger.info("🔄 [TodayDataLoader] Fetching ONLY latest Strava activity (API optimization)")
 
-        // Fetch activities using the backend-powered VeloReady API
-        await stravaDataService.fetchActivitiesIfNeeded()
-        let activities = stravaDataService.activities
-
-        Logger.info("✅ [TodayDataLoader] Strava: \(activities.count) activities")
-
-        return activities.map { UnifiedActivity(from: $0) }
+        do {
+            let latestActivity = try await stravaDataService.fetchLatestActivity()
+            if let activity = latestActivity {
+                Logger.info("✅ [TodayDataLoader] Strava: Got latest activity - \(activity.name)")
+                return [UnifiedActivity(from: activity)]
+            } else {
+                Logger.info("ℹ️ [TodayDataLoader] Strava: No recent activities")
+                return []
+            }
+        } catch {
+            Logger.warning("⚠️ [TodayDataLoader] Strava latest activity fetch failed: \(error.localizedDescription)")
+            return []
+        }
     }
 
     /// Fetch workouts from Apple Health
