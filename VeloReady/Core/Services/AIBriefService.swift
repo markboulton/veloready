@@ -347,6 +347,30 @@ extension AIBriefService {
     func clearCache() {
         (client as? AIBriefClient)?.clearCache()
     }
+
+    /// Clear AI brief from Core Data (for debugging stale cached briefs)
+    func clearCoreDataBrief() {
+        let today = Calendar.current.startOfDay(for: Date())
+
+        let request = DailyScores.fetchRequest()
+        request.predicate = NSPredicate(format: "date == %@", today as NSDate)
+        request.fetchLimit = 1
+
+        guard let scores = persistence.fetch(request).first else {
+            Logger.debug("💾 [AI Brief] No DailyScores found for today - nothing to clear")
+            return
+        }
+
+        scores.aiBriefText = nil
+        persistence.save()
+
+        // Also clear the in-memory cached brief
+        briefText = nil
+        isCached = false
+        error = nil
+
+        Logger.info("🗑️ [AI Brief] Cleared cached brief from Core Data")
+    }
     
     // MARK: - Core Data Persistence
     

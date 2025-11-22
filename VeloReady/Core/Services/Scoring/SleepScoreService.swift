@@ -193,6 +193,21 @@ class SleepScoreService: ObservableObject {
     }
     
     private func performActualCalculation() async {
+        // EARLY CACHE CHECK: Return immediately if valid cached score exists
+        let cacheKey = CacheKey.sleepScore(date: Date())
+
+        do {
+            let cachedScore: SleepScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                throw NSError(domain: "SleepScore", code: 404)
+            }
+            // Cache hit! Use cached score and skip all calculations
+            Logger.debug("⚡ [SLEEP] Cache HIT - using cached score: \(cachedScore.score) (skipping calculation)")
+            currentSleepScore = cachedScore
+            return
+        } catch {
+            Logger.debug("🌐 [SLEEP] Cache MISS - performing full calculation")
+        }
+
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         _ = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
@@ -204,7 +219,7 @@ class SleepScoreService: ObservableObject {
             }
             return
         }
-        
+
         #if DEBUG
         // Check if we're simulating no sleep data
         if UserDefaults.standard.bool(forKey: "simulateNoSleepData") {
@@ -217,15 +232,15 @@ class SleepScoreService: ObservableObject {
             return
         }
         #endif
-        
+
         // Use real data
         let realScore = await calculateRealSleepScore()
         currentSleepScore = realScore
-        
+
         // Calculate additional sleep metrics
         await calculateSleepDebt()
         await calculateSleepConsistency()
-        
+
         // Save to persistent cache for instant loading next time
         if let score = currentSleepScore {
             saveSleepScoreToCache(score)
@@ -233,7 +248,7 @@ class SleepScoreService: ObservableObject {
             // Clear cache if no sleep data available (user didn't wear watch)
             clearSleepScoreCache()
             Logger.debug("🗑️ Cleared sleep score cache - no data available")
-            
+
             // Only trigger recovery refresh if it hasn't been calculated yet
             // (No need to recalculate if recovery is already done - it handles missing sleep gracefully)
             if !RecoveryScoreService.shared.hasCalculatedToday() {

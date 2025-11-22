@@ -119,7 +119,7 @@ struct UnifiedActivity: Identifiable {
         self.normalizedPower = stravaActivity.weighted_average_watts.map { Double($0) }
         self.tss = nil // Strava doesn't provide TSS directly
         self.intensityFactor = nil // Strava doesn't provide IF directly
-        self.activity = nil
+        self.activity = ActivityConverter.stravaToActivity(stravaActivity)
         self.stravaActivity = stravaActivity
         self.healthKitWorkout = nil
     }

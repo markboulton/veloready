@@ -151,10 +151,35 @@ final class TodayDataLoader {
     }
 
     func loadCachedActivities() async -> ActivitiesData? {
-        // TODO: Implement caching for activities
-        // Need to understand UnifiedCacheManager.fetch() API
-        Logger.trace("💾 No cached activities (not implemented)")
-        return nil
+        // Read from cached Strava activities (already fetched by StravaDataService)
+        // Note: Intervals activities are not cached - they're fetched fresh each time
+        let stravaActivities = stravaDataService.activities
+
+        guard !stravaActivities.isEmpty else {
+            Logger.trace("💾 No cached activities available")
+            return nil
+        }
+
+        // Convert to UnifiedActivity, sort by date descending, extract Activity
+        let unifiedActivities = stravaActivities.map { UnifiedActivity(from: $0) }
+        let sortedUnified = unifiedActivities
+            .sorted(by: { $0.startDate > $1.startDate })
+            .prefix(15)
+
+        let activities = sortedUnified.compactMap { $0.activity }
+
+        Logger.debug("💾 Loaded \(activities.count) cached activities (Strava cache)")
+        Logger.debug("💾 Converted: \(activities.count)/\(Array(sortedUnified).count) have non-nil activity property")
+        if let first = activities.first {
+            Logger.debug("💾 Latest cached activity: \(first.name ?? "Unknown") from \(first.startDateLocal)")
+        } else {
+            Logger.warning("⚠️ [CACHE] No cached activities with valid Activity property!")
+        }
+
+        return ActivitiesData(
+            latest: activities.first,
+            recent: activities
+        )
     }
 
     func loadCachedLiveActivity() async -> LiveActivityData? {
@@ -270,6 +295,13 @@ final class TodayDataLoader {
 
         // Convert back to [Activity] for ActivitiesData
         let activities = sortedActivities.compactMap { $0.activity }
+
+        Logger.info("📊 [TodayDataLoader] Converted to Activity: \(activities.count)/\(sortedActivities.count) have non-nil activity property")
+        if let first = activities.first {
+            Logger.info("📊 [TodayDataLoader] Latest activity: \(first.name ?? "Unknown") from \(first.startDateLocal)")
+        } else {
+            Logger.warning("⚠️ [TodayDataLoader] No activities with valid Activity property!")
+        }
 
         return ActivitiesData(
             latest: activities.first,

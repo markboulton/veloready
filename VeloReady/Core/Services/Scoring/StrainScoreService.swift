@@ -166,6 +166,23 @@ class StrainScoreService: ObservableObject {
     }
     
     private func performActualCalculation() async {
+        // EARLY CACHE CHECK: Return immediately if valid cached score exists
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let cacheKey = "strain:v\(algorithmVersion):\(today.timeIntervalSince1970)"
+
+        do {
+            let cachedScore: StrainScore = try await cache.fetch(key: cacheKey, ttl: 86400) {
+                throw NSError(domain: "StrainScore", code: 404)
+            }
+            // Cache hit! Use cached score and skip all calculations
+            Logger.debug("⚡ [STRAIN] Cache HIT - using cached score: \(cachedScore.score) (skipping calculation)")
+            currentStrainScore = cachedScore
+            return
+        } catch {
+            Logger.debug("🌐 [STRAIN] Cache MISS - performing full calculation")
+        }
+
         // CRITICAL CHECK: Don't calculate when HealthKit permissions are denied
         _ = HKObjectType.quantityType(forIdentifier: .stepCount)!
         // iOS 26 WORKAROUND: Use isAuthorized instead of getAuthorizationStatus() which is buggy
@@ -179,14 +196,14 @@ class StrainScoreService: ObservableObject {
             }
             return
         }
-        
+
         print("💪 [STRAIN] ✅ Authorized - calculating real score")
         // Use real data
         let realScore = await calculateRealStrainScore()
         print("💪 [STRAIN] Real score calculated: \(realScore?.score ?? -1)")
         currentStrainScore = realScore
         print("💪 [STRAIN] currentStrainScore set to: \(currentStrainScore?.score ?? -1)")
-        
+
         // Save to persistent cache for instant loading next time
         if let score = currentStrainScore {
             print("💪 [STRAIN] Saving score to cache: \(score.score)")

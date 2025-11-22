@@ -178,18 +178,36 @@ struct DebugDataView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(healthKitManager.isAuthorized)
-            
+
             Button(DebugContent.HealthDataDebug.refreshAuthorizationStatus) {
                 Task {
                     await healthKitManager.checkAuthorizationStatus()
                 }
             }
             .buttonStyle(.bordered)
-            
+
             Button(DebugContent.HealthDataDebug.openSettings) {
                 healthKitManager.openSettings()
             }
             .buttonStyle(.bordered)
+
+            // AI Brief Cache Management
+            Divider()
+                .padding(.vertical, Spacing.sm)
+
+            Button(action: {
+                AIBriefService.shared.clearCoreDataBrief()
+            }) {
+                Label("Clear AI Brief Cache", systemImage: "trash")
+            }
+            .buttonStyle(.bordered)
+            .tint(.orange)
+
+            Text("Clears cached AI brief from Core Data. Use this if you see a stale/generic brief.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
         }
     }
     
