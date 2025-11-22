@@ -226,4 +226,107 @@ public struct TrainingLoadCalculations {
 
         return average
     }
+
+    // MARK: - Configurable Time Constants (Phase 4)
+
+    /// User-configurable training load time constants
+    /// Allows personalization based on athlete type and training experience
+    public struct ConfigurableTimeConstants {
+        /// CTL time constant (default 42, range 30-60)
+        public let ctlDays: Double
+        /// ATL time constant (default 7, range 5-10)
+        public let atlDays: Double
+
+        /// Standard time constants (Banister defaults)
+        public static var standard: ConfigurableTimeConstants {
+            ConfigurableTimeConstants(ctlDays: 42, atlDays: 7)
+        }
+
+        /// Create with validated values (enforces safe ranges)
+        public init(ctlDays: Double, atlDays: Double) {
+            // Enforce safe ranges
+            self.ctlDays = max(30, min(60, ctlDays))
+            self.atlDays = max(5, min(10, atlDays))
+        }
+
+        /// Calculated half-lives
+        public var ctlHalfLife: Double { ctlDays * 0.6931 }
+        public var atlHalfLife: Double { atlDays * 0.6931 }
+
+        /// Description for UI display
+        public var description: String {
+            "CTL: \(Int(ctlDays)) days (half-life \(String(format: "%.1f", ctlHalfLife)) days), " +
+            "ATL: \(Int(atlDays)) days (half-life \(String(format: "%.1f", atlHalfLife)) days)"
+        }
+    }
+
+    /// Athlete type presets for time constants
+    public enum AthleteType: String, CaseIterable {
+        case endurance = "Endurance"     // Longer time constants
+        case allRounder = "All-Rounder"  // Standard
+        case sprinter = "Sprinter"        // Shorter time constants
+
+        /// Recommended time constants for this athlete type
+        public var timeConstants: ConfigurableTimeConstants {
+            switch self {
+            case .endurance:
+                return ConfigurableTimeConstants(ctlDays: 50, atlDays: 8)
+            case .allRounder:
+                return ConfigurableTimeConstants(ctlDays: 42, atlDays: 7)
+            case .sprinter:
+                return ConfigurableTimeConstants(ctlDays: 35, atlDays: 6)
+            }
+        }
+
+        /// Description for UI display
+        public var description: String {
+            switch self {
+            case .endurance:
+                return "Longer adaptation period, suited for ultra-endurance athletes"
+            case .allRounder:
+                return "Standard settings, suitable for most cyclists"
+            case .sprinter:
+                return "Faster response, suited for track/criterium racers"
+            }
+        }
+    }
+
+    /// Calculate CTL with custom time constant
+    /// - Parameters:
+    ///   - dailyTSS: Array of daily TSS values (most recent last)
+    ///   - timeConstant: Custom time constant (default 42)
+    /// - Returns: CTL value
+    public static func calculateCTL(
+        dailyTSS: [Double],
+        timeConstant: Double
+    ) -> Double {
+        calculateExponentialAverage(values: dailyTSS, timeConstant: timeConstant)
+    }
+
+    /// Calculate ATL with custom time constant
+    /// - Parameters:
+    ///   - dailyTSS: Array of daily TSS values (most recent last)
+    ///   - timeConstant: Custom time constant (default 7)
+    /// - Returns: ATL value
+    public static func calculateATL(
+        dailyTSS: [Double],
+        timeConstant: Double
+    ) -> Double {
+        calculateExponentialAverage(values: dailyTSS, timeConstant: timeConstant)
+    }
+
+    /// Calculate full training load model with configurable constants
+    /// - Parameters:
+    ///   - dailyTSS: Array of daily TSS values (most recent last)
+    ///   - config: Configurable time constants (default standard)
+    /// - Returns: Tuple of (ctl, atl, tsb)
+    public static func calculateTrainingLoad(
+        dailyTSS: [Double],
+        config: ConfigurableTimeConstants = .standard
+    ) -> (ctl: Double, atl: Double, tsb: Double) {
+        let ctl = calculateExponentialAverage(values: dailyTSS, timeConstant: config.ctlDays)
+        let atl = calculateExponentialAverage(values: dailyTSS, timeConstant: config.atlDays)
+        let tsb = ctl - atl
+        return (ctl: ctl, atl: atl, tsb: tsb)
+    }
 }

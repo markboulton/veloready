@@ -337,7 +337,155 @@ public struct BaselineCalculations {
         // Use median for stability
         return calculateMedian(cleanedValues)
     }
-    
+
+    // MARK: - Adaptive Baseline Weighting (Phase 4)
+
+    /// Calculate exponentially-weighted baseline that adapts faster to recent changes
+    /// More recent data is weighted more heavily using exponential decay
+    /// - Parameters:
+    ///   - values: Array of values (most recent last)
+    ///   - halfLifeDays: Half-life in days (default 10 = recent 10 days weighted 2x older 10)
+    /// - Returns: Exponentially-weighted baseline
+    public static func calculateAdaptiveBaseline(
+        values: [Double],
+        halfLifeDays: Double = 10.0
+    ) -> Double? {
+        guard !values.isEmpty else { return nil }
+
+        // Decay constant: weight = e^(-decay * days_ago)
+        // Half-life: when days_ago = halfLifeDays, weight = 0.5
+        // decay = ln(2) / halfLifeDays
+        let decay = log(2.0) / halfLifeDays
+
+        var weightedSum: Double = 0
+        var totalWeight: Double = 0
+
+        // Weight more recent values higher
+        // values[n-1] = today (days_ago = 0, weight = 1.0)
+        // values[0] = oldest (days_ago = n-1)
+        let n = values.count
+        for (index, value) in values.enumerated() {
+            let daysAgo = Double(n - 1 - index)
+            let weight = exp(-decay * daysAgo)
+            weightedSum += value * weight
+            totalWeight += weight
+        }
+
+        guard totalWeight > 0 else { return nil }
+        return weightedSum / totalWeight
+    }
+
+    /// Calculate adaptive baseline with outlier removal
+    /// Combines adaptive weighting with robust outlier detection
+    /// - Parameters:
+    ///   - values: Array of values (most recent last)
+    ///   - halfLifeDays: Half-life for weighting (default 10)
+    ///   - sigmaThreshold: Outlier threshold (default 2.5)
+    /// - Returns: Robust adaptive baseline
+    public static func calculateRobustAdaptiveBaseline(
+        values: [Double],
+        halfLifeDays: Double = 10.0,
+        sigmaThreshold: Double = 2.5
+    ) -> Double? {
+        guard values.count >= 3 else {
+            return calculateAdaptiveBaseline(values: values, halfLifeDays: halfLifeDays)
+        }
+
+        // First pass: remove outliers
+        let cleanedValues = removeOutliers(from: values, sigmaThreshold: sigmaThreshold)
+
+        guard !cleanedValues.isEmpty else { return nil }
+
+        // Second pass: calculate adaptive baseline
+        return calculateAdaptiveBaseline(values: cleanedValues, halfLifeDays: halfLifeDays)
+    }
+
+    // MARK: - Recovery Profile Detection (Phase 4)
+
+    /// Recovery profile classification based on historical patterns
+    public enum RecoveryProfile: String {
+        case fast = "Fast Recoverer"           // Bounces back quickly from hard efforts
+        case normal = "Normal Recoverer"       // Standard recovery timeline
+        case slow = "Slow Recoverer"           // Needs more time between hard sessions
+        case unknown = "Unknown"               // Insufficient data
+
+        /// Recommended recovery modifier for scoring (-10 to +10)
+        public var scoringModifier: Int {
+            switch self {
+            case .fast: return 5      // Can train harder more often
+            case .normal: return 0    // Standard scoring
+            case .slow: return -5     // More conservative recommendations
+            case .unknown: return 0
+            }
+        }
+
+        /// Description for UI display
+        public var description: String {
+            switch self {
+            case .fast: return "You recover quickly from hard efforts. Your body handles training stress well."
+            case .normal: return "Your recovery follows typical patterns. Standard training guidelines apply."
+            case .slow: return "You benefit from more recovery between hard sessions. Quality over quantity."
+            case .unknown: return "More data needed to determine your recovery profile."
+            }
+        }
+    }
+
+    /// Detect user's recovery profile from historical HRV patterns
+    /// Analyzes how quickly HRV returns to baseline after hard training days
+    /// - Parameters:
+    ///   - hrvValues: Array of daily HRV values (most recent last)
+    ///   - tssValues: Array of daily TSS values matching HRV dates
+    /// - Returns: Recovery profile classification
+    public static func detectRecoveryProfile(
+        hrvValues: [Double],
+        tssValues: [Double]
+    ) -> RecoveryProfile {
+        guard hrvValues.count >= 14, tssValues.count >= 14 else {
+            return .unknown // Need at least 2 weeks of data
+        }
+
+        // Find hard training days (TSS > 100)
+        var recoveryTimes: [Int] = []
+
+        // Calculate baseline for comparison
+        guard let hrvBaseline = calculateHRVBaseline(hrvValues: hrvValues) else {
+            return .unknown
+        }
+
+        let threshold = hrvBaseline * 0.95 // Within 5% of baseline = recovered
+
+        // Analyze recovery after each hard day
+        for i in 0..<(tssValues.count - 3) {
+            if tssValues[i] > 100 {
+                // Found a hard day, track recovery
+                var recoveryDays = 0
+                for j in (i+1)..<min(i+5, hrvValues.count) {
+                    if hrvValues[j] >= threshold {
+                        recoveryDays = j - i
+                        break
+                    }
+                }
+                if recoveryDays > 0 {
+                    recoveryTimes.append(recoveryDays)
+                }
+            }
+        }
+
+        guard recoveryTimes.count >= 3 else {
+            return .unknown // Not enough hard training days to analyze
+        }
+
+        // Calculate average recovery time
+        let avgRecoveryDays = Double(recoveryTimes.reduce(0, +)) / Double(recoveryTimes.count)
+
+        // Classify based on average recovery time
+        switch avgRecoveryDays {
+        case ..<1.5: return .fast      // Recovers in ~1 day
+        case 1.5..<2.5: return .normal // Recovers in 1-2 days
+        default: return .slow          // Takes 2+ days
+        }
+    }
+
     // MARK: - Statistical Utilities
     
     /// Remove outliers from dataset using sigma threshold

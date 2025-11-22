@@ -376,4 +376,106 @@ public struct SleepCalculations {
         default: return 25
         }
     }
+
+    // MARK: - Personal Sleep Stage Baselines (Phase 4)
+
+    /// Sleep stage baseline data for personalized scoring
+    public struct PersonalSleepBaselines {
+        /// User's 30-day average deep sleep percentage
+        public let deepSleepPercentage: Double
+        /// User's 30-day average REM sleep percentage
+        public let remSleepPercentage: Double
+        /// User's typical sleep duration in hours
+        public let typicalDuration: Double
+        /// User's typical bedtime (hours from midnight, e.g., 23.5 = 11:30 PM)
+        public let typicalBedtime: Double
+        /// Number of days used to calculate baselines
+        public let sampleDays: Int
+
+        public init(deepSleepPercentage: Double, remSleepPercentage: Double,
+                    typicalDuration: Double, typicalBedtime: Double, sampleDays: Int) {
+            self.deepSleepPercentage = deepSleepPercentage
+            self.remSleepPercentage = remSleepPercentage
+            self.typicalDuration = typicalDuration
+            self.typicalBedtime = typicalBedtime
+            self.sampleDays = sampleDays
+        }
+
+        /// Population defaults if no personal data available
+        public static var populationDefaults: PersonalSleepBaselines {
+            PersonalSleepBaselines(
+                deepSleepPercentage: 0.15,  // 15% deep sleep
+                remSleepPercentage: 0.20,   // 20% REM sleep
+                typicalDuration: 7.5,        // 7.5 hours
+                typicalBedtime: 23.0,        // 11 PM
+                sampleDays: 0
+            )
+        }
+    }
+
+    /// Calculate personal sleep stage baselines from historical data
+    /// - Parameters:
+    ///   - sleepSessions: Array of sleep data with durations and stage breakdowns
+    ///   - windowDays: Number of days to use for baseline (default 30)
+    /// - Returns: PersonalSleepBaselines or nil if insufficient data
+    public static func calculatePersonalBaselines(
+        deepSleepDurations: [Double],   // Hours of deep sleep per night
+        remSleepDurations: [Double],    // Hours of REM sleep per night
+        totalSleepDurations: [Double],  // Total hours of sleep per night
+        bedtimeHours: [Double],         // Bedtime as hours from midnight
+        windowDays: Int = 30
+    ) -> PersonalSleepBaselines? {
+        guard deepSleepDurations.count >= 7,
+              remSleepDurations.count >= 7,
+              totalSleepDurations.count >= 7 else {
+            return nil // Need at least 1 week of data
+        }
+
+        // Use most recent windowDays
+        let recentDeep = Array(deepSleepDurations.suffix(windowDays))
+        let recentREM = Array(remSleepDurations.suffix(windowDays))
+        let recentTotal = Array(totalSleepDurations.suffix(windowDays))
+        let recentBedtimes = Array(bedtimeHours.suffix(windowDays))
+
+        // Calculate averages
+        let avgDeep = recentDeep.reduce(0, +) / Double(recentDeep.count)
+        let avgREM = recentREM.reduce(0, +) / Double(recentREM.count)
+        let avgTotal = recentTotal.reduce(0, +) / Double(recentTotal.count)
+
+        // Calculate deep and REM as percentages
+        guard avgTotal > 0 else { return nil }
+        let deepPct = avgDeep / avgTotal
+        let remPct = avgREM / avgTotal
+
+        // Calculate typical bedtime (circular average to handle midnight crossing)
+        let avgBedtime = calculateCircularMean(hours: recentBedtimes)
+
+        return PersonalSleepBaselines(
+            deepSleepPercentage: deepPct,
+            remSleepPercentage: remPct,
+            typicalDuration: avgTotal,
+            typicalBedtime: avgBedtime,
+            sampleDays: recentDeep.count
+        )
+    }
+
+    /// Calculate circular mean for time values (handles midnight crossing)
+    /// - Parameter hours: Array of hours (0-24)
+    /// - Returns: Average hour accounting for circular nature
+    private static func calculateCircularMean(hours: [Double]) -> Double {
+        guard !hours.isEmpty else { return 23.0 }
+
+        // Convert to radians (24h = 2π)
+        let radians = hours.map { $0 * .pi / 12.0 }
+
+        // Calculate mean using sin/cos
+        let sumSin = radians.map { sin($0) }.reduce(0, +)
+        let sumCos = radians.map { cos($0) }.reduce(0, +)
+
+        // Convert back to hours
+        var meanAngle = atan2(sumSin, sumCos)
+        if meanAngle < 0 { meanAngle += 2 * .pi }
+
+        return meanAngle * 12.0 / .pi
+    }
 }
