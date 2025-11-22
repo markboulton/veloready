@@ -3,7 +3,95 @@ import Foundation
 /// Pure calculation logic for training load (CTL/ATL/TSB)
 /// Consolidates 4 duplicate implementations into single source of truth
 public struct TrainingLoadCalculations {
-    
+
+    // MARK: - Time Constants & Half-Lives
+
+    /// Standard time constant for CTL (Chronic Training Load / Fitness)
+    /// Research: Banister et al. recommend 42 days for fitness adaptation
+    public static let ctlTimeConstant: Double = 42.0
+
+    /// Standard time constant for ATL (Acute Training Load / Fatigue)
+    /// Research: Banister et al. recommend 7 days for fatigue decay
+    public static let atlTimeConstant: Double = 7.0
+
+    /// Mathematical relationship between time constant and half-life
+    /// Half-life = τ × ln(2) ≈ τ / 1.4427 ≈ τ × 0.6931
+    /// More precisely: half-life = τ × ln(2) where ln(2) ≈ 0.6931
+    private static let timeConstantToHalfLife: Double = 0.6931
+
+    /// CTL half-life in days (how long for fitness to decay by 50%)
+    /// 42 × 0.6931 ≈ 29.1 days
+    /// Note: Some sources cite ~14.5 days using different decay model
+    /// This uses the mathematically correct exponential decay formula
+    public static var ctlHalfLife: Double {
+        ctlTimeConstant * timeConstantToHalfLife
+    }
+
+    /// ATL half-life in days (how long for fatigue to decay by 50%)
+    /// 7 × 0.6931 ≈ 4.9 days
+    /// Note: Some sources cite ~2.4 days using different decay model
+    public static var atlHalfLife: Double {
+        atlTimeConstant * timeConstantToHalfLife
+    }
+
+    /// Training Load Model Information for UI Display
+    public struct ModelInfo {
+        /// CTL time constant (τ) in days
+        public let ctlTimeConstant: Double
+        /// ATL time constant (τ) in days
+        public let atlTimeConstant: Double
+        /// CTL half-life in days
+        public let ctlHalfLife: Double
+        /// ATL half-life in days
+        public let atlHalfLife: Double
+
+        /// Create model info with default constants
+        public static var standard: ModelInfo {
+            ModelInfo(
+                ctlTimeConstant: TrainingLoadCalculations.ctlTimeConstant,
+                atlTimeConstant: TrainingLoadCalculations.atlTimeConstant,
+                ctlHalfLife: TrainingLoadCalculations.ctlHalfLife,
+                atlHalfLife: TrainingLoadCalculations.atlHalfLife
+            )
+        }
+
+        /// Create model info with custom time constants
+        /// - Parameters:
+        ///   - ctlDays: CTL time constant in days (default 42)
+        ///   - atlDays: ATL time constant in days (default 7)
+        public static func custom(ctlDays: Double, atlDays: Double) -> ModelInfo {
+            ModelInfo(
+                ctlTimeConstant: ctlDays,
+                atlTimeConstant: atlDays,
+                ctlHalfLife: ctlDays * timeConstantToHalfLife,
+                atlHalfLife: atlDays * timeConstantToHalfLife
+            )
+        }
+
+        /// Human-readable description of the model
+        public var description: String {
+            """
+            Training Load Model:
+            • Fitness (CTL): τ=\(Int(ctlTimeConstant)) days, half-life=\(String(format: "%.1f", ctlHalfLife)) days
+            • Fatigue (ATL): τ=\(Int(atlTimeConstant)) days, half-life=\(String(format: "%.1f", atlHalfLife)) days
+            """
+        }
+    }
+
+    /// Calculate half-life from time constant
+    /// - Parameter timeConstant: Time constant (τ) in days
+    /// - Returns: Half-life in days
+    public static func calculateHalfLife(timeConstant: Double) -> Double {
+        timeConstant * timeConstantToHalfLife
+    }
+
+    /// Calculate time constant from half-life
+    /// - Parameter halfLife: Half-life in days
+    /// - Returns: Time constant (τ) in days
+    public static func calculateTimeConstant(halfLife: Double) -> Double {
+        halfLife / timeConstantToHalfLife
+    }
+
     // MARK: - Main Training Load Calculation
     
     /// Calculate CTL (Chronic Training Load) and ATL (Acute Training Load)

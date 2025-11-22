@@ -346,6 +346,121 @@ public struct RecoveryCalculations {
             return min(40, 25 + ((yesterdayTSS - 200) * 0.1))
         }
     }
+
+    // MARK: - TSS Context for Transparency
+
+    /// TSS context information for user transparency
+    /// Provides detailed explanation of how yesterday's training affects recovery
+    public struct TSSContext {
+        /// Yesterday's TSS value
+        public let tss: Double
+        /// Penalty applied to recovery score (0-40 points)
+        public let penalty: Double
+        /// Intensity category (rest, easy, moderate, hard, very hard)
+        public let intensityCategory: String
+        /// Human-readable explanation for the user
+        public let explanation: String
+        /// Expected recovery time in hours (approximate)
+        public let estimatedRecoveryHours: Int
+
+        /// Create TSS context from yesterday's training
+        public init(yesterdayTSS: Double) {
+            self.tss = yesterdayTSS
+            self.penalty = RecoveryCalculations.calculateTSSPenalty(yesterdayTSS: yesterdayTSS)
+
+            // Determine intensity category and recovery estimates
+            switch yesterdayTSS {
+            case ..<30:
+                self.intensityCategory = "Rest"
+                self.explanation = "Rest day - no impact on today's recovery"
+                self.estimatedRecoveryHours = 0
+            case 30..<75:
+                self.intensityCategory = "Easy"
+                self.explanation = "Easy workout - minimal impact on recovery"
+                self.estimatedRecoveryHours = 12
+            case 75..<150:
+                self.intensityCategory = "Moderate"
+                self.explanation = "Moderate workout - some fatigue expected"
+                self.estimatedRecoveryHours = 24
+            case 150..<250:
+                self.intensityCategory = "Hard"
+                self.explanation = "Hard workout (\(Int(yesterdayTSS)) TSS) - reducing recovery by \(Int(penalty)) points"
+                self.estimatedRecoveryHours = 36
+            default:
+                self.intensityCategory = "Very Hard"
+                self.explanation = "Very hard workout (\(Int(yesterdayTSS)) TSS) - significant fatigue, reducing recovery by \(Int(penalty)) points"
+                self.estimatedRecoveryHours = 48
+            }
+        }
+
+        /// Detailed breakdown for UI display
+        public var detailedBreakdown: String {
+            """
+            Yesterday's Training Impact:
+            • TSS: \(Int(tss)) (\(intensityCategory))
+            • Recovery penalty: -\(Int(penalty)) points
+            • Est. recovery: \(estimatedRecoveryHours > 0 ? "\(estimatedRecoveryHours) hours" : "Fully recovered")
+            """
+        }
+    }
+
+    /// Calculate TSS context for transparency
+    /// - Parameter yesterdayTSS: TSS from yesterday's workout(s)
+    /// - Returns: TSSContext with penalty and explanation
+    public static func calculateTSSContext(yesterdayTSS: Double) -> TSSContext {
+        TSSContext(yesterdayTSS: yesterdayTSS)
+    }
+
+    /// Calculate form score context with full breakdown
+    /// - Parameters:
+    ///   - atl: Acute Training Load (7-day fatigue)
+    ///   - ctl: Chronic Training Load (42-day fitness)
+    ///   - yesterdayTSS: Yesterday's TSS (optional)
+    /// - Returns: Dictionary with form context for UI display
+    public static func calculateFormContext(
+        atl: Double?,
+        ctl: Double?,
+        yesterdayTSS: Double?
+    ) -> [String: Any] {
+        var context: [String: Any] = [:]
+
+        // TSB calculation
+        if let atl = atl, let ctl = ctl {
+            let tsb = ctl - atl
+            context["tsb"] = tsb
+            context["atl"] = atl
+            context["ctl"] = ctl
+
+            // Form interpretation
+            if tsb > 25 {
+                context["formState"] = "Fresh"
+                context["formDescription"] = "Well-rested, ready for hard training"
+            } else if tsb > 5 {
+                context["formState"] = "Optimal"
+                context["formDescription"] = "Good balance of fitness and freshness"
+            } else if tsb > -10 {
+                context["formState"] = "Neutral"
+                context["formDescription"] = "Normal training fatigue"
+            } else if tsb > -25 {
+                context["formState"] = "Fatigued"
+                context["formDescription"] = "Accumulated fatigue - consider easier days"
+            } else {
+                context["formState"] = "Overreached"
+                context["formDescription"] = "High fatigue risk - recovery recommended"
+            }
+        }
+
+        // Add TSS context if available
+        if let tss = yesterdayTSS {
+            let tssContext = calculateTSSContext(yesterdayTSS: tss)
+            context["yesterdayTSS"] = tss
+            context["tssPenalty"] = tssContext.penalty
+            context["tssCategory"] = tssContext.intensityCategory
+            context["tssExplanation"] = tssContext.explanation
+        }
+
+        return context
+    }
     
     // MARK: - Alcohol Detection
 

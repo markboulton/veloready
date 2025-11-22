@@ -341,7 +341,7 @@ public struct StrainCalculations {
     }
     
     // MARK: - Band Determination
-    
+
     /// Determine strain band from score (0-18 scale)
     /// - Parameter score: Strain score (0-18)
     /// - Returns: Band name as string
@@ -351,6 +351,170 @@ public struct StrainCalculations {
         case 6.0..<11.0: return "moderate"
         case 11.0..<16.0: return "hard"
         default: return "veryHard"
+        }
+    }
+
+    // MARK: - Session RPE (sRPE) Calculations
+
+    /// Calculate Session RPE (sRPE) using Foster method
+    /// sRPE is a simple but validated measure of training load when HR/power data unavailable
+    /// Research: Foster et al. (1998) validated sRPE against HR-based TRIMP (r=0.75-0.90)
+    ///
+    /// - Parameters:
+    ///   - rpe: Session RPE (1-10 Borg CR-10 scale)
+    ///   - durationMinutes: Total session duration in minutes
+    /// - Returns: sRPE load units (arbitrary units, comparable to TRIMP)
+    ///
+    /// Example: RPE 7 × 60 minutes = 420 sRPE load units
+    /// Typical ranges:
+    /// - Easy recovery: 100-200
+    /// - Moderate endurance: 200-400
+    /// - Hard intervals: 400-600
+    /// - Very hard race: 600+
+    public static func calculateSessionRPE(rpe: Int, durationMinutes: Double) -> Double {
+        guard rpe >= 1, rpe <= 10, durationMinutes > 0 else { return 0 }
+        return Double(rpe) * durationMinutes
+    }
+
+    /// Convert sRPE to estimated TSS equivalent
+    /// This allows sRPE-based training to be compared with power/HR-based TSS
+    /// Research: Correlation between sRPE and TSS is ~0.75-0.85
+    ///
+    /// - Parameter sRPE: Session RPE value from calculateSessionRPE
+    /// - Returns: Estimated TSS equivalent
+    ///
+    /// Calibration based on:
+    /// - RPE 5 × 60min = 300 sRPE ≈ 60 TSS (moderate 1-hour ride)
+    /// - RPE 8 × 90min = 720 sRPE ≈ 120 TSS (hard 90-min session)
+    public static func convertSRPEToTSS(sRPE: Double) -> Double {
+        // Calibration factor: sRPE ÷ 5 ≈ TSS
+        // This is approximate; actual relationship varies by individual
+        return sRPE / 5.0
+    }
+
+    // MARK: - Training Type Classification
+
+    /// Training type classification based on workout characteristics
+    public enum TrainingType: String, CaseIterable {
+        case recovery = "Recovery"
+        case endurance = "Endurance"
+        case tempo = "Tempo"
+        case threshold = "Threshold"
+        case vo2max = "VO2max"
+        case anaerobic = "Anaerobic"
+        case strength = "Strength"
+        case mixed = "Mixed"
+
+        /// Typical TSS per hour for this training type
+        public var typicalTSSPerHour: Double {
+            switch self {
+            case .recovery: return 30
+            case .endurance: return 50
+            case .tempo: return 70
+            case .threshold: return 90
+            case .vo2max: return 110
+            case .anaerobic: return 130
+            case .strength: return 60
+            case .mixed: return 70
+            }
+        }
+
+        /// Typical RPE range for this training type
+        public var typicalRPERange: ClosedRange<Int> {
+            switch self {
+            case .recovery: return 1...3
+            case .endurance: return 3...5
+            case .tempo: return 5...6
+            case .threshold: return 6...7
+            case .vo2max: return 7...9
+            case .anaerobic: return 9...10
+            case .strength: return 5...8
+            case .mixed: return 4...7
+            }
+        }
+    }
+
+    /// Classify training type from Intensity Factor (IF)
+    /// IF = Normalized Power / FTP
+    ///
+    /// - Parameter intensityFactor: IF value from workout
+    /// - Returns: Training type classification
+    ///
+    /// Research-based IF zones:
+    /// - Recovery: <0.55
+    /// - Endurance: 0.55-0.75
+    /// - Tempo: 0.75-0.85
+    /// - Threshold: 0.85-0.95
+    /// - VO2max: 0.95-1.05
+    /// - Anaerobic: >1.05
+    public static func classifyTrainingType(intensityFactor: Double) -> TrainingType {
+        switch intensityFactor {
+        case ..<0.55: return .recovery
+        case 0.55..<0.75: return .endurance
+        case 0.75..<0.85: return .tempo
+        case 0.85..<0.95: return .threshold
+        case 0.95..<1.05: return .vo2max
+        default: return .anaerobic
+        }
+    }
+
+    /// Classify training type from time-in-zone distribution
+    /// - Parameters:
+    ///   - zoneMinutes: Array of minutes spent in each zone (Z1-Z7)
+    ///   - totalMinutes: Total workout duration
+    /// - Returns: Training type classification
+    ///
+    /// Uses dominant zone approach:
+    /// - If >50% in Z1-Z2: Recovery/Endurance
+    /// - If >30% in Z3: Tempo
+    /// - If >20% in Z4: Threshold
+    /// - If >15% in Z5: VO2max
+    /// - If >10% in Z6-Z7: Anaerobic
+    /// - Otherwise: Mixed
+    public static func classifyTrainingType(zoneMinutes: [Double], totalMinutes: Double) -> TrainingType {
+        guard totalMinutes > 0, zoneMinutes.count >= 5 else { return .mixed }
+
+        let z1Pct = (zoneMinutes.count > 0 ? zoneMinutes[0] : 0) / totalMinutes
+        let z2Pct = (zoneMinutes.count > 1 ? zoneMinutes[1] : 0) / totalMinutes
+        let z3Pct = (zoneMinutes.count > 2 ? zoneMinutes[2] : 0) / totalMinutes
+        let z4Pct = (zoneMinutes.count > 3 ? zoneMinutes[3] : 0) / totalMinutes
+        let z5Pct = (zoneMinutes.count > 4 ? zoneMinutes[4] : 0) / totalMinutes
+        let z6z7Pct = (zoneMinutes.count > 5 ? zoneMinutes[5] : 0) / totalMinutes +
+                     (zoneMinutes.count > 6 ? zoneMinutes[6] : 0) / totalMinutes
+
+        // Check from highest intensity to lowest
+        if z6z7Pct > 0.10 {
+            return .anaerobic
+        } else if z5Pct > 0.15 {
+            return .vo2max
+        } else if z4Pct > 0.20 {
+            return .threshold
+        } else if z3Pct > 0.30 {
+            return .tempo
+        } else if z1Pct + z2Pct > 0.50 {
+            // Mostly low intensity
+            if z1Pct > 0.40 {
+                return .recovery
+            } else {
+                return .endurance
+            }
+        }
+
+        return .mixed
+    }
+
+    /// Classify training type from RPE
+    /// - Parameter rpe: Session RPE (1-10 scale)
+    /// - Returns: Training type classification
+    public static func classifyTrainingType(rpe: Int) -> TrainingType {
+        switch rpe {
+        case 1...3: return .recovery
+        case 4...5: return .endurance
+        case 6: return .tempo
+        case 7: return .threshold
+        case 8...9: return .vo2max
+        case 10: return .anaerobic
+        default: return .mixed
         }
     }
 }
