@@ -292,10 +292,22 @@ public struct RecoveryCalculations {
     }
     
     // MARK: - Alcohol Detection
-    
+
     /// Apply alcohol-specific compound effect detection with multi-signal confidence scoring
-    /// Sleep data is OPTIONAL - detection works with HRV/RHR alone
-    /// This reduces false positives by requiring multiple confirming signals
+    ///
+    /// REDESIGNED based on real-world data:
+    /// - User had 1/2 bottle wine + 4 cocktails (~8 standard drinks)
+    /// - HRV: 26.95ms vs 30.89ms baseline = -12.7%
+    /// - RHR: 66 bpm vs 64.5 bpm baseline = +2.3%
+    /// - Old algorithm gave 89 recovery (too high)
+    /// - Expected recovery: 60-70 range
+    ///
+    /// Key changes:
+    /// 1. Lower HRV thresholds - moderate suppression (10-15%) is significant
+    /// 2. RHR percentage-based detection (not score-based)
+    /// 3. Compound HRV+RHR signal - both changing together is strong indicator
+    /// 4. Lower confidence threshold (30% vs 40-50%)
+    /// 5. Higher penalties for confirmed cases
     public static func applyAlcoholCompoundEffect(
         baseScore: Double,
         hrvScore: Int,
@@ -304,73 +316,115 @@ public struct RecoveryCalculations {
         inputs: RecoveryInputs,
         hasIllnessIndicator: Bool
     ) -> Double {
-        
+
         // Skip alcohol detection if illness is detected (same signals as alcohol)
         if hasIllnessIndicator {
             return baseScore
         }
-        
+
         // Use overnight HRV for alcohol detection (more accurate than latest HRV)
         let hrvForAlcoholDetection = inputs.overnightHrv ?? inputs.hrv
         let hrvBaseline = inputs.hrvBaseline
-        
+
         guard let overnightHrv = hrvForAlcoholDetection, let hrvBase = hrvBaseline, hrvBase > 0 else {
             return baseScore
         }
-        
-        // Calculate HRV suppression
+
+        // Calculate HRV suppression (percentage)
         let hrvChange = ((overnightHrv - hrvBase) / hrvBase) * 100
-        
+
+        // Calculate RHR elevation (percentage) - NEW: percentage-based, not score-based
+        var rhrChange: Double = 0
+        if let rhr = inputs.rhr, let rhrBase = inputs.rhrBaseline, rhrBase > 0 {
+            rhrChange = ((rhr - rhrBase) / rhrBase) * 100
+        }
+
         // Multi-signal confidence scoring (0-100%)
         var alcoholConfidence: Double = 0
         var basePenalty: Double = 0
-        
-        // Signal 1: HRV suppression (30% max confidence) - INCREASED PENALTIES
+
+        // Signal 1: HRV suppression (40% max confidence) - RECALIBRATED THRESHOLDS
+        // -12.7% is significant after heavy drinking, not "minor"
+        // Base penalties are DIRECT impact on recovery score (not scaled down)
         if hrvChange < -35.0 {
-            alcoholConfidence += 30.0 // Severe HRV suppression
-            basePenalty = 20.0  // Was 12.0
+            alcoholConfidence += 40.0 // Extreme HRV suppression
+            basePenalty = 30.0
         } else if hrvChange < -30.0 {
-            alcoholConfidence += 28.0
-            basePenalty = 16.0  // New tier
+            alcoholConfidence += 38.0
+            basePenalty = 27.0
         } else if hrvChange < -25.0 {
-            alcoholConfidence += 25.0
-            basePenalty = 12.0  // Was 8.0
+            alcoholConfidence += 35.0
+            basePenalty = 24.0
         } else if hrvChange < -20.0 {
-            alcoholConfidence += 20.0
-            basePenalty = 10.0  // Was 5.0
+            alcoholConfidence += 32.0
+            basePenalty = 20.0
         } else if hrvChange < -15.0 {
-            alcoholConfidence += 15.0
-            basePenalty = 7.0   // New tier
+            alcoholConfidence += 28.0
+            basePenalty = 17.0
         } else if hrvChange < -10.0 {
-            alcoholConfidence += 10.0
-            basePenalty = 4.0   // Was 3.0
+            // -10% to -15% range (user's -12.7% falls here)
+            // Heavy drinking (8 drinks) should result in ~20pt penalty
+            alcoholConfidence += 25.0  // Was 22.0
+            basePenalty = 15.0         // Was 10.0
+        } else if hrvChange < -7.0 {
+            // Moderate drinking (3-4 drinks)
+            alcoholConfidence += 18.0
+            basePenalty = 10.0
+        } else if hrvChange < -5.0 {
+            // Light drinking (1-2 drinks)
+            alcoholConfidence += 12.0
+            basePenalty = 6.0
         }
-        
-        // If no HRV suppression, unlikely to be alcohol
+
+        // If no HRV suppression at all, unlikely to be alcohol
         guard alcoholConfidence > 0 else { return baseScore }
-        
-        // Signal 2: Poor sleep quality (20% confidence) - OPTIONAL
+
+        // Signal 2: RHR elevation - PERCENTAGE BASED (25% max confidence)
+        // +2.3% RHR elevation is meaningful, old algorithm missed it entirely
+        if rhrChange > 15.0 {
+            alcoholConfidence += 25.0 // Strong RHR elevation
+        } else if rhrChange > 10.0 {
+            alcoholConfidence += 20.0
+        } else if rhrChange > 5.0 {
+            alcoholConfidence += 15.0
+        } else if rhrChange > 2.0 {
+            // +2% to +5% range (user's +2.3% falls here)
+            alcoholConfidence += 10.0  // NEW: was 0% before!
+        } else if rhrChange > 0.0 {
+            alcoholConfidence += 5.0   // Any elevation is signal
+        }
+
+        // Signal 3: COMPOUND EFFECT - HRV down + RHR up together (25% max confidence)
+        // This is the KEY differentiator - alcohol causes BOTH simultaneously
+        // User's -12.7% HRV + 2.3% RHR is a STRONG compound signal
+        if hrvChange < -5.0 && rhrChange > 0.0 {
+            // Both signals present - strong alcohol indicator
+            // Compound score = HRV drop magnitude + (RHR rise * 5)
+            let compoundScore = abs(hrvChange) + (rhrChange * 5)
+            if compoundScore > 30.0 {
+                alcoholConfidence += 25.0 // Strong compound effect
+            } else if compoundScore > 20.0 {
+                // User's -12.7 + (2.3 * 5) = 12.7 + 11.5 = 24.2 → falls here
+                alcoholConfidence += 20.0 // Moderate-strong compound effect
+            } else if compoundScore > 12.0 {
+                alcoholConfidence += 15.0 // Moderate compound effect
+            } else if compoundScore > 6.0 {
+                alcoholConfidence += 10.0 // Mild compound effect
+            }
+        }
+
+        // Signal 4: Poor sleep quality (15% confidence) - OPTIONAL
         if let sleepScore = inputs.sleepScore {
             if sleepScore < 40 {
-                alcoholConfidence += 20.0 // Very poor sleep
-            } else if sleepScore < 60 {
+                alcoholConfidence += 15.0 // Very poor sleep
+            } else if sleepScore < 55 {
                 alcoholConfidence += 10.0 // Moderately poor sleep
-            }
-            
-            // Signal 3: Deep sleep suppression (15% confidence) - OPTIONAL
-            if sleepScore < 50 {
-                alcoholConfidence += 15.0 // Likely deep sleep suppression
+            } else if sleepScore < 70 {
+                alcoholConfidence += 5.0  // Below average sleep
             }
         }
-        
-        // Signal 4: Elevated RHR (15% confidence) - ALWAYS AVAILABLE
-        if rhrScore < 30 {
-            alcoholConfidence += 15.0 // Strong RHR elevation
-        } else if rhrScore < 50 {
-            alcoholConfidence += 10.0 // Moderate RHR elevation
-        }
-        
-        // Signal 5: Normal respiratory rate (15% confidence) - OPTIONAL
+
+        // Signal 5: Normal respiratory rate (10% confidence) - OPTIONAL
         // Alcohol doesn't usually elevate RR, but illness does
         if let respiratory = inputs.respiratoryRate,
            let respBaseline = inputs.respiratoryBaseline,
@@ -378,65 +432,71 @@ public struct RecoveryCalculations {
             let rrChange = (respiratory - respBaseline) / respBaseline
             if abs(rrChange) < 0.10 {
                 // RR is stable - more likely alcohol than illness
-                alcoholConfidence += 15.0
+                alcoholConfidence += 10.0
             } else if rrChange > 0.15 {
                 // RR is elevated - more likely illness, reduce confidence
-                alcoholConfidence -= 20.0
+                alcoholConfidence -= 15.0
             }
         }
-        
+
         // Signal 6: Timing/context (10% confidence) - ALWAYS AVAILABLE
-        // Weekend = higher likelihood of alcohol
+        // Weekend/Friday = higher likelihood of alcohol
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: Date())
-        if weekday == 1 || weekday == 7 { // Sunday or Saturday
+        if weekday == 1 || weekday == 7 || weekday == 6 { // Sun, Sat, or Fri
             alcoholConfidence += 10.0
         }
-        
+
         // Ensure confidence is bounded [0, 100]
         alcoholConfidence = max(0, min(100, alcoholConfidence))
-        
-        // Adaptive threshold: lower when sleep data unavailable
-        let confidenceThreshold = inputs.sleepScore == nil ? 40.0 : 50.0
-        
+
+        // LOWER confidence threshold (was 40-50%, now 30-35%)
+        let confidenceThreshold = inputs.sleepScore == nil ? 30.0 : 35.0
+
         guard alcoholConfidence >= confidenceThreshold else {
             // Low confidence - likely not alcohol, could be stress/illness
             return baseScore
         }
-        
-        // Scale penalty by confidence
-        var finalPenalty = basePenalty * (alcoholConfidence / 100.0)
-        
-        // RHR multiplier: Elevated RHR compounds the penalty
-        if rhrScore < 30 {
-            finalPenalty *= 1.5  // Strong RHR elevation = 50% worse
-        } else if rhrScore < 50 {
-            finalPenalty *= 1.25 // Moderate RHR elevation = 25% worse
+
+        // Scale penalty by confidence - but keep it meaningful
+        // At 55% confidence (user's case), we want most of the base penalty applied
+        // Formula: penalty = basePenalty * (0.5 + confidence/200)
+        // At 35% confidence: 0.5 + 0.175 = 0.675 (67.5% of base penalty)
+        // At 55% confidence: 0.5 + 0.275 = 0.775 (77.5% of base penalty)
+        // At 80% confidence: 0.5 + 0.4 = 0.9 (90% of base penalty)
+        let confidenceMultiplier = 0.5 + (alcoholConfidence / 200.0)
+        var finalPenalty = basePenalty * confidenceMultiplier
+
+        // Compound effect amplifier: Both HRV down + RHR up = more severe
+        // User's -12.7% HRV + 2.3% RHR → amplifier = 1.0 + 0.127 + 0.046 = 1.173
+        if hrvChange < -7.0 && rhrChange > 1.0 {
+            let amplifier = 1.0 + (min(abs(hrvChange), 25.0) * 0.01) + (min(rhrChange, 15.0) * 0.02)
+            finalPenalty *= amplifier
         }
-        
-        // Weekend pattern amplifier: High confidence on weekend = likely heavy drinking
-        if (weekday == 1 || weekday == 7) && alcoholConfidence > 60 {
-            finalPenalty *= 1.2  // Weekend + high confidence = 20% worse
+
+        // Weekend/Friday pattern amplifier
+        if (weekday == 1 || weekday == 7 || weekday == 6) && alcoholConfidence > 45 {
+            finalPenalty *= 1.15  // Weekend + moderate confidence = 15% worse
         }
-        
+
         // Sleep quality mitigation: Good sleep reduces alcohol penalty (OPTIONAL)
-        // (If you managed good sleep despite drinking, impact is less)
+        // But don't mitigate too much - alcohol still impacts recovery even with good sleep
         if let sleepScore = inputs.sleepScore {
-            if sleepScore >= 80 {
-                // Excellent sleep mitigates by 30%
-                finalPenalty *= 0.70
+            if sleepScore >= 85 {
+                finalPenalty *= 0.75 // Excellent sleep mitigates by 25%
+            } else if sleepScore >= 75 {
+                finalPenalty *= 0.85 // Good sleep mitigates by 15%
             } else if sleepScore >= 65 {
-                // Good sleep mitigates by 15%
-                finalPenalty *= 0.85
+                finalPenalty *= 0.92 // Decent sleep mitigates by 8%
             }
         }
-        
-        // Cap maximum penalty at 25 points (was 15)
-        finalPenalty = min(finalPenalty, 25.0)
-        
+
+        // Cap maximum penalty at 35 points
+        finalPenalty = min(finalPenalty, 35.0)
+
         // Apply alcohol penalty to base score
         let adjustedScore = baseScore - finalPenalty
-        
+
         return adjustedScore
     }
 }
