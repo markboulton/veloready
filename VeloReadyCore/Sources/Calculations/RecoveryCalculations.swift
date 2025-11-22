@@ -501,10 +501,9 @@ public struct RecoveryCalculations {
         }
 
         // NOTE: Sleep score mitigation REMOVED
-        // Problem: Sleep score doesn't account for alcohol's impact on sleep quality
-        // High sleep score (91) after alcohol is unreliable - HRV data isn't used in sleep scoring
-        // So we shouldn't let an inflated sleep score reduce the alcohol penalty
-        // TODO: Add HRV-based quality adjustment to SleepCalculations first, then reconsider this
+        // Sleep score now has HRV-based quality adjustment (SleepCalculations.applyHRVQualityAdjustment)
+        // but only uses overnight HRV, while recovery uses min(overnight, latest) HRV
+        // Keep sleep mitigation disabled for now to avoid complexity; may revisit if scoring feels too harsh
 
         // Cap maximum penalty at 35 points
         finalPenalty = min(finalPenalty, 35.0)
