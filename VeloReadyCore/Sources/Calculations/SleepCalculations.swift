@@ -65,23 +65,75 @@ public struct SleepCalculations {
     }
     
     // MARK: - Main Sleep Score Calculation
-    
+
     /// Calculate sleep score from inputs using Whoop-like algorithm
     public static func calculateScore(
         inputs: SleepInputs
     ) -> (score: Int, subScores: SubScores) {
         let subScores = calculateSubScores(inputs: inputs)
-        
+
         // Reweighted formula: Performance 30%, Stage Quality 32%, Efficiency 22%, Disturbances 14%, Timing 2%
         let performanceFactor = Double(subScores.performance) * 0.30
         let efficiencyFactor = Double(subScores.efficiency) * 0.22
         let stageQualityFactor = Double(subScores.stageQuality) * 0.32
         let disturbancesFactor = Double(subScores.disturbances) * 0.14
         let timingFactor = Double(subScores.timing) * 0.02
-        
-        let finalScore = max(0, min(100, performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor))
-        
-        return (score: Int(finalScore), subScores: subScores)
+
+        var finalScore = performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor
+
+        // Apply HRV-based quality adjustment
+        // Alcohol/stress suppresses HRV even when sleep duration/stages look normal
+        // This catches "false good sleep" scenarios
+        finalScore = applyHRVQualityAdjustment(baseScore: finalScore, inputs: inputs)
+
+        return (score: Int(max(0, min(100, finalScore))), subScores: subScores)
+    }
+
+    // MARK: - HRV Quality Adjustment
+
+    /// Apply HRV-based sleep quality adjustment
+    /// Catches alcohol/stress impact that duration-based metrics miss
+    ///
+    /// Research: Alcohol causes HRV suppression during sleep even when:
+    /// - Sleep duration meets target
+    /// - Sleep stages (deep/REM %) appear normal
+    /// - Efficiency is high
+    ///
+    /// This adjustment penalizes sleep scores when HRV is suppressed,
+    /// reflecting actual recovery quality vs perceived sleep quality.
+    private static func applyHRVQualityAdjustment(baseScore: Double, inputs: SleepInputs) -> Double {
+        guard let hrvOvernight = inputs.hrvOvernight,
+              let hrvBaseline = inputs.hrvBaseline,
+              hrvBaseline > 0 else {
+            return baseScore // No HRV data, use base score
+        }
+
+        let hrvChange = ((hrvOvernight - hrvBaseline) / hrvBaseline) * 100
+
+        // Only penalize for suppressed HRV (negative change)
+        // Elevated HRV is positive for recovery
+        guard hrvChange < -5.0 else {
+            return baseScore // HRV is normal or elevated
+        }
+
+        // Calculate penalty based on suppression magnitude
+        // Light suppression (5-10%): 3-8pt penalty
+        // Moderate suppression (10-15%): 8-15pt penalty
+        // Significant suppression (15-25%): 15-25pt penalty
+        // Severe suppression (>25%): 25-35pt penalty
+        let penalty: Double
+        if hrvChange < -25.0 {
+            penalty = 25 + min(10, (abs(hrvChange) - 25) * 0.5) // 25-35pt
+        } else if hrvChange < -15.0 {
+            penalty = 15 + (abs(hrvChange) - 15) * 1.0 // 15-25pt
+        } else if hrvChange < -10.0 {
+            penalty = 8 + (abs(hrvChange) - 10) * 1.4 // 8-15pt
+        } else {
+            // -5% to -10%
+            penalty = 3 + (abs(hrvChange) - 5) * 1.0 // 3-8pt
+        }
+
+        return baseScore - penalty
     }
     
     // MARK: - Sub-Score Calculations

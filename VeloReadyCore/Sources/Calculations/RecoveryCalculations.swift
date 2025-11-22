@@ -322,16 +322,29 @@ public struct RecoveryCalculations {
             return baseScore
         }
 
-        // Use overnight HRV for alcohol detection (more accurate than latest HRV)
-        let hrvForAlcoholDetection = inputs.overnightHrv ?? inputs.hrv
+        // Use the LOWER of overnight HRV or latest HRV for alcohol detection
+        // This catches cases where overnight HRV recovered but morning HRV is still suppressed
+        // (User reported: overnight=32.43ms vs baseline 30.89ms = +5%, but latest=27.85ms = -9.8%)
         let hrvBaseline = inputs.hrvBaseline
-
-        guard let overnightHrv = hrvForAlcoholDetection, let hrvBase = hrvBaseline, hrvBase > 0 else {
+        guard let hrvBase = hrvBaseline, hrvBase > 0 else {
             return baseScore
         }
 
-        // Calculate HRV suppression (percentage)
-        let hrvChange = ((overnightHrv - hrvBase) / hrvBase) * 100
+        // Calculate both HRV changes
+        let overnightHrvChange: Double? = inputs.overnightHrv.map { ((($0 - hrvBase) / hrvBase) * 100) }
+        let latestHrvChange: Double? = inputs.hrv.map { ((($0 - hrvBase) / hrvBase) * 100) }
+
+        // Use the MORE SUPPRESSED value (lower percentage = more suppressed)
+        let hrvChange: Double
+        if let overnight = overnightHrvChange, let latest = latestHrvChange {
+            hrvChange = min(overnight, latest) // Use the worse (more negative) value
+        } else if let overnight = overnightHrvChange {
+            hrvChange = overnight
+        } else if let latest = latestHrvChange {
+            hrvChange = latest
+        } else {
+            return baseScore // No HRV data available
+        }
 
         // Calculate RHR elevation (percentage) - NEW: percentage-based, not score-based
         var rhrChange: Double = 0
@@ -344,36 +357,44 @@ public struct RecoveryCalculations {
         var basePenalty: Double = 0
 
         // Signal 1: HRV suppression (40% max confidence) - RECALIBRATED THRESHOLDS
-        // -12.7% is significant after heavy drinking, not "minor"
         // Base penalties are DIRECT impact on recovery score (not scaled down)
+        // Thresholds shifted: -9.8% should be "significant" not "moderate"
         if hrvChange < -35.0 {
             alcoholConfidence += 40.0 // Extreme HRV suppression
-            basePenalty = 30.0
+            basePenalty = 35.0
         } else if hrvChange < -30.0 {
             alcoholConfidence += 38.0
-            basePenalty = 27.0
+            basePenalty = 30.0
         } else if hrvChange < -25.0 {
             alcoholConfidence += 35.0
-            basePenalty = 24.0
+            basePenalty = 27.0
         } else if hrvChange < -20.0 {
             alcoholConfidence += 32.0
-            basePenalty = 20.0
+            basePenalty = 24.0
         } else if hrvChange < -15.0 {
+            alcoholConfidence += 30.0
+            basePenalty = 20.0
+        } else if hrvChange < -12.0 {
+            // Heavy drinking range (12-15%)
             alcoholConfidence += 28.0
-            basePenalty = 17.0
-        } else if hrvChange < -10.0 {
-            // -10% to -15% range (user's -12.7% falls here)
-            // Heavy drinking (8 drinks) should result in ~20pt penalty
-            alcoholConfidence += 25.0  // Was 22.0
-            basePenalty = 15.0         // Was 10.0
-        } else if hrvChange < -7.0 {
-            // Moderate drinking (3-4 drinks)
-            alcoholConfidence += 18.0
-            basePenalty = 10.0
-        } else if hrvChange < -5.0 {
-            // Light drinking (1-2 drinks)
-            alcoholConfidence += 12.0
-            basePenalty = 6.0
+            basePenalty = 18.0
+        } else if hrvChange < -9.0 {
+            // Significant drinking (9-12% range) - user's -9.8% falls here
+            // 8 drinks should result in 20-25pt penalty after amplifiers
+            alcoholConfidence += 25.0
+            basePenalty = 16.0
+        } else if hrvChange < -6.0 {
+            // Moderate drinking (6-9%)
+            alcoholConfidence += 20.0
+            basePenalty = 12.0
+        } else if hrvChange < -4.0 {
+            // Light-moderate drinking (4-6%)
+            alcoholConfidence += 15.0
+            basePenalty = 8.0
+        } else if hrvChange < -2.0 {
+            // Light drinking (2-4%)
+            alcoholConfidence += 10.0
+            basePenalty = 5.0
         }
 
         // If no HRV suppression at all, unlikely to be alcohol
@@ -479,17 +500,11 @@ public struct RecoveryCalculations {
             finalPenalty *= 1.15  // Weekend + moderate confidence = 15% worse
         }
 
-        // Sleep quality mitigation: Good sleep reduces alcohol penalty (OPTIONAL)
-        // But don't mitigate too much - alcohol still impacts recovery even with good sleep
-        if let sleepScore = inputs.sleepScore {
-            if sleepScore >= 85 {
-                finalPenalty *= 0.75 // Excellent sleep mitigates by 25%
-            } else if sleepScore >= 75 {
-                finalPenalty *= 0.85 // Good sleep mitigates by 15%
-            } else if sleepScore >= 65 {
-                finalPenalty *= 0.92 // Decent sleep mitigates by 8%
-            }
-        }
+        // NOTE: Sleep score mitigation REMOVED
+        // Problem: Sleep score doesn't account for alcohol's impact on sleep quality
+        // High sleep score (91) after alcohol is unreliable - HRV data isn't used in sleep scoring
+        // So we shouldn't let an inflated sleep score reduce the alcohol penalty
+        // TODO: Add HRV-based quality adjustment to SleepCalculations first, then reconsider this
 
         // Cap maximum penalty at 35 points
         finalPenalty = min(finalPenalty, 35.0)
