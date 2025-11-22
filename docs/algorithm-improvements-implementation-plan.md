@@ -1,7 +1,7 @@
 # Algorithm Improvements Implementation Plan
 
 **Based on:** Sports Science Analysis (November 2025)
-**Status:** In Progress
+**Status:** Phases 1-5 Complete (Core Calculations)
 
 ---
 
@@ -11,7 +11,7 @@ This document outlines the phased implementation of algorithm improvements ident
 
 ---
 
-## Phase 1: Quick Wins - Sleep & Baseline Reliability ✅ IN PROGRESS
+## Phase 1: Quick Wins - Sleep & Baseline Reliability ✅ COMPLETE
 
 **Branch:** `feature/algorithm-improvements-phase1`
 **Estimated Effort:** 1-2 days
@@ -20,23 +20,23 @@ This document outlines the phased implementation of algorithm improvements ident
 
 ### Tasks
 
-- [ ] **1.1 Rebalance Sleep Score Weights**
+- [x] **1.1 Rebalance Sleep Score Weights**
   - Reduce stage quality weight from 32% to 22% (wearable accuracy is 50-65%)
   - Increase performance (duration) weight from 30% to 38%
   - Keep efficiency at 22%, disturbances at 14%, timing at 4%
   - File: `VeloReadyCore/Sources/Calculations/SleepCalculations.swift`
 
-- [ ] **1.2 Use Personalized Stage Quality by Default**
+- [x] **1.2 Use Personalized Stage Quality by Default**
   - Modify `calculateStageQualityScore` to call `calculatePersonalizedStageQualityScore`
   - Add fallback to fixed thresholds if no baseline available
   - File: `VeloReadyCore/Sources/Calculations/SleepCalculations.swift`
 
-- [ ] **1.3 Add Sleep Context Awareness**
+- [x] **1.3 Add Sleep Context Awareness**
   - Add optional `previousDayTSS` parameter to sleep calculation
   - If TSS > 150 yesterday, expect +10-15% deep sleep (don't penalize)
   - File: `VeloReadyCore/Sources/Calculations/SleepCalculations.swift`
 
-- [ ] **1.4 Add Gender-Aware TRIMP Zone Exponent**
+- [x] **1.4 Add Gender-Aware TRIMP Zone Exponent**
   - Make zone weight exponent configurable (default 2.0)
   - Research suggests 1.67 for women, 1.92 for men
   - File: `VeloReadyCore/Sources/Calculations/StrainCalculations.swift`
@@ -53,7 +53,7 @@ scripts/quick-test.sh
 
 ---
 
-## Phase 2: HRV Rolling Average & CV Metric
+## Phase 2: HRV Rolling Average & CV Metric ✅ COMPLETE
 
 **Branch:** `feature/algorithm-improvements-phase2`
 **Estimated Effort:** 3-5 days
@@ -62,30 +62,30 @@ scripts/quick-test.sh
 
 ### Tasks
 
-- [ ] **2.1 Add 7-Day Rolling LnRMSSD Calculation**
+- [x] **2.1 Add 7-Day Rolling LnRMSSD Calculation**
   - New function: `calculateRollingHRVAverage(hrvValues: [Double], days: Int = 7) -> Double?`
   - Store daily LnRMSSD values for rolling calculation
   - File: `VeloReadyCore/Sources/Calculations/BaselineCalculations.swift`
 
-- [ ] **2.2 Add HRV Coefficient of Variation (CV)**
+- [x] **2.2 Add HRV Coefficient of Variation (CV)**
   - New function: `calculateHRVCV(hrvValues: [Double]) -> Double?`
   - CV = (standard deviation / mean) * 100
   - Higher CV = less stable = need more recovery
   - File: `VeloReadyCore/Sources/Calculations/BaselineCalculations.swift`
 
-- [ ] **2.3 Update Recovery Calculation to Use Rolling HRV**
+- [x] **2.3 Update Recovery Calculation to Use Rolling HRV**
   - Add `rollingHrvAverage` and `hrvCV` to `RecoveryInputs`
   - Modify `calculateHRVComponent` to prefer rolling average
   - Add CV-based modifier (high CV → reduce score by 5-10 points)
   - File: `VeloReadyCore/Sources/Calculations/RecoveryCalculations.swift`
 
-- [ ] **2.4 Add HRV Trend Detection**
+- [x] **2.4 Add HRV Trend Detection**
   - Compare 7-day average to 30-day baseline
   - Detect improving/declining/stable trends
   - New struct: `HRVTrend { direction: .improving/.declining/.stable, magnitude: Double }`
   - File: `VeloReadyCore/Sources/Calculations/BaselineCalculations.swift`
 
-- [ ] **2.5 Update iOS Data Fetching**
+- [ ] **2.5 Update iOS Data Fetching** (deferred to UI integration)
   - Fetch 7 days of HRV history for rolling average
   - Calculate and pass CV to recovery calculator
   - Files: `VeloReady/Core/Services/Calculators/RecoveryScoreCalculator.swift`, `HealthKitManager.swift`
@@ -102,7 +102,7 @@ scripts/quick-test.sh
 
 ---
 
-## Phase 3: Training Load Enhancements
+## Phase 3: Training Load Enhancements ✅ COMPLETE
 
 **Branch:** `feature/algorithm-improvements-phase3`
 **Estimated Effort:** 3-5 days
@@ -111,24 +111,24 @@ scripts/quick-test.sh
 
 ### Tasks
 
-- [ ] **3.1 Add Half-Life Display Values**
+- [x] **3.1 Add Half-Life Display Values**
   - Calculate and expose half-life: `halfLife = timeConstant / 2.8854`
   - CTL half-life: 14.5 days, ATL half-life: 2.4 days
   - Add to model for UI display
   - File: `VeloReadyCore/Sources/Calculations/TrainingLoadCalculations.swift`
 
-- [ ] **3.2 Add Session RPE (sRPE) Support**
+- [x] **3.2 Add Session RPE (sRPE) Support**
   - New function: `calculateSRPE(rpe: Int, durationMinutes: Double) -> Double`
   - sRPE = RPE × duration (Foster method)
   - Use as fallback when HR data unavailable
   - File: `VeloReadyCore/Sources/Calculations/StrainCalculations.swift`
 
-- [ ] **3.3 Add Training Type Classification**
+- [x] **3.3 Add Training Type Classification**
   - Classify workouts: endurance, threshold, VO2max, strength, recovery
   - Based on time-in-zone distribution or IF
   - File: `VeloReadyCore/Sources/Calculations/StrainCalculations.swift`
 
-- [ ] **3.4 Add TSS Penalty Context to Recovery**
+- [x] **3.4 Add TSS Penalty Context to Recovery**
   - Show user: "Yesterday's TSS (185) is reducing your recovery by X points"
   - Transparent explanation of form score contribution
   - File: `VeloReadyCore/Sources/Calculations/RecoveryCalculations.swift`
@@ -145,7 +145,7 @@ scripts/quick-test.sh
 
 ---
 
-## Phase 4: Adaptive Personalization
+## Phase 4: Adaptive Personalization ✅ COMPLETE
 
 **Branch:** `feature/algorithm-improvements-phase4`
 **Estimated Effort:** 5-7 days
@@ -154,22 +154,22 @@ scripts/quick-test.sh
 
 ### Tasks
 
-- [ ] **4.1 Adaptive Baseline Weighting**
+- [x] **4.1 Adaptive Baseline Weighting**
   - Weight recent 7 days more heavily than older data
   - Exponentially-weighted baseline instead of simple median
   - File: `VeloReadyCore/Sources/Calculations/BaselineCalculations.swift`
 
-- [ ] **4.2 Personal Sleep Stage Baselines**
+- [x] **4.2 Personal Sleep Stage Baselines**
   - Track user's 30-day deep/REM percentages
   - Use these as personal targets instead of fixed 15%/20%
   - File: `VeloReadyCore/Sources/Calculations/SleepCalculations.swift`
 
-- [ ] **4.3 Configurable Time Constants (Foundation)**
+- [x] **4.3 Configurable Time Constants (Foundation)**
   - Allow CTL/ATL time constants to be user-configurable
   - Default: 42/7, Range: 30-60 / 5-10
   - File: `VeloReadyCore/Sources/Calculations/TrainingLoadCalculations.swift`
 
-- [ ] **4.4 Recovery Profile Detection**
+- [x] **4.4 Recovery Profile Detection**
   - Analyze user's historical recovery patterns
   - Detect: "fast recoverer" vs "slow recoverer"
   - Adjust scoring sensitivity based on profile
@@ -187,7 +187,7 @@ scripts/quick-test.sh
 
 ---
 
-## Phase 5: HRV-Guided Training Recommendations
+## Phase 5: HRV-Guided Training Recommendations ✅ COMPLETE
 
 **Branch:** `feature/algorithm-improvements-phase5`
 **Estimated Effort:** 5-7 days
@@ -196,23 +196,23 @@ scripts/quick-test.sh
 
 ### Tasks
 
-- [ ] **5.1 Daily Readiness Classification**
+- [x] **5.1 Daily Readiness Classification**
   - Based on HRV trend + CV + recovery score
   - Categories: "Train Hard", "Train Moderate", "Train Easy", "Rest"
   - New file: `VeloReadyCore/Sources/Calculations/ReadinessCalculations.swift`
 
-- [ ] **5.2 Training Recommendation Logic**
+- [x] **5.2 Training Recommendation Logic**
   - If HRV trend improving + low CV + recovery > 70 → "Train Hard"
   - If HRV stable + moderate CV + recovery 50-70 → "Train Moderate"
   - If HRV declining or high CV or recovery < 50 → "Rest/Easy"
   - File: `VeloReadyCore/Sources/Calculations/ReadinessCalculations.swift`
 
-- [ ] **5.3 Recommendation Confidence Score**
+- [x] **5.3 Recommendation Confidence Score**
   - Based on data quality and historical accuracy
   - Show user: "85% confident you should train hard today"
   - File: `VeloReadyCore/Sources/Calculations/ReadinessCalculations.swift`
 
-- [ ] **5.4 iOS UI Integration**
+- [ ] **5.4 iOS UI Integration** (deferred to UI phase)
   - Display recommendation on Today view
   - Show reasoning: "HRV is 8% above baseline, CV is low (4.2%)"
   - Files: iOS UI components
@@ -309,11 +309,11 @@ fix(recovery): Use rolling HRV instead of single-day
 
 | Phase | Status | Branch | Started | Completed |
 |-------|--------|--------|---------|-----------|
-| Phase 1 | 🟡 In Progress | `feature/algorithm-improvements-phase1` | Nov 2025 | - |
-| Phase 2 | ⚪ Not Started | - | - | - |
-| Phase 3 | ⚪ Not Started | - | - | - |
-| Phase 4 | ⚪ Not Started | - | - | - |
-| Phase 5 | ⚪ Not Started | - | - | - |
+| Phase 1 | ✅ Complete | `feature/algorithm-improvements-phase1` | Nov 2025 | Nov 2025 |
+| Phase 2 | ✅ Complete | `feature/algorithm-improvements-phase2` | Nov 2025 | Nov 2025 |
+| Phase 3 | ✅ Complete | `feature/algorithm-improvements-phase3` | Nov 2025 | Nov 2025 |
+| Phase 4 | ✅ Complete | `feature/algorithm-improvements-phase4` | Nov 2025 | Nov 2025 |
+| Phase 5 | ✅ Complete | `feature/algorithm-improvements-phase5` | Nov 2025 | Nov 2025 |
 | Phase 6 | ⚪ Not Started | - | - | - |
 
 ---
