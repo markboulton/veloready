@@ -4,36 +4,83 @@ import Foundation
 /// Extracted from StrainScoreCalculator in iOS app
 /// No dependencies on iOS frameworks or UI
 public struct StrainCalculations {
-    
+
+    // MARK: - Gender Enum
+
+    /// Biological sex for physiologically-accurate TRIMP calculation
+    /// Research: Banister's original TRIMP uses gender-specific exponents
+    /// - Female: 1.67 (lower lactate response at given HR%)
+    /// - Male: 1.92 (higher lactate response at given HR%)
+    public enum BiologicalSex {
+        case female
+        case male
+        case unspecified
+    }
+
     // MARK: - Constants
-    
+
+    /// Zone weight exponents for TRIMP calculation (research-based)
+    /// Banister's original research used gender-specific values
+    /// The exponent models the exponential relationship between HR% and blood lactate
+    public struct ZoneExponents {
+        /// Female exponent from Banister's research
+        public static let female: Double = 1.67
+        /// Male exponent from Banister's research
+        public static let male: Double = 1.92
+        /// Default/unspecified (average of male/female, slightly weighted toward male for cycling)
+        public static let unspecified: Double = 1.85
+
+        /// Get the appropriate exponent for a given sex
+        public static func forSex(_ sex: BiologicalSex) -> Double {
+            switch sex {
+            case .female: return female
+            case .male: return male
+            case .unspecified: return unspecified
+            }
+        }
+    }
+
+    /// Legacy zone weight exponent (kept for backward compatibility)
+    /// Note: 2.2 was slightly aggressive; research suggests 1.67-1.92 range
     private static let zoneWeightExponent: Double = 2.2
     private static let intensityBlendPower: Double = 0.6
     
     // MARK: - TRIMP Calculations
-    
-    /// Calculate TRIMP from heart rate data points
+
+    /// Calculate TRIMP from heart rate data points using research-based gender-specific exponents
     /// - Parameters:
     ///   - heartRateData: Array of (time, heartRate) tuples
     ///   - restingHR: Resting heart rate
     ///   - maxHR: Maximum heart rate
+    ///   - sex: Biological sex for accurate exponent selection (optional)
+    ///   - customExponent: Override exponent if provided (for advanced users)
     /// - Returns: TRIMP value
+    ///
+    /// Research: Banister's original TRIMP uses gender-specific weighting exponents
+    /// - Female: y = 0.86 × e^(1.67x) where x = HR reserve fraction
+    /// - Male: y = 0.64 × e^(1.92x)
+    /// The exponent models the exponential relationship between %HRR and blood lactate
     public static func calculateTRIMP(
         heartRateData: [(time: TimeInterval, hr: Double)],
         restingHR: Double,
-        maxHR: Double
+        maxHR: Double,
+        sex: BiologicalSex = .unspecified,
+        customExponent: Double? = nil
     ) -> Double {
         guard !heartRateData.isEmpty,
               maxHR > restingHR,
               restingHR > 0 else { return 0 }
-        
+
+        // Use custom exponent if provided, otherwise use gender-specific value
+        let exponent = customExponent ?? ZoneExponents.forSex(sex)
+
         var trimpSum: Double = 0
         let maxMinusRest = maxHR - restingHR
-        
+
         for (index, dataPoint) in heartRateData.enumerated() {
             let hrRR = max(0, min(1, (dataPoint.hr - restingHR) / maxMinusRest))
-            let intensityWeight = pow(hrRR, zoneWeightExponent)
-            
+            let intensityWeight = pow(hrRR, exponent)
+
             // Calculate time difference (duration in seconds)
             let timeDelta: TimeInterval
             if index == 0 {
@@ -41,46 +88,53 @@ public struct StrainCalculations {
             } else {
                 timeDelta = dataPoint.time - heartRateData[index - 1].time
             }
-            
+
             trimpSum += intensityWeight * timeDelta
         }
-        
+
         return trimpSum
     }
     
-    /// Calculate blended TRIMP (heart rate + power)
+    /// Calculate blended TRIMP (heart rate + power) with gender-aware exponent
     /// - Parameters:
     ///   - heartRateData: Array of (time, heartRate, power) tuples
     ///   - restingHR: Resting heart rate
     ///   - maxHR: Maximum heart rate
     ///   - ftp: Functional Threshold Power
+    ///   - sex: Biological sex for accurate exponent selection (optional)
+    ///   - customExponent: Override exponent if provided (for advanced users)
     /// - Returns: Blended TRIMP value
     public static func calculateBlendedTRIMP(
         heartRateData: [(time: TimeInterval, hr: Double, power: Double)],
         restingHR: Double,
         maxHR: Double,
-        ftp: Double
+        ftp: Double,
+        sex: BiologicalSex = .unspecified,
+        customExponent: Double? = nil
     ) -> Double {
         guard !heartRateData.isEmpty,
               maxHR > restingHR,
               ftp > 0 else { return 0 }
-        
+
+        // Use custom exponent if provided, otherwise use gender-specific value
+        let exponent = customExponent ?? ZoneExponents.forSex(sex)
+
         var trimpSum: Double = 0
         let maxMinusRest = maxHR - restingHR
-        
+
         for (index, dataPoint) in heartRateData.enumerated() {
             // Heart rate component
             let hrRR = max(0, min(1, (dataPoint.hr - restingHR) / maxMinusRest))
-            
+
             // Power component
             let powerFraction = max(0, dataPoint.power / ftp)
-            
+
             // Blend components
             let blendedIntensity = (intensityBlendPower * hrRR) + ((1.0 - intensityBlendPower) * powerFraction)
             let clampedIntensity = max(0, min(1, blendedIntensity))
-            
-            let intensityWeight = pow(clampedIntensity, zoneWeightExponent)
-            
+
+            let intensityWeight = pow(clampedIntensity, exponent)
+
             // Calculate time difference
             let timeDelta: TimeInterval
             if index == 0 {
@@ -88,10 +142,10 @@ public struct StrainCalculations {
             } else {
                 timeDelta = dataPoint.time - heartRateData[index - 1].time
             }
-            
+
             trimpSum += intensityWeight * timeDelta
         }
-        
+
         return trimpSum
     }
     

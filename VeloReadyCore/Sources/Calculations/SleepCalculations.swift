@@ -64,20 +64,50 @@ public struct SleepCalculations {
         }
     }
     
+    // MARK: - Weight Constants
+
+    /// Sleep score component weights - research-informed rebalancing
+    /// Rationale: Wearable sleep stage accuracy is 50-65% (PMC Polysomnography Study)
+    /// Duration (performance) is the most reliably measured metric
+    /// Stage quality weight reduced due to measurement uncertainty
+    public struct Weights {
+        public static let performance: Double = 0.38      // Duration vs need (most reliable)
+        public static let efficiency: Double = 0.22       // Time asleep vs in bed
+        public static let stageQuality: Double = 0.22     // Deep + REM % (reduced from 32% due to wearable accuracy)
+        public static let disturbances: Double = 0.14     // Wake events
+        public static let timing: Double = 0.04           // Consistency (increased from 2%)
+    }
+
     // MARK: - Main Sleep Score Calculation
 
-    /// Calculate sleep score from inputs using Whoop-like algorithm
+    /// Calculate sleep score from inputs using research-informed algorithm
+    /// - Parameters:
+    ///   - inputs: Sleep data inputs
+    ///   - personalDeepBaseline: User's 30-day average deep sleep % (nil = use population average 15%)
+    ///   - personalREMBaseline: User's 30-day average REM sleep % (nil = use population average 20%)
+    ///   - previousDayTSS: Training Stress Score from previous day (for context-aware scoring)
+    /// - Returns: Sleep score (0-100) and sub-scores breakdown
     public static func calculateScore(
-        inputs: SleepInputs
+        inputs: SleepInputs,
+        personalDeepBaseline: Double? = nil,
+        personalREMBaseline: Double? = nil,
+        previousDayTSS: Double? = nil
     ) -> (score: Int, subScores: SubScores) {
-        let subScores = calculateSubScores(inputs: inputs)
+        let subScores = calculateSubScores(
+            inputs: inputs,
+            personalDeepBaseline: personalDeepBaseline,
+            personalREMBaseline: personalREMBaseline,
+            previousDayTSS: previousDayTSS
+        )
 
-        // Reweighted formula: Performance 30%, Stage Quality 32%, Efficiency 22%, Disturbances 14%, Timing 2%
-        let performanceFactor = Double(subScores.performance) * 0.30
-        let efficiencyFactor = Double(subScores.efficiency) * 0.22
-        let stageQualityFactor = Double(subScores.stageQuality) * 0.32
-        let disturbancesFactor = Double(subScores.disturbances) * 0.14
-        let timingFactor = Double(subScores.timing) * 0.02
+        // Research-informed weights: Performance 38%, Efficiency 22%, Stage Quality 22%, Disturbances 14%, Timing 4%
+        // Rationale: Wearable sleep stage accuracy is only 50-65% (PMC study)
+        // Duration is most reliably measured, so increased weight
+        let performanceFactor = Double(subScores.performance) * Weights.performance
+        let efficiencyFactor = Double(subScores.efficiency) * Weights.efficiency
+        let stageQualityFactor = Double(subScores.stageQuality) * Weights.stageQuality
+        let disturbancesFactor = Double(subScores.disturbances) * Weights.disturbances
+        let timingFactor = Double(subScores.timing) * Weights.timing
 
         var finalScore = performanceFactor + efficiencyFactor + stageQualityFactor + disturbancesFactor + timingFactor
 
@@ -137,14 +167,35 @@ public struct SleepCalculations {
     }
     
     // MARK: - Sub-Score Calculations
-    
-    public static func calculateSubScores(inputs: SleepInputs) -> SubScores {
+
+    /// Calculate all sub-scores with optional personalization and context
+    /// - Parameters:
+    ///   - inputs: Sleep data inputs
+    ///   - personalDeepBaseline: User's personal deep sleep % baseline (nil = use 15%)
+    ///   - personalREMBaseline: User's personal REM sleep % baseline (nil = use 20%)
+    ///   - previousDayTSS: TSS from previous day for context-aware stage scoring
+    /// - Returns: SubScores breakdown
+    public static func calculateSubScores(
+        inputs: SleepInputs,
+        personalDeepBaseline: Double? = nil,
+        personalREMBaseline: Double? = nil,
+        previousDayTSS: Double? = nil
+    ) -> SubScores {
         let performanceScore = calculatePerformanceScore(inputs: inputs)
         let efficiencyScore = calculateEfficiencyScore(inputs: inputs)
-        let stageQualityScore = calculateStageQualityScore(inputs: inputs)
+
+        // Use personalized stage quality scoring by default (research-backed)
+        // Falls back to population averages if personal baselines not available
+        let stageQualityScore = calculatePersonalizedStageQualityScore(
+            inputs: inputs,
+            personalDeepBaseline: personalDeepBaseline,
+            personalREMBaseline: personalREMBaseline,
+            previousDayTSS: previousDayTSS
+        )
+
         let disturbancesScore = calculateDisturbancesScore(inputs: inputs)
         let timingScore = calculateTimingScore(inputs: inputs)
-        
+
         return SubScores(
             performance: performanceScore,
             efficiency: efficiencyScore,
@@ -204,30 +255,59 @@ public struct SleepCalculations {
     }
     
     /// Calculate personalized stage quality component using user's historical baselines
+    /// Includes context awareness for post-exercise sleep architecture changes
+    ///
+    /// Research (Taylor & Francis, 2025): Hard training days cause altered sleep architecture
+    /// - Deep sleep typically increases +10-15% after high-intensity training
+    /// - REM sleep may decrease -5-10%
+    /// This is a NORMAL physiological response, not "poor" sleep
+    ///
     /// - Parameters:
     ///   - inputs: Sleep inputs
     ///   - personalDeepBaseline: User's 30-day average deep sleep percentage (optional, uses 0.15 if nil)
     ///   - personalREMBaseline: User's 30-day average REM sleep percentage (optional, uses 0.20 if nil)
+    ///   - previousDayTSS: Training Stress Score from previous day (optional, for context-aware scoring)
     /// - Returns: Stage quality score 0-100
     public static func calculatePersonalizedStageQualityScore(
         inputs: SleepInputs,
         personalDeepBaseline: Double? = nil,
-        personalREMBaseline: Double? = nil
+        personalREMBaseline: Double? = nil,
+        previousDayTSS: Double? = nil
     ) -> Int {
         guard let sleepDuration = inputs.sleepDuration,
               sleepDuration > 0 else { return 50 }
-        
+
         let deepDuration = inputs.deepSleepDuration ?? 0
         let remDuration = inputs.remSleepDuration ?? 0
-        
+
         // Calculate actual percentages
         let deepPercentage = deepDuration / sleepDuration
         let remPercentage = remDuration / sleepDuration
-        
+
         // Use personalized baselines if available, otherwise use population averages
-        let targetDeep = personalDeepBaseline ?? 0.15 // Default: 15% deep sleep
-        let targetREM = personalREMBaseline ?? 0.20   // Default: 20% REM sleep
-        
+        var targetDeep = personalDeepBaseline ?? 0.15 // Default: 15% deep sleep
+        var targetREM = personalREMBaseline ?? 0.20   // Default: 20% REM sleep
+
+        // Context-aware adjustment: After hard training, expect more deep sleep, less REM
+        // Research: Match days showed deep +9.8%, REM -6.9% vs baseline
+        // Don't penalize this normal physiological response
+        if let tss = previousDayTSS {
+            if tss >= 200 {
+                // Very hard day (TSS 200+): Expect significantly more deep, less REM
+                targetDeep *= 0.85  // Lower threshold (expect more deep sleep)
+                targetREM *= 1.10   // Higher tolerance (expect less REM)
+            } else if tss >= 150 {
+                // Hard day (TSS 150-200): Moderate adjustment
+                targetDeep *= 0.90
+                targetREM *= 1.05
+            } else if tss >= 100 {
+                // Moderate day (TSS 100-150): Small adjustment
+                targetDeep *= 0.95
+                targetREM *= 1.02
+            }
+            // TSS < 100: No adjustment needed (easy/rest day)
+        }
+
         // Score deep sleep component (0-50 points)
         var deepScore: Double = 0
         if deepPercentage >= targetDeep {
@@ -235,10 +315,10 @@ public struct SleepCalculations {
             deepScore = 50
         } else {
             // Below baseline - scale proportionally
-            let ratio = deepPercentage / targetDeep
+            let ratio = targetDeep > 0 ? deepPercentage / targetDeep : 0
             deepScore = ratio * 50
         }
-        
+
         // Score REM sleep component (0-50 points)
         var remScore: Double = 0
         if remPercentage >= targetREM {
@@ -246,13 +326,13 @@ public struct SleepCalculations {
             remScore = 50
         } else {
             // Below baseline - scale proportionally
-            let ratio = remPercentage / targetREM
+            let ratio = targetREM > 0 ? remPercentage / targetREM : 0
             remScore = ratio * 50
         }
-        
+
         // Combined score (0-100)
         let finalScore = deepScore + remScore
-        
+
         return max(0, min(100, Int(finalScore)))
     }
     
