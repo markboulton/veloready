@@ -21,13 +21,19 @@ public struct RecoveryCalculations {
         public let ctl: Double?
         public let recentStrain: Double?
         public let sleepScore: Int?
-        
+
+        // Phase 2: Rolling HRV metrics (research-backed - Plews et al., 2013)
+        public let rollingHrvAverage: Double?   // 7-day rolling average
+        public let hrvCV: Double?               // Coefficient of variation (%)
+        public let hrvTrendMagnitude: Double?   // % change from baseline
+
         public init(hrv: Double? = nil, overnightHrv: Double? = nil, hrvBaseline: Double? = nil,
                     rhr: Double? = nil, rhrBaseline: Double? = nil,
                     sleepDuration: Double? = nil, sleepBaseline: Double? = nil,
                     respiratoryRate: Double? = nil, respiratoryBaseline: Double? = nil,
                     atl: Double? = nil, ctl: Double? = nil,
-                    recentStrain: Double? = nil, sleepScore: Int? = nil) {
+                    recentStrain: Double? = nil, sleepScore: Int? = nil,
+                    rollingHrvAverage: Double? = nil, hrvCV: Double? = nil, hrvTrendMagnitude: Double? = nil) {
             self.hrv = hrv
             self.overnightHrv = overnightHrv
             self.hrvBaseline = hrvBaseline
@@ -41,6 +47,9 @@ public struct RecoveryCalculations {
             self.ctl = ctl
             self.recentStrain = recentStrain
             self.sleepScore = sleepScore
+            self.rollingHrvAverage = rollingHrvAverage
+            self.hrvCV = hrvCV
+            self.hrvTrendMagnitude = hrvTrendMagnitude
         }
     }
     
@@ -115,12 +124,18 @@ public struct RecoveryCalculations {
     // MARK: - Sub-Score Calculations
     
     public static func calculateSubScores(inputs: RecoveryInputs) -> SubScores {
-        let hrvScore = calculateHRVComponent(hrv: inputs.hrv, baseline: inputs.hrvBaseline)
+        // Use rolling HRV average and CV if available (Phase 2 enhancement)
+        let hrvScore = calculateHRVComponent(
+            hrv: inputs.hrv,
+            baseline: inputs.hrvBaseline,
+            rollingAverage: inputs.rollingHrvAverage,
+            cv: inputs.hrvCV
+        )
         let rhrScore = calculateRHRComponent(rhr: inputs.rhr, baseline: inputs.rhrBaseline)
         let sleepScore = calculateSleepComponent(sleepScore: inputs.sleepScore, sleepDuration: inputs.sleepDuration, baseline: inputs.sleepBaseline)
         let respiratoryScore = calculateRespiratoryComponent(respiratory: inputs.respiratoryRate, baseline: inputs.respiratoryBaseline)
         let formScore = calculateFormComponent(atl: inputs.atl, ctl: inputs.ctl, recentStrain: inputs.recentStrain)
-        
+
         return SubScores(
             hrv: hrvScore,
             rhr: rhrScore,
@@ -131,36 +146,77 @@ public struct RecoveryCalculations {
     }
     
     /// Calculate HRV component of recovery score (0-100)
-    public static func calculateHRVComponent(hrv: Double?, baseline: Double?) -> Int {
-        guard let hrv = hrv, let baseline = baseline, baseline > 0 else { return 50 }
-        
+    /// Prefers rolling 7-day average over single-day HRV (research: Plews et al., 2013)
+    /// - Parameters:
+    ///   - hrv: Today's HRV value (fallback if no rolling average)
+    ///   - baseline: Long-term HRV baseline (30-day)
+    ///   - rollingAverage: 7-day rolling HRV average (preferred if available)
+    ///   - cv: HRV coefficient of variation (optional, for stability adjustment)
+    /// - Returns: HRV component score (0-100)
+    public static func calculateHRVComponent(
+        hrv: Double?,
+        baseline: Double?,
+        rollingAverage: Double? = nil,
+        cv: Double? = nil
+    ) -> Int {
+        guard let baseline = baseline, baseline > 0 else { return 50 }
+
+        // Prefer rolling average over single-day HRV (less noise)
+        let hrvValue: Double
+        if let rolling = rollingAverage {
+            hrvValue = rolling
+        } else if let today = hrv {
+            hrvValue = today
+        } else {
+            return 50
+        }
+
         // Softer HRV scoring - less aggressive penalties
-        let percentageChange = (hrv - baseline) / baseline
-        
+        let percentageChange = (hrvValue - baseline) / baseline
+
+        var baseScore: Int
         if percentageChange >= 0 {
-            return 100 // At or above baseline = excellent
+            baseScore = 100 // At or above baseline = excellent
         } else {
             // Gentler non-linear scaling
             let absChange = abs(percentageChange)
-            
+
             if absChange <= 0.10 {
                 // Small drop (0-10%): Minimal penalty
                 let score = 100 - (absChange * 150) // Scale 0-10% to 100-85
-                return max(85, Int(score))
+                baseScore = max(85, Int(score))
             } else if absChange <= 0.20 {
                 // Moderate drop (10-20%): Moderate penalty
                 let score = 85 - ((absChange - 0.10) * 250) // Scale 10-20% to 85-60
-                return max(60, Int(score))
+                baseScore = max(60, Int(score))
             } else if absChange <= 0.35 {
                 // Significant drop (20-35%): Larger penalty
                 let score = 60 - ((absChange - 0.20) * 200) // Scale 20-35% to 60-30
-                return max(30, Int(score))
+                baseScore = max(30, Int(score))
             } else {
                 // Extreme drop (>35%): Maximum penalty
                 let score = 30 - ((absChange - 0.35) * 60) // Scale 35%+ to 30-0
-                return max(0, Int(score))
+                baseScore = max(0, Int(score))
             }
         }
+
+        // Apply CV-based stability modifier
+        // Research: "Athletes with smallest CV handle overload well... highest CV respond least favorably"
+        if let cvValue = cv {
+            let stabilityModifier: Int
+            if cvValue < 5.0 {
+                stabilityModifier = 5    // Excellent stability = bonus
+            } else if cvValue < 10.0 {
+                stabilityModifier = 0    // Good stability = no change
+            } else if cvValue < 15.0 {
+                stabilityModifier = -5   // Moderate instability = penalty
+            } else {
+                stabilityModifier = -10  // High instability = significant penalty
+            }
+            baseScore = max(0, min(100, baseScore + stabilityModifier))
+        }
+
+        return baseScore
     }
     
     /// Calculate RHR component of recovery score (0-100)
